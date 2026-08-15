@@ -7491,7 +7491,7 @@ public class Character extends AbstractCharacterObject {
                     long nQuickslotKeymapped = NumberTool.BytesToLong(this.quickSlotKeyMapped.GetKeybindings());
 
                     // Quickslot key config
-                    try (PreparedStatement ps = con.prepareStatement("INSERT INTO quickslotkeymapped (accountid, keymap) VALUES (?, ?) ON DUPLICATE KEY UPDATE keymap = ?;")) {
+                    try (PreparedStatement ps = con.prepareStatement("INSERT INTO quickslotkeymapped (accountid, keymap) VALUES (?, ?) ON CONFLICT(accountid) DO UPDATE SET keymap = ?;")) {
                         ps.setInt(1, this.getAccountId());
                         ps.setLong(2, nQuickslotKeymapped);
                         ps.setLong(3, nQuickslotKeymapped);
@@ -7730,7 +7730,7 @@ public class Character extends AbstractCharacterObject {
                 if (!bQuickslotEquals) {
                     long nQuickslotKeymapped = NumberTool.BytesToLong(this.quickSlotKeyMapped.GetKeybindings());
 
-                    try (final PreparedStatement psQuick = con.prepareStatement("INSERT INTO quickslotkeymapped (accountid, keymap) VALUES (?, ?) ON DUPLICATE KEY UPDATE keymap = ?;")) {
+                    try (final PreparedStatement psQuick = con.prepareStatement("INSERT INTO quickslotkeymapped (accountid, keymap) VALUES (?, ?) ON CONFLICT(accountid) DO UPDATE SET keymap = ?;")) {
                         psQuick.setInt(1, this.getAccountId());
                         psQuick.setLong(2, nQuickslotKeymapped);
                         psQuick.setLong(3, nQuickslotKeymapped);
@@ -7838,7 +7838,7 @@ public class Character extends AbstractCharacterObject {
 
                 // Area info
                 deleteWhereCharacterId(con, "DELETE FROM area_info WHERE charid = ?");
-                try (PreparedStatement psArea = con.prepareStatement("INSERT INTO area_info (id, charid, area, info) VALUES (DEFAULT, ?, ?, ?)")) {
+                try (PreparedStatement psArea = con.prepareStatement("INSERT INTO area_info (id, charid, area, info) VALUES (NULL, ?, ?, ?)")) {
                     psArea.setInt(1, id);
 
                     for (Entry<Short, String> area : area_info.entrySet()) {
@@ -7866,9 +7866,9 @@ public class Character extends AbstractCharacterObject {
                 deleteQuestProgressWhereCharacterId(con, id);
 
                 // Quests and medals
-                try (PreparedStatement psStatus = con.prepareStatement("INSERT INTO queststatus (`queststatusid`, `characterid`, `quest`, `status`, `time`, `expires`, `forfeited`, `completed`) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
-                     PreparedStatement psProgress = con.prepareStatement("INSERT INTO questprogress VALUES (DEFAULT, ?, ?, ?, ?)");
-                     PreparedStatement psMedal = con.prepareStatement("INSERT INTO medalmaps VALUES (DEFAULT, ?, ?, ?)")) {
+                try (PreparedStatement psStatus = con.prepareStatement("INSERT INTO queststatus (`queststatusid`, `characterid`, `quest`, `status`, `time`, `expires`, `forfeited`, `completed`) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+                     PreparedStatement psProgress = con.prepareStatement("INSERT INTO questprogress VALUES (NULL, ?, ?, ?, ?)");
+                     PreparedStatement psMedal = con.prepareStatement("INSERT INTO medalmaps VALUES (NULL, ?, ?, ?)")) {
                     psStatus.setInt(1, id);
 
                     for (QuestStatus qs : getQuestValues()) {

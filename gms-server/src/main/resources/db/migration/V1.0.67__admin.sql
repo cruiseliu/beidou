@@ -2,7 +2,6 @@
 -- Dumping data for table `accounts`
 --
 
-LOCK TABLES `accounts` WRITE;
 /*!40000 ALTER TABLE `accounts`
     DISABLE KEYS */;
 INSERT INTO `accounts`
@@ -11,13 +10,11 @@ VALUES (1, 'admin', '$2y$12$aFD9BDeUocDMY1X4tDYDyeJw/HhkQwCQWs3KAY7gCaRG0cpqJcaL
         '2005-05-11 03:00:00', 0, 1, NULL, 1, NULL, 0, NULL, NULL, 0, 0, '1234-5678', 2);
 /*!40000 ALTER TABLE `accounts`
     ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Dumping data for table `characters`
 --
 
-LOCK TABLES `characters` WRITE;
 /*!40000 ALTER TABLE `characters`
     DISABLE KEYS */;
 INSERT INTO `characters`
@@ -27,13 +24,11 @@ VALUES (1, 1, 0, 'Admin', 1, 0, 0, 12, 5, 4, 4, 50, 5, 50, 5, 0, 0, 0, 0, 0, 0, 
         '2015-01-01 05:00:00', 1, 0);
 /*!40000 ALTER TABLE `characters`
     ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Dumping data for table `inventoryequipment`
 --
 
-LOCK TABLES `inventoryequipment` WRITE;
 /*!40000 ALTER TABLE `inventoryequipment`
     DISABLE KEYS */;
 INSERT INTO `inventoryequipment`
@@ -43,13 +38,11 @@ VALUES (17, 22, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -
        (20, 25, 7, 0, 0, 0, 0, 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1);
 /*!40000 ALTER TABLE `inventoryequipment`
     ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Dumping data for table `inventoryitems`
 --
 
-LOCK TABLES `inventoryitems` WRITE;
 /*!40000 ALTER TABLE `inventoryitems`
     DISABLE KEYS */;
 INSERT INTO `inventoryitems`
@@ -60,13 +53,11 @@ VALUES (21, 1, 1, NULL, 4161001, 4, 1, 1, '', -1, 0, -1, ''),
        (25, 1, 1, NULL, 1302000, -1, -11, 1, '', -1, 0, -1, '');
 /*!40000 ALTER TABLE `inventoryitems`
     ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Dumping data for table `keymap`
 --
 
-LOCK TABLES `keymap` WRITE;
 /*!40000 ALTER TABLE `keymap`
     DISABLE KEYS */;
 INSERT INTO `keymap`
@@ -112,17 +103,14 @@ VALUES (161, 1, 18, 4, 0),
        (200, 1, 39, 4, 27);
 /*!40000 ALTER TABLE `keymap`
     ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Dumping data for table `storages`
 --
 
-LOCK TABLES `storages` WRITE;
 /*!40000 ALTER TABLE `storages`
     DISABLE KEYS */;
 INSERT INTO `storages`
 VALUES (1, 1, 0, 4, 0);
 /*!40000 ALTER TABLE `storages`
     ENABLE KEYS */;
-UNLOCK TABLES;

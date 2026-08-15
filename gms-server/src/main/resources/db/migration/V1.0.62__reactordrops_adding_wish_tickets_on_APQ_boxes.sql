@@ -1,4 +1,4 @@
-# adding wish tickets on APQ boxes
+-- &
 INSERT INTO `reactordrops`
     (`reactorid`, `itemid`, `chance`, `questid`)
 VALUES (6702003, 4031543, 1, -1),

@@ -1,4 +1,4 @@
-# delete all unused content on reactor drop data
+-- &
 DELETE
 FROM `reactordrops`
 WHERE itemid = 1102260;

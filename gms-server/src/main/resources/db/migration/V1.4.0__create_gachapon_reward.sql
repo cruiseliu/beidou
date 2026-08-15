@@ -14,22 +14,21 @@
  Date: 19/09/2024 20:21:48
 */
 
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
 
 -- ----------------------------
 -- Table structure for gachapon_reward
 -- ----------------------------
 DROP TABLE IF EXISTS `gachapon_reward`;
 CREATE TABLE `gachapon_reward`  (
-  `id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
-  `pool_id` int NOT NULL COMMENT '绑定奖池ID',
-  `item_id` int NOT NULL COMMENT '道具ID',
-  `quantity` int NOT NULL DEFAULT 1 COMMENT '单次抽取数量',
-  `create_time` datetime NULL DEFAULT NULL COMMENT '创建日期',
-  `comment` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2082 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `pool_id` int NOT NULL,
+  `item_id` int NOT NULL,
+  `quantity` int NOT NULL DEFAULT 1,
+  `create_time` datetime NULL DEFAULT NULL,
+  `comment` varchar(255) NULL DEFAULT NULL
+
+);
+
 
 -- ----------------------------
 -- Records of gachapon_reward
@@ -2115,5 +2114,3 @@ INSERT INTO `gachapon_reward` VALUES (2078, 36, 2049100, 1, '2024-09-19 20:19:58
 INSERT INTO `gachapon_reward` VALUES (2079, 36, 2340000, 1, '2024-09-19 20:19:58', 'Scrolls');
 INSERT INTO `gachapon_reward` VALUES (2080, 36, 3010063, 1, '2024-09-19 20:19:58', 'Chairs');
 INSERT INTO `gachapon_reward` VALUES (2081, 36, 3010064, 1, '2024-09-19 20:19:58', 'Chairs');
-
-SET FOREIGN_KEY_CHECKS = 1;

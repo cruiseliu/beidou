@@ -42,8 +42,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
 
-import static com.mybatisflex.core.query.QueryMethods.dateDiff;
-import static com.mybatisflex.core.query.QueryMethods.now;
 import static org.gms.dao.entity.table.AccountsDOTableDef.ACCOUNTS_D_O;
 import static org.gms.dao.entity.table.AreaInfoDOTableDef.AREA_INFO_D_O;
 import static org.gms.dao.entity.table.BbsRepliesDOTableDef.BBS_REPLIES_D_O;
@@ -65,6 +63,7 @@ import static org.gms.dao.entity.table.SkillmacrosDOTableDef.SKILLMACROS_D_O;
 import static org.gms.dao.entity.table.SkillsDOTableDef.SKILLS_D_O;
 import static org.gms.dao.entity.table.TrocklocationsDOTableDef.TROCKLOCATIONS_D_O;
 import static org.gms.dao.entity.table.WishlistsDOTableDef.WISHLISTS_D_O;
+import java.sql.Timestamp;
 
 @Service
 @AllArgsConstructor
@@ -449,8 +448,11 @@ public class CharacterService {
         savedlocationsDOList.forEach(savedlocationsDO -> chr.getSavedLocations()[SavedLocationType.valueOf(savedlocationsDO.getLocationtype()).ordinal()]
                 = new SavedLocation(savedlocationsDO.getMap(), savedlocationsDO.getPortal()));
 
+        // dateDiff/now 为 MySQL 方言（SQLite 无 DATEDIFF/NOW），改为 30 天前时间戳比较；
+        // 绑定 Timestamp 走 setTimestamp，与 SQLite 文本时间戳格式一致，字典序比较正确
+        Timestamp fameCutoff = new Timestamp(System.currentTimeMillis() - 30L * 24 * 60 * 60 * 1000);
         List<FamelogDO> famelogDOList = famelogMapper.selectListByQuery(QueryWrapper.create()
-                .where(FAMELOG_D_O.CHARACTERID.eq(cid)).and(dateDiff(now(), FAMELOG_D_O.WHEN).lt(30)));
+                .where(FAMELOG_D_O.CHARACTERID.eq(cid)).and(FAMELOG_D_O.WHEN.ge(fameCutoff)));
         long lastFameTime = 0;
         List<Integer> lastMonthFameIds = new ArrayList<>(31);
         for (FamelogDO famelogDO : famelogDOList) {

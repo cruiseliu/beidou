@@ -1,16 +1,16 @@
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
+
 
 DROP TABLE IF EXISTS `command_info`;
 CREATE TABLE `command_info`  (
-  `id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
-  `syntax` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '指令',
-  `level` int NOT NULL COMMENT '指令等级0-6',
-  `enabled` tinyint(1) UNSIGNED ZEROFILL NOT NULL DEFAULT 1 COMMENT '0不启用 1启用',
-  `clazz` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '指令对应后端java类名',
-  `default_level` int NOT NULL COMMENT '默认指令等级0-6（该字段不可被修改）',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `syntax` varchar(30) NOT NULL,
+  `level` int NOT NULL,
+  `enabled` tinyint(1) NOT NULL DEFAULT 1,
+  `clazz` varchar(50) NOT NULL,
+  `default_level` int NOT NULL
+
+);
+
 
 INSERT INTO command_info (syntax, level, enabled, clazz, default_level) VALUES ('help', 0, 1, 'HelpCommand', 0);
 INSERT INTO command_info (syntax, level, enabled, clazz, default_level) VALUES ('commands', 0, 1, 'HelpCommand', 0);

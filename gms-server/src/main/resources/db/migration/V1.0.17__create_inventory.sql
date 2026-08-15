@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS `inventoryequipment`
 (
-    `inventoryequipmentid` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `inventoryitemid`      INT(10) UNSIGNED NOT NULL DEFAULT '0',
+    `inventoryequipmentid` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `inventoryitemid`      INT(10) NOT NULL DEFAULT '0',
     `upgradeslots`         INT(11)          NOT NULL DEFAULT '0',
     `level`                INT(11)          NOT NULL DEFAULT '0',
     `str`                  INT(11)          NOT NULL DEFAULT '0',
@@ -20,21 +20,20 @@ CREATE TABLE IF NOT EXISTS `inventoryequipment`
     `speed`                INT(11)          NOT NULL DEFAULT '0',
     `jump`                 INT(11)          NOT NULL DEFAULT '0',
     `locked`               INT(11)          NOT NULL DEFAULT '0',
-    `vicious`              INT(11) UNSIGNED NOT NULL DEFAULT '0',
+    `vicious`              INT(11) NOT NULL DEFAULT '0',
     `itemlevel`            INT(11)          NOT NULL DEFAULT '1',
-    `itemexp`              INT(11) UNSIGNED NOT NULL DEFAULT '0',
-    `ringid`               INT(11)          NOT NULL DEFAULT '-1',
-    PRIMARY KEY (`inventoryequipmentid`),
-    KEY `INVENTORYITEMID` (`inventoryitemid`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  AUTO_INCREMENT = 1;
+    `itemexp`              INT(11) NOT NULL DEFAULT '0',
+    `ringid`               INT(11)          NOT NULL DEFAULT '-1'
+
+);
+CREATE INDEX IF NOT EXISTS `inventoryequipment_INVENTORYITEMID` ON `inventoryequipment` (`inventoryitemid`);
+
 
 
 CREATE TABLE IF NOT EXISTS `inventoryitems`
 (
-    `inventoryitemid` INT(10) UNSIGNED    NOT NULL AUTO_INCREMENT,
-    `type`            TINYINT(3) UNSIGNED NOT NULL,
+    `inventoryitemid` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `type`            TINYINT(3) NOT NULL,
     `characterid`     INT(11)                      DEFAULT NULL,
     `accountid`       INT(11)                      DEFAULT NULL,
     `itemid`          INT(11)             NOT NULL DEFAULT '0',
@@ -45,22 +44,19 @@ CREATE TABLE IF NOT EXISTS `inventoryitems`
     `petid`           INT(11)             NOT NULL DEFAULT '-1',
     `flag`            INT(11)             NOT NULL,
     `expiration`      BIGINT(20)          NOT NULL DEFAULT '-1',
-    `giftFrom`        VARCHAR(26)         NOT NULL,
-    PRIMARY KEY (`inventoryitemid`),
-    KEY `CHARID` (`characterid`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  AUTO_INCREMENT = 1;
+    `giftFrom`        VARCHAR(26)         NOT NULL
+
+);
+CREATE INDEX IF NOT EXISTS `inventoryitems_CHARID` ON `inventoryitems` (`characterid`);
+
 
 
 CREATE TABLE IF NOT EXISTS `inventorymerchant`
 (
-    `inventorymerchantid` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `inventoryitemid`     INT(10) UNSIGNED NOT NULL DEFAULT '0',
+    `inventorymerchantid` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `inventoryitemid`     INT(10) NOT NULL DEFAULT '0',
     `characterid`         INT(11)                   DEFAULT NULL,
-    `bundles`             INT(10)          NOT NULL DEFAULT '0',
-    PRIMARY KEY (`inventorymerchantid`),
-    KEY `INVENTORYITEMID` (`inventoryitemid`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  AUTO_INCREMENT = 1;
+    `bundles`             INT(10)          NOT NULL DEFAULT '0'
+
+);
+CREATE INDEX IF NOT EXISTS `inventorymerchant_INVENTORYITEMID` ON `inventorymerchant` (`inventoryitemid`);

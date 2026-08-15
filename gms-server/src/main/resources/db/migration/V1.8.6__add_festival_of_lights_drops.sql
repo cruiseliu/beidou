@@ -19,9 +19,7 @@ INSERT INTO `drop_data` (`dropperid`, `itemid`, `minimum_quantity`, `maximum_qua
 VALUES
     (1130100, 4031445, 1, 1, 0, 300000),
     (2130100, 4031445, 1, 1, 0, 300000),
-    (2110200, 4031444, 1, 1, 8830, 300000)
-ON DUPLICATE KEY UPDATE
-    `minimum_quantity` = VALUES(`minimum_quantity`),
-    `maximum_quantity` = VALUES(`maximum_quantity`),
-    `questid` = VALUES(`questid`),
-    `chance` = VALUES(`chance`);
+    (2110200, 4031444, 1, 1, 8830, 300000) ON CONFLICT(`dropperid`, `itemid`) DO UPDATE SET `minimum_quantity` = excluded.`minimum_quantity`,
+    `maximum_quantity` = excluded.`maximum_quantity`,
+    `questid` = excluded.`questid`,
+    `chance` = excluded.`chance`;

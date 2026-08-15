@@ -14,26 +14,25 @@
  Date: 19/09/2024 20:22:01
 */
 
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
 
 -- ----------------------------
 -- Table structure for gachapon_reward_pool
 -- ----------------------------
 DROP TABLE IF EXISTS `gachapon_reward_pool`;
 CREATE TABLE `gachapon_reward_pool`  (
-  `id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
-  `name` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '转蛋机奖池名称',
-  `gachapon_id` int NOT NULL COMMENT '绑定转蛋机ID',
-  `weight` int NOT NULL COMMENT '权重',
-  `is_public` tinyint(1) UNSIGNED ZEROFILL NOT NULL DEFAULT 0 COMMENT '是否公共奖池 0为否 1为是',
-  `prob` int NOT NULL DEFAULT 0 COMMENT '概率',
-  `start_time` datetime NOT NULL COMMENT '奖池的启用日期',
-  `end_time` datetime NULL DEFAULT NULL COMMENT '奖池的结束日期',
-  `notification` tinyint(1) UNSIGNED ZEROFILL NOT NULL DEFAULT 0 COMMENT '是否喇叭通知 0为否 1为是',
-  `comment` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 37 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `name` varchar(35) NOT NULL,
+  `gachapon_id` int NOT NULL,
+  `weight` int NOT NULL,
+  `is_public` tinyint(1) NOT NULL DEFAULT 0,
+  `prob` int NOT NULL DEFAULT 0,
+  `start_time` datetime NOT NULL,
+  `end_time` datetime NULL DEFAULT NULL,
+  `notification` tinyint(1) NOT NULL DEFAULT 0,
+  `comment` varchar(255) NULL DEFAULT NULL
+
+);
+
 
 -- ----------------------------
 -- Records of gachapon_reward_pool
@@ -74,5 +73,3 @@ INSERT INTO `gachapon_reward_pool` VALUES (33, '9100108(RareItems)', 9100108, 20
 INSERT INTO `gachapon_reward_pool` VALUES (34, '9100109(RareItems)', 9100109, 200, 0, 0, '2024-09-19 19:04:16', NULL, 1, '');
 INSERT INTO `gachapon_reward_pool` VALUES (35, '9100110(RareItems)', 9100110, 200, 0, 0, '2024-09-19 19:04:16', NULL, 1, '');
 INSERT INTO `gachapon_reward_pool` VALUES (36, '9100117(RareItems)', 9100117, 200, 0, 0, '2024-09-19 19:04:16', NULL, 1, '');
-
-SET FOREIGN_KEY_CHECKS = 1;

@@ -1,1 +1,1 @@
-alter table characterexplogs modify column world_exp_rate float comment '大区倍率';
+-- 已丢弃 1 条 ALTER MODIFY COLUMN（SQLite 动态类型下无意义）

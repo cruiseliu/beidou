@@ -98,7 +98,7 @@ public class NewYearCardRecord {
 
     public static void saveNewYearCard(NewYearCardRecord newyear) {
         try (Connection con = DatabaseConnection.getConnection()) {
-            try (PreparedStatement ps = con.prepareStatement("INSERT INTO newyear VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+            try (PreparedStatement ps = con.prepareStatement("INSERT INTO newyear VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
                 ps.setInt(1, newyear.senderId);
                 ps.setString(2, newyear.senderName);
                 ps.setInt(3, newyear.receiverId);

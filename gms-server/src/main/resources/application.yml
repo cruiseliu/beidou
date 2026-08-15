@@ -14,10 +14,10 @@ mybatis-flex:
   datasource:
     mysql:
       type: com.alibaba.druid.pool.DruidDataSource
-      driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://localhost:3306/beidou_aidev?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
-      username: aidev
-      password: aidev
+      driver-class-name: org.sqlite.JDBC
+      url: jdbc:sqlite:database/beidou.db?journal_mode=WAL&busy_timeout=5000
+      username:
+      password:
   global-config:
     print-banner: false
 

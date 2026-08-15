@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS `plife`
 (
-    `id`      INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `world`   INT(11)          NOT NULL DEFAULT '-1',
     `map`     INT(11)          NOT NULL DEFAULT '0',
     `life`    INT(11)          NOT NULL DEFAULT '0',
@@ -14,8 +14,6 @@ CREATE TABLE IF NOT EXISTS `plife`
     `y`       INT(11)          NOT NULL DEFAULT '0',
     `hide`    INT(11)          NOT NULL DEFAULT '0',
     `mobtime` INT(11)          NOT NULL DEFAULT '0',
-    `team`    INT(11)          NOT NULL DEFAULT '0',
-    PRIMARY KEY (`id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  AUTO_INCREMENT = 1;
+    `team`    INT(11)          NOT NULL DEFAULT '0'
+
+);

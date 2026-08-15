@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS `characters`
 (
-    `id`                   INT(11)             NOT NULL AUTO_INCREMENT,
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `accountid`            INT(11)             NOT NULL DEFAULT '0',
     `world`                INT(11)             NOT NULL DEFAULT '0',
     `name`                 VARCHAR(13)         NOT NULL DEFAULT '',
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS `characters`
     `maxhp`                INT(11)             NOT NULL DEFAULT '50',
     `maxmp`                INT(11)             NOT NULL DEFAULT '5',
     `meso`                 INT(11)             NOT NULL DEFAULT '0',
-    `hpMpUsed`             INT(11) UNSIGNED    NOT NULL DEFAULT '0',
+    `hpMpUsed`             INT(11)    NOT NULL DEFAULT '0',
     `job`                  INT(11)             NOT NULL DEFAULT '0',
     `skincolor`            INT(11)             NOT NULL DEFAULT '0',
     `gender`               INT(11)             NOT NULL DEFAULT '0',
@@ -32,14 +32,14 @@ CREATE TABLE IF NOT EXISTS `characters`
     `party`                INT(11)             NOT NULL DEFAULT '0',
     `buddyCapacity`        INT(11)             NOT NULL DEFAULT '25',
     `createdate`           TIMESTAMP           NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `rank`                 INT(10) UNSIGNED    NOT NULL DEFAULT '1',
+    `rank`                 INT(10)    NOT NULL DEFAULT '1',
     `rankMove`             INT(11)             NOT NULL DEFAULT '0',
-    `jobRank`              INT(10) UNSIGNED    NOT NULL DEFAULT '1',
+    `jobRank`              INT(10)    NOT NULL DEFAULT '1',
     `jobRankMove`          INT(11)             NOT NULL DEFAULT '0',
-    `guildid`              INT(10) UNSIGNED    NOT NULL DEFAULT '0',
-    `guildrank`            INT(10) UNSIGNED    NOT NULL DEFAULT '5',
-    `messengerid`          INT(10) UNSIGNED    NOT NULL DEFAULT '0',
-    `messengerposition`    INT(10) UNSIGNED    NOT NULL DEFAULT '4',
+    `guildid`              INT(10)    NOT NULL DEFAULT '0',
+    `guildrank`            INT(10)    NOT NULL DEFAULT '5',
+    `messengerid`          INT(10)    NOT NULL DEFAULT '0',
+    `messengerposition`    INT(10)    NOT NULL DEFAULT '4',
     `mountlevel`           INT(9)              NOT NULL DEFAULT '1',
     `mountexp`             INT(9)              NOT NULL DEFAULT '0',
     `mounttiredness`       INT(9)              NOT NULL DEFAULT '0',
@@ -58,13 +58,13 @@ CREATE TABLE IF NOT EXISTS `characters`
     `familyId`             INT(11)             NOT NULL DEFAULT '-1',
     `monsterbookcover`     INT(11)             NOT NULL DEFAULT '0',
     `allianceRank`         INT(10)             NOT NULL DEFAULT '5',
-    `vanquisherStage`      INT(11) UNSIGNED    NOT NULL DEFAULT '0',
-    `ariantPoints`         INT(11) UNSIGNED    NOT NULL DEFAULT '0',
-    `dojoPoints`           INT(11) UNSIGNED    NOT NULL DEFAULT '0',
-    `lastDojoStage`        INT(10) UNSIGNED    NOT NULL DEFAULT '0',
-    `finishedDojoTutorial` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
-    `vanquisherKills`      INT(11) UNSIGNED    NOT NULL DEFAULT '0',
-    `summonValue`          INT(11) UNSIGNED    NOT NULL DEFAULT '0',
+    `vanquisherStage`      INT(11)    NOT NULL DEFAULT '0',
+    `ariantPoints`         INT(11)    NOT NULL DEFAULT '0',
+    `dojoPoints`           INT(11)    NOT NULL DEFAULT '0',
+    `lastDojoStage`        INT(10)    NOT NULL DEFAULT '0',
+    `finishedDojoTutorial` TINYINT(1) NOT NULL DEFAULT '0',
+    `vanquisherKills`      INT(11)    NOT NULL DEFAULT '0',
+    `summonValue`          INT(11)    NOT NULL DEFAULT '0',
     `partnerId`            INT(11)             NOT NULL DEFAULT '0',
     `marriageItemId`       INT(11)             NOT NULL DEFAULT '0',
     `reborns`              INT(5)              NOT NULL DEFAULT '0',
@@ -73,15 +73,12 @@ CREATE TABLE IF NOT EXISTS `characters`
     `lastLogoutTime`       TIMESTAMP           NOT NULL DEFAULT '2015-01-01 05:00:00',
     `lastExpGainTime`      TIMESTAMP           NOT NULL DEFAULT '2015-01-01 05:00:00',
     `partySearch`          TINYINT(1)          NOT NULL DEFAULT '1',
-    `jailexpire`           bigint(20)          NOT NULL DEFAULT '0',
-    PRIMARY KEY (`id`),
-    KEY `accountid` (`accountid`),
-    KEY `party` (`party`),
-    KEY `ranking1` (`level`, `exp`),
-    KEY `ranking2` (`gm`, `job`),
-    INDEX (id, accountid, world),
-    INDEX (id, accountid, name)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  PACK_KEYS = 0
-  AUTO_INCREMENT = 1;
+    `jailexpire`           bigint(20)          NOT NULL DEFAULT '0'
+
+);
+CREATE INDEX IF NOT EXISTS `characters_accountid` ON `characters` (`accountid`);
+CREATE INDEX IF NOT EXISTS `characters_party` ON `characters` (`party`);
+CREATE INDEX IF NOT EXISTS `characters_ranking1` ON `characters` (`level`, `exp`);
+CREATE INDEX IF NOT EXISTS `characters_ranking2` ON `characters` (`gm`, `job`);
+CREATE INDEX IF NOT EXISTS `characters_idx5` ON `characters` (id, accountid, world);
+CREATE INDEX IF NOT EXISTS `characters_idx6` ON `characters` (id, accountid, name);

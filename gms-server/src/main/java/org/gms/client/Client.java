@@ -382,7 +382,7 @@ public class Client extends ChannelInboundHandlerAdapter {
     public boolean hasBannedIP() {
         boolean ret = false;
         try (Connection con = DatabaseConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement("SELECT COUNT(*) FROM ipbans WHERE ? LIKE CONCAT(ip, '%')")) {
+             PreparedStatement ps = con.prepareStatement("SELECT COUNT(*) FROM ipbans WHERE ? LIKE ip || '%'")) {
             ps.setString(1, remoteAddress);
             try (ResultSet rs = ps.executeQuery()) {
                 rs.next();

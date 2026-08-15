@@ -214,17 +214,23 @@ public enum ItemFactory {
                 con.setAutoCommit(false);
             }
             try {
-                StringBuilder query = new StringBuilder();
-                query.append("DELETE `inventoryitems`, `inventoryequipment` FROM `inventoryitems` LEFT JOIN `inventoryequipment` USING(`inventoryitemid`) WHERE `type` = ? AND `");
-                query.append(account ? "accountid" : "characterid").append("` = ?");
-
-                try (PreparedStatement ps = con.prepareStatement(query.toString())) {
-                    ps.setInt(1, value);
-                    ps.setInt(2, id);
-                    ps.executeUpdate();
+                // SQLite 不支持多表 DELETE：改为两条语句，与调用方事务配合保证原子性
+                String idColumn = account ? "accountid" : "characterid";
+                try (PreparedStatement psEquip = con.prepareStatement(
+                        "DELETE FROM `inventoryequipment` WHERE `inventoryitemid` IN "
+                                + "(SELECT `inventoryitemid` FROM `inventoryitems` WHERE `type` = ? AND `" + idColumn + "` = ?)")) {
+                    psEquip.setInt(1, value);
+                    psEquip.setInt(2, id);
+                    psEquip.executeUpdate();
+                }
+                try (PreparedStatement psItem = con.prepareStatement(
+                        "DELETE FROM `inventoryitems` WHERE `type` = ? AND `" + idColumn + "` = ?")) {
+                    psItem.setInt(1, value);
+                    psItem.setInt(2, id);
+                    psItem.executeUpdate();
                 }
 
-                try (PreparedStatement psItem = con.prepareStatement("INSERT INTO `inventoryitems` VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                try (PreparedStatement psItem = con.prepareStatement("INSERT INTO `inventoryitems` VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
                     if (!items.isEmpty()) {
                         for (Pair<Item, InventoryType> pair : items) {
                             Item item = pair.getLeft();
@@ -244,7 +250,7 @@ public enum ItemFactory {
                             psItem.executeUpdate();
 
                             if (mit.equals(InventoryType.EQUIP) || mit.equals(InventoryType.EQUIPPED)) {
-                                try (PreparedStatement psEquip = con.prepareStatement("INSERT INTO `inventoryequipment` VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+                                try (PreparedStatement psEquip = con.prepareStatement("INSERT INTO `inventoryequipment` VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
                                     try (ResultSet rs = psItem.getGeneratedKeys()) {
                                         if (!rs.next()) {
                                             throw new RuntimeException("Inserting item failed.");
@@ -380,14 +386,20 @@ public enum ItemFactory {
                     ps.executeUpdate();
                 }
 
-                StringBuilder query = new StringBuilder();
-                query.append("DELETE `inventoryitems`, `inventoryequipment` FROM `inventoryitems` LEFT JOIN `inventoryequipment` USING(`inventoryitemid`) WHERE `type` = ? AND `");
-                query.append(account ? "accountid" : "characterid").append("` = ?");
-
-                try (PreparedStatement ps = con.prepareStatement(query.toString())) {
-                    ps.setInt(1, value);
-                    ps.setInt(2, id);
-                    ps.executeUpdate();
+                // SQLite 不支持多表 DELETE：改为两条语句，与调用方事务配合保证原子性
+                String idColumn = account ? "accountid" : "characterid";
+                try (PreparedStatement psEquip = con.prepareStatement(
+                        "DELETE FROM `inventoryequipment` WHERE `inventoryitemid` IN "
+                                + "(SELECT `inventoryitemid` FROM `inventoryitems` WHERE `type` = ? AND `" + idColumn + "` = ?)")) {
+                    psEquip.setInt(1, value);
+                    psEquip.setInt(2, id);
+                    psEquip.executeUpdate();
+                }
+                try (PreparedStatement psItem = con.prepareStatement(
+                        "DELETE FROM `inventoryitems` WHERE `type` = ? AND `" + idColumn + "` = ?")) {
+                    psItem.setInt(1, value);
+                    psItem.setInt(2, id);
+                    psItem.executeUpdate();
                 }
 
                 int i = 0;
@@ -399,7 +411,7 @@ public enum ItemFactory {
 
                     final int genKey;
                     // Item
-                    try (PreparedStatement ps = con.prepareStatement("INSERT INTO `inventoryitems` VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                    try (PreparedStatement ps = con.prepareStatement("INSERT INTO `inventoryitems` VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
                         ps.setInt(1, value);
                         ps.setString(2, account ? null : String.valueOf(id));
                         ps.setString(3, account ? String.valueOf(id) : null);
@@ -424,7 +436,7 @@ public enum ItemFactory {
                     }
 
                     // Merchant
-                    try (PreparedStatement ps = con.prepareStatement("INSERT INTO `inventorymerchant` VALUES (DEFAULT, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                    try (PreparedStatement ps = con.prepareStatement("INSERT INTO `inventorymerchant` VALUES (NULL, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
                         ps.setInt(1, genKey);
                         ps.setInt(2, id);
                         ps.setInt(3, bundles);
@@ -433,7 +445,7 @@ public enum ItemFactory {
 
                     // Equipment
                     if (mit.equals(InventoryType.EQUIP) || mit.equals(InventoryType.EQUIPPED)) {
-                        try (PreparedStatement ps = con.prepareStatement("INSERT INTO `inventoryequipment` VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+                        try (PreparedStatement ps = con.prepareStatement("INSERT INTO `inventoryequipment` VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
                             ps.setInt(1, genKey);
 
                             Equip equip = (Equip) item;

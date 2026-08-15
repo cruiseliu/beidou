@@ -1,11 +1,9 @@
 CREATE TABLE IF NOT EXISTS `fredstorage`
 (
-    `id`        INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `cid`       INT(10) UNSIGNED NOT NULL,
-    `daynotes`  INT(4) UNSIGNED  NOT NULL,
-    `TIMESTAMP` TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY `cid_2` (`cid`),
-    PRIMARY KEY (`id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  AUTO_INCREMENT = 1;
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `cid`       INT(10) NOT NULL,
+    `daynotes`  INT(4)  NOT NULL,
+    `TIMESTAMP` TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP
+
+);
+CREATE UNIQUE INDEX IF NOT EXISTS `fredstorage_cid_2` ON `fredstorage` (`cid`);

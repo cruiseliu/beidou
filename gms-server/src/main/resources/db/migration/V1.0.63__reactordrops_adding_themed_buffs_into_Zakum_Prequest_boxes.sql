@@ -1,4 +1,4 @@
-# adding themed buffs into Zakum Prequest boxes
+-- &
 INSERT INTO `reactordrops`
     (`reactorid`, `itemid`, `chance`, `questid`)
 VALUES (2112000, 2022439, 43, -1),

@@ -1,4 +1,4 @@
-# add Amoria Wedding reward boxes
+-- &
 INSERT INTO `reactordrops`
     (`reactorid`, `itemid`, `chance`, `questid`)
 VALUES (6802000, 4031423, 5, -1),

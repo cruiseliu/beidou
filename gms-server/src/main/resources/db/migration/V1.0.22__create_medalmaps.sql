@@ -1,11 +1,9 @@
 CREATE TABLE IF NOT EXISTS `medalmaps`
 (
-    `id`            INT(11)          NOT NULL AUTO_INCREMENT,
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `characterid`   INT(11)          NOT NULL,
-    `queststatusid` INT(11) UNSIGNED NOT NULL,
-    `mapid`         INT(11)          NOT NULL,
-    PRIMARY KEY (`id`),
-    KEY `queststatusid` (`queststatusid`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  AUTO_INCREMENT = 1;
+    `queststatusid` INT(11) NOT NULL,
+    `mapid`         INT(11)          NOT NULL
+
+);
+CREATE INDEX IF NOT EXISTS `medalmaps_queststatusid` ON `medalmaps` (`queststatusid`);

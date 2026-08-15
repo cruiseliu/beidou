@@ -14,23 +14,22 @@
  Date: 13/09/2024 21:15:02
 */
 
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
 
 -- ----------------------------
 -- Table structure for gachapon
 -- ----------------------------
 DROP TABLE IF EXISTS `gachapon`;
 CREATE TABLE `gachapon`  (
-  `id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
-  `gachaponId` int NULL DEFAULT NULL COMMENT '转蛋机ID',
-  `itemId` int NULL DEFAULT NULL COMMENT '道具ID',
-  `stack` int NULL DEFAULT 1 COMMENT '数量',
-  `probability` decimal(5, 4) NULL DEFAULT NULL COMMENT '概率',
-  `createDate` datetime NULL DEFAULT NULL COMMENT '创建时间',
-  `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1625 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `gachaponId` int NULL DEFAULT NULL,
+  `itemId` int NULL DEFAULT NULL,
+  `stack` int NULL DEFAULT 1,
+  `probability` decimal(5, 4) NULL DEFAULT NULL,
+  `createDate` datetime NULL DEFAULT NULL,
+  `remark` varchar(255) NULL DEFAULT NULL
+
+);
+
 
 -- ----------------------------
 -- Records of gachapon
@@ -1659,5 +1658,3 @@ INSERT INTO `gachapon` VALUES (1621, 9100117, 2044904, 1, 0.5294, '2024-09-13 20
 INSERT INTO `gachapon` VALUES (1622, 9100117, 2040811, 1, 2.6667, '2024-09-13 20:29:11', '');
 INSERT INTO `gachapon` VALUES (1623, 9100117, 2040815, 1, 2.6667, '2024-09-13 20:29:11', '');
 INSERT INTO `gachapon` VALUES (1624, 9100117, 2101001, 1, 2.6667, '2024-09-13 20:29:11', '');
-
-SET FOREIGN_KEY_CHECKS = 1;

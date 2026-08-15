@@ -1,5 +1,5 @@
 -- thanks donny (Croosade forums) for showing a lack on GPQ rewards
-# adding more rewards into GPQ bonus boxes
+-- &
 INSERT INTO `reactordrops`
     (`reactorid`, `itemid`, `chance`, `questid`)
 VALUES (9202012, 1002379, 45, -1),

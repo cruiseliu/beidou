@@ -1,5 +1,5 @@
-# updated with the MapleSkillMakerFetcher feature
-INSERT IGNORE INTO `makercreatedata`
+-- &
+INSERT OR IGNORE INTO `makercreatedata`
 (`id`, `itemid`, `req_level`, `req_maker_level`, `req_meso`, `req_item`, `req_equip`, `catalyst`, `quantity`, `tuc`)
 VALUES (0, 4250000, 45, 1, 110000, 0, 0, 0, 1, 0),
        (0, 4250100, 45, 1, 110000, 0, 0, 0, 1, 0),
@@ -836,7 +836,7 @@ VALUES (0, 4250000, 45, 1, 110000, 0, 0, 0, 1, 0),
        (16, 1482023, 115, 3, 616000, 0, 0, 4130016, 1, 3),
        (16, 1492023, 115, 3, 627000, 0, 0, 4130017, 1, 3);
 
-INSERT IGNORE INTO `makerrecipedata`
+INSERT OR IGNORE INTO `makerrecipedata`
     (`itemid`, `req_item`, `count`)
 VALUES (4250000, 4021007, 1),
        (4250100, 4021005, 1),
@@ -2765,7 +2765,7 @@ VALUES (4250000, 4021007, 1),
        (1492023, 4260008, 20),
        (1492023, 4021010, 3);
 
-INSERT IGNORE INTO `makerrewarddata`
+INSERT OR IGNORE INTO `makerrewarddata`
     (`itemid`, `rewardid`, `quantity`, `prob`)
 VALUES (4250000, 4250000, 1, 14),
        (4250000, 4250001, 1, 5),
@@ -2867,7 +2867,7 @@ VALUES (4250000, 4250000, 1, 14),
        (4251402, 4251401, 9, 4);
 
 
-INSERT IGNORE INTO `makerreagentdata`
+INSERT OR IGNORE INTO `makerreagentdata`
     (`itemid`, `stat`, `value`)
 VALUES (4250000, "incPAD", 1),
        (4250001, "incPAD", 2),

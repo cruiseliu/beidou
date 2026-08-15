@@ -9,19 +9,19 @@ CREATE TABLE IF NOT EXISTS `family_character`
     `reptosenior`     INT(11)    NOT NULL DEFAULT '0',
     `precepts`        VARCHAR(200)        DEFAULT NULL,
     `lastresettime`   BIGINT(20) NOT NULL DEFAULT '0',
-    PRIMARY KEY (`cid`),
-    INDEX (cid, familyid)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
+    PRIMARY KEY (`cid`)
+
+);
+CREATE INDEX IF NOT EXISTS `family_character_idx1` ON `family_character` (cid, familyid);
+
 
 
 CREATE TABLE IF NOT EXISTS `family_entitlement`
 (
-    `id`            INT(11)    NOT NULL AUTO_INCREMENT,
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `charid`        INT(11)    NOT NULL,
     `entitlementid` INT(11)    NOT NULL,
-    `TIMESTAMP`     BIGINT(20) NOT NULL DEFAULT '0',
-    PRIMARY KEY (`id`),
-    INDEX (charid)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
+    `TIMESTAMP`     BIGINT(20) NOT NULL DEFAULT '0'
+
+);
+CREATE INDEX IF NOT EXISTS `family_entitlement_idx1` ON `family_entitlement` (charid);

@@ -1,4 +1,4 @@
-# update Amoria PQ reward boxes
+-- &
 DELETE
 FROM `reactordrops`
 WHERE `reactorid` >= 6702003

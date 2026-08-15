@@ -1,4 +1,4 @@
-# update quest reactor items
+-- &
 UPDATE reactordrops
 SET questid=2086
 WHERE itemid = 4031165;

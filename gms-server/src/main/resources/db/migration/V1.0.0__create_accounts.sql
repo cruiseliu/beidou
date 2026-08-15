@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS `accounts`
 (
-    `id`             INT(11)      NOT NULL AUTO_INCREMENT,
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `name`           VARCHAR(13)  NOT NULL DEFAULT '',
     `password`       VARCHAR(128) NOT NULL DEFAULT '',
     `pin`            VARCHAR(10)  NOT NULL DEFAULT '',
@@ -29,12 +29,10 @@ CREATE TABLE IF NOT EXISTS `accounts`
     `rewardpoints`   INT(11)      NOT NULL DEFAULT '0',
     `votepoints`     INT(11)      NOT NULL DEFAULT '0',
     `hwid`           VARCHAR(12)  NOT NULL DEFAULT '',
-    `language`       INT(1)       NOT NULL DEFAULT '3',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `name` (`name`),
-    KEY `ranking1` (`id`, `banned`),
-    INDEX (id, name),
-    INDEX (id, nxCredit, maplePoint, nxPrepaid)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  AUTO_INCREMENT = 1;
+    `language`       INT(1)       NOT NULL DEFAULT '3'
+
+);
+CREATE UNIQUE INDEX IF NOT EXISTS `accounts_name` ON `accounts` (`name`);
+CREATE INDEX IF NOT EXISTS `accounts_ranking1` ON `accounts` (`id`, `banned`);
+CREATE INDEX IF NOT EXISTS `accounts_idx3` ON `accounts` (id, name);
+CREATE INDEX IF NOT EXISTS `accounts_idx4` ON `accounts` (id, nxCredit, maplePoint, nxPrepaid);

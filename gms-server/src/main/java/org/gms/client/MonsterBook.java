@@ -181,7 +181,7 @@ public final class MonsterBook {
         final String query = """
                 INSERT INTO monsterbook (charid, cardid, level)
                 VALUES (?, ?, ?)
-                ON DUPLICATE KEY UPDATE level = ?;
+                ON CONFLICT(charid, cardid) DO UPDATE SET level = ?;
                 """;
         try (final PreparedStatement ps = con.prepareStatement(query)) {
             for (Map.Entry<Integer, Integer> cardAndLevel : cards.entrySet()) {

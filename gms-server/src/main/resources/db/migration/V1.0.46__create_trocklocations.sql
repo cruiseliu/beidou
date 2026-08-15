@@ -1,10 +1,8 @@
 CREATE TABLE IF NOT EXISTS `trocklocations`
 (
-    `trockid`     INT(11) NOT NULL AUTO_INCREMENT,
+    `trockid` INTEGER PRIMARY KEY AUTOINCREMENT,
     `characterid` INT(11) NOT NULL,
     `mapid`       INT(11) NOT NULL,
-    `vip`         INT(2)  NOT NULL,
-    PRIMARY KEY (`trockid`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  AUTO_INCREMENT = 1;
+    `vip`         INT(2)  NOT NULL
+
+);

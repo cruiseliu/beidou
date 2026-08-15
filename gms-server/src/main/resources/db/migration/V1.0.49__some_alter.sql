@@ -1,11 +1,7 @@
-ALTER TABLE `dueyitems`
-    ADD CONSTRAINT `dueyitems_ibfk_1` FOREIGN KEY (`PackageId`) REFERENCES `dueypackages` (`PackageId`) ON DELETE CASCADE;
+-- 已丢弃 4 条 ALTER ADD CONSTRAINT 外键（SQLite 不支持且默认不启用外键）
 
-ALTER TABLE `famelog`
-    ADD CONSTRAINT `famelog_ibfk_1` FOREIGN KEY (`characterid`) REFERENCES `characters` (`id`) ON DELETE CASCADE;
+-- 已丢弃 4 条 ALTER ADD CONSTRAINT 外键（SQLite 不支持且默认不启用外键）
 
-ALTER TABLE `family_character`
-    ADD CONSTRAINT `family_character_ibfk_1` FOREIGN KEY (`cid`) REFERENCES `characters` (`id`) ON DELETE CASCADE;
+-- 已丢弃 4 条 ALTER ADD CONSTRAINT 外键（SQLite 不支持且默认不启用外键）
 
-ALTER TABLE `skills`
-    ADD CONSTRAINT `skills_chrid_fk` FOREIGN KEY (`characterid`) REFERENCES `characters` (`id`) ON DELETE CASCADE; # thanks Shavit
+-- 已丢弃 4 条 ALTER ADD CONSTRAINT 外键（SQLite 不支持且默认不启用外键） -- &

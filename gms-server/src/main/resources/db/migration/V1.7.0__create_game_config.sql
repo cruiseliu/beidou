@@ -1,15 +1,17 @@
 drop table if exists game_config;
 create table if not exists game_config
 (
-    id              bigint auto_increment primary key comment '自增id',
-    config_type     varchar(32) not null comment '参数类型',
-    config_sub_type varchar(32) comment '参数子类型',
-    config_clazz    varchar(256) comment '参数值java类型',
-    config_code     varchar(64) not null comment '参数名',
-    config_value    varchar(256) not null comment '参数值',
-    config_desc     varchar(512) comment '参数描述，中英文，关联i18n表lang_resources',
-    update_time     timestamp comment '最后更新时间'
-    ) comment '游戏参数表';
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    config_type     varchar(32) not null,
+    config_sub_type varchar(32),
+    config_clazz    varchar(256),
+    config_code     varchar(64) not null,
+    config_value    varchar(256) not null,
+    config_desc     varchar(512),
+    update_time     timestamp
+    
+);
+
 
 insert into game_config (config_type, config_sub_type, config_clazz, config_code, config_value, config_desc)
 values ('world', '0', 'java.lang.Integer', 'flag', '0', '0=普通大区，1=活动大区，2=新区，3=热门大区(0=nothing,1=event,2=new,3=hot)'),

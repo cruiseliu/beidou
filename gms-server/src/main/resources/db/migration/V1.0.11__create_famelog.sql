@@ -1,11 +1,9 @@
 CREATE TABLE IF NOT EXISTS `famelog`
 (
-    `famelogid`      INT(11)   NOT NULL AUTO_INCREMENT,
+    `famelogid` INTEGER PRIMARY KEY AUTOINCREMENT,
     `characterid`    INT(11)   NOT NULL DEFAULT '0',
     `characterid_to` INT(11)   NOT NULL DEFAULT '0',
-    `when`           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`famelogid`),
-    KEY `characterid` (`characterid`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  AUTO_INCREMENT = 1;
+    `when`           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+
+);
+CREATE INDEX IF NOT EXISTS `famelog_characterid` ON `famelog` (`characterid`);

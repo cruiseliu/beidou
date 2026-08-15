@@ -1,10 +1,10 @@
-# Scroll shop at Asia, chair shop at Kino Konoko, potion shop at T-1337
+-- &
 INSERT INTO `shops` (`shopid`, `npcid`)
 VALUES (2082014, 2082014),
        (9110002, 9110002),
        (9201101, 9201101);
 
-INSERT IGNORE INTO `shopitems`
+INSERT OR IGNORE INTO `shopitems`
     (`shopid`, `itemid`, `price`, `pitch`, `position`)
 VALUES (2082014, 2040004, 480000, 0, 1),
        (2082014, 2040025, 500000, 0, 2),
@@ -102,7 +102,7 @@ UPDATE shopitems
 SET price = 11 * price
 WHERE (`position` >= 33 and `position` <= 79 and `shopid` = 2082014);
 
-INSERT IGNORE INTO `shopitems`
+INSERT OR IGNORE INTO `shopitems`
     (`shopid`, `itemid`, `price`, `pitch`, `position`)
 VALUES (1031100, 3010015, 20000, 0, 100),
        (9110002, 3010019, 7700000, 0, 92),
@@ -130,8 +130,8 @@ VALUES (1031100, 3010015, 20000, 0, 100),
        (9201101, 2012008, 4200000, 0, 164),
        (9201101, 2022251, 3800000, 0, 168);
 
-# adding antibanish scrolls
-INSERT IGNORE INTO `shopitems`
+-- &
+INSERT OR IGNORE INTO `shopitems`
     (`shopid`, `itemid`, `price`, `pitch`, `position`)
 VALUES (1001100, 2030100, 450, 0, 130),
        (1011100, 2030100, 450, 0, 142),
@@ -343,7 +343,7 @@ VALUES (1200001, 3010001, 1000, 0, 1),
        (1301000, 2000001, 160, 0, 168),
        (1301000, 2000000, 50, 0, 172);
 
-# adding missing pirate items at Singapore npc's
+-- &
 INSERT INTO `shopitems`
     (`shopid`, `itemid`, `price`, `pitch`, `position`)
 VALUES (9270019, 1492006, 160000, 0, 80),

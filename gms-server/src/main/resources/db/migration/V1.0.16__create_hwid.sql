@@ -5,17 +5,15 @@ CREATE TABLE IF NOT EXISTS `hwidaccounts`
     `relevance` TINYINT(2)  NOT NULL DEFAULT '0',
     `expiresat` TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`accountid`, `hwid`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  AUTO_INCREMENT = 1;
+
+);
+
 
 
 CREATE TABLE IF NOT EXISTS `hwidbans`
 (
-    `hwidbanid` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `hwid`      VARCHAR(30)      NOT NULL,
-    PRIMARY KEY (`hwidbanid`),
-    UNIQUE KEY `hwid_2` (`hwid`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  AUTO_INCREMENT = 1;
+    `hwidbanid` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `hwid`      VARCHAR(30)      NOT NULL
+
+);
+CREATE UNIQUE INDEX IF NOT EXISTS `hwidbans_hwid_2` ON `hwidbans` (`hwid`);

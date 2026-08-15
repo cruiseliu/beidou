@@ -1,43 +1,40 @@
 CREATE TABLE IF NOT EXISTS `questactions`
 (
-    `questactionid` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `questactionid` INTEGER PRIMARY KEY AUTOINCREMENT,
     `questid`       INT(11)          NOT NULL DEFAULT '0',
     `status`        INT(11)          NOT NULL DEFAULT '0',
-    `data`          BLOB             NOT NULL,
-    PRIMARY KEY (`questactionid`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  AUTO_INCREMENT = 1;
+    `data`          BLOB             NOT NULL
+
+);
+
 
 
 CREATE TABLE IF NOT EXISTS `questprogress`
 (
-    `id`            INT(10) UNSIGNED                                             NOT NULL AUTO_INCREMENT,
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `characterid`   INT(11)                                                      NOT NULL,
-    `queststatusid` INT(10) UNSIGNED                                             NOT NULL DEFAULT '0',
+    `queststatusid` INT(10)                                             NOT NULL DEFAULT '0',
     `progressid`    INT(11)                                                      NOT NULL DEFAULT '0',
-    `progress`      VARCHAR(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-    PRIMARY KEY (`id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  AUTO_INCREMENT = 1;
+    `progress`      VARCHAR(15) NOT NULL DEFAULT ''
+
+);
+
 
 
 CREATE TABLE IF NOT EXISTS `questrequirements`
 (
-    `questrequirementid` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `questrequirementid` INTEGER PRIMARY KEY AUTOINCREMENT,
     `questid`            INT(11)          NOT NULL DEFAULT '0',
     `status`             INT(11)          NOT NULL DEFAULT '0',
-    `data`               BLOB             NOT NULL,
-    PRIMARY KEY (`questrequirementid`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  AUTO_INCREMENT = 1;
+    `data`               BLOB             NOT NULL
+
+);
+
 
 
 CREATE TABLE IF NOT EXISTS `queststatus`
 (
-    `queststatusid` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `queststatusid` INTEGER PRIMARY KEY AUTOINCREMENT,
     `characterid`   INT(11)          NOT NULL DEFAULT '0',
     `quest`         INT(11)          NOT NULL DEFAULT '0',
     `status`        INT(11)          NOT NULL DEFAULT '0',
@@ -45,8 +42,6 @@ CREATE TABLE IF NOT EXISTS `queststatus`
     `expires`       BIGINT(20)       NOT NULL DEFAULT '0',
     `forfeited`     INT(11)          NOT NULL DEFAULT '0',
     `completed`     INT(11)          NOT NULL DEFAULT '0',
-    `info`          TINYINT(3)       NOT NULL DEFAULT '0',
-    PRIMARY KEY (`queststatusid`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  AUTO_INCREMENT = 1;
+    `info`          TINYINT(3)       NOT NULL DEFAULT '0'
+
+);

@@ -1,19 +1,18 @@
 CREATE TABLE IF NOT EXISTS `mts_cart`
 (
-    `id`     INT(11) NOT NULL AUTO_INCREMENT,
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `cid`    INT(11) NOT NULL,
-    `itemid` INT(11) NOT NULL,
-    PRIMARY KEY (`id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  AUTO_INCREMENT = 1;
+    `itemid` INT(11) NOT NULL
+
+);
+
 
 CREATE TABLE IF NOT EXISTS `mts_items`
 (
-    `id`           INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `tab`          INT(11)          NOT NULL DEFAULT '0',
     `type`         INT(11)          NOT NULL DEFAULT '0',
-    `itemid`       INT(10) UNSIGNED NOT NULL DEFAULT '0',
+    `itemid`       INT(10) NOT NULL DEFAULT '0',
     `quantity`     INT(11)          NOT NULL DEFAULT '1',
     `seller`       INT(11)          NOT NULL DEFAULT '0',
     `price`        INT(11)          NOT NULL DEFAULT '0',
@@ -23,7 +22,7 @@ CREATE TABLE IF NOT EXISTS `mts_items`
     `upgradeslots` INT(11)                   DEFAULT '0',
     `level`        INT(11)                   DEFAULT '0',
     `itemlevel`    INT(11)          NOT NULL DEFAULT '1',
-    `itemexp`      INT(11) UNSIGNED NOT NULL DEFAULT '0',
+    `itemexp`      INT(11) NOT NULL DEFAULT '0',
     `ringid`       INT(11)          NOT NULL DEFAULT '-1',
     `str`          INT(11)                   DEFAULT '0',
     `dex`          INT(11)                   DEFAULT '0',
@@ -46,11 +45,9 @@ CREATE TABLE IF NOT EXISTS `mts_items`
     `sellername`   VARCHAR(16)      NOT NULL,
     `sell_ends`    VARCHAR(16)      NOT NULL,
     `transfer`     INT(2)                    DEFAULT '0',
-    `vicious`      INT(2) UNSIGNED  NOT NULL DEFAULT '0',
-    `flag`         INT(2) UNSIGNED  NOT NULL DEFAULT '0',
+    `vicious`      INT(2)  NOT NULL DEFAULT '0',
+    `flag`         INT(2)  NOT NULL DEFAULT '0',
     `expiration`   BIGINT(20)       NOT NULL DEFAULT '-1',
-    `giftFrom`     VARCHAR(26)      NOT NULL,
-    PRIMARY KEY (`id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  AUTO_INCREMENT = 1;
+    `giftFrom`     VARCHAR(26)      NOT NULL
+
+);

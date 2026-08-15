@@ -797,7 +797,7 @@ public final class MTSHandler extends AbstractPacketHandler {
                 listaitems += " itemid=0 )";
             }
         } else {
-            listaitems = " AND sellername LIKE CONCAT('%','" + search + "', '%')";
+            listaitems = " AND sellername LIKE '%' || '" + search + "' || '%'";
         }
         int pages = 0;
         try (Connection con = DatabaseConnection.getConnection()){

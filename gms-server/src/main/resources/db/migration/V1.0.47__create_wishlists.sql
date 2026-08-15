@@ -1,9 +1,7 @@
 CREATE TABLE IF NOT EXISTS `wishlists`
 (
-    `id`     INT(11) NOT NULL AUTO_INCREMENT,
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `charid` INT(11) NOT NULL,
-    `sn`     INT(11) NOT NULL,
-    PRIMARY KEY (`id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  AUTO_INCREMENT = 1;
+    `sn`     INT(11) NOT NULL
+
+);
