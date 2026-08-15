@@ -31,6 +31,8 @@ import org.gms.server.life.NPC;
 import org.gms.server.quest.Quest;
 import org.gms.util.I18nUtil;
 import org.gms.util.PacketCreator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 
@@ -38,6 +40,7 @@ import java.awt.*;
  * @author Matze
  */
 public final class QuestActionHandler extends AbstractPacketHandler {
+    private static final Logger log = LoggerFactory.getLogger(QuestActionHandler.class);
     private static final short LOST_WHITE_ESSENCE_QUEST = 4522;
     private static final short CAPTAIN_LATANICA_RETURN_QUEST = 4523;
     private static final int WHITE_ESSENCE = 4000381;
@@ -63,11 +66,15 @@ public final class QuestActionHandler extends AbstractPacketHandler {
         if (!quest.isAutoStart() && !quest.isAutoComplete()) {
             NPC npc = player.getMap().getNPCById(npcId);
             if (npc == null) {
+                log.warn("QUEST_ACTION 拒绝: 任务 {} 的 NPC {} 不在地图 {} 上, 玩家 {}",
+                        quest.getId(), npcId, player.getMapId(), player.getName());
                 return false;
             }
 
             Point npcP = npc.getPosition();
             if (Math.abs(npcP.getX() - playerP.getX()) > 1200 || Math.abs(npcP.getY() - playerP.getY()) > 800) {
+                log.warn("QUEST_ACTION 拒绝: 任务 {} 的 NPC {} 距玩家 {} 过远 (npc=({},{}) player=({},{})) 地图 {}",
+                        quest.getId(), npcId, player.getName(), npcP.x, npcP.y, playerP.x, playerP.y, player.getMapId());
                 player.dropMessage(5, I18nUtil.getMessage("QuestActionHandler.isNpcNearby.message1"));
                 return false;
             }
@@ -109,6 +116,9 @@ public final class QuestActionHandler extends AbstractPacketHandler {
                     sendNpcOk(c, npc, I18nUtil.getMessage("QuestActionHandler.hasWhiteEssence.message1"));
                 } else if (questid == CAPTAIN_LATANICA_RETURN_QUEST && player.haveItem(WHITE_ESSENCE)) {
                     sendNpcOk(c, npc, I18nUtil.getMessage("QuestActionHandler.hasWhiteEssenceForLatanica.message1"));
+                } else {
+                    log.warn("QUEST_ACTION 拒绝: 玩家 {} 不满足任务 {} 的接取条件 (等级/道具/NPC {}), 地图 {}",
+                            player.getName(), questid, npc, player.getMapId());
                 }
                 break;
             }
@@ -130,6 +140,9 @@ public final class QuestActionHandler extends AbstractPacketHandler {
                             quest.complete(player, npc);
                         }
                     }
+                } else {
+                    log.warn("QUEST_ACTION 拒绝: 玩家 {} 不满足任务 {} 的完成条件 (等级/道具/NPC {}), 地图 {}",
+                            player.getName(), questid, npc, player.getMapId());
                 }
                 break;
             }
@@ -153,6 +166,9 @@ public final class QuestActionHandler extends AbstractPacketHandler {
                 }
                 if (quest.canComplete(player, npc)) {
                     QuestScriptManager.getInstance().end(c, questid, npc);
+                } else {
+                    log.warn("QUEST_ACTION 拒绝: 玩家 {} 不满足任务 {} 的脚本完成条件 (NPC {}), 地图 {}",
+                            player.getName(), questid, npc, player.getMapId());
                 }
                 break;
             }

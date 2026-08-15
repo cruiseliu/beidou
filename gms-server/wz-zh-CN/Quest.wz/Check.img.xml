@@ -18218,12 +18218,8 @@
             <int name="npc" value="1012111"/>
             <imgdir name="item">
                 <imgdir name="0">
-                    <int name="id" value="4000001"/>
-                    <int name="count" value="40"/>
-                </imgdir>
-                <imgdir name="1">
                     <int name="id" value="4000011"/>
-                    <int name="count" value="10"/>
+                    <int name="count" value="2"/>
                 </imgdir>
             </imgdir>
         </imgdir>
@@ -75946,8 +75942,8 @@
             <int name="npc" value="1012100"/>
             <imgdir name="mob">
                 <imgdir name="0">
-                    <int name="id" value="210100"/>
-                    <int name="count" value="16"/>
+                    <int name="id" value="100101"/>
+                    <int name="count" value="2"/>
                 </imgdir>
             </imgdir>
         </imgdir>

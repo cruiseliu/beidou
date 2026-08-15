@@ -62,7 +62,7 @@ gms:
     # 公网ip
     wan-host: 127.0.0.1
     # 局域网ip
-    lan-host: 127.0.0.1
+    lan-host: 192.168.100.100
     # 本地ip
     localhost: 127.0.0.1
     # 客户端登录端口

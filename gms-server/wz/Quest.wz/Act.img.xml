@@ -8690,14 +8690,10 @@
       <int name="exp" value="300"/>
       <imgdir name="item">
         <imgdir name="0">
-          <int name="id" value="4000001"/>
-          <int name="count" value="-40"/>
+          <int name="id" value="4000011"/>
+          <int name="count" value="-2"/>
         </imgdir>
         <imgdir name="1">
-          <int name="id" value="4000011"/>
-          <int name="count" value="-10"/>
-        </imgdir>
-        <imgdir name="2">
           <int name="id" value="2000000"/>
           <int name="count" value="25"/>
         </imgdir>

@@ -146,7 +146,7 @@ public class BuddyList {
 
     public void loadFromDb(int characterId) {
         try (Connection con = DatabaseConnection.getConnection()) {
-            try (PreparedStatement ps = con.prepareStatement("SELECT b.buddyid, b.pending, b.group, c.name as buddyname FROM buddies as b, characters as c WHERE c.id = b.buddyid AND b.characterid = ?")) {
+            try (PreparedStatement ps = con.prepareStatement("SELECT b.buddyid, b.pending, b.`group`, c.name as buddyname FROM buddies as b, characters as c WHERE c.id = b.buddyid AND b.characterid = ?")) {
                 ps.setInt(1, characterId);
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
