@@ -97,12 +97,14 @@ public class CommandsExecutor {
 
     private void handleInternal(Client client, String message) {
         if (client.getPlayer().getMapId() == MapId.JAIL && !client.getPlayer().isGM()) {
+            log.info("[指令] 静默拒绝：玩家 {} 在监狱地图使用指令 {}", client.getPlayer().getName(), message);
             client.getPlayer().yellowMessage(I18nUtil.getMessage("CommandsExecutor.handleInternal.message1"));
             return;
         }
         // GM commands
         char heading = message.charAt(0);
         if (!client.getPlayer().isGM() && heading == USER_HEADING && GameConfig.getServerBoolean("deterred_player_command")) {
+            log.info("[指令] 静默拒绝：玩家指令已被 deterred_player_command 配置禁用，玩家 {} 消息 {}", client.getPlayer().getName(), message);
             client.getPlayer().yellowMessage(I18nUtil.getMessage("CommandsExecutor.handleInternal.message4"));
             return;
         }
@@ -118,10 +120,12 @@ public class CommandsExecutor {
 
         final Command command = registeredCommands.get(commandName);
         if (command == null) {
+            log.info("[指令] 静默拒绝：未注册的指令 {}，玩家 {}", commandName, client.getPlayer().getName());
             client.getPlayer().yellowMessage(I18nUtil.getMessage("CommandsExecutor.handleInternal.message2", commandName));
             return;
         }
         if (client.getPlayer().gmLevel() < command.getRank()) {
+            log.info("[指令] 静默拒绝：玩家 {} gmLevel={} 低于指令 {} 所需 rank={}", client.getPlayer().getName(), client.getPlayer().gmLevel(), commandName, command.getRank());
             client.getPlayer().yellowMessage(I18nUtil.getMessage("CommandsExecutor.handleInternal.message3"));
             return;
         }

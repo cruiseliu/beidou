@@ -1,6 +1,7 @@
 package org.gms.client.character;
 
 import org.gms.client.Job;
+import org.gms.model.json.CharacterStatsData;
 import org.gms.util.Pair;
 import org.gms.util.Randomizer;
 
@@ -186,6 +187,22 @@ public class CharacterStats {
         localmagic = localint_;
         localwatk = 0;
         localchairrate = -1;
+    }
+
+    // ── 持久化数据转换（stats 域的映射；信封 CharacterData 的组装/应用在 Character.toData/applyData） ──
+
+    public CharacterStatsData toData() {
+        CharacterStatsData d = new CharacterStatsData();
+        d.str = str; d.dex = dex; d.int_ = int_; d.luk = luk;
+        d.hp = hp; d.mp = mp; d.maxHp = maxHp; d.maxMp = maxMp;
+        return d;
+    }
+
+    public void applyData(CharacterStatsData d) {
+        str = d.str; dex = d.dex; int_ = d.int_; luk = d.luk;
+        hp = d.hp; mp = d.mp; maxHp = d.maxHp; maxMp = d.maxMp;
+        clientMaxHp = Math.min(30000, maxHp);
+        clientMaxMp = Math.min(30000, maxMp);
     }
 }
 

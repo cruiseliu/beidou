@@ -342,6 +342,9 @@ public class CharacterService {
         worldTransferService.cancelPendingWorldTransfer(cid, false);
     }
 
+    // 死代码，无任何调用方：角色保存实际走 Character.saveCharToDB（原生 JDBC 事务，
+    // stat 已迁 character_json），此 ORM 版本只会 insertSelective 插入新行，语义就是错的
+    /*
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_UNCOMMITTED)
     public void saveCharToDB(Character player, boolean notAutosave) {
         if (!player.isLoggedIn()) {
@@ -353,6 +356,7 @@ public class CharacterService {
         CharactersDO cdo = Character.toCharactersDO(player);
         charactersMapper.insertSelective(cdo);
     }
+    */
 
     public Character loadCharFromDB(int cid, Client client, boolean channelServer) {
         CharactersDO charactersDO = findById(cid);
@@ -470,7 +474,6 @@ public class CharacterService {
         }
         chr.setStorage(accountStorage);
         chr.reapplyLocalStats();
-        chr.changeHpMp(charactersDO.getHp(), charactersDO.getMp(), true);
         return chr;
     }
 
