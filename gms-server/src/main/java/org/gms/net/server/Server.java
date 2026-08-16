@@ -1356,7 +1356,7 @@ public class Server {
 
 
             try (Connection con = DatabaseConnection.getConnection();
-                 PreparedStatement ps = con.prepareStatement("SELECT * FROM characters WHERE accountid = ? ORDER BY world, id")) {
+                 PreparedStatement ps = con.prepareStatement("SELECT c.*, j.data AS stats_json FROM characters c LEFT JOIN character_json j ON j.id = c.id WHERE c.accountid = ? ORDER BY c.world, c.id")) {
                 ps.setInt(1, accId);
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {

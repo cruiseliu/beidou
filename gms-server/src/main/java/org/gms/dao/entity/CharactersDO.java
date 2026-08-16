@@ -44,26 +44,6 @@ public class CharactersDO implements Serializable {
 
     private Integer gachaexp;
 
-    @Column("str")
-    private Integer attrStr;
-
-    @Column("dex")
-    private Integer attrDex;
-
-    @Column("luk")
-    private Integer attrLuk;
-
-    @Column("int")
-    private Integer attrInt;
-
-    private Integer hp;
-
-    private Integer mp;
-
-    private Integer maxhp;
-
-    private Integer maxmp;
-
     private Integer meso;
 
     @Column("hpMpUsed")

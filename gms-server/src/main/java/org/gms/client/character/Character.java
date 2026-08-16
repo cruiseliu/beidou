@@ -70,6 +70,7 @@ import org.gms.exception.NotEnabledException;
 import org.gms.manager.ServerManager;
 import org.gms.model.dto.InventorySearchReqDTO;
 import org.gms.model.dto.InventorySearchRtnDTO;
+import org.gms.model.json.CharacterData;
 import org.gms.model.pojo.NewYearCardRecord;
 import org.gms.model.pojo.SkillEntry;
 import org.gms.net.packet.Packet;
@@ -6313,14 +6314,7 @@ public class Character extends AbstractCharacterObject {
 
             ret.level = rs.getInt("level");
             ret.job = Job.getById(rs.getInt("job"));
-            ret.stats.str = rs.getInt("str");
-            ret.stats.dex = rs.getInt("dex");
-            ret.stats.int_ = rs.getInt("int");
-            ret.stats.luk = rs.getInt("luk");
-            ret.stats.hp = rs.getInt("hp");
-            ret.setMaxHp(rs.getInt("maxhp"));
-            ret.stats.mp = rs.getInt("mp");
-            ret.setMaxMp(rs.getInt("maxmp"));
+            ret.applyData(CharacterData.deserialize(rs.getString("stats_json")));
             ret.remainingAp = rs.getInt("ap");
             ret.loadCharSkillPoints(rs.getString("sp").split(","));
             ret.exp.set(rs.getInt("exp"));
@@ -6417,16 +6411,9 @@ public class Character extends AbstractCharacterObject {
         chr.setLevel(charactersDO.getLevel());
         chr.setFame(charactersDO.getFame());
         chr.setQuestFame(charactersDO.getFquest());
-        chr.setStr(charactersDO.getAttrStr());
-        chr.setDex(charactersDO.getAttrDex());
-        chr.setInt(charactersDO.getAttrInt());
-        chr.setLuk(charactersDO.getAttrLuk());
+        loadStatsFromJson(chr, charactersDO.getId());
         chr.setExp(charactersDO.getExp());
         chr.setGachaExp(charactersDO.getGachaexp());
-        chr.setHp(charactersDO.getHp());
-        chr.setMaxHp(charactersDO.getMaxhp());
-        chr.setMp(charactersDO.getMp());
-        chr.setMaxMp(charactersDO.getMaxmp());
         chr.setHpMpApUsed(charactersDO.getHpMpUsed());
         chr.setHasMerchant(charactersDO.getHasmerchant());
         chr.setRemainingAp(charactersDO.getAp());
@@ -6595,6 +6582,37 @@ public class Character extends AbstractCharacterObject {
         return chr;
     }
 
+    // ── 持久化数据转换：CharacterData 信封在此组装/应用，各数据域的映射由对应模块完成。
+    //    持久化代码（JDBC）只接触 CharacterData，不直接看到 CharacterStatsData 等域类型 ──
+
+    public CharacterData toData() {
+        return new CharacterData(stats.toData());
+    }
+
+    public void applyData(CharacterData data) {
+        stats.applyData(data.stats);
+    }
+
+    // str/dex/int/luk/hp/mp/maxHp/maxMp 已从 characters 表迁至 character_json，此处按新表加载
+    private static void loadStatsFromJson(Character chr, int cid) {
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement("SELECT data FROM character_json WHERE id = ?")) {
+            ps.setInt(1, cid);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    chr.applyData(CharacterData.deserialize(rs.getString("data")));
+                    return;
+                }
+            }
+        } catch (SQLException e) {
+            log.error("加载 character_json 失败, cid={}", cid, e);
+        }
+        throw new IllegalStateException("character_json 缺少角色属性数据, cid=" + cid);
+    }
+
+    // 死代码，唯一调用方 CharacterService.saveCharToDB(ORM版) 已一并注释：
+    // 该路径用 insertSelective 插新行而非更新，且 stat 已迁 character_json、字段永远填不全
+    /*
     public static CharactersDO toCharactersDO(Character chr) {
         CharactersDO cdo = new CharactersDO();
         cdo.setLevel(chr.getLevel());
@@ -6604,16 +6622,8 @@ public class Character extends AbstractCharacterObject {
         chr.statWlock.lock();
         try {
             // 此处虽然是可重入锁，但仍不建议锁2次，所以不使用get方法
-            cdo.setAttrStr(chr.stats.str);
-            cdo.setAttrDex(chr.stats.dex);
-            cdo.setAttrInt(chr.stats.int_);
-            cdo.setAttrLuk(chr.stats.luk);
             cdo.setExp(Math.abs(chr.exp.get()));
             cdo.setGachaexp(Math.abs(chr.gachaExp.get()));
-            cdo.setHp(chr.stats.hp);
-            cdo.setMp(chr.stats.mp);
-            cdo.setMaxhp(chr.stats.maxHp);
-            cdo.setMaxmp(chr.stats.maxMp);
             StringBuilder sps = new StringBuilder();
             for (int sp : chr.remainingSp) {
                 sps.append(sp);
@@ -6679,6 +6689,7 @@ public class Character extends AbstractCharacterObject {
         // todo 未完成
         return cdo;
     }
+    */
 
     public static Character loadCharFromDB(final int cid, Client client, boolean channelServer) {
         try {
@@ -7390,29 +7401,21 @@ public class Character extends AbstractCharacterObject {
 
             try {
                 // Character info
-                try (PreparedStatement ps = con.prepareStatement("INSERT INTO characters (str, dex, luk, `int`, gm, skincolor, gender, job, hair, face, map, meso, spawnpoint, accountid, name, world, hp, mp, maxhp, maxmp, level, ap, sp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
-                    ps.setInt(1, stats.str);
-                    ps.setInt(2, stats.dex);
-                    ps.setInt(3, stats.luk);
-                    ps.setInt(4, stats.int_);
-                    ps.setInt(5, gmLevel);
-                    ps.setInt(6, skinColor.getId());
-                    ps.setInt(7, gender);
-                    ps.setInt(8, getJob().getId());
-                    ps.setInt(9, hair);
-                    ps.setInt(10, face);
-                    ps.setInt(11, mapId);
-                    ps.setInt(12, Math.abs(meso.get()));
-                    ps.setInt(13, 0);
-                    ps.setInt(14, accountId);
-                    ps.setString(15, name);
-                    ps.setInt(16, world);
-                    ps.setInt(17, stats.hp);
-                    ps.setInt(18, stats.mp);
-                    ps.setInt(19, stats.maxHp);
-                    ps.setInt(20, stats.maxMp);
-                    ps.setInt(21, level);
-                    ps.setInt(22, remainingAp);
+                try (PreparedStatement ps = con.prepareStatement("INSERT INTO characters (gm, skincolor, gender, job, hair, face, map, meso, spawnpoint, accountid, name, world, level, ap, sp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                    ps.setInt(1, gmLevel);
+                    ps.setInt(2, skinColor.getId());
+                    ps.setInt(3, gender);
+                    ps.setInt(4, getJob().getId());
+                    ps.setInt(5, hair);
+                    ps.setInt(6, face);
+                    ps.setInt(7, mapId);
+                    ps.setInt(8, Math.abs(meso.get()));
+                    ps.setInt(9, 0);
+                    ps.setInt(10, accountId);
+                    ps.setString(11, name);
+                    ps.setInt(12, world);
+                    ps.setInt(13, level);
+                    ps.setInt(14, remainingAp);
 
                     StringBuilder sps = new StringBuilder();
                     for (int j : remainingSp) {
@@ -7420,7 +7423,7 @@ public class Character extends AbstractCharacterObject {
                         sps.append(",");
                     }
                     String sp = sps.toString();
-                    ps.setString(23, sp.substring(0, sp.length() - 1));
+                    ps.setString(15, sp.substring(0, sp.length() - 1));
 
                     int updateRows = ps.executeUpdate();
                     if (updateRows < 1) {
@@ -7436,6 +7439,13 @@ public class Character extends AbstractCharacterObject {
                             return false;
                         }
                     }
+                }
+
+                // CharacterStats 持久化为 JSON
+                try (PreparedStatement ps = con.prepareStatement("INSERT INTO character_json (id, data) VALUES (?, ?)")) {
+                    ps.setInt(1, id);
+                    ps.setString(2, toData().serialize());
+                    ps.executeUpdate();
                 }
 
                 // Select a keybinding method
@@ -7551,23 +7561,19 @@ public class Character extends AbstractCharacterObject {
             con.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
 
             try {
-                try (PreparedStatement ps = con.prepareStatement("UPDATE characters SET level = ?, fame = ?, str = ?, dex = ?, luk = ?, `int` = ?, exp = ?, gachaexp = ?, hp = ?, mp = ?, maxhp = ?, maxmp = ?, sp = ?, ap = ?, gm = ?, skincolor = ?, gender = ?, job = ?, hair = ?, face = ?, map = ?, meso = ?, hpMpUsed = ?, spawnpoint = ?, party = ?, buddyCapacity = ?, messengerid = ?, messengerposition = ?, mountlevel = ?, mountexp = ?, mounttiredness= ?, equipslots = ?, useslots = ?, setupslots = ?, etcslots = ?,  monsterbookcover = ?, vanquisherStage = ?, dojoPoints = ?, lastDojoStage = ?, finishedDojoTutorial = ?, vanquisherKills = ?, matchcardwins = ?, matchcardlosses = ?, matchcardties = ?, omokwins = ?, omoklosses = ?, omokties = ?, dataString = ?, fquest = ?, jailexpire = ?, partnerId = ?, marriageItemId = ?, lastExpGainTime = ?, ariantPoints = ?, partySearch = ? WHERE id = ?", Statement.RETURN_GENERATED_KEYS)) {
+                String statsJson;
+
+                try (PreparedStatement ps = con.prepareStatement("UPDATE characters SET level = ?, fame = ?, exp = ?, gachaexp = ?, sp = ?, ap = ?, gm = ?, skincolor = ?, gender = ?, job = ?, hair = ?, face = ?, map = ?, meso = ?, hpMpUsed = ?, spawnpoint = ?, party = ?, buddyCapacity = ?, messengerid = ?, messengerposition = ?, mountlevel = ?, mountexp = ?, mounttiredness= ?, equipslots = ?, useslots = ?, setupslots = ?, etcslots = ?,  monsterbookcover = ?, vanquisherStage = ?, dojoPoints = ?, lastDojoStage = ?, finishedDojoTutorial = ?, vanquisherKills = ?, matchcardwins = ?, matchcardlosses = ?, matchcardties = ?, omokwins = ?, omoklosses = ?, omokties = ?, dataString = ?, fquest = ?, jailexpire = ?, partnerId = ?, marriageItemId = ?, lastExpGainTime = ?, ariantPoints = ?, partySearch = ? WHERE id = ?", Statement.RETURN_GENERATED_KEYS)) {
                     ps.setInt(1, level);    // thanks CanIGetaPR for noticing an unnecessary "level" limitation when persisting DB data
                     ps.setInt(2, fame);
 
                     effLock.lock();
                     statWlock.lock();
                     try {
-                        ps.setInt(3, stats.str);
-                        ps.setInt(4, stats.dex);
-                        ps.setInt(5, stats.luk);
-                        ps.setInt(6, stats.int_);
-                        ps.setInt(7, Math.abs(exp.get()));
-                        ps.setInt(8, Math.abs(gachaExp.get()));
-                        ps.setInt(9, stats.hp);
-                        ps.setInt(10, stats.mp);
-                        ps.setInt(11, stats.maxHp);
-                        ps.setInt(12, stats.maxMp);
+                        statsJson = toData().serialize();
+
+                        ps.setInt(3, Math.abs(exp.get()));
+                        ps.setInt(4, Math.abs(gachaExp.get()));
 
                         StringBuilder sps = new StringBuilder();
                         for (int j : remainingSp) {
@@ -7575,102 +7581,109 @@ public class Character extends AbstractCharacterObject {
                             sps.append(",");
                         }
                         String sp = sps.toString();
-                        ps.setString(13, sp.substring(0, sp.length() - 1));
+                        ps.setString(5, sp.substring(0, sp.length() - 1));
 
-                        ps.setInt(14, remainingAp);
+                        ps.setInt(6, remainingAp);
                     } finally {
                         statWlock.unlock();
                         effLock.unlock();
                     }
 
-                    ps.setInt(15, gmLevel);
-                    ps.setInt(16, skinColor.getId());
-                    ps.setInt(17, gender);
-                    ps.setInt(18, job.getId());
-                    ps.setInt(19, hair);
-                    ps.setInt(20, face);
+                    ps.setInt(7, gmLevel);
+                    ps.setInt(8, skinColor.getId());
+                    ps.setInt(9, gender);
+                    ps.setInt(10, job.getId());
+                    ps.setInt(11, hair);
+                    ps.setInt(12, face);
                     if (map == null || (cashShop != null && cashShop.isOpened())) {
-                        ps.setInt(21, mapId);
+                        ps.setInt(13, mapId);
                     } else {
                         if (map.getForcedReturnId() != MapId.NONE) {
-                            ps.setInt(21, map.getForcedReturnId());
+                            ps.setInt(13, map.getForcedReturnId());
                         } else {
-                            ps.setInt(21, getHp() < 1 ? map.getReturnMapId() : map.getId());
+                            ps.setInt(13, getHp() < 1 ? map.getReturnMapId() : map.getId());
                         }
                     }
-                    ps.setInt(22, meso.get());
-                    ps.setInt(23, hpMpApUsed);
+                    ps.setInt(14, meso.get());
+                    ps.setInt(15, hpMpApUsed);
                     if (map == null || map.getId() == MapId.CRIMSONWOOD_VALLEY_1 || map.getId() == MapId.CRIMSONWOOD_VALLEY_2) {  // reset to first spawnpoint on those maps
-                        ps.setInt(24, 0);
+                        ps.setInt(16, 0);
                     } else {
                         Portal closest = map.findClosestPlayerSpawnpoint(getPosition());
                         if (closest != null) {
-                            ps.setInt(24, closest.getId());
+                            ps.setInt(16, closest.getId());
                         } else {
-                            ps.setInt(24, 0);
+                            ps.setInt(16, 0);
                         }
                     }
 
                     prtLock.lock();
                     try {
                         if (party != null) {
-                            ps.setInt(25, party.getId());
+                            ps.setInt(17, party.getId());
                         } else {
-                            ps.setInt(25, -1);
+                            ps.setInt(17, -1);
                         }
                     } finally {
                         prtLock.unlock();
                     }
 
-                    ps.setInt(26, buddylist.getCapacity());
+                    ps.setInt(18, buddylist.getCapacity());
                     if (messenger != null) {
-                        ps.setInt(27, messenger.getId());
-                        ps.setInt(28, messengerPosition);
+                        ps.setInt(19, messenger.getId());
+                        ps.setInt(20, messengerPosition);
                     } else {
-                        ps.setInt(27, 0);
-                        ps.setInt(28, 4);
+                        ps.setInt(19, 0);
+                        ps.setInt(20, 4);
                     }
                     if (mapleMount != null) {
-                        ps.setInt(29, mapleMount.getLevel());
-                        ps.setInt(30, mapleMount.getExp());
-                        ps.setInt(31, mapleMount.getTiredness());
+                        ps.setInt(21, mapleMount.getLevel());
+                        ps.setInt(22, mapleMount.getExp());
+                        ps.setInt(23, mapleMount.getTiredness());
                     } else {
-                        ps.setInt(29, 1);
-                        ps.setInt(30, 0);
-                        ps.setInt(31, 0);
+                        ps.setInt(21, 1);
+                        ps.setInt(22, 0);
+                        ps.setInt(23, 0);
                     }
                     for (int i = 1; i < 5; i++) {
-                        ps.setInt(i + 31, getSlots(i));
+                        ps.setInt(i + 23, getSlots(i));
                     }
 
                     monsterBook.saveCards(con, id);
 
-                    ps.setInt(36, bookCover);
-                    ps.setInt(37, vanquisherStage);
-                    ps.setInt(38, dojoPoints);
-                    ps.setInt(39, dojoStage);
-                    ps.setInt(40, finishedDojoTutorial ? 1 : 0);
-                    ps.setInt(41, vanquisherKills);
-                    ps.setInt(42, matchcardwins);
-                    ps.setInt(43, matchcardlosses);
-                    ps.setInt(44, matchcardties);
-                    ps.setInt(45, omokwins);
-                    ps.setInt(46, omoklosses);
-                    ps.setInt(47, omokties);
-                    ps.setString(48, dataString);
-                    ps.setInt(49, questFame);
-                    ps.setLong(50, jailExpiration);
-                    ps.setInt(51, partnerId);
-                    ps.setInt(52, marriageItemId);
-                    ps.setTimestamp(53, new Timestamp(lastExpGainTime));
-                    ps.setInt(54, ariantPoints);
-                    ps.setBoolean(55, canRecvPartySearchInvite);
-                    ps.setInt(56, id);
+                    ps.setInt(28, bookCover);
+                    ps.setInt(29, vanquisherStage);
+                    ps.setInt(30, dojoPoints);
+                    ps.setInt(31, dojoStage);
+                    ps.setInt(32, finishedDojoTutorial ? 1 : 0);
+                    ps.setInt(33, vanquisherKills);
+                    ps.setInt(34, matchcardwins);
+                    ps.setInt(35, matchcardlosses);
+                    ps.setInt(36, matchcardties);
+                    ps.setInt(37, omokwins);
+                    ps.setInt(38, omoklosses);
+                    ps.setInt(39, omokties);
+                    ps.setString(40, dataString);
+                    ps.setInt(41, questFame);
+                    ps.setLong(42, jailExpiration);
+                    ps.setInt(43, partnerId);
+                    ps.setInt(44, marriageItemId);
+                    ps.setTimestamp(45, new Timestamp(lastExpGainTime));
+                    ps.setInt(46, ariantPoints);
+                    ps.setBoolean(47, canRecvPartySearchInvite);
+                    ps.setInt(48, id);
 
                     int updateRows = ps.executeUpdate();
                     if (updateRows < 1) {
                         throw new RuntimeException("Character not in database (" + id + ")");
                     }
+                }
+
+                // CharacterStats 持久化为 JSON（str/dex/int/luk/hp/mp/maxHp/maxMp 已从 characters 表移除）
+                try (PreparedStatement ps = con.prepareStatement("INSERT INTO character_json (id, data) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET data = excluded.data")) {
+                    ps.setInt(1, id);
+                    ps.setString(2, statsJson);
+                    ps.executeUpdate();
                 }
 
                 List<Pet> petList = new LinkedList<>();
