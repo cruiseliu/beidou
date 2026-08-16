@@ -151,4 +151,9 @@ public enum Job {
 
         return BEGINNER;
     }
+
+    public boolean isBeginnerJob() {
+        return id == 0 || id == 1000 || id == 2000;
+    }
+
 }

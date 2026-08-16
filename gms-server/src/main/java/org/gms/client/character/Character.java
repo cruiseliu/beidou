@@ -1199,19 +1199,19 @@ public class Character extends AbstractCharacterObject {
         int addhp = 0, addmp = 0;
         int job_ = job.getId() % 1000; // lame temp "fix"
         if (job_ == 100) {                      // 1st warrior
-            addhp += getHpMpGainFromRange(200, 250, fixedLevelUpHpMp);
+            addhp += CharacterStats.getHpMpGainFromRange(200, 250, fixedLevelUpHpMp);
         } else if (job_ == 200) {               // 1st mage
-            addmp += getHpMpGainFromRange(100, 150, fixedLevelUpHpMp);
+            addmp += CharacterStats.getHpMpGainFromRange(100, 150, fixedLevelUpHpMp);
         } else if (job_ % 100 == 0) {           // 1st others
-            addhp += getHpMpGainFromRange(100, 150, fixedLevelUpHpMp);
-            addmp += getHpMpGainFromRange(25, 50, fixedLevelUpHpMp);
+            addhp += CharacterStats.getHpMpGainFromRange(100, 150, fixedLevelUpHpMp);
+            addmp += CharacterStats.getHpMpGainFromRange(25, 50, fixedLevelUpHpMp);
         } else if (job_ > 0 && job_ < 200) {    // 2nd~4th warrior
-            addhp += getHpMpGainFromRange(300, 350, fixedLevelUpHpMp);
+            addhp += CharacterStats.getHpMpGainFromRange(300, 350, fixedLevelUpHpMp);
         } else if (job_ < 300) {                // 2nd~4th mage
-            addmp += getHpMpGainFromRange(450, 500, fixedLevelUpHpMp);
+            addmp += CharacterStats.getHpMpGainFromRange(450, 500, fixedLevelUpHpMp);
         } else {                  // 2nd~4th others
-            addhp += getHpMpGainFromRange(300, 350, fixedLevelUpHpMp);
-            addmp += getHpMpGainFromRange(150, 200, fixedLevelUpHpMp);
+            addhp += CharacterStats.getHpMpGainFromRange(300, 350, fixedLevelUpHpMp);
+            addmp += CharacterStats.getHpMpGainFromRange(150, 200, fixedLevelUpHpMp);
         }
         
         /*
@@ -5840,42 +5840,7 @@ public class Character extends AbstractCharacterObject {
         }
     }
 
-    private static int getHpMpGainFromRange(int min, int max, boolean fixed) {
-        return fixed ? (min + max) / 2 : Randomizer.rand(min, max);
-    }
-
-    /**
-     * 计算升级时的基础 HP/MP 增长量（不含技能加成）。
-     * fixedLevelUpHpMp = true 时使用平均值（下取整），false 时使用原版随机值。
-     */
-    private Pair<Integer, Integer> getBasicLevelUpHpMp(Job job) {
-        boolean fixedLevelUpHpMp = true;  // todo: [refactor] hard coded config
-        int hp = 0, mp = 0;
-        if (isBeginnerJob()) {
-            hp = getHpMpGainFromRange(12, 16, fixedLevelUpHpMp);
-            mp = getHpMpGainFromRange(10, 12, fixedLevelUpHpMp);
-        } else if (job.isA(Job.WARRIOR) || job.isA(Job.DAWNWARRIOR1)) {
-            hp = getHpMpGainFromRange(24, 28, fixedLevelUpHpMp);
-            mp = getHpMpGainFromRange(4, 6, fixedLevelUpHpMp);
-        } else if (job.isA(Job.MAGICIAN) || job.isA(Job.BLAZEWIZARD1)) {
-            hp = getHpMpGainFromRange(10, 14, fixedLevelUpHpMp);
-            mp = getHpMpGainFromRange(22, 24, fixedLevelUpHpMp);
-        } else if (job.isA(Job.BOWMAN) || job.isA(Job.THIEF) || (job.getId() > 1299 && job.getId() < 1500)) {
-            hp = getHpMpGainFromRange(20, 24, fixedLevelUpHpMp);
-            mp = getHpMpGainFromRange(14, 16, fixedLevelUpHpMp);
-        } else if (job.isA(Job.GM)) {
-            hp = 30000;
-            mp = 30000;
-        } else if (job.isA(Job.PIRATE) || job.isA(Job.THUNDERBREAKER1)) {
-            hp = getHpMpGainFromRange(22, 28, fixedLevelUpHpMp);
-            mp = getHpMpGainFromRange(18, 23, fixedLevelUpHpMp);
-        } else if (job.isA(Job.ARAN1)) {
-            hp = getHpMpGainFromRange(44, 48, fixedLevelUpHpMp);
-            mp = getHpMpGainFromRange(4, 8, fixedLevelUpHpMp);
-            mp += (int) Math.floor(mp * 0.1);
-        }
-        return new Pair<>(hp, mp);
-    }
+    // getHpMpGainFromRange 和 getBasicLevelUpHpMp 已迁移到 CharacterStats
 
     public synchronized void levelUp(boolean takeexp) {
         Skill improvingMaxHP = null;
@@ -5920,7 +5885,7 @@ public class Character extends AbstractCharacterObject {
         }
 
         int addhp, addmp;
-        Pair<Integer, Integer> basicHpMp = getBasicLevelUpHpMp(job);
+        Pair<Integer, Integer> basicHpMp = stats.getBasicLevelUpHpMp(job);
         addhp = basicHpMp.getLeft();
         addmp = basicHpMp.getRight();
 
@@ -6967,42 +6932,15 @@ public class Character extends AbstractCharacterObject {
 
     private void recalcEquipStats() {
         if (equipchanged) {
-            stats.equipmaxhp = 0;
-            stats.equipmaxmp = 0;
-            stats.equipdex = 0;
-            stats.equipint_ = 0;
-            stats.equipstr = 0;
-            stats.equipluk = 0;
-            stats.equipmagic = 0;
-            stats.equipwatk = 0;
-            //equipspeed = 0;
-            //equipjump = 0;
-
+            // 把 EQUIPPED 背包的 Equip 列表传给 stats 聚合
+            java.util.List<org.gms.client.inventory.Equip> equippedList = new java.util.ArrayList<>();
             for (Item item : getInventory(InventoryType.EQUIPPED)) {
-                Equip equip = (Equip) item;
-                stats.equipmaxhp += equip.getHp();
-                stats.equipmaxmp += equip.getMp();
-                stats.equipdex += equip.getDex();
-                stats.equipint_ += equip.getInt();
-                stats.equipstr += equip.getStr();
-                stats.equipluk += equip.getLuk();
-                stats.equipmagic += equip.getMatk() + equip.getInt();
-                stats.equipwatk += equip.getWatk();
-                //equipspeed += equip.getSpeed();
-                //equipjump += equip.getJump();
+                equippedList.add((org.gms.client.inventory.Equip) item);
             }
-
+            stats.aggregateEquipStats(equippedList);
             equipchanged = false;
         }
-
-        stats.localMaxHp += stats.equipmaxhp;
-        stats.localMaxMp += stats.equipmaxmp;
-        stats.localdex += stats.equipdex;
-        stats.localint_ += stats.equipint_;
-        stats.localstr += stats.equipstr;
-        stats.localluk += stats.equipluk;
-        stats.localmagic += stats.equipmagic;
-        stats.localwatk += stats.equipwatk;
+        stats.applyEquipToLocal();
     }
 
     public void reapplyLocalStats() {
@@ -7010,15 +6948,7 @@ public class Character extends AbstractCharacterObject {
         chrLock.lock();
         statWlock.lock();
         try {
-            stats.localMaxHp = getMaxHp();
-            stats.localMaxMp = getMaxMp();
-            stats.localdex = getDex();
-            stats.localint_ = getInt();
-            stats.localstr = getStr();
-            stats.localluk = getLuk();
-            stats.localmagic = stats.localint_;
-            stats.localwatk = 0;
-            stats.localchairrate = -1;
+            stats.resetLocalToBase();
 
             recalcEquipStats();
 
@@ -8165,55 +8095,31 @@ public class Character extends AbstractCharacterObject {
         }
     }
 
+    // calcHpRatioUpdate / calcMpRatioUpdate / calcTransientRatio / calcHpRatioTransient / calcMpRatioTransient
+    // 计算部分已迁移到 CharacterStats，以下是使用这些计算的编排方法
+
     private Pair<Stat, Integer> calcHpRatioUpdate(int newHp, int oldHp) {
         int delta = newHp - oldHp;
-        this.stats.hp = calcHpRatioUpdate(stats.hp, oldHp, delta);
-
+        stats.hp = stats.calcHpRatioUpdate(stats.hp, oldHp, delta);
         hpChangeAction(Short.MIN_VALUE);
         return new Pair<>(Stat.HP, stats.hp);
     }
 
     private Pair<Stat, Integer> calcMpRatioUpdate(int newMp, int oldMp) {
         int delta = newMp - oldMp;
-        this.stats.mp = calcMpRatioUpdate(stats.mp, oldMp, delta);
+        stats.mp = stats.calcMpRatioUpdate(stats.mp, oldMp, delta);
         return new Pair<>(Stat.MP, stats.mp);
     }
 
-    private static int calcTransientRatio(float transientpoint) {
-        int ret = (int) transientpoint;
-        return !(ret <= 0 && transientpoint > 0.0f) ? ret : 1;
-    }
-
     private Pair<Stat, Integer> calcHpRatioTransient() {
-        this.stats.hp = calcTransientRatio(stats.transientHp * stats.localMaxHp);
-
+        stats.hp = stats.calcHpFromTransient();
         hpChangeAction(Short.MIN_VALUE);
         return new Pair<>(Stat.HP, stats.hp);
     }
 
     private Pair<Stat, Integer> calcMpRatioTransient() {
-        this.stats.mp = calcTransientRatio(stats.transientMp * stats.localMaxMp);
+        stats.mp = stats.calcMpFromTransient();
         return new Pair<>(Stat.MP, stats.mp);
-    }
-
-    private int calcHpRatioUpdate(int curpoint, int maxpoint, int diffpoint) {
-        int nextMax = Math.min(30000, maxpoint + diffpoint);
-
-        float temp = curpoint * nextMax;
-        int ret = (int) Math.ceil(temp / maxpoint);
-
-        stats.transientHp = (maxpoint > nextMax) ? ((float) curpoint) / maxpoint : ((float) ret) / nextMax;
-        return ret;
-    }
-
-    private int calcMpRatioUpdate(int curpoint, int maxpoint, int diffpoint) {
-        int nextMax = Math.min(30000, maxpoint + diffpoint);
-
-        float temp = curpoint * nextMax;
-        int ret = (int) Math.ceil(temp / maxpoint);
-
-        stats.transientMp = (maxpoint > nextMax) ? ((float) curpoint) / maxpoint : ((float) ret) / nextMax;
-        return ret;
     }
 
     public boolean applyHpMpChange(int hpCon, int hpchange, int mpchange) {
