@@ -19,7 +19,7 @@
 */
 package org.gms.net.server.coordinator.matchchecker;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 
 import java.util.Set;
 

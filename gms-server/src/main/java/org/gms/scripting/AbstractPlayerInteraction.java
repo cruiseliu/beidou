@@ -21,7 +21,7 @@
  */
 package org.gms.scripting;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.*;
 import org.gms.client.inventory.*;
 import org.gms.client.inventory.manipulator.InventoryManipulator;

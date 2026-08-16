@@ -19,7 +19,7 @@
 */
 package org.gms.server.loot;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.server.life.MonsterDropEntry;
 import org.gms.server.life.MonsterInformationProvider;
 import org.gms.server.quest.Quest;

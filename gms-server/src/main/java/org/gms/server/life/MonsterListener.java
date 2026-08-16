@@ -1,6 +1,6 @@
 package org.gms.server.life;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 
 public interface MonsterListener {
 

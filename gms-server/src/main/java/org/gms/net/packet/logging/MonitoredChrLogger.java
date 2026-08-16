@@ -20,7 +20,7 @@
  */
 package org.gms.net.packet.logging;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.Client;
 import net.jcip.annotations.NotThreadSafe;
 import org.gms.net.opcodes.RecvOpcode;

@@ -23,7 +23,7 @@
 */
 package org.gms.client.processor.stat;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;

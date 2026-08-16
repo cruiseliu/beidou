@@ -22,7 +22,7 @@
 package org.gms.client.inventory.manipulator;
 
 import org.gms.client.BuffStat;
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Inventory;

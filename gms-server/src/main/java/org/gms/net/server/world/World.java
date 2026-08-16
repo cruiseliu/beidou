@@ -28,7 +28,7 @@ import org.gms.client.BuddyList;
 import org.gms.client.BuddyList.BuddyAddResult;
 import org.gms.client.BuddyList.BuddyOperation;
 import org.gms.client.BuddylistEntry;
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.Family;
 import org.gms.config.GameConfig;
 import org.gms.config.GameConfig;

@@ -19,7 +19,7 @@
 */
 package org.gms.util.packets;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.id.MapId;

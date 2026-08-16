@@ -23,7 +23,7 @@ package org.gms.util;
 import com.mybatisflex.annotation.Column;
 import org.gms.client.BuddylistEntry;
 import org.gms.client.BuffStat;
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.Disease;
 import org.gms.client.FamilyEntitlement;

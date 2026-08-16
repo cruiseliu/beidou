@@ -19,7 +19,7 @@
 */
 package org.gms.net.server.coordinator.partysearch;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.Job;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.MapId;

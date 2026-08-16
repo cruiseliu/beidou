@@ -21,7 +21,7 @@
 */
 package org.gms.net.server;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.Client;
 
 import java.util.ArrayList;

@@ -1,6 +1,6 @@
 package org.gms.server.quest.medal;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.QuestStatus;
 import org.gms.client.inventory.Pet;
 import org.gms.constants.game.DelayedQuestUpdate;

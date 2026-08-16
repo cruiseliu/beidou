@@ -4,7 +4,7 @@ import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.row.Row;
 import lombok.AllArgsConstructor;
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.inventory.*;
 import org.gms.dao.entity.CharactersDO;
 import org.gms.dao.entity.InventoryequipmentDO;

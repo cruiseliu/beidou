@@ -20,7 +20,7 @@
 package org.gms.net.server.coordinator.matchchecker;
 
 import lombok.Getter;
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.net.server.PlayerStorage;
 import org.gms.net.server.Server;
 import org.gms.net.server.coordinator.matchchecker.MatchCheckerListenerFactory.MatchCheckerType;

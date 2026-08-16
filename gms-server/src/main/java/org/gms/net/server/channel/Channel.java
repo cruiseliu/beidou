@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.gms.net.server.channel;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.MapId;
 import org.gms.manager.ServerManager;

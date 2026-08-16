@@ -21,7 +21,7 @@
 */
 package org.gms.net.server.guild;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 
 public class GuildCharacter {
     private Character character;

@@ -22,7 +22,7 @@
 
 package org.gms.server.events.gm;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.constants.id.MapId;
 import org.gms.server.TimerManager;
 import org.gms.util.PacketCreator;

@@ -24,7 +24,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.dao.entity.NewyearDO;
 import org.gms.manager.ServerManager;
 import org.gms.net.server.Server;

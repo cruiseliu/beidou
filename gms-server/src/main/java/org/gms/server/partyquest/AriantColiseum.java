@@ -19,7 +19,7 @@
 */
 package org.gms.server.partyquest;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.constants.game.GameConstants;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.id.MapId;

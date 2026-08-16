@@ -21,7 +21,7 @@
 */
 package org.gms.client.inventory;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.util.CashIdGenerator;
 import org.gms.constants.game.ExpTable;
 import org.gms.server.ItemInformationProvider;

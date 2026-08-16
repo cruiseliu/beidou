@@ -20,7 +20,7 @@
 package org.gms.net.server.task;
 
 import lombok.extern.slf4j.Slf4j;
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
 import org.gms.manager.ServerManager;

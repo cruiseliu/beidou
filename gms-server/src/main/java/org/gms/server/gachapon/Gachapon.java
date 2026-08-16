@@ -22,7 +22,7 @@
 package org.gms.server.gachapon;
 
 import lombok.Getter;
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.constants.id.NpcId;
 import org.gms.util.I18nUtil;
 import org.slf4j.Logger;

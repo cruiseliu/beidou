@@ -1,6 +1,6 @@
 package org.gms.server;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

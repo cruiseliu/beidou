@@ -21,7 +21,7 @@
 */
 package org.gms.server.events.gm;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.provider.DataProvider;
 import org.gms.provider.DataProviderFactory;
 import org.gms.provider.DataTool;

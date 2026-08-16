@@ -21,6 +21,7 @@
 */
 package org.gms.client;
 
+import org.gms.client.character.Character;
 import org.gms.net.packet.Packet;
 import org.gms.net.server.PlayerStorage;
 import org.gms.constants.game.GameConstants;

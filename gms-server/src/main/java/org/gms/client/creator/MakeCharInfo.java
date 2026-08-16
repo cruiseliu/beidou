@@ -1,6 +1,6 @@
 package org.gms.client.creator;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.Job;
 import org.gms.client.inventory.InventoryType;
 import org.slf4j.Logger;

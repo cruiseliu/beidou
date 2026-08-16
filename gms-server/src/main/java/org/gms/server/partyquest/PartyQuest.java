@@ -22,7 +22,7 @@
 
 package org.gms.server.partyquest;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.net.server.Server;
 import org.gms.net.server.world.Party;
 import org.gms.net.server.world.PartyCharacter;

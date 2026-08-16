@@ -5,7 +5,7 @@
 
 package org.gms.client.autoban;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.config.GameConfig;
 import org.gms.net.server.Server;
 import org.slf4j.Logger;

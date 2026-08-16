@@ -1,6 +1,6 @@
 package org.gms.net.server.task;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.config.GameConfig;
 import org.gms.net.server.world.World;
 import org.slf4j.Logger;

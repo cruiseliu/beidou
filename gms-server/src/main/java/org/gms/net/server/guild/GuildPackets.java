@@ -1,6 +1,6 @@
 package org.gms.net.server.guild;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.net.opcodes.SendOpcode;
 import org.gms.net.packet.OutPacket;

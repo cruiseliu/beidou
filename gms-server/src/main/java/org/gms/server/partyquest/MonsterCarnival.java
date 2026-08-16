@@ -1,6 +1,6 @@
 package org.gms.server.partyquest;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.config.GameConfig;
 import org.gms.constants.string.LanguageConstants;
 import org.gms.net.server.Server;

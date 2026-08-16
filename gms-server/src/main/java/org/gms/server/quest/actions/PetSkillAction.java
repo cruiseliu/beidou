@@ -21,7 +21,7 @@
  */
 package org.gms.server.quest.actions;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.QuestStatus;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.provider.Data;

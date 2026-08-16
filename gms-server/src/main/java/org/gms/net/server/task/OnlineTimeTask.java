@@ -1,6 +1,6 @@
 package org.gms.net.server.task;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.constants.string.ExtendKey;
 import org.gms.net.server.Server;
 import org.gms.net.server.channel.Channel;
