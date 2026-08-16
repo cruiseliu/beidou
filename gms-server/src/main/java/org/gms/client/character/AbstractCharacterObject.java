@@ -211,34 +211,12 @@ public abstract class AbstractCharacterObject extends AbstractAnimatedMapObject 
 
     protected void setHp(int newHp) {
         int oldHp = stats.hp;
-
-        int thp = newHp;
-        if (thp < 0) {
-            thp = 0;
-        } else if (thp > stats.localMaxHp) {
-            thp = stats.localMaxHp;
-        }
-
-        if (this.stats.hp != thp) {
-            this.stats.transientHp = Float.NEGATIVE_INFINITY;
-        }
-        this.stats.hp = thp;
-
+        stats.setHp(newHp);
         dispatchHpChanged(oldHp);
     }
 
     protected void setMp(int newMp) {
-        int tmp = newMp;
-        if (tmp < 0) {
-            tmp = 0;
-        } else if (tmp > stats.localMaxMp) {
-            tmp = stats.localMaxMp;
-        }
-
-        if (this.stats.mp != tmp) {
-            this.stats.transientMp = Float.NEGATIVE_INFINITY;
-        }
-        this.stats.mp = tmp;
+        stats.setMp(newMp);
     }
 
     public void setRemainingSp(int remainingSp, int skillbook) {
@@ -246,19 +224,11 @@ public abstract class AbstractCharacterObject extends AbstractAnimatedMapObject 
     }
 
     protected void setMaxHp(int hp_) {
-        if (this.stats.maxHp < hp_) {
-            this.stats.transientHp = Float.NEGATIVE_INFINITY;
-        }
-        this.stats.maxHp = hp_;
-        this.stats.clientMaxHp = Math.min(30000, hp_);
+        stats.setMaxHp(hp_);
     }
 
     protected void setMaxMp(int mp_) {
-        if (this.stats.maxMp < mp_) {
-            this.stats.transientMp = Float.NEGATIVE_INFINITY;
-        }
-        this.stats.maxMp = mp_;
-        this.stats.clientMaxMp = Math.min(30000, mp_);
+        stats.setMaxMp(mp_);
     }
 
     private static long clampStat(int v, int min, int max) {

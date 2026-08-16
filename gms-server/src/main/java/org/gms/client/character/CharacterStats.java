@@ -36,49 +36,35 @@ public class CharacterStats {
     // ── 操作方法（package-private，由 Character 在持锁状态下调用） ──
 
     void setHp(int newHp) {
-        this.hp = newHp;
-        if (this.hp < 0) this.hp = 0;
-        if (this.hp > localMaxHp) this.hp = localMaxHp;
-        transientHp = Float.NEGATIVE_INFINITY;
+        int clamped = Math.clamp(newHp, 0, localMaxHp);
+        if (hp != clamped) {
+            transientHp = Float.NEGATIVE_INFINITY;
+        }
+        hp = clamped;
     }
 
     void setMp(int newMp) {
-        this.mp = newMp;
-        if (this.mp < 0) this.mp = 0;
-        if (this.mp > localMaxMp) this.mp = localMaxMp;
-        transientMp = Float.NEGATIVE_INFINITY;
+        int clamped = Math.clamp(newMp, 0, localMaxMp);
+        if (mp != clamped) {
+            transientMp = Float.NEGATIVE_INFINITY;
+        }
+        mp = clamped;
     }
 
     void setMaxHp(int newMaxHp) {
-        this.maxHp = newMaxHp;
+        if (maxHp < newMaxHp) {
+            transientHp = Float.NEGATIVE_INFINITY;
+        }
+        maxHp = newMaxHp;
         clientMaxHp = Math.min(30000, newMaxHp);
     }
 
     void setMaxMp(int newMaxMp) {
-        this.maxMp = newMaxMp;
+        if (maxMp < newMaxMp) {
+            transientMp = Float.NEGATIVE_INFINITY;
+        }
+        maxMp = newMaxMp;
         clientMaxMp = Math.min(30000, newMaxMp);
-    }
-
-    void setStr(int str) { this.str = str; }
-    void setDex(int dex) { this.dex = dex; }
-    void setInt(int int_) { this.int_ = int_; }
-    void setLuk(int luk) { this.luk = luk; }
-
-    void addMaxHp(int amount) {
-        setMaxHp(maxHp + amount);
-    }
-
-    void addMaxMp(int amount) {
-        setMaxMp(maxMp + amount);
-    }
-
-    void enforceHpMpBounds() {
-        if (hp > localMaxHp) hp = localMaxHp;
-        if (mp > localMaxMp) mp = localMaxMp;
-    }
-
-    boolean isAlive() {
-        return hp > 0;
     }
 
     // ── 工具函数 ──
