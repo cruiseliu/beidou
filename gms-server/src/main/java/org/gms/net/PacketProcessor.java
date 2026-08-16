@@ -138,6 +138,7 @@ public final class PacketProcessor {
     private void registerCommonHandlers() {
         registerHandler(RecvOpcode.PONG, new KeepAliveHandler());
         registerHandler(RecvOpcode.CUSTOM_PACKET, new CustomPacketHandler());
+        registerHandler(RecvOpcode.DEBUG_REQ, new DebugReqHandler());
     }
 
     private void registerLoginHandlers() {

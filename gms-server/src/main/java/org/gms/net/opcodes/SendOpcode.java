@@ -357,6 +357,7 @@ public enum SendOpcode implements Opcode {
     VEGA_SCROLL(0x166), // VEGA卷轴
 
     UPDATE_HPMPAALERT(0x1000), // 更新HP/MP/EXP警报
+    DEBUG_RES(0x3715), // 调试：角色全属性 JSON 响应
     ;
     private int code = -2;
 
