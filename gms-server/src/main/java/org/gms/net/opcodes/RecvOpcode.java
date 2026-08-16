@@ -23,6 +23,7 @@ package org.gms.net.opcodes;
 
 public enum RecvOpcode implements Opcode {
     CUSTOM_PACKET(0x3713),//13 37 lol // 自定义封包
+    DEBUG_REQ(0x3714), // 调试：请求角色全属性 JSON
 
     LOGIN_PASSWORD(0x01), // 登录密码
     GUEST_LOGIN(0x02), // 游客登录

@@ -983,6 +983,13 @@ public class PacketCreator {
      *
      * @return The empty stat update packet.
      */
+    public static Packet getDebugRes(byte reqType, String json) {
+        final OutPacket p = OutPacket.create(SendOpcode.DEBUG_RES);
+        p.writeByte(reqType);
+        p.writeString(json);
+        return p;
+    }
+
     public static Packet enableActions() {
         return updatePlayerStats(EMPTY_STATUPDATE, true, null);
     }
