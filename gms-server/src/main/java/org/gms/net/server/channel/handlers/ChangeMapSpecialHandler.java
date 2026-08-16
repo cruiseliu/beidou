@@ -28,11 +28,14 @@ import org.gms.server.Trade;
 import org.gms.server.Trade.TradeResult;
 import org.gms.server.maps.Portal;
 import org.gms.util.PacketCreator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 传送点脚本传送玩家到指定地图触发
  */
 public final class ChangeMapSpecialHandler extends AbstractPacketHandler {
+    private static final Logger log = LoggerFactory.getLogger(ChangeMapSpecialHandler.class);
     @Override
     public final void handlePacket(InPacket p, Client c) {
         p.readByte();
@@ -40,6 +43,8 @@ public final class ChangeMapSpecialHandler extends AbstractPacketHandler {
         p.readShort();
         Portal portal = c.getPlayer().getMap().getPortal(startwp);
         if (portal == null || c.getPlayer().portalDelay() > currentServerTime() || c.getPlayer().getBlockedPortals().contains(portal.getScriptName())) {
+            log.warn("走传送门拒绝(SPECIAL): 玩家 {} 地图 {} 传送门 {} 原因: {}", c.getPlayer().getName(), c.getPlayer().getMapId(), startwp,
+                    portal == null ? "传送门不存在" : (c.getPlayer().portalDelay() > currentServerTime() ? "冷却中" : "被屏蔽"));
             c.sendPacket(PacketCreator.enableActions());
             return;
         }

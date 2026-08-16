@@ -118,6 +118,7 @@ import java.util.stream.Collectors;
  * @author Frz
  */
 public class PacketCreator {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PacketCreator.class);
 
     public static final List<Pair<Stat, Integer>> EMPTY_STATUPDATE = Collections.emptyList();
     private final static long FT_UT_OFFSET = 116444736010800000L + (10000L * TimeZone.getDefault().getOffset(System.currentTimeMillis())); // normalize with timezone offset suggested by Ari
@@ -548,11 +549,13 @@ public class PacketCreator {
                 p.writeInt(skill.getValue().masterLevel);
             }
         }
-        p.writeShort(chr.getAllCooldowns().size());
-        for (PlayerCoolDownValueHolder cooling : chr.getAllCooldowns()) {
+        var allCds = chr.getAllCooldowns();
+        p.writeShort(allCds.size());
+        for (PlayerCoolDownValueHolder cooling : allCds) {
             p.writeInt(cooling.skillId);
             int timeLeft = (int) (cooling.length + cooling.startTime - System.currentTimeMillis());
             p.writeShort(timeLeft / 1000);
+            log.info("SET_FIELD CD: 玩家={} skill={} 剩余={}ms ({}s)", chr.getName(), cooling.skillId, timeLeft, timeLeft / 1000);
         }
     }
 

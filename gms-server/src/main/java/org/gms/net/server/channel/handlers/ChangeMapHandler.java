@@ -171,12 +171,15 @@ public final class ChangeMapHandler extends AbstractPacketHandler {
 
             if (portal != null) {
                 if (portal.getPosition().distanceSq(chr.getPosition()) > 400000) {
+                    log.warn("走传送门拒绝: 玩家 {} 地图 {} 传送门 {} 距离过远 (门=({},{}) 玩家=({},{}))",
+                            chr.getName(), chr.getMapId(), portalName, portal.getPosition().x, portal.getPosition().y, chr.getPosition().x, chr.getPosition().y);
                     c.sendPacket(PacketCreator.enableActions());
                     return;
                 }
 
                 portal.enterPortal(c);
             } else {
+                log.warn("走传送门拒绝: 玩家 {} 地图 {} 找不到传送门 {}", chr.getName(), chr.getMapId(), portalName);
                 c.sendPacket(PacketCreator.enableActions());
             }
         } catch (Exception e) {
