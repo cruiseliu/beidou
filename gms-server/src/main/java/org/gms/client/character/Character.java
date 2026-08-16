@@ -20,10 +20,30 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.gms.client;
+package org.gms.client.character;
 
 import lombok.Getter;
 import lombok.Setter;
+
+import org.gms.client.BuddyList;
+import org.gms.client.BuddylistEntry;
+import org.gms.client.BuffStat;
+import org.gms.client.CharacterNameAndId;
+import org.gms.client.Client;
+import org.gms.client.Disease;
+import org.gms.client.DiseaseValueHolder;
+import org.gms.client.Family;
+import org.gms.client.FamilyEntry;
+import org.gms.client.Job;
+import org.gms.client.MonsterBook;
+import org.gms.client.Mount;
+import org.gms.client.QuestStatus;
+import org.gms.client.Ring;
+import org.gms.client.Skill;
+import org.gms.client.SkillFactory;
+import org.gms.client.SkillMacro;
+import org.gms.client.SkinColor;
+import org.gms.client.Stat;
 import org.gms.client.autoban.AutobanManager;
 import org.gms.client.creator.CharacterFactoryRecipe;
 import org.gms.client.inventory.*;
@@ -250,9 +270,6 @@ public class Character extends AbstractCharacterObject {
     private long lastExpression = 0;
     @Setter
     private long jailExpiration = -1;
-    private transient int localstr, localdex, localluk, localint_, localmagic, localwatk;
-    private transient int equipmaxhp, equipmaxmp, equipstr, equipdex, equipluk, equipint_, equipmagic, equipwatk, localchairhp, localchairmp;
-    private int localchairrate;
     @Getter
     private boolean hidden;
     private boolean equipchanged = true, berserk, hasMerchant, hasSandboxItem = false, whiteChat = false;
@@ -504,6 +521,14 @@ public class Character extends AbstractCharacterObject {
     private static final HpMpAlertService hpMpAlertService = ServerManager.getApplicationContext().getBean(HpMpAlertService.class);
     private static final InventoryService inventoryService = ServerManager.getApplicationContext().getBean(InventoryService.class);
 
+    public int getClientMaxHp() {
+        return stats.clientMaxHp;
+    }
+
+    public int getClientMaxMp() {
+        return stats.clientMaxMp;
+    }
+
     /** 各技能原始时间戳，仅被 >= MIN_INTERVAL 的正常包更新，暴发包透明通过 */
     private final ConcurrentHashMap<Integer, Long> normalAttackTimes = new ConcurrentHashMap<>();
 
@@ -570,14 +595,14 @@ public class Character extends AbstractCharacterObject {
         Character ret = new Character();
         ret.client = c;
         ret.setGMLevel(0);
-        ret.hp = 50;
+        ret.stats.hp = 50;
         ret.setMaxHp(50);
-        ret.mp = 5;
+        ret.stats.mp = 5;
         ret.setMaxMp(5);
-        ret.attrStr = 12;
-        ret.attrDex = 5;
-        ret.attrInt = 4;
-        ret.attrLuk = 4;
+        ret.stats.str = 12;
+        ret.stats.dex = 5;
+        ret.stats.int_ = 4;
+        ret.stats.luk = 4;
         ret.map = null;
         ret.job = Job.BEGINNER;
         ret.level = 1;
@@ -800,14 +825,14 @@ public class Character extends AbstractCharacterObject {
         }
 
         if (weapon == WeaponType.BOW || weapon == WeaponType.CROSSBOW || weapon == WeaponType.GUN) {
-            mainstat = localdex;
-            secondarystat = localstr;
+            mainstat = stats.localdex;
+            secondarystat = stats.localstr;
         } else if (weapon == WeaponType.CLAW || weapon == WeaponType.DAGGER_THIEVES) {
-            mainstat = localluk;
-            secondarystat = localdex + localstr;
+            mainstat = stats.localluk;
+            secondarystat = stats.localdex + stats.localstr;
         } else {
-            mainstat = localstr;
-            secondarystat = localdex;
+            mainstat = stats.localstr;
+            secondarystat = stats.localdex;
         }
         return (int) Math.ceil(((weapon.getMaxDamageMultiplier() * mainstat + secondarystat) / 100.0) * watk);
     }
@@ -825,7 +850,7 @@ public class Character extends AbstractCharacterObject {
                 }
 
                 int attack = (int) Math.min(Math.floor((2D * getLevel() + 31) / 3), 31);
-                maxbasedamage = (int) Math.ceil((localstr * weapMulti + localdex) * attack / 100.0);
+                maxbasedamage = (int) Math.ceil((stats.localstr * weapMulti + stats.localdex) * attack / 100.0);
             } else {
                 maxbasedamage = 1;
             }
@@ -1210,10 +1235,10 @@ public class Character extends AbstractCharacterObject {
             recalcLocalStats();
 
             List<Pair<Stat, Integer>> statup = new ArrayList<>(7);
-            statup.add(new Pair<>(Stat.HP, hp));
-            statup.add(new Pair<>(Stat.MP, mp));
-            statup.add(new Pair<>(Stat.MAXHP, clientMaxHp));
-            statup.add(new Pair<>(Stat.MAXMP, clientMaxMp));
+            statup.add(new Pair<>(Stat.HP, stats.hp));
+            statup.add(new Pair<>(Stat.MP, stats.mp));
+            statup.add(new Pair<>(Stat.MAXHP, stats.clientMaxHp));
+            statup.add(new Pair<>(Stat.MAXMP, stats.clientMaxMp));
             statup.add(new Pair<>(Stat.AVAILABLEAP, remainingAp));
             statup.add(new Pair<>(Stat.AVAILABLESP, remainingSp[GameConstants.getSkillBook(job.getId())]));
             statup.add(new Pair<>(Stat.JOB, job.getId()));
@@ -1272,7 +1297,7 @@ public class Character extends AbstractCharacterObject {
         if (guild != null) {
             guild.broadcast(packet, id);
         }
-        
+
         /*
         if(partnerid > 0) {
             partner.sendPacket(packet); not yet implemented
@@ -2329,7 +2354,7 @@ public class Character extends AbstractCharacterObject {
     private void updateChairHealStats() {
         statRlock.lock();
         try {
-            if (localchairrate != -1) {
+            if (stats.localchairrate != -1) {
                 return;
             }
         } finally {
@@ -2339,11 +2364,11 @@ public class Character extends AbstractCharacterObject {
         effLock.lock();
         statWlock.lock();
         try {
-            Pair<Integer, Pair<Integer, Integer>> p = getChairTaskIntervalRate(localMaxHp, localMaxMp);
+            Pair<Integer, Pair<Integer, Integer>> p = getChairTaskIntervalRate(stats.localMaxHp, stats.localMaxMp);
 
-            localchairrate = p.getLeft();
-            localchairhp = p.getRight().getLeft();
-            localchairmp = p.getRight().getRight();
+            stats.localchairrate = p.getLeft();
+            stats.localchairhp = p.getRight().getLeft();
+            stats.localchairmp = p.getRight().getRight();
         } finally {
             statWlock.unlock();
             effLock.unlock();
@@ -2359,7 +2384,7 @@ public class Character extends AbstractCharacterObject {
         effLock.lock();
         try {
             updateChairHealStats();
-            healInterval = localchairrate;
+            healInterval = stats.localchairrate;
         } finally {
             effLock.unlock();
         }
@@ -2372,15 +2397,15 @@ public class Character extends AbstractCharacterObject {
 
             chairRecoveryTask = TimerManager.getInstance().register(() -> {
                 updateChairHealStats();
-                final int healHP = localchairhp;
-                final int healMP = localchairmp;
+                final int healHP = stats.localchairhp;
+                final int healMP = stats.localchairmp;
 
-                if (Character.this.getHp() < localMaxHp) {
+                if (Character.this.getHp() < stats.localMaxHp) {
                     byte recHP = (byte) (healHP / 10);
 
                     sendPacket(PacketCreator.showOwnRecovery(recHP));
                     getMap().broadcastMessage(Character.this, PacketCreator.showRecovery(id, recHP), false);
-                } else if (Character.this.getMp() >= localMaxMp) {
+                } else if (Character.this.getMp() >= stats.localMaxMp) {
                     stopChairTask();    // optimizing schedule management when player is already with full pool.
                 }
 
@@ -2421,7 +2446,7 @@ public class Character extends AbstractCharacterObject {
                 return;
             }
 
-            if (Character.this.getHp() < localMaxHp) {
+            if (Character.this.getHp() < stats.localMaxHp) {
                 if (healHP > 0) {
                     sendPacket(PacketCreator.showOwnRecovery(healHP));
                     getMap().broadcastMessage(Character.this, PacketCreator.showRecovery(id, healHP), false);
@@ -4902,27 +4927,27 @@ public class Character extends AbstractCharacterObject {
     }
 
     public int getTotalStr() {
-        return localstr;
+        return stats.localstr;
     }
 
     public int getTotalDex() {
-        return localdex;
+        return stats.localdex;
     }
 
     public int getTotalInt() {
-        return localint_;
+        return stats.localint_;
     }
 
     public int getTotalLuk() {
-        return localluk;
+        return stats.localluk;
     }
 
     public int getTotalMagic() {
-        return localmagic;
+        return stats.localmagic;
     }
 
     public int getTotalWatk() {
-        return localwatk;
+        return stats.localwatk;
     }
 
     public int getMaxClassLevel() {
@@ -5924,9 +5949,9 @@ public class Character extends AbstractCharacterObject {
 
         if (GameConfig.getServerBoolean("use_randomize_hpmp_gain")) {
             if (getJobStyle() == Job.MAGICIAN) {
-                addmp += localint_ / 20;
+                addmp += stats.localint_ / 20;
             } else {
-                addmp += localint_ / 10;
+                addmp += stats.localint_ / 10;
             }
         }
 
@@ -5964,19 +5989,19 @@ public class Character extends AbstractCharacterObject {
         statWlock.lock();
         try {
             recalcLocalStats();
-            changeHpMp(localMaxHp, localMaxMp, true);
+            changeHpMp(stats.localMaxHp, stats.localMaxMp, true);
 
             List<Pair<Stat, Integer>> statup = new ArrayList<>(10);
             statup.add(new Pair<>(Stat.AVAILABLEAP, remainingAp));
             statup.add(new Pair<>(Stat.AVAILABLESP, remainingSp[GameConstants.getSkillBook(job.getId())]));
-            statup.add(new Pair<>(Stat.HP, hp));
-            statup.add(new Pair<>(Stat.MP, mp));
+            statup.add(new Pair<>(Stat.HP, stats.hp));
+            statup.add(new Pair<>(Stat.MP, stats.mp));
             statup.add(new Pair<>(Stat.EXP, exp.get()));
             statup.add(new Pair<>(Stat.LEVEL, level));
-            statup.add(new Pair<>(Stat.MAXHP, clientMaxHp));
-            statup.add(new Pair<>(Stat.MAXMP, clientMaxMp));
-            statup.add(new Pair<>(Stat.STR, attrStr));
-            statup.add(new Pair<>(Stat.DEX, attrDex));
+            statup.add(new Pair<>(Stat.MAXHP, stats.clientMaxHp));
+            statup.add(new Pair<>(Stat.MAXMP, stats.clientMaxMp));
+            statup.add(new Pair<>(Stat.STR, stats.str));
+            statup.add(new Pair<>(Stat.DEX, stats.dex));
 
             sendPacket(PacketCreator.updatePlayerStats(statup, true, this));
         } finally {
@@ -6323,13 +6348,13 @@ public class Character extends AbstractCharacterObject {
 
             ret.level = rs.getInt("level");
             ret.job = Job.getById(rs.getInt("job"));
-            ret.attrStr = rs.getInt("str");
-            ret.attrDex = rs.getInt("dex");
-            ret.attrInt = rs.getInt("int");
-            ret.attrLuk = rs.getInt("luk");
-            ret.hp = rs.getInt("hp");
+            ret.stats.str = rs.getInt("str");
+            ret.stats.dex = rs.getInt("dex");
+            ret.stats.int_ = rs.getInt("int");
+            ret.stats.luk = rs.getInt("luk");
+            ret.stats.hp = rs.getInt("hp");
             ret.setMaxHp(rs.getInt("maxhp"));
-            ret.mp = rs.getInt("mp");
+            ret.stats.mp = rs.getInt("mp");
             ret.setMaxMp(rs.getInt("maxmp"));
             ret.remainingAp = rs.getInt("ap");
             ret.loadCharSkillPoints(rs.getString("sp").split(","));
@@ -6373,13 +6398,13 @@ public class Character extends AbstractCharacterObject {
 
         ret.level = this.getLevel();
         ret.job = this.getJob();
-        ret.attrStr = this.getStr();
-        ret.attrDex = this.getDex();
-        ret.attrInt = this.getInt();
-        ret.attrLuk = this.getLuk();
-        ret.hp = this.getHp();
+        ret.stats.str = this.getStr();
+        ret.stats.dex = this.getDex();
+        ret.stats.int_ = this.getInt();
+        ret.stats.luk = this.getLuk();
+        ret.stats.hp = this.getHp();
         ret.setMaxHp(this.getMaxHp());
-        ret.mp = this.getMp();
+        ret.stats.mp = this.getMp();
         ret.setMaxMp(this.getMaxMp());
         ret.remainingAp = this.getRemainingAp();
         ret.setRemainingSp(this.getRemainingSps());
@@ -6614,16 +6639,16 @@ public class Character extends AbstractCharacterObject {
         chr.statWlock.lock();
         try {
             // 此处虽然是可重入锁，但仍不建议锁2次，所以不使用get方法
-            cdo.setAttrStr(chr.attrStr);
-            cdo.setAttrDex(chr.attrDex);
-            cdo.setAttrInt(chr.attrInt);
-            cdo.setAttrLuk(chr.attrLuk);
+            cdo.setAttrStr(chr.stats.str);
+            cdo.setAttrDex(chr.stats.dex);
+            cdo.setAttrInt(chr.stats.int_);
+            cdo.setAttrLuk(chr.stats.luk);
             cdo.setExp(Math.abs(chr.exp.get()));
             cdo.setGachaexp(Math.abs(chr.gachaExp.get()));
-            cdo.setHp(chr.hp);
-            cdo.setMp(chr.mp);
-            cdo.setMaxhp(chr.maxHp);
-            cdo.setMaxmp(chr.maxMp);
+            cdo.setHp(chr.stats.hp);
+            cdo.setMp(chr.stats.mp);
+            cdo.setMaxhp(chr.stats.maxHp);
+            cdo.setMaxmp(chr.stats.maxMp);
             StringBuilder sps = new StringBuilder();
             for (int sp : chr.remainingSp) {
                 sps.append(sp);
@@ -6917,7 +6942,7 @@ public class Character extends AbstractCharacterObject {
         cancelAllBuffs(false);  // thanks Oblivium91 for finding out players still could revive in area and take damage before returning to town
 
         if (usedSafetyCharm) {  // thanks kvmba for noticing safety charm not providing 30% HP/MP
-            addMPHP((int) Math.ceil(this.getClientMaxHp() * 0.3), (int) Math.ceil(this.getClientMaxMp() * 0.3));
+            addMPHP((int) Math.ceil(stats.clientMaxHp * 0.3), (int) Math.ceil(stats.clientMaxMp * 0.3));
         } else {
             updateHp(50);
         }
@@ -6942,27 +6967,27 @@ public class Character extends AbstractCharacterObject {
 
     private void recalcEquipStats() {
         if (equipchanged) {
-            equipmaxhp = 0;
-            equipmaxmp = 0;
-            equipdex = 0;
-            equipint_ = 0;
-            equipstr = 0;
-            equipluk = 0;
-            equipmagic = 0;
-            equipwatk = 0;
+            stats.equipmaxhp = 0;
+            stats.equipmaxmp = 0;
+            stats.equipdex = 0;
+            stats.equipint_ = 0;
+            stats.equipstr = 0;
+            stats.equipluk = 0;
+            stats.equipmagic = 0;
+            stats.equipwatk = 0;
             //equipspeed = 0;
             //equipjump = 0;
 
             for (Item item : getInventory(InventoryType.EQUIPPED)) {
                 Equip equip = (Equip) item;
-                equipmaxhp += equip.getHp();
-                equipmaxmp += equip.getMp();
-                equipdex += equip.getDex();
-                equipint_ += equip.getInt();
-                equipstr += equip.getStr();
-                equipluk += equip.getLuk();
-                equipmagic += equip.getMatk() + equip.getInt();
-                equipwatk += equip.getWatk();
+                stats.equipmaxhp += equip.getHp();
+                stats.equipmaxmp += equip.getMp();
+                stats.equipdex += equip.getDex();
+                stats.equipint_ += equip.getInt();
+                stats.equipstr += equip.getStr();
+                stats.equipluk += equip.getLuk();
+                stats.equipmagic += equip.getMatk() + equip.getInt();
+                stats.equipwatk += equip.getWatk();
                 //equipspeed += equip.getSpeed();
                 //equipjump += equip.getJump();
             }
@@ -6970,14 +6995,14 @@ public class Character extends AbstractCharacterObject {
             equipchanged = false;
         }
 
-        localMaxHp += equipmaxhp;
-        localMaxMp += equipmaxmp;
-        localdex += equipdex;
-        localint_ += equipint_;
-        localstr += equipstr;
-        localluk += equipluk;
-        localmagic += equipmagic;
-        localwatk += equipwatk;
+        stats.localMaxHp += stats.equipmaxhp;
+        stats.localMaxMp += stats.equipmaxmp;
+        stats.localdex += stats.equipdex;
+        stats.localint_ += stats.equipint_;
+        stats.localstr += stats.equipstr;
+        stats.localluk += stats.equipluk;
+        stats.localmagic += stats.equipmagic;
+        stats.localwatk += stats.equipwatk;
     }
 
     public void reapplyLocalStats() {
@@ -6985,49 +7010,49 @@ public class Character extends AbstractCharacterObject {
         chrLock.lock();
         statWlock.lock();
         try {
-            localMaxHp = getMaxHp();
-            localMaxMp = getMaxMp();
-            localdex = getDex();
-            localint_ = getInt();
-            localstr = getStr();
-            localluk = getLuk();
-            localmagic = localint_;
-            localwatk = 0;
-            localchairrate = -1;
+            stats.localMaxHp = getMaxHp();
+            stats.localMaxMp = getMaxMp();
+            stats.localdex = getDex();
+            stats.localint_ = getInt();
+            stats.localstr = getStr();
+            stats.localluk = getLuk();
+            stats.localmagic = stats.localint_;
+            stats.localwatk = 0;
+            stats.localchairrate = -1;
 
             recalcEquipStats();
 
-            localmagic = Math.min(localmagic, 2000);
+            stats.localmagic = Math.min(stats.localmagic, 2000);
 
             Integer hbhp = getBuffedValue(BuffStat.HYPERBODYHP);
             if (hbhp != null) {
-                localMaxHp += (int) ((hbhp.doubleValue() / 100) * localMaxHp);
+                stats.localMaxHp += (int) ((hbhp.doubleValue() / 100) * stats.localMaxHp);
             }
             Integer hbmp = getBuffedValue(BuffStat.HYPERBODYMP);
             if (hbmp != null) {
-                localMaxMp += (int) ((hbmp.doubleValue() / 100) * localMaxMp);
+                stats.localMaxMp += (int) ((hbmp.doubleValue() / 100) * stats.localMaxMp);
             }
 
-            localMaxHp = Math.min(30000, localMaxHp);
-            localMaxMp = Math.min(30000, localMaxMp);
+            stats.localMaxHp = Math.min(30000, stats.localMaxHp);
+            stats.localMaxMp = Math.min(30000, stats.localMaxMp);
 
             StatEffect combo = getBuffEffect(BuffStat.ARAN_COMBO);
             if (combo != null) {
-                localwatk += combo.getX();
+                stats.localwatk += combo.getX();
             }
 
             if (energyBar == 15000) {
                 Skill energycharge = isCygnus() ? SkillFactory.getSkill(ThunderBreaker.ENERGY_CHARGE) : SkillFactory.getSkill(Marauder.ENERGY_CHARGE);
                 StatEffect ceffect = energycharge.getEffect(getSkillLevel(energycharge));
-                localwatk += ceffect.getWatk();
+                stats.localwatk += ceffect.getWatk();
             }
 
             Integer mwarr = getBuffedValue(BuffStat.MAPLE_WARRIOR);
             if (mwarr != null) {
-                localstr += getStr() * mwarr / 100;
-                localdex += getDex() * mwarr / 100;
-                localint_ += getInt() * mwarr / 100;
-                localluk += getLuk() * mwarr / 100;
+                stats.localstr += getStr() * mwarr / 100;
+                stats.localdex += getDex() * mwarr / 100;
+                stats.localint_ += getInt() * mwarr / 100;
+                stats.localluk += getLuk() * mwarr / 100;
             }
             if (job.isA(Job.BOWMAN)) {
                 Skill expert = null;
@@ -7039,18 +7064,18 @@ public class Character extends AbstractCharacterObject {
                 if (expert != null) {
                     int boostLevel = getSkillLevel(expert);
                     if (boostLevel > 0) {
-                        localwatk += expert.getEffect(boostLevel).getX();
+                        stats.localwatk += expert.getEffect(boostLevel).getX();
                     }
                 }
             }
 
             Integer watkbuff = getBuffedValue(BuffStat.WATK);
             if (watkbuff != null) {
-                localwatk += watkbuff;
+                stats.localwatk += watkbuff;
             }
             Integer matkbuff = getBuffedValue(BuffStat.MATK);
             if (matkbuff != null) {
-                localmagic += matkbuff;
+                stats.localmagic += matkbuff;
             }
 
             /*
@@ -7066,8 +7091,8 @@ public class Character extends AbstractCharacterObject {
 
             int blessing = getSkillLevel(10000000 * getJobType() + 12);
             if (blessing > 0) {
-                localwatk += blessing;
-                localmagic += blessing * 2;
+                stats.localwatk += blessing;
+                stats.localmagic += blessing * 2;
             }
 
             if (job.isA(Job.THIEF) || job.isA(Job.BOWMAN) || job.isA(Job.PIRATE) || job.isA(Job.NIGHTWALKER1) || job.isA(Job.WINDARCHER1)) {
@@ -7093,7 +7118,7 @@ public class Character extends AbstractCharacterObject {
                                     || (crossbow && ItemConstants.isArrowForCrossBow(item.getItemId()))) {
                                 if (item.getQuantity() > 0) {
                                     // Finally there!
-                                    localwatk += ii.getWatkForProjectile(item.getItemId());
+                                    stats.localwatk += ii.getWatkForProjectile(item.getItemId());
                                     break;
                                 }
                             }
@@ -7115,17 +7140,17 @@ public class Character extends AbstractCharacterObject {
         statWlock.lock();
         try {
             List<Pair<Stat, Integer>> hpmpupdate = new ArrayList<>(2);
-            int oldlocalmaxhp = localMaxHp;
-            int oldlocalmaxmp = localMaxMp;
+            int oldlocalmaxhp = stats.localMaxHp;
+            int oldlocalmaxmp = stats.localMaxMp;
 
             reapplyLocalStats();
 
             if (GameConfig.getServerBoolean("use_fixed_ratio_hpmp_update")) {
-                if (localMaxHp != oldlocalmaxhp) {
+                if (stats.localMaxHp != oldlocalmaxhp) {
                     Pair<Stat, Integer> hpUpdate;
 
-                    if (transientHp == Float.NEGATIVE_INFINITY) {
-                        hpUpdate = calcHpRatioUpdate(localMaxHp, oldlocalmaxhp);
+                    if (stats.transientHp == Float.NEGATIVE_INFINITY) {
+                        hpUpdate = calcHpRatioUpdate(stats.localMaxHp, oldlocalmaxhp);
                     } else {
                         hpUpdate = calcHpRatioTransient();
                     }
@@ -7133,11 +7158,11 @@ public class Character extends AbstractCharacterObject {
                     hpmpupdate.add(hpUpdate);
                 }
 
-                if (localMaxMp != oldlocalmaxmp) {
+                if (stats.localMaxMp != oldlocalmaxmp) {
                     Pair<Stat, Integer> mpUpdate;
 
-                    if (transientMp == Float.NEGATIVE_INFINITY) {
-                        mpUpdate = calcMpRatioUpdate(localMaxMp, oldlocalmaxmp);
+                    if (stats.transientMp == Float.NEGATIVE_INFINITY) {
+                        mpUpdate = calcMpRatioUpdate(stats.localMaxMp, oldlocalmaxmp);
                     } else {
                         mpUpdate = calcMpRatioTransient();
                     }
@@ -7159,7 +7184,7 @@ public class Character extends AbstractCharacterObject {
         effLock.lock();
         statWlock.lock();
         try {
-            int oldmaxhp = localMaxHp;
+            int oldmaxhp = stats.localMaxHp;
             List<Pair<Stat, Integer>> hpmpupdate = recalcLocalStats();
             enforceMaxHpMp();
 
@@ -7167,7 +7192,7 @@ public class Character extends AbstractCharacterObject {
                 sendPacket(PacketCreator.updatePlayerStats(hpmpupdate, true, this));
             }
 
-            if (oldmaxhp != localMaxHp) {   // thanks Wh1SK3Y (Suwaidy) for pointing out a deadlock occuring related to party members HP
+            if (oldmaxhp != stats.localMaxHp) {   // thanks Wh1SK3Y (Suwaidy) for pointing out a deadlock occuring related to party members HP
                 updatePartyMemberHP();
             }
         } finally {
@@ -7258,7 +7283,7 @@ public class Character extends AbstractCharacterObject {
         effLock.lock();
         statWlock.lock();
         try {
-            int tap = remainingAp + attrStr + attrDex + attrInt + attrLuk, tsp = 1;
+            int tap = remainingAp + stats.str + stats.dex + stats.int_ + stats.luk, tsp = 1;
             int tstr = 4, tdex = 4, tint = 4, tluk = 4;
 
             switch (job.getId()) {
@@ -7401,14 +7426,14 @@ public class Character extends AbstractCharacterObject {
     }
 
     public final boolean insertNewChar(CharacterFactoryRecipe recipe) {
-        attrStr = recipe.getStr();
-        attrDex = recipe.getDex();
-        attrInt = recipe.getInt();
-        attrLuk = recipe.getLuk();
+        stats.str = recipe.getStr();
+        stats.dex = recipe.getDex();
+        stats.int_ = recipe.getInt();
+        stats.luk = recipe.getLuk();
         setMaxHp(recipe.getMaxHp());
         setMaxMp(recipe.getMaxMp());
-        hp = maxHp;
-        mp = maxMp;
+        stats.hp = stats.maxHp;
+        stats.mp = stats.maxMp;
         level = recipe.getLevel();
         remainingAp = recipe.getRemainingAp();
         remainingSp[GameConstants.getSkillBook(job.getId())] = recipe.getRemainingSp();
@@ -7436,10 +7461,10 @@ public class Character extends AbstractCharacterObject {
             try {
                 // Character info
                 try (PreparedStatement ps = con.prepareStatement("INSERT INTO characters (str, dex, luk, `int`, gm, skincolor, gender, job, hair, face, map, meso, spawnpoint, accountid, name, world, hp, mp, maxhp, maxmp, level, ap, sp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
-                    ps.setInt(1, attrStr);
-                    ps.setInt(2, attrDex);
-                    ps.setInt(3, attrLuk);
-                    ps.setInt(4, attrInt);
+                    ps.setInt(1, stats.str);
+                    ps.setInt(2, stats.dex);
+                    ps.setInt(3, stats.luk);
+                    ps.setInt(4, stats.int_);
                     ps.setInt(5, gmLevel);
                     ps.setInt(6, skinColor.getId());
                     ps.setInt(7, gender);
@@ -7452,10 +7477,10 @@ public class Character extends AbstractCharacterObject {
                     ps.setInt(14, accountId);
                     ps.setString(15, name);
                     ps.setInt(16, world);
-                    ps.setInt(17, hp);
-                    ps.setInt(18, mp);
-                    ps.setInt(19, maxHp);
-                    ps.setInt(20, maxMp);
+                    ps.setInt(17, stats.hp);
+                    ps.setInt(18, stats.mp);
+                    ps.setInt(19, stats.maxHp);
+                    ps.setInt(20, stats.maxMp);
                     ps.setInt(21, level);
                     ps.setInt(22, remainingAp);
 
@@ -7603,16 +7628,16 @@ public class Character extends AbstractCharacterObject {
                     effLock.lock();
                     statWlock.lock();
                     try {
-                        ps.setInt(3, attrStr);
-                        ps.setInt(4, attrDex);
-                        ps.setInt(5, attrLuk);
-                        ps.setInt(6, attrInt);
+                        ps.setInt(3, stats.str);
+                        ps.setInt(4, stats.dex);
+                        ps.setInt(5, stats.luk);
+                        ps.setInt(6, stats.int_);
                         ps.setInt(7, Math.abs(exp.get()));
                         ps.setInt(8, Math.abs(gachaExp.get()));
-                        ps.setInt(9, hp);
-                        ps.setInt(10, mp);
-                        ps.setInt(11, maxHp);
-                        ps.setInt(12, maxMp);
+                        ps.setInt(9, stats.hp);
+                        ps.setInt(10, stats.mp);
+                        ps.setInt(11, stats.maxHp);
+                        ps.setInt(12, stats.maxMp);
 
                         StringBuilder sps = new StringBuilder();
                         for (int j : remainingSp) {
@@ -8119,8 +8144,8 @@ public class Character extends AbstractCharacterObject {
 
     public void hpChangeAction(int oldHp) {
         boolean playerDied = false;
-        if (hp <= 0) {
-            if (oldHp > hp) {
+        if (stats.hp <= 0) {
+            if (oldHp > stats.hp) {
                 playerDied = true;
             }
         }
@@ -8142,16 +8167,16 @@ public class Character extends AbstractCharacterObject {
 
     private Pair<Stat, Integer> calcHpRatioUpdate(int newHp, int oldHp) {
         int delta = newHp - oldHp;
-        this.hp = calcHpRatioUpdate(hp, oldHp, delta);
+        this.stats.hp = calcHpRatioUpdate(stats.hp, oldHp, delta);
 
         hpChangeAction(Short.MIN_VALUE);
-        return new Pair<>(Stat.HP, hp);
+        return new Pair<>(Stat.HP, stats.hp);
     }
 
     private Pair<Stat, Integer> calcMpRatioUpdate(int newMp, int oldMp) {
         int delta = newMp - oldMp;
-        this.mp = calcMpRatioUpdate(mp, oldMp, delta);
-        return new Pair<>(Stat.MP, mp);
+        this.stats.mp = calcMpRatioUpdate(stats.mp, oldMp, delta);
+        return new Pair<>(Stat.MP, stats.mp);
     }
 
     private static int calcTransientRatio(float transientpoint) {
@@ -8160,15 +8185,15 @@ public class Character extends AbstractCharacterObject {
     }
 
     private Pair<Stat, Integer> calcHpRatioTransient() {
-        this.hp = calcTransientRatio(transientHp * localMaxHp);
+        this.stats.hp = calcTransientRatio(stats.transientHp * stats.localMaxHp);
 
         hpChangeAction(Short.MIN_VALUE);
-        return new Pair<>(Stat.HP, hp);
+        return new Pair<>(Stat.HP, stats.hp);
     }
 
     private Pair<Stat, Integer> calcMpRatioTransient() {
-        this.mp = calcTransientRatio(transientMp * localMaxMp);
-        return new Pair<>(Stat.MP, mp);
+        this.stats.mp = calcTransientRatio(stats.transientMp * stats.localMaxMp);
+        return new Pair<>(Stat.MP, stats.mp);
     }
 
     private int calcHpRatioUpdate(int curpoint, int maxpoint, int diffpoint) {
@@ -8177,7 +8202,7 @@ public class Character extends AbstractCharacterObject {
         float temp = curpoint * nextMax;
         int ret = (int) Math.ceil(temp / maxpoint);
 
-        transientHp = (maxpoint > nextMax) ? ((float) curpoint) / maxpoint : ((float) ret) / nextMax;
+        stats.transientHp = (maxpoint > nextMax) ? ((float) curpoint) / maxpoint : ((float) ret) / nextMax;
         return ret;
     }
 
@@ -8187,7 +8212,7 @@ public class Character extends AbstractCharacterObject {
         float temp = curpoint * nextMax;
         int ret = (int) Math.ceil(temp / maxpoint);
 
-        transientMp = (maxpoint > nextMax) ? ((float) curpoint) / maxpoint : ((float) ret) / nextMax;
+        stats.transientMp = (maxpoint > nextMax) ? ((float) curpoint) / maxpoint : ((float) ret) / nextMax;
         return ret;
     }
 
@@ -8197,7 +8222,7 @@ public class Character extends AbstractCharacterObject {
         effLock.lock();
         statWlock.lock();
         try {
-            int nextHp = hp + hpchange, nextMp = mp + mpchange;
+            int nextHp = stats.hp + hpchange, nextMp = stats.mp + mpchange;
             boolean cannotApplyHp = hpchange != 0 && nextHp <= 0 && (!zombify || hpCon > 0);
             boolean cannotApplyMp = mpchange != 0 && nextMp < 0;
 

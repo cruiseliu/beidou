@@ -21,6 +21,7 @@
 */
 package org.gms.client;
 
+import org.gms.client.character.Character;
 import org.gms.util.CashIdGenerator;
 import org.gms.util.DatabaseConnection;
 import org.gms.util.Pair;

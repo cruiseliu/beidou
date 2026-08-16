@@ -21,7 +21,7 @@
  */
 package org.gms.server.life;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.Disease;
 import org.gms.client.status.MonsterStatus;
 import org.gms.constants.id.MapId;

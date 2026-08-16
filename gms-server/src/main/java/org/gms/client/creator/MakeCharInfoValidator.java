@@ -1,6 +1,6 @@
 package org.gms.client.creator;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.provider.Data;
 import org.gms.provider.DataProviderFactory;
 import org.gms.provider.wz.WZFiles;

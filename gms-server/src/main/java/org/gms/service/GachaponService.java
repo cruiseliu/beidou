@@ -3,7 +3,7 @@ package org.gms.service;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import lombok.extern.slf4j.Slf4j;
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.inventory.Item;
 import org.gms.dao.entity.GachaponRewardDO;
 import org.gms.dao.entity.GachaponRewardPoolDO;

@@ -19,7 +19,7 @@
 */
 package org.gms.net.server.coordinator.login;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.config.GameConfig;
 import org.gms.net.server.Server;

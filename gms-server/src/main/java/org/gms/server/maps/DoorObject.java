@@ -19,7 +19,7 @@
 */
 package org.gms.server.maps;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.constants.id.MapId;
 import org.gms.net.server.world.Party;

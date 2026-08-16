@@ -18,7 +18,7 @@
 */
 package org.gms.server.quest.actions;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.provider.Data;
 import org.gms.server.quest.Quest;
 import org.gms.server.quest.QuestActionType;

@@ -19,7 +19,7 @@
 */
 package org.gms.net.server.coordinator.matchchecker.listener;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
 import org.gms.constants.id.MapId;

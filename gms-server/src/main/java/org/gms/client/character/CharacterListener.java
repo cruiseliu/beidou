@@ -1,5 +1,6 @@
-package org.gms.client;
+package org.gms.client.character;
 
+import org.gms.client.Stat;
 import org.gms.util.PacketCreator;
 import org.gms.util.Pair;
 
@@ -25,14 +26,14 @@ public class CharacterListener implements AbstractCharacterListener {
             character.statUpdates.put(p.getLeft(), p.getRight());
         }
 
-        if (character.hp > character.localMaxHp) {
-            character.setHp(character.localMaxHp);
-            character.statUpdates.put(Stat.HP, character.hp);
+        if (character.stats.hp > character.stats.localMaxHp) {
+            character.setHp(character.stats.localMaxHp);
+            character.statUpdates.put(Stat.HP, character.stats.hp);
         }
 
-        if (character.mp > character.localMaxMp) {
-            character.setMp(character.localMaxMp);
-            character.statUpdates.put(Stat.MP, character.mp);
+        if (character.stats.mp > character.stats.localMaxMp) {
+            character.setMp(character.stats.localMaxMp);
+            character.statUpdates.put(Stat.MP, character.stats.mp);
         }
     }
 

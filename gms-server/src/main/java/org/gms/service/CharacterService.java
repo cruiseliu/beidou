@@ -5,7 +5,7 @@ import com.mybatisflex.core.query.QueryWrapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gms.client.*;
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.keybind.KeyBinding;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;

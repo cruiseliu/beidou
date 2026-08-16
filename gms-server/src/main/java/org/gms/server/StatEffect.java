@@ -22,7 +22,7 @@
 package org.gms.server;
 
 import org.gms.client.BuffStat;
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.Disease;
 import org.gms.client.Job;
 import org.gms.client.Mount;

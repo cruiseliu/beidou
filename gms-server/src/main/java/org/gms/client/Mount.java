@@ -21,6 +21,8 @@
 */
 package org.gms.client;
 
+import org.gms.client.character.Character;
+
 /**
  * @author PurpleMadness < Patrick :O >
  */

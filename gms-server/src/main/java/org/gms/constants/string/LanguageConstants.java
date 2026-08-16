@@ -1,6 +1,6 @@
 package org.gms.constants.string;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 
 /**
  * @author Drago (Dragohe4rt)

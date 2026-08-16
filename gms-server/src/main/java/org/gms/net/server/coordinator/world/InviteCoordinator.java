@@ -19,7 +19,7 @@
 */
 package org.gms.net.server.coordinator.world;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.util.Pair;
 
 import java.util.HashSet;

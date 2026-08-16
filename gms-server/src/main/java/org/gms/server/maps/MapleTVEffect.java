@@ -21,7 +21,7 @@
  */
 package org.gms.server.maps;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.net.server.Server;
 import org.gms.server.TimerManager;
 import org.gms.util.PacketCreator;

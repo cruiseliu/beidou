@@ -4,7 +4,7 @@ import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
 import org.gms.client.command.CommandsExecutor;

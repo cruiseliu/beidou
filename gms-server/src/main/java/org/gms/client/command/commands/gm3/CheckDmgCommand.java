@@ -24,7 +24,7 @@
 package org.gms.client.command.commands.gm3;
 
 import org.gms.client.BuffStat;
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
 import org.gms.util.I18nUtil;

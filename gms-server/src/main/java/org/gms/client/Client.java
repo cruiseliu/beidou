@@ -43,6 +43,7 @@ import org.gms.net.server.coordinator.session.Hwid;
 import org.gms.net.server.coordinator.session.SessionCoordinator;
 import org.gms.net.server.coordinator.session.SessionCoordinator.AntiMulticlientResult;
 import org.gms.net.server.guild.Guild;
+import org.gms.client.character.Character;
 import org.gms.net.server.guild.GuildCharacter;
 import org.gms.net.server.guild.GuildPackets;
 import org.gms.net.server.world.MessengerCharacter;

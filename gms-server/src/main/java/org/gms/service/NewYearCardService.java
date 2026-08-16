@@ -2,7 +2,7 @@ package org.gms.service;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import lombok.AllArgsConstructor;
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.model.pojo.NewYearCardRecord;
 import org.gms.dao.entity.NewyearDO;
 import org.gms.dao.mapper.NewyearMapper;

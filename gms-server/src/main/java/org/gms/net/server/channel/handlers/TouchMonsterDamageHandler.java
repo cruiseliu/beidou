@@ -22,7 +22,7 @@
 package org.gms.net.server.channel.handlers;
 
 import org.gms.client.BuffStat;
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.net.packet.InPacket;
 

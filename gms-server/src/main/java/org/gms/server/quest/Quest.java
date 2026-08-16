@@ -21,7 +21,7 @@
  */
 package org.gms.server.quest;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.QuestStatus;
 import org.gms.client.QuestStatus.Status;
 import org.gms.config.GameConfig;

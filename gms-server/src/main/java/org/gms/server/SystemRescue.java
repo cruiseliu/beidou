@@ -8,7 +8,7 @@ package org.gms.server;
 
 
 import lombok.Getter;
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.config.GameConfig;
 import org.gms.server.maps.MapleMap;
 import org.gms.util.I18nUtil;

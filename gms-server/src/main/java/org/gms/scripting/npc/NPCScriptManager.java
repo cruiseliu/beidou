@@ -21,7 +21,7 @@
  */
 package org.gms.scripting.npc;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.constants.game.NextLevelType;
 import org.gms.model.pojo.NextLevelContext;

@@ -24,7 +24,7 @@
 package org.gms.client.command.commands.gm0;
 
 import org.gms.client.BuffStat;
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
 import org.gms.config.GameConfig;

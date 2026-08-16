@@ -22,7 +22,7 @@
 
 package org.gms.server.expeditions;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.constants.id.MapId;
 import org.gms.constants.id.MobId;
 import org.gms.net.packet.Packet;

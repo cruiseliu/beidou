@@ -21,7 +21,7 @@
 */
 package org.gms.net.server.world;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.client.Job;
 
 public class PartyCharacter {

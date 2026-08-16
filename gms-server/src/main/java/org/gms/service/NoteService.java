@@ -3,7 +3,7 @@ package org.gms.service;
 import com.mybatisflex.core.query.QueryWrapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.dao.entity.NotesDO;
 import org.gms.dao.mapper.NotesMapper;
 import org.gms.net.packet.out.ShowNotesPacket;

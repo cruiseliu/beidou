@@ -19,7 +19,7 @@
 */
 package org.gms.net.server.coordinator.matchchecker.listener;
 
-import org.gms.client.Character;
+import org.gms.client.character.Character;
 import org.gms.constants.string.LanguageConstants;
 import org.gms.net.server.coordinator.matchchecker.AbstractMatchCheckerListener;
 import org.gms.net.server.coordinator.matchchecker.MatchCheckerListenerRecipe;
