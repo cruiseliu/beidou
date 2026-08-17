@@ -137,16 +137,15 @@ public class Character extends AbstractAnimatedMapObject {
 
     // ── 属性核心（原 AbstractCharacterObject 合并而来） ──
     @Getter
-    protected MapleMap map;
-    protected final CharacterStats stats = new CharacterStats();
-    protected final CharacterAp ap = new CharacterAp(this);
-    protected int[] remainingSp = new int[10];
-    protected Map<Stat, Integer> statUpdates = new HashMap<>();
+    private MapleMap map;
+    final CharacterStats stats = new CharacterStats();
+    final CharacterAp ap = new CharacterAp(this);
+    private int[] remainingSp = new int[10];
 
-    private final ReadWriteLock statLock = new ReentrantReadWriteLock(true);
-    protected final Lock effLock = new ReentrantLock(true);
-    protected final Lock statRlock = statLock.readLock();
-    protected final Lock statWlock = statLock.writeLock();
+    final ReadWriteLock statLock = new ReentrantReadWriteLock(true);
+    final Lock effLock = new ReentrantLock(true);
+    final Lock statRlock = statLock.readLock();
+    final Lock statWlock = statLock.writeLock();
 
     @Getter
     @Setter
@@ -634,7 +633,7 @@ public class Character extends AbstractAnimatedMapObject {
         return ap.getRemainingAp();
     }
 
-    protected int getRemainingSp(int jobid) {
+    private int getRemainingSp(int jobid) {
         statRlock.lock();
         try {
             return remainingSp[GameConstants.getSkillBook(jobid)];
@@ -709,13 +708,13 @@ public class Character extends AbstractAnimatedMapObject {
         return stats.localMaxMp;
     }
 
-    protected void setHp(int newHp) {
+    private void setHp(int newHp) {
         int oldHp = stats.hp;
         stats.setHp(newHp);
         hpChangeAction(oldHp);
     }
 
-    protected void setMp(int newMp) {
+    private void setMp(int newMp) {
         stats.setMp(newMp);
     }
 
@@ -723,27 +722,27 @@ public class Character extends AbstractAnimatedMapObject {
         this.remainingSp[skillbook] = remainingSp;
     }
 
-    protected void setMaxHp(int hp_) {
+    private void setMaxHp(int hp_) {
         stats.setMaxHp(hp_);
     }
 
-    protected void setMaxMp(int mp_) {
+    private void setMaxMp(int mp_) {
         stats.setMaxMp(mp_);
     }
 
-    /** 应用属性更新（发包通知客户端） */
-    void applyUpdate(StatsUpdate u) {
-        applyUpdateInternal(u, false);
+    /** 应用属性更新（发包通知客户端），返回本次变更集 */
+    Map<Stat, Integer> applyUpdate(StatsUpdate u) {
+        Map<Stat, Integer> statUpdates = applyUpdateSilently(u);
+        if (!statUpdates.isEmpty()) {
+            announceStatsUpdate(statUpdates);
+        }
+        return statUpdates;
     }
 
-    /** 静默应用属性更新（不发包，如登录加载、升级流程内部） */
-    void applyUpdateSilently(StatsUpdate u) {
-        applyUpdateInternal(u, true);
-    }
-
-    private void applyUpdateInternal(StatsUpdate u, boolean silent) {
+    /** 应用属性更新并返回本次变更集（不发包） */
+    Map<Stat, Integer> applyUpdateSilently(StatsUpdate u) {
         try (var ignored = Locks.acquire(effLock, statWlock)) {
-            statUpdates.clear();
+            Map<Stat, Integer> statUpdates = new HashMap<>();
             boolean poolUpdate = false;
             boolean statUpdate = false;
 
@@ -802,24 +801,16 @@ public class Character extends AbstractAnimatedMapObject {
                 statUpdate = true;
             }
 
-            if (u.sp != null) {
-                setRemainingSp(u.sp, u.skillbook);
-                statUpdates.put(Stat.AVAILABLESP, remainingSp[u.skillbook]);
-            }
-
             if (!statUpdates.isEmpty()) {
                 if (poolUpdate) {
-                    onHpMpPoolUpdate();
+                    statUpdates.putAll(onHpMpPoolUpdate());
                 }
 
                 if (statUpdate) {
                     recalcLocalStats();
                 }
-
-                if (!silent) {
-                    onAnnounceStatPoolUpdate();
-                }
             }
+            return statUpdates;
         }
     }
 
@@ -872,7 +863,7 @@ public class Character extends AbstractAnimatedMapObject {
         applyUpdate(new StatsUpdate().setMaxHp(maxhp).setMaxMp(maxmp));
     }
 
-    protected void enforceMaxHpMp() {
+    private void enforceMaxHpMp() {
         effLock.lock();
         statWlock.lock();
         try {
@@ -934,7 +925,7 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    protected void addMaxMPMaxHP(int hpdelta, int mpdelta, boolean silent) {
+    private void addMaxMPMaxHP(int hpdelta, int mpdelta, boolean silent) {
         try (var ignored = Locks.acquire(effLock, statWlock)) {
             StatsUpdate u = new StatsUpdate().setMaxHp(stats.maxHp + hpdelta).setMaxMp(stats.maxMp + mpdelta);
             if (silent) {
@@ -1033,16 +1024,7 @@ public class Character extends AbstractAnimatedMapObject {
         applyUpdate(u);
     }
 
-    protected void updateStrDexIntLukSp(int str, int dex, int int_, int luk, int remainingAp, int remainingSp, int skillbook) {
-        StatsUpdate u = new StatsUpdate().setStr(str).setDex(dex).setInt(int_).setLuk(luk);
-        if (remainingAp >= 0) {
-            u.setAp(remainingAp);
-        }
-        u.setSp(skillbook, remainingSp);
-        applyUpdate(u);
-    }
-
-    protected void setRemainingSp(int[] sps) {
+    private void setRemainingSp(int[] sps) {
         effLock.lock();
         statWlock.lock();
         try {
@@ -1053,16 +1035,20 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    protected void updateRemainingSp(int remainingSp, int skillbook) {
+    private void updateRemainingSp(int remainingSp, int skillbook) {
         changeRemainingSp(remainingSp, skillbook, false);
     }
 
-    protected void changeRemainingSp(int remainingSp, int skillbook, boolean silent) {
-        StatsUpdate u = new StatsUpdate().setSp(skillbook, remainingSp);
-        if (silent) {
-            applyUpdateSilently(u);
-        } else {
-            applyUpdate(u);
+    /** SP 不与属性/AP 共用 StatsUpdate 管道，单独应用；返回本次变更集供调用方拼装公告 */
+    private Map<Stat, Integer> changeRemainingSp(int remainingSp, int skillbook, boolean silent) {
+        try (var ignored = Locks.acquire(effLock, statWlock)) {
+            setRemainingSp(remainingSp, skillbook);
+            Map<Stat, Integer> statUpdates = new HashMap<>();
+            statUpdates.put(Stat.AVAILABLESP, this.remainingSp[skillbook]);
+            if (!silent) {
+                announceStatsUpdate(statUpdates);
+            }
+            return statUpdates;
         }
     }
 
@@ -7758,7 +7744,11 @@ public class Character extends AbstractAnimatedMapObject {
             tap -= tluk;
 
             if (tap >= 0) {
-                updateStrDexIntLukSp(tstr, tdex, tint, tluk, tap, tsp, GameConstants.getSkillBook(job.getId()));
+                // 属性与 SP 分两次静默应用，拼装变更集后一次性公告
+                Map<Stat, Integer> statUpdates = applyUpdateSilently(new StatsUpdate()
+                        .setStr(tstr).setDex(tdex).setInt(tint).setLuk(tluk).setAp(tap));
+                statUpdates.putAll(changeRemainingSp(tsp, GameConstants.getSkillBook(job.getId()), true));
+                announceStatsUpdate(statUpdates);
             } else {
                 log.warn("Chr {} tried to have its stats reset without enough AP available", getName());
             }
@@ -8586,25 +8576,28 @@ public class Character extends AbstractAnimatedMapObject {
 
     // ── 属性变更钩子：原 CharacterListener 的实现合并至此 ──
 
-    protected void onHpMpPoolUpdate() {
+    /** HP/MP 池更新后的重算与钳制，返回需并入本次公告的属性修正 */
+    private Map<Stat, Integer> onHpMpPoolUpdate() {
+        Map<Stat, Integer> updates = new HashMap<>();
         List<Pair<Stat, Integer>> hpmpupdate = recalcLocalStats();
         for (Pair<Stat, Integer> p : hpmpupdate) {
-            statUpdates.put(p.getLeft(), p.getRight());
+            updates.put(p.getLeft(), p.getRight());
         }
 
         if (stats.hp > stats.localMaxHp) {
             setHp(stats.localMaxHp);
-            statUpdates.put(Stat.HP, stats.hp);
+            updates.put(Stat.HP, stats.hp);
         }
 
         if (stats.mp > stats.localMaxMp) {
             setMp(stats.localMaxMp);
-            statUpdates.put(Stat.MP, stats.mp);
+            updates.put(Stat.MP, stats.mp);
         }
+        return updates;
     }
 
-    protected void onAnnounceStatPoolUpdate() {
-        List<Pair<Stat, Integer>> statup = new ArrayList<>(8);
+    private void announceStatsUpdate(Map<Stat, Integer> statUpdates) {
+        List<Pair<Stat, Integer>> statup = new ArrayList<>(statUpdates.size());
         for (Map.Entry<Stat, Integer> s : statUpdates.entrySet()) {
             statup.add(new Pair<>(s.getKey(), s.getValue()));
         }
