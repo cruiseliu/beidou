@@ -22,19 +22,19 @@ public class CharacterAp {
         this.owner = owner;
     }
 
-    public int getRemainingAp() {
+    int getRemainingAp() {
         try (var ignored = Locks.acquire(owner.stats.rLock)) {
             return remainingAp;
         }
     }
 
-    public int getHpMpApUsed() {
+    int getHpMpApUsed() {
         try (var ignored = Locks.acquire(owner.stats.rLock)) {
             return hpMpApUsed;
         }
     }
 
-    public void changeRemainingAp(int x, boolean silent) {
+    void changeRemainingAp(int x, boolean silent) {
         try (var ignored = Locks.acquire(owner.effLock, owner.stats.wLock)) {
             StatsUpdate u = new StatsUpdate();
             for (int i = 0; i < BASE_STAT_COUNT; i++) {
@@ -49,21 +49,21 @@ public class CharacterAp {
         }
     }
 
-    public void gainAp(int deltaAp, boolean silent) {
+    void gainAp(int deltaAp, boolean silent) {
         try (var ignored = Locks.acquire(owner.effLock, owner.stats.wLock)) {
             changeRemainingAp(Math.max(0, remainingAp + deltaAp), silent);
         }
     }
 
     /** 单维分配：assignAttr(STR, x) 等 */
-    public boolean assignAttr(int idx, int x) {
+    boolean assignAttr(int idx, int x) {
         Integer[] delta = new Integer[BASE_STAT_COUNT];
         delta[idx] = x;
         return assignAttrs(delta);
     }
 
     /** 多维分配：delta[i] 为 null 的维不变；AP 余额或任一维 4..max_ap 校验失败返回 false */
-    public boolean assignAttrs(Integer[] delta) {
+    boolean assignAttrs(Integer[] delta) {
         try (var ignored = Locks.acquire(owner.effLock, owner.stats.wLock)) {
             int apUsed = 0;
             int[] newAttrs = Arrays.copyOf(owner.stats.attrs, BASE_STAT_COUNT);
@@ -94,7 +94,7 @@ public class CharacterAp {
         }
     }
 
-    public boolean assignHP(int deltaHP, int deltaAp) {
+    boolean assignHP(int deltaHP, int deltaAp) {
         try (var ignored = Locks.acquire(owner.effLock, owner.stats.wLock)) {
             if (!canSpendAp(deltaAp, owner.stats.maxHp >= 30000)) {
                 return false;
@@ -112,7 +112,7 @@ public class CharacterAp {
         }
     }
 
-    public boolean assignMP(int deltaMP, int deltaAp) {
+    boolean assignMP(int deltaMP, int deltaAp) {
         try (var ignored = Locks.acquire(owner.effLock, owner.stats.wLock)) {
             if (!canSpendAp(deltaAp, owner.stats.maxMp >= 30000)) {
                 return false;

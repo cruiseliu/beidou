@@ -205,7 +205,7 @@ public class CharacterStats {
 
     // ── 持久化数据转换（stats 域的映射；信封 CharacterData 的组装/应用在 Character.toData/applyData） ──
 
-    public CharacterStatsData toData() {
+    CharacterStatsData toData() {
         CharacterStatsData d = new CharacterStatsData();
         d.str = attrs[BaseStat.STR];
         d.dex = attrs[BaseStat.DEX];
@@ -218,7 +218,7 @@ public class CharacterStats {
         return d;
     }
 
-    public void applyData(CharacterStatsData d) {
+    void applyData(CharacterStatsData d) {
         attrs[BaseStat.STR] = d.str;
         attrs[BaseStat.DEX] = d.dex;
         attrs[BaseStat.INT] = d.int_;
