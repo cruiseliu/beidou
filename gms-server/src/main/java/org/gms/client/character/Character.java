@@ -1240,7 +1240,7 @@ public class Character extends AbstractCharacterObject {
             statup.add(new Pair<>(Stat.MP, stats.mp));
             statup.add(new Pair<>(Stat.MAXHP, stats.clientMaxHp));
             statup.add(new Pair<>(Stat.MAXMP, stats.clientMaxMp));
-            statup.add(new Pair<>(Stat.AVAILABLEAP, remainingAp));
+            statup.add(new Pair<>(Stat.AVAILABLEAP, ap.remainingAp));
             statup.add(new Pair<>(Stat.AVAILABLESP, remainingSp[GameConstants.getSkillBook(job.getId())]));
             statup.add(new Pair<>(Stat.JOB, job.getId()));
             sendPacket(PacketCreator.updatePlayerStats(statup, true, this));
@@ -5958,7 +5958,7 @@ public class Character extends AbstractCharacterObject {
             changeHpMp(stats.localMaxHp, stats.localMaxMp, true);
 
             List<Pair<Stat, Integer>> statup = new ArrayList<>(10);
-            statup.add(new Pair<>(Stat.AVAILABLEAP, remainingAp));
+            statup.add(new Pair<>(Stat.AVAILABLEAP, ap.remainingAp));
             statup.add(new Pair<>(Stat.AVAILABLESP, remainingSp[GameConstants.getSkillBook(job.getId())]));
             statup.add(new Pair<>(Stat.HP, stats.hp));
             statup.add(new Pair<>(Stat.MP, stats.mp));
@@ -6315,7 +6315,7 @@ public class Character extends AbstractCharacterObject {
             ret.level = rs.getInt("level");
             ret.job = Job.getById(rs.getInt("job"));
             ret.applyData(CharacterData.deserialize(rs.getString("stats_json")));
-            ret.remainingAp = rs.getInt("ap");
+            ret.ap.remainingAp = rs.getInt("ap");
             ret.loadCharSkillPoints(rs.getString("sp").split(","));
             ret.exp.set(rs.getInt("exp"));
             ret.fame = rs.getInt("fame");
@@ -6365,7 +6365,7 @@ public class Character extends AbstractCharacterObject {
         ret.setMaxHp(this.getMaxHp());
         ret.stats.mp = this.getMp();
         ret.setMaxMp(this.getMaxMp());
-        ret.remainingAp = this.getRemainingAp();
+        ret.ap.remainingAp = this.getRemainingAp();
         ret.setRemainingSp(this.getRemainingSps());
         ret.exp.set(this.getExp());
         ret.fame = this.getFame();
@@ -6414,9 +6414,9 @@ public class Character extends AbstractCharacterObject {
         loadStatsFromJson(chr, charactersDO.getId());
         chr.setExp(charactersDO.getExp());
         chr.setGachaExp(charactersDO.getGachaexp());
-        chr.setHpMpApUsed(charactersDO.getHpMpUsed());
+        chr.ap.hpMpApUsed = charactersDO.getHpMpUsed();
         chr.setHasMerchant(charactersDO.getHasmerchant());
-        chr.setRemainingAp(charactersDO.getAp());
+        chr.ap.remainingAp = charactersDO.getAp();
         int[] remainingSps = new int[10];
         Arrays.fill(remainingSps, 0);
         if (!RequireUtil.isEmpty(charactersDO.getSp())) {
@@ -7224,7 +7224,7 @@ public class Character extends AbstractCharacterObject {
         effLock.lock();
         statWlock.lock();
         try {
-            int tap = remainingAp + stats.str + stats.dex + stats.int_ + stats.luk, tsp = 1;
+            int tap = ap.remainingAp + stats.str + stats.dex + stats.int_ + stats.luk, tsp = 1;
             int tstr = 4, tdex = 4, tint = 4, tluk = 4;
 
             switch (job.getId()) {
@@ -7376,7 +7376,7 @@ public class Character extends AbstractCharacterObject {
         stats.hp = stats.maxHp;
         stats.mp = stats.maxMp;
         level = recipe.getLevel();
-        remainingAp = recipe.getRemainingAp();
+        ap.remainingAp = recipe.getRemainingAp();
         remainingSp[GameConstants.getSkillBook(job.getId())] = recipe.getRemainingSp();
         mapId = recipe.getMap();
         meso.set(recipe.getMeso());
@@ -7415,7 +7415,7 @@ public class Character extends AbstractCharacterObject {
                     ps.setString(11, name);
                     ps.setInt(12, world);
                     ps.setInt(13, level);
-                    ps.setInt(14, remainingAp);
+                    ps.setInt(14, ap.remainingAp);
 
                     StringBuilder sps = new StringBuilder();
                     for (int j : remainingSp) {
@@ -7583,7 +7583,7 @@ public class Character extends AbstractCharacterObject {
                         String sp = sps.toString();
                         ps.setString(5, sp.substring(0, sp.length() - 1));
 
-                        ps.setInt(6, remainingAp);
+                        ps.setInt(6, ap.remainingAp);
                     } finally {
                         statWlock.unlock();
                         effLock.unlock();
@@ -7605,7 +7605,7 @@ public class Character extends AbstractCharacterObject {
                         }
                     }
                     ps.setInt(14, meso.get());
-                    ps.setInt(15, hpMpApUsed);
+                    ps.setInt(15, ap.hpMpApUsed);
                     if (map == null || map.getId() == MapId.CRIMSONWOOD_VALLEY_1 || map.getId() == MapId.CRIMSONWOOD_VALLEY_2) {  // reset to first spawnpoint on those maps
                         ps.setInt(16, 0);
                     } else {

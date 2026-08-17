@@ -26,6 +26,7 @@ import lombok.Setter;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
 import org.gms.server.maps.AbstractAnimatedMapObject;
+import org.gms.util.Locks;
 import org.gms.server.maps.MapleMap;
 
 import java.util.Arrays;
@@ -44,10 +45,7 @@ public abstract class AbstractCharacterObject extends AbstractAnimatedMapObject 
     @Getter
     protected MapleMap map;
     protected final CharacterStats stats = new CharacterStats();
-    @Setter
-    protected int hpMpApUsed;
-    @Setter
-    protected int remainingAp;
+    protected final CharacterAp ap = new CharacterAp(this);
     protected int[] remainingSp = new int[10];
 
     private AbstractCharacterListener listener = null;
@@ -105,12 +103,7 @@ public abstract class AbstractCharacterObject extends AbstractAnimatedMapObject 
     }
 
     public int getRemainingAp() {
-        statRlock.lock();
-        try {
-            return remainingAp;
-        } finally {
-            statRlock.unlock();
-        }
+        return ap.getRemainingAp();
     }
 
     protected int getRemainingSp(int jobid) {
@@ -132,12 +125,7 @@ public abstract class AbstractCharacterObject extends AbstractAnimatedMapObject 
     }
 
     public int getHpMpApUsed() {
-        statRlock.lock();
-        try {
-            return hpMpApUsed;
-        } finally {
-            statRlock.unlock();
-        }
+        return ap.getHpMpApUsed();
     }
 
     public boolean isAlive() {
@@ -231,119 +219,80 @@ public abstract class AbstractCharacterObject extends AbstractAnimatedMapObject 
         stats.setMaxMp(mp_);
     }
 
-    private static long clampStat(int v, int min, int max) {
-        return (v < min) ? min : ((v > max) ? max : v);
+    /** 应用属性更新（发包通知客户端） */
+    void applyUpdate(StatsUpdate u) {
+        applyUpdateInternal(u, false);
     }
 
-    private static long calcStatPoolNode(Integer v, int displacement) {
-        long r;
-        if (v == null) {
-            r = -32768;
-        } else {
-            r = clampStat(v, -32767, 32767);
-        }
-
-        return ((r & 0x0FFFF) << displacement);
+    /** 静默应用属性更新（不发包，如登录加载、升级流程内部） */
+    void applyUpdateSilently(StatsUpdate u) {
+        applyUpdateInternal(u, true);
     }
 
-    private static long calcStatPoolLong(Integer v1, Integer v2, Integer v3, Integer v4) {
-        long ret = 0;
-
-        ret |= calcStatPoolNode(v1, 48);
-        ret |= calcStatPoolNode(v2, 32);
-        ret |= calcStatPoolNode(v3, 16);
-        ret |= calcStatPoolNode(v4, 0);
-
-        return ret;
-    }
-
-    private void changeStatPool(Long hpMpPool, Long strDexIntLuk, Long newSp, int newAp, boolean silent) {
-        effLock.lock();
-        statWlock.lock();
-        try {
+    private void applyUpdateInternal(StatsUpdate u, boolean silent) {
+        try (var ignored = Locks.acquire(effLock, statWlock)) {
             statUpdates.clear();
             boolean poolUpdate = false;
             boolean statUpdate = false;
 
-            if (hpMpPool != null) {
-                short newHp = (short) (hpMpPool >> 48);
-                short newMp = (short) (hpMpPool >> 32);
-                short newMaxHp = (short) (hpMpPool >> 16);
-                short newMaxMp = hpMpPool.shortValue();
-
-                if (newMaxHp != Short.MIN_VALUE) {
-                    if (newMaxHp < 50) {
-                        newMaxHp = 50;
-                    }
-
+            if (u.hp != null || u.mp != null || u.maxHp != null || u.maxMp != null) {
+                if (u.maxHp != null) {
                     poolUpdate = true;
-                    setMaxHp(newMaxHp);
+                    setMaxHp(Math.max(50, u.maxHp));
                     statUpdates.put(Stat.MAXHP, stats.clientMaxHp);
                     statUpdates.put(Stat.HP, stats.hp);
                 }
 
-                if (newHp != Short.MIN_VALUE) {
-                    setHp(newHp);
+                if (u.hp != null) {
+                    setHp(u.hp);
                     statUpdates.put(Stat.HP, stats.hp);
                 }
 
-                if (newMaxMp != Short.MIN_VALUE) {
-                    if (newMaxMp < 5) {
-                        newMaxMp = 5;
-                    }
-
+                if (u.maxMp != null) {
                     poolUpdate = true;
-                    setMaxMp(newMaxMp);
+                    setMaxMp(Math.max(5, u.maxMp));
                     statUpdates.put(Stat.MAXMP, stats.clientMaxMp);
                     statUpdates.put(Stat.MP, stats.mp);
                 }
 
-                if (newMp != Short.MIN_VALUE) {
-                    setMp(newMp);
+                if (u.mp != null) {
+                    setMp(u.mp);
                     statUpdates.put(Stat.MP, stats.mp);
                 }
             }
 
-            if (strDexIntLuk != null) {
-                short newStr = (short) (strDexIntLuk >> 48);
-                short newDex = (short) (strDexIntLuk >> 32);
-                short newInt = (short) (strDexIntLuk >> 16);
-                short newLuk = strDexIntLuk.shortValue();
-
-                if (newStr >= 4) {
-                    setStr(newStr);
+            if (u.str != null || u.dex != null || u.int_ != null || u.luk != null || (u.ap != null && u.ap >= 0)) {
+                if (u.str != null && u.str >= 4) {
+                    setStr(u.str);
                     statUpdates.put(Stat.STR, stats.str);
                 }
 
-                if (newDex >= 4) {
-                    setDex(newDex);
+                if (u.dex != null && u.dex >= 4) {
+                    setDex(u.dex);
                     statUpdates.put(Stat.DEX, stats.dex);
                 }
 
-                if (newInt >= 4) {
-                    setInt(newInt);
+                if (u.int_ != null && u.int_ >= 4) {
+                    setInt(u.int_);
                     statUpdates.put(Stat.INT, stats.int_);
                 }
 
-                if (newLuk >= 4) {
-                    setLuk(newLuk);
+                if (u.luk != null && u.luk >= 4) {
+                    setLuk(u.luk);
                     statUpdates.put(Stat.LUK, stats.luk);
                 }
 
-                if (newAp >= 0) {
-                    setRemainingAp(newAp);
-                    statUpdates.put(Stat.AVAILABLEAP, remainingAp);
+                if (u.ap != null && u.ap >= 0) {
+                    ap.remainingAp = u.ap;
+                    statUpdates.put(Stat.AVAILABLEAP, ap.remainingAp);
                 }
 
                 statUpdate = true;
             }
 
-            if (newSp != null) {
-                short sp = (short) (newSp >> 16);
-                short skillbook = newSp.shortValue();
-
-                setRemainingSp(sp, skillbook);
-                statUpdates.put(Stat.AVAILABLESP, remainingSp[skillbook]);
+            if (u.sp != null) {
+                setRemainingSp(u.sp, u.skillbook);
+                statUpdates.put(Stat.AVAILABLESP, remainingSp[u.skillbook]);
             }
 
             if (!statUpdates.isEmpty()) {
@@ -359,9 +308,6 @@ public abstract class AbstractCharacterObject extends AbstractAnimatedMapObject 
                     dispatchStatPoolUpdateAnnounced();
                 }
             }
-        } finally {
-            statWlock.unlock();
-            effLock.unlock();
         }
     }
 
@@ -374,52 +320,44 @@ public abstract class AbstractCharacterObject extends AbstractAnimatedMapObject 
     }
 
     public void updateHpMp(int newhp, int newmp) {
-        changeHpMp(newhp, newmp, false);
+        applyUpdate(new StatsUpdate().setHp(newhp).setMp(newmp));
     }
 
     public void changeHpMp(int newhp, int newmp, boolean silent) {
-        changeHpMpPool(newhp, newmp, null, null, silent);
-    }
-
-    private void changeHpMpPool(Integer hp, Integer mp, Integer maxhp, Integer maxmp, boolean silent) {
-        long hpMpPool = calcStatPoolLong(hp, mp, maxhp, maxmp);
-        changeStatPool(hpMpPool, null, null, -1, silent);
+        StatsUpdate u = new StatsUpdate().setHp(newhp).setMp(newmp);
+        if (silent) {
+            applyUpdateSilently(u);
+        } else {
+            applyUpdate(u);
+        }
     }
 
     public void updateHp(int hp) {
-        updateHpMaxHp(hp, null);
+        applyUpdate(new StatsUpdate().setHp(hp));
     }
 
     public void updateMaxHp(int maxhp) {
-        updateHpMaxHp(null, maxhp);
+        applyUpdate(new StatsUpdate().setMaxHp(maxhp));
     }
 
     public void updateHpMaxHp(int hp, int maxhp) {
-        updateHpMaxHp(Integer.valueOf(hp), Integer.valueOf(maxhp));
-    }
-
-    private void updateHpMaxHp(Integer hp, Integer maxhp) {
-        changeHpMpPool(hp, null, maxhp, null, false);
+        applyUpdate(new StatsUpdate().setHp(hp).setMaxHp(maxhp));
     }
 
     public void updateMp(int mp) {
-        updateMpMaxMp(mp, null);
+        applyUpdate(new StatsUpdate().setMp(mp));
     }
 
     public void updateMaxMp(int maxmp) {
-        updateMpMaxMp(null, maxmp);
+        applyUpdate(new StatsUpdate().setMaxMp(maxmp));
     }
 
     public void updateMpMaxMp(int mp, int maxmp) {
-        updateMpMaxMp(Integer.valueOf(mp), Integer.valueOf(maxmp));
-    }
-
-    private void updateMpMaxMp(Integer mp, Integer maxmp) {
-        changeHpMpPool(null, mp, null, maxmp, false);
+        applyUpdate(new StatsUpdate().setMp(mp).setMaxMp(maxmp));
     }
 
     public void updateMaxHpMaxMp(int maxhp, int maxmp) {
-        changeHpMpPool(null, null, maxhp, maxmp, false);
+        applyUpdate(new StatsUpdate().setMaxHp(maxhp).setMaxMp(maxmp));
     }
 
     protected void enforceMaxHpMp() {
@@ -485,13 +423,13 @@ public abstract class AbstractCharacterObject extends AbstractAnimatedMapObject 
     }
 
     protected void addMaxMPMaxHP(int hpdelta, int mpdelta, boolean silent) {
-        effLock.lock();
-        statWlock.lock();
-        try {
-            changeHpMpPool(null, null, stats.maxHp + hpdelta, stats.maxMp + mpdelta, silent);
-        } finally {
-            statWlock.unlock();
-            effLock.unlock();
+        try (var ignored = Locks.acquire(effLock, statWlock)) {
+            StatsUpdate u = new StatsUpdate().setMaxHp(stats.maxHp + hpdelta).setMaxMp(stats.maxMp + mpdelta);
+            if (silent) {
+                applyUpdateSilently(u);
+            } else {
+                applyUpdate(u);
+            }
         }
     }
 
@@ -533,161 +471,63 @@ public abstract class AbstractCharacterObject extends AbstractAnimatedMapObject 
         this.stats.luk = luk;
     }
 
+    // ── AP 委托：实现集中在 CharacterAp ──
+
     public boolean assignStr(int x) {
-        return assignStrDexIntLuk(x, null, null, null);
+        return ap.assignStr(x);
     }
 
     public boolean assignDex(int x) {
-        return assignStrDexIntLuk(null, x, null, null);
+        return ap.assignDex(x);
     }
 
     public boolean assignInt(int x) {
-        return assignStrDexIntLuk(null, null, x, null);
+        return ap.assignInt(x);
     }
 
     public boolean assignLuk(int x) {
-        return assignStrDexIntLuk(null, null, null, x);
+        return ap.assignLuk(x);
     }
 
     public boolean assignHP(int deltaHP, int deltaAp) {
-        effLock.lock();
-        statWlock.lock();
-        try {
-            if (remainingAp - deltaAp < 0 || hpMpApUsed + deltaAp < 0 || stats.maxHp >= 30000) {
-                return false;
-            }
-
-            long hpMpPool = calcStatPoolLong(null, null, stats.maxHp + deltaHP, stats.maxMp);
-            long strDexIntLuk = calcStatPoolLong(stats.str, stats.dex, stats.int_, stats.luk);
-
-            changeStatPool(hpMpPool, strDexIntLuk, null, remainingAp - deltaAp, false);
-            setHpMpApUsed(hpMpApUsed + deltaAp);
-            return true;
-        } finally {
-            statWlock.unlock();
-            effLock.unlock();
-        }
+        return ap.assignHP(deltaHP, deltaAp);
     }
 
     public boolean assignMP(int deltaMP, int deltaAp) {
-        effLock.lock();
-        statWlock.lock();
-        try {
-            if (remainingAp - deltaAp < 0 || hpMpApUsed + deltaAp < 0 || stats.maxMp >= 30000) {
-                return false;
-            }
-
-            long hpMpPool = calcStatPoolLong(null, null, stats.maxHp, stats.maxMp + deltaMP);
-            long strDexIntLuk = calcStatPoolLong(stats.str, stats.dex, stats.int_, stats.luk);
-
-            changeStatPool(hpMpPool, strDexIntLuk, null, remainingAp - deltaAp, false);
-            setHpMpApUsed(hpMpApUsed + deltaAp);
-            return true;
-        } finally {
-            statWlock.unlock();
-            effLock.unlock();
-        }
-    }
-
-    private static int apAssigned(Integer x) {
-        return x != null ? x : 0;
+        return ap.assignMP(deltaMP, deltaAp);
     }
 
     public boolean assignStrDexIntLuk(int deltaStr, int deltaDex, int deltaInt, int deltaLuk) {
-        return assignStrDexIntLuk(Integer.valueOf(deltaStr), Integer.valueOf(deltaDex), Integer.valueOf(deltaInt), Integer.valueOf(deltaLuk));
+        return ap.assignStrDexIntLuk(deltaStr, deltaDex, deltaInt, deltaLuk);
     }
 
-    private boolean assignStrDexIntLuk(Integer deltaStr, Integer deltaDex, Integer deltaInt, Integer deltaLuk) {
-        effLock.lock();
-        statWlock.lock();
-        try {
-            int apUsed = apAssigned(deltaStr) + apAssigned(deltaDex) + apAssigned(deltaInt) + apAssigned(deltaLuk);
-            if (apUsed > remainingAp) {
-                return false;
-            }
+    public void changeRemainingAp(int x, boolean silent) {
+        ap.changeRemainingAp(x, silent);
+    }
 
-            int newStr = stats.str, newDex = stats.dex, newInt = stats.int_, newLuk = stats.luk;
-            if (deltaStr != null) {
-                newStr += deltaStr;   // thanks Rohenn for noticing an NPE case after "null" started being used
-            }
-            if (deltaDex != null) {
-                newDex += deltaDex;
-            }
-            if (deltaInt != null) {
-                newInt += deltaInt;
-            }
-            if (deltaLuk != null) {
-                newLuk += deltaLuk;
-            }
-
-            if (newStr < 4 || newStr > GameConfig.getServerInt("max_ap")) {
-                return false;
-            }
-
-            if (newDex < 4 || newDex > GameConfig.getServerInt("max_ap")) {
-                return false;
-            }
-
-            if (newInt < 4 || newInt > GameConfig.getServerInt("max_ap")) {
-                return false;
-            }
-
-            if (newLuk < 4 || newLuk > GameConfig.getServerInt("max_ap")) {
-                return false;
-            }
-
-            int newAp = remainingAp - apUsed;
-            updateStrDexIntLuk(newStr, newDex, newInt, newLuk, newAp);
-            return true;
-        } finally {
-            statWlock.unlock();
-            effLock.unlock();
-        }
+    public void gainAp(int deltaAp, boolean silent) {
+        ap.gainAp(deltaAp, silent);
     }
 
     public void updateStrDexIntLuk(int x) {
         updateStrDexIntLuk(x, x, x, x, -1);
     }
 
-    public void changeRemainingAp(int x, boolean silent) {
-        effLock.lock();
-        statWlock.lock();
-        try {
-            changeStrDexIntLuk(stats.str, stats.dex, stats.int_, stats.luk, x, silent);
-        } finally {
-            statWlock.unlock();
-            effLock.unlock();
+    void updateStrDexIntLuk(int str, int dex, int int_, int luk, int remainingAp) {
+        StatsUpdate u = new StatsUpdate().setStr(str).setDex(dex).setInt(int_).setLuk(luk);
+        if (remainingAp >= 0) {
+            u.setAp(remainingAp);
         }
-    }
-
-    public void gainAp(int deltaAp, boolean silent) {
-        effLock.lock();
-        statWlock.lock();
-        try {
-            changeRemainingAp(Math.max(0, remainingAp + deltaAp), silent);
-        } finally {
-            statWlock.unlock();
-            effLock.unlock();
-        }
-    }
-
-    protected void updateStrDexIntLuk(int str, int dex, int int_, int luk, int remainingAp) {
-        changeStrDexIntLuk(str, dex, int_, luk, remainingAp, false);
-    }
-
-    private void changeStrDexIntLuk(Integer str, Integer dex, Integer int_, Integer luk, int remainingAp, boolean silent) {
-        long strDexIntLuk = calcStatPoolLong(str, dex, int_, luk);
-        changeStatPool(null, strDexIntLuk, null, remainingAp, silent);
-    }
-
-    private void changeStrDexIntLukSp(Integer str, Integer dex, Integer int_, Integer luk, int remainingAp, int remainingSp, int skillbook, boolean silent) {
-        long strDexIntLuk = calcStatPoolLong(str, dex, int_, luk);
-        long sp = calcStatPoolLong(0, 0, remainingSp, skillbook);
-        changeStatPool(null, strDexIntLuk, sp, remainingAp, silent);
+        applyUpdate(u);
     }
 
     protected void updateStrDexIntLukSp(int str, int dex, int int_, int luk, int remainingAp, int remainingSp, int skillbook) {
-        changeStrDexIntLukSp(str, dex, int_, luk, remainingAp, remainingSp, skillbook, false);
+        StatsUpdate u = new StatsUpdate().setStr(str).setDex(dex).setInt(int_).setLuk(luk);
+        if (remainingAp >= 0) {
+            u.setAp(remainingAp);
+        }
+        u.setSp(skillbook, remainingSp);
+        applyUpdate(u);
     }
 
     protected void setRemainingSp(int[] sps) {
@@ -706,8 +546,12 @@ public abstract class AbstractCharacterObject extends AbstractAnimatedMapObject 
     }
 
     protected void changeRemainingSp(int remainingSp, int skillbook, boolean silent) {
-        long sp = calcStatPoolLong(0, 0, remainingSp, skillbook);
-        changeStatPool(null, null, sp, Short.MIN_VALUE, silent);
+        StatsUpdate u = new StatsUpdate().setSp(skillbook, remainingSp);
+        if (silent) {
+            applyUpdateSilently(u);
+        } else {
+            applyUpdate(u);
+        }
     }
 
     public void gainSp(int deltaSp, int skillbook, boolean silent) {
