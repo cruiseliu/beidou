@@ -4,14 +4,13 @@ package org.gms.client.character;
  * 属性更新参数对象：一次原子变更要写入的各属性目标值（绝对值），null = 不变更。
  * 通过 Character.applyUpdate / applyUpdateSilently 应用，
  * 替代原先 calcStatPoolLong 把四个值拼进 long 的隐式打包。
+ * SP 与属性/AP 无逻辑关联，不在此管理，走 changeRemainingSp 独立管道。
  * 字段 package-private 仅供同包读取，写入走流式 setter。
  */
 public class StatsUpdate {
     Integer hp, mp, maxHp, maxMp;
     Integer str, dex, int_, luk;
     Integer ap;
-    Integer sp;        // AVAILABLESP 的目标值
-    Integer skillbook; // sp 所属技能书
 
     public StatsUpdate setHp(int hp) {
         this.hp = hp;
@@ -55,13 +54,6 @@ public class StatsUpdate {
 
     public StatsUpdate setAp(int ap) {
         this.ap = ap;
-        return this;
-    }
-
-    /** 设置指定技能书的剩余 SP */
-    public StatsUpdate setSp(int skillbook, int sp) {
-        this.skillbook = skillbook;
-        this.sp = sp;
         return this;
     }
 }
