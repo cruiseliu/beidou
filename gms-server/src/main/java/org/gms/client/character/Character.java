@@ -142,7 +142,7 @@ public class Character extends AbstractAnimatedMapObject {
     private MapleMap map;
     final CharacterStats stats = new CharacterStats();
     final CharacterAp ap = new CharacterAp(this);
-    private int[] remainingSp = new int[10];
+    final CharacterSp sp = new CharacterSp(this);
 
     final ReadWriteLock statLock = new ReentrantReadWriteLock(true);
     final Lock effLock = new ReentrantLock(true);
@@ -613,22 +613,12 @@ public class Character extends AbstractAnimatedMapObject {
         return ap.getRemainingAp();
     }
 
-    private int getRemainingSp(int jobid) {
-        stats.rLock.lock();
-        try {
-            return remainingSp[GameConstants.getSkillBook(jobid)];
-        } finally {
-            stats.rLock.unlock();
-        }
+    public int getRemainingSp(int jobId) {
+        return sp.getRemainingSp(jobId);
     }
 
     public int[] getRemainingSps() {
-        stats.rLock.lock();
-        try {
-            return Arrays.copyOf(remainingSp, remainingSp.length);
-        } finally {
-            stats.rLock.unlock();
-        }
+        return sp.getRemainingSps();
     }
 
     public int getHpMpApUsed() {
@@ -698,8 +688,8 @@ public class Character extends AbstractAnimatedMapObject {
         stats.setMp(newMp);
     }
 
-    public void setRemainingSp(int remainingSp, int skillbook) {
-        this.remainingSp[skillbook] = remainingSp;
+    public void setRemainingSp(int remainingSp, int jobId) {
+        sp.setRemainingSp(remainingSp, jobId);
     }
 
     private void setMaxHp(int hp_) {
@@ -989,42 +979,15 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     private void setRemainingSp(int[] sps) {
-        effLock.lock();
-        stats.wLock.lock();
-        try {
-            System.arraycopy(sps, 0, remainingSp, 0, sps.length);
-        } finally {
-            stats.wLock.unlock();
-            effLock.unlock();
-        }
+        sp.setRemainingSp(sps);
     }
 
-    private void updateRemainingSp(int remainingSp, int skillbook) {
-        changeRemainingSp(remainingSp, skillbook, false);
+    private void updateRemainingSp(int remainingSp, int jobId) {
+        sp.changeRemainingSp(remainingSp, jobId, false);
     }
 
-    /** SP 不与属性/AP 共用 StatsUpdate 管道，单独应用；返回本次变更集供调用方拼装公告 */
-    private Map<Stat, Integer> changeRemainingSp(int remainingSp, int skillbook, boolean silent) {
-        try (var ignored = Locks.acquire(effLock, statWlock)) {
-            setRemainingSp(remainingSp, skillbook);
-            Map<Stat, Integer> statUpdates = new HashMap<>();
-            statUpdates.put(Stat.AVAILABLESP, this.remainingSp[skillbook]);
-            if (!silent) {
-                announceStatsUpdate(statUpdates);
-            }
-            return statUpdates;
-        }
-    }
-
-    public void gainSp(int deltaSp, int skillbook, boolean silent) {
-        effLock.lock();
-        stats.wLock.lock();
-        try {
-            changeRemainingSp(Math.max(0, remainingSp[skillbook] + deltaSp), skillbook, silent);
-        } finally {
-            stats.wLock.unlock();
-            effLock.unlock();
-        }
+    public void gainSp(int deltaSp, int jobId, boolean silent) {
+        sp.gainSp(deltaSp, jobId, silent);
     }
 
     public Job getJobStyle(byte opt) {
@@ -1614,7 +1577,7 @@ public class Character extends AbstractAnimatedMapObject {
         }
 
         if (spGain > 0) {
-            gainSp(spGain, GameConstants.getSkillBook(newJob.getId()), true);
+            gainSp(spGain, newJob.getId(), true);
         }
 
         // thanks xinyifly for finding out missing AP awards (AP Reset can be used as a compass)
@@ -1683,7 +1646,7 @@ public class Character extends AbstractAnimatedMapObject {
             statup.add(new Pair<>(Stat.MAXHP, stats.clientMaxHp));
             statup.add(new Pair<>(Stat.MAXMP, stats.clientMaxMp));
             statup.add(new Pair<>(Stat.AVAILABLEAP, ap.remainingAp));
-            statup.add(new Pair<>(Stat.AVAILABLESP, remainingSp[GameConstants.getSkillBook(job.getId())]));
+            statup.add(new Pair<>(Stat.AVAILABLESP, sp.remainingSp[CharacterSp.indexOf(job.getId())]));
             statup.add(new Pair<>(Stat.JOB, job.getId()));
             sendPacket(PacketCreator.updatePlayerStats(statup, true, this));
         } finally {
@@ -6165,14 +6128,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     private int getJobRemainingSp(Job job) {
-        int skillBook = GameConstants.getSkillBook(job.getId());
-
-        int ret = 0;
-        for (int i = 0; i <= skillBook; i++) {
-            ret += this.getRemainingSp(i);
-        }
-
-        return ret;
+        return getRemainingSp(job.getId());
     }
 
     private int getSpGain(int spGain, Job job) {
@@ -6196,7 +6152,7 @@ public class Character extends AbstractAnimatedMapObject {
         }
 
         if (spGain > 0) {
-            gainSp(spGain, GameConstants.getSkillBook(job.getId()), true);
+            gainSp(spGain, job.getId(), true);
         }
     }
 
@@ -6318,7 +6274,7 @@ public class Character extends AbstractAnimatedMapObject {
 
             List<Pair<Stat, Integer>> statup = new ArrayList<>(10);
             statup.add(new Pair<>(Stat.AVAILABLEAP, ap.remainingAp));
-            statup.add(new Pair<>(Stat.AVAILABLESP, remainingSp[GameConstants.getSkillBook(job.getId())]));
+            statup.add(new Pair<>(Stat.AVAILABLESP, sp.remainingSp[CharacterSp.indexOf(job.getId())]));
             statup.add(new Pair<>(Stat.HP, stats.hp));
             statup.add(new Pair<>(Stat.MP, stats.mp));
             statup.add(new Pair<>(Stat.EXP, exp.get()));
@@ -6675,7 +6631,7 @@ public class Character extends AbstractAnimatedMapObject {
             ret.job = Job.getById(rs.getInt("job"));
             ret.applyData(CharacterData.deserialize(rs.getString("stats_json")));
             ret.ap.remainingAp = rs.getInt("ap");
-            ret.loadCharSkillPoints(rs.getString("sp").split(","));
+            ret.sp.loadCharSkillPoints(rs.getString("sp").split(","));
             ret.exp.set(rs.getInt("exp"));
             ret.fame = rs.getInt("fame");
             ret.gachaExp.set(rs.getInt("gachaexp"));
@@ -6743,21 +6699,12 @@ public class Character extends AbstractAnimatedMapObject {
         return ret;
     }
 
-    private void loadCharSkillPoints(String[] skillPoints) {
-        int[] sps = new int[skillPoints.length];
-        for (int i = 0; i < skillPoints.length; i++) {
-            sps[i] = Integer.parseInt(skillPoints[i]);
-        }
-
-        setRemainingSp(sps);
-    }
-
     public int getRemainingSp() {
         return getRemainingSp(job.getId()); //default
     }
 
     public void updateRemainingSp(int remainingSp) {
-        updateRemainingSp(remainingSp, GameConstants.getSkillBook(job.getId()));
+        updateRemainingSp(remainingSp, job.getId());
     }
 
     public static Character fromCharactersDO(CharactersDO charactersDO, Client client) {
@@ -6775,7 +6722,7 @@ public class Character extends AbstractAnimatedMapObject {
         chr.ap.hpMpApUsed = charactersDO.getHpMpUsed();
         chr.setHasMerchant(charactersDO.getHasmerchant());
         chr.ap.remainingAp = charactersDO.getAp();
-        int[] remainingSps = new int[10];
+        int[] remainingSps = new int[2];
         Arrays.fill(remainingSps, 0);
         if (!RequireUtil.isEmpty(charactersDO.getSp())) {
             String[] splits = charactersDO.getSp().split(",");
@@ -6986,7 +6933,7 @@ public class Character extends AbstractAnimatedMapObject {
             cdo.setExp(Math.abs(chr.exp.get()));
             cdo.setGachaexp(Math.abs(chr.gachaExp.get()));
             StringBuilder sps = new StringBuilder();
-            for (int sp : chr.remainingSp) {
+            for (int sp : chr.sp.remainingSp) {
                 sps.append(sp);
                 sps.append(",");
             }
@@ -7588,7 +7535,7 @@ public class Character extends AbstractAnimatedMapObject {
                 // 属性与 SP 分两次静默应用，拼装变更集后一次性公告
                 Map<Stat, Integer> statUpdates = applyUpdateSilently(new StatsUpdate()
                         .setAttr(STR, tstr).setAttr(DEX, tdex).setAttr(INT, tint).setAttr(LUK, tluk).setAp(tap));
-                statUpdates.putAll(changeRemainingSp(tsp, GameConstants.getSkillBook(job.getId()), true));
+                statUpdates.put(Stat.AVAILABLESP, sp.changeRemainingSp(tsp, job.getId(), true));
                 announceStatsUpdate(statUpdates);
             } else {
                 log.warn("Chr {} tried to have its stats reset without enough AP available", getName());
@@ -7687,7 +7634,7 @@ public class Character extends AbstractAnimatedMapObject {
         stats.mp = stats.maxMp;
         level = recipe.getLevel();
         ap.remainingAp = recipe.getRemainingAp();
-        remainingSp[GameConstants.getSkillBook(job.getId())] = recipe.getRemainingSp();
+        sp.remainingSp[CharacterSp.indexOf(job.getId())] = recipe.getRemainingSp();
         mapId = recipe.getMap();
         meso.set(recipe.getMeso());
 
@@ -7728,12 +7675,12 @@ public class Character extends AbstractAnimatedMapObject {
                     ps.setInt(14, ap.remainingAp);
 
                     StringBuilder sps = new StringBuilder();
-                    for (int j : remainingSp) {
+                    for (int j : sp.remainingSp) {
                         sps.append(j);
                         sps.append(",");
                     }
-                    String sp = sps.toString();
-                    ps.setString(15, sp.substring(0, sp.length() - 1));
+                    String spStr = sps.toString();
+                    ps.setString(15, spStr.substring(0, spStr.length() - 1));
 
                     int updateRows = ps.executeUpdate();
                     if (updateRows < 1) {
@@ -7871,12 +7818,12 @@ public class Character extends AbstractAnimatedMapObject {
                         ps.setInt(4, Math.abs(gachaExp.get()));
 
                         StringBuilder sps = new StringBuilder();
-                        for (int j : remainingSp) {
+                        for (int j : sp.remainingSp) {
                             sps.append(j);
                             sps.append(",");
                         }
-                        String sp = sps.toString();
-                        ps.setString(5, sp.substring(0, sp.length() - 1));
+                        String spStr = sps.toString();
+                        ps.setString(5, spStr.substring(0, spStr.length() - 1));
 
                         ps.setInt(6, ap.remainingAp);
                     } finally {
@@ -8389,7 +8336,7 @@ public class Character extends AbstractAnimatedMapObject {
         return updates;
     }
 
-    private void announceStatsUpdate(Map<Stat, Integer> statUpdates) {
+    void announceStatsUpdate(Map<Stat, Integer> statUpdates) {
         List<Pair<Stat, Integer>> statup = new ArrayList<>(statUpdates.size());
         for (Map.Entry<Stat, Integer> s : statUpdates.entrySet()) {
             statup.add(new Pair<>(s.getKey(), s.getValue()));

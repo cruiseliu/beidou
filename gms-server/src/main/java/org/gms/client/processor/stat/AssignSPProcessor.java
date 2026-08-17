@@ -66,7 +66,7 @@ public class AssignSPProcessor {
             }
 
             Character player = c.getPlayer();
-            int remainingSp = player.getRemainingSps()[GameConstants.getSkillBook(skillid / 10000)];
+            int remainingSp = player.getRemainingSp(skillid / 10000);
             boolean isBeginnerSkill = false;
 
             if (skillid % 10000000 > 999 && skillid % 10000000 < 1003) {
@@ -81,7 +81,7 @@ public class AssignSPProcessor {
             int curLevel = player.getSkillLevel(skill);
             if ((remainingSp > 0 && curLevel + 1 <= (skill.isFourthJob() ? player.getMasterLevel(skill) : skill.getMaxLevel()))) {
                 if (!isBeginnerSkill) {
-                    player.gainSp(-1, GameConstants.getSkillBook(skillid / 10000), false);
+                    player.gainSp(-1, skillid / 10000, false);
                 } else {
                     player.sendPacket(PacketCreator.enableActions());
                 }
