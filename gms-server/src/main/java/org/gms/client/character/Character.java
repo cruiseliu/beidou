@@ -139,10 +139,11 @@ public class Character extends AbstractAnimatedMapObject {
 
     // ── 属性核心（原 AbstractCharacterObject 合并而来） ──
     @Getter
-    private MapleMap map;
+    MapleMap map;
     final CharacterStats stats = new CharacterStats();
     final CharacterAp ap = new CharacterAp(this);
     final CharacterSp sp = new CharacterSp(this);
+    final CharacterBuffs buffs = new CharacterBuffs(this);
 
     final ReadWriteLock statLock = new ReentrantReadWriteLock(true);
     final Lock effLock = new ReentrantLock(true);
@@ -154,7 +155,7 @@ public class Character extends AbstractAnimatedMapObject {
     private int world;
     @Getter
     @Setter
-    private int id;
+    int id;
     @Getter
     @Setter
     private int accountId;
@@ -314,7 +315,7 @@ public class Character extends AbstractAnimatedMapObject {
     @Setter
     private String search = null;
     private final AtomicBoolean mapTransitioning = new AtomicBoolean(true);  // player client is currently trying to change maps or log in the game map //玩家客户端当前正在尝试更改地图或登录游戏地图
-    private final AtomicBoolean awayFromWorld = new AtomicBoolean(true);  // player is online, but on cash shop or mts
+    final AtomicBoolean awayFromWorld = new AtomicBoolean(true);  // player is online, but on cash shop or mts
     private final AtomicInteger exp = new AtomicInteger();
     private final AtomicInteger gachaExp = new AtomicInteger();
     private final AtomicInteger meso = new AtomicInteger();
@@ -330,7 +331,7 @@ public class Character extends AbstractAnimatedMapObject {
     private HiredMerchant hiredMerchant = null;
     @Getter
     @Setter
-    private Client client;
+    Client client;
     private GuildCharacter mgc = null;
     private PartyCharacter mpc = null;
     private Inventory[] inventory;
@@ -389,14 +390,10 @@ public class Character extends AbstractAnimatedMapObject {
     private final CharacterSkills skills = new CharacterSkills(this);
     private final Map<Integer, Integer> activeCoupons = new LinkedHashMap<>();
     private final Map<Integer, Integer> activeCouponRates = new LinkedHashMap<>();
-    private final EnumMap<BuffStat, BuffStatValueHolder> effects = new EnumMap<>(BuffStat.class);
-    private final Map<BuffStat, Byte> buffEffectsCount = new LinkedHashMap<>();
     private final Map<Disease, Long> diseaseExpires = new LinkedHashMap<>();
-    private final Map<Integer, Map<BuffStat, BuffStatValueHolder>> buffEffects = new LinkedHashMap<>(); // non-overriding buffs thanks to Ronan
-    private final Map<Integer, Long> buffExpires = new LinkedHashMap<>();
     @Getter
     private final Map<Integer, KeyBinding> keymap = new LinkedHashMap<>();
-    private final Map<Integer, Summon> summons = new LinkedHashMap<>();
+    final Map<Integer, Summon> summons = new LinkedHashMap<>();
     private final EnumMap<Disease, Pair<DiseaseValueHolder, MobSkill>> diseases = new EnumMap<>(Disease.class);
     @Getter
     @Setter
@@ -405,15 +402,14 @@ public class Character extends AbstractAnimatedMapObject {
     private QuickslotBinding quickSlotKeyMapped;
     private Door pdoor = null;
     private Map<Quest, Long> questExpirations = new LinkedHashMap<>();
-    private ScheduledFuture<?> dragonBloodSchedule;
+    ScheduledFuture<?> dragonBloodSchedule;
     private ScheduledFuture<?> hpDecreaseTask;
-    private ScheduledFuture<?> beholderHealingSchedule, beholderBuffSchedule, berserkSchedule;
-    private ScheduledFuture<?> buffExpireTask = null;
+    ScheduledFuture<?> beholderHealingSchedule, beholderBuffSchedule, berserkSchedule;
     private ScheduledFuture<?> itemExpireTask = null;
     private ScheduledFuture<?> diseaseExpireTask = null;
     private ScheduledFuture<?> questExpireTask = null;
-    private ScheduledFuture<?> recoveryTask = null;
-    private ScheduledFuture<?> extraRecoveryTask = null;
+    ScheduledFuture<?> recoveryTask = null;
+    ScheduledFuture<?> extraRecoveryTask = null;
     private ScheduledFuture<?> chairRecoveryTask = null;
     private ScheduledFuture<?> pendantOfSpirit = null; //1122017
     private ScheduledFuture<?> cpqSchedule = null;
@@ -422,7 +418,7 @@ public class Character extends AbstractAnimatedMapObject {
     final Lock chrLock = new ReentrantLock(true);
     private final Lock evtLock = new ReentrantLock(true);
     private final Lock petLock = new ReentrantLock(true);
-    private final Lock prtLock = new ReentrantLock();
+    final Lock prtLock = new ReentrantLock();
     private final Lock cpnLock = new ReentrantLock();
     private final Map<Integer, Set<Integer>> excluded = new LinkedHashMap<>();
     private final Set<Integer> excludedItems = new LinkedHashSet<>();
@@ -497,8 +493,8 @@ public class Character extends AbstractAnimatedMapObject {
     private int newWarpMap = -1;
     private boolean canWarpMap = true;  //only one "warp" must be used per call, and this will define the right one.
     private int canWarpCounter = 0;     //counts how many times "inner warps" have been called.
-    private byte extraHpRec = 0, extraMpRec = 0;
-    private short extraRecInterval;
+    byte extraHpRec = 0, extraMpRec = 0;
+    short extraRecInterval;
     @Setter
     @Getter
     private int targetHpBarHash = 0;
@@ -1381,16 +1377,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    private void cancelPlayerBuffs(List<BuffStat> buffstats) {
-        if (client.getChannelServer().getPlayerStorage().getCharacterById(getId()) != null) {
-            updateLocalStats();
-            sendPacket(PacketCreator.cancelBuff(buffstats));
-            if (!buffstats.isEmpty()) {
-                getMap().broadcastMessage(this, PacketCreator.cancelForeignBuff(getId(), buffstats), false);
-            }
-        }
-    }
-
     public static boolean canCreateChar(String name) {
         String lname = name.toLowerCase();
         for (String nameTest : ServerConstants.BLOCKED_NAMES) {
@@ -1924,7 +1910,7 @@ public class Character extends AbstractAnimatedMapObject {
         effLock.lock();
         chrLock.lock();
         try {
-            for (Entry<BuffStat, BuffStatValueHolder> mbs : effects.entrySet()) {
+            for (Entry<BuffStat, BuffStatValueHolder> mbs : buffs.effects.entrySet()) {
                 if (mbs.getKey() == BuffStat.MAP_PROTECTION) {
                     byte value = (byte) mbs.getValue().value;
 
@@ -2692,7 +2678,7 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    private void stopChairTask() {
+    void stopChairTask() {
         chrLock.lock();
         try {
             if (chairRecoveryTask != null) {
@@ -2772,7 +2758,7 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    private void startChairTask() {
+    void startChairTask() {
         if (chair.get() < 0) {
             return;
         }
@@ -2813,7 +2799,7 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    private void stopExtraTask() {
+    void stopExtraTask() {
         chrLock.lock();
         try {
             if (extraRecoveryTask != null) {
@@ -2825,7 +2811,7 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    private void startExtraTask(final byte healHP, final byte healMP, final short healInterval) {
+    void startExtraTask(final byte healHP, final byte healMP, final short healInterval) {
         chrLock.lock();
         try {
             startExtraTaskInternal(healHP, healMP, healInterval);
@@ -2834,7 +2820,7 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    private void startExtraTaskInternal(final byte healHP, final byte healMP, final short healInterval) {
+    void startExtraTaskInternal(final byte healHP, final byte healMP, final short healInterval) {
         extraRecInterval = healInterval;
 
         extraRecoveryTask = TimerManager.getInstance().register(() -> {
@@ -3153,41 +3139,7 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public void cancelBuffExpireTask() {
-        if (buffExpireTask != null) {
-            buffExpireTask.cancel(false);
-            buffExpireTask = null;
-        }
-    }
 
-    public void buffExpireTask() {
-        if (buffExpireTask == null) {
-            buffExpireTask = TimerManager.getInstance().register(() -> {
-                Set<Entry<Integer, Long>> es;
-                List<BuffStatValueHolder> toCancel = new ArrayList<>();
-
-                effLock.lock();
-                chrLock.lock();
-                try {
-                    es = new LinkedHashSet<>(buffExpires.entrySet());
-
-                    long curTime = Server.getInstance().getCurrentTime();
-                    for (Entry<Integer, Long> bel : es) {
-                        if (curTime >= bel.getValue()) {
-                            toCancel.add(buffEffects.get(bel.getKey()).entrySet().iterator().next().getValue());    //rofl
-                        }
-                    }
-                } finally {
-                    chrLock.unlock();
-                    effLock.unlock();
-                }
-
-                for (BuffStatValueHolder mbsvh : toCancel) {
-                    cancelEffect(mbsvh.effect, false, mbsvh.startTime);
-                }
-            }, 1500);
-        }
-    }
 
     public void stopSkillTimers() {
         skills.stopTimers();
@@ -3530,1133 +3482,51 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public Long getBuffedStarttime(BuffStat effect) {
-        effLock.lock();
-        chrLock.lock();
-        try {
-            BuffStatValueHolder mbsvh = effects.get(effect);
-            if (mbsvh == null) {
-                return null;
-            }
-            return mbsvh.startTime;
-        } finally {
-            chrLock.unlock();
-            effLock.unlock();
-        }
+        return buffs.getBuffedStarttime(effect);
     }
 
     public Integer getBuffedValue(BuffStat effect) {
-        effLock.lock();
-        chrLock.lock();
-        try {
-            BuffStatValueHolder mbsvh = effects.get(effect);
-            if (mbsvh == null) {
-                return null;
-            }
-            return mbsvh.value;
-        } finally {
-            chrLock.unlock();
-            effLock.unlock();
-        }
+        return buffs.getBuffedValue(effect);
     }
 
     public int getBuffSource(BuffStat stat) {
-        effLock.lock();
-        chrLock.lock();
-        try {
-            BuffStatValueHolder mbsvh = effects.get(stat);
-            if (mbsvh == null) {
-                return -1;
-            }
-            return mbsvh.effect.getSourceId();
-        } finally {
-            chrLock.unlock();
-            effLock.unlock();
-        }
+        return buffs.getBuffSource(stat);
     }
 
     public StatEffect getBuffEffect(BuffStat stat) {
-        effLock.lock();
-        chrLock.lock();
-        try {
-            BuffStatValueHolder mbsvh = effects.get(stat);
-            if (mbsvh == null) {
-                return null;
-            } else {
-                return mbsvh.effect;
-            }
-        } finally {
-            chrLock.unlock();
-            effLock.unlock();
-        }
+        return buffs.getBuffEffect(stat);
     }
 
-    private List<BuffStatValueHolder> getAllStatups() {
-        effLock.lock();
-        chrLock.lock();
-        try {
-            List<BuffStatValueHolder> ret = new ArrayList<>();
-            for (Map<BuffStat, BuffStatValueHolder> bel : buffEffects.values()) {
-                ret.addAll(bel.values());
-            }
-            return ret;
-        } finally {
-            chrLock.unlock();
-            effLock.unlock();
-        }
-    }
-
-    public List<PlayerBuffValueHolder> getAllBuffs() {  // buff values will be stored in an arbitrary order
-        effLock.lock();
-        chrLock.lock();
-        try {
-            long curtime = Server.getInstance().getCurrentTime();
-
-            Map<Integer, PlayerBuffValueHolder> ret = new LinkedHashMap<>();
-            for (Map<BuffStat, BuffStatValueHolder> bel : buffEffects.values()) {
-                for (BuffStatValueHolder mbsvh : bel.values()) {
-                    int srcid = mbsvh.effect.getBuffSourceId();
-                    if (!ret.containsKey(srcid)) {
-                        ret.put(srcid, new PlayerBuffValueHolder((int) (curtime - mbsvh.startTime), mbsvh.effect));
-                    }
-                }
-            }
-            return new ArrayList<>(ret.values());
-        } finally {
-            chrLock.unlock();
-            effLock.unlock();
-        }
-    }
-
-    public boolean hasBuffFromSourceid(int sourceid) {
-        effLock.lock();
-        chrLock.lock();
-        try {
-            return buffEffects.containsKey(sourceid);
-        } finally {
-            chrLock.unlock();
-            effLock.unlock();
-        }
-    }
-
-    public boolean hasActiveBuff(int sourceid) {
-        LinkedList<BuffStatValueHolder> allBuffs;
-
-        effLock.lock();
-        chrLock.lock();
-        try {
-            allBuffs = new LinkedList<>(effects.values());
-        } finally {
-            chrLock.unlock();
-            effLock.unlock();
-        }
-
-        for (BuffStatValueHolder mbsvh : allBuffs) {
-            if (mbsvh.effect.getBuffSourceId() == sourceid) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private List<Pair<BuffStat, Integer>> getActiveStatupsFromSourceid(int sourceid) { // already under effLock & chrLock
-        List<Pair<BuffStat, Integer>> ret = new ArrayList<>();
-        List<Pair<BuffStat, Integer>> singletonStatups = new ArrayList<>();
-        for (Entry<BuffStat, BuffStatValueHolder> bel : buffEffects.get(sourceid).entrySet()) {
-            BuffStat mbs = bel.getKey();
-            BuffStatValueHolder mbsvh = effects.get(bel.getKey());
-
-            Pair<BuffStat, Integer> p;
-            if (mbsvh != null) {
-                p = new Pair<>(mbs, mbsvh.value);
-            } else {
-                p = new Pair<>(mbs, 0);
-            }
-
-            if (!isSingletonStatup(mbs)) {   // thanks resinate, Daddy Egg for pointing out morph issues when updating it along with other statups
-                ret.add(p);
-            } else {
-                singletonStatups.add(p);
-            }
-        }
-
-        ret.sort(Comparator.comparing(Pair::getLeft));
-
-        if (!singletonStatups.isEmpty()) {
-            singletonStatups.sort(Comparator.comparing(Pair::getLeft));
-
-            ret.addAll(singletonStatups);
-        }
-
-        return ret;
-    }
-
-    private void addItemEffectHolder(Integer sourceid, long expirationtime, Map<BuffStat, BuffStatValueHolder> statups) {
-        buffEffects.put(sourceid, statups);
-        buffExpires.put(sourceid, expirationtime);
-    }
-
-    private boolean removeEffectFromItemEffectHolder(Integer sourceid, BuffStat buffStat) {
-        Map<BuffStat, BuffStatValueHolder> lbe = buffEffects.get(sourceid);
-
-        if (lbe.remove(buffStat) != null) {
-            buffEffectsCount.put(buffStat, (byte) (buffEffectsCount.get(buffStat) - 1));
-
-            if (lbe.isEmpty()) {
-                buffEffects.remove(sourceid);
-                buffExpires.remove(sourceid);
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    private void removeItemEffectHolder(Integer sourceid) {
-        Map<BuffStat, BuffStatValueHolder> be = buffEffects.remove(sourceid);
-        if (be != null) {
-            for (Entry<BuffStat, BuffStatValueHolder> bei : be.entrySet()) {
-                buffEffectsCount.put(bei.getKey(), (byte) (buffEffectsCount.get(bei.getKey()) - 1));
-            }
-        }
-
-        buffExpires.remove(sourceid);
-    }
-
-    private BuffStatValueHolder fetchBestEffectFromItemEffectHolder(BuffStat mbs) {
-        Pair<Integer, Integer> max = new Pair<>(Integer.MIN_VALUE, 0);
-        BuffStatValueHolder mbsvh = null;
-        for (Entry<Integer, Map<BuffStat, BuffStatValueHolder>> bpl : buffEffects.entrySet()) {
-            BuffStatValueHolder mbsvhi = bpl.getValue().get(mbs);
-            if (mbsvhi != null) {
-                if (!mbsvhi.effect.isActive(this)) {
-                    continue;
-                }
-
-                if (mbsvhi.value > max.left) {
-                    max = new Pair<>(mbsvhi.value, mbsvhi.effect.getStatups().size());
-                    mbsvh = mbsvhi;
-                } else if (mbsvhi.value == max.left && mbsvhi.effect.getStatups().size() > max.right) {
-                    max = new Pair<>(mbsvhi.value, mbsvhi.effect.getStatups().size());
-                    mbsvh = mbsvhi;
-                }
-            }
-        }
-
-        if (mbsvh != null) {
-            effects.put(mbs, mbsvh);
-        }
-        return mbsvh;
-    }
-
-    private void extractBuffValue(int sourceid, BuffStat stat) {
-        chrLock.lock();
-        try {
-            removeEffectFromItemEffectHolder(sourceid, stat);
-        } finally {
-            chrLock.unlock();
-        }
-    }
-
-    public void debugListAllBuffs() {
-        effLock.lock();
-        chrLock.lock();
-        try {
-            log.debug("-------------------");
-            log.debug("CACHED BUFF COUNT: {}", buffEffectsCount.entrySet().stream()
-                    .map(entry -> entry.getKey() + ": " + entry.getValue())
-                    .collect(Collectors.joining(", "))
-            );
-
-            log.debug("-------------------");
-            log.debug("CACHED BUFFS: {}", buffEffects.entrySet().stream()
-                    .map(entry -> entry.getKey() + ": (" + entry.getValue().entrySet().stream()
-                            .map(innerEntry -> innerEntry.getKey().name() + innerEntry.getValue().value)
-                            .collect(Collectors.joining(", ")) + ")")
-                    .collect(Collectors.joining(", "))
-            );
-
-            log.debug("-------------------");
-            log.debug("IN ACTION: {}", effects.entrySet().stream()
-                    .map(entry -> entry.getKey().name() + " -> " + ItemInformationProvider.getInstance().getName(entry.getValue().effect.getSourceId()))
-                    .collect(Collectors.joining(", "))
-            );
-        } finally {
-            chrLock.unlock();
-            effLock.unlock();
-        }
-    }
-
-    public void cancelAllBuffs(boolean softcancel) {
-        if (softcancel) {
-            effLock.lock();
-            chrLock.lock();
-            try {
-                cancelEffectFromBuffStat(BuffStat.SUMMON);
-                cancelEffectFromBuffStat(BuffStat.PUPPET);
-                cancelEffectFromBuffStat(BuffStat.COMBO);
-
-                effects.clear();
-
-                for (Integer srcid : new ArrayList<>(buffEffects.keySet())) {
-                    removeItemEffectHolder(srcid);
-                }
-            } finally {
-                chrLock.unlock();
-                effLock.unlock();
-            }
-        } else {
-            Map<StatEffect, Long> mseBuffs = new LinkedHashMap<>();
-
-            effLock.lock();
-            chrLock.lock();
-            try {
-                for (Entry<Integer, Map<BuffStat, BuffStatValueHolder>> bpl : buffEffects.entrySet()) {
-                    for (Entry<BuffStat, BuffStatValueHolder> mbse : bpl.getValue().entrySet()) {
-                        mseBuffs.put(mbse.getValue().effect, mbse.getValue().startTime);
-                    }
-                }
-            } finally {
-                chrLock.unlock();
-                effLock.unlock();
-            }
-
-            for (Entry<StatEffect, Long> mse : mseBuffs.entrySet()) {
-                cancelEffect(mse.getKey(), false, mse.getValue());
-            }
-        }
-    }
-
-    private void dropBuffStats(List<Pair<BuffStat, BuffStatValueHolder>> effectsToCancel) {
-        for (Pair<BuffStat, BuffStatValueHolder> cancelEffectCancelTasks : effectsToCancel) {
-            //boolean nestedCancel = false;
-
-            chrLock.lock();
-            try {
-                /*
-                if (buffExpires.get(cancelEffectCancelTasks.getRight().effect.getBuffSourceId()) != null) {
-                    nestedCancel = true;
-                }*/
-
-                if (cancelEffectCancelTasks.getRight().bestApplied) {
-                    fetchBestEffectFromItemEffectHolder(cancelEffectCancelTasks.getLeft());
-                }
-            } finally {
-                chrLock.unlock();
-            }
-
-            /*
-            if (nestedCancel) {
-                this.cancelEffect(cancelEffectCancelTasks.getRight().effect, false, -1, false);
-            }*/
-        }
-    }
-
-    private List<Pair<BuffStat, BuffStatValueHolder>> deregisterBuffStats(Map<BuffStat, BuffStatValueHolder> stats) {
-        chrLock.lock();
-        try {
-            List<Pair<BuffStat, BuffStatValueHolder>> effectsToCancel = new ArrayList<>(stats.size());
-            for (Entry<BuffStat, BuffStatValueHolder> stat : stats.entrySet()) {
-                int sourceid = stat.getValue().effect.getBuffSourceId();
-
-                if (!buffEffects.containsKey(sourceid)) {
-                    buffExpires.remove(sourceid);
-                }
-
-                BuffStat mbs = stat.getKey();
-                effectsToCancel.add(new Pair<>(mbs, stat.getValue()));
-
-                BuffStatValueHolder mbsvh = effects.get(mbs);
-                if (mbsvh != null && mbsvh.effect.getBuffSourceId() == sourceid) {
-                    mbsvh.bestApplied = true;
-                    effects.remove(mbs);
-
-                    if (mbs == BuffStat.RECOVERY) {
-                        if (recoveryTask != null) {
-                            recoveryTask.cancel(false);
-                            recoveryTask = null;
-                        }
-                    } else if (mbs == BuffStat.SUMMON || mbs == BuffStat.PUPPET) {
-                        int summonId = mbsvh.effect.getSourceId();
-
-                        Summon summon = summons.get(summonId);
-                        if (summon != null) {
-                            getMap().broadcastMessage(PacketCreator.removeSummon(summon, true), summon.getPosition());
-                            getMap().removeMapObject(summon);
-                            removeVisibleMapObject(summon);
-
-                            summons.remove(summonId);
-                            if (summon.isPuppet()) {
-                                map.removePlayerPuppet(this);
-                            } else if (summon.getSkill() == DarkKnight.BEHOLDER) {
-                                if (beholderHealingSchedule != null) {
-                                    beholderHealingSchedule.cancel(false);
-                                    beholderHealingSchedule = null;
-                                }
-                                if (beholderBuffSchedule != null) {
-                                    beholderBuffSchedule.cancel(false);
-                                    beholderBuffSchedule = null;
-                                }
-                            }
-                        }
-                    } else if (mbs == BuffStat.DRAGONBLOOD) {
-                        dragonBloodSchedule.cancel(false);
-                        dragonBloodSchedule = null;
-                    } else if (mbs == BuffStat.HPREC || mbs == BuffStat.MPREC) {
-                        if (mbs == BuffStat.HPREC) {
-                            extraHpRec = 0;
-                        } else {
-                            extraMpRec = 0;
-                        }
-
-                        if (extraRecoveryTask != null) {
-                            extraRecoveryTask.cancel(false);
-                            extraRecoveryTask = null;
-                        }
-
-                        if (extraHpRec != 0 || extraMpRec != 0) {
-                            startExtraTaskInternal(extraHpRec, extraMpRec, extraRecInterval);
-                        }
-                    }
-                }
-            }
-
-            return effectsToCancel;
-        } finally {
-            chrLock.unlock();
-        }
-    }
-
-    public void cancelEffect(int itemId) {
-        ItemInformationProvider ii = ItemInformationProvider.getInstance();
-        cancelEffect(ii.getItemEffect(itemId), false, -1);
-    }
-
-    public boolean cancelEffect(StatEffect effect, boolean overwrite, long startTime) {
-        boolean ret;
-
-        prtLock.lock();
-        effLock.lock();
-        try {
-            ret = cancelEffect(effect, overwrite, startTime, true);
-        } finally {
-            effLock.unlock();
-            prtLock.unlock();
-        }
-
-        if (effect.isMagicDoor() && ret) {
-            prtLock.lock();
-            effLock.lock();
-            try {
-                if (!hasBuffFromSourceid(Priest.MYSTIC_DOOR)) {
-                    Door.attemptRemoveDoor(this);
-                }
-            } finally {
-                effLock.unlock();
-                prtLock.unlock();
-            }
-        }
-
-        return ret;
-    }
-
-    private static StatEffect getEffectFromBuffSource(Map<BuffStat, BuffStatValueHolder> buffSource) {
-        try {
-            return buffSource.entrySet().iterator().next().getValue().effect;
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private boolean isUpdatingEffect(Set<StatEffect> activeEffects, StatEffect mse) {
-        if (mse == null) {
-            return false;
-        }
-
-        // thanks xinyifly for noticing "Speed Infusion" crashing game when updating buffs during map transition
-        boolean active = mse.isActive(this);
-        if (active) {
-            return !activeEffects.contains(mse);
-        } else {
-            return activeEffects.contains(mse);
-        }
+    List<BuffStatValueHolder> getAllStatups() {
+        return buffs.getAllStatups();
     }
 
     public void updateActiveEffects() {
-        effLock.lock();     // thanks davidlafriniere, maple006, RedHat for pointing a deadlock occurring here
-        try {
-            Set<BuffStat> updatedBuffs = new LinkedHashSet<>();
-            Set<StatEffect> activeEffects = new LinkedHashSet<>();
-
-            for (BuffStatValueHolder mse : effects.values()) {
-                activeEffects.add(mse.effect);
-            }
-
-            for (Map<BuffStat, BuffStatValueHolder> buff : buffEffects.values()) {
-                StatEffect mse = getEffectFromBuffSource(buff);
-                if (isUpdatingEffect(activeEffects, mse)) {
-                    for (Pair<BuffStat, Integer> p : mse.getStatups()) {
-                        updatedBuffs.add(p.getLeft());
-                    }
-                }
-            }
-
-            for (BuffStat mbs : updatedBuffs) {
-                effects.remove(mbs);
-            }
-
-            updateEffects(updatedBuffs);
-        } finally {
-            effLock.unlock();
-        }
-    }
-
-    private void updateEffects(Set<BuffStat> removedStats) {
-        effLock.lock();
-        chrLock.lock();
-        try {
-            Set<BuffStat> retrievedStats = new LinkedHashSet<>();
-
-            for (BuffStat mbs : removedStats) {
-                fetchBestEffectFromItemEffectHolder(mbs);
-
-                BuffStatValueHolder mbsvh = effects.get(mbs);
-                if (mbsvh != null) {
-                    for (Pair<BuffStat, Integer> statup : mbsvh.effect.getStatups()) {
-                        retrievedStats.add(statup.getLeft());
-                    }
-                }
-            }
-
-            propagateBuffEffectUpdates(new LinkedHashMap<Integer, Pair<StatEffect, Long>>(), retrievedStats, removedStats);
-        } finally {
-            chrLock.unlock();
-            effLock.unlock();
-        }
-    }
-
-    private boolean cancelEffect(StatEffect effect, boolean overwrite, long startTime, boolean firstCancel) {
-        Set<BuffStat> removedStats = new LinkedHashSet<>();
-        dropBuffStats(cancelEffectInternal(effect, overwrite, startTime, removedStats));
-        updateLocalStats();
-        updateEffects(removedStats);
-
-        return !removedStats.isEmpty();
-    }
-
-    private List<Pair<BuffStat, BuffStatValueHolder>> cancelEffectInternal(StatEffect effect, boolean overwrite, long startTime, Set<BuffStat> removedStats) {
-        Map<BuffStat, BuffStatValueHolder> buffstats = null;
-        BuffStat ombs;
-        if (!overwrite) {   // is removing the source effect, meaning every effect from this srcid is being purged
-            buffstats = extractCurrentBuffStats(effect);
-        } else if ((ombs = getSingletonStatupFromEffect(effect)) != null) {   // removing all effects of a buff having non-shareable buff stat.
-            BuffStatValueHolder mbsvh = effects.get(ombs);
-            if (mbsvh != null) {
-                buffstats = extractCurrentBuffStats(mbsvh.effect);
-            }
-        }
-
-        if (buffstats == null) {            // all else, is dropping ALL current statups that uses same stats as the given effect
-            buffstats = extractLeastRelevantStatEffectsIfFull(effect);
-        }
-
-        if (effect.isMapChair()) {
-            stopChairTask();
-        }
-
-        List<Pair<BuffStat, BuffStatValueHolder>> toCancel = deregisterBuffStats(buffstats);
-        if (effect.isMonsterRiding()) {
-            this.getClient().getWorldServer().unregisterMountHunger(this);
-            this.getMapleMount().setActive(false);
-        }
-
-        if (!overwrite) {
-            removedStats.addAll(buffstats.keySet());
-        }
-
-        return toCancel;
-    }
-
-    public void cancelEffectFromBuffStat(BuffStat stat) {
-        BuffStatValueHolder effect;
-
-        effLock.lock();
-        chrLock.lock();
-        try {
-            effect = effects.get(stat);
-        } finally {
-            chrLock.unlock();
-            effLock.unlock();
-        }
-        if (effect != null) {
-            cancelEffect(effect.effect, false, -1);
-        }
-    }
-
-    public void cancelBuffStats(BuffStat stat) {
-        effLock.lock();
-        try {
-            List<Pair<Integer, BuffStatValueHolder>> cancelList = new LinkedList<>();
-
-            chrLock.lock();
-            try {
-                for (Entry<Integer, Map<BuffStat, BuffStatValueHolder>> bel : this.buffEffects.entrySet()) {
-                    BuffStatValueHolder beli = bel.getValue().get(stat);
-                    if (beli != null) {
-                        cancelList.add(new Pair<>(bel.getKey(), beli));
-                    }
-                }
-            } finally {
-                chrLock.unlock();
-            }
-
-            Map<BuffStat, BuffStatValueHolder> buffStatList = new LinkedHashMap<>();
-            for (Pair<Integer, BuffStatValueHolder> p : cancelList) {
-                buffStatList.put(stat, p.getRight());
-                extractBuffValue(p.getLeft(), stat);
-                dropBuffStats(deregisterBuffStats(buffStatList));
-            }
-        } finally {
-            effLock.unlock();
-        }
-
-        cancelPlayerBuffs(Collections.singletonList(stat));
-    }
-
-    private Map<BuffStat, BuffStatValueHolder> extractCurrentBuffStats(StatEffect effect) {
-        chrLock.lock();
-        try {
-            Map<BuffStat, BuffStatValueHolder> stats = new LinkedHashMap<>();
-            Map<BuffStat, BuffStatValueHolder> buffList = buffEffects.remove(effect.getBuffSourceId());
-
-            if (buffList != null) {
-                for (Entry<BuffStat, BuffStatValueHolder> stateffect : buffList.entrySet()) {
-                    stats.put(stateffect.getKey(), stateffect.getValue());
-                    buffEffectsCount.put(stateffect.getKey(), (byte) (buffEffectsCount.get(stateffect.getKey()) - 1));
-                }
-            }
-
-            return stats;
-        } finally {
-            chrLock.unlock();
-        }
-    }
-
-    private Map<BuffStat, BuffStatValueHolder> extractLeastRelevantStatEffectsIfFull(StatEffect effect) {
-        Map<BuffStat, BuffStatValueHolder> extractedStatBuffs = new LinkedHashMap<>();
-
-        chrLock.lock();
-        try {
-            Map<BuffStat, Byte> stats = new LinkedHashMap<>();
-            Map<BuffStat, BuffStatValueHolder> minStatBuffs = new LinkedHashMap<>();
-
-            for (Entry<Integer, Map<BuffStat, BuffStatValueHolder>> mbsvhi : buffEffects.entrySet()) {
-                for (Entry<BuffStat, BuffStatValueHolder> mbsvhe : mbsvhi.getValue().entrySet()) {
-                    BuffStat mbs = mbsvhe.getKey();
-                    Byte b = stats.get(mbs);
-
-                    if (b != null) {
-                        stats.put(mbs, (byte) (b + 1));
-                        if (mbsvhe.getValue().value < minStatBuffs.get(mbs).value) {
-                            minStatBuffs.put(mbs, mbsvhe.getValue());
-                        }
-                    } else {
-                        stats.put(mbs, (byte) 1);
-                        minStatBuffs.put(mbs, mbsvhe.getValue());
-                    }
-                }
-            }
-
-            Set<BuffStat> effectStatups = new LinkedHashSet<>();
-            for (Pair<BuffStat, Integer> efstat : effect.getStatups()) {
-                effectStatups.add(efstat.getLeft());
-            }
-
-            for (Entry<BuffStat, Byte> it : stats.entrySet()) {
-                boolean uniqueBuff = isSingletonStatup(it.getKey());
-
-                if (it.getValue() >= (!uniqueBuff ? GameConfig.getServerByte("max_monitored_buff_stats") : 1) && effectStatups.contains(it.getKey())) {
-                    BuffStatValueHolder mbsvh = minStatBuffs.get(it.getKey());
-
-                    Map<BuffStat, BuffStatValueHolder> lpbe = buffEffects.get(mbsvh.effect.getBuffSourceId());
-                    lpbe.remove(it.getKey());
-                    buffEffectsCount.put(it.getKey(), (byte) (buffEffectsCount.get(it.getKey()) - 1));
-
-                    if (lpbe.isEmpty()) {
-                        buffEffects.remove(mbsvh.effect.getBuffSourceId());
-                    }
-                    extractedStatBuffs.put(it.getKey(), mbsvh);
-                }
-            }
-        } finally {
-            chrLock.unlock();
-        }
-
-        return extractedStatBuffs;
-    }
-
-    private void cancelInactiveBuffStats(Set<BuffStat> retrievedStats, Set<BuffStat> removedStats) {
-        List<BuffStat> inactiveStats = new LinkedList<>();
-        for (BuffStat mbs : removedStats) {
-            if (!retrievedStats.contains(mbs)) {
-                inactiveStats.add(mbs);
-            }
-        }
-
-        if (!inactiveStats.isEmpty()) {
-            sendPacket(PacketCreator.cancelBuff(inactiveStats));
-            getMap().broadcastMessage(this, PacketCreator.cancelForeignBuff(getId(), inactiveStats), false);
-        }
-    }
-
-    private static Map<StatEffect, Integer> topologicalSortLeafStatCount(Map<BuffStat, Stack<StatEffect>> buffStack) {
-        Map<StatEffect, Integer> leafBuffCount = new LinkedHashMap<>();
-
-        for (Entry<BuffStat, Stack<StatEffect>> e : buffStack.entrySet()) {
-            Stack<StatEffect> mseStack = e.getValue();
-            if (mseStack.isEmpty()) {
-                continue;
-            }
-
-            StatEffect mse = mseStack.peek();
-            leafBuffCount.merge(mse, 1, Integer::sum);
-        }
-
-        return leafBuffCount;
-    }
-
-    private static List<StatEffect> topologicalSortRemoveLeafStats(Map<StatEffect, Set<BuffStat>> stackedBuffStats, Map<BuffStat, Stack<StatEffect>> buffStack, Map<StatEffect, Integer> leafStatCount) {
-        List<StatEffect> clearedStatEffects = new LinkedList<>();
-        Set<BuffStat> clearedStats = new LinkedHashSet<>();
-
-        for (Entry<StatEffect, Integer> e : leafStatCount.entrySet()) {
-            StatEffect mse = e.getKey();
-
-            if (stackedBuffStats.get(mse).size() <= e.getValue()) {
-                clearedStatEffects.add(mse);
-                clearedStats.addAll(stackedBuffStats.get(mse));
-            }
-        }
-
-        for (BuffStat mbs : clearedStats) {
-            StatEffect mse = buffStack.get(mbs).pop();
-            stackedBuffStats.get(mse).remove(mbs);
-        }
-
-        return clearedStatEffects;
-    }
-
-    private static void topologicalSortRebaseLeafStats(Map<StatEffect, Set<BuffStat>> stackedBuffStats, Map<BuffStat, Stack<StatEffect>> buffStack) {
-        for (Entry<BuffStat, Stack<StatEffect>> e : buffStack.entrySet()) {
-            Stack<StatEffect> mseStack = e.getValue();
-
-            if (!mseStack.isEmpty()) {
-                StatEffect mse = mseStack.pop();
-                stackedBuffStats.get(mse).remove(e.getKey());
-            }
-        }
-    }
-
-    private static List<StatEffect> topologicalSortEffects(Map<BuffStat, List<Pair<StatEffect, Integer>>> buffEffects) {
-        Map<StatEffect, Set<BuffStat>> stackedBuffStats = new LinkedHashMap<>();
-        Map<BuffStat, Stack<StatEffect>> buffStack = new LinkedHashMap<>();
-
-        for (Entry<BuffStat, List<Pair<StatEffect, Integer>>> e : buffEffects.entrySet()) {
-            BuffStat mbs = e.getKey();
-
-            Stack<StatEffect> mbsStack = new Stack<>();
-            buffStack.put(mbs, mbsStack);
-
-            for (Pair<StatEffect, Integer> emse : e.getValue()) {
-                StatEffect mse = emse.getLeft();
-                mbsStack.push(mse);
-                Set<BuffStat> mbsStats = stackedBuffStats.computeIfAbsent(mse, k -> new LinkedHashSet<>());
-                mbsStats.add(mbs);
-            }
-        }
-
-        List<StatEffect> buffList = new LinkedList<>();
-        while (true) {
-            Map<StatEffect, Integer> leafStatCount = topologicalSortLeafStatCount(buffStack);
-            if (leafStatCount.isEmpty()) {
-                break;
-            }
-
-            List<StatEffect> clearedNodes = topologicalSortRemoveLeafStats(stackedBuffStats, buffStack, leafStatCount);
-            if (clearedNodes.isEmpty()) {
-                topologicalSortRebaseLeafStats(stackedBuffStats, buffStack);
-            } else {
-                buffList.addAll(clearedNodes);
-            }
-        }
-
-        return buffList;
-    }
-
-    private static List<StatEffect> sortEffectsList(Map<StatEffect, Integer> updateEffectsList) {
-        Map<BuffStat, List<Pair<StatEffect, Integer>>> buffEffects = new LinkedHashMap<>();
-
-        for (Entry<StatEffect, Integer> p : updateEffectsList.entrySet()) {
-            StatEffect mse = p.getKey();
-
-            for (Pair<BuffStat, Integer> statup : mse.getStatups()) {
-                BuffStat stat = statup.getLeft();
-                List<Pair<StatEffect, Integer>> statBuffs = buffEffects.computeIfAbsent(stat, k -> new ArrayList<>());
-                statBuffs.add(new Pair<>(mse, statup.getRight()));
-            }
-        }
-
-        for (Entry<BuffStat, List<Pair<StatEffect, Integer>>> statBuffs : buffEffects.entrySet()) {
-            statBuffs.getValue().sort((o1, o2) -> o2.getRight().compareTo(o1.getRight()));
-        }
-
-        return topologicalSortEffects(buffEffects);
-    }
-
-    private List<Pair<Integer, Pair<StatEffect, Long>>> propagatePriorityBuffEffectUpdates(Set<BuffStat> retrievedStats) {
-        List<Pair<Integer, Pair<StatEffect, Long>>> priorityUpdateEffects = new LinkedList<>();
-        Map<BuffStatValueHolder, StatEffect> yokeStats = new LinkedHashMap<>();
-
-        // priority buffsources: override buffstats for the client to perceive those as "currently buffed"
-        Set<BuffStatValueHolder> mbsvhList = new LinkedHashSet<>(getAllStatups());
-
-        for (BuffStatValueHolder mbsvh : mbsvhList) {
-            StatEffect mse = mbsvh.effect;
-            int buffSourceId = mse.getBuffSourceId();
-            if (isPriorityBuffSourceId(buffSourceId) && !hasActiveBuff(buffSourceId)) {
-                for (Pair<BuffStat, Integer> ps : mse.getStatups()) {
-                    BuffStat mbs = ps.getLeft();
-                    if (retrievedStats.contains(mbs)) {
-                        BuffStatValueHolder mbsvhe = effects.get(mbs);
-
-                        // this shouldn't even be null...
-                        //if (mbsvh != null) {
-                        yokeStats.put(mbsvh, mbsvhe.effect);
-                        //}
-                    }
-                }
-            }
-        }
-
-        for (Entry<BuffStatValueHolder, StatEffect> e : yokeStats.entrySet()) {
-            BuffStatValueHolder mbsvhPriority = e.getKey();
-            StatEffect mseActive = e.getValue();
-
-            priorityUpdateEffects.add(new Pair<>(mseActive.getBuffSourceId(), new Pair<>(mbsvhPriority.effect, mbsvhPriority.startTime)));
-        }
-
-        return priorityUpdateEffects;
-    }
-
-    private void propagateBuffEffectUpdates(Map<Integer, Pair<StatEffect, Long>> retrievedEffects, Set<BuffStat> retrievedStats, Set<BuffStat> removedStats) {
-        cancelInactiveBuffStats(retrievedStats, removedStats);
-        if (retrievedStats.isEmpty()) {
-            return;
-        }
-
-        Map<BuffStat, Pair<Integer, StatEffect>> maxBuffValue = new LinkedHashMap<>();
-        for (BuffStat mbs : retrievedStats) {
-            BuffStatValueHolder mbsvh = effects.get(mbs);
-            if (mbsvh != null) {
-                retrievedEffects.put(mbsvh.effect.getBuffSourceId(), new Pair<>(mbsvh.effect, mbsvh.startTime));
-            }
-
-            maxBuffValue.put(mbs, new Pair<>(Integer.MIN_VALUE, null));
-        }
-
-        Map<StatEffect, Integer> updateEffects = new LinkedHashMap<>();
-
-        List<StatEffect> recalcMseList = new LinkedList<>();
-        for (Entry<Integer, Pair<StatEffect, Long>> re : retrievedEffects.entrySet()) {
-            recalcMseList.add(re.getValue().getLeft());
-        }
-
-        boolean mageJob = this.getJobStyle() == Job.MAGICIAN;
-        do {
-            List<StatEffect> mseList = recalcMseList;
-            recalcMseList = new LinkedList<>();
-
-            for (StatEffect mse : mseList) {
-                int maxEffectiveStatup = Integer.MIN_VALUE;
-                for (Pair<BuffStat, Integer> st : mse.getStatups()) {
-                    BuffStat mbs = st.getLeft();
-
-                    boolean relevantStatup = true;
-                    if (mbs == BuffStat.WATK) {  // not relevant for mages
-                        if (mageJob) {
-                            relevantStatup = false;
-                        }
-                    } else if (mbs == BuffStat.MATK) { // not relevant for non-mages
-                        if (!mageJob) {
-                            relevantStatup = false;
-                        }
-                    }
-
-                    Pair<Integer, StatEffect> mbv = maxBuffValue.get(mbs);
-                    if (mbv == null) {
-                        continue;
-                    }
-
-                    if (mbv.getLeft() < st.getRight()) {
-                        StatEffect msbe = mbv.getRight();
-                        if (msbe != null) {
-                            recalcMseList.add(msbe);
-                        }
-
-                        maxBuffValue.put(mbs, new Pair<>(st.getRight(), mse));
-
-                        if (relevantStatup) {
-                            if (maxEffectiveStatup < st.getRight()) {
-                                maxEffectiveStatup = st.getRight();
-                            }
-                        }
-                    }
-                }
-
-                updateEffects.put(mse, maxEffectiveStatup);
-            }
-        } while (!recalcMseList.isEmpty());
-
-        List<StatEffect> updateEffectsList = sortEffectsList(updateEffects);
-
-        List<Pair<Integer, Pair<StatEffect, Long>>> toUpdateEffects = new LinkedList<>();
-        for (StatEffect mse : updateEffectsList) {
-            toUpdateEffects.add(new Pair<>(mse.getBuffSourceId(), retrievedEffects.get(mse.getBuffSourceId())));
-        }
-
-        List<Pair<BuffStat, Integer>> activeStatups = new LinkedList<>();
-        for (Pair<Integer, Pair<StatEffect, Long>> lmse : toUpdateEffects) {
-            Pair<StatEffect, Long> msel = lmse.getRight();
-            activeStatups.addAll(getActiveStatupsFromSourceid(lmse.getLeft()));
-            msel.getLeft().updateBuffEffect(this, activeStatups, msel.getRight());
-            activeStatups.clear();
-        }
-
-        List<Pair<Integer, Pair<StatEffect, Long>>> priorityEffects = propagatePriorityBuffEffectUpdates(retrievedStats);
-        for (Pair<Integer, Pair<StatEffect, Long>> lmse : priorityEffects) {
-            Pair<StatEffect, Long> msel = lmse.getRight();
-            activeStatups.addAll(getActiveStatupsFromSourceid(lmse.getLeft()));
-            msel.getLeft().updateBuffEffect(this, activeStatups, msel.getRight());
-            activeStatups.clear();
-        }
-
-        if (this.isRidingBattleship()) {
-            List<Pair<BuffStat, Integer>> statups = new ArrayList<>(1);
-            statups.add(new Pair<>(BuffStat.MONSTER_RIDING, 0));
-            this.sendPacket(PacketCreator.giveBuff(ItemId.BATTLESHIP, 5221006, statups));
-            this.announceBattleshipHp();
-        }
-    }
-
-    private static BuffStat getSingletonStatupFromEffect(StatEffect mse) {
-        for (Pair<BuffStat, Integer> mbs : mse.getStatups()) {
-            if (isSingletonStatup(mbs.getLeft())) {
-                return mbs.getLeft();
-            }
-        }
-
-        return null;
-    }
-
-    private static boolean isSingletonStatup(BuffStat mbs) {
-        return switch (mbs) {           //HPREC and MPREC are supposed to be singleton
-            case COUPON_EXP1, COUPON_EXP2, COUPON_EXP3, COUPON_EXP4, COUPON_DRP1, COUPON_DRP2, COUPON_DRP3,
-                 MESO_UP_BY_ITEM,
-                 ITEM_UP_BY_ITEM, RESPECT_PIMMUNE, RESPECT_MIMMUNE, DEFENSE_ATT, DEFENSE_STATE, WATK, WDEF, MATK, MDEF,
-                 ACC, AVOID, SPEED, JUMP -> false;
-            default -> true;
-        };
-    }
-
-    private static boolean isPriorityBuffSourceId(int sourceId) {
-        return -ItemId.ROSE_SCENT == sourceId || -ItemId.FREESIA_SCENT == sourceId || -ItemId.LAVENDER_SCENT == sourceId;
-    }
-
-    private void addItemEffectHolderCount(BuffStat stat) {
-        Byte val = buffEffectsCount.get(stat);
-        if (val != null) {
-            val = (byte) (val + 1);
-        } else {
-            val = (byte) 1;
-        }
-
-        buffEffectsCount.put(stat, val);
+        buffs.updateActiveEffects();
     }
 
     public void registerEffect(StatEffect effect, long starttime, long expirationtime, boolean isSilent) {
-        if (effect.isDragonBlood()) {
-            prepareDragonBlood(effect);
-        } else if (effect.isBerserk()) {
-            checkBerserk(isHidden());
-        } else if (effect.isBeholder()) {
-            final int beholder = DarkKnight.BEHOLDER;
-            if (beholderHealingSchedule != null) {
-                beholderHealingSchedule.cancel(false);
-            }
-            if (beholderBuffSchedule != null) {
-                beholderBuffSchedule.cancel(false);
-            }
-            Skill bHealing = SkillFactory.getSkill(DarkKnight.AURA_OF_BEHOLDER);
-            int bHealingLvl = getSkillLevel(bHealing);
-            if (bHealingLvl > 0) {
-                final StatEffect healEffect = bHealing.getEffect(bHealingLvl);
-                int healInterval = (int) SECONDS.toMillis(healEffect.getX());
-                beholderHealingSchedule = TimerManager.getInstance().register(() -> {
-                    if (awayFromWorld.get()) {
-                        return;
-                    }
+        buffs.registerEffect(effect, starttime, expirationtime, isSilent);
+    }
 
-                    addHP(healEffect.getHp());
-                    sendPacket(PacketCreator.showOwnBuffEffect(beholder, 2));
-                    getMap().broadcastMessage(Character.this, PacketCreator.summonSkill(getId(), beholder, 5), true);
-                    getMap().broadcastMessage(Character.this, PacketCreator.showOwnBuffEffect(beholder, 2), false);
-                }, healInterval, healInterval);
-            }
-            Skill bBuff = SkillFactory.getSkill(DarkKnight.HEX_OF_BEHOLDER);
-            if (getSkillLevel(bBuff) > 0) {
-                final StatEffect buffEffect = bBuff.getEffect(getSkillLevel(bBuff));
-                int buffInterval = (int) SECONDS.toMillis(buffEffect.getX());
-                beholderBuffSchedule = TimerManager.getInstance().register(() -> {
-                    if (awayFromWorld.get()) {
-                        return;
-                    }
+    public void cancelEffect(int itemId) {
+        buffs.cancelEffect(itemId);
+    }
 
-                    buffEffect.applyTo(Character.this);
-                    sendPacket(PacketCreator.showOwnBuffEffect(beholder, 2));
-                    getMap().broadcastMessage(Character.this, PacketCreator.summonSkill(getId(), beholder, (int) (Math.random() * 3) + 6), true);
-                    getMap().broadcastMessage(Character.this, PacketCreator.showBuffEffect(getId(), beholder, 2), false);
-                }, buffInterval, buffInterval);
-            }
-        } else if (effect.isRecovery()) {
-            int healInterval = (GameConfig.getServerBoolean("use_ultra_recovery")) ? 2000 : 5000;
-            final byte heal = (byte) effect.getX();
+    public boolean cancelEffect(StatEffect effect, boolean overwrite, long startTime) {
+        return buffs.cancelEffect(effect, overwrite, startTime);
+    }
 
-            chrLock.lock();
-            try {
-                if (recoveryTask != null) {
-                    recoveryTask.cancel(false);
-                }
+    public void cancelEffectFromBuffStat(BuffStat stat) {
+        buffs.cancelEffectFromBuffStat(stat);
+    }
 
-                recoveryTask = TimerManager.getInstance().register(() -> {
-                    if (getBuffSource(BuffStat.RECOVERY) == -1) {
-                        chrLock.lock();
-                        try {
-                            if (recoveryTask != null) {
-                                recoveryTask.cancel(false);
-                                recoveryTask = null;
-                            }
-                        } finally {
-                            chrLock.unlock();
-                        }
+    public void cancelBuffStats(BuffStat stat) {
+        buffs.cancelBuffStats(stat);
+    }
 
-                        return;
-                    }
-
-                    addHP(heal);
-                    sendPacket(PacketCreator.showOwnRecovery(heal));
-                    getMap().broadcastMessage(Character.this, PacketCreator.showRecovery(id, heal), false);
-                }, healInterval, healInterval);
-            } finally {
-                chrLock.unlock();
-            }
-        } else if (effect.getHpRRate() > 0 || effect.getMpRRate() > 0) {
-            if (effect.getHpRRate() > 0) {
-                extraHpRec = effect.getHpR();
-                extraRecInterval = effect.getHpRRate();
-            }
-
-            if (effect.getMpRRate() > 0) {
-                extraMpRec = effect.getMpR();
-                extraRecInterval = effect.getMpRRate();
-            }
-
-            chrLock.lock();
-            try {
-                stopExtraTask();
-                startExtraTask(extraHpRec, extraMpRec, extraRecInterval);   // HP & MP sharing the same task holder
-            } finally {
-                chrLock.unlock();
-            }
-
-        } else if (effect.isMapChair()) {
-            startChairTask();
-        }
-
-        prtLock.lock();
-        effLock.lock();
-        chrLock.lock();
-        try {
-            Integer sourceid = effect.getBuffSourceId();
-            Map<BuffStat, BuffStatValueHolder> toDeploy;
-            Map<BuffStat, BuffStatValueHolder> appliedStatups = new LinkedHashMap<>();
-
-            for (Pair<BuffStat, Integer> ps : effect.getStatups()) {
-                appliedStatups.put(ps.getLeft(), new BuffStatValueHolder(effect, starttime, ps.getRight()));
-            }
-
-            boolean active = effect.isActive(this);
-            if (GameConfig.getServerBoolean("use_buff_most_significant")) {
-                toDeploy = new LinkedHashMap<>();
-                Map<Integer, Pair<StatEffect, Long>> retrievedEffects = new LinkedHashMap<>();
-                Set<BuffStat> retrievedStats = new LinkedHashSet<>();
-                for (Entry<BuffStat, BuffStatValueHolder> statup : appliedStatups.entrySet()) {
-                    BuffStatValueHolder mbsvh = effects.get(statup.getKey());
-                    BuffStatValueHolder statMbsvh = statup.getValue();
-
-                    if (active) {
-                        if (mbsvh == null || mbsvh.value < statMbsvh.value || (mbsvh.value == statMbsvh.value && mbsvh.effect.getStatups().size() <= statMbsvh.effect.getStatups().size())) {
-                            toDeploy.put(statup.getKey(), statMbsvh);
-                        } else {
-                            if (!isSingletonStatup(statup.getKey())) {
-                                for (Pair<BuffStat, Integer> mbs : mbsvh.effect.getStatups()) {
-                                    retrievedStats.add(mbs.getLeft());
-                                }
-                            }
-                        }
-                    }
-
-                    addItemEffectHolderCount(statup.getKey());
-                }
-
-                // should also propagate update from buffs shared with priority sourceids
-                Set<BuffStat> updated = appliedStatups.keySet();
-                for (BuffStatValueHolder mbsvh : this.getAllStatups()) {
-                    if (isPriorityBuffSourceId(mbsvh.effect.getBuffSourceId())) {
-                        for (Pair<BuffStat, Integer> p : mbsvh.effect.getStatups()) {
-                            if (updated.contains(p.getLeft())) {
-                                retrievedStats.add(p.getLeft());
-                            }
-                        }
-                    }
-                }
-
-                if (!isSilent) {
-                    addItemEffectHolder(sourceid, expirationtime, appliedStatups);
-                    effects.putAll(toDeploy);
-
-                    if (active) {
-                        retrievedEffects.put(sourceid, new Pair<>(effect, starttime));
-                    }
-
-                    propagateBuffEffectUpdates(retrievedEffects, retrievedStats, new LinkedHashSet<>());
-                }
-            } else {
-                for (Entry<BuffStat, BuffStatValueHolder> statup : appliedStatups.entrySet()) {
-                    addItemEffectHolderCount(statup.getKey());
-                }
-
-                toDeploy = (active ? appliedStatups : new LinkedHashMap<>());
-            }
-
-            addItemEffectHolder(sourceid, expirationtime, appliedStatups);
-            effects.putAll(toDeploy);
-        } finally {
-            chrLock.unlock();
-            effLock.unlock();
-            prtLock.unlock();
-        }
-
-        updateLocalStats();
+    public void silentGiveBuffs(List<Pair<Long, PlayerBuffValueHolder>> buffList) {
+        buffs.silentGiveBuffs(buffList);
     }
 
     private static int getJobMapChair(Job job) {
@@ -5837,7 +4707,7 @@ public class Character extends AbstractAnimatedMapObject {
         effLock.lock();
         chrLock.lock();
         try {
-            BuffStatValueHolder mbsvh = effects.get(effect);
+            BuffStatValueHolder mbsvh = buffs.effects.get(effect);
             if (mbsvh == null) {
                 return null;
             }
@@ -6014,18 +4884,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public boolean isBuffFrom(BuffStat stat, Skill skill) {
-        effLock.lock();
-        chrLock.lock();
-        try {
-            BuffStatValueHolder mbsvh = effects.get(stat);
-            if (mbsvh == null) {
-                return false;
-            }
-            return mbsvh.effect.isSkill() && mbsvh.effect.getSourceId() == skill.getId();
-        } finally {
-            chrLock.unlock();
-            effLock.unlock();
-        }
+        return buffs.isBuffFrom(stat, skill);
     }
 
     public boolean isGmJob() {
@@ -7014,22 +5873,6 @@ public class Character extends AbstractAnimatedMapObject {
                 .replace("VV", "Vv");
     }
 
-    private static class BuffStatValueHolder {
-
-        public StatEffect effect;
-        public long startTime;
-        public int value;
-        public boolean bestApplied;
-
-        public BuffStatValueHolder(StatEffect effect, long startTime, int value) {
-            super();
-            this.effect = effect;
-            this.startTime = startTime;
-            this.value = value;
-            this.bestApplied = false;
-        }
-    }
-
     public void message(String m) {
         dropMessage(5, m);
     }
@@ -7211,7 +6054,7 @@ public class Character extends AbstractAnimatedMapObject {
         setStance(0);
     }
 
-    private void prepareDragonBlood(final StatEffect bloodEffect) {
+    void prepareDragonBlood(final StatEffect bloodEffect) {
         if (dragonBloodSchedule != null) {
             dragonBloodSchedule.cancel(false);
         }
@@ -7405,7 +6248,7 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    private void updateLocalStats() {
+    void updateLocalStats() {
         prtLock.lock();
         effLock.lock();
         stats.wLock.lock();
@@ -8186,18 +7029,67 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void setBuffedValue(BuffStat effect, int value) {
-        effLock.lock();
-        chrLock.lock();
-        try {
-            BuffStatValueHolder mbsvh = effects.get(effect);
-            if (mbsvh == null) {
-                return;
-            }
-            mbsvh.value = value;
-        } finally {
-            chrLock.unlock();
-            effLock.unlock();
-        }
+        buffs.setBuffedValue(effect, value);
+    }
+
+    public List<PlayerBuffValueHolder> getAllBuffs() {
+        return buffs.getAllBuffs();
+    }
+
+    public boolean hasBuffFromSourceid(int sourceid) {
+        return buffs.hasBuffFromSourceid(sourceid);
+    }
+
+    public boolean hasActiveBuff(int sourceid) {
+        return buffs.hasActiveBuff(sourceid);
+    }
+
+    List<Pair<BuffStat, Integer>> getActiveStatupsFromSourceid(int sourceid) {
+        return buffs.getActiveStatupsFromSourceid(sourceid);
+    }
+
+    Map<BuffStat, BuffStatValueHolder> extractCurrentBuffStats(StatEffect effect) {
+        return buffs.extractCurrentBuffStats(effect);
+    }
+
+    Map<BuffStat, BuffStatValueHolder> extractLeastRelevantStatEffectsIfFull(StatEffect effect) {
+        return buffs.extractLeastRelevantStatEffectsIfFull(effect);
+    }
+
+    void addItemEffectHolder(Integer sourceid, long expirationtime, Map<BuffStat, BuffStatValueHolder> statups) {
+        buffs.addItemEffectHolder(sourceid, expirationtime, statups);
+    }
+
+    void removeItemEffectHolder(Integer sourceid) {
+        buffs.removeItemEffectHolder(sourceid);
+    }
+
+    BuffStatValueHolder fetchBestEffectFromItemEffectHolder(BuffStat mbs) {
+        return buffs.fetchBestEffectFromItemEffectHolder(mbs);
+    }
+
+    void extractBuffValue(int sourceid, BuffStat stat) {
+        buffs.extractBuffValue(sourceid, stat);
+    }
+
+    void addItemEffectHolderCount(BuffStat stat) {
+        buffs.addItemEffectHolderCount(stat);
+    }
+
+    public void debugListAllBuffs() {
+        buffs.debugListAllBuffs();
+    }
+
+    public void cancelAllBuffs(boolean softcancel) {
+        buffs.cancelAllBuffs(softcancel);
+    }
+
+    public void buffExpireTask() {
+        buffs.startExpireTimer();
+    }
+
+    public void cancelBuffExpireTask() {
+        buffs.stopExpireTimer();
     }
 
     public void setChalkboard(String text) {
@@ -8853,13 +7745,6 @@ public class Character extends AbstractAnimatedMapObject {
         client.announceHint(msg, length);
     }
 
-    public void silentGiveBuffs(List<Pair<Long, PlayerBuffValueHolder>> buffs) {
-        for (Pair<Long, PlayerBuffValueHolder> mbsv : buffs) {
-            PlayerBuffValueHolder mbsvh = mbsv.getRight();
-            mbsvh.effect.silentApplyBuff(this, mbsv.getLeft());
-        }
-    }
-
     public void silentPartyUpdate() {
         silentPartyUpdateInternal(getParty());
     }
@@ -9218,7 +8103,7 @@ public class Character extends AbstractAnimatedMapObject {
         if (!this.isHidden() || client.getPlayer().gmLevel() > 1) {
             client.sendPacket(PacketCreator.spawnPlayerMapObject(client, this, false));
 
-            if (buffEffects.containsKey(getJobMapChair(job))) { // mustn't effLock, chrLock sendSpawnData
+            if (buffs.buffEffects.containsKey(getJobMapChair(job))) { // mustn't effLock, chrLock sendSpawnData
                 client.sendPacket(PacketCreator.giveForeignChairSkillEffect(id));
             }
         }
