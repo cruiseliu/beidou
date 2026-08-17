@@ -8,6 +8,7 @@ import com.alibaba.fastjson2.JSON;
  */
 public class CharacterData {
     public CharacterStatsData stats;
+    public CharacterSkillsData skills;
 
     public CharacterData() {
     }

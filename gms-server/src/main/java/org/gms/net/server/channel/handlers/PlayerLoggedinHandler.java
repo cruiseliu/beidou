@@ -420,7 +420,7 @@ public final class PlayerLoggedinHandler extends AbstractPacketHandler {
 
             player.buffExpireTask();
             player.diseaseExpireTask();
-            player.skillCooldownTask();
+            player.startSkillTimers();
             player.expirationTask();
             player.questExpirationTask();
             if (GameConstants.hasSPTable(player.getJob()) && player.getJob().getId() != 2001) {

@@ -1284,7 +1284,7 @@ public class Monster extends AbstractLoadedLife {
             */
         } else if (status.getSkill().getId() == 4121004 || status.getSkill().getId() == 4221004) { // Ninja Ambush
             final Skill skill = SkillFactory.getSkill(status.getSkill().getId());
-            final byte level = from.getSkillLevel(skill);
+            final byte level = (byte) from.getSkillLevel(skill);
             final int damage = (int) ((from.getStr() + from.getLuk()) * ((3.7 * skill.getEffect(level).getDamage()) / 100));
 
             status.setValue(MonsterStatus.NINJA_AMBUSH, damage);

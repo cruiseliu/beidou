@@ -1062,7 +1062,7 @@ public class Client extends ChannelInboundHandlerAdapter {
                     wserv.removePlayer(player);
                     //getChannelServer().removePlayer(player); already being done
 
-                    player.saveCooldowns();
+                    player.saveDiseases();
                     player.cancelAllDebuffs();
                     player.saveCharToDB(true);
 
@@ -1074,7 +1074,7 @@ public class Client extends ChannelInboundHandlerAdapter {
                 } else {
                     getChannelServer().removePlayer(player);
 
-                    player.saveCooldowns();
+                    player.saveDiseases();
                     player.cancelAllDebuffs();
                     player.saveCharToDB();
                 }
@@ -1533,7 +1533,7 @@ public class Client extends ChannelInboundHandlerAdapter {
         player.cancelAllDebuffs();
         player.cancelBuffExpireTask();
         player.cancelDiseaseExpireTask();
-        player.cancelSkillCooldownTask();
+        player.stopSkillTimers();
         player.cancelQuestExpirationTask();
         //Cancelling magicdoor? Nope
         //Cancelling mounts? Noty

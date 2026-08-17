@@ -447,9 +447,9 @@
         <imgdir name="1">
           <string name="hs" value="h1"/>
           <int name="mpCon" value="4"/>
-          <int name="time" value="4"/>
+          <int name="time" value="1"/>
           <int name="speed" value="10"/>
-          <int name="cooltime" value="60"/>
+          <int name="cooltime" value="1"/>
         </imgdir>
         <imgdir name="2">
           <string name="hs" value="h2"/>

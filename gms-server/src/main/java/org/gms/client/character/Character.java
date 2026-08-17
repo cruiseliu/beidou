@@ -229,7 +229,7 @@ public class Character extends AbstractAnimatedMapObject {
     private int bookCover;
     @Setter
     @Getter
-    private int battleshipHp = 0;
+    int battleshipHp = 0;
     @Getter
     private int mesosTraded = 0;
     @Getter
@@ -386,7 +386,7 @@ public class Character extends AbstractAnimatedMapObject {
     private final Set<Monster> controlled = new LinkedHashSet<>();
     private final Map<Integer, String> entered = new LinkedHashMap<>();
     private final Set<MapObject> visibleMapObjects = Collections.newSetFromMap(new ConcurrentHashMap<>());
-    private final Map<Skill, SkillEntry> skills = new LinkedHashMap<>();
+    private final CharacterSkills skills = new CharacterSkills(this);
     private final Map<Integer, Integer> activeCoupons = new LinkedHashMap<>();
     private final Map<Integer, Integer> activeCouponRates = new LinkedHashMap<>();
     private final EnumMap<BuffStat, BuffStatValueHolder> effects = new EnumMap<>(BuffStat.class);
@@ -397,7 +397,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     private final Map<Integer, KeyBinding> keymap = new LinkedHashMap<>();
     private final Map<Integer, Summon> summons = new LinkedHashMap<>();
-    private final Map<Integer, CooldownValueHolder> coolDowns = new LinkedHashMap<>();
     private final EnumMap<Disease, Pair<DiseaseValueHolder, MobSkill>> diseases = new EnumMap<>(Disease.class);
     @Getter
     @Setter
@@ -409,7 +408,6 @@ public class Character extends AbstractAnimatedMapObject {
     private ScheduledFuture<?> dragonBloodSchedule;
     private ScheduledFuture<?> hpDecreaseTask;
     private ScheduledFuture<?> beholderHealingSchedule, beholderBuffSchedule, berserkSchedule;
-    private ScheduledFuture<?> skillCooldownTask = null;
     private ScheduledFuture<?> buffExpireTask = null;
     private ScheduledFuture<?> itemExpireTask = null;
     private ScheduledFuture<?> diseaseExpireTask = null;
@@ -421,7 +419,7 @@ public class Character extends AbstractAnimatedMapObject {
     private ScheduledFuture<?> cpqSchedule = null;
 
     private ScheduledFuture<?> FamilyBuffTimer = null;
-    private final Lock chrLock = new ReentrantLock(true);
+    final Lock chrLock = new ReentrantLock(true);
     private final Lock evtLock = new ReentrantLock(true);
     private final Lock petLock = new ReentrantLock(true);
     private final Lock prtLock = new ReentrantLock();
@@ -531,7 +529,7 @@ public class Character extends AbstractAnimatedMapObject {
     private float familyExp = 1;
     @Getter
     private float familyDrop = 1;
-    private static final CharacterService characterService = ServerManager.getApplicationContext().getBean(CharacterService.class);
+    static final CharacterService characterService = ServerManager.getApplicationContext().getBean(CharacterService.class);
     private static final NameChangeService nameChangeService = ServerManager.getApplicationContext().getBean(NameChangeService.class);
     private static final WorldTransferService worldTransferService = ServerManager.getApplicationContext().getBean(WorldTransferService.class);
     private static final AccountService accountService = ServerManager.getApplicationContext().getBean(AccountService.class);
@@ -1167,14 +1165,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void addCooldown(int skillId, long startTime, long length) {
-        effLock.lock();
-        chrLock.lock();
-        try {
-            this.coolDowns.put(skillId, new CooldownValueHolder(skillId, startTime, length));
-        } finally {
-            chrLock.unlock();
-            effLock.unlock();
-        }
+        skills.addCooldown(skillId, startTime, length);
     }
 
     public Ring getRingById(int id) {
@@ -2299,17 +2290,8 @@ public class Character extends AbstractAnimatedMapObject {
         this.currentPage = page;
     }
 
-    public void changeSkillLevel(Skill skill, byte newLevel, int newMasterlevel, long expiration) {
-        if (newLevel > -1) {
-            skills.put(skill, new SkillEntry(newLevel, newMasterlevel, expiration));
-            if (!GameConstants.isHiddenSkills(skill.getId())) {
-                sendPacket(PacketCreator.updateSkill(skill.getId(), newLevel, newMasterlevel, expiration));
-            }
-        } else {
-            skills.remove(skill);
-            sendPacket(PacketCreator.updateSkill(skill.getId(), newLevel, newMasterlevel, -1)); //Shouldn't use expiration anymore :)
-            characterService.removeSkill(SkillsDO.builder().skillid(skill.getId()).characterid(getId()).build());
-        }
+    public void changeSkillLevel(Skill skill, int newLevel, int newMasterlevel, long expiration) {
+        skills.changeSkillLevel(skill, newLevel, newMasterlevel, expiration);
     }
 
     public void changeTab(int tab) {
@@ -3244,37 +3226,12 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public void cancelSkillCooldownTask() {
-        if (skillCooldownTask != null) {
-            skillCooldownTask.cancel(false);
-            skillCooldownTask = null;
-        }
+    public void stopSkillTimers() {
+        skills.stopTimers();
     }
 
-    public void skillCooldownTask() {
-        if (skillCooldownTask == null) {
-            skillCooldownTask = TimerManager.getInstance().register(() -> {
-                Set<Entry<Integer, CooldownValueHolder>> es;
-
-                effLock.lock();
-                chrLock.lock();
-                try {
-                    es = new LinkedHashSet<>(coolDowns.entrySet());
-                } finally {
-                    chrLock.unlock();
-                    effLock.unlock();
-                }
-
-                long curTime = Server.getInstance().getCurrentTime();
-                for (Entry<Integer, CooldownValueHolder> bel : es) {
-                    CooldownValueHolder mcdvh = bel.getValue();
-                    if (curTime >= mcdvh.startTime + mcdvh.length) {
-                        removeCooldown(mcdvh.skillId);
-                        sendPacket(PacketCreator.skillCooldown(mcdvh.skillId, 0));
-                    }
-                }
-            }, 1500);
-        }
+    public void startSkillTimers() {
+        skills.startTimers();
     }
 
     public void cancelExpirationTask() {
@@ -3290,14 +3247,6 @@ public class Character extends AbstractAnimatedMapObject {
                 boolean deletedCoupon = false;
 
                 long expiration, currenttime = System.currentTimeMillis();
-                Set<Skill> keys = getSkills().keySet();
-                for (Iterator<Skill> i = keys.iterator(); i.hasNext(); ) {
-                    Skill key = i.next();
-                    SkillEntry skill = getSkills().get(key);
-                    if (skill.expiration != -1 && skill.expiration < currenttime) {
-                        changeSkillLevel(key, (byte) -1, 0, -1);
-                    }
-                }
 
                 List<Item> toberemove = new ArrayList<>();
                 for (Inventory inv : inventory) {
@@ -3599,20 +3548,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public List<PlayerCoolDownValueHolder> getAllCooldowns() {
-        List<PlayerCoolDownValueHolder> ret = new ArrayList<>();
-
-        effLock.lock();
-        chrLock.lock();
-        try {
-            for (CooldownValueHolder mcdvh : coolDowns.values()) {
-                ret.add(new PlayerCoolDownValueHolder(mcdvh.skillId, mcdvh.startTime, mcdvh.length));
-            }
-        } finally {
-            chrLock.unlock();
-            effLock.unlock();
-        }
-
-        return ret;
+        return skills.getAllCooldowns();
     }
 
     public void updateAriantScore() {
@@ -5364,18 +5300,11 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public int getMasterLevel(int skill) {
-        SkillEntry ret = skills.get(SkillFactory.getSkill(skill));
-        if (ret == null) {
-            return 0;
-        }
-        return ret.masterLevel;
+        return skills.getMasterLevel(skill);
     }
 
     public int getMasterLevel(Skill skill) {
-        if (skills.get(skill) == null) {
-            return 0;
-        }
-        return skills.get(skill).masterLevel;
+        return skills.getMasterLevel(skill);
     }
 
     public int getTotalStr() {
@@ -5904,41 +5833,27 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public Map<Skill, SkillEntry> getSkills() {
-        return Collections.unmodifiableMap(skills);
+        return skills.getSkillsView();
     }
 
     public Map<Skill, SkillEntry> getEditableSkills() {
-        return skills;
+        return skills.entries;
     }
 
     public int getSkillLevel(int skill) {
-        SkillEntry ret = skills.get(SkillFactory.getSkill(skill));
-        if (ret == null) {
-            return 0;
-        }
-        return ret.skillLevel;
+        return skills.getSkillLevel(skill);
     }
 
-    public byte getSkillLevel(Skill skill) {
-        if (skills.get(skill) == null) {
-            return 0;
-        }
-        return skills.get(skill).skillLevel;
+    public int getSkillLevel(Skill skill) {
+        return skills.getSkillLevel(skill);
     }
 
     public long getSkillExpiration(int skill) {
-        SkillEntry ret = skills.get(SkillFactory.getSkill(skill));
-        if (ret == null) {
-            return -1;
-        }
-        return ret.expiration;
+        return skills.getSkillExpiration(skill);
     }
 
     public long getSkillExpiration(Skill skill) {
-        if (skills.get(skill) == null) {
-            return -1;
-        }
-        return skills.get(skill).expiration;
+        return skills.getSkillExpiration(skill);
     }
 
     public int getSlot() {
@@ -5999,14 +5914,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void giveCoolDowns(final int skillid, long starttime, long length) {
-        if (skillid == 5221999) {
-            this.battleshipHp = (int) length;
-            addCooldown(skillid, 0, length);
-        } else {
-            long timeNow = Server.getInstance().getCurrentTime();
-            int time = (int) ((length + starttime) - timeNow);
-            addCooldown(skillid, timeNow, time);
-        }
+        skills.giveCoolDowns(skillid, starttime, length);
     }
 
     public int gmLevel() {
@@ -6861,7 +6769,7 @@ public class Character extends AbstractAnimatedMapObject {
         chr.setLevel(charactersDO.getLevel());
         chr.setFame(charactersDO.getFame());
         chr.setQuestFame(charactersDO.getFquest());
-        loadStatsFromJson(chr, charactersDO.getId());
+        loadDataFromJson(chr, charactersDO.getId());
         chr.setExp(charactersDO.getExp());
         chr.setGachaExp(charactersDO.getGachaexp());
         chr.ap.hpMpApUsed = charactersDO.getHpMpUsed();
@@ -7036,15 +6944,18 @@ public class Character extends AbstractAnimatedMapObject {
     //    持久化代码（JDBC）只接触 CharacterData，不直接看到 CharacterStatsData 等域类型 ──
 
     public CharacterData toData() {
-        return new CharacterData(stats.toData());
+        CharacterData data = new CharacterData(stats.toData());
+        data.skills = skills.toData();
+        return data;
     }
 
     public void applyData(CharacterData data) {
         stats.applyData(data.stats);
+        skills.applyData(data.skills);
     }
 
-    // str/dex/int/luk/hp/mp/maxHp/maxMp 已从 characters 表迁至 character_json，此处按新表加载
-    private static void loadStatsFromJson(Character chr, int cid) {
+    // stats/skills 等域均存于 character_json，此处加载整个信封
+    private static void loadDataFromJson(Character chr, int cid) {
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement("SELECT data FROM character_json WHERE id = ?")) {
             ps.setInt(1, cid);
@@ -7179,19 +7090,6 @@ public class Character extends AbstractAnimatedMapObject {
             this.startTime = startTime;
             this.value = value;
             this.bestApplied = false;
-        }
-    }
-
-    public static class CooldownValueHolder {
-
-        public int skillId;
-        public long startTime, length;
-
-        public CooldownValueHolder(int skillId, long startTime, long length) {
-            super();
-            this.skillId = skillId;
-            this.startTime = startTime;
-            this.length = length;
         }
     }
 
@@ -7604,33 +7502,11 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void removeAllCooldownsExcept(int id, boolean packet) {
-        effLock.lock();
-        chrLock.lock();
-        try {
-            ArrayList<CooldownValueHolder> list = new ArrayList<>(coolDowns.values());
-            for (CooldownValueHolder mcvh : list) {
-                if (mcvh.skillId != id) {
-                    coolDowns.remove(mcvh.skillId);
-                    if (packet) {
-                        sendPacket(PacketCreator.skillCooldown(mcvh.skillId, 0));
-                    }
-                }
-            }
-        } finally {
-            chrLock.unlock();
-            effLock.unlock();
-        }
+        skills.removeAllCooldownsExcept(id, packet);
     }
 
     public void removeCooldown(int skillId) {
-        effLock.lock();
-        chrLock.lock();
-        try {
-            this.coolDowns.remove(skillId);
-        } finally {
-            chrLock.unlock();
-            effLock.unlock();
-        }
+        skills.removeCooldown(skillId);
     }
 
     public void removePet(Pet pet, boolean shift_left) {
@@ -7744,27 +7620,7 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public synchronized void saveCooldowns() {
-        List<PlayerCoolDownValueHolder> listcd = getAllCooldowns();
-
-        if (!listcd.isEmpty()) {
-            try (Connection con = DatabaseConnection.getConnection()) {
-                deleteWhereCharacterId(con, "DELETE FROM cooldowns WHERE charid = ?");
-                try (PreparedStatement ps = con.prepareStatement("INSERT INTO cooldowns (charid, SkillID, StartTime, length) VALUES (?, ?, ?, ?)")) {
-                    ps.setInt(1, getId());
-                    for (PlayerCoolDownValueHolder cooling : listcd) {
-                        ps.setInt(2, cooling.skillId);
-                        ps.setLong(3, cooling.startTime);
-                        ps.setLong(4, cooling.length);
-                        ps.addBatch();
-                    }
-                    ps.executeBatch();
-                }
-            } catch (SQLException se) {
-                se.printStackTrace();
-            }
-        }
-
+    public synchronized void saveDiseases() {
         Map<Disease, Pair<Long, MobSkill>> listds = getAllDiseases();
         if (!listds.isEmpty()) {
             try (Connection con = DatabaseConnection.getConnection()) {
@@ -7950,21 +7806,6 @@ public class Character extends AbstractAnimatedMapObject {
                 }
 
                 ItemFactory.INVENTORY.saveItems(itemsWithType, id, con);
-
-                if (!skills.isEmpty()) {
-                    // Skills
-                    try (PreparedStatement ps = con.prepareStatement("INSERT INTO skills (characterid, skillid, skilllevel, masterlevel, expiration) VALUES (?, ?, ?, ?, ?)")) {
-                        ps.setInt(1, id);
-                        for (Entry<Skill, SkillEntry> skill : skills.entrySet()) {
-                            ps.setInt(2, skill.getKey().getId());
-                            ps.setInt(3, skill.getValue().skillLevel);
-                            ps.setInt(4, skill.getValue().masterLevel);
-                            ps.setLong(5, skill.getValue().expiration);
-                            ps.addBatch();
-                        }
-                        ps.executeBatch();
-                    }
-                }
 
                 con.commit();
                 return true;
@@ -8212,19 +8053,6 @@ public class Character extends AbstractAnimatedMapObject {
 
                 // Items
                 ItemFactory.INVENTORY.saveItems(itemsWithType, id, con);
-
-                // Skills
-                try (PreparedStatement psSkill = con.prepareStatement("REPLACE INTO skills (characterid, skillid, skilllevel, masterlevel, expiration) VALUES (?, ?, ?, ?, ?)")) {
-                    psSkill.setInt(1, id);
-                    for (Entry<Skill, SkillEntry> skill : skills.entrySet()) {
-                        psSkill.setInt(2, skill.getKey().getId());
-                        psSkill.setInt(3, skill.getValue().skillLevel);
-                        psSkill.setInt(4, skill.getValue().masterLevel);
-                        psSkill.setLong(5, skill.getValue().expiration);
-                        psSkill.addBatch();
-                    }
-                    psSkill.executeBatch();
-                }
 
                 // Saved locations
                 deleteWhereCharacterId(con, "DELETE FROM savedlocations WHERE characterid = ?");
@@ -9126,14 +8954,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public boolean skillIsCooling(int skillId) {
-        effLock.lock();
-        chrLock.lock();
-        try {
-            return coolDowns.containsKey(Integer.valueOf(skillId));
-        } finally {
-            chrLock.unlock();
-            effLock.unlock();
-        }
+        return skills.skillIsCooling(skillId);
     }
 
     public void runFullnessSchedule(int petSlot) {
@@ -10008,7 +9829,7 @@ public class Character extends AbstractAnimatedMapObject {
         unregisterChairBuff();
         cancelBuffExpireTask();
         cancelDiseaseExpireTask();
-        cancelSkillCooldownTask();
+        stopSkillTimers();
         cancelExpirationTask();
 
         if (questExpireTask != null) {

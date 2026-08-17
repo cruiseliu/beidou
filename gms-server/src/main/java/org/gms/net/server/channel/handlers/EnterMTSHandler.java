@@ -97,7 +97,7 @@ public final class EnterMTSHandler extends AbstractPacketHandler {
         chr.cancelAllDebuffs();
         chr.cancelBuffExpireTask();
         chr.cancelDiseaseExpireTask();
-        chr.cancelSkillCooldownTask();
+        chr.stopSkillTimers();
         chr.cancelExpirationTask();
 
         chr.forfeitExpirableQuests();

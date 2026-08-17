@@ -79,7 +79,7 @@ public class EnterCashShopHandler extends AbstractPacketHandler {
             mc.cancelAllDebuffs();
             mc.cancelBuffExpireTask();
             mc.cancelDiseaseExpireTask();
-            mc.cancelSkillCooldownTask();
+            mc.stopSkillTimers();
             mc.cancelExpirationTask();
 
             mc.forfeitExpirableQuests();
