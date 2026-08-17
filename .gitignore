@@ -36,3 +36,4 @@ src/main/resources/static/
 CLAUDE.local.md
 
 /gms-server/database
+/gms-server/target.*
