@@ -2,7 +2,7 @@ package org.gms.client.character;
 
 /**
  * 属性更新参数对象：一次原子变更要写入的各属性目标值（绝对值），null = 不变更。
- * 通过 AbstractCharacterObject.applyUpdate / applyUpdateSilently 应用，
+ * 通过 Character.applyUpdate / applyUpdateSilently 应用，
  * 替代原先 calcStatPoolLong 把四个值拼进 long 的隐式打包。
  * 字段 package-private 仅供同包读取，写入走流式 setter。
  */

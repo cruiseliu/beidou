@@ -6,15 +6,15 @@ import org.gms.util.Locks;
 /**
  * AP（能力点）：数据 + 全部"仅与 AP 相关"和"将 AP 分配到属性"的逻辑。
  * 持有 owner 反向引用，Locks 使用其锁（effLock/statWlock），派发走 owner.applyUpdate。
- * 四维/HP/MP 与 AP 的原子写入管道、发包留在 AbstractCharacterObject。
+ * 四维/HP/MP 与 AP 的原子写入管道、发包留在 Character。
  */
 public class CharacterAp {
-    private final AbstractCharacterObject owner;
+    private final Character owner;
 
     int remainingAp;
     int hpMpApUsed;
 
-    CharacterAp(AbstractCharacterObject owner) {
+    CharacterAp(Character owner) {
         this.owner = owner;
     }
 
