@@ -46,9 +46,6 @@ public class CharactersDO implements Serializable {
 
     private Integer meso;
 
-    @Column("hpMpUsed")
-    private Integer hpMpUsed;
-
     private Integer job;
 
     private Integer skincolor;
@@ -62,10 +59,6 @@ public class CharactersDO implements Serializable {
     private Integer hair;
 
     private Integer face;
-
-    private Integer ap;
-
-    private String sp;
 
     private Integer map;
 

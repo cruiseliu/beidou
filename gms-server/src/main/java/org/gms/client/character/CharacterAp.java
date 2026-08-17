@@ -1,6 +1,7 @@
 package org.gms.client.character;
 
 import org.gms.config.GameConfig;
+import org.gms.model.json.CharacterApData;
 import org.gms.util.Locks;
 
 import java.util.Arrays;
@@ -134,6 +135,20 @@ public class CharacterAp {
      * 分配 AP 到 HP/MP 前的合法性校验。
      * capReached 为目标上限已达（maxHp/maxMp >= 30000），由调用方传入。
      */
+    // ── 持久化数据转换（ap 域；信封组装在 Character.toData/applyData） ──
+
+    CharacterApData toData() {
+        CharacterApData d = new CharacterApData();
+        d.remainingAp = remainingAp;
+        d.hpMpApUsed = hpMpApUsed;
+        return d;
+    }
+
+    void applyData(CharacterApData d) {
+        remainingAp = d.remainingAp;
+        hpMpApUsed = d.hpMpApUsed;
+    }
+
     private boolean canSpendAp(int deltaAp, boolean capReached) {
         return remainingAp - deltaAp >= 0 && hpMpApUsed + deltaAp >= 0 && !capReached;
     }

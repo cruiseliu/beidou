@@ -6630,8 +6630,6 @@ public class Character extends AbstractAnimatedMapObject {
             ret.level = rs.getInt("level");
             ret.job = Job.getById(rs.getInt("job"));
             ret.applyData(CharacterData.deserialize(rs.getString("stats_json")));
-            ret.ap.remainingAp = rs.getInt("ap");
-            ret.sp.loadCharSkillPoints(rs.getString("sp").split(","));
             ret.exp.set(rs.getInt("exp"));
             ret.fame = rs.getInt("fame");
             ret.gachaExp.set(rs.getInt("gachaexp"));
@@ -6719,19 +6717,7 @@ public class Character extends AbstractAnimatedMapObject {
         loadDataFromJson(chr, charactersDO.getId());
         chr.setExp(charactersDO.getExp());
         chr.setGachaExp(charactersDO.getGachaexp());
-        chr.ap.hpMpApUsed = charactersDO.getHpMpUsed();
         chr.setHasMerchant(charactersDO.getHasmerchant());
-        chr.ap.remainingAp = charactersDO.getAp();
-        int[] remainingSps = new int[2];
-        Arrays.fill(remainingSps, 0);
-        if (!RequireUtil.isEmpty(charactersDO.getSp())) {
-            String[] splits = charactersDO.getSp().split(",");
-            int len = Math.min(splits.length, remainingSps.length);
-            for (int i = 0; i < len; i++) {
-                remainingSps[i] = Integer.parseInt(splits[i]);
-            }
-        }
-        chr.setRemainingSp(remainingSps);
         chr.setMeso(charactersDO.getMeso());
         chr.setMerchantMeso(charactersDO.getMerchantmesos());
         chr.setGMLevel(charactersDO.getGm());
@@ -6893,12 +6879,16 @@ public class Character extends AbstractAnimatedMapObject {
     public CharacterData toData() {
         CharacterData data = new CharacterData(stats.toData());
         data.skills = skills.toData();
+        data.ap = ap.toData();
+        data.sp = sp.toData();
         return data;
     }
 
     public void applyData(CharacterData data) {
         stats.applyData(data.stats);
         skills.applyData(data.skills);
+        ap.applyData(data.ap);
+        sp.applyData(data.sp);
     }
 
     // stats/skills 等域均存于 character_json，此处加载整个信封
@@ -7658,7 +7648,7 @@ public class Character extends AbstractAnimatedMapObject {
 
             try {
                 // Character info
-                try (PreparedStatement ps = con.prepareStatement("INSERT INTO characters (gm, skincolor, gender, job, hair, face, map, meso, spawnpoint, accountid, name, world, level, ap, sp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                try (PreparedStatement ps = con.prepareStatement("INSERT INTO characters (gm, skincolor, gender, job, hair, face, map, meso, spawnpoint, accountid, name, world, level) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
                     ps.setInt(1, gmLevel);
                     ps.setInt(2, skinColor.getId());
                     ps.setInt(3, gender);
@@ -7672,15 +7662,6 @@ public class Character extends AbstractAnimatedMapObject {
                     ps.setString(11, name);
                     ps.setInt(12, world);
                     ps.setInt(13, level);
-                    ps.setInt(14, ap.remainingAp);
-
-                    StringBuilder sps = new StringBuilder();
-                    for (int j : sp.remainingSp) {
-                        sps.append(j);
-                        sps.append(",");
-                    }
-                    String spStr = sps.toString();
-                    ps.setString(15, spStr.substring(0, spStr.length() - 1));
 
                     int updateRows = ps.executeUpdate();
                     if (updateRows < 1) {
@@ -7805,7 +7786,7 @@ public class Character extends AbstractAnimatedMapObject {
             try {
                 String statsJson;
 
-                try (PreparedStatement ps = con.prepareStatement("UPDATE characters SET level = ?, fame = ?, exp = ?, gachaexp = ?, sp = ?, ap = ?, gm = ?, skincolor = ?, gender = ?, job = ?, hair = ?, face = ?, map = ?, meso = ?, hpMpUsed = ?, spawnpoint = ?, party = ?, buddyCapacity = ?, messengerid = ?, messengerposition = ?, mountlevel = ?, mountexp = ?, mounttiredness= ?, equipslots = ?, useslots = ?, setupslots = ?, etcslots = ?,  monsterbookcover = ?, vanquisherStage = ?, dojoPoints = ?, lastDojoStage = ?, finishedDojoTutorial = ?, vanquisherKills = ?, matchcardwins = ?, matchcardlosses = ?, matchcardties = ?, omokwins = ?, omoklosses = ?, omokties = ?, dataString = ?, fquest = ?, jailexpire = ?, partnerId = ?, marriageItemId = ?, lastExpGainTime = ?, ariantPoints = ?, partySearch = ? WHERE id = ?", Statement.RETURN_GENERATED_KEYS)) {
+                try (PreparedStatement ps = con.prepareStatement("UPDATE characters SET level = ?, fame = ?, exp = ?, gachaexp = ?, gm = ?, skincolor = ?, gender = ?, job = ?, hair = ?, face = ?, map = ?, meso = ?, spawnpoint = ?, party = ?, buddyCapacity = ?, messengerid = ?, messengerposition = ?, mountlevel = ?, mountexp = ?, mounttiredness= ?, equipslots = ?, useslots = ?, setupslots = ?, etcslots = ?,  monsterbookcover = ?, vanquisherStage = ?, dojoPoints = ?, lastDojoStage = ?, finishedDojoTutorial = ?, vanquisherKills = ?, matchcardwins = ?, matchcardlosses = ?, matchcardties = ?, omokwins = ?, omoklosses = ?, omokties = ?, dataString = ?, fquest = ?, jailexpire = ?, partnerId = ?, marriageItemId = ?, lastExpGainTime = ?, ariantPoints = ?, partySearch = ? WHERE id = ?", Statement.RETURN_GENERATED_KEYS)) {
                     ps.setInt(1, level);    // thanks CanIGetaPR for noticing an unnecessary "level" limitation when persisting DB data
                     ps.setInt(2, fame);
 
@@ -7816,104 +7797,93 @@ public class Character extends AbstractAnimatedMapObject {
 
                         ps.setInt(3, Math.abs(exp.get()));
                         ps.setInt(4, Math.abs(gachaExp.get()));
-
-                        StringBuilder sps = new StringBuilder();
-                        for (int j : sp.remainingSp) {
-                            sps.append(j);
-                            sps.append(",");
-                        }
-                        String spStr = sps.toString();
-                        ps.setString(5, spStr.substring(0, spStr.length() - 1));
-
-                        ps.setInt(6, ap.remainingAp);
                     } finally {
                         stats.wLock.unlock();
                         effLock.unlock();
                     }
 
-                    ps.setInt(7, gmLevel);
-                    ps.setInt(8, skinColor.getId());
-                    ps.setInt(9, gender);
-                    ps.setInt(10, job.getId());
-                    ps.setInt(11, hair);
-                    ps.setInt(12, face);
+                    ps.setInt(5, gmLevel);
+                    ps.setInt(6, skinColor.getId());
+                    ps.setInt(7, gender);
+                    ps.setInt(8, job.getId());
+                    ps.setInt(9, hair);
+                    ps.setInt(10, face);
                     if (map == null || (cashShop != null && cashShop.isOpened())) {
-                        ps.setInt(13, mapId);
+                        ps.setInt(11, mapId);
                     } else {
                         if (map.getForcedReturnId() != MapId.NONE) {
-                            ps.setInt(13, map.getForcedReturnId());
+                            ps.setInt(11, map.getForcedReturnId());
                         } else {
-                            ps.setInt(13, getHp() < 1 ? map.getReturnMapId() : map.getId());
+                            ps.setInt(11, getHp() < 1 ? map.getReturnMapId() : map.getId());
                         }
                     }
-                    ps.setInt(14, meso.get());
-                    ps.setInt(15, ap.hpMpApUsed);
+                    ps.setInt(12, meso.get());
                     if (map == null || map.getId() == MapId.CRIMSONWOOD_VALLEY_1 || map.getId() == MapId.CRIMSONWOOD_VALLEY_2) {  // reset to first spawnpoint on those maps
-                        ps.setInt(16, 0);
+                        ps.setInt(13, 0);
                     } else {
                         Portal closest = map.findClosestPlayerSpawnpoint(getPosition());
                         if (closest != null) {
-                            ps.setInt(16, closest.getId());
+                            ps.setInt(13, closest.getId());
                         } else {
-                            ps.setInt(16, 0);
+                            ps.setInt(13, 0);
                         }
                     }
 
                     prtLock.lock();
                     try {
                         if (party != null) {
-                            ps.setInt(17, party.getId());
+                            ps.setInt(14, party.getId());
                         } else {
-                            ps.setInt(17, -1);
+                            ps.setInt(14, -1);
                         }
                     } finally {
                         prtLock.unlock();
                     }
 
-                    ps.setInt(18, buddylist.getCapacity());
+                    ps.setInt(15, buddylist.getCapacity());
                     if (messenger != null) {
-                        ps.setInt(19, messenger.getId());
-                        ps.setInt(20, messengerPosition);
+                        ps.setInt(16, messenger.getId());
+                        ps.setInt(17, messengerPosition);
                     } else {
-                        ps.setInt(19, 0);
-                        ps.setInt(20, 4);
+                        ps.setInt(16, 0);
+                        ps.setInt(17, 4);
                     }
                     if (mapleMount != null) {
-                        ps.setInt(21, mapleMount.getLevel());
-                        ps.setInt(22, mapleMount.getExp());
-                        ps.setInt(23, mapleMount.getTiredness());
+                        ps.setInt(18, mapleMount.getLevel());
+                        ps.setInt(19, mapleMount.getExp());
+                        ps.setInt(20, mapleMount.getTiredness());
                     } else {
-                        ps.setInt(21, 1);
-                        ps.setInt(22, 0);
-                        ps.setInt(23, 0);
+                        ps.setInt(18, 1);
+                        ps.setInt(19, 0);
+                        ps.setInt(20, 0);
                     }
                     for (int i = 1; i < 5; i++) {
-                        ps.setInt(i + 23, getSlots(i));
+                        ps.setInt(i + 20, getSlots(i));
                     }
 
                     monsterBook.saveCards(con, id);
 
-                    ps.setInt(28, bookCover);
-                    ps.setInt(29, vanquisherStage);
-                    ps.setInt(30, dojoPoints);
-                    ps.setInt(31, dojoStage);
-                    ps.setInt(32, finishedDojoTutorial ? 1 : 0);
-                    ps.setInt(33, vanquisherKills);
-                    ps.setInt(34, matchcardwins);
-                    ps.setInt(35, matchcardlosses);
-                    ps.setInt(36, matchcardties);
-                    ps.setInt(37, omokwins);
-                    ps.setInt(38, omoklosses);
-                    ps.setInt(39, omokties);
-                    ps.setString(40, dataString);
-                    ps.setInt(41, questFame);
-                    ps.setLong(42, jailExpiration);
-                    ps.setInt(43, partnerId);
-                    ps.setInt(44, marriageItemId);
-                    ps.setTimestamp(45, new Timestamp(lastExpGainTime));
-                    ps.setInt(46, ariantPoints);
-                    ps.setBoolean(47, canRecvPartySearchInvite);
-                    ps.setInt(48, id);
+                    ps.setInt(25, bookCover);
+                    ps.setInt(26, vanquisherStage);
+                    ps.setInt(27, dojoPoints);
+                    ps.setInt(28, dojoStage);
+                    ps.setInt(29, finishedDojoTutorial ? 1 : 0);
+                    ps.setInt(30, vanquisherKills);
+                    ps.setInt(31, matchcardwins);
+                    ps.setInt(32, matchcardlosses);
+                    ps.setInt(33, matchcardties);
+                    ps.setInt(34, omokwins);
+                    ps.setInt(35, omoklosses);
+                    ps.setInt(36, omokties);
+                    ps.setString(37, dataString);
+                    ps.setInt(38, questFame);
+                    ps.setLong(39, jailExpiration);
+                    ps.setInt(40, partnerId);
+                    ps.setInt(41, marriageItemId);
+                    ps.setTimestamp(42, new Timestamp(lastExpGainTime));
+                    ps.setInt(43, ariantPoints);
+                    ps.setBoolean(44, canRecvPartySearchInvite);
+                    ps.setInt(45, id);
 
                     int updateRows = ps.executeUpdate();
                     if (updateRows < 1) {

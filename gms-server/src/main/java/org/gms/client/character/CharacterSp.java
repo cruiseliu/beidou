@@ -1,7 +1,7 @@
 package org.gms.client.character;
 
 import org.gms.client.Job;
-import org.gms.constants.game.GameConstants;
+import org.gms.model.json.CharacterSpData;
 import org.gms.util.Locks;
 
 import java.util.Arrays;
@@ -73,6 +73,18 @@ class CharacterSp {
             int idx = indexOf(jobId);
             changeRemainingSp(Math.max(0, remainingSp[idx] + deltaSp), jobId, silent);
         }
+    }
+
+    // ── 持久化数据转换（sp 域；信封组装在 Character.toData/applyData） ──
+
+    CharacterSpData toData() {
+        CharacterSpData d = new CharacterSpData();
+        d.remainingSp = remainingSp.clone();
+        return d;
+    }
+
+    void applyData(CharacterSpData d) {
+        System.arraycopy(d.remainingSp, 0, remainingSp, 0, Math.min(d.remainingSp.length, remainingSp.length));
     }
 
     /** 解析持久化的 "0,0" 职业槽位串并整体载入；旧格式多余的槽位丢弃 */
