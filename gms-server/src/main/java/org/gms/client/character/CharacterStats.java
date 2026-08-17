@@ -6,7 +6,7 @@ import org.gms.util.Pair;
 import org.gms.util.Randomizer;
 
 /**
- * 角属属性数据 + 纯计算。无 I/O、无发包、无锁（锁由 Character 持有并通过 StatLock 使用）。
+ * 角属属性数据 + 纯计算。无 I/O、无发包、无锁（锁由 Character 持有并通过 Locks 使用）。
  * 字段全部 package-private，同包的 Character 直接访问，不提供 getter/setter。
  */
 public class CharacterStats {
