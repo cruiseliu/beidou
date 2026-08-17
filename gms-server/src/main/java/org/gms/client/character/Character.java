@@ -130,6 +130,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.gms.client.character.BaseStat.*;
+
 import static java.util.concurrent.TimeUnit.*;
 
 public class Character extends AbstractAnimatedMapObject {
@@ -594,39 +596,19 @@ public class Character extends AbstractAnimatedMapObject {
     // ── 属性读写与更新（原 AbstractCharacterObject 合并而来） ──
 
     public int getStr() {
-        statRlock.lock();
-        try {
-            return stats.str;
-        } finally {
-            statRlock.unlock();
-        }
+        return stats.getAttr(STR);
     }
 
     public int getDex() {
-        statRlock.lock();
-        try {
-            return stats.dex;
-        } finally {
-            statRlock.unlock();
-        }
+        return stats.getAttr(DEX);
     }
 
     public int getInt() {
-        statRlock.lock();
-        try {
-            return stats.int_;
-        } finally {
-            statRlock.unlock();
-        }
+        return stats.getAttr(INT);
     }
 
     public int getLuk() {
-        statRlock.lock();
-        try {
-            return stats.luk;
-        } finally {
-            statRlock.unlock();
-        }
+        return stats.getAttr(LUK);
     }
 
     public int getRemainingAp() {
@@ -634,20 +616,20 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     private int getRemainingSp(int jobid) {
-        statRlock.lock();
+        stats.rLock.lock();
         try {
             return remainingSp[GameConstants.getSkillBook(jobid)];
         } finally {
-            statRlock.unlock();
+            stats.rLock.unlock();
         }
     }
 
     public int[] getRemainingSps() {
-        statRlock.lock();
+        stats.rLock.lock();
         try {
             return Arrays.copyOf(remainingSp, remainingSp.length);
         } finally {
-            statRlock.unlock();
+            stats.rLock.unlock();
         }
     }
 
@@ -656,47 +638,47 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public boolean isAlive() {
-        statRlock.lock();
+        stats.rLock.lock();
         try {
             return stats.hp > 0;
         } finally {
-            statRlock.unlock();
+            stats.rLock.unlock();
         }
     }
 
     public int getHp() {
-        statRlock.lock();
+        stats.rLock.lock();
         try {
             return stats.hp;
         } finally {
-            statRlock.unlock();
+            stats.rLock.unlock();
         }
     }
 
     public int getMp() {
-        statRlock.lock();
+        stats.rLock.lock();
         try {
             return stats.mp;
         } finally {
-            statRlock.unlock();
+            stats.rLock.unlock();
         }
     }
 
     public int getMaxHp() {
-        statRlock.lock();
+        stats.rLock.lock();
         try {
             return stats.maxHp;
         } finally {
-            statRlock.unlock();
+            stats.rLock.unlock();
         }
     }
 
     public int getMaxMp() {
-        statRlock.lock();
+        stats.rLock.lock();
         try {
             return stats.maxMp;
         } finally {
-            statRlock.unlock();
+            stats.rLock.unlock();
         }
     }
 
@@ -772,32 +754,26 @@ public class Character extends AbstractAnimatedMapObject {
                 }
             }
 
-            if (u.str != null || u.dex != null || u.int_ != null || u.luk != null || (u.ap != null && u.ap >= 0)) {
-                if (u.str != null && u.str >= 4) {
-                    setStr(u.str);
-                    statUpdates.put(Stat.STR, stats.str);
+            boolean basePresent = false;
+            for (int i = 0; i < BASE_STAT_COUNT; i++) {
+                Integer v = u.attrs[i];
+                if (v == null) {
+                    continue;
                 }
-
-                if (u.dex != null && u.dex >= 4) {
-                    setDex(u.dex);
-                    statUpdates.put(Stat.DEX, stats.dex);
+                basePresent = true;
+                if (v >= 4) {   // 四维下限：低于 4 的写入被跳过
+                    stats.attrs[i] = v;
+                    statUpdates.put(KEYS[i], v);
                 }
+            }
 
-                if (u.int_ != null && u.int_ >= 4) {
-                    setInt(u.int_);
-                    statUpdates.put(Stat.INT, stats.int_);
-                }
+            boolean apPresent = u.ap != null && u.ap >= 0;
+            if (apPresent) {
+                ap.remainingAp = u.ap;
+                statUpdates.put(Stat.AVAILABLEAP, ap.remainingAp);
+            }
 
-                if (u.luk != null && u.luk >= 4) {
-                    setLuk(u.luk);
-                    statUpdates.put(Stat.LUK, stats.luk);
-                }
-
-                if (u.ap != null && u.ap >= 0) {
-                    ap.remainingAp = u.ap;
-                    statUpdates.put(Stat.AVAILABLEAP, ap.remainingAp);
-                }
-
+            if (basePresent || apPresent) {
                 statUpdate = true;
             }
 
@@ -865,20 +841,20 @@ public class Character extends AbstractAnimatedMapObject {
 
     private void enforceMaxHpMp() {
         effLock.lock();
-        statWlock.lock();
+        stats.wLock.lock();
         try {
             if (stats.mp > stats.localMaxMp || stats.hp > stats.localMaxHp) {
                 changeHpMp(stats.hp, stats.mp, false);
             }
         } finally {
-            statWlock.unlock();
+            stats.wLock.unlock();
             effLock.unlock();
         }
     }
 
     public int safeAddHP(int delta) {
         effLock.lock();
-        statWlock.lock();
+        stats.wLock.lock();
         try {
             if (stats.hp + delta <= 0) {
                 delta = -stats.hp + 1;
@@ -887,40 +863,40 @@ public class Character extends AbstractAnimatedMapObject {
             addHP(delta);
             return delta;
         } finally {
-            statWlock.unlock();
+            stats.wLock.unlock();
             effLock.unlock();
         }
     }
 
     public void addHP(int delta) {
         effLock.lock();
-        statWlock.lock();
+        stats.wLock.lock();
         try {
             updateHp(stats.hp + delta);
         } finally {
-            statWlock.unlock();
+            stats.wLock.unlock();
             effLock.unlock();
         }
     }
 
     public void addMP(int delta) {
         effLock.lock();
-        statWlock.lock();
+        stats.wLock.lock();
         try {
             updateMp(stats.mp + delta);
         } finally {
-            statWlock.unlock();
+            stats.wLock.unlock();
             effLock.unlock();
         }
     }
 
     public void addMPHP(int hpDelta, int mpDelta) {
         effLock.lock();
-        statWlock.lock();
+        stats.wLock.lock();
         try {
             updateHpMp(stats.hp + hpDelta, stats.mp + mpDelta);
         } finally {
-            statWlock.unlock();
+            stats.wLock.unlock();
             effLock.unlock();
         }
     }
@@ -938,59 +914,31 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void addMaxHP(int delta) {
         effLock.lock();
-        statWlock.lock();
+        stats.wLock.lock();
         try {
             updateMaxHp(stats.maxHp + delta);
         } finally {
-            statWlock.unlock();
+            stats.wLock.unlock();
             effLock.unlock();
         }
     }
 
     public void addMaxMP(int delta) {
         effLock.lock();
-        statWlock.lock();
+        stats.wLock.lock();
         try {
             updateMaxMp(stats.maxMp + delta);
         } finally {
-            statWlock.unlock();
+            stats.wLock.unlock();
             effLock.unlock();
         }
     }
 
-    public void setStr(int str) {
-        this.stats.str = str;
-    }
 
-    public void setDex(int dex) {
-        this.stats.dex = dex;
-    }
 
-    public void setInt(int int_) {
-        this.stats.int_ = int_;
-    }
 
-    public void setLuk(int luk) {
-        this.stats.luk = luk;
-    }
 
     // ── AP 委托：实现集中在 CharacterAp ──
-
-    public boolean assignStr(int x) {
-        return ap.assignStr(x);
-    }
-
-    public boolean assignDex(int x) {
-        return ap.assignDex(x);
-    }
-
-    public boolean assignInt(int x) {
-        return ap.assignInt(x);
-    }
-
-    public boolean assignLuk(int x) {
-        return ap.assignLuk(x);
-    }
 
     public boolean assignHP(int deltaHP, int deltaAp) {
         return ap.assignHP(deltaHP, deltaAp);
@@ -1000,8 +948,29 @@ public class Character extends AbstractAnimatedMapObject {
         return ap.assignMP(deltaMP, deltaAp);
     }
 
+    public boolean assignStr(int x) {
+        return ap.assignAttr(STR, x);
+    }
+
+    public boolean assignDex(int x) {
+        return ap.assignAttr(DEX, x);
+    }
+
+    public boolean assignInt(int x) {
+        return ap.assignAttr(INT, x);
+    }
+
+    public boolean assignLuk(int x) {
+        return ap.assignAttr(LUK, x);
+    }
+
     public boolean assignStrDexIntLuk(int deltaStr, int deltaDex, int deltaInt, int deltaLuk) {
-        return ap.assignStrDexIntLuk(deltaStr, deltaDex, deltaInt, deltaLuk);
+        Integer[] delta = new Integer[BASE_STAT_COUNT];
+        delta[STR] = deltaStr;
+        delta[DEX] = deltaDex;
+        delta[INT] = deltaInt;
+        delta[LUK] = deltaLuk;
+        return ap.assignAttrs(delta);
     }
 
     public void changeRemainingAp(int x, boolean silent) {
@@ -1012,25 +981,22 @@ public class Character extends AbstractAnimatedMapObject {
         ap.gainAp(deltaAp, silent);
     }
 
+    /** 四维全部设为 x（管理命令用） */
     public void updateStrDexIntLuk(int x) {
-        updateStrDexIntLuk(x, x, x, x, -1);
-    }
-
-    void updateStrDexIntLuk(int str, int dex, int int_, int luk, int remainingAp) {
-        StatsUpdate u = new StatsUpdate().setStr(str).setDex(dex).setInt(int_).setLuk(luk);
-        if (remainingAp >= 0) {
-            u.setAp(remainingAp);
+        StatsUpdate u = new StatsUpdate();
+        for (int i = 0; i < BASE_STAT_COUNT; i++) {
+            u.setAttr(i, x);
         }
         applyUpdate(u);
     }
 
     private void setRemainingSp(int[] sps) {
         effLock.lock();
-        statWlock.lock();
+        stats.wLock.lock();
         try {
             System.arraycopy(sps, 0, remainingSp, 0, sps.length);
         } finally {
-            statWlock.unlock();
+            stats.wLock.unlock();
             effLock.unlock();
         }
     }
@@ -1054,11 +1020,11 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void gainSp(int deltaSp, int skillbook, boolean silent) {
         effLock.lock();
-        statWlock.lock();
+        stats.wLock.lock();
         try {
             changeRemainingSp(Math.max(0, remainingSp[skillbook] + deltaSp), skillbook, silent);
         } finally {
-            statWlock.unlock();
+            stats.wLock.unlock();
             effLock.unlock();
         }
     }
@@ -1085,10 +1051,10 @@ public class Character extends AbstractAnimatedMapObject {
         ret.setMaxHp(50);
         ret.stats.mp = 5;
         ret.setMaxMp(5);
-        ret.stats.str = 12;
-        ret.stats.dex = 5;
-        ret.stats.int_ = 4;
-        ret.stats.luk = 4;
+        ret.stats.attrs[STR] = 12;
+        ret.stats.attrs[DEX] = 5;
+        ret.stats.attrs[INT] = 4;
+        ret.stats.attrs[LUK] = 4;
         ret.map = null;
         ret.job = Job.BEGINNER;
         ret.level = 1;
@@ -1311,14 +1277,14 @@ public class Character extends AbstractAnimatedMapObject {
         }
 
         if (weapon == WeaponType.BOW || weapon == WeaponType.CROSSBOW || weapon == WeaponType.GUN) {
-            mainstat = stats.localdex;
-            secondarystat = stats.localstr;
+            mainstat = stats.localAttrs[DEX];
+            secondarystat = stats.localAttrs[STR];
         } else if (weapon == WeaponType.CLAW || weapon == WeaponType.DAGGER_THIEVES) {
-            mainstat = stats.localluk;
-            secondarystat = stats.localdex + stats.localstr;
+            mainstat = stats.localAttrs[LUK];
+            secondarystat = stats.localAttrs[DEX] + stats.localAttrs[STR];
         } else {
-            mainstat = stats.localstr;
-            secondarystat = stats.localdex;
+            mainstat = stats.localAttrs[STR];
+            secondarystat = stats.localAttrs[DEX];
         }
         return (int) Math.ceil(((weapon.getMaxDamageMultiplier() * mainstat + secondarystat) / 100.0) * watk);
     }
@@ -1336,7 +1302,7 @@ public class Character extends AbstractAnimatedMapObject {
                 }
 
                 int attack = (int) Math.min(Math.floor((2D * getLevel() + 31) / 3), 31);
-                maxbasedamage = (int) Math.ceil((stats.localstr * weapMulti + stats.localdex) * attack / 100.0);
+                maxbasedamage = (int) Math.ceil((stats.localAttrs[STR] * weapMulti + stats.localAttrs[DEX]) * attack / 100.0);
             } else {
                 maxbasedamage = 1;
             }
@@ -1715,7 +1681,7 @@ public class Character extends AbstractAnimatedMapObject {
         */
 
         effLock.lock();
-        statWlock.lock();
+        stats.wLock.lock();
         try {
             addMaxMPMaxHP(addhp, addmp, true);
             recalcLocalStats();
@@ -1730,7 +1696,7 @@ public class Character extends AbstractAnimatedMapObject {
             statup.add(new Pair<>(Stat.JOB, job.getId()));
             sendPacket(PacketCreator.updatePlayerStats(statup, true, this));
         } finally {
-            statWlock.unlock();
+            stats.wLock.unlock();
             effLock.unlock();
         }
 
@@ -2838,17 +2804,17 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     private void updateChairHealStats() {
-        statRlock.lock();
+        stats.rLock.lock();
         try {
             if (stats.localchairrate != -1) {
                 return;
             }
         } finally {
-            statRlock.unlock();
+            stats.rLock.unlock();
         }
 
         effLock.lock();
-        statWlock.lock();
+        stats.wLock.lock();
         try {
             Pair<Integer, Pair<Integer, Integer>> p = getChairTaskIntervalRate(stats.localMaxHp, stats.localMaxMp);
 
@@ -2856,7 +2822,7 @@ public class Character extends AbstractAnimatedMapObject {
             stats.localchairhp = p.getRight().getLeft();
             stats.localchairmp = p.getRight().getRight();
         } finally {
-            statWlock.unlock();
+            stats.wLock.unlock();
             effLock.unlock();
         }
     }
@@ -5413,19 +5379,19 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public int getTotalStr() {
-        return stats.localstr;
+        return stats.localAttrs[STR];
     }
 
     public int getTotalDex() {
-        return stats.localdex;
+        return stats.localAttrs[DEX];
     }
 
     public int getTotalInt() {
-        return stats.localint_;
+        return stats.localAttrs[INT];
     }
 
     public int getTotalLuk() {
-        return stats.localluk;
+        return stats.localAttrs[LUK];
     }
 
     public int getTotalMagic() {
@@ -6337,7 +6303,7 @@ public class Character extends AbstractAnimatedMapObject {
         boolean isBeginner = isBeginnerJob();
         if (GameConfig.getServerBoolean("use_auto_assign_starters_ap") && isBeginner && level < 11) {
             effLock.lock();
-            statWlock.lock();
+            stats.wLock.lock();
             try {
                 gainAp(5, true);
 
@@ -6351,7 +6317,7 @@ public class Character extends AbstractAnimatedMapObject {
 
                 assignStrDexIntLuk(str, dex, 0, 0);
             } finally {
-                statWlock.unlock();
+                stats.wLock.unlock();
                 effLock.unlock();
             }
         } else {
@@ -6400,9 +6366,9 @@ public class Character extends AbstractAnimatedMapObject {
 
         if (GameConfig.getServerBoolean("use_randomize_hpmp_gain")) {
             if (getJobStyle() == Job.MAGICIAN) {
-                addmp += stats.localint_ / 20;
+                addmp += stats.localAttrs[INT] / 20;
             } else {
-                addmp += stats.localint_ / 10;
+                addmp += stats.localAttrs[INT] / 10;
             }
         }
 
@@ -6437,7 +6403,7 @@ public class Character extends AbstractAnimatedMapObject {
         levelUpGainSp();
 
         effLock.lock();
-        statWlock.lock();
+        stats.wLock.lock();
         try {
             recalcLocalStats();
             changeHpMp(stats.localMaxHp, stats.localMaxMp, true);
@@ -6451,12 +6417,12 @@ public class Character extends AbstractAnimatedMapObject {
             statup.add(new Pair<>(Stat.LEVEL, level));
             statup.add(new Pair<>(Stat.MAXHP, stats.clientMaxHp));
             statup.add(new Pair<>(Stat.MAXMP, stats.clientMaxMp));
-            statup.add(new Pair<>(Stat.STR, stats.str));
-            statup.add(new Pair<>(Stat.DEX, stats.dex));
+            statup.add(new Pair<>(Stat.STR, stats.attrs[STR]));
+            statup.add(new Pair<>(Stat.DEX, stats.attrs[DEX]));
 
             sendPacket(PacketCreator.updatePlayerStats(statup, true, this));
         } finally {
-            statWlock.unlock();
+            stats.wLock.unlock();
             effLock.unlock();
         }
 
@@ -6842,10 +6808,9 @@ public class Character extends AbstractAnimatedMapObject {
 
         ret.level = this.getLevel();
         ret.job = this.getJob();
-        ret.stats.str = this.getStr();
-        ret.stats.dex = this.getDex();
-        ret.stats.int_ = this.getInt();
-        ret.stats.luk = this.getLuk();
+        for (int i = 0; i < BASE_STAT_COUNT; i++) {
+            ret.stats.attrs[i] = this.stats.getAttr(i);
+        }
         ret.stats.hp = this.getHp();
         ret.setMaxHp(this.getMaxHp());
         ret.stats.mp = this.getMp();
@@ -7104,7 +7069,7 @@ public class Character extends AbstractAnimatedMapObject {
         cdo.setFame(chr.getFame());
 
         chr.effLock.lock();
-        chr.statWlock.lock();
+        chr.stats.statWlock.lock();
         try {
             // 此处虽然是可重入锁，但仍不建议锁2次，所以不使用get方法
             cdo.setExp(Math.abs(chr.exp.get()));
@@ -7118,7 +7083,7 @@ public class Character extends AbstractAnimatedMapObject {
             cdo.setSp(sps.toString());
             cdo.setAp(chr.remainingAp);
         } finally {
-            chr.statWlock.unlock();
+            chr.stats.statWlock.unlock();
             chr.effLock.unlock();
         }
 
@@ -7442,7 +7407,7 @@ public class Character extends AbstractAnimatedMapObject {
     public void reapplyLocalStats() {
         effLock.lock();
         chrLock.lock();
-        statWlock.lock();
+        stats.wLock.lock();
         try {
             stats.resetLocalToBase();
 
@@ -7475,10 +7440,10 @@ public class Character extends AbstractAnimatedMapObject {
 
             Integer mwarr = getBuffedValue(BuffStat.MAPLE_WARRIOR);
             if (mwarr != null) {
-                stats.localstr += getStr() * mwarr / 100;
-                stats.localdex += getDex() * mwarr / 100;
-                stats.localint_ += getInt() * mwarr / 100;
-                stats.localluk += getLuk() * mwarr / 100;
+                stats.localAttrs[STR] += getStr() * mwarr / 100;
+                stats.localAttrs[DEX] += getDex() * mwarr / 100;
+                stats.localAttrs[INT] += getInt() * mwarr / 100;
+                stats.localAttrs[LUK] += getLuk() * mwarr / 100;
             }
             if (job.isA(Job.BOWMAN)) {
                 Skill expert = null;
@@ -7554,7 +7519,7 @@ public class Character extends AbstractAnimatedMapObject {
                 // Add throwing stars to dmg.
             }
         } finally {
-            statWlock.unlock();
+            stats.wLock.unlock();
             chrLock.unlock();
             effLock.unlock();
         }
@@ -7563,7 +7528,7 @@ public class Character extends AbstractAnimatedMapObject {
     public List<Pair<Stat, Integer>> recalcLocalStats() {
         effLock.lock();
         chrLock.lock();
-        statWlock.lock();
+        stats.wLock.lock();
         try {
             List<Pair<Stat, Integer>> hpmpupdate = new ArrayList<>(2);
             int oldlocalmaxhp = stats.localMaxHp;
@@ -7599,7 +7564,7 @@ public class Character extends AbstractAnimatedMapObject {
 
             return hpmpupdate;
         } finally {
-            statWlock.unlock();
+            stats.wLock.unlock();
             chrLock.unlock();
             effLock.unlock();
         }
@@ -7608,7 +7573,7 @@ public class Character extends AbstractAnimatedMapObject {
     private void updateLocalStats() {
         prtLock.lock();
         effLock.lock();
-        statWlock.lock();
+        stats.wLock.lock();
         try {
             int oldmaxhp = stats.localMaxHp;
             List<Pair<Stat, Integer>> hpmpupdate = recalcLocalStats();
@@ -7622,7 +7587,7 @@ public class Character extends AbstractAnimatedMapObject {
                 updatePartyMemberHP();
             }
         } finally {
-            statWlock.unlock();
+            stats.wLock.unlock();
             effLock.unlock();
             prtLock.unlock();
         }
@@ -7707,9 +7672,9 @@ public class Character extends AbstractAnimatedMapObject {
         }
 
         effLock.lock();
-        statWlock.lock();
+        stats.wLock.lock();
         try {
-            int tap = ap.remainingAp + stats.str + stats.dex + stats.int_ + stats.luk, tsp = 1;
+            int tap = ap.remainingAp + stats.attrs[STR] + stats.attrs[DEX] + stats.attrs[INT] + stats.attrs[LUK], tsp = 1;
             int tstr = 4, tdex = 4, tint = 4, tluk = 4;
 
             switch (job.getId()) {
@@ -7746,14 +7711,14 @@ public class Character extends AbstractAnimatedMapObject {
             if (tap >= 0) {
                 // 属性与 SP 分两次静默应用，拼装变更集后一次性公告
                 Map<Stat, Integer> statUpdates = applyUpdateSilently(new StatsUpdate()
-                        .setStr(tstr).setDex(tdex).setInt(tint).setLuk(tluk).setAp(tap));
+                        .setAttr(STR, tstr).setAttr(DEX, tdex).setAttr(INT, tint).setAttr(LUK, tluk).setAp(tap));
                 statUpdates.putAll(changeRemainingSp(tsp, GameConstants.getSkillBook(job.getId()), true));
                 announceStatsUpdate(statUpdates);
             } else {
                 log.warn("Chr {} tried to have its stats reset without enough AP available", getName());
             }
         } finally {
-            statWlock.unlock();
+            stats.wLock.unlock();
             effLock.unlock();
         }
     }
@@ -7856,10 +7821,10 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public final boolean insertNewChar(CharacterFactoryRecipe recipe) {
-        stats.str = recipe.getStr();
-        stats.dex = recipe.getDex();
-        stats.int_ = recipe.getInt();
-        stats.luk = recipe.getLuk();
+        stats.attrs[STR] = recipe.getStr();
+        stats.attrs[DEX] = recipe.getDex();
+        stats.attrs[INT] = recipe.getInt();
+        stats.attrs[LUK] = recipe.getLuk();
         setMaxHp(recipe.getMaxHp());
         setMaxMp(recipe.getMaxMp());
         stats.hp = stats.maxHp;
@@ -8057,7 +8022,7 @@ public class Character extends AbstractAnimatedMapObject {
                     ps.setInt(2, fame);
 
                     effLock.lock();
-                    statWlock.lock();
+                    stats.wLock.lock();
                     try {
                         statsJson = toData().serialize();
 
@@ -8074,7 +8039,7 @@ public class Character extends AbstractAnimatedMapObject {
 
                         ps.setInt(6, ap.remainingAp);
                     } finally {
-                        statWlock.unlock();
+                        stats.wLock.unlock();
                         effLock.unlock();
                     }
 
@@ -8659,7 +8624,7 @@ public class Character extends AbstractAnimatedMapObject {
         boolean zombify = hasDisease(Disease.ZOMBIFY);
 
         effLock.lock();
-        statWlock.lock();
+        stats.wLock.lock();
         try {
             int nextHp = stats.hp + hpchange, nextMp = stats.mp + mpchange;
             boolean cannotApplyHp = hpchange != 0 && nextHp <= 0 && (!zombify || hpCon > 0);
@@ -8677,7 +8642,7 @@ public class Character extends AbstractAnimatedMapObject {
 
             updateHpMp(nextHp, nextMp);
         } finally {
-            statWlock.unlock();
+            stats.wLock.unlock();
             effLock.unlock();
         }
 

@@ -2,16 +2,26 @@ package org.gms.client.character;
 
 import org.gms.client.Job;
 import org.gms.model.json.CharacterStatsData;
+import org.gms.util.Locks;
 import org.gms.util.Pair;
 import org.gms.util.Randomizer;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 /**
- * 角属属性数据 + 纯计算。无 I/O、无发包、无锁（锁由 Character 持有并通过 Locks 使用）。
- * 字段全部 package-private，同包的 Character 直接访问，不提供 getter/setter。
+ * 角属属性数据 + 纯计算 + 属性读写锁（statRlock/statWlock）。无 I/O、无发包。
+ * 持锁路径直读字段更快；无外层锁时的单维读取走 getAttr。
+ * 字段 package-private，同包的 Character 直接访问，不提供 getter/setter。
  */
 public class CharacterStats {
-    // ── 基础属性 ──
-    int str, dex, int_, luk;
+    private final ReadWriteLock statLock = new ReentrantReadWriteLock(true);
+    final Lock rLock = statLock.readLock();
+    final Lock wLock = statLock.writeLock();
+
+    // ── 基础四维（下标见 BaseStat） ──
+    final int[] attrs = new int[BaseStat.BASE_STAT_COUNT];
 
     // ── HP / MP ──
     int hp, mp;
@@ -20,13 +30,13 @@ public class CharacterStats {
     float transientHp = Float.NEGATIVE_INFINITY;
     float transientMp = Float.NEGATIVE_INFINITY;
 
-    // ── local 系列（派生属性，recalc 后有效） ──
-    int localstr, localdex, localluk, localint_;
+    // ── local 系列（派生四维，recalc 后有效；下标见 BaseStat） ──
+    final int[] localAttrs = new int[BaseStat.BASE_STAT_COUNT];
     int localmagic, localwatk;
     int localMaxHp = 50, localMaxMp = 5;
 
-    // ── equip 系列（装备聚合中间值，recalcEquipStats 的输出、local 计算的输入） ──
-    int equipstr, equipdex, equipluk, equipint_;
+    // ── equip 系列（装备聚合中间四维，recalcEquipStats 的输出、local 计算的输入；下标见 BaseStat） ──
+    final int[] equipAttrs = new int[BaseStat.BASE_STAT_COUNT];
     int equipmagic, equipwatk;
     int equipmaxhp, equipmaxmp;
 
@@ -35,6 +45,13 @@ public class CharacterStats {
     int localchairmp;
 
     // ── 操作方法（package-private，由 Character 在持锁状态下调用） ──
+
+    /** 带锁读取单维（无外层锁时使用；持锁路径直读 attrs 更快） */
+    int getAttr(int idx) {
+        try (var ignored = Locks.acquire(rLock)) {
+            return attrs[idx];
+        }
+    }
 
     void setHp(int newHp) {
         int clamped = Math.clamp(newHp, 0, localMaxHp);
@@ -145,22 +162,21 @@ public class CharacterStats {
     void aggregateEquipStats(Iterable<org.gms.client.inventory.Equip> equips) {
         equipmaxhp = 0;
         equipmaxmp = 0;
-        equipdex = 0;
-        equipint_ = 0;
-        equipstr = 0;
-        equipluk = 0;
+        for (int i = 0; i < BaseStat.BASE_STAT_COUNT; i++) {
+            equipAttrs[i] = 0;
+        }
         equipmagic = 0;
         equipwatk = 0;
 
-        for (var equip : equips) {
-            equipmaxhp += equip.getHp();
-            equipmaxmp += equip.getMp();
-            equipdex += equip.getDex();
-            equipint_ += equip.getInt();
-            equipstr += equip.getStr();
-            equipluk += equip.getLuk();
-            equipmagic += equip.getMatk() + equip.getInt();
-            equipwatk += equip.getWatk();
+        for (var eq : equips) {
+            equipmaxhp += eq.getHp();
+            equipmaxmp += eq.getMp();
+            equipAttrs[BaseStat.DEX] += eq.getDex();
+            equipAttrs[BaseStat.INT] += eq.getInt();
+            equipAttrs[BaseStat.STR] += eq.getStr();
+            equipAttrs[BaseStat.LUK] += eq.getLuk();
+            equipmagic += eq.getMatk() + eq.getInt();
+            equipwatk += eq.getWatk();
         }
     }
 
@@ -168,10 +184,9 @@ public class CharacterStats {
     void applyEquipToLocal() {
         localMaxHp += equipmaxhp;
         localMaxMp += equipmaxmp;
-        localdex += equipdex;
-        localint_ += equipint_;
-        localstr += equipstr;
-        localluk += equipluk;
+        for (int i = 0; i < BaseStat.BASE_STAT_COUNT; i++) {
+            localAttrs[i] += equipAttrs[i];
+        }
         localmagic += equipmagic;
         localwatk += equipwatk;
     }
@@ -180,11 +195,10 @@ public class CharacterStats {
     void resetLocalToBase() {
         localMaxHp = maxHp;
         localMaxMp = maxMp;
-        localdex = dex;
-        localint_ = int_;
-        localstr = str;
-        localluk = luk;
-        localmagic = localint_;
+        for (int i = 0; i < BaseStat.BASE_STAT_COUNT; i++) {
+            localAttrs[i] = attrs[i];
+        }
+        localmagic = localAttrs[BaseStat.INT];
         localwatk = 0;
         localchairrate = -1;
     }
@@ -193,16 +207,27 @@ public class CharacterStats {
 
     public CharacterStatsData toData() {
         CharacterStatsData d = new CharacterStatsData();
-        d.str = str; d.dex = dex; d.int_ = int_; d.luk = luk;
-        d.hp = hp; d.mp = mp; d.maxHp = maxHp; d.maxMp = maxMp;
+        d.str = attrs[BaseStat.STR];
+        d.dex = attrs[BaseStat.DEX];
+        d.int_ = attrs[BaseStat.INT];
+        d.luk = attrs[BaseStat.LUK];
+        d.hp = hp;
+        d.mp = mp;
+        d.maxHp = maxHp;
+        d.maxMp = maxMp;
         return d;
     }
 
     public void applyData(CharacterStatsData d) {
-        str = d.str; dex = d.dex; int_ = d.int_; luk = d.luk;
-        hp = d.hp; mp = d.mp; maxHp = d.maxHp; maxMp = d.maxMp;
+        attrs[BaseStat.STR] = d.str;
+        attrs[BaseStat.DEX] = d.dex;
+        attrs[BaseStat.INT] = d.int_;
+        attrs[BaseStat.LUK] = d.luk;
+        hp = d.hp;
+        mp = d.mp;
+        maxHp = d.maxHp;
+        maxMp = d.maxMp;
         clientMaxHp = Math.min(30000, maxHp);
         clientMaxMp = Math.min(30000, maxMp);
     }
 }
-
