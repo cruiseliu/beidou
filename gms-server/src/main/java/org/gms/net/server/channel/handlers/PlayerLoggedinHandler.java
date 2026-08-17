@@ -42,7 +42,6 @@ import org.gms.constants.game.GameConstants;
 import org.gms.manager.ServerManager;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
-import org.gms.net.server.PlayerBuffValueHolder;
 import org.gms.net.server.Server;
 import org.gms.net.server.channel.Channel;
 import org.gms.net.server.channel.CharacterIdChannelPair;
@@ -237,11 +236,7 @@ public final class PlayerLoggedinHandler extends AbstractPacketHandler {
             wserv.addPlayer(player);
             player.setEnteredChannelWorld();
 
-            List<PlayerBuffValueHolder> buffs = server.getPlayerBuffStorage().getBuffsFromStorage(cid);
-            if (buffs != null) {
-                List<Pair<Long, PlayerBuffValueHolder>> timedBuffs = getLocalStartTimes(buffs);
-                player.silentGiveBuffs(timedBuffs);
-            }
+            player.resumeBuffs();   // 同对象冻结恢复（换频道/商城/MTS 重入）；未冻结时空操作
 
             Map<Disease, Pair<Long, MobSkill>> diseases = server.getPlayerBuffStorage().getDiseasesFromStorage(cid);
             if (diseases != null) {
@@ -501,16 +496,4 @@ public final class PlayerLoggedinHandler extends AbstractPacketHandler {
         }
     }
 
-    private static List<Pair<Long, PlayerBuffValueHolder>> getLocalStartTimes(List<PlayerBuffValueHolder> lpbvl) {
-        List<Pair<Long, PlayerBuffValueHolder>> timedBuffs = new ArrayList<>();
-        long curtime = currentServerTime();
-
-        for (PlayerBuffValueHolder pb : lpbvl) {
-            timedBuffs.add(new Pair<>(curtime - pb.usedTime, pb));
-        }
-
-        timedBuffs.sort((p1, p2) -> p1.getLeft().compareTo(p2.getLeft()));
-
-        return timedBuffs;
-    }
 }

@@ -88,14 +88,13 @@ public final class EnterMTSHandler extends AbstractPacketHandler {
         chr.closePartySearchInteractions();
 
         chr.unregisterChairBuff();
-        Server.getInstance().getPlayerBuffStorage().addBuffsToStorage(chr.getId(), chr.getAllBuffs());
+        chr.freezeBuffs(true);
+        chr.removeSummonsFromMap();
         Server.getInstance().getPlayerBuffStorage().addDiseasesToStorage(chr.getId(), chr.getAllDiseases());
         chr.setAwayFromChannelWorld();
         chr.notifyMapTransferToPartner(-1);
         chr.removeIncomingInvites();
-        chr.cancelAllBuffs(true);
         chr.cancelAllDebuffs();
-        chr.cancelBuffExpireTask();
         chr.cancelDiseaseExpireTask();
         chr.stopSkillTimers();
         chr.cancelExpirationTask();

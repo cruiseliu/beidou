@@ -5,7 +5,6 @@ import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.client.Job;
 import org.gms.config.GameConfig;
-import org.gms.net.server.PlayerBuffValueHolder;
 import org.gms.net.server.Server;
 import org.gms.server.ItemInformationProvider;
 import org.gms.server.StatEffect;
@@ -19,19 +18,19 @@ import org.gms.server.maps.Door;
 import org.gms.server.maps.Summon;
 import org.gms.util.Locks;
 import org.gms.util.Pair;
+import org.gms.util.TopologicalSorter;
 import org.gms.util.TimeoutHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.Stack;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
-import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -56,11 +55,8 @@ class CharacterBuffs {
     private static final Logger log = LoggerFactory.getLogger(CharacterBuffs.class);
 
     private final Character owner;
+    private final CharacterEffects state;
 
-    /** 每槽位当前激活的最佳效果（"IN ACTION"） */
-    final EnumMap<BuffStat, BuffStatValueHolder> effects = new EnumMap<>(BuffStat.class);
-    /** 每槽位在册计数 */
-    final Map<BuffStat, Byte> buffEffectsCount = new LinkedHashMap<>();
     /** 全部在册效果（含被压制的同槽位旧 buff），key = buffSourceId */
     final Map<Integer, Map<BuffStat, BuffStatValueHolder>> buffEffects = new LinkedHashMap<>();
     /** 每源到期时刻 */
@@ -69,8 +65,12 @@ class CharacterBuffs {
     /** buff 到期定时器（id = sourceid，timestamp = 到期时刻），替代原 1.5s 周期扫描 */
     private final TimeoutHelper expireTimer = new TimeoutHelper();
 
-    CharacterBuffs(Character owner) {
+    /** 冻结时刻，-1 = 未冻结 */
+    private long frozenAt = -1;
+
+    CharacterBuffs(Character owner, CharacterEffects state) {
         this.owner = owner;
+        this.state = state;
         expireTimer.setListener((sourceid, timestamp) -> {
             BuffStatValueHolder mbsvh;
             try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
@@ -100,76 +100,69 @@ class CharacterBuffs {
         expireTimer.stop();
     }
 
+    /**
+     * 冻结全部 buff 计时（离开游戏世界：换频道/进商城/进MTS）。
+     * 簿记保留在本对象上（对象在过渡期间存活于 world storage），仅停表并记录冻结时刻。
+     *
+     * @param announceCancel 对齐旧版取消链的客户端表现：发 CANCEL_BUFF/cancelForeignBuff
+     *                       通知召唤类槽位"取消"（假取消——服务端不移除，重入时恢复）
+     */
+    void freeze(boolean announceCancel) {
+        frozenAt = Server.getInstance().getCurrentTime();
+        stopExpireTimer();
+
+        if (announceCancel) {
+            Set<BuffStat> toCancel = new LinkedHashSet<>();
+            for (BuffStat slot : new BuffStat[]{BuffStat.SUMMON, BuffStat.PUPPET}) {
+                BuffStatValueHolder holder = state.effects.get(slot);
+                if (holder != null) {
+                    for (Pair<BuffStat, Integer> p : holder.effect.getStatups()) {
+                        toCancel.add(p.getLeft());
+                    }
+                }
+            }
+            if (!toCancel.isEmpty()) {
+                List<BuffStat> list = new ArrayList<>(toCancel);
+                owner.sendPacket(PacketCreator.cancelBuff(list));
+                owner.getMap().broadcastMessage(owner, PacketCreator.cancelForeignBuff(owner.getId(), list), false);
+            }
+        }
+    }
+
+    boolean isFrozen() {
+        return frozenAt >= 0;
+    }
+
+    /** 恢复 buff 计时：推移冻结期间跳过的时间并重启到期定时器。未冻结时空操作。 */
+    void resume() {
+        if (frozenAt < 0) {
+            return;
+        }
+        long skipped = Server.getInstance().getCurrentTime() - frozenAt;
+        frozenAt = -1;
+        if (skipped > 0) {
+            try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
+                for (Map<BuffStat, BuffStatValueHolder> bel : buffEffects.values()) {
+                    for (BuffStatValueHolder holder : bel.values()) {
+                        holder.startTime += skipped;
+                    }
+                }
+                buffExpires.replaceAll((srcid, expirationtime) -> expirationtime + skipped);
+            }
+        }
+        startExpireTimer();
+    }
+
     // ── 查询 ──
 
-    Long getBuffedStarttime(BuffStat effect) {
+    /** 按 buffSourceId 去重的在册效果列表 */
+    List<StatEffect> getAllBuffs() {
         try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-            BuffStatValueHolder mbsvh = effects.get(effect);
-            if (mbsvh == null) {
-                return null;
-            }
-            return mbsvh.startTime;
-        }
-    }
-
-    Integer getBuffedValue(BuffStat effect) {
-        try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-            BuffStatValueHolder mbsvh = effects.get(effect);
-            if (mbsvh == null) {
-                return null;
-            }
-            return mbsvh.value;
-        }
-    }
-
-    int getBuffSource(BuffStat stat) {
-        try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-            BuffStatValueHolder mbsvh = effects.get(stat);
-            if (mbsvh == null) {
-                return -1;
-            }
-            return mbsvh.effect.getSourceId();
-        }
-    }
-
-    StatEffect getBuffEffect(BuffStat stat) {
-        try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-            BuffStatValueHolder mbsvh = effects.get(stat);
-            return mbsvh == null ? null : mbsvh.effect;
-        }
-    }
-
-    boolean isBuffFrom(BuffStat stat, org.gms.client.Skill skill) {
-        try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-            BuffStatValueHolder mbsvh = effects.get(stat);
-            if (mbsvh == null) {
-                return false;
-            }
-            return mbsvh.effect.isSkill() && mbsvh.effect.getSourceId() == skill.getId();
-        }
-    }
-
-    void setBuffedValue(BuffStat effect, int value) {
-        try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-            BuffStatValueHolder mbsvh = effects.get(effect);
-            if (mbsvh == null) {
-                return;
-            }
-            mbsvh.value = value;
-        }
-    }
-
-    List<PlayerBuffValueHolder> getAllBuffs() {  // buff values will be stored in an arbitrary order
-        try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-            long curtime = Server.getInstance().getCurrentTime();
-
-            Map<Integer, PlayerBuffValueHolder> ret = new LinkedHashMap<>();
+            Map<Integer, StatEffect> ret = new LinkedHashMap<>();
             for (Map<BuffStat, BuffStatValueHolder> bel : buffEffects.values()) {
                 for (BuffStatValueHolder mbsvh : bel.values()) {
                     int srcid = mbsvh.effect.getBuffSourceId();
-                    if (!ret.containsKey(srcid)) {
-                        ret.put(srcid, new PlayerBuffValueHolder((int) (curtime - mbsvh.startTime), mbsvh.effect));
-                    }
+                    ret.putIfAbsent(srcid, mbsvh.effect);
                 }
             }
             return new ArrayList<>(ret.values());
@@ -180,20 +173,6 @@ class CharacterBuffs {
         try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
             return buffEffects.containsKey(sourceid);
         }
-    }
-
-    boolean hasActiveBuff(int sourceid) {
-        LinkedList<BuffStatValueHolder> allBuffs;
-        try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-            allBuffs = new LinkedList<>(effects.values());
-        }
-
-        for (BuffStatValueHolder mbsvh : allBuffs) {
-            if (mbsvh.effect.getBuffSourceId() == sourceid) {
-                return true;
-            }
-        }
-        return false;
     }
 
     List<BuffStatValueHolder> getAllStatups() {
@@ -212,7 +191,7 @@ class CharacterBuffs {
         List<Pair<BuffStat, Integer>> singletonStatups = new ArrayList<>();
         for (Map.Entry<BuffStat, BuffStatValueHolder> bel : buffEffects.get(sourceid).entrySet()) {
             BuffStat mbs = bel.getKey();
-            BuffStatValueHolder mbsvh = effects.get(bel.getKey());
+            BuffStatValueHolder mbsvh = state.effects.get(bel.getKey());
 
             Pair<BuffStat, Integer> p;
             if (mbsvh != null) {
@@ -241,8 +220,15 @@ class CharacterBuffs {
 
     void debugListAllBuffs() {
         try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
+            Map<BuffStat, Long> cachedCounts = new LinkedHashMap<>();
+            for (Map<BuffStat, BuffStatValueHolder> bel : buffEffects.values()) {
+                for (BuffStat stat : bel.keySet()) {
+                    cachedCounts.merge(stat, 1L, Long::sum);
+                }
+            }
+
             log.debug("-------------------");
-            log.debug("CACHED BUFF COUNT: {}", buffEffectsCount.entrySet().stream()
+            log.debug("CACHED BUFF COUNT: {}", cachedCounts.entrySet().stream()
                     .map(entry -> entry.getKey() + ": " + entry.getValue())
                     .collect(Collectors.joining(", "))
             );
@@ -256,7 +242,7 @@ class CharacterBuffs {
             );
 
             log.debug("-------------------");
-            log.debug("IN ACTION: {}", effects.entrySet().stream()
+            log.debug("IN ACTION: {}", state.effects.entrySet().stream()
                     .map(entry -> entry.getKey().name() + " -> " + ItemInformationProvider.getInstance().getName(entry.getValue().effect.getSourceId()))
                     .collect(Collectors.joining(", "))
             );
@@ -275,8 +261,6 @@ class CharacterBuffs {
         Map<BuffStat, BuffStatValueHolder> lbe = buffEffects.get(sourceid);
 
         if (lbe.remove(buffStat) != null) {
-            buffEffectsCount.put(buffStat, (byte) (buffEffectsCount.get(buffStat) - 1));
-
             if (lbe.isEmpty()) {
                 buffEffects.remove(sourceid);
                 buffExpires.remove(sourceid);
@@ -290,13 +274,7 @@ class CharacterBuffs {
     }
 
     void removeItemEffectHolder(Integer sourceid) {
-        Map<BuffStat, BuffStatValueHolder> be = buffEffects.remove(sourceid);
-        if (be != null) {
-            for (Map.Entry<BuffStat, BuffStatValueHolder> bei : be.entrySet()) {
-                buffEffectsCount.put(bei.getKey(), (byte) (buffEffectsCount.get(bei.getKey()) - 1));
-            }
-        }
-
+        buffEffects.remove(sourceid);
         buffExpires.remove(sourceid);
         expireTimer.cancel(sourceid);
     }
@@ -323,7 +301,7 @@ class CharacterBuffs {
         }
 
         if (mbsvh != null) {
-            effects.put(mbs, mbsvh);
+            state.effects.put(mbs, mbsvh);
         }
         return mbsvh;
     }
@@ -340,10 +318,7 @@ class CharacterBuffs {
             Map<BuffStat, BuffStatValueHolder> buffList = buffEffects.remove(effect.getBuffSourceId());
 
             if (buffList != null) {
-                for (Map.Entry<BuffStat, BuffStatValueHolder> stateffect : buffList.entrySet()) {
-                    stats.put(stateffect.getKey(), stateffect.getValue());
-                    buffEffectsCount.put(stateffect.getKey(), (byte) (buffEffectsCount.get(stateffect.getKey()) - 1));
-                }
+                stats.putAll(buffList);
             }
 
             return stats;
@@ -387,7 +362,6 @@ class CharacterBuffs {
 
                     Map<BuffStat, BuffStatValueHolder> lpbe = buffEffects.get(mbsvh.effect.getBuffSourceId());
                     lpbe.remove(it.getKey());
-                    buffEffectsCount.put(it.getKey(), (byte) (buffEffectsCount.get(it.getKey()) - 1));
 
                     if (lpbe.isEmpty()) {
                         buffEffects.remove(mbsvh.effect.getBuffSourceId());
@@ -400,17 +374,6 @@ class CharacterBuffs {
         return extractedStatBuffs;
     }
 
-    void addItemEffectHolderCount(BuffStat stat) {
-        Byte val = buffEffectsCount.get(stat);
-        if (val != null) {
-            val = (byte) (val + 1);
-        } else {
-            val = (byte) 1;
-        }
-
-        buffEffectsCount.put(stat, val);
-    }
-
     // ── 全量取消 ──
 
     void cancelAllBuffs(boolean softcancel) {
@@ -418,9 +381,8 @@ class CharacterBuffs {
             try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
                 owner.cancelEffectFromBuffStat(BuffStat.SUMMON);
                 owner.cancelEffectFromBuffStat(BuffStat.PUPPET);
-                owner.cancelEffectFromBuffStat(BuffStat.COMBO);
 
-                effects.clear();
+                state.effects.clear();
 
                 for (Integer srcid : new ArrayList<>(buffEffects.keySet())) {
                     removeItemEffectHolder(srcid);
@@ -510,10 +472,10 @@ class CharacterBuffs {
                 BuffStat mbs = stat.getKey();
                 effectsToCancel.add(new Pair<>(mbs, stat.getValue()));
 
-                BuffStatValueHolder mbsvh = effects.get(mbs);
+                BuffStatValueHolder mbsvh = state.effects.get(mbs);
                 if (mbsvh != null && mbsvh.effect.getBuffSourceId() == sourceid) {
                     mbsvh.bestApplied = true;
-                    effects.remove(mbs);
+                    state.effects.remove(mbs);
 
                     if (mbs == BuffStat.RECOVERY) {
                         if (owner.recoveryTask != null) {
@@ -521,27 +483,9 @@ class CharacterBuffs {
                             owner.recoveryTask = null;
                         }
                     } else if (mbs == BuffStat.SUMMON || mbs == BuffStat.PUPPET) {
-                        int summonId = mbsvh.effect.getSourceId();
-
-                        Summon summon = owner.summons.get(summonId);
+                        Summon summon = owner.summons.get(mbsvh.effect.getSourceId());
                         if (summon != null) {
-                            owner.getMap().broadcastMessage(PacketCreator.removeSummon(summon, true), summon.getPosition());
-                            owner.getMap().removeMapObject(summon);
-                            owner.removeVisibleMapObject(summon);
-
-                            owner.summons.remove(summonId);
-                            if (summon.isPuppet()) {
-                                owner.map.removePlayerPuppet(owner);
-                            } else if (summon.getSkill() == DarkKnight.BEHOLDER) {
-                                if (owner.beholderHealingSchedule != null) {
-                                    owner.beholderHealingSchedule.cancel(false);
-                                    owner.beholderHealingSchedule = null;
-                                }
-                                if (owner.beholderBuffSchedule != null) {
-                                    owner.beholderBuffSchedule.cancel(false);
-                                    owner.beholderBuffSchedule = null;
-                                }
-                            }
+                            owner.removeSummonAndPuppet(summon);
                         }
                     } else if (mbs == BuffStat.DRAGONBLOOD) {
                         owner.dragonBloodSchedule.cancel(false);
@@ -619,7 +563,7 @@ class CharacterBuffs {
         if (!overwrite) {   // is removing the source effect, meaning every effect from this srcid is being purged
             buffstats = extractCurrentBuffStats(effect);
         } else if ((ombs = getSingletonStatupFromEffect(effect)) != null) {   // removing all effects of a buff having non-shareable buff stat.
-            BuffStatValueHolder mbsvh = effects.get(ombs);
+            BuffStatValueHolder mbsvh = state.effects.get(ombs);
             if (mbsvh != null) {
                 buffstats = extractCurrentBuffStats(mbsvh.effect);
             }
@@ -652,7 +596,7 @@ class CharacterBuffs {
         owner.effLock.lock();
         owner.chrLock.lock();
         try {
-            effect = effects.get(stat);
+            effect = state.effects.get(stat);
         } finally {
             owner.chrLock.unlock();
             owner.effLock.unlock();
@@ -706,108 +650,29 @@ class CharacterBuffs {
         }
     }
 
-    private static Map<StatEffect, Integer> topologicalSortLeafStatCount(Map<BuffStat, Stack<StatEffect>> buffStack) {
-        Map<StatEffect, Integer> leafBuffCount = new LinkedHashMap<>();
-
-        for (Entry<BuffStat, Stack<StatEffect>> e : buffStack.entrySet()) {
-            Stack<StatEffect> mseStack = e.getValue();
-            if (mseStack.isEmpty()) {
-                continue;
-            }
-
-            StatEffect mse = mseStack.peek();
-            leafBuffCount.merge(mse, 1, Integer::sum);
-        }
-
-        return leafBuffCount;
-    }
-
-    private static List<StatEffect> topologicalSortRemoveLeafStats(Map<StatEffect, Set<BuffStat>> stackedBuffStats, Map<BuffStat, Stack<StatEffect>> buffStack, Map<StatEffect, Integer> leafStatCount) {
-        List<StatEffect> clearedStatEffects = new LinkedList<>();
-        Set<BuffStat> clearedStats = new LinkedHashSet<>();
-
-        for (Entry<StatEffect, Integer> e : leafStatCount.entrySet()) {
-            StatEffect mse = e.getKey();
-
-            if (stackedBuffStats.get(mse).size() <= e.getValue()) {
-                clearedStatEffects.add(mse);
-                clearedStats.addAll(stackedBuffStats.get(mse));
-            }
-        }
-
-        for (BuffStat mbs : clearedStats) {
-            StatEffect mse = buffStack.get(mbs).pop();
-            stackedBuffStats.get(mse).remove(mbs);
-        }
-
-        return clearedStatEffects;
-    }
-
-    private static void topologicalSortRebaseLeafStats(Map<StatEffect, Set<BuffStat>> stackedBuffStats, Map<BuffStat, Stack<StatEffect>> buffStack) {
-        for (Entry<BuffStat, Stack<StatEffect>> e : buffStack.entrySet()) {
-            Stack<StatEffect> mseStack = e.getValue();
-
-            if (!mseStack.isEmpty()) {
-                StatEffect mse = mseStack.pop();
-                stackedBuffStats.get(mse).remove(e.getKey());
-            }
-        }
-    }
-
-    private static List<StatEffect> topologicalSortEffects(Map<BuffStat, List<Pair<StatEffect, Integer>>> buffEffects) {
-        Map<StatEffect, Set<BuffStat>> stackedBuffStats = new LinkedHashMap<>();
-        Map<BuffStat, Stack<StatEffect>> buffStack = new LinkedHashMap<>();
-
-        for (Entry<BuffStat, List<Pair<StatEffect, Integer>>> e : buffEffects.entrySet()) {
-            BuffStat mbs = e.getKey();
-
-            Stack<StatEffect> mbsStack = new Stack<>();
-            buffStack.put(mbs, mbsStack);
-
-            for (Pair<StatEffect, Integer> emse : e.getValue()) {
-                StatEffect mse = emse.getLeft();
-                mbsStack.push(mse);
-                Set<BuffStat> mbsStats = stackedBuffStats.computeIfAbsent(mse, k -> new LinkedHashSet<>());
-                mbsStats.add(mbs);
-            }
-        }
-
-        List<StatEffect> buffList = new LinkedList<>();
-        while (true) {
-            Map<StatEffect, Integer> leafStatCount = topologicalSortLeafStatCount(buffStack);
-            if (leafStatCount.isEmpty()) {
-                break;
-            }
-
-            List<StatEffect> clearedNodes = topologicalSortRemoveLeafStats(stackedBuffStats, buffStack, leafStatCount);
-            if (clearedNodes.isEmpty()) {
-                topologicalSortRebaseLeafStats(stackedBuffStats, buffStack);
-            } else {
-                buffList.addAll(clearedNodes);
-            }
-        }
-
-        return buffList;
-    }
-
+    /**
+     * 传播更新的发送序（弱→强，最强者的包最后落地）。
+     * 偏序约束：两效果共享某槽位且前者槽位值更低（更弱、被后者压制）→ 前者先发。
+     */
     private static List<StatEffect> sortEffectsList(Map<StatEffect, Integer> updateEffectsList) {
-        Map<BuffStat, List<Pair<StatEffect, Integer>>> buffEffects = new LinkedHashMap<>();
-
-        for (Entry<StatEffect, Integer> p : updateEffectsList.entrySet()) {
-            StatEffect mse = p.getKey();
-
+        Map<StatEffect, Map<BuffStat, Integer>> effectSlots = new LinkedHashMap<>();
+        for (StatEffect mse : updateEffectsList.keySet()) {
+            Map<BuffStat, Integer> slots = new LinkedHashMap<>();
             for (Pair<BuffStat, Integer> statup : mse.getStatups()) {
-                BuffStat stat = statup.getLeft();
-                List<Pair<StatEffect, Integer>> statBuffs = buffEffects.computeIfAbsent(stat, k -> new ArrayList<>());
-                statBuffs.add(new Pair<>(mse, statup.getRight()));
+                slots.put(statup.getLeft(), statup.getRight());
             }
+            effectSlots.put(mse, slots);
         }
 
-        for (Entry<BuffStat, List<Pair<StatEffect, Integer>>> statBuffs : buffEffects.entrySet()) {
-            statBuffs.getValue().sort((o1, o2) -> o2.getRight().compareTo(o1.getRight()));
-        }
-
-        return topologicalSortEffects(buffEffects);
+        return TopologicalSorter.sort(effectSlots.keySet(), (a, b) -> {
+            for (Entry<BuffStat, Integer> ea : effectSlots.get(a).entrySet()) {
+                Integer vb = effectSlots.get(b).get(ea.getKey());
+                if (vb != null && ea.getValue() < vb) {
+                    return true;
+                }
+            }
+            return false;
+        });
     }
 
     private List<Pair<Integer, Pair<StatEffect, Long>>> propagatePriorityBuffEffectUpdates(Set<BuffStat> retrievedStats) {
@@ -820,11 +685,11 @@ class CharacterBuffs {
         for (BuffStatValueHolder mbsvh : mbsvhList) {
             StatEffect mse = mbsvh.effect;
             int buffSourceId = mse.getBuffSourceId();
-            if (CharacterBuffs.isPriorityBuffSourceId(buffSourceId) && !hasActiveBuff(buffSourceId)) {
+            if (CharacterBuffs.isPriorityBuffSourceId(buffSourceId) && !state.hasActiveBuff(buffSourceId)) {
                 for (Pair<BuffStat, Integer> ps : mse.getStatups()) {
                     BuffStat mbs = ps.getLeft();
                     if (retrievedStats.contains(mbs)) {
-                        BuffStatValueHolder mbsvhe = effects.get(mbs);
+                        BuffStatValueHolder mbsvhe = state.effects.get(mbs);
 
                         // this shouldn't even be null...
                         //if (mbsvh != null) {
@@ -853,7 +718,7 @@ class CharacterBuffs {
 
         Map<BuffStat, Pair<Integer, StatEffect>> maxBuffValue = new LinkedHashMap<>();
         for (BuffStat mbs : retrievedStats) {
-            BuffStatValueHolder mbsvh = effects.get(mbs);
+            BuffStatValueHolder mbsvh = state.effects.get(mbs);
             if (mbsvh != null) {
                 retrievedEffects.put(mbsvh.effect.getBuffSourceId(), new Pair<>(mbsvh.effect, mbsvh.startTime));
             }
@@ -1010,7 +875,7 @@ class CharacterBuffs {
                 }
 
                 owner.recoveryTask = TimerManager.getInstance().register(() -> {
-                    if (getBuffSource(BuffStat.RECOVERY) == -1) {
+                    if (state.getBuffSource(BuffStat.RECOVERY) == -1) {
                         owner.chrLock.lock();
                         try {
                             if (owner.recoveryTask != null) {
@@ -1072,7 +937,7 @@ class CharacterBuffs {
                 Map<Integer, Pair<StatEffect, Long>> retrievedEffects = new LinkedHashMap<>();
                 Set<BuffStat> retrievedStats = new LinkedHashSet<>();
                 for (Entry<BuffStat, BuffStatValueHolder> statup : appliedStatups.entrySet()) {
-                    BuffStatValueHolder mbsvh = effects.get(statup.getKey());
+                    BuffStatValueHolder mbsvh = state.effects.get(statup.getKey());
                     BuffStatValueHolder statMbsvh = statup.getValue();
 
                     if (active) {
@@ -1087,7 +952,6 @@ class CharacterBuffs {
                         }
                     }
 
-                    addItemEffectHolderCount(statup.getKey());
                 }
 
                 // should also propagate update from buffs shared with priority sourceids
@@ -1104,7 +968,7 @@ class CharacterBuffs {
 
                 if (!isSilent) {
                     addItemEffectHolder(sourceid, expirationtime, appliedStatups);
-                    effects.putAll(toDeploy);
+                    state.effects.putAll(toDeploy);
 
                     if (active) {
                         retrievedEffects.put(sourceid, new Pair<>(effect, starttime));
@@ -1113,15 +977,11 @@ class CharacterBuffs {
                     propagateBuffEffectUpdates(retrievedEffects, retrievedStats, new LinkedHashSet<>());
                 }
             } else {
-                for (Entry<BuffStat, BuffStatValueHolder> statup : appliedStatups.entrySet()) {
-                    addItemEffectHolderCount(statup.getKey());
-                }
-
                 toDeploy = (active ? appliedStatups : new LinkedHashMap<>());
             }
 
             addItemEffectHolder(sourceid, expirationtime, appliedStatups);
-            effects.putAll(toDeploy);
+            state.effects.putAll(toDeploy);
         } finally {
             owner.chrLock.unlock();
             owner.effLock.unlock();
@@ -1129,13 +989,6 @@ class CharacterBuffs {
         }
 
         owner.updateLocalStats();
-    }
-
-    public void silentGiveBuffs(List<Pair<Long, PlayerBuffValueHolder>> buffList) {
-        for (Pair<Long, PlayerBuffValueHolder> mbsv : buffList) {
-            PlayerBuffValueHolder mbsvh = mbsv.getRight();
-            mbsvh.effect.silentApplyBuff(owner, mbsv.getLeft());
-        }
     }
 
     // ── 传播更新（updateActiveEffects 家族，原 Character 平移） ──
@@ -1168,7 +1021,7 @@ class CharacterBuffs {
             Set<BuffStat> updatedBuffs = new LinkedHashSet<>();
             Set<StatEffect> activeEffects = new LinkedHashSet<>();
 
-            for (BuffStatValueHolder mse : effects.values()) {
+            for (BuffStatValueHolder mse : state.effects.values()) {
                 activeEffects.add(mse.effect);
             }
 
@@ -1182,7 +1035,7 @@ class CharacterBuffs {
             }
 
             for (BuffStat mbs : updatedBuffs) {
-                effects.remove(mbs);
+                state.effects.remove(mbs);
             }
 
             updateEffects(updatedBuffs);
@@ -1200,7 +1053,7 @@ class CharacterBuffs {
             for (BuffStat mbs : removedStats) {
                 fetchBestEffectFromItemEffectHolder(mbs);
 
-                BuffStatValueHolder mbsvh = effects.get(mbs);
+                BuffStatValueHolder mbsvh = state.effects.get(mbs);
                 if (mbsvh != null) {
                     for (Pair<BuffStat, Integer> statup : mbsvh.effect.getStatups()) {
                         retrievedStats.add(statup.getLeft());

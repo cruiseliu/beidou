@@ -1245,11 +1245,7 @@ public class StatEffect {
         chr.registerEffect(this, localStartTime, localStartTime + localDuration, true);
         SummonMovementType summonMovementType = getSummonMovementType();
         if (summonMovementType != null) {
-            final Summon tosummon = new Summon(chr, sourceid, chr.getPosition(), summonMovementType);
-            if (!tosummon.isStationary()) {
-                chr.addSummon(sourceid, tosummon);
-                tosummon.addHP(x);
-            }
+            chr.restoreSummonAndPuppet(sourceid, summonMovementType, x);
         }
         if (sourceid == Corsair.BATTLE_SHIP) {
             chr.announceBattleshipHp();

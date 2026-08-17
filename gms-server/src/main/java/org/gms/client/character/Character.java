@@ -74,7 +74,6 @@ import org.gms.model.json.CharacterData;
 import org.gms.model.pojo.NewYearCardRecord;
 import org.gms.model.pojo.SkillEntry;
 import org.gms.net.packet.Packet;
-import org.gms.net.server.PlayerBuffValueHolder;
 import org.gms.net.server.PlayerCoolDownValueHolder;
 import org.gms.net.server.Server;
 import org.gms.net.server.coordinator.world.InviteCoordinator;
@@ -143,7 +142,8 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterStats stats = new CharacterStats();
     final CharacterAp ap = new CharacterAp(this);
     final CharacterSp sp = new CharacterSp(this);
-    final CharacterBuffs buffs = new CharacterBuffs(this);
+    final CharacterEffects effectState = new CharacterEffects(this);
+    final CharacterBuffs buffs = new CharacterBuffs(this, effectState);
 
     final ReadWriteLock statLock = new ReentrantReadWriteLock(true);
     final Lock effLock = new ReentrantLock(true);
@@ -1194,6 +1194,42 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
+    /**
+     * 召唤物/傀儡的地图侧移除：广播、地图对象、登记与小灵伴随调度清理。
+     * 语义上属召唤物域（地图对象管理），非 buff——由 buff 取消链调用。
+     */
+    void removeSummonAndPuppet(Summon summon) {
+        getMap().broadcastMessage(PacketCreator.removeSummon(summon, true), summon.getPosition());
+        getMap().removeMapObject(summon);
+        removeVisibleMapObject(summon);
+
+        summons.remove(summon.getSkill());
+        if (summon.isPuppet()) {
+            map.removePlayerPuppet(this);
+        } else if (summon.getSkill() == DarkKnight.BEHOLDER) {
+            if (beholderHealingSchedule != null) {
+                beholderHealingSchedule.cancel(false);
+                beholderHealingSchedule = null;
+            }
+            if (beholderBuffSchedule != null) {
+                beholderBuffSchedule.cancel(false);
+                beholderBuffSchedule = null;
+            }
+        }
+    }
+
+    /**
+     * 冻结恢复时的召唤物/傀儡重建：仅服务端登记（summons/puppet 关联），不生成地图对象、不发包——
+     * 原版静默恢复语义，客户端无感知直至重新施放。
+     */
+    public void restoreSummonAndPuppet(int skillid, SummonMovementType movementType, int hp) {
+        Summon summon = new Summon(this, skillid, getPosition(), movementType);
+        if (!summon.isStationary()) {
+            addSummon(skillid, summon);
+            summon.addHP(hp);
+        }
+    }
+
     public void addSummon(int id, Summon summon) {
         summons.put(id, summon);
 
@@ -1910,7 +1946,7 @@ public class Character extends AbstractAnimatedMapObject {
         effLock.lock();
         chrLock.lock();
         try {
-            for (Entry<BuffStat, BuffStatValueHolder> mbs : buffs.effects.entrySet()) {
+            for (Entry<BuffStat, BuffStatValueHolder> mbs : effectState.effects.entrySet()) {
                 if (mbs.getKey() == BuffStat.MAP_PROTECTION) {
                     byte value = (byte) mbs.getValue().value;
 
@@ -3482,19 +3518,19 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public Long getBuffedStarttime(BuffStat effect) {
-        return buffs.getBuffedStarttime(effect);
+        return effectState.getBuffedStarttime(effect);
     }
 
     public Integer getBuffedValue(BuffStat effect) {
-        return buffs.getBuffedValue(effect);
+        return effectState.getBuffedValue(effect);
     }
 
     public int getBuffSource(BuffStat stat) {
-        return buffs.getBuffSource(stat);
+        return effectState.getBuffSource(stat);
     }
 
     public StatEffect getBuffEffect(BuffStat stat) {
-        return buffs.getBuffEffect(stat);
+        return effectState.getBuffEffect(stat);
     }
 
     List<BuffStatValueHolder> getAllStatups() {
@@ -3525,8 +3561,31 @@ public class Character extends AbstractAnimatedMapObject {
         buffs.cancelBuffStats(stat);
     }
 
-    public void silentGiveBuffs(List<Pair<Long, PlayerBuffValueHolder>> buffList) {
-        buffs.silentGiveBuffs(buffList);
+    public void freezeBuffs(boolean announceCancel) {
+        buffs.freeze(announceCancel);
+    }
+
+    public boolean isBuffsFrozen() {
+        return buffs.isFrozen();
+    }
+
+    public void resumeBuffs() {
+        buffs.resume();
+    }
+
+    /**
+     * 离开游戏世界（换频道/商城/MTS）时的召唤物地图侧清理：广播移除、摘除地图对象与 puppet 关联。
+     * summons 登记与小灵伴随调度保留在对象上（冻结期间靠 awayFromWorld 守卫空转）。
+     */
+    public void removeSummonsFromMap() {
+        for (Summon summon : new ArrayList<>(summons.values())) {
+            getMap().broadcastMessage(PacketCreator.removeSummon(summon, true), summon.getPosition());
+            getMap().removeMapObject(summon);
+            removeVisibleMapObject(summon);
+            if (summon.isPuppet()) {
+                map.removePlayerPuppet(this);
+            }
+        }
     }
 
     private static int getJobMapChair(Job job) {
@@ -4707,7 +4766,7 @@ public class Character extends AbstractAnimatedMapObject {
         effLock.lock();
         chrLock.lock();
         try {
-            BuffStatValueHolder mbsvh = buffs.effects.get(effect);
+            BuffStatValueHolder mbsvh = effectState.effects.get(effect);
             if (mbsvh == null) {
                 return null;
             }
@@ -4884,7 +4943,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public boolean isBuffFrom(BuffStat stat, Skill skill) {
-        return buffs.isBuffFrom(stat, skill);
+        return effectState.isBuffFrom(stat, skill);
     }
 
     public boolean isGmJob() {
@@ -7029,10 +7088,10 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void setBuffedValue(BuffStat effect, int value) {
-        buffs.setBuffedValue(effect, value);
+        effectState.setBuffedValue(effect, value);
     }
 
-    public List<PlayerBuffValueHolder> getAllBuffs() {
+    public List<StatEffect> getAllBuffs() {
         return buffs.getAllBuffs();
     }
 
@@ -7041,7 +7100,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public boolean hasActiveBuff(int sourceid) {
-        return buffs.hasActiveBuff(sourceid);
+        return effectState.hasActiveBuff(sourceid);
     }
 
     List<Pair<BuffStat, Integer>> getActiveStatupsFromSourceid(int sourceid) {
@@ -7070,10 +7129,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     void extractBuffValue(int sourceid, BuffStat stat) {
         buffs.extractBuffValue(sourceid, stat);
-    }
-
-    void addItemEffectHolderCount(BuffStat stat) {
-        buffs.addItemEffectHolderCount(stat);
     }
 
     public void debugListAllBuffs() {

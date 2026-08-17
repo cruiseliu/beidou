@@ -37,7 +37,6 @@ import org.gms.constants.id.MobId;
 import org.gms.constants.skills.*;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
-import org.gms.net.server.PlayerBuffValueHolder;
 import org.gms.scripting.AbstractPlayerInteraction;
 import org.gms.server.StatEffect;
 import org.gms.server.TimerManager;
@@ -848,8 +847,8 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
         }
 
         int bonusDmgBuff = 100;
-        for (PlayerBuffValueHolder pbvh : chr.getAllBuffs()) {
-            int bonusDmg = pbvh.effect.getDamage() - 100;
+        for (StatEffect buffEffect : chr.getAllBuffs()) {
+            int bonusDmg = buffEffect.getDamage() - 100;
             bonusDmgBuff += bonusDmg;
         }
 

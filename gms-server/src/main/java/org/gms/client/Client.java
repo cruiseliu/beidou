@@ -932,7 +932,13 @@ public class Client extends ChannelInboundHandlerAdapter {
             player.setDisconnectedFromChannelWorld();
             player.notifyMapTransferToPartner(-1);
             player.removeIncomingInvites();
-            player.cancelAllBuffs(true);
+            if (player.isBuffsFrozen() && serverTransition) {
+                // 过渡中冻结且对象存活（换频道/商城/MTS）：簿记保留，仅召唤物地图侧清理
+                player.removeSummonsFromMap();
+            } else {
+                // 常规断开/过渡中夭折：随对象消亡，重连按数据库状态重建
+                player.cancelAllBuffs(true);
+            }
 
             player.closePlayerInteractions();
             player.closePartySearchInteractions();
@@ -1524,14 +1530,13 @@ public class Client extends ChannelInboundHandlerAdapter {
         player.closePartySearchInteractions();
 
         player.unregisterChairBuff();
-        server.getPlayerBuffStorage().addBuffsToStorage(player.getId(), player.getAllBuffs());
+        player.freezeBuffs(true);
+        player.removeSummonsFromMap();
         server.getPlayerBuffStorage().addDiseasesToStorage(player.getId(), player.getAllDiseases());
         player.setDisconnectedFromChannelWorld();
         player.notifyMapTransferToPartner(-1);
         player.removeIncomingInvites();
-        player.cancelAllBuffs(true);
         player.cancelAllDebuffs();
-        player.cancelBuffExpireTask();
         player.cancelDiseaseExpireTask();
         player.stopSkillTimers();
         player.cancelQuestExpirationTask();
