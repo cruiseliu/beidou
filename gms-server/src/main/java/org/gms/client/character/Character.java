@@ -1406,8 +1406,8 @@ public class Character extends AbstractAnimatedMapObject {
     public void cancelMagicDoor() {
         List<EffectStatus> effects = getAllStatups();
         for (EffectStatus effect : effects) {
-            if (effect.data.isMagicDoor()) {
-                cancelEffect(effect.data, false);
+            if (effect.getData().isMagicDoor()) {
+                cancelEffect(effect.getData(), false);
                 break;
             }
         }
@@ -2416,7 +2416,7 @@ public class Character extends AbstractAnimatedMapObject {
         if (ItemConstants.isPartyItem(itemId)) {// 判断是否为队伍共享类道具
             List<Character> partyMembers = this.getPartyMembersOnSameMap();// 获取同一地图内的队伍成员列表
             if (!ItemId.isPartyAllCure(itemId)) {// 处理非全体治疗类道具
-                EffectData mse = ii.getItemEffect(itemId);// 获取道具效果对象
+                BuffEffectData mse = ii.getItemEffect(itemId);// 获取道具效果对象
                 if (!partyMembers.isEmpty()) {
                     for (Character mc : partyMembers) {// 遍历存活队友并施加效果
                         if (mc.isAlive()) {
@@ -2891,9 +2891,9 @@ public class Character extends AbstractAnimatedMapObject {
         if (!(GameConfig.getServerBoolean("use_undispel_holy_shield") && this.hasActiveBuff(Bishop.HOLY_SHIELD))) {
             List<EffectStatus> effects = getAllStatups();
             for (EffectStatus effect : effects) {
-                if (effect.data.isSkill()) {
-                    if (effect.data.getBuffSourceId() != Aran.COMBO_ABILITY) { // check discovered thanks to Croosade dev team
-                        cancelEffect(effect.data, false);
+                if (effect.getData().isSkill()) {
+                    if (effect.getData().getBuffSourceId() != Aran.COMBO_ABILITY) { // check discovered thanks to Croosade dev team
+                        cancelEffect(effect.getData(), false);
                     }
                 }
             }
@@ -3082,11 +3082,11 @@ public class Character extends AbstractAnimatedMapObject {
         List<EffectStatus> effects = getAllStatups();
         for (EffectStatus effect : effects) {
             if (skillid == 0) {
-                if (effect.data.isSkill() && (effect.data.getSourceId() % 10000000 == 1004 || dispelSkills(effect.data.getSourceId()))) {
-                    cancelEffect(effect.data, false);
+                if (effect.getData().isSkill() && (effect.getData().getSourceId() % 10000000 == 1004 || dispelSkills(effect.getData().getSourceId()))) {
+                    cancelEffect(effect.getData(), false);
                 }
-            } else if (effect.data.isSkill() && effect.data.getSourceId() == skillid) {
-                cancelEffect(effect.data, false);
+            } else if (effect.getData().isSkill() && effect.getData().getSourceId() == skillid) {
+                cancelEffect(effect.getData(), false);
             }
         }
     }
@@ -3529,7 +3529,7 @@ public class Character extends AbstractAnimatedMapObject {
         return effectState.getBuffSource(stat);
     }
 
-    public EffectData getBuffEffect(EffectType stat) {
+    public BuffEffectData getBuffEffect(EffectType stat) {
         return effectState.getBuffEffect(stat);
     }
 
@@ -3541,21 +3541,21 @@ public class Character extends AbstractAnimatedMapObject {
         buffs.updateActiveEffects();
     }
 
-    public void registerEffect(EffectData effect, long starttime, long expirationtime, boolean isSilent) {
+    public void registerEffect(BuffEffectData effect, long starttime, long expirationtime, boolean isSilent) {
         buffs.registerEffect(effect, starttime, expirationtime, isSilent);
     }
 
     public void cancelEffect(int itemId) {
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
-        buffs.cancelEffect(ii.getItemEffect(itemId), false);
+        buffs.cancelBuff(ii.getItemEffect(itemId).getBuffSourceId(), false);
     }
 
-    public boolean cancelEffect(EffectData effect, boolean overwrite) {
-        return buffs.cancelEffect(effect, overwrite);
+    public boolean cancelEffect(BuffEffectData effect, boolean overwrite) {
+        return buffs.cancelBuff(effect.getBuffSourceId(), overwrite);
     }
 
-    public boolean cancelEffect(EffectData effect, boolean overwrite, long _unused_startTime) {
-        return buffs.cancelEffect(effect, overwrite);
+    public boolean cancelEffect(BuffEffectData effect, boolean overwrite, long _unused_startTime) {
+        return buffs.cancelBuff(effect.getBuffSourceId(), overwrite);
     }
 
     public void cancelEffectFromBuffStat(EffectType stat) {
@@ -3609,7 +3609,7 @@ public class Character extends AbstractAnimatedMapObject {
         int skillId = getJobMapChair(job);
         int skillLv = getSkillLevel(skillId);
         if (skillLv > 0) {
-            EffectData mapChairSkill = SkillFactory.getSkill(skillId).getEffect(skillLv);
+            BuffEffectData mapChairSkill = SkillFactory.getSkill(skillId).getEffect(skillLv);
             return cancelEffect(mapChairSkill, false, -1);
         }
 
@@ -3624,7 +3624,7 @@ public class Character extends AbstractAnimatedMapObject {
         int skillId = getJobMapChair(job);
         int skillLv = getSkillLevel(skillId);
         if (skillLv > 0) {
-            EffectData mapChairSkill = SkillFactory.getSkill(skillId).getEffect(skillLv);
+            BuffEffectData mapChairSkill = SkillFactory.getSkill(skillId).getEffect(skillLv);
             mapChairSkill.applyTo(this);
             return true;
         }
@@ -4009,12 +4009,12 @@ public class Character extends AbstractAnimatedMapObject {
         float rate = 100.0f;
 
         if (itemid == 0) {
-            EffectData mseMeso = getBuffEffect(EffectType.MESO_UP_BY_ITEM);
+            BuffEffectData mseMeso = getBuffEffect(EffectType.MESO_UP_BY_ITEM);
             if (mseMeso != null) {
                 rate += mseMeso.getCardRate(mapId, itemid);
             }
         } else {
-            EffectData mseItem = getBuffEffect(EffectType.ITEM_UP_BY_ITEM);
+            BuffEffectData mseItem = getBuffEffect(EffectType.ITEM_UP_BY_ITEM);
             if (mseItem != null) {
                 rate += mseItem.getCardRate(mapId, itemid);
             }
@@ -4767,7 +4767,7 @@ public class Character extends AbstractAnimatedMapObject {
         return Collections.unmodifiableList(ret);
     }
 
-    public EffectData getStatForBuff(EffectType effect) {
+    public BuffEffectData getStatForBuff(EffectType effect) {
         effLock.lock();
         chrLock.lock();
         try {
@@ -4775,7 +4775,7 @@ public class Character extends AbstractAnimatedMapObject {
             if (mbsvh == null) {
                 return null;
             }
-            return mbsvh.data;
+            return mbsvh.getData();
         } finally {
             chrLock.unlock();
             effLock.unlock();
@@ -4840,7 +4840,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void handleEnergyChargeGain() { // to get here energychargelevel has to be > 0
         Skill energycharge = isCygnus() ? SkillFactory.getSkill(ThunderBreaker.ENERGY_CHARGE) : SkillFactory.getSkill(Marauder.ENERGY_CHARGE);
-        EffectData ceffect;
+        BuffEffectData ceffect;
         ceffect = energycharge.getEffect(getSkillLevel(energycharge));
         TimerManager tMan = TimerManager.getInstance();
         if (energyBar < 10000) {
@@ -5498,7 +5498,7 @@ public class Character extends AbstractAnimatedMapObject {
         }
 
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
-        EffectData mse = ii.getItemEffect(couponid);
+        BuffEffectData mse = ii.getItemEffect(couponid);
         mse.applyTo(this);
     }
 
@@ -5506,8 +5506,8 @@ public class Character extends AbstractAnimatedMapObject {
         List<EffectStatus> effects = getAllStatups();
 
         for (EffectStatus effect : effects) {
-            if (ItemConstants.isRateCoupon(effect.data.getSourceId())) {
-                cancelEffect(effect.data, false);
+            if (ItemConstants.isRateCoupon(effect.getData().getSourceId())) {
+                cancelEffect(effect.getData(), false);
             }
         }
     }
@@ -6118,7 +6118,7 @@ public class Character extends AbstractAnimatedMapObject {
         setStance(0);
     }
 
-    void prepareDragonBlood(final EffectData bloodEffect) {
+    void prepareDragonBlood(final BuffEffectData bloodEffect) {
         if (dragonBloodSchedule != null) {
             dragonBloodSchedule.cancel(false);
         }
@@ -6169,14 +6169,14 @@ public class Character extends AbstractAnimatedMapObject {
             stats.localMaxHp = Math.min(30000, stats.localMaxHp);
             stats.localMaxMp = Math.min(30000, stats.localMaxMp);
 
-            EffectData combo = getBuffEffect(EffectType.ARAN_COMBO);
+            BuffEffectData combo = getBuffEffect(EffectType.ARAN_COMBO);
             if (combo != null) {
                 stats.localwatk += combo.getX();
             }
 
             if (energyBar == 15000) {
                 Skill energycharge = isCygnus() ? SkillFactory.getSkill(ThunderBreaker.ENERGY_CHARGE) : SkillFactory.getSkill(Marauder.ENERGY_CHARGE);
-                EffectData ceffect = energycharge.getEffect(getSkillLevel(energycharge));
+                BuffEffectData ceffect = energycharge.getEffect(getSkillLevel(energycharge));
                 stats.localwatk += ceffect.getWatk();
             }
 
@@ -7096,8 +7096,8 @@ public class Character extends AbstractAnimatedMapObject {
         effectState.setBuffedValue(effect, value);
     }
 
-    public List<EffectData> getAllBuffs() {
-        return buffs.getOneEffectDataPerBuff();
+    public List<BuffEffectData> getAllBuffs() {
+        return buffs.getAllBuffEffectData();
     }
 
     public boolean hasBuffFromSourceid(int sourceid) {

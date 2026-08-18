@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
 import org.gms.scripting.event.EventInstanceManager;
 import org.gms.scripting.map.MapScriptManager;
 import org.gms.server.ItemInformationProvider;
-import org.gms.server.EffectData;
+import org.gms.server.BuffEffectData;
 import org.gms.server.TimerManager;
 import org.gms.server.events.gm.Coconut;
 import org.gms.server.events.gm.Fitness;
@@ -1453,7 +1453,7 @@ public class MapleMap {
                         for (MapObject mmo : this.getPlayers()) {
                             Character character = (Character) mmo;
                             if (character.isAlive()) {
-                                EffectData statEffect = mii.getItemEffect(buff);
+                                BuffEffectData statEffect = mii.getItemEffect(buff);
                                 character.sendPacket(PacketCreator.showOwnBuffEffect(buff, 1));
                                 broadcastMessage(character, PacketCreator.showBuffEffect(character.getId(), buff, 1), false);
                                 statEffect.applyTo(character);
@@ -2593,7 +2593,7 @@ public class MapleMap {
             }
         }
 
-        EffectData summonStat = chr.getStatForBuff(EffectType.SUMMON);
+        BuffEffectData summonStat = chr.getStatForBuff(EffectType.SUMMON);
         if (summonStat != null) {
             Summon summon = chr.getSummonByKey(summonStat.getSourceId());
             summon.setPosition(chr.getPosition());

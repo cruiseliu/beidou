@@ -126,7 +126,7 @@ import java.util.Map;
  * @author Frz
  * @author Ronan
  */
-public class EffectData {
+public class BuffEffectData {
     private short watk, matk, wdef, mdef, acc, avoid, speed, jump;
     private short hp, mp;
     private double hpR, mpR;
@@ -212,11 +212,11 @@ public class EffectData {
         return 0;
     }
 
-    public static EffectData loadSkillEffectFromData(Data source, int skillid, boolean overtime) {
+    public static BuffEffectData loadSkillEffectFromData(Data source, int skillid, boolean overtime) {
         return loadFromData(source, skillid, true, overtime);
     }
 
-    public static EffectData loadItemEffectFromData(Data source, int itemid) {
+    public static BuffEffectData loadItemEffectFromData(Data source, int itemid) {
         return loadFromData(source, itemid, false, false);
     }
 
@@ -236,8 +236,8 @@ public class EffectData {
         }
     }
 
-    private static EffectData loadFromData(Data source, int sourceid, boolean skill, boolean overTime) {
-        EffectData ret = new EffectData();
+    private static BuffEffectData loadFromData(Data source, int sourceid, boolean skill, boolean overTime) {
+        BuffEffectData ret = new BuffEffectData();
         ret.duration = DataTool.getIntConvert("time", source, -1);
         ret.hp = (short) DataTool.getInt("hp", source, 0);
         ret.hpR = DataTool.getInt("hpR", source, 0) / 100.0;
@@ -1494,7 +1494,7 @@ public class EffectData {
 
     private int alchemistModifyVal(Character chr, int val, boolean withX) {
         if (!skill && (chr.getJob().isA(Job.HERMIT) || chr.getJob().isA(Job.NIGHTWALKER3))) {
-            EffectData alchemistEffect = getAlchemistEffect(chr);
+            BuffEffectData alchemistEffect = getAlchemistEffect(chr);
             if (alchemistEffect != null) {
                 return (int) (val * ((withX ? alchemistEffect.getX() : alchemistEffect.getY()) / 100.0));
             }
@@ -1502,7 +1502,7 @@ public class EffectData {
         return val;
     }
 
-    private EffectData getAlchemistEffect(Character chr) {
+    private BuffEffectData getAlchemistEffect(Character chr) {
         int id = Hermit.ALCHEMIST;
         if (chr.isCygnus()) {
             id = NightWalker.ALCHEMIST;
@@ -1903,7 +1903,7 @@ public class EffectData {
         return statups;
     }
 
-    public boolean sameSource(EffectData effect) {
+    public boolean sameSource(BuffEffectData effect) {
         return this.sourceid == effect.sourceid && this.skill == effect.skill;
     }
 

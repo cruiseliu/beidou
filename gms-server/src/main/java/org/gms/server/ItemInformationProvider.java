@@ -91,7 +91,7 @@ public class ItemInformationProvider {
     protected Data insStringData;
     protected Data petStringData;
     protected Map<Integer, Short> slotMaxCache = new HashMap<>();
-    protected Map<Integer, EffectData> itemEffects = new HashMap<>();
+    protected Map<Integer, BuffEffectData> itemEffects = new HashMap<>();
     protected Map<Integer, Map<String, Integer>> equipStatsCache = new HashMap<>();
     protected Map<Integer, Equip> equipCache = new HashMap<>();
     protected Map<Integer, Data> equipLevelInfoCache = new HashMap<>();
@@ -1304,8 +1304,8 @@ public class ItemInformationProvider {
         return equip;
     }
 
-    public EffectData getItemEffect(int itemId) {
-        EffectData ret = itemEffects.get(itemId);
+    public BuffEffectData getItemEffect(int itemId) {
+        BuffEffectData ret = itemEffects.get(itemId);
         if (ret == null) {
             Data item = getItemData(itemId);
             if (item == null) {
@@ -1315,7 +1315,7 @@ public class ItemInformationProvider {
             if (spec == null) {
                 spec = item.getChildByPath("spec");
             }
-            ret = EffectData.loadItemEffectFromData(spec, itemId);
+            ret = BuffEffectData.loadItemEffectFromData(spec, itemId);
             itemEffects.put(itemId, ret);
         }
         return ret;

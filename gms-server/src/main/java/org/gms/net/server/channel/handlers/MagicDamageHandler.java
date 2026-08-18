@@ -34,7 +34,7 @@ import org.gms.constants.skills.FPArchMage;
 import org.gms.constants.skills.ILArchMage;
 import org.gms.net.packet.InPacket;
 import org.gms.net.packet.Packet;
-import org.gms.server.EffectData;
+import org.gms.server.BuffEffectData;
 import org.gms.util.PacketCreator;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -69,9 +69,9 @@ public final class MagicDamageHandler extends AbstractDealDamageHandler {
         Packet packet = PacketCreator.magicAttack(chr, attack.skill, attack.skilllevel, attack.stance, attack.numAttackedAndDamage, attack.allDamage, charge, attack.speed, attack.direction, attack.display);
 
         chr.getMap().broadcastMessage(chr, packet, false, true);
-        EffectData effect = attack.getAttackEffect(chr, null);
+        BuffEffectData effect = attack.getAttackEffect(chr, null);
         Skill skill = SkillFactory.getSkill(attack.skill);
-        EffectData effect_ = skill.getEffect(chr.getSkillLevel(skill));
+        BuffEffectData effect_ = skill.getEffect(chr.getSkillLevel(skill));
         if (effect_.getCooldown() > 0) {
             if (chr.skillIsCooling(attack.skill)) {
                 return;

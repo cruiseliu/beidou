@@ -38,7 +38,7 @@ import org.gms.constants.skills.NightWalker;
 import org.gms.constants.skills.Rogue;
 import org.gms.constants.skills.WindArcher;
 import org.gms.net.packet.InPacket;
-import org.gms.server.EffectData;
+import org.gms.server.BuffEffectData;
 import org.gms.server.partyquest.Pyramid;
 import org.gms.util.I18nUtil;
 import org.gms.util.PacketCreator;
@@ -99,7 +99,7 @@ public final class CloseRangeDamageHandler extends AbstractDealDamageHandler {
                 int advcomboid = chr.isCygnus() ? DawnWarrior.ADVANCED_COMBO : Hero.ADVANCED_COMBO;
                 Skill combo = SkillFactory.getSkill(oid);
                 Skill advcombo = SkillFactory.getSkill(advcomboid);
-                EffectData ceffect;
+                BuffEffectData ceffect;
                 int advComboSkillLevel = chr.getSkillLevel(advcombo);
                 if (advComboSkillLevel > 0) {
                     ceffect = advcombo.getEffect(advComboSkillLevel);
@@ -179,7 +179,7 @@ public final class CloseRangeDamageHandler extends AbstractDealDamageHandler {
         } else if (attack.skill > 0) {
             Skill skill = SkillFactory.getSkill(attack.skill);
             int skillLevel = pyramidSkill ? 1 : chr.getSkillLevel(skill);
-            EffectData effect_ = skill.getEffect(skillLevel);
+            BuffEffectData effect_ = skill.getEffect(skillLevel);
             if (effect_.getCooldown() > 0) {
                 if (chr.skillIsCooling(attack.skill)) {
                     return;

@@ -47,7 +47,7 @@ import org.gms.net.packet.Packet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.gms.server.ItemInformationProvider;
-import org.gms.server.EffectData;
+import org.gms.server.BuffEffectData;
 import org.gms.util.PacketCreator;
 import org.gms.util.Randomizer;
 
@@ -114,7 +114,7 @@ public final class RangedAttackHandler extends AbstractDealDamageHandler {
             int projectile = 0;
             short bulletCount = 1;
             short supplement = 0;   //用于补充平衡之怒的变量
-            EffectData effect = null;
+            BuffEffectData effect = null;
             if (attack.skill != 0) {
                 effect = attack.getAttackEffect(chr, null);
                 bulletCount = effect.getBulletCount();
@@ -232,7 +232,7 @@ public final class RangedAttackHandler extends AbstractDealDamageHandler {
 
                 if (attack.skill != 0) {
                     Skill skill = SkillFactory.getSkill(attack.skill);
-                    EffectData effect_ = skill.getEffect(chr.getSkillLevel(skill));
+                    BuffEffectData effect_ = skill.getEffect(chr.getSkillLevel(skill));
                     if (effect_.getCooldown() > 0) {
                         if (chr.skillIsCooling(attack.skill)) {
                             return;

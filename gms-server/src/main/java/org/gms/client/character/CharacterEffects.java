@@ -1,7 +1,7 @@
 package org.gms.client.character;
 
 import org.gms.client.EffectType;
-import org.gms.server.EffectData;
+import org.gms.server.BuffEffectData;
 import org.gms.util.Locks;
 
 import java.util.EnumMap;
@@ -29,7 +29,7 @@ class CharacterEffects {
             if (effect == null) {
                 return null;
             }
-            return effect.startTime;
+            return effect.buff.startTime;
         }
     }
 
@@ -49,14 +49,14 @@ class CharacterEffects {
             if (effect == null) {
                 return -1;
             }
-            return effect.data.getSourceId();
+            return effect.getData().getSourceId();
         }
     }
 
-    EffectData getBuffEffect(EffectType stat) {
+    BuffEffectData getBuffEffect(EffectType stat) {
         try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
             EffectStatus mbsvh = effects.get(stat);
-            return mbsvh == null ? null : mbsvh.data;
+            return mbsvh == null ? null : mbsvh.getData();
         }
     }
 
@@ -66,7 +66,7 @@ class CharacterEffects {
             if (mbsvh == null) {
                 return false;
             }
-            return mbsvh.data.isSkill() && mbsvh.data.getSourceId() == skill.getId();
+            return mbsvh.getData().isSkill() && mbsvh.getData().getSourceId() == skill.getId();
         }
     }
 
@@ -89,7 +89,7 @@ class CharacterEffects {
         }
 
         for (EffectStatus mbsvh : allBuffs) {
-            if (mbsvh.data.getBuffSourceId() == sourceid) {
+            if (mbsvh.getData().getBuffSourceId() == sourceid) {
                 return true;
             }
         }

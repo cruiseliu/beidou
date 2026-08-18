@@ -38,7 +38,7 @@ import org.gms.constants.skills.*;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
 import org.gms.scripting.AbstractPlayerInteraction;
-import org.gms.server.EffectData;
+import org.gms.server.BuffEffectData;
 import org.gms.server.TimerManager;
 import org.gms.server.life.Element;
 import org.gms.server.life.ElementalEffectiveness;
@@ -78,7 +78,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
         public int speed = 4;
         public Point position = new Point();
 
-        public EffectData getAttackEffect(Character chr, Skill theSkill) {
+        public BuffEffectData getAttackEffect(Character chr, Skill theSkill) {
             Skill mySkill = theSkill;
             if (mySkill == null) {
                 mySkill = SkillFactory.getSkill(skill);
@@ -129,7 +129,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
         }
 
         Skill theSkill = null;
-        EffectData attackEffect = null;
+        BuffEffectData attackEffect = null;
         final int job = player.getJob().getId();
         try {
             if (player.isBanned()) {
@@ -393,13 +393,13 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                         long duration = SECONDS.toMillis(SkillFactory.getSkill(ILArchMage.ICE_DEMON).getEffect(player.getSkillLevel(SkillFactory.getSkill(ILArchMage.ICE_DEMON))).getDuration());
                         monster.setTempEffectiveness(Element.FIRE, ElementalEffectiveness.WEAK, duration);
                     } else if (attack.skill == Outlaw.HOMING_BEACON || attack.skill == Corsair.BULLSEYE) {
-                        EffectData beacon = SkillFactory.getSkill(attack.skill).getEffect(player.getSkillLevel(attack.skill));
+                        BuffEffectData beacon = SkillFactory.getSkill(attack.skill).getEffect(player.getSkillLevel(attack.skill));
                         beacon.applyBeaconBuff(player, monster.getObjectId());
                     } else if (attack.skill == Outlaw.FLAME_THROWER) {
                         if (!monster.isBoss()) {
                             Skill type = SkillFactory.getSkill(Outlaw.FLAME_THROWER);
                             if (player.getSkillLevel(type) > 0) {
-                                EffectData DoT = type.getEffect(player.getSkillLevel(type));
+                                BuffEffectData DoT = type.getEffect(player.getSkillLevel(type));
                                 MonsterStatusEffect monsterStatusEffect = new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.POISON, 1), type, null, false);
                                 monster.applyStatus(player, monsterStatusEffect, true, DoT.getDuration(), false);
                             }
@@ -480,7 +480,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                     } else if (job == 412 || job == 422 || job == 1411) {
                         Skill type = SkillFactory.getSkill(player.getJob().getId() == 412 ? 4120005 : (player.getJob().getId() == 1411 ? 14110004 : 4220005));
                         if (player.getSkillLevel(type) > 0) {
-                            EffectData venomEffect = type.getEffect(player.getSkillLevel(type));
+                            BuffEffectData venomEffect = type.getEffect(player.getSkillLevel(type));
                             for (int i = 0; i < attackCount; i++) {
                                 if (venomEffect.makeChanceResult()) {
                                     if (monster.getVenomMulti() < 3) {
@@ -502,7 +502,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
 
                             int skillLevel = player.getSkillLevel(mortalBlow);
                             if (skillLevel > 0) {
-                                EffectData mortal = mortalBlow.getEffect(skillLevel);
+                                BuffEffectData mortal = mortalBlow.getEffect(skillLevel);
                                 if (monster.getHp() <= (monster.getStats().getHp() * mortal.getX()) / 100) {
                                     if (Randomizer.rand(1, 100) <= mortal.getY()) {
                                         map.damageMonster(player, monster, Integer.MAX_VALUE);  // thanks Conrad for noticing reduced EXP gain from skill kill
@@ -756,7 +756,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
             calcDmgMax = chr.calculateMaxBaseDamage(chr.getTotalWatk());
         }
 
-        EffectData effect = null;
+        BuffEffectData effect = null;
         if (ret.skill != 0) {
             Skill skill = SkillFactory.getSkill(ret.skill);
             effect = skill.getEffect(ret.skilllevel);
@@ -810,7 +810,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
 
             if (comboBuff > 6) {
                 // Advanced Combo
-                EffectData ceffect = SkillFactory.getSkill(advcomboid).getEffect(chr.getSkillLevel(advcomboid));
+                BuffEffectData ceffect = SkillFactory.getSkill(advcomboid).getEffect(chr.getSkillLevel(advcomboid));
                 calcDmgMax = (long) Math.floor(calcDmgMax * (ceffect.getDamage() + 50) / 100 + 0.20 + (comboBuff - 5) * 0.04);
             } else {
                 // Normal Combo
@@ -820,7 +820,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                 }
 
                 if (skillLv > 0) {
-                    EffectData ceffect = SkillFactory.getSkill(oid).getEffect(skillLv);
+                    BuffEffectData ceffect = SkillFactory.getSkill(oid).getEffect(skillLv);
                     calcDmgMax = (long) Math.floor(calcDmgMax * (ceffect.getDamage() + 50) / 100 + Math.floor((comboBuff - 1) * (skillLv / 6)) / 100);
                 }
             }
@@ -842,12 +842,12 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
 
         if (chr.getEnergyBar() == 15000) {
             int energycharge = chr.isCygnus() ? ThunderBreaker.ENERGY_CHARGE : Marauder.ENERGY_CHARGE;
-            EffectData ceffect = SkillFactory.getSkill(energycharge).getEffect(chr.getSkillLevel(energycharge));
+            BuffEffectData ceffect = SkillFactory.getSkill(energycharge).getEffect(chr.getSkillLevel(energycharge));
             calcDmgMax *= (100 + ceffect.getDamage()) / 100;
         }
 
         int bonusDmgBuff = 100;
-        for (EffectData buffEffect : chr.getAllBuffs()) {
+        for (BuffEffectData buffEffect : chr.getAllBuffs()) {
             int bonusDmg = buffEffect.getDamage() - 100;
             bonusDmgBuff += bonusDmg;
         }
@@ -863,7 +863,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
 
         boolean canCrit = chr.getJob().isA((Job.BOWMAN)) || chr.getJob().isA(Job.THIEF) || chr.getJob().isA(Job.NIGHTWALKER1) || chr.getJob().isA(Job.WINDARCHER1) || chr.getJob() == Job.ARAN3 || chr.getJob() == Job.ARAN4 || chr.getJob() == Job.MARAUDER || chr.getJob() == Job.BUCCANEER;
 
-        EffectData sharpEyesEffect = chr.getBuffEffect(EffectType.SHARP_EYES);
+        BuffEffectData sharpEyesEffect = chr.getBuffEffect(EffectType.SHARP_EYES);
         if (sharpEyesEffect != null) {
             // Any class that has sharp eyes can crit. Also, since it stacks with normal crit go ahead
             // and calc it in.
@@ -1027,7 +1027,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
      * 优先用技能自身的范围框判断本次攻击是否合法命中怪物。
      * 命中技能框时，跳过后续基于中心点距离的 DISTANCE_HACK 检测。
      */
-    private static boolean isWithinAttackBox(Character player, Monster monster, EffectData attackEffect, AttackInfo attack, Point alternatePlayerPos, Point secondaryAlternatePlayerPos) {
+    private static boolean isWithinAttackBox(Character player, Monster monster, BuffEffectData attackEffect, AttackInfo attack, Point alternatePlayerPos, Point secondaryAlternatePlayerPos) {
         Rectangle monsterBounds = getMonsterBounds(monster);
         Point monsterPos = monster.getPosition();
         boolean directionFacingLeft = isFacingLeftByDirection(attack.direction);
@@ -1054,7 +1054,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
     /**
      * 使用指定朝向计算技能框，并判断是否命中怪物范围框。
      */
-    private static boolean isWithinAttackBox(Point playerPos, Rectangle monsterBounds, Point monsterPos, EffectData attackEffect, boolean facingLeft) {
+    private static boolean isWithinAttackBox(Point playerPos, Rectangle monsterBounds, Point monsterPos, BuffEffectData attackEffect, boolean facingLeft) {
         if (attackEffect == null || !attackEffect.hasBoundingBox()) {
             return false;
         }
@@ -1063,7 +1063,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
         return attackBounds.intersects(monsterBounds) || attackBounds.contains(monsterPos);
     }
 
-    private static boolean intersectsAnyAttackBox(Rectangle monsterBounds, Point monsterPos, EffectData attackEffect, boolean facingLeft, Point... playerPositions) {
+    private static boolean intersectsAnyAttackBox(Rectangle monsterBounds, Point monsterPos, BuffEffectData attackEffect, boolean facingLeft, Point... playerPositions) {
         Point primaryPos = playerPositions.length > 0 ? playerPositions[0] : null;
         for (Point playerPos : playerPositions) {
             if (playerPos == null) {
@@ -1127,7 +1127,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
      * 按客户端 WZ 语义决定是否跳过通用 DISTANCE_HACK 判定。
      * 仅对明确不是“空间攻击框”语义的技能做豁免，避免误伤正常近战技能。
      */
-    private static boolean shouldSkipDistanceHackCheck(int skillId, EffectData attackEffect) {
+    private static boolean shouldSkipDistanceHackCheck(int skillId, BuffEffectData attackEffect) {
         return isFullScreenDistanceExempt(skillId)
                 || isNonSpatialAttackSkill(skillId, attackEffect)
                 || isPiercingProjectileWithoutAttackBox(skillId, attackEffect);
@@ -1137,7 +1137,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
      * Energy Charge 在 Skill.wz 中没有 level/lt、level/rb，属于蓄能/状态触发语义，
      * 不应按普通近战攻击框进入距离外挂判定。
      */
-    private static boolean isNonSpatialAttackSkill(int skillId, EffectData attackEffect) {
+    private static boolean isNonSpatialAttackSkill(int skillId, BuffEffectData attackEffect) {
         if (attackEffect != null && attackEffect.hasBoundingBox()) {
             return false;
         }
@@ -1150,7 +1150,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
      * Avenger has no level/lt or level/rb in Skill.wz; the client sends hits from its piercing projectile path.
      * The generic distance check can skip valid hits when both the skill attack box and monster bbox are unavailable.
      */
-    private static boolean isPiercingProjectileWithoutAttackBox(int skillId, EffectData attackEffect) {
+    private static boolean isPiercingProjectileWithoutAttackBox(int skillId, BuffEffectData attackEffect) {
         if (attackEffect != null && attackEffect.hasBoundingBox()) {
             return false;
         }
@@ -1165,11 +1165,11 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
      * <p>技能攻击框和怪物 bbox 至少要有一个可信来源，
      * 否则距离判定会退化成粗糙的中心点比较，容易产生误判。</p>
      */
-    private static boolean hasReliableDistanceGeometry(EffectData attackEffect, boolean useBbox) {
+    private static boolean hasReliableDistanceGeometry(BuffEffectData attackEffect, boolean useBbox) {
         return hasSkillAttackBox(attackEffect) || useBbox;
     }
 
-    private static boolean hasSkillAttackBox(EffectData attackEffect) {
+    private static boolean hasSkillAttackBox(BuffEffectData attackEffect) {
         return attackEffect != null && attackEffect.hasBoundingBox();
     }
 

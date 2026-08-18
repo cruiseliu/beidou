@@ -30,7 +30,7 @@ import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.config.GameConfig;
 import org.gms.manager.ServerManager;
 import org.gms.server.ItemInformationProvider;
-import org.gms.server.EffectData;
+import org.gms.server.BuffEffectData;
 import org.gms.service.HpMpAlertService;
 import org.gms.util.PacketCreator;
 
@@ -90,7 +90,7 @@ public class PetAutopotProcessor {
             }
 
             int useCount = 0, qtyCount = 0;
-            EffectData stat = null;
+            BuffEffectData stat = null;
 
             maxHp = chr.getCurrentMaxHp();
             maxMp = chr.getCurrentMaxMp();

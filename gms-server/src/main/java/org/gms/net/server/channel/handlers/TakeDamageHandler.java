@@ -40,7 +40,7 @@ import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.gms.server.EffectData;
+import org.gms.server.BuffEffectData;
 import org.gms.server.life.LifeFactory.loseItem;
 import org.gms.server.life.MobAttackInfo;
 import org.gms.server.life.MobAttackInfoFactory;
@@ -171,7 +171,7 @@ public final class TakeDamageHandler extends AbstractPacketHandler {
                             skillObj = SkillFactory.getSkill(1120005);
                         }
                         if (skillObj != null) {
-                            EffectData skillEffect = skillObj.getEffect(chr.getSkillLevel(skillObj));
+                            BuffEffectData skillEffect = skillObj.getEffect(chr.getSkillLevel(skillObj));
                             if (skillEffect != null) {
                                 attacker.applyStatus(chr, new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.STUN, 1), skillObj, null, false), false, skillEffect.getDuration(), false);
                             } else {
@@ -245,7 +245,7 @@ public final class TakeDamageHandler extends AbstractPacketHandler {
                         map.broadcastMessage(chr, PacketCreator.damageMonster(oid, bouncedamage), false, true);
                         attacker.aggroMonsterDamage(chr, bouncedamage);
                     }
-                    EffectData bPressure = chr.getBuffEffect(EffectType.BODY_PRESSURE); // thanks Atoot for noticing an issue on Body Pressure neutralise
+                    BuffEffectData bPressure = chr.getBuffEffect(EffectType.BODY_PRESSURE); // thanks Atoot for noticing an issue on Body Pressure neutralise
                     if (bPressure != null) {
                         Skill skill = SkillFactory.getSkill(Aran.BODY_PRESSURE);
                         if (!attacker.alreadyBuffedStats().contains(MonsterStatus.NEUTRALISE)) {
@@ -256,7 +256,7 @@ public final class TakeDamageHandler extends AbstractPacketHandler {
                     }
                 }
 
-                EffectData cBarrier = chr.getBuffEffect(EffectType.COMBO_BARRIER);  // thanks BHB for noticing Combo Barrier buff not working
+                BuffEffectData cBarrier = chr.getBuffEffect(EffectType.COMBO_BARRIER);  // thanks BHB for noticing Combo Barrier buff not working
                 if (cBarrier != null) {
                     damage *= (cBarrier.getX() / 1000.0);
                 }

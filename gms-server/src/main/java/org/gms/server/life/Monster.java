@@ -56,7 +56,7 @@ import org.gms.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.gms.scripting.event.EventInstanceManager;
-import org.gms.server.EffectData;
+import org.gms.server.BuffEffectData;
 import org.gms.server.TimerManager;
 import org.gms.server.life.LifeFactory.BanishInfo;
 import org.gms.server.loot.LootManager;
@@ -1822,7 +1822,7 @@ public class Monster extends AbstractLoadedLife {
     }
 
     public boolean isCharacterPuppetInVicinity(Character chr) {
-        EffectData mse = chr.getBuffEffect(EffectType.PUPPET);
+        BuffEffectData mse = chr.getBuffEffect(EffectType.PUPPET);
         if (mse != null) {
             Summon summon = chr.getSummonByKey(mse.getSourceId());
 
@@ -2154,7 +2154,7 @@ public class Monster extends AbstractLoadedLife {
                     return;
                 }
 
-                EffectData puppetEffect = chrController.getBuffEffect(EffectType.PUPPET);
+                BuffEffectData puppetEffect = chrController.getBuffEffect(EffectType.PUPPET);
                 if (puppetEffect != null) {
                     Summon puppet = chrController.getSummonByKey(puppetEffect.getSourceId());
 

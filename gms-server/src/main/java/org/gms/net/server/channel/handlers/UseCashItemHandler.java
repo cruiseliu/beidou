@@ -58,7 +58,7 @@ import org.slf4j.LoggerFactory;
 import org.gms.server.ItemInformationProvider;
 import org.gms.server.Shop;
 import org.gms.server.ShopFactory;
-import org.gms.server.EffectData;
+import org.gms.server.BuffEffectData;
 import org.gms.server.TimerManager;
 import org.gms.server.maps.AbstractMapObject;
 import org.gms.server.maps.FieldLimit;
@@ -466,7 +466,7 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
             //以下修复不完美。
             if (itemId == 5281000) {//原理为在角色面前释放一个小型绿色雾气
                 Rectangle bounds = new Rectangle((int) player.getPosition().getX(), (int) player.getPosition().getY(), 1, 1);
-                EffectData mse = new EffectData();
+                BuffEffectData mse = new BuffEffectData();
                 mse.setSourceId(2111003);
                 Mist mist = new Mist(bounds, player, mse);
                 player.getMap().spawnMist(mist, 10000, false, true,false);

@@ -407,7 +407,7 @@ public class NPCConversationManager extends AbstractPlayerInteraction {
         return GameConstants.getJobName(id);
     }
 
-    public EffectData getItemEffect(int itemId) {
+    public BuffEffectData getItemEffect(int itemId) {
         return ItemInformationProvider.getInstance().getItemEffect(itemId);
     }
 
