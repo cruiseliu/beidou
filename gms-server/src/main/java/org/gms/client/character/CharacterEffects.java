@@ -1,7 +1,7 @@
 package org.gms.client.character;
 
-import org.gms.client.BuffStat;
-import org.gms.server.StatEffect;
+import org.gms.client.EffectType;
+import org.gms.server.EffectData;
 import org.gms.util.Locks;
 
 import java.util.EnumMap;
@@ -17,63 +17,63 @@ class CharacterEffects {
     private final Character owner;
 
     /** 槽位 → 激活条目（值 + 溯源），与 BuffStatValueHolder.bestApplied 簿记字段解耦 */
-    final EnumMap<BuffStat, BuffStatValueHolder> effects = new EnumMap<>(BuffStat.class);
+    final EnumMap<EffectType, EffectStatus> effects = new EnumMap<>(EffectType.class);
 
     CharacterEffects(Character owner) {
         this.owner = owner;
     }
 
-    Long getBuffedStarttime(BuffStat effect) {
+    Long getBuffedStarttime(EffectType effectType) {
         try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-            BuffStatValueHolder mbsvh = effects.get(effect);
-            if (mbsvh == null) {
+            EffectStatus effect = effects.get(effectType);
+            if (effect == null) {
                 return null;
             }
-            return mbsvh.startTime;
+            return effect.startTime;
         }
     }
 
-    Integer getBuffedValue(BuffStat effect) {
+    Integer getBuffedValue(EffectType effectType) {
         try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-            BuffStatValueHolder mbsvh = effects.get(effect);
-            if (mbsvh == null) {
+            EffectStatus effect = effects.get(effectType);
+            if (effect == null) {
                 return null;
             }
-            return mbsvh.value;
+            return effect.value;
         }
     }
 
-    int getBuffSource(BuffStat stat) {
+    int getBuffSource(EffectType effectType) {
         try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-            BuffStatValueHolder mbsvh = effects.get(stat);
-            if (mbsvh == null) {
+            EffectStatus effect = effects.get(effectType);
+            if (effect == null) {
                 return -1;
             }
-            return mbsvh.effect.getSourceId();
+            return effect.data.getSourceId();
         }
     }
 
-    StatEffect getBuffEffect(BuffStat stat) {
+    EffectData getBuffEffect(EffectType stat) {
         try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-            BuffStatValueHolder mbsvh = effects.get(stat);
-            return mbsvh == null ? null : mbsvh.effect;
+            EffectStatus mbsvh = effects.get(stat);
+            return mbsvh == null ? null : mbsvh.data;
         }
     }
 
-    boolean isBuffFrom(BuffStat stat, org.gms.client.Skill skill) {
+    boolean isBuffFrom(EffectType stat, org.gms.client.Skill skill) {
         try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-            BuffStatValueHolder mbsvh = effects.get(stat);
+            EffectStatus mbsvh = effects.get(stat);
             if (mbsvh == null) {
                 return false;
             }
-            return mbsvh.effect.isSkill() && mbsvh.effect.getSourceId() == skill.getId();
+            return mbsvh.data.isSkill() && mbsvh.data.getSourceId() == skill.getId();
         }
     }
 
     /** 就地修改槽位值（如能量条 ENERGY_CHARGE），纯状态操作 */
-    void setBuffedValue(BuffStat effect, int value) {
+    void setBuffedValue(EffectType effect, int value) {
         try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-            BuffStatValueHolder mbsvh = effects.get(effect);
+            EffectStatus mbsvh = effects.get(effect);
             if (mbsvh == null) {
                 return;
             }
@@ -83,13 +83,13 @@ class CharacterEffects {
 
     /** 溯源查询：某源的效果是否正处于激活态 */
     boolean hasActiveBuff(int sourceid) {
-        LinkedList<BuffStatValueHolder> allBuffs;
+        LinkedList<EffectStatus> allBuffs;
         try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
             allBuffs = new LinkedList<>(effects.values());
         }
 
-        for (BuffStatValueHolder mbsvh : allBuffs) {
-            if (mbsvh.effect.getBuffSourceId() == sourceid) {
+        for (EffectStatus mbsvh : allBuffs) {
+            if (mbsvh.data.getBuffSourceId() == sourceid) {
                 return true;
             }
         }

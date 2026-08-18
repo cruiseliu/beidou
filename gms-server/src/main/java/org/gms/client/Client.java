@@ -932,7 +932,7 @@ public class Client extends ChannelInboundHandlerAdapter {
             player.setDisconnectedFromChannelWorld();
             player.notifyMapTransferToPartner(-1);
             player.removeIncomingInvites();
-            if (player.isBuffsFrozen() && serverTransition) {
+            if (player.isBuffsFrozen() && serverTransition) {  // todo: [refactor] should not check frozen
                 // 过渡中冻结且对象存活（换频道/商城/MTS）：簿记保留，仅召唤物地图侧清理
                 player.removeSummonsFromMap();
             } else {

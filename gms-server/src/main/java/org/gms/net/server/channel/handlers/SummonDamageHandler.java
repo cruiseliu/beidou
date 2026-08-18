@@ -35,7 +35,7 @@ import org.gms.net.packet.InPacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.gms.server.ItemInformationProvider;
-import org.gms.server.StatEffect;
+import org.gms.server.EffectData;
 import org.gms.server.life.Monster;
 import org.gms.server.life.MonsterInformationProvider;
 import org.gms.server.maps.Summon;
@@ -84,7 +84,7 @@ public final class SummonDamageHandler extends AbstractDealDamageHandler {
             return;
         }
         Skill summonSkill = SkillFactory.getSkill(summon.getSkill());
-        StatEffect summonEffect = summonSkill.getEffect(summon.getSkillLevel());
+        EffectData summonEffect = summonSkill.getEffect(summon.getSkillLevel());
         p.skip(4);
         List<SummonAttackEntry> allDamage = new ArrayList<>();
         byte direction = p.readByte();
@@ -130,7 +130,7 @@ public final class SummonDamageHandler extends AbstractDealDamageHandler {
         }
     }
 
-    private static int calcMaxDamage(StatEffect summonEffect, Character player, boolean magic) {
+    private static int calcMaxDamage(EffectData summonEffect, Character player, boolean magic) {
         double maxDamage;
 
         if (magic) {

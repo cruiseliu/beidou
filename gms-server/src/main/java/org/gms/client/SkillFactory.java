@@ -79,7 +79,7 @@ import org.gms.provider.DataProvider;
 import org.gms.provider.DataProviderFactory;
 import org.gms.provider.DataTool;
 import org.gms.provider.wz.WZFiles;
-import org.gms.server.StatEffect;
+import org.gms.server.EffectData;
 import org.gms.server.life.Element;
 
 import java.util.HashMap;
@@ -374,7 +374,7 @@ public class SkillFactory {
         }
 
         for (Data level : data.getChildByPath("level")) {
-            ret.addLevelEffect(StatEffect.loadSkillEffectFromData(level, id, isBuff));
+            ret.addLevelEffect(EffectData.loadSkillEffectFromData(level, id, isBuff));
         }
         ret.setAnimationTime(0);
         if (effect != null) {

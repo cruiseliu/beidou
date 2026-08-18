@@ -31,7 +31,7 @@ import org.gms.constants.skills.FPMage;
 import org.gms.constants.skills.NightWalker;
 import org.gms.constants.skills.Shadower;
 import org.gms.net.packet.Packet;
-import org.gms.server.StatEffect;
+import org.gms.server.EffectData;
 import org.gms.server.life.MobSkill;
 import org.gms.server.life.Monster;
 import org.gms.util.PacketCreator;
@@ -45,7 +45,7 @@ public class Mist extends AbstractMapObject {
     private final Rectangle mistPosition;
     private Character owner = null;
     private Monster mob = null;
-    private StatEffect source;
+    private EffectData source;
     private MobSkill skill;
     private final boolean isMobMist;
     private boolean isPoisonMist;
@@ -62,7 +62,7 @@ public class Mist extends AbstractMapObject {
         skillDelay = 0;
     }
 
-    public Mist(Rectangle mistPosition, Character owner, StatEffect source) {
+    public Mist(Rectangle mistPosition, Character owner, EffectData source) {
         this.mistPosition = mistPosition;
         this.owner = owner;
         this.source = source;

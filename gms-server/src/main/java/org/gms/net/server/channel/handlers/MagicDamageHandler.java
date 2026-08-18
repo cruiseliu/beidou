@@ -21,7 +21,7 @@
  */
 package org.gms.net.server.channel.handlers;
 
-import org.gms.client.BuffStat;
+import org.gms.client.EffectType;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.Skill;
@@ -34,7 +34,7 @@ import org.gms.constants.skills.FPArchMage;
 import org.gms.constants.skills.ILArchMage;
 import org.gms.net.packet.InPacket;
 import org.gms.net.packet.Packet;
-import org.gms.server.StatEffect;
+import org.gms.server.EffectData;
 import org.gms.util.PacketCreator;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -52,8 +52,8 @@ public final class MagicDamageHandler extends AbstractDealDamageHandler {
 
         AttackInfo attack = parseDamage(p, chr, false, true);
 
-        if (chr.getBuffEffect(BuffStat.MORPH) != null) {
-            if (chr.getBuffEffect(BuffStat.MORPH).isMorphWithoutAttack()) {
+        if (chr.getBuffEffect(EffectType.MORPH) != null) {
+            if (chr.getBuffEffect(EffectType.MORPH).isMorphWithoutAttack()) {
                 // How are they attacking when the client won't let them?
                 chr.getClient().disconnect(false, false);
                 return;
@@ -69,9 +69,9 @@ public final class MagicDamageHandler extends AbstractDealDamageHandler {
         Packet packet = PacketCreator.magicAttack(chr, attack.skill, attack.skilllevel, attack.stance, attack.numAttackedAndDamage, attack.allDamage, charge, attack.speed, attack.direction, attack.display);
 
         chr.getMap().broadcastMessage(chr, packet, false, true);
-        StatEffect effect = attack.getAttackEffect(chr, null);
+        EffectData effect = attack.getAttackEffect(chr, null);
         Skill skill = SkillFactory.getSkill(attack.skill);
-        StatEffect effect_ = skill.getEffect(chr.getSkillLevel(skill));
+        EffectData effect_ = skill.getEffect(chr.getSkillLevel(skill));
         if (effect_.getCooldown() > 0) {
             if (chr.skillIsCooling(attack.skill)) {
                 return;

@@ -1,15 +1,14 @@
 package org.gms.client.character;
 
-import org.gms.client.BuffStat;
+import org.gms.client.EffectType;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.client.Job;
 import org.gms.config.GameConfig;
 import org.gms.net.server.Server;
 import org.gms.server.ItemInformationProvider;
-import org.gms.server.StatEffect;
+import org.gms.server.EffectData;
 import org.gms.server.TimerManager;
-import org.gms.server.ItemInformationProvider;
 import org.gms.util.PacketCreator;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.skills.DarkKnight;
@@ -27,14 +26,11 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.EnumSet;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
-import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -46,7 +42,7 @@ import java.util.stream.Collectors;
  *
  * 机制：每种 buff 属于 1..n 个槽位；获得新 buff 时旧 buff 仍在服务端在册
  * （buffEffects 按源分组），服务端把同槽位效果最好的一个写入 effects 报告给客户端；
- * 最佳效果被取消时（bestApplied 标记）从未结束的同槽位 buff 中重选（fetchBest...）。
+ * 最佳效果被取消时从未结束的同槽位 buff 中重选（fetchBest...）。
  *
  * 编排层（registerEffect/cancelEffect 及其伴随调度）留在 Character；
  * debuff/disease 与 visual effect 不在此管理。
@@ -57,10 +53,8 @@ class CharacterBuffs {
     private final Character owner;
     private final CharacterEffects state;
 
-    /** 全部在册效果（含被压制的同槽位旧 buff），key = buffSourceId */
-    final Map<Integer, Map<BuffStat, BuffStatValueHolder>> buffEffects = new LinkedHashMap<>();
-    /** 每源到期时刻 */
-    final Map<Integer, Long> buffExpires = new LinkedHashMap<>();
+    /** 全部在册 buff（含被压制的同槽位旧 buff），按源分组，key = sourceId */
+    final Map<Integer, BuffStatus> entries = new LinkedHashMap<>();
 
     /** buff 到期定时器（id = sourceid，timestamp = 到期时刻），替代原 1.5s 周期扫描 */
     private final TimeoutHelper expireTimer = new TimeoutHelper();
@@ -72,27 +66,27 @@ class CharacterBuffs {
         this.owner = owner;
         this.state = state;
         expireTimer.setListener((sourceid, timestamp) -> {
-            BuffStatValueHolder mbsvh;
+            EffectStatus effect = null;
             try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-                Map<BuffStat, BuffStatValueHolder> be = buffEffects.get(sourceid);
-                if (be == null || be.isEmpty()) {
+                BuffStatus buff = entries.get(sourceid);
+                if (buff == null || buff.effects.isEmpty()) {
                     return;
                 }
-                mbsvh = be.entrySet().iterator().next().getValue();
+                effect = buff.effects.get(0);
             }
-            owner.cancelEffect(mbsvh.effect, false, mbsvh.startTime);
+            owner.cancelEffect(effect.data, false);
         });
     }
 
     void startExpireTimer() {
         expireTimer.start();
         // 登录补排：静默恢复的 buff 在 start 前入库（schedule 被 TimeoutHelper 丢弃）
-        List<Map.Entry<Integer, Long>> es;
+        List<BuffStatus> buffs;
         try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-            es = new ArrayList<>(buffExpires.entrySet());
+            buffs = new ArrayList<>(entries.values());
         }
-        for (Map.Entry<Integer, Long> e : es) {
-            expireTimer.scheduleOrTrigger(e.getKey(), e.getValue());
+        for (BuffStatus buff : buffs) {
+            expireTimer.scheduleOrTrigger(buff.sourceId, buff.expire);
         }
     }
 
@@ -112,17 +106,17 @@ class CharacterBuffs {
         stopExpireTimer();
 
         if (announceCancel) {
-            Set<BuffStat> toCancel = new LinkedHashSet<>();
-            for (BuffStat slot : new BuffStat[]{BuffStat.SUMMON, BuffStat.PUPPET}) {
-                BuffStatValueHolder holder = state.effects.get(slot);
+            Set<EffectType> toCancel = new LinkedHashSet<>();
+            for (EffectType slot : new EffectType[]{EffectType.SUMMON, EffectType.PUPPET}) {
+                EffectStatus holder = state.effects.get(slot);
                 if (holder != null) {
-                    for (Pair<BuffStat, Integer> p : holder.effect.getStatups()) {
+                    for (Pair<EffectType, Integer> p : holder.data.getStatups()) {
                         toCancel.add(p.getLeft());
                     }
                 }
             }
             if (!toCancel.isEmpty()) {
-                List<BuffStat> list = new ArrayList<>(toCancel);
+                List<EffectType> list = new ArrayList<>(toCancel);
                 owner.sendPacket(PacketCreator.cancelBuff(list));
                 owner.getMap().broadcastMessage(owner, PacketCreator.cancelForeignBuff(owner.getId(), list), false);
             }
@@ -142,12 +136,12 @@ class CharacterBuffs {
         frozenAt = -1;
         if (skipped > 0) {
             try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-                for (Map<BuffStat, BuffStatValueHolder> bel : buffEffects.values()) {
-                    for (BuffStatValueHolder holder : bel.values()) {
-                        holder.startTime += skipped;
+                for (BuffStatus buff : entries.values()) {
+                    buff.expire += skipped;
+                    for (EffectStatus effect : buff.effects) {
+                        effect.startTime += skipped;
                     }
                 }
-                buffExpires.replaceAll((srcid, expirationtime) -> expirationtime + skipped);
             }
         }
         startExpireTimer();
@@ -156,51 +150,49 @@ class CharacterBuffs {
     // ── 查询 ──
 
     /** 按 buffSourceId 去重的在册效果列表 */
-    List<StatEffect> getAllBuffs() {
+    List<EffectData> getOneEffectDataPerBuff() {
         try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-            Map<Integer, StatEffect> ret = new LinkedHashMap<>();
-            for (Map<BuffStat, BuffStatValueHolder> bel : buffEffects.values()) {
-                for (BuffStatValueHolder mbsvh : bel.values()) {
-                    int srcid = mbsvh.effect.getBuffSourceId();
-                    ret.putIfAbsent(srcid, mbsvh.effect);
+            Map<Integer, EffectData> ret = new LinkedHashMap<>();
+            for (BuffStatus buff : entries.values()) {
+                for (EffectStatus effect : buff.effects) {
+                    ret.putIfAbsent(buff.sourceId, effect.data);
                 }
             }
             return new ArrayList<>(ret.values());
         }
     }
 
-    boolean hasBuffFromSourceid(int sourceid) {
+    boolean containsSourceId(int sourceId) {
         try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-            return buffEffects.containsKey(sourceid);
+            return entries.containsKey(sourceId);
         }
     }
 
-    List<BuffStatValueHolder> getAllStatups() {
+    List<EffectStatus> getAllEffects() {
         try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-            List<BuffStatValueHolder> ret = new ArrayList<>();
-            for (Map<BuffStat, BuffStatValueHolder> bel : buffEffects.values()) {
-                ret.addAll(bel.values());
+            List<EffectStatus> ret = new ArrayList<>();
+            for (BuffStatus buff : entries.values()) {
+                ret.addAll(buff.effects);
             }
             return ret;
         }
     }
 
     /** 已在 effLock & chrLock 内调用 */
-    List<Pair<BuffStat, Integer>> getActiveStatupsFromSourceid(int sourceid) {
-        List<Pair<BuffStat, Integer>> ret = new ArrayList<>();
-        List<Pair<BuffStat, Integer>> singletonStatups = new ArrayList<>();
-        for (Map.Entry<BuffStat, BuffStatValueHolder> bel : buffEffects.get(sourceid).entrySet()) {
-            BuffStat mbs = bel.getKey();
-            BuffStatValueHolder mbsvh = state.effects.get(bel.getKey());
+    private List<Pair<EffectType, Integer>> getActiveEffectTypesAndValues(int sourceId) {
+        List<Pair<EffectType, Integer>> ret = new ArrayList<>();
+        List<Pair<EffectType, Integer>> singletonStatups = new ArrayList<>();
+        for (EffectStatus effect : entries.get(sourceId).effects) {
+            EffectStatus active = state.effects.get(effect.type);
 
-            Pair<BuffStat, Integer> p;
-            if (mbsvh != null) {
-                p = new Pair<>(mbs, mbsvh.value);
+            Pair<EffectType, Integer> p;
+            if (active != null) {
+                p = new Pair<>(effect.type, active.value);
             } else {
-                p = new Pair<>(mbs, 0);
+                p = new Pair<>(effect.type, 0);
             }
 
-            if (!isSingletonStatup(mbs)) {   // thanks resinate, Daddy Egg for pointing out morph issues when updating it along with other statups
+            if (!isSingletonStatup(effect.type)) {   // thanks resinate, Daddy Egg for pointing out morph issues when updating it along with other statups
                 ret.add(p);
             } else {
                 singletonStatups.add(p);
@@ -220,10 +212,10 @@ class CharacterBuffs {
 
     void debugListAllBuffs() {
         try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-            Map<BuffStat, Long> cachedCounts = new LinkedHashMap<>();
-            for (Map<BuffStat, BuffStatValueHolder> bel : buffEffects.values()) {
-                for (BuffStat stat : bel.keySet()) {
-                    cachedCounts.merge(stat, 1L, Long::sum);
+            Map<EffectType, Long> cachedCounts = new LinkedHashMap<>();
+            for (BuffStatus status : entries.values()) {
+                for (EffectStatus es : status.effects) {
+                    cachedCounts.merge(es.type, 1L, Long::sum);
                 }
             }
 
@@ -234,16 +226,16 @@ class CharacterBuffs {
             );
 
             log.debug("-------------------");
-            log.debug("CACHED BUFFS: {}", buffEffects.entrySet().stream()
-                    .map(entry -> entry.getKey() + ": (" + entry.getValue().entrySet().stream()
-                            .map(innerEntry -> innerEntry.getKey().name() + innerEntry.getValue().value)
+            log.debug("CACHED BUFFS: {}", entries.values().stream()
+                    .map(status -> status.sourceId + ": (" + status.effects.stream()
+                            .map(es -> es.type.name() + es.value)
                             .collect(Collectors.joining(", ")) + ")")
                     .collect(Collectors.joining(", "))
             );
 
             log.debug("-------------------");
             log.debug("IN ACTION: {}", state.effects.entrySet().stream()
-                    .map(entry -> entry.getKey().name() + " -> " + ItemInformationProvider.getInstance().getName(entry.getValue().effect.getSourceId()))
+                    .map(entry -> entry.getKey().name() + " -> " + ItemInformationProvider.getInstance().getName(entry.getValue().data.getSourceId()))
                     .collect(Collectors.joining(", "))
             );
         }
@@ -251,122 +243,86 @@ class CharacterBuffs {
 
     // ── 槽位存储与选择 ──
 
-    void addItemEffectHolder(Integer sourceid, long expirationtime, Map<BuffStat, BuffStatValueHolder> statups) {
-        buffEffects.put(sourceid, statups);
-        buffExpires.put(sourceid, expirationtime);
-        expireTimer.schedule(sourceid, expirationtime);
+    private void addBuff(int sourceId, long expirationTime, List<EffectStatus> effects) {
+        entries.put(sourceId, new BuffStatus(sourceId, expirationTime, effects));
+        expireTimer.schedule(sourceId, expirationTime);
     }
 
-    boolean removeEffectFromItemEffectHolder(Integer sourceid, BuffStat buffStat) {
-        Map<BuffStat, BuffStatValueHolder> lbe = buffEffects.get(sourceid);
-
-        if (lbe.remove(buffStat) != null) {
-            if (lbe.isEmpty()) {
-                buffEffects.remove(sourceid);
-                buffExpires.remove(sourceid);
-                expireTimer.cancel(sourceid);
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    void removeItemEffectHolder(Integer sourceid) {
-        buffEffects.remove(sourceid);
-        buffExpires.remove(sourceid);
-        expireTimer.cancel(sourceid);
+    private void removeBuff(int sourceId) {
+        entries.remove(sourceId);
+        expireTimer.cancel(sourceId);
     }
 
     /** 同槽位重选最佳：value 最大者优先，同值取 statups 更多者；选中者写入 effects */
-    BuffStatValueHolder fetchBestEffectFromItemEffectHolder(BuffStat mbs) {
-        Pair<Integer, Integer> max = new Pair<>(Integer.MIN_VALUE, 0);
-        BuffStatValueHolder mbsvh = null;
-        for (Map.Entry<Integer, Map<BuffStat, BuffStatValueHolder>> bpl : buffEffects.entrySet()) {
-            BuffStatValueHolder mbsvhi = bpl.getValue().get(mbs);
-            if (mbsvhi != null) {
-                if (!mbsvhi.effect.isActive(owner)) {
+    private EffectStatus findBestEffect(EffectType effectType) {
+        EffectStatus bestEffect = null;
+        for (BuffStatus buff : entries.values()) {
+            for (EffectStatus effect : buff.effects) {
+                if (effect.type != effectType) {
+                    continue;
+                }
+                if (!effect.data.isActive(owner)) {
                     continue;
                 }
 
-                if (mbsvhi.value > max.left) {
-                    max = new Pair<>(mbsvhi.value, mbsvhi.effect.getStatups().size());
-                    mbsvh = mbsvhi;
-                } else if (mbsvhi.value == max.left && mbsvhi.effect.getStatups().size() > max.right) {
-                    max = new Pair<>(mbsvhi.value, mbsvhi.effect.getStatups().size());
-                    mbsvh = mbsvhi;
+                if (bestEffect == null) {
+                    bestEffect = effect;
+                } else if (effect.value > bestEffect.value) {
+                    bestEffect = effect;
+                } else if (effect.value == bestEffect.value && effect.data.getStatups().size() > bestEffect.data.getStatups().size()) {
+                    bestEffect = effect;
                 }
             }
         }
 
-        if (mbsvh != null) {
-            state.effects.put(mbs, mbsvh);
+        if (bestEffect != null) {
+            state.effects.put(effectType, bestEffect);
         }
-        return mbsvh;
+        return bestEffect;
     }
 
-    void extractBuffValue(int sourceid, BuffStat stat) {
-        try (var ignored = Locks.acquire(owner.chrLock)) {
-            removeEffectFromItemEffectHolder(sourceid, stat);
-        }
-    }
-
-    Map<BuffStat, BuffStatValueHolder> extractCurrentBuffStats(StatEffect effect) {
-        try (var ignored = Locks.acquire(owner.chrLock)) {
-            Map<BuffStat, BuffStatValueHolder> stats = new LinkedHashMap<>();
-            Map<BuffStat, BuffStatValueHolder> buffList = buffEffects.remove(effect.getBuffSourceId());
-
-            if (buffList != null) {
-                stats.putAll(buffList);
-            }
-
-            return stats;
-        }
-    }
-
-    Map<BuffStat, BuffStatValueHolder> extractLeastRelevantStatEffectsIfFull(StatEffect effect) {
-        Map<BuffStat, BuffStatValueHolder> extractedStatBuffs = new LinkedHashMap<>();
+    private List<EffectStatus> extractLeastRelevantStatEffectsIfFull(EffectData effectData) {
+        List<EffectStatus> extractedStatBuffs = new ArrayList<>();
 
         try (var ignored = Locks.acquire(owner.chrLock)) {
-            Map<BuffStat, Byte> stats = new LinkedHashMap<>();
-            Map<BuffStat, BuffStatValueHolder> minStatBuffs = new LinkedHashMap<>();
+            Map<EffectType, Byte> stats = new LinkedHashMap<>();
+            Map<EffectType, EffectStatus> minStatBuffs = new LinkedHashMap<>();
 
-            for (Map.Entry<Integer, Map<BuffStat, BuffStatValueHolder>> mbsvhi : buffEffects.entrySet()) {
-                for (Map.Entry<BuffStat, BuffStatValueHolder> mbsvhe : mbsvhi.getValue().entrySet()) {
-                    BuffStat mbs = mbsvhe.getKey();
-                    Byte b = stats.get(mbs);
+            for (BuffStatus buff : entries.values()) {
+                for (EffectStatus effect : buff.effects) {
+                    EffectType effectType = effect.type;
+                    Byte b = stats.get(effectType);
 
                     if (b != null) {
-                        stats.put(mbs, (byte) (b + 1));
-                        if (mbsvhe.getValue().value < minStatBuffs.get(mbs).value) {
-                            minStatBuffs.put(mbs, mbsvhe.getValue());
+                        stats.put(effectType, (byte) (b + 1));
+                        if (effect.value < minStatBuffs.get(effectType).value) {
+                            minStatBuffs.put(effectType, effect);
                         }
                     } else {
-                        stats.put(mbs, (byte) 1);
-                        minStatBuffs.put(mbs, mbsvhe.getValue());
+                        stats.put(effectType, (byte) 1);
+                        minStatBuffs.put(effectType, effect);
                     }
                 }
             }
 
-            Set<BuffStat> effectStatups = new LinkedHashSet<>();
-            for (Pair<BuffStat, Integer> efstat : effect.getStatups()) {
-                effectStatups.add(efstat.getLeft());
+            Set<EffectType> effectTypes = new LinkedHashSet<>();
+            for (Pair<EffectType, Integer> efstat : effectData.getStatups()) {
+                effectTypes.add(efstat.getLeft());
             }
 
-            for (Map.Entry<BuffStat, Byte> it : stats.entrySet()) {
+            for (Map.Entry<EffectType, Byte> it : stats.entrySet()) {
                 boolean uniqueBuff = isSingletonStatup(it.getKey());
 
-                if (it.getValue() >= (!uniqueBuff ? GameConfig.getServerByte("max_monitored_buff_stats") : 1) && effectStatups.contains(it.getKey())) {
-                    BuffStatValueHolder mbsvh = minStatBuffs.get(it.getKey());
+                if (it.getValue() >= (!uniqueBuff ? GameConfig.getServerByte("max_monitored_buff_stats") : 1) && effectTypes.contains(it.getKey())) {
+                    EffectStatus effect = minStatBuffs.get(it.getKey());
 
-                    Map<BuffStat, BuffStatValueHolder> lpbe = buffEffects.get(mbsvh.effect.getBuffSourceId());
-                    lpbe.remove(it.getKey());
+                    BuffStatus buff = entries.get(effect.data.getBuffSourceId());
+                    buff.effects.removeIf(es -> es.type == it.getKey());
 
-                    if (lpbe.isEmpty()) {
-                        buffEffects.remove(mbsvh.effect.getBuffSourceId());
+                    if (buff.effects.isEmpty()) {
+                        entries.remove(effect.data.getBuffSourceId());
                     }
-                    extractedStatBuffs.put(it.getKey(), mbsvh);
+                    extractedStatBuffs.add(effect);
                 }
             }
         }
@@ -379,27 +335,27 @@ class CharacterBuffs {
     void cancelAllBuffs(boolean softcancel) {
         if (softcancel) {
             try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-                owner.cancelEffectFromBuffStat(BuffStat.SUMMON);
-                owner.cancelEffectFromBuffStat(BuffStat.PUPPET);
+                owner.cancelEffectFromBuffStat(EffectType.SUMMON);
+                owner.cancelEffectFromBuffStat(EffectType.PUPPET);
 
                 state.effects.clear();
 
-                for (Integer srcid : new ArrayList<>(buffEffects.keySet())) {
-                    removeItemEffectHolder(srcid);
+                for (Integer srcid : new ArrayList<>(entries.keySet())) {
+                    removeBuff(srcid);
                 }
             }
         } else {
-            Map<StatEffect, Long> mseBuffs = new LinkedHashMap<>();
+            Map<EffectData, Long> mseBuffs = new LinkedHashMap<>();
 
             try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
-                for (Map.Entry<Integer, Map<BuffStat, BuffStatValueHolder>> bpl : buffEffects.entrySet()) {
-                    for (Map.Entry<BuffStat, BuffStatValueHolder> mbse : bpl.getValue().entrySet()) {
-                        mseBuffs.put(mbse.getValue().effect, mbse.getValue().startTime);
+                for (BuffStatus bpl : entries.values()) {
+                    for (EffectStatus mbse : bpl.effects) {
+                        mseBuffs.put(mbse.data, mbse.startTime);
                     }
                 }
             }
 
-            for (Map.Entry<StatEffect, Long> mse : mseBuffs.entrySet()) {
+            for (Map.Entry<EffectData, Long> mse : mseBuffs.entrySet()) {
                 owner.cancelEffect(mse.getKey(), false, mse.getValue());
             }
         }
@@ -407,8 +363,8 @@ class CharacterBuffs {
 
     // ── 静态判定 ──
 
-    static boolean isSingletonStatup(BuffStat mbs) {
-        return switch (mbs) {           //HPREC and MPREC are supposed to be singleton
+    private static boolean isSingletonStatup(EffectType effectType) {
+        return switch (effectType) {           //HPREC and MPREC are supposed to be singleton
             case COUPON_EXP1, COUPON_EXP2, COUPON_EXP3, COUPON_EXP4, COUPON_DRP1, COUPON_DRP2, COUPON_DRP3,
                  MESO_UP_BY_ITEM,
                  ITEM_UP_BY_ITEM, RESPECT_PIMMUNE, RESPECT_MIMMUNE, DEFENSE_ATT, DEFENSE_STATE, WATK, WDEF, MATK, MDEF,
@@ -417,116 +373,57 @@ class CharacterBuffs {
         };
     }
 
-    static boolean isPriorityBuffSourceId(int sourceId) {
-        return -org.gms.constants.id.ItemId.ROSE_SCENT == sourceId || -org.gms.constants.id.ItemId.FREESIA_SCENT == sourceId || -org.gms.constants.id.ItemId.LAVENDER_SCENT == sourceId;
+    private static boolean isPriorityBuffSourceId(int sourceId) {
+        return -ItemId.ROSE_SCENT == sourceId || -ItemId.FREESIA_SCENT == sourceId || -ItemId.LAVENDER_SCENT == sourceId;
     }
 
     // ── 编排层：注册/取消/传播（原 Character 平移，Character.this → owner） ──
 
-    private void cancelPlayerBuffs(List<BuffStat> buffstats) {
+    private void cancelPlayerBuffs(List<EffectType> effectTypes) {
         if (owner.client.getChannelServer().getPlayerStorage().getCharacterById(owner.getId()) != null) {
             owner.updateLocalStats();
-            owner.sendPacket(PacketCreator.cancelBuff(buffstats));
-            if (!buffstats.isEmpty()) {
-                owner.getMap().broadcastMessage(owner, PacketCreator.cancelForeignBuff(owner.getId(), buffstats), false);
+            owner.sendPacket(PacketCreator.cancelBuff(effectTypes));
+            if (!effectTypes.isEmpty()) {
+                owner.getMap().broadcastMessage(owner, PacketCreator.cancelForeignBuff(owner.getId(), effectTypes), false);
             }
         }
     }
 
-    private void dropBuffStats(List<Pair<BuffStat, BuffStatValueHolder>> effectsToCancel) {
-        for (Pair<BuffStat, BuffStatValueHolder> cancelEffectCancelTasks : effectsToCancel) {
-            //boolean nestedCancel = false;
 
-            owner.chrLock.lock();
-            try {
-                /*
-                if (buffExpires.get(cancelEffectCancelTasks.getRight().effect.getBuffSourceId()) != null) {
-                    nestedCancel = true;
-                }*/
-
-                if (cancelEffectCancelTasks.getRight().bestApplied) {
-                    fetchBestEffectFromItemEffectHolder(cancelEffectCancelTasks.getLeft());
-                }
-            } finally {
-                owner.chrLock.unlock();
-            }
-
-            /*
-            if (nestedCancel) {
-                this.cancelEffect(cancelEffectCancelTasks.getRight().effect, false, -1, false);
-            }*/
-        }
-    }
-
-    private List<Pair<BuffStat, BuffStatValueHolder>> deregisterBuffStats(Map<BuffStat, BuffStatValueHolder> stats) {
+    /** 簿记摘除：源列表移除对应槽位；若激活表上是同源 holder 则一并移出并收集（供 publish 做伴随清理） */
+    private List<EffectStatus> deregisterBuffStats(List<EffectStatus> effects) {
         owner.chrLock.lock();
         try {
-            List<Pair<BuffStat, BuffStatValueHolder>> effectsToCancel = new ArrayList<>(stats.size());
-            for (Entry<BuffStat, BuffStatValueHolder> stat : stats.entrySet()) {
-                int sourceid = stat.getValue().effect.getBuffSourceId();
+            List<EffectStatus> deactivated = new ArrayList<>(effects.size());
+            for (EffectStatus effect : effects) {
+                int sourceId = effect.data.getBuffSourceId();
 
-                if (!buffEffects.containsKey(sourceid)) {
-                    buffExpires.remove(sourceid);
-                }
-
-                BuffStat mbs = stat.getKey();
-                effectsToCancel.add(new Pair<>(mbs, stat.getValue()));
-
-                BuffStatValueHolder mbsvh = state.effects.get(mbs);
-                if (mbsvh != null && mbsvh.effect.getBuffSourceId() == sourceid) {
-                    mbsvh.bestApplied = true;
-                    state.effects.remove(mbs);
-
-                    if (mbs == BuffStat.RECOVERY) {
-                        if (owner.recoveryTask != null) {
-                            owner.recoveryTask.cancel(false);
-                            owner.recoveryTask = null;
-                        }
-                    } else if (mbs == BuffStat.SUMMON || mbs == BuffStat.PUPPET) {
-                        Summon summon = owner.summons.get(mbsvh.effect.getSourceId());
-                        if (summon != null) {
-                            owner.removeSummonAndPuppet(summon);
-                        }
-                    } else if (mbs == BuffStat.DRAGONBLOOD) {
-                        owner.dragonBloodSchedule.cancel(false);
-                        owner.dragonBloodSchedule = null;
-                    } else if (mbs == BuffStat.HPREC || mbs == BuffStat.MPREC) {
-                        if (mbs == BuffStat.HPREC) {
-                            owner.extraHpRec = 0;
-                        } else {
-                            owner.extraMpRec = 0;
-                        }
-
-                        if (owner.extraRecoveryTask != null) {
-                            owner.extraRecoveryTask.cancel(false);
-                            owner.extraRecoveryTask = null;
-                        }
-
-                        if (owner.extraHpRec != 0 || owner.extraMpRec != 0) {
-                            owner.startExtraTaskInternal(owner.extraHpRec, owner.extraMpRec, owner.extraRecInterval);
-                        }
-                    }
+                EffectStatus active = state.effects.get(effect.type);
+                if (active != null && active.data.getBuffSourceId() == sourceId) {
+                    state.effects.remove(effect.type);
+                    deactivated.add(active);
                 }
             }
 
-            return effectsToCancel;
+            return deactivated;
         } finally {
             owner.chrLock.unlock();
         }
     }
 
-    public void cancelEffect(int itemId) {
-        ItemInformationProvider ii = ItemInformationProvider.getInstance();
-        cancelEffect(ii.getItemEffect(itemId), false, -1);
-    }
-
-    public boolean cancelEffect(StatEffect effect, boolean overwrite, long startTime) {
+    boolean cancelEffect(EffectData effect, boolean overwrite) {
         boolean ret;
 
         owner.prtLock.lock();
         owner.effLock.lock();
         try {
-            ret = cancelEffect(effect, overwrite, startTime, true);
+            Set<EffectType> removedStats = new LinkedHashSet<>();
+            EffectChangeReport report = computeCancellation(effect, overwrite, removedStats);
+            owner.updateLocalStats();
+            publish(report);
+
+            ret = !removedStats.isEmpty();
+
         } finally {
             owner.effLock.unlock();
             owner.prtLock.unlock();
@@ -536,7 +433,7 @@ class CharacterBuffs {
             owner.prtLock.lock();
             owner.effLock.lock();
             try {
-                if (!hasBuffFromSourceid(Priest.MYSTIC_DOOR)) {
+                if (!containsSourceId(Priest.MYSTIC_DOOR)) {
                     Door.attemptRemoveDoor(owner);
                 }
             } finally {
@@ -548,24 +445,23 @@ class CharacterBuffs {
         return ret;
     }
 
-    private boolean cancelEffect(StatEffect effect, boolean overwrite, long startTime, boolean firstCancel) {
-        Set<BuffStat> removedStats = new LinkedHashSet<>();
-        dropBuffStats(cancelEffectInternal(effect, overwrite, startTime, removedStats));
-        owner.updateLocalStats();
-        updateEffects(removedStats);
-
-        return !removedStats.isEmpty();
-    }
-
-    private List<Pair<BuffStat, BuffStatValueHolder>> cancelEffectInternal(StatEffect effect, boolean overwrite, long startTime, Set<BuffStat> removedStats) {
-        Map<BuffStat, BuffStatValueHolder> buffstats = null;
-        BuffStat ombs;
+    /** 步骤1：选择摘除集合并应用（仅内部状态变更），产出对外变化清单 */
+    private EffectChangeReport computeCancellation(EffectData effect, boolean overwrite, Set<EffectType> removedStats) {
+        EffectChangeReport report = new EffectChangeReport();
+        List<EffectStatus> buffstats = null;
+        EffectType effectType;
         if (!overwrite) {   // is removing the source effect, meaning every effect from this srcid is being purged
-            buffstats = extractCurrentBuffStats(effect);
-        } else if ((ombs = getSingletonStatupFromEffect(effect)) != null) {   // removing all effects of a buff having non-shareable buff stat.
-            BuffStatValueHolder mbsvh = state.effects.get(ombs);
-            if (mbsvh != null) {
-                buffstats = extractCurrentBuffStats(mbsvh.effect);
+            try (var ignored = Locks.acquire(owner.chrLock)) {
+                BuffStatus buff = entries.remove(effect.getBuffSourceId());
+                buffstats = buff != null ? buff.effects : new ArrayList<>();
+            }
+
+        } else if ((effectType = getSingletonStatupFromEffect(effect)) != null) {   // removing all effects of a buff having non-shareable buff stat.
+            if (state.effects.get(effectType) != null) {
+                try (var ignored = Locks.acquire(owner.chrLock)) {
+                    BuffStatus buff = entries.remove(effect.getBuffSourceId());
+                    buffstats = buff != null ? buff.effects : new ArrayList<>();
+                }
             }
         }
 
@@ -574,98 +470,105 @@ class CharacterBuffs {
         }
 
         if (effect.isMapChair()) {
-            owner.stopChairTask();
+            report.stopChairTask = true;
         }
 
-        List<Pair<BuffStat, BuffStatValueHolder>> toCancel = deregisterBuffStats(buffstats);
+        report.deactivated.addAll(deregisterBuffStats(buffstats));
         if (effect.isMonsterRiding()) {
-            owner.getClient().getWorldServer().unregisterMountHunger(owner);
-            owner.getMapleMount().setActive(false);
+            report.unregisterMountHunger = true;
         }
 
         if (!overwrite) {
-            removedStats.addAll(buffstats.keySet());
+            for (EffectStatus es : buffstats) {
+                removedStats.add(es.type);
+            }
         }
 
-        return toCancel;
+        fillReselectAndReannounce(report, removedStats);
+        return report;
     }
 
-    public void cancelEffectFromBuffStat(BuffStat stat) {
-        BuffStatValueHolder effect;
+    void cancelEffectFromBuffStat(EffectType effectType) {
+        EffectStatus effect;
 
         owner.effLock.lock();
         owner.chrLock.lock();
         try {
-            effect = state.effects.get(stat);
+            effect = state.effects.get(effectType);
         } finally {
             owner.chrLock.unlock();
             owner.effLock.unlock();
         }
         if (effect != null) {
-            cancelEffect(effect.effect, false, -1);
+            cancelEffect(effect.data, false);
         }
     }
 
-    public void cancelBuffStats(BuffStat stat) {
+    void cancelBuffStats(EffectType effectType) {
         owner.effLock.lock();
         try {
-            List<Pair<Integer, BuffStatValueHolder>> cancelList = new LinkedList<>();
+            List<Pair<Integer, EffectStatus>> cancelList = new LinkedList<>();
 
             owner.chrLock.lock();
             try {
-                for (Entry<Integer, Map<BuffStat, BuffStatValueHolder>> bel : buffEffects.entrySet()) {
-                    BuffStatValueHolder beli = bel.getValue().get(stat);
-                    if (beli != null) {
-                        cancelList.add(new Pair<>(bel.getKey(), beli));
+                for (BuffStatus buff : entries.values()) {
+                    for (EffectStatus effect : buff.effects) {
+                        if (effect.type == effectType) {
+                            cancelList.add(new Pair<>(buff.sourceId, effect));
+                        }
                     }
                 }
             } finally {
                 owner.chrLock.unlock();
             }
 
-            Map<BuffStat, BuffStatValueHolder> buffStatList = new LinkedHashMap<>();
-            for (Pair<Integer, BuffStatValueHolder> p : cancelList) {
-                buffStatList.put(stat, p.getRight());
-                extractBuffValue(p.getLeft(), stat);
-                dropBuffStats(deregisterBuffStats(buffStatList));
+            EffectChangeReport report = new EffectChangeReport();
+            for (Pair<Integer, EffectStatus> p : cancelList) {
+                int sourceId = p.getLeft();
+                EffectStatus effect = p.getRight();
+
+                try (var ignored = Locks.acquire(owner.chrLock)) {
+                    BuffStatus buff = entries.get(sourceId);
+                    if (buff == null) {
+                        return;
+                    }
+
+                    if (buff.effects.removeIf(eff -> eff.type == effectType)) {
+                        if (buff.effects.isEmpty()) {
+                            entries.remove(sourceId);
+                            expireTimer.cancel(sourceId);
+                        }
+                    }
+                }
+
+                report.deactivated.addAll(deregisterBuffStats(Collections.singletonList(effect)));
             }
+            findBestEffect(effectType);   // 同槽重选（原 dropBuffStats 职责）
+            publish(report);
         } finally {
             owner.effLock.unlock();
         }
 
-        cancelPlayerBuffs(Collections.singletonList(stat));
+        cancelPlayerBuffs(Collections.singletonList(effectType));
     }
 
-    private void cancelInactiveBuffStats(Set<BuffStat> retrievedStats, Set<BuffStat> removedStats) {
-        List<BuffStat> inactiveStats = new LinkedList<>();
-        for (BuffStat mbs : removedStats) {
-            if (!retrievedStats.contains(mbs)) {
-                inactiveStats.add(mbs);
-            }
-        }
-
-        if (!inactiveStats.isEmpty()) {
-            owner.sendPacket(PacketCreator.cancelBuff(inactiveStats));
-            owner.getMap().broadcastMessage(owner, PacketCreator.cancelForeignBuff(owner.getId(), inactiveStats), false);
-        }
-    }
 
     /**
      * 传播更新的发送序（弱→强，最强者的包最后落地）。
      * 偏序约束：两效果共享某槽位且前者槽位值更低（更弱、被后者压制）→ 前者先发。
      */
-    private static List<StatEffect> sortEffectsList(Map<StatEffect, Integer> updateEffectsList) {
-        Map<StatEffect, Map<BuffStat, Integer>> effectSlots = new LinkedHashMap<>();
-        for (StatEffect mse : updateEffectsList.keySet()) {
-            Map<BuffStat, Integer> slots = new LinkedHashMap<>();
-            for (Pair<BuffStat, Integer> statup : mse.getStatups()) {
+    private static List<EffectData> sortEffectsList(Map<EffectData, Integer> updateEffectsList) {
+        Map<EffectData, Map<EffectType, Integer>> effectSlots = new LinkedHashMap<>();
+        for (EffectData mse : updateEffectsList.keySet()) {
+            Map<EffectType, Integer> slots = new LinkedHashMap<>();
+            for (Pair<EffectType, Integer> statup : mse.getStatups()) {
                 slots.put(statup.getLeft(), statup.getRight());
             }
             effectSlots.put(mse, slots);
         }
 
         return TopologicalSorter.sort(effectSlots.keySet(), (a, b) -> {
-            for (Entry<BuffStat, Integer> ea : effectSlots.get(a).entrySet()) {
+            for (Entry<EffectType, Integer> ea : effectSlots.get(a).entrySet()) {
                 Integer vb = effectSlots.get(b).get(ea.getKey());
                 if (vb != null && ea.getValue() < vb) {
                     return true;
@@ -675,92 +578,132 @@ class CharacterBuffs {
         });
     }
 
-    private List<Pair<Integer, Pair<StatEffect, Long>>> propagatePriorityBuffEffectUpdates(Set<BuffStat> retrievedStats) {
-        List<Pair<Integer, Pair<StatEffect, Long>>> priorityUpdateEffects = new LinkedList<>();
-        Map<BuffStatValueHolder, StatEffect> yokeStats = new LinkedHashMap<>();
 
-        // priority buffsources: override buffstats for the client to perceive those as "currently buffed"
-        Set<BuffStatValueHolder> mbsvhList = new LinkedHashSet<>(getAllStatups());
+    /** 一次注册/取消在步骤1（选择+应用，仅改 CharacterBuffs/CharacterEffects 内部状态）产出的对外变化清单 */
+    private static class EffectChangeReport {
+        /** 从激活表移除的持有者（驱动 CANCEL_BUFF 与 RECOVERY/召唤物/龙血/HPREC 伴随清理） */
+        final List<EffectStatus> deactivated = new ArrayList<>();
+        /** 已无激活者的槽位，需向客户端通告取消 */
+        final Set<EffectType> lostSlots = new LinkedHashSet<>();
+        /** 需重发 updateBuffEffect 的（效果, 基准时刻），拓扑序在前、priority 源在后 */
+        final List<Pair<EffectData, Long>> reannounced = new ArrayList<>();
+        /** 传播实际发生（retrievedStats 非空）时需重发骑船显示 */
+        boolean battleshipRefresh = false;
+        boolean stopChairTask = false;
+        boolean unregisterMountHunger = false;
+    }
 
-        for (BuffStatValueHolder mbsvh : mbsvhList) {
-            StatEffect mse = mbsvh.effect;
-            int buffSourceId = mse.getBuffSourceId();
-            if (CharacterBuffs.isPriorityBuffSourceId(buffSourceId) && !state.hasActiveBuff(buffSourceId)) {
-                for (Pair<BuffStat, Integer> ps : mse.getStatups()) {
-                    BuffStat mbs = ps.getLeft();
-                    if (retrievedStats.contains(mbs)) {
-                        BuffStatValueHolder mbsvhe = state.effects.get(mbs);
+    /** 步骤2：按变化清单推送对外副作用（发包/召唤物清理/伴随任务停启）。调用方持锁。 */
+    private void publish(EffectChangeReport report) {
+        for (EffectStatus es : report.deactivated) {
+            if (es.type == EffectType.RECOVERY) {
+                if (owner.recoveryTask != null) {
+                    owner.recoveryTask.cancel(false);
+                    owner.recoveryTask = null;
+                }
+            } else if (es.type == EffectType.SUMMON || es.type == EffectType.PUPPET) {
+                Summon summon = owner.summons.get(es.data.getSourceId());
+                if (summon != null) {
+                    owner.removeSummonAndPuppet(summon);
+                }
+            } else if (es.type == EffectType.DRAGONBLOOD) {
+                owner.dragonBloodSchedule.cancel(false);
+                owner.dragonBloodSchedule = null;
+            } else if (es.type == EffectType.HPREC || es.type == EffectType.MPREC) {
+                if (es.type == EffectType.HPREC) {
+                    owner.extraHpRec = 0;
+                } else {
+                    owner.extraMpRec = 0;
+                }
 
-                        // this shouldn't even be null...
-                        //if (mbsvh != null) {
-                        yokeStats.put(mbsvh, mbsvhe.effect);
-                        //}
-                    }
+                if (owner.extraRecoveryTask != null) {
+                    owner.extraRecoveryTask.cancel(false);
+                    owner.extraRecoveryTask = null;
+                }
+
+                if (owner.extraHpRec != 0 || owner.extraMpRec != 0) {
+                    owner.startExtraTaskInternal(owner.extraHpRec, owner.extraMpRec, owner.extraRecInterval);
                 }
             }
         }
-
-        for (Entry<BuffStatValueHolder, StatEffect> e : yokeStats.entrySet()) {
-            BuffStatValueHolder mbsvhPriority = e.getKey();
-            StatEffect mseActive = e.getValue();
-
-            priorityUpdateEffects.add(new Pair<>(mseActive.getBuffSourceId(), new Pair<>(mbsvhPriority.effect, mbsvhPriority.startTime)));
+        if (report.stopChairTask) {
+            owner.stopChairTask();
         }
-
-        return priorityUpdateEffects;
+        if (report.unregisterMountHunger) {
+            owner.getClient().getWorldServer().unregisterMountHunger(owner);
+            owner.getMapleMount().setActive(false);
+        }
+        if (!report.lostSlots.isEmpty()) {
+            cancelPlayerBuffs(new ArrayList<>(report.lostSlots));
+        }
+        for (Pair<EffectData, Long> mse : report.reannounced) {
+            mse.getLeft().updateBuffEffect(owner, getActiveEffectTypesAndValues(mse.getLeft().getBuffSourceId()), mse.getRight());
+        }
+        if (report.battleshipRefresh && owner.isRidingBattleship()) {
+            List<Pair<EffectType, Integer>> statups = new ArrayList<>(1);
+            statups.add(new Pair<>(EffectType.MONSTER_RIDING, 0));
+            owner.sendPacket(PacketCreator.giveBuff(ItemId.BATTLESHIP, 5221006, statups));
+            owner.announceBattleshipHp();
+        }
     }
 
-    private void propagateBuffEffectUpdates(Map<Integer, Pair<StatEffect, Long>> retrievedEffects, Set<BuffStat> retrievedStats, Set<BuffStat> removedStats) {
-        cancelInactiveBuffStats(retrievedStats, removedStats);
+    /** 传播计算（纯读变更后状态）：填 report 的 lostSlots/reannounced/battleshipRefresh */
+    private void computeReannounce(EffectChangeReport report, Map<Integer, Pair<EffectData, Long>> retrievedEffects, Set<EffectType> retrievedStats, Set<EffectType> removedStats) {
+        for (EffectType mbs : removedStats) {
+            if (!retrievedStats.contains(mbs)) {
+                report.lostSlots.add(mbs);
+            }
+        }
         if (retrievedStats.isEmpty()) {
             return;
         }
+        report.battleshipRefresh = true;
 
-        Map<BuffStat, Pair<Integer, StatEffect>> maxBuffValue = new LinkedHashMap<>();
-        for (BuffStat mbs : retrievedStats) {
-            BuffStatValueHolder mbsvh = state.effects.get(mbs);
+        Map<EffectType, Pair<Integer, EffectData>> maxBuffValue = new LinkedHashMap<>();
+        for (EffectType mbs : retrievedStats) {
+            EffectStatus mbsvh = state.effects.get(mbs);
             if (mbsvh != null) {
-                retrievedEffects.put(mbsvh.effect.getBuffSourceId(), new Pair<>(mbsvh.effect, mbsvh.startTime));
+                retrievedEffects.put(mbsvh.data.getBuffSourceId(), new Pair<>(mbsvh.data, mbsvh.startTime));
             }
 
             maxBuffValue.put(mbs, new Pair<>(Integer.MIN_VALUE, null));
         }
 
-        Map<StatEffect, Integer> updateEffects = new LinkedHashMap<>();
+        Map<EffectData, Integer> updateEffects = new LinkedHashMap<>();
 
-        List<StatEffect> recalcMseList = new LinkedList<>();
-        for (Entry<Integer, Pair<StatEffect, Long>> re : retrievedEffects.entrySet()) {
+        List<EffectData> recalcMseList = new LinkedList<>();
+        for (Entry<Integer, Pair<EffectData, Long>> re : retrievedEffects.entrySet()) {
             recalcMseList.add(re.getValue().getLeft());
         }
 
         boolean mageJob = owner.getJobStyle() == Job.MAGICIAN;
         do {
-            List<StatEffect> mseList = recalcMseList;
+            List<EffectData> mseList = recalcMseList;
             recalcMseList = new LinkedList<>();
 
-            for (StatEffect mse : mseList) {
+            for (EffectData mse : mseList) {
                 int maxEffectiveStatup = Integer.MIN_VALUE;
-                for (Pair<BuffStat, Integer> st : mse.getStatups()) {
-                    BuffStat mbs = st.getLeft();
+                for (Pair<EffectType, Integer> st : mse.getStatups()) {
+                    EffectType mbs = st.getLeft();
 
                     boolean relevantStatup = true;
-                    if (mbs == BuffStat.WATK) {  // not relevant for mages
+                    if (mbs == EffectType.WATK) {  // not relevant for mages
                         if (mageJob) {
                             relevantStatup = false;
                         }
-                    } else if (mbs == BuffStat.MATK) { // not relevant for non-mages
+                    } else if (mbs == EffectType.MATK) { // not relevant for non-mages
                         if (!mageJob) {
                             relevantStatup = false;
                         }
                     }
 
-                    Pair<Integer, StatEffect> mbv = maxBuffValue.get(mbs);
+                    Pair<Integer, EffectData> mbv = maxBuffValue.get(mbs);
                     if (mbv == null) {
                         continue;
                     }
 
                     if (mbv.getLeft() < st.getRight()) {
-                        StatEffect msbe = mbv.getRight();
+                        EffectData msbe = mbv.getRight();
                         if (msbe != null) {
                             recalcMseList.add(msbe);
                         }
@@ -779,39 +722,72 @@ class CharacterBuffs {
             }
         } while (!recalcMseList.isEmpty());
 
-        List<StatEffect> updateEffectsList = sortEffectsList(updateEffects);
-
-        List<Pair<Integer, Pair<StatEffect, Long>>> toUpdateEffects = new LinkedList<>();
-        for (StatEffect mse : updateEffectsList) {
-            toUpdateEffects.add(new Pair<>(mse.getBuffSourceId(), retrievedEffects.get(mse.getBuffSourceId())));
+        List<EffectData> updateEffectsList = sortEffectsList(updateEffects);
+        for (EffectData mse : updateEffectsList) {
+            report.reannounced.add(retrievedEffects.get(mse.getBuffSourceId()));
         }
 
-        List<Pair<BuffStat, Integer>> activeStatups = new LinkedList<>();
-        for (Pair<Integer, Pair<StatEffect, Long>> lmse : toUpdateEffects) {
-            Pair<StatEffect, Long> msel = lmse.getRight();
-            activeStatups.addAll(getActiveStatupsFromSourceid(lmse.getLeft()));
-            msel.getLeft().updateBuffEffect(owner, activeStatups, msel.getRight());
-            activeStatups.clear();
-        }
-
-        List<Pair<Integer, Pair<StatEffect, Long>>> priorityEffects = propagatePriorityBuffEffectUpdates(retrievedStats);
-        for (Pair<Integer, Pair<StatEffect, Long>> lmse : priorityEffects) {
-            Pair<StatEffect, Long> msel = lmse.getRight();
-            activeStatups.addAll(getActiveStatupsFromSourceid(lmse.getLeft()));
-            msel.getLeft().updateBuffEffect(owner, activeStatups, msel.getRight());
-            activeStatups.clear();
-        }
-
-        if (owner.isRidingBattleship()) {
-            List<Pair<BuffStat, Integer>> statups = new ArrayList<>(1);
-            statups.add(new Pair<>(BuffStat.MONSTER_RIDING, 0));
-            owner.sendPacket(PacketCreator.giveBuff(ItemId.BATTLESHIP, 5221006, statups));
-            owner.announceBattleshipHp();
+        for (Pair<Integer, Pair<EffectData, Long>> lmse : propagatePriorityBuffEffectUpdates(retrievedStats)) {
+            report.reannounced.add(lmse.getRight());
         }
     }
 
-    private static BuffStat getSingletonStatupFromEffect(StatEffect mse) {
-        for (Pair<BuffStat, Integer> mbs : mse.getStatups()) {
+    /** 重选+传播（取消链的公共尾部）：对每个受影响槽重选最佳，再计算重发集填入 report */
+    private void fillReselectAndReannounce(EffectChangeReport report, Set<EffectType> removedTypes) {
+        Set<EffectType> retrievedStats = new LinkedHashSet<>();
+
+        for (EffectType mbs : removedTypes) {
+            findBestEffect(mbs);
+
+            EffectStatus mbsvh = state.effects.get(mbs);
+            if (mbsvh != null) {
+                for (Pair<EffectType, Integer> statup : mbsvh.data.getStatups()) {
+                    retrievedStats.add(statup.getLeft());
+                }
+            }
+        }
+
+        computeReannounce(report, new LinkedHashMap<>(), retrievedStats, removedTypes);
+    }
+
+    private List<Pair<Integer, Pair<EffectData, Long>>> propagatePriorityBuffEffectUpdates(Set<EffectType> retrievedStats) {
+        List<Pair<Integer, Pair<EffectData, Long>>> priorityUpdateEffects = new LinkedList<>();
+        Map<EffectStatus, EffectData> yokeStats = new LinkedHashMap<>();
+
+        // priority buffsources: override buffstats for the client to perceive those as "currently buffed"
+        Set<EffectStatus> mbsvhList = new LinkedHashSet<>(getAllEffects());
+
+        for (EffectStatus mbsvh : mbsvhList) {
+            EffectData mse = mbsvh.data;
+            int buffSourceId = mse.getBuffSourceId();
+            if (CharacterBuffs.isPriorityBuffSourceId(buffSourceId) && !state.hasActiveBuff(buffSourceId)) {
+                for (Pair<EffectType, Integer> ps : mse.getStatups()) {
+                    EffectType mbs = ps.getLeft();
+                    if (retrievedStats.contains(mbs)) {
+                        EffectStatus mbsvhe = state.effects.get(mbs);
+
+                        // this shouldn't even be null...
+                        //if (mbsvh != null) {
+                        yokeStats.put(mbsvh, mbsvhe.data);
+                        //}
+                    }
+                }
+            }
+        }
+
+        for (Entry<EffectStatus, EffectData> e : yokeStats.entrySet()) {
+            EffectStatus mbsvhPriority = e.getKey();
+            EffectData mseActive = e.getValue();
+
+            priorityUpdateEffects.add(new Pair<>(mseActive.getBuffSourceId(), new Pair<>(mbsvhPriority.data, mbsvhPriority.startTime)));
+        }
+
+        return priorityUpdateEffects;
+    }
+
+
+    private static EffectType getSingletonStatupFromEffect(EffectData mse) {
+        for (Pair<EffectType, Integer> mbs : mse.getStatups()) {
             if (CharacterBuffs.isSingletonStatup(mbs.getLeft())) {
                 return mbs.getLeft();
             }
@@ -820,7 +796,29 @@ class CharacterBuffs {
         return null;
     }
 
-    public void registerEffect(StatEffect effect, long starttime, long expirationtime, boolean isSilent) {
+    void registerEffect(EffectData effect, long starttime, long expirationtime, boolean isSilent) {
+        startCompanionTasks(effect);
+
+        EffectChangeReport report = null;
+        owner.prtLock.lock();
+        owner.effLock.lock();
+        owner.chrLock.lock();
+        try {
+            report = computeRegistration(effect, starttime, expirationtime, isSilent);
+            if (report != null) {
+                publish(report);
+            }
+        } finally {
+            owner.chrLock.unlock();
+            owner.effLock.unlock();
+            owner.prtLock.unlock();
+        }
+
+        owner.updateLocalStats();
+    }
+
+    /** 伴随任务启动（龙血/狂暴/小灵/恢复跳/额外回复/椅子），锁外先行 */
+    private void startCompanionTasks(EffectData effect) {
         if (effect.isDragonBlood()) {
             owner.prepareDragonBlood(effect);
         } else if (effect.isBerserk()) {
@@ -836,7 +834,7 @@ class CharacterBuffs {
             Skill bHealing = SkillFactory.getSkill(DarkKnight.AURA_OF_BEHOLDER);
             int bHealingLvl = owner.getSkillLevel(bHealing);
             if (bHealingLvl > 0) {
-                final StatEffect healEffect = bHealing.getEffect(bHealingLvl);
+                final EffectData healEffect = bHealing.getEffect(bHealingLvl);
                 int healInterval = (int) SECONDS.toMillis(healEffect.getX());
                 owner.beholderHealingSchedule = TimerManager.getInstance().register(() -> {
                     if (owner.awayFromWorld.get()) {
@@ -851,7 +849,7 @@ class CharacterBuffs {
             }
             Skill bBuff = SkillFactory.getSkill(DarkKnight.HEX_OF_BEHOLDER);
             if (owner.getSkillLevel(bBuff) > 0) {
-                final StatEffect buffEffect = bBuff.getEffect(owner.getSkillLevel(bBuff));
+                final EffectData buffEffect = bBuff.getEffect(owner.getSkillLevel(bBuff));
                 int buffInterval = (int) SECONDS.toMillis(buffEffect.getX());
                 owner.beholderBuffSchedule = TimerManager.getInstance().register(() -> {
                     if (owner.awayFromWorld.get()) {
@@ -875,7 +873,7 @@ class CharacterBuffs {
                 }
 
                 owner.recoveryTask = TimerManager.getInstance().register(() -> {
-                    if (state.getBuffSource(BuffStat.RECOVERY) == -1) {
+                    if (state.getBuffSource(EffectType.RECOVERY) == -1) {
                         owner.chrLock.lock();
                         try {
                             if (owner.recoveryTask != null) {
@@ -918,90 +916,97 @@ class CharacterBuffs {
         } else if (effect.isMapChair()) {
             owner.startChairTask();
         }
+    }
 
-        owner.prtLock.lock();
-        owner.effLock.lock();
-        owner.chrLock.lock();
-        try {
-            Integer sourceid = effect.getBuffSourceId();
-            Map<BuffStat, BuffStatValueHolder> toDeploy;
-            Map<BuffStat, BuffStatValueHolder> appliedStatups = new LinkedHashMap<>();
+    /**
+     * 步骤1：簿记入册 + 激活表部署（仅内部状态变更）。
+     *
+     * @return 需要推送的变化清单；isSilent 时返回 null（静默恢复不发包）
+     */
+    private EffectChangeReport computeRegistration(EffectData effect, long starttime, long expirationtime, boolean isSilent) {
+        Integer sourceid = effect.getBuffSourceId();
+        List<EffectStatus> appliedStatups = new ArrayList<>(effect.getStatups().size());
 
-            for (Pair<BuffStat, Integer> ps : effect.getStatups()) {
-                appliedStatups.put(ps.getLeft(), new BuffStatValueHolder(effect, starttime, ps.getRight()));
+        // wz 原始 statups 无序；同源同槽重复属数据异常，去重并告警
+        Set<EffectType> seenTypes = EnumSet.noneOf(EffectType.class);
+        for (Pair<EffectType, Integer> ps : effect.getStatups()) {
+            if (!seenTypes.add(ps.getLeft())) {
+                log.warn("效果 {} 的 statups 存在重复槽位 {}，已忽略重复项", sourceid, ps.getLeft());
+                continue;
             }
-
-            boolean active = effect.isActive(owner);
-            if (GameConfig.getServerBoolean("use_buff_most_significant")) {
-                toDeploy = new LinkedHashMap<>();
-                Map<Integer, Pair<StatEffect, Long>> retrievedEffects = new LinkedHashMap<>();
-                Set<BuffStat> retrievedStats = new LinkedHashSet<>();
-                for (Entry<BuffStat, BuffStatValueHolder> statup : appliedStatups.entrySet()) {
-                    BuffStatValueHolder mbsvh = state.effects.get(statup.getKey());
-                    BuffStatValueHolder statMbsvh = statup.getValue();
-
-                    if (active) {
-                        if (mbsvh == null || mbsvh.value < statMbsvh.value || (mbsvh.value == statMbsvh.value && mbsvh.effect.getStatups().size() <= statMbsvh.effect.getStatups().size())) {
-                            toDeploy.put(statup.getKey(), statMbsvh);
-                        } else {
-                            if (!CharacterBuffs.isSingletonStatup(statup.getKey())) {
-                                for (Pair<BuffStat, Integer> mbs : mbsvh.effect.getStatups()) {
-                                    retrievedStats.add(mbs.getLeft());
-                                }
-                            }
-                        }
-                    }
-
-                }
-
-                // should also propagate update from buffs shared with priority sourceids
-                Set<BuffStat> updated = appliedStatups.keySet();
-                for (BuffStatValueHolder mbsvh : getAllStatups()) {
-                    if (CharacterBuffs.isPriorityBuffSourceId(mbsvh.effect.getBuffSourceId())) {
-                        for (Pair<BuffStat, Integer> p : mbsvh.effect.getStatups()) {
-                            if (updated.contains(p.getLeft())) {
-                                retrievedStats.add(p.getLeft());
-                            }
-                        }
-                    }
-                }
-
-                if (!isSilent) {
-                    addItemEffectHolder(sourceid, expirationtime, appliedStatups);
-                    state.effects.putAll(toDeploy);
-
-                    if (active) {
-                        retrievedEffects.put(sourceid, new Pair<>(effect, starttime));
-                    }
-
-                    propagateBuffEffectUpdates(retrievedEffects, retrievedStats, new LinkedHashSet<>());
-                }
-            } else {
-                toDeploy = (active ? appliedStatups : new LinkedHashMap<>());
-            }
-
-            addItemEffectHolder(sourceid, expirationtime, appliedStatups);
-            state.effects.putAll(toDeploy);
-        } finally {
-            owner.chrLock.unlock();
-            owner.effLock.unlock();
-            owner.prtLock.unlock();
+            appliedStatups.add(new EffectStatus(ps.getLeft(), effect, starttime, ps.getRight()));
         }
 
-        owner.updateLocalStats();
+        boolean active = effect.isActive(owner);
+        if (GameConfig.getServerBoolean("use_buff_most_significant")) {
+            List<EffectStatus> toDeploy = new ArrayList<>(appliedStatups.size());
+            Set<EffectType> retrievedStats = new LinkedHashSet<>();
+            for (EffectStatus statMbsvh : appliedStatups) {
+                EffectStatus incumbent = state.effects.get(statMbsvh.type);
+
+                if (active) {
+                    if (incumbent == null || incumbent.value < statMbsvh.value || (incumbent.value == statMbsvh.value && incumbent.data.getStatups().size() <= statMbsvh.data.getStatups().size())) {
+                        toDeploy.add(statMbsvh);
+                    } else {
+                        if (!isSingletonStatup(statMbsvh.type)) {
+                            for (Pair<EffectType, Integer> mbs : incumbent.data.getStatups()) {
+                                retrievedStats.add(mbs.getLeft());
+                            }
+                        }
+                    }
+                }
+            }
+
+            // should also propagate update from buffs shared with priority sourceids
+            Set<EffectType> updated = seenTypes;
+            for (EffectStatus mbsvh : getAllEffects()) {
+                if (CharacterBuffs.isPriorityBuffSourceId(mbsvh.data.getBuffSourceId())) {
+                    for (Pair<EffectType, Integer> p : mbsvh.data.getStatups()) {
+                        if (updated.contains(p.getLeft())) {
+                            retrievedStats.add(p.getLeft());
+                        }
+                    }
+                }
+            }
+
+            addBuff(sourceid, expirationtime, appliedStatups);
+            deployToEffects(toDeploy);
+
+            if (isSilent) {
+                return null;
+            }
+            Map<Integer, Pair<EffectData, Long>> retrievedEffects = new LinkedHashMap<>();
+            if (active) {
+                retrievedEffects.put(sourceid, new Pair<>(effect, starttime));
+            }
+            EffectChangeReport report = new EffectChangeReport();
+            computeReannounce(report, retrievedEffects, retrievedStats, new LinkedHashSet<>());
+            return report;
+        } else {
+            addBuff(sourceid, expirationtime, appliedStatups);
+            deployToEffects(active ? appliedStatups : new ArrayList<>());
+            return null;
+        }
+    }
+
+    /** 部署到状态表（按 holder 自带槽位逐项写入激活表） */
+    private void deployToEffects(List<EffectStatus> toDeploy) {
+        for (EffectStatus es : toDeploy) {
+            state.effects.put(es.type, es);
+        }
     }
 
     // ── 传播更新（updateActiveEffects 家族，原 Character 平移） ──
 
-    private static StatEffect getEffectFromBuffSource(Map<BuffStat, BuffStatValueHolder> buffSource) {
+    private static EffectData getEffectFromBuffSource(List<EffectStatus> buffSource) {
         try {
-            return buffSource.entrySet().iterator().next().getValue().effect;
+            return buffSource.get(0).data;
         } catch (Exception e) {
             return null;
         }
     }
 
-    private boolean isUpdatingEffect(Set<StatEffect> activeEffects, StatEffect mse) {
+    private boolean isUpdatingEffect(Set<EffectData> activeEffects, EffectData mse) {
         if (mse == null) {
             return false;
         }
@@ -1015,55 +1020,38 @@ class CharacterBuffs {
         }
     }
 
-    public void updateActiveEffects() {
+    void updateActiveEffects() {
         owner.effLock.lock();     // thanks davidlafriniere, maple006, RedHat for pointing a deadlock occurring here
         try {
-            Set<BuffStat> updatedBuffs = new LinkedHashSet<>();
-            Set<StatEffect> activeEffects = new LinkedHashSet<>();
+            Set<EffectType> updatedBuffs = new LinkedHashSet<>();
+            Set<EffectData> activeEffects = new LinkedHashSet<>();
 
-            for (BuffStatValueHolder mse : state.effects.values()) {
-                activeEffects.add(mse.effect);
+            for (EffectStatus mse : state.effects.values()) {
+                activeEffects.add(mse.data);
             }
 
-            for (Map<BuffStat, BuffStatValueHolder> buff : buffEffects.values()) {
-                StatEffect mse = getEffectFromBuffSource(buff);
-                if (isUpdatingEffect(activeEffects, mse)) {
-                    for (Pair<BuffStat, Integer> p : mse.getStatups()) {
+            for (BuffStatus buff : entries.values()) {
+                EffectData data = getEffectFromBuffSource(buff.effects);
+                if (isUpdatingEffect(activeEffects, data)) {
+                    for (Pair<EffectType, Integer> p : data.getStatups()) {
                         updatedBuffs.add(p.getLeft());
                     }
                 }
             }
 
-            for (BuffStat mbs : updatedBuffs) {
+            for (EffectType mbs : updatedBuffs) {
                 state.effects.remove(mbs);
             }
 
-            updateEffects(updatedBuffs);
-        } finally {
-            owner.effLock.unlock();
-        }
-    }
-
-    private void updateEffects(Set<BuffStat> removedStats) {
-        owner.effLock.lock();
-        owner.chrLock.lock();
-        try {
-            Set<BuffStat> retrievedStats = new LinkedHashSet<>();
-
-            for (BuffStat mbs : removedStats) {
-                fetchBestEffectFromItemEffectHolder(mbs);
-
-                BuffStatValueHolder mbsvh = state.effects.get(mbs);
-                if (mbsvh != null) {
-                    for (Pair<BuffStat, Integer> statup : mbsvh.effect.getStatups()) {
-                        retrievedStats.add(statup.getLeft());
-                    }
-                }
+            EffectChangeReport report = new EffectChangeReport();
+            owner.chrLock.lock();
+            try {
+                fillReselectAndReannounce(report, updatedBuffs);
+            } finally {
+                owner.chrLock.unlock();
             }
-
-            propagateBuffEffectUpdates(new LinkedHashMap<Integer, Pair<StatEffect, Long>>(), retrievedStats, removedStats);
+            publish(report);
         } finally {
-            owner.chrLock.unlock();
             owner.effLock.unlock();
         }
     }

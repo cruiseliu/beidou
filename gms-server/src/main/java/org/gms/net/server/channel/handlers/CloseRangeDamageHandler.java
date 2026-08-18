@@ -21,7 +21,7 @@
 */
 package org.gms.net.server.channel.handlers;
 
-import org.gms.client.BuffStat;
+import org.gms.client.EffectType;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.Job;
@@ -38,7 +38,7 @@ import org.gms.constants.skills.NightWalker;
 import org.gms.constants.skills.Rogue;
 import org.gms.constants.skills.WindArcher;
 import org.gms.net.packet.InPacket;
-import org.gms.server.StatEffect;
+import org.gms.server.EffectData;
 import org.gms.server.partyquest.Pyramid;
 import org.gms.util.I18nUtil;
 import org.gms.util.PacketCreator;
@@ -63,8 +63,8 @@ public final class CloseRangeDamageHandler extends AbstractDealDamageHandler {
         chr.getAutobanManager().spam(8);*/
 
         AttackInfo attack = parseDamage(p, chr, false, false);
-        if (chr.getBuffEffect(BuffStat.MORPH) != null) {
-            if (chr.getBuffEffect(BuffStat.MORPH).isMorphWithoutAttack()) {
+        if (chr.getBuffEffect(EffectType.MORPH) != null) {
+            if (chr.getBuffEffect(EffectType.MORPH).isMorphWithoutAttack()) {
                 // How are they attacking when the client won't let them?
                 chr.getClient().disconnect(false, false);
                 return;
@@ -86,7 +86,7 @@ public final class CloseRangeDamageHandler extends AbstractDealDamageHandler {
 
         chr.getMap().broadcastMessage(chr, PacketCreator.closeRangeAttack(chr, attack.skill, attack.skilllevel, attack.stance, attack.numAttackedAndDamage, attack.allDamage, attack.speed, attack.direction, attack.display), false, true);
         int numFinisherOrbs = 0;
-        Integer comboBuff = chr.getBuffedValue(BuffStat.COMBO);
+        Integer comboBuff = chr.getBuffedValue(EffectType.COMBO);
         if (GameConstants.isFinisherSkill(attack.skill)) {
             if (comboBuff != null) {
                 numFinisherOrbs = comboBuff - 1;
@@ -94,12 +94,12 @@ public final class CloseRangeDamageHandler extends AbstractDealDamageHandler {
             chr.handleOrbconsume();
         } else if (attack.numAttacked > 0) {
             if (attack.skill != 1111008 && comboBuff != null) {
-                int orbcount = chr.getBuffedValue(BuffStat.COMBO);
+                int orbcount = chr.getBuffedValue(EffectType.COMBO);
                 int oid = chr.isCygnus() ? DawnWarrior.COMBO : Crusader.COMBO;
                 int advcomboid = chr.isCygnus() ? DawnWarrior.ADVANCED_COMBO : Hero.ADVANCED_COMBO;
                 Skill combo = SkillFactory.getSkill(oid);
                 Skill advcombo = SkillFactory.getSkill(advcomboid);
-                StatEffect ceffect;
+                EffectData ceffect;
                 int advComboSkillLevel = chr.getSkillLevel(advcombo);
                 if (advComboSkillLevel > 0) {
                     ceffect = advcombo.getEffect(advComboSkillLevel);
@@ -130,9 +130,9 @@ public final class CloseRangeDamageHandler extends AbstractDealDamageHandler {
                         }
 
                         int duration = combo.getEffect(olv).getDuration();
-                        List<Pair<BuffStat, Integer>> stat = Collections.singletonList(new Pair<>(BuffStat.COMBO, neworbcount));
-                        chr.setBuffedValue(BuffStat.COMBO, neworbcount);
-                        duration -= (int) (currentServerTime() - chr.getBuffedStarttime(BuffStat.COMBO));
+                        List<Pair<EffectType, Integer>> stat = Collections.singletonList(new Pair<>(EffectType.COMBO, neworbcount));
+                        chr.setBuffedValue(EffectType.COMBO, neworbcount);
+                        duration -= (int) (currentServerTime() - chr.getBuffedStarttime(EffectType.COMBO));
                         c.sendPacket(PacketCreator.giveBuff(oid, duration, stat));
                         chr.getMap().broadcastMessage(chr, PacketCreator.giveForeignBuff(chr.getId(), stat), false);
                     }
@@ -159,7 +159,7 @@ public final class CloseRangeDamageHandler extends AbstractDealDamageHandler {
                 advcharge_prob = SkillFactory.getSkill(1220010).getEffect(advcharge_level).makeChanceResult();
             }
             if (!advcharge_prob) {
-                chr.cancelEffectFromBuffStat(BuffStat.WK_CHARGE);
+                chr.cancelEffectFromBuffStat(EffectType.WK_CHARGE);
             }
         }
         int attackCount = 1;
@@ -179,7 +179,7 @@ public final class CloseRangeDamageHandler extends AbstractDealDamageHandler {
         } else if (attack.skill > 0) {
             Skill skill = SkillFactory.getSkill(attack.skill);
             int skillLevel = pyramidSkill ? 1 : chr.getSkillLevel(skill);
-            StatEffect effect_ = skill.getEffect(skillLevel);
+            EffectData effect_ = skill.getEffect(skillLevel);
             if (effect_.getCooldown() > 0) {
                 if (chr.skillIsCooling(attack.skill)) {
                     return;
@@ -189,12 +189,12 @@ public final class CloseRangeDamageHandler extends AbstractDealDamageHandler {
                 }
             }
         }
-        if ((chr.getSkillLevel(SkillFactory.getSkill(NightWalker.VANISH)) > 0 || chr.getSkillLevel(SkillFactory.getSkill(Rogue.DARK_SIGHT)) > 0) && chr.getBuffedValue(BuffStat.DARKSIGHT) != null) {// && chr.getBuffSource(BuffStat.DARKSIGHT) != 9101004
-            chr.cancelEffectFromBuffStat(BuffStat.DARKSIGHT);
-            chr.cancelBuffStats(BuffStat.DARKSIGHT);
-        } else if (chr.getSkillLevel(SkillFactory.getSkill(WindArcher.WIND_WALK)) > 0 && chr.getBuffedValue(BuffStat.WIND_WALK) != null) {
-            chr.cancelEffectFromBuffStat(BuffStat.WIND_WALK);
-            chr.cancelBuffStats(BuffStat.WIND_WALK);
+        if ((chr.getSkillLevel(SkillFactory.getSkill(NightWalker.VANISH)) > 0 || chr.getSkillLevel(SkillFactory.getSkill(Rogue.DARK_SIGHT)) > 0) && chr.getBuffedValue(EffectType.DARKSIGHT) != null) {// && chr.getBuffSource(BuffStat.DARKSIGHT) != 9101004
+            chr.cancelEffectFromBuffStat(EffectType.DARKSIGHT);
+            chr.cancelBuffStats(EffectType.DARKSIGHT);
+        } else if (chr.getSkillLevel(SkillFactory.getSkill(WindArcher.WIND_WALK)) > 0 && chr.getBuffedValue(EffectType.WIND_WALK) != null) {
+            chr.cancelEffectFromBuffStat(EffectType.WIND_WALK);
+            chr.cancelBuffStats(EffectType.WIND_WALK);
         }
 
         applyAttack(attack, chr, attackCount);

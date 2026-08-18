@@ -21,7 +21,7 @@
  */
 package org.gms.server.maps;
 
-import org.gms.client.BuffStat;
+import org.gms.client.EffectType;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.autoban.AutobanFactory;
@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
 import org.gms.scripting.event.EventInstanceManager;
 import org.gms.scripting.map.MapScriptManager;
 import org.gms.server.ItemInformationProvider;
-import org.gms.server.StatEffect;
+import org.gms.server.EffectData;
 import org.gms.server.TimerManager;
 import org.gms.server.events.gm.Coconut;
 import org.gms.server.events.gm.Fitness;
@@ -679,8 +679,8 @@ public class MapleMap {
                     int mesos = Randomizer.nextInt(de.Maximum - de.Minimum) + de.Minimum;
 
                     if (mesos > 0) {
-                        if (chr.getBuffedValue(BuffStat.MESOUP) != null) {
-                            mesos = NumberTool.doubleToInt(mesos * chr.getBuffedValue(BuffStat.MESOUP).doubleValue() / 100.0);
+                        if (chr.getBuffedValue(EffectType.MESOUP) != null) {
+                            mesos = NumberTool.doubleToInt(mesos * chr.getBuffedValue(EffectType.MESOUP).doubleValue() / 100.0);
                         }
                         mesos = NumberTool.floatToInt(mesos * chr.getMesoRate());
                         if (mesos <= 0) {
@@ -1453,7 +1453,7 @@ public class MapleMap {
                         for (MapObject mmo : this.getPlayers()) {
                             Character character = (Character) mmo;
                             if (character.isAlive()) {
-                                StatEffect statEffect = mii.getItemEffect(buff);
+                                EffectData statEffect = mii.getItemEffect(buff);
                                 character.sendPacket(PacketCreator.showOwnBuffEffect(buff, 1));
                                 broadcastMessage(character, PacketCreator.showBuffEffect(character.getId(), buff, 1), false);
                                 statEffect.applyTo(character);
@@ -2448,9 +2448,9 @@ public class MapleMap {
 
             msm.runMapScript(chr.getClient(), "onUserEnter/" + onUserEnter, false);
         }
-        if (FieldLimit.CANNOTUSEMOUNTS.check(fieldLimit) && chr.getBuffedValue(BuffStat.MONSTER_RIDING) != null) {
-            chr.cancelEffectFromBuffStat(BuffStat.MONSTER_RIDING);
-            chr.cancelBuffStats(BuffStat.MONSTER_RIDING);
+        if (FieldLimit.CANNOTUSEMOUNTS.check(fieldLimit) && chr.getBuffedValue(EffectType.MONSTER_RIDING) != null) {
+            chr.cancelEffectFromBuffStat(EffectType.MONSTER_RIDING);
+            chr.cancelBuffStats(EffectType.MONSTER_RIDING);
         }
 
         if (mapid == MapId.FROM_LITH_TO_RIEN) { // To Rien
@@ -2553,7 +2553,7 @@ public class MapleMap {
             broadcastGMSpawnPlayerMapObjectMessage(chr, chr, true);
             chr.sendPacket(PacketCreator.getGMEffect(0x10, (byte) 1));
 
-            List<Pair<BuffStat, Integer>> dsstat = Collections.singletonList(new Pair<>(BuffStat.DARKSIGHT, 0));
+            List<Pair<EffectType, Integer>> dsstat = Collections.singletonList(new Pair<>(EffectType.DARKSIGHT, 0));
             broadcastGMMessage(chr, PacketCreator.giveForeignBuff(chr.getId(), dsstat), false);
         } else {
             broadcastSpawnPlayerMapObjectMessage(chr, chr, true);
@@ -2593,7 +2593,7 @@ public class MapleMap {
             }
         }
 
-        StatEffect summonStat = chr.getStatForBuff(BuffStat.SUMMON);
+        EffectData summonStat = chr.getStatForBuff(EffectType.SUMMON);
         if (summonStat != null) {
             Summon summon = chr.getSummonByKey(summonStat.getSourceId());
             summon.setPosition(chr.getPosition());
@@ -2764,7 +2764,7 @@ public class MapleMap {
 
         for (Summon summon : new ArrayList<>(chr.getSummonsValues())) {
             if (summon.isStationary()) {
-                chr.cancelEffectFromBuffStat(BuffStat.PUPPET);
+                chr.cancelEffectFromBuffStat(EffectType.PUPPET);
             } else {
                 removeMapObject(summon);
             }

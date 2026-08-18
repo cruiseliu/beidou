@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.gms.scripting.AbstractPlayerInteraction;
 import org.gms.scripting.event.scheduler.EventScriptScheduler;
 import org.gms.server.ItemInformationProvider;
-import org.gms.server.StatEffect;
+import org.gms.server.EffectData;
 import org.gms.server.ThreadManager;
 import org.gms.server.TimerManager;
 import org.gms.server.expeditions.Expedition;
@@ -174,7 +174,7 @@ public class EventInstanceManager {
 
     public void applyEventPlayersItemBuff(int itemId) {
         List<Character> players = getPlayerList();
-        StatEffect mse = ItemInformationProvider.getInstance().getItemEffect(itemId);
+        EffectData mse = ItemInformationProvider.getInstance().getItemEffect(itemId);
 
         if (mse != null) {
             for (Character player : players) {
@@ -192,7 +192,7 @@ public class EventInstanceManager {
         Skill skill = SkillFactory.getSkill(skillId);
 
         if (skill != null) {
-            StatEffect mse = skill.getEffect(Math.min(skillLv, skill.getMaxLevel()));
+            EffectData mse = skill.getEffect(Math.min(skillLv, skill.getMaxLevel()));
             if (mse != null) {
                 for (Character player : players) {
                     mse.applyTo(player);

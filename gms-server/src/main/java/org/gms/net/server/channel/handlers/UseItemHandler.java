@@ -33,7 +33,7 @@ import org.gms.constants.inventory.ItemConstants;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
 import org.gms.server.ItemInformationProvider;
-import org.gms.server.StatEffect;
+import org.gms.server.EffectData;
 import org.gms.util.I18nUtil;
 import org.gms.util.PacketCreator;
 
@@ -103,7 +103,7 @@ public final class UseItemHandler extends AbstractPacketHandler {
             if (toUse.getItemId() != ItemId.HAPPY_BIRTHDAY) {
                 ii.getItemEffect(toUse.getItemId()).applyTo(chr);
             } else {
-                StatEffect mse = ii.getItemEffect(toUse.getItemId());
+                EffectData mse = ii.getItemEffect(toUse.getItemId());
                 for (Character player : chr.getMap().getCharacters()) {
                     mse.applyTo(player);
                 }

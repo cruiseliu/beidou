@@ -21,7 +21,7 @@
 */
 package org.gms.client;
 
-import org.gms.server.StatEffect;
+import org.gms.server.EffectData;
 import org.gms.server.life.Element;
 
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ import java.util.List;
 
 public class Skill {
     private final int id;
-    private final List<StatEffect> effects = new ArrayList<>();
+    private final List<EffectData> effects = new ArrayList<>();
     private Element element;
     private int animationTime;
     private final int job;
@@ -44,7 +44,7 @@ public class Skill {
         return id;
     }
 
-    public StatEffect getEffect(int level) {
+    public EffectData getEffect(int level) {
         return effects.get(level - 1);
     }
 
@@ -94,7 +94,7 @@ public class Skill {
         return action;
     }
 
-    public void addLevelEffect(StatEffect effect) {
+    public void addLevelEffect(EffectData effect) {
         effects.add(effect);
     }
 }

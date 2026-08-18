@@ -27,7 +27,7 @@ import org.gms.client.processor.action.PetAutopotProcessor;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
 import org.gms.server.ItemInformationProvider;
-import org.gms.server.StatEffect;
+import org.gms.server.EffectData;
 
 public final class PetAutoPotHandler extends AbstractPacketHandler {
 

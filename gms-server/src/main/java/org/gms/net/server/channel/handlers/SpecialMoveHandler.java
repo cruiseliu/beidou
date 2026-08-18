@@ -36,7 +36,7 @@ import org.gms.constants.skills.SuperGM;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
 import org.gms.net.server.Server;
-import org.gms.server.StatEffect;
+import org.gms.server.EffectData;
 import org.gms.server.life.Monster;
 import org.gms.util.I18nUtil;
 import org.gms.util.PacketCreator;
@@ -80,13 +80,13 @@ public final class SpecialMoveHandler extends AbstractPacketHandler {
             return;
         }
 
-        StatEffect effect = skill.getEffect(skillLevel);
+        EffectData effect = skill.getEffect(skillLevel);
         if (effect.getCooldown() > 0) {
             if (chr.skillIsCooling(skillid)) {
                 return;
             } else if (skillid != Corsair.BATTLE_SHIP) {
                 int cooldownTime = effect.getCooldown();
-                if (StatEffect.isHerosWill(skillid) && GameConfig.getServerBoolean("use_fast_reuse_hero_will")) {
+                if (EffectData.isHerosWill(skillid) && GameConfig.getServerBoolean("use_fast_reuse_hero_will")) {
                     cooldownTime /= 60;
                 }
 
@@ -118,7 +118,7 @@ public final class SpecialMoveHandler extends AbstractPacketHandler {
             return;
         } else if (skillid == Brawler.MP_RECOVERY) {// MP Recovery
             Skill s = SkillFactory.getSkill(skillid);
-            StatEffect ef = s.getEffect(chr.getSkillLevel(s));
+            EffectData ef = s.getEffect(chr.getSkillLevel(s));
 
             int lose = chr.safeAddHP(-1 * (chr.getCurrentMaxHp() / ef.getX()));
             // 修复生命分流技能精度丢失，导致MP不加的问题

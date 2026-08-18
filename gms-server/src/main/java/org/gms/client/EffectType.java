@@ -21,7 +21,7 @@
 */
 package org.gms.client;
 
-public enum BuffStat {
+public enum EffectType {
     //SLOW(0x1L),
     MORPH(0x2L),
     RECOVERY(0x4L),
@@ -124,12 +124,12 @@ public enum BuffStat {
     private final long i;
     private final boolean isFirst;
 
-    BuffStat(long i, boolean isFirst) {
+    EffectType(long i, boolean isFirst) {
         this.i = i;
         this.isFirst = isFirst;
     }
 
-    BuffStat(long i) {
+    EffectType(long i) {
         this.i = i;
         this.isFirst = false;
     }

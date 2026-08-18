@@ -27,7 +27,7 @@ import lombok.Setter;
 
 import org.gms.client.BuddyList;
 import org.gms.client.BuddylistEntry;
-import org.gms.client.BuffStat;
+import org.gms.client.EffectType;
 import org.gms.client.CharacterNameAndId;
 import org.gms.client.Client;
 import org.gms.client.Disease;
@@ -1318,7 +1318,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void setCombo(short count) {
         if (count < combocounter) {
-            cancelEffectFromBuffStat(BuffStat.ARAN_COMBO);
+            cancelEffectFromBuffStat(EffectType.ARAN_COMBO);
         }
         combocounter = (short) Math.min(30000, count);
         if (count > 0) {
@@ -1369,7 +1369,7 @@ public class Character extends AbstractAnimatedMapObject {
             if (!hide) {
                 this.hidden = false;
                 sendPacket(PacketCreator.getGMEffect(0x10, (byte) 0));
-                List<BuffStat> dsstat = Collections.singletonList(BuffStat.DARKSIGHT);
+                List<EffectType> dsstat = Collections.singletonList(EffectType.DARKSIGHT);
                 getMap().broadcastGMMessage(this, PacketCreator.cancelForeignBuff(id, dsstat), false);
                 getMap().broadcastSpawnPlayerMapObjectMessage(this, this, false);
 
@@ -1387,7 +1387,7 @@ public class Character extends AbstractAnimatedMapObject {
                 if (!login) {
                     getMap().broadcastNONGMMessage(this, PacketCreator.removePlayerFromMap(getId()), false);
                 }
-                List<Pair<BuffStat, Integer>> ldsstat = Collections.singletonList(new Pair<BuffStat, Integer>(BuffStat.DARKSIGHT, 0));
+                List<Pair<EffectType, Integer>> ldsstat = Collections.singletonList(new Pair<EffectType, Integer>(EffectType.DARKSIGHT, 0));
                 getMap().broadcastGMMessage(this, PacketCreator.giveForeignBuff(id, ldsstat), false);
                 this.releaseControlledMonsters();
             }
@@ -1404,10 +1404,10 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void cancelMagicDoor() {
-        List<BuffStatValueHolder> mbsvhList = getAllStatups();
-        for (BuffStatValueHolder mbsvh : mbsvhList) {
-            if (mbsvh.effect.isMagicDoor()) {
-                cancelEffect(mbsvh.effect, false, mbsvh.startTime);
+        List<EffectStatus> effects = getAllStatups();
+        for (EffectStatus effect : effects) {
+            if (effect.data.isMagicDoor()) {
+                cancelEffect(effect.data, false);
                 break;
             }
         }
@@ -1697,8 +1697,8 @@ public class Character extends AbstractAnimatedMapObject {
         broadcastChangeJob();
 
         if (GameConstants.hasSPTable(newJob) && newJob.getId() != 2001) {
-            if (getBuffedValue(BuffStat.MONSTER_RIDING) != null) {
-                cancelBuffStats(BuffStat.MONSTER_RIDING);
+            if (getBuffedValue(EffectType.MONSTER_RIDING) != null) {
+                cancelBuffStats(EffectType.MONSTER_RIDING);
             }
             createDragon();
         }
@@ -1946,8 +1946,8 @@ public class Character extends AbstractAnimatedMapObject {
         effLock.lock();
         chrLock.lock();
         try {
-            for (Entry<BuffStat, BuffStatValueHolder> mbs : effectState.effects.entrySet()) {
-                if (mbs.getKey() == BuffStat.MAP_PROTECTION) {
+            for (Entry<EffectType, EffectStatus> mbs : effectState.effects.entrySet()) {
+                if (mbs.getKey() == EffectType.MAP_PROTECTION) {
                     byte value = (byte) mbs.getValue().value;
 
                     if (value == 1 && ((returnMapid == MapId.EL_NATH && thisMapid != MapId.ORBIS_TOWER_BOTTOM)
@@ -2416,7 +2416,7 @@ public class Character extends AbstractAnimatedMapObject {
         if (ItemConstants.isPartyItem(itemId)) {// 判断是否为队伍共享类道具
             List<Character> partyMembers = this.getPartyMembersOnSameMap();// 获取同一地图内的队伍成员列表
             if (!ItemId.isPartyAllCure(itemId)) {// 处理非全体治疗类道具
-                StatEffect mse = ii.getItemEffect(itemId);// 获取道具效果对象
+                EffectData mse = ii.getItemEffect(itemId);// 获取道具效果对象
                 if (!partyMembers.isEmpty()) {
                     for (Character mc : partyMembers) {// 遍历存活队友并施加效果
                         if (mc.isAlive()) {
@@ -2622,7 +2622,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public boolean isRidingBattleship() {
-        Integer bv = getBuffedValue(BuffStat.MONSTER_RIDING);
+        Integer bv = getBuffedValue(EffectType.MONSTER_RIDING);
         return bv != null && bv.equals(Corsair.BATTLE_SHIP);
     }
 
@@ -2638,7 +2638,7 @@ public class Character extends AbstractAnimatedMapObject {
             sendPacket(PacketCreator.skillCooldown(Corsair.BATTLE_SHIP, cooldown));
             addCooldown(Corsair.BATTLE_SHIP, Server.getInstance().getCurrentTime(), SECONDS.toMillis(cooldown));
             removeCooldown(5221999);
-            cancelEffectFromBuffStat(BuffStat.MONSTER_RIDING);
+            cancelEffectFromBuffStat(EffectType.MONSTER_RIDING);
         } else {
             announceBattleshipHp();
             addCooldown(5221999, 0, Long.MAX_VALUE);
@@ -2860,7 +2860,7 @@ public class Character extends AbstractAnimatedMapObject {
         extraRecInterval = healInterval;
 
         extraRecoveryTask = TimerManager.getInstance().register(() -> {
-            if (getBuffSource(BuffStat.HPREC) == -1 && getBuffSource(BuffStat.MPREC) == -1) {
+            if (getBuffSource(EffectType.HPREC) == -1 && getBuffSource(EffectType.MPREC) == -1) {
                 stopExtraTask();
                 return;
             }
@@ -2889,11 +2889,11 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void dispel() {
         if (!(GameConfig.getServerBoolean("use_undispel_holy_shield") && this.hasActiveBuff(Bishop.HOLY_SHIELD))) {
-            List<BuffStatValueHolder> mbsvhList = getAllStatups();
-            for (BuffStatValueHolder mbsvh : mbsvhList) {
-                if (mbsvh.effect.isSkill()) {
-                    if (mbsvh.effect.getBuffSourceId() != Aran.COMBO_ABILITY) { // check discovered thanks to Croosade dev team
-                        cancelEffect(mbsvh.effect, false, mbsvh.startTime);
+            List<EffectStatus> effects = getAllStatups();
+            for (EffectStatus effect : effects) {
+                if (effect.data.isSkill()) {
+                    if (effect.data.getBuffSourceId() != Aran.COMBO_ABILITY) { // check discovered thanks to Croosade dev team
+                        cancelEffect(effect.data, false);
                     }
                 }
             }
@@ -3079,14 +3079,14 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void dispelSkill(int skillid) {
-        List<BuffStatValueHolder> allBuffs = getAllStatups();
-        for (BuffStatValueHolder mbsvh : allBuffs) {
+        List<EffectStatus> effects = getAllStatups();
+        for (EffectStatus effect : effects) {
             if (skillid == 0) {
-                if (mbsvh.effect.isSkill() && (mbsvh.effect.getSourceId() % 10000000 == 1004 || dispelSkills(mbsvh.effect.getSourceId()))) {
-                    cancelEffect(mbsvh.effect, false, mbsvh.startTime);
+                if (effect.data.isSkill() && (effect.data.getSourceId() % 10000000 == 1004 || dispelSkills(effect.data.getSourceId()))) {
+                    cancelEffect(effect.data, false);
                 }
-            } else if (mbsvh.effect.isSkill() && mbsvh.effect.getSourceId() == skillid) {
-                cancelEffect(mbsvh.effect, false, mbsvh.startTime);
+            } else if (effect.data.isSkill() && effect.data.getSourceId() == skillid) {
+                cancelEffect(effect.data, false);
             }
         }
     }
@@ -3517,47 +3517,52 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public Long getBuffedStarttime(BuffStat effect) {
+    public Long getBuffedStarttime(EffectType effect) {
         return effectState.getBuffedStarttime(effect);
     }
 
-    public Integer getBuffedValue(BuffStat effect) {
+    public Integer getBuffedValue(EffectType effect) {
         return effectState.getBuffedValue(effect);
     }
 
-    public int getBuffSource(BuffStat stat) {
+    public int getBuffSource(EffectType stat) {
         return effectState.getBuffSource(stat);
     }
 
-    public StatEffect getBuffEffect(BuffStat stat) {
+    public EffectData getBuffEffect(EffectType stat) {
         return effectState.getBuffEffect(stat);
     }
 
-    List<BuffStatValueHolder> getAllStatups() {
-        return buffs.getAllStatups();
+    List<EffectStatus> getAllStatups() {
+        return buffs.getAllEffects();
     }
 
     public void updateActiveEffects() {
         buffs.updateActiveEffects();
     }
 
-    public void registerEffect(StatEffect effect, long starttime, long expirationtime, boolean isSilent) {
+    public void registerEffect(EffectData effect, long starttime, long expirationtime, boolean isSilent) {
         buffs.registerEffect(effect, starttime, expirationtime, isSilent);
     }
 
     public void cancelEffect(int itemId) {
-        buffs.cancelEffect(itemId);
+        ItemInformationProvider ii = ItemInformationProvider.getInstance();
+        buffs.cancelEffect(ii.getItemEffect(itemId), false);
     }
 
-    public boolean cancelEffect(StatEffect effect, boolean overwrite, long startTime) {
-        return buffs.cancelEffect(effect, overwrite, startTime);
+    public boolean cancelEffect(EffectData effect, boolean overwrite) {
+        return buffs.cancelEffect(effect, overwrite);
     }
 
-    public void cancelEffectFromBuffStat(BuffStat stat) {
+    public boolean cancelEffect(EffectData effect, boolean overwrite, long _unused_startTime) {
+        return buffs.cancelEffect(effect, overwrite);
+    }
+
+    public void cancelEffectFromBuffStat(EffectType stat) {
         buffs.cancelEffectFromBuffStat(stat);
     }
 
-    public void cancelBuffStats(BuffStat stat) {
+    public void cancelBuffStats(EffectType stat) {
         buffs.cancelBuffStats(stat);
     }
 
@@ -3604,7 +3609,7 @@ public class Character extends AbstractAnimatedMapObject {
         int skillId = getJobMapChair(job);
         int skillLv = getSkillLevel(skillId);
         if (skillLv > 0) {
-            StatEffect mapChairSkill = SkillFactory.getSkill(skillId).getEffect(skillLv);
+            EffectData mapChairSkill = SkillFactory.getSkill(skillId).getEffect(skillLv);
             return cancelEffect(mapChairSkill, false, -1);
         }
 
@@ -3619,7 +3624,7 @@ public class Character extends AbstractAnimatedMapObject {
         int skillId = getJobMapChair(job);
         int skillLv = getSkillLevel(skillId);
         if (skillLv > 0) {
-            StatEffect mapChairSkill = SkillFactory.getSkill(skillId).getEffect(skillLv);
+            EffectData mapChairSkill = SkillFactory.getSkill(skillId).getEffect(skillLv);
             mapChairSkill.applyTo(this);
             return true;
         }
@@ -4004,12 +4009,12 @@ public class Character extends AbstractAnimatedMapObject {
         float rate = 100.0f;
 
         if (itemid == 0) {
-            StatEffect mseMeso = getBuffEffect(BuffStat.MESO_UP_BY_ITEM);
+            EffectData mseMeso = getBuffEffect(EffectType.MESO_UP_BY_ITEM);
             if (mseMeso != null) {
                 rate += mseMeso.getCardRate(mapId, itemid);
             }
         } else {
-            StatEffect mseItem = getBuffEffect(BuffStat.ITEM_UP_BY_ITEM);
+            EffectData mseItem = getBuffEffect(EffectType.ITEM_UP_BY_ITEM);
             if (mseItem != null) {
                 rate += mseItem.getCardRate(mapId, itemid);
             }
@@ -4762,15 +4767,15 @@ public class Character extends AbstractAnimatedMapObject {
         return Collections.unmodifiableList(ret);
     }
 
-    public StatEffect getStatForBuff(BuffStat effect) {
+    public EffectData getStatForBuff(EffectType effect) {
         effLock.lock();
         chrLock.lock();
         try {
-            BuffStatValueHolder mbsvh = effectState.effects.get(effect);
+            EffectStatus mbsvh = effectState.effects.get(effect);
             if (mbsvh == null) {
                 return null;
             }
-            return mbsvh.effect;
+            return mbsvh.data;
         } finally {
             chrLock.unlock();
             effLock.unlock();
@@ -4835,7 +4840,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void handleEnergyChargeGain() { // to get here energychargelevel has to be > 0
         Skill energycharge = isCygnus() ? SkillFactory.getSkill(ThunderBreaker.ENERGY_CHARGE) : SkillFactory.getSkill(Marauder.ENERGY_CHARGE);
-        StatEffect ceffect;
+        EffectData ceffect;
         ceffect = energycharge.getEffect(getSkillLevel(energycharge));
         TimerManager tMan = TimerManager.getInstance();
         if (energyBar < 10000) {
@@ -4843,8 +4848,8 @@ public class Character extends AbstractAnimatedMapObject {
             if (energyBar > 10000) {
                 energyBar = 10000;
             }
-            List<Pair<BuffStat, Integer>> stat = Collections.singletonList(new Pair<>(BuffStat.ENERGY_CHARGE, energyBar));
-            setBuffedValue(BuffStat.ENERGY_CHARGE, energyBar);
+            List<Pair<EffectType, Integer>> stat = Collections.singletonList(new Pair<>(EffectType.ENERGY_CHARGE, energyBar));
+            setBuffedValue(EffectType.ENERGY_CHARGE, energyBar);
             sendPacket(PacketCreator.giveBuff(energyBar, 0, stat));
             sendPacket(PacketCreator.showOwnBuffEffect(energycharge.getId(), 2));
             getMap().broadcastPacket(this, PacketCreator.showBuffEffect(id, energycharge.getId(), 2));
@@ -4856,8 +4861,8 @@ public class Character extends AbstractAnimatedMapObject {
             final Character chr = this;
             tMan.schedule(() -> {
                 energyBar = 0;
-                List<Pair<BuffStat, Integer>> stat = Collections.singletonList(new Pair<>(BuffStat.ENERGY_CHARGE, energyBar));
-                setBuffedValue(BuffStat.ENERGY_CHARGE, energyBar);
+                List<Pair<EffectType, Integer>> stat = Collections.singletonList(new Pair<>(EffectType.ENERGY_CHARGE, energyBar));
+                setBuffedValue(EffectType.ENERGY_CHARGE, energyBar);
                 sendPacket(PacketCreator.giveBuff(energyBar, 0, stat));
                 getMap().broadcastPacket(chr, PacketCreator.cancelForeignFirstDebuff(id, ((long) 1) << 50));
             }, ceffect.getDuration());
@@ -4867,9 +4872,9 @@ public class Character extends AbstractAnimatedMapObject {
     public void handleOrbconsume() {
         int skillid = isCygnus() ? DawnWarrior.COMBO : Crusader.COMBO;
         Skill combo = SkillFactory.getSkill(skillid);
-        List<Pair<BuffStat, Integer>> stat = Collections.singletonList(new Pair<>(BuffStat.COMBO, 1));
-        setBuffedValue(BuffStat.COMBO, 1);
-        sendPacket(PacketCreator.giveBuff(skillid, combo.getEffect(getSkillLevel(combo)).getDuration() + (int) ((getBuffedStarttime(BuffStat.COMBO) - System.currentTimeMillis())), stat));
+        List<Pair<EffectType, Integer>> stat = Collections.singletonList(new Pair<>(EffectType.COMBO, 1));
+        setBuffedValue(EffectType.COMBO, 1);
+        sendPacket(PacketCreator.giveBuff(skillid, combo.getEffect(getSkillLevel(combo)).getDuration() + (int) ((getBuffedStarttime(EffectType.COMBO) - System.currentTimeMillis())), stat));
         getMap().broadcastMessage(this, PacketCreator.giveForeignBuff(getId(), stat), false);
     }
 
@@ -4942,7 +4947,7 @@ public class Character extends AbstractAnimatedMapObject {
         return (minutes > 0 ? (String.format("%02d", minutes) + " minutes, ") : "") + String.format("%02d", seconds) + " seconds";
     }
 
-    public boolean isBuffFrom(BuffStat stat, Skill skill) {
+    public boolean isBuffFrom(EffectType stat, Skill skill) {
         return effectState.isBuffFrom(stat, skill);
     }
 
@@ -5493,16 +5498,16 @@ public class Character extends AbstractAnimatedMapObject {
         }
 
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
-        StatEffect mse = ii.getItemEffect(couponid);
+        EffectData mse = ii.getItemEffect(couponid);
         mse.applyTo(this);
     }
 
     public void dispelBuffCoupons() {
-        List<BuffStatValueHolder> allBuffs = getAllStatups();
+        List<EffectStatus> effects = getAllStatups();
 
-        for (BuffStatValueHolder mbsvh : allBuffs) {
-            if (ItemConstants.isRateCoupon(mbsvh.effect.getSourceId())) {
-                cancelEffect(mbsvh.effect, false, mbsvh.startTime);
+        for (EffectStatus effect : effects) {
+            if (ItemConstants.isRateCoupon(effect.data.getSourceId())) {
+                cancelEffect(effect.data, false);
             }
         }
     }
@@ -6036,12 +6041,12 @@ public class Character extends AbstractAnimatedMapObject {
             }
         }
 
-        if (getBuffedValue(BuffStat.MORPH) != null) {
-            cancelEffectFromBuffStat(BuffStat.MORPH);
+        if (getBuffedValue(EffectType.MORPH) != null) {
+            cancelEffectFromBuffStat(EffectType.MORPH);
         }
 
-        if (getBuffedValue(BuffStat.MONSTER_RIDING) != null) {
-            cancelEffectFromBuffStat(BuffStat.MONSTER_RIDING);
+        if (getBuffedValue(EffectType.MONSTER_RIDING) != null) {
+            cancelEffectFromBuffStat(EffectType.MONSTER_RIDING);
         }
 
         unsitChairInternal();
@@ -6113,7 +6118,7 @@ public class Character extends AbstractAnimatedMapObject {
         setStance(0);
     }
 
-    void prepareDragonBlood(final StatEffect bloodEffect) {
+    void prepareDragonBlood(final EffectData bloodEffect) {
         if (dragonBloodSchedule != null) {
             dragonBloodSchedule.cancel(false);
         }
@@ -6152,11 +6157,11 @@ public class Character extends AbstractAnimatedMapObject {
 
             stats.localmagic = Math.min(stats.localmagic, 2000);
 
-            Integer hbhp = getBuffedValue(BuffStat.HYPERBODYHP);
+            Integer hbhp = getBuffedValue(EffectType.HYPERBODYHP);
             if (hbhp != null) {
                 stats.localMaxHp += (int) ((hbhp.doubleValue() / 100) * stats.localMaxHp);
             }
-            Integer hbmp = getBuffedValue(BuffStat.HYPERBODYMP);
+            Integer hbmp = getBuffedValue(EffectType.HYPERBODYMP);
             if (hbmp != null) {
                 stats.localMaxMp += (int) ((hbmp.doubleValue() / 100) * stats.localMaxMp);
             }
@@ -6164,18 +6169,18 @@ public class Character extends AbstractAnimatedMapObject {
             stats.localMaxHp = Math.min(30000, stats.localMaxHp);
             stats.localMaxMp = Math.min(30000, stats.localMaxMp);
 
-            StatEffect combo = getBuffEffect(BuffStat.ARAN_COMBO);
+            EffectData combo = getBuffEffect(EffectType.ARAN_COMBO);
             if (combo != null) {
                 stats.localwatk += combo.getX();
             }
 
             if (energyBar == 15000) {
                 Skill energycharge = isCygnus() ? SkillFactory.getSkill(ThunderBreaker.ENERGY_CHARGE) : SkillFactory.getSkill(Marauder.ENERGY_CHARGE);
-                StatEffect ceffect = energycharge.getEffect(getSkillLevel(energycharge));
+                EffectData ceffect = energycharge.getEffect(getSkillLevel(energycharge));
                 stats.localwatk += ceffect.getWatk();
             }
 
-            Integer mwarr = getBuffedValue(BuffStat.MAPLE_WARRIOR);
+            Integer mwarr = getBuffedValue(EffectType.MAPLE_WARRIOR);
             if (mwarr != null) {
                 stats.localAttrs[STR] += getStr() * mwarr / 100;
                 stats.localAttrs[DEX] += getDex() * mwarr / 100;
@@ -6197,11 +6202,11 @@ public class Character extends AbstractAnimatedMapObject {
                 }
             }
 
-            Integer watkbuff = getBuffedValue(BuffStat.WATK);
+            Integer watkbuff = getBuffedValue(EffectType.WATK);
             if (watkbuff != null) {
                 stats.localwatk += watkbuff;
             }
-            Integer matkbuff = getBuffedValue(BuffStat.MATK);
+            Integer matkbuff = getBuffedValue(EffectType.MATK);
             if (matkbuff != null) {
                 stats.localmagic += matkbuff;
             }
@@ -7087,48 +7092,20 @@ public class Character extends AbstractAnimatedMapObject {
         sendPacket(PacketCreator.updateBuddyCapacity(capacity));
     }
 
-    public void setBuffedValue(BuffStat effect, int value) {
+    public void setBuffedValue(EffectType effect, int value) {
         effectState.setBuffedValue(effect, value);
     }
 
-    public List<StatEffect> getAllBuffs() {
-        return buffs.getAllBuffs();
+    public List<EffectData> getAllBuffs() {
+        return buffs.getOneEffectDataPerBuff();
     }
 
     public boolean hasBuffFromSourceid(int sourceid) {
-        return buffs.hasBuffFromSourceid(sourceid);
+        return buffs.containsSourceId(sourceid);
     }
 
     public boolean hasActiveBuff(int sourceid) {
         return effectState.hasActiveBuff(sourceid);
-    }
-
-    List<Pair<BuffStat, Integer>> getActiveStatupsFromSourceid(int sourceid) {
-        return buffs.getActiveStatupsFromSourceid(sourceid);
-    }
-
-    Map<BuffStat, BuffStatValueHolder> extractCurrentBuffStats(StatEffect effect) {
-        return buffs.extractCurrentBuffStats(effect);
-    }
-
-    Map<BuffStat, BuffStatValueHolder> extractLeastRelevantStatEffectsIfFull(StatEffect effect) {
-        return buffs.extractLeastRelevantStatEffectsIfFull(effect);
-    }
-
-    void addItemEffectHolder(Integer sourceid, long expirationtime, Map<BuffStat, BuffStatValueHolder> statups) {
-        buffs.addItemEffectHolder(sourceid, expirationtime, statups);
-    }
-
-    void removeItemEffectHolder(Integer sourceid) {
-        buffs.removeItemEffectHolder(sourceid);
-    }
-
-    BuffStatValueHolder fetchBestEffectFromItemEffectHolder(BuffStat mbs) {
-        return buffs.fetchBestEffectFromItemEffectHolder(mbs);
-    }
-
-    void extractBuffValue(int sourceid, BuffStat stat) {
-        buffs.extractBuffValue(sourceid, stat);
     }
 
     public void debugListAllBuffs() {
@@ -8158,13 +8135,13 @@ public class Character extends AbstractAnimatedMapObject {
         if (!this.isHidden() || client.getPlayer().gmLevel() > 1) {
             client.sendPacket(PacketCreator.spawnPlayerMapObject(client, this, false));
 
-            if (buffs.buffEffects.containsKey(getJobMapChair(job))) { // mustn't effLock, chrLock sendSpawnData
+            if (buffs.entries.containsKey(getJobMapChair(job))) { // mustn't effLock, chrLock sendSpawnData
                 client.sendPacket(PacketCreator.giveForeignChairSkillEffect(id));
             }
         }
 
         if (this.isHidden()) {
-            List<Pair<BuffStat, Integer>> dsstat = Collections.singletonList(new Pair<>(BuffStat.DARKSIGHT, 0));
+            List<Pair<EffectType, Integer>> dsstat = Collections.singletonList(new Pair<>(EffectType.DARKSIGHT, 0));
             getMap().broadcastGMMessage(this, PacketCreator.giveForeignBuff(getId(), dsstat), false);
         }
     }
