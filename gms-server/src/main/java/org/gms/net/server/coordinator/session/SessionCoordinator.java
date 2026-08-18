@@ -144,10 +144,7 @@ public class SessionCoordinator {
         }
 
         try {
-            final HostHwid knownHwid = hostHwidCache.getEntry(remoteHost);
-            if (knownHwid != null && onlineRemoteHwids.contains(knownHwid.hwid())) {
-                return false;
-            } else if (loginRemoteHosts.containsKey(remoteHost)) {
+            if (loginRemoteHosts.containsKey(remoteHost)) {
                 return false;
             }
 
@@ -218,8 +215,7 @@ public class SessionCoordinator {
     public AntiMulticlientResult attemptGameSession(Client client, int accountId, Hwid hwid) {
         final String remoteHost = getSessionRemoteHost(client);
         if (!GameConfig.getServerBoolean("deterred_multi_client")) {
-            hostHwidCache.addEntry(remoteHost, hwid);
-            hostHwidCache.addEntry(client.getRemoteAddress(), hwid); // no HWID information on the loggedin newcomer session...
+            hostHwidCache.addEntry(accountId, hwid); // 按账号键控，供新角色进频道时拾取（原按 IP，同 IP 并发会互相挤掉）
             return AntiMulticlientResult.SUCCESS;
         }
 
@@ -246,8 +242,7 @@ public class SessionCoordinator {
 
             // updated session CLIENT_HWID attribute will be set when the player log in the game
             onlineRemoteHwids.add(hwid);
-            hostHwidCache.addEntry(remoteHost, hwid);
-            hostHwidCache.addEntry(client.getRemoteAddress(), hwid);
+            hostHwidCache.addEntry(accountId, hwid);
             associateHwidAccountIfAbsent(hwid, accountId);
 
             return AntiMulticlientResult.SUCCESS;
@@ -275,23 +270,10 @@ public class SessionCoordinator {
     }
 
     private static Client fetchInTransitionSessionClient(Client client) {
-        Hwid hwid = SessionCoordinator.getInstance().getGameSessionHwid(client);
-        if (hwid == null) {   // maybe this session was currently in-transition?
-            return null;
-        }
-
-        Client fakeClient = Client.createMock();
-        fakeClient.setHwid(hwid);
-        Integer chrId = Server.getInstance().freeCharacteridInTransition(client);
-        if (chrId != null) {
-            try {
-                fakeClient.setAccID(Character.loadCharFromDB(chrId, client, false).getAccountId());
-            } catch (Exception sqle) {
-                sqle.printStackTrace();
-            }
-        }
-
-        return fakeClient;
+        // 原实现按远程 IP 从 hostHwidCache 找回会话 hwid（getGameSessionHwid）；
+        // hwid 缓存改按账号键控后此路径失去查询依据，且仅被 closeSession(null) 调用——
+        // 实际调用方均传非空 client，此分支不可达且原实现即会 NPE，故直接返回 null。
+        return null;
     }
 
     public void closeSession(Client client, Boolean immediately) {
@@ -322,15 +304,13 @@ public class SessionCoordinator {
         }
     }
 
-    public Hwid pickLoginSessionHwid(Client client) {
-        String remoteHost = client.getRemoteAddress();
-        // thanks BHB, resinate for noticing players from same network not being able to login
-        return hostHwidCache.removeEntryAndGetItsHwid(remoteHost);
+    public Hwid pickLoginSessionHwid(int accountId) {
+        // 按账号键控（原按远程 IP 并取出即删：同 IP 并发登录时后到者取到 null 被静默断连）
+        return hostHwidCache.removeEntryAndGetItsHwid(accountId);
     }
 
-    public Hwid getGameSessionHwid(Client client) {
-        String remoteHost = getSessionRemoteHost(client);
-        return hostHwidCache.getEntryHwid(remoteHost);
+    public Hwid getGameSessionHwid(int accountId) {
+        return hostHwidCache.getEntryHwid(accountId);
     }
 
     public void clearExpiredHwidHistory() {

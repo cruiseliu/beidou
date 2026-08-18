@@ -138,24 +138,6 @@ public final class PlayerLoggedinHandler extends AbstractPacketHandler {
 
             Character player = wserv.getPlayerStorage().getCharacterById(cid);
 
-            final Hwid hwid;
-            if (player == null) {
-                hwid = SessionCoordinator.getInstance().pickLoginSessionHwid(c);
-                if (hwid == null) {
-                    c.disconnect(true, false);
-                    return;
-                }
-            } else {
-                hwid = player.getClient().getHwid();
-            }
-
-            c.setHwid(hwid);
-
-            if (!server.validateCharacteridInTransition(c, cid)) {
-                c.disconnect(true, false);
-                return;
-            }
-
             boolean newcomer = false;
             if (player == null) {
                 try {
@@ -170,8 +152,28 @@ public final class PlayerLoggedinHandler extends AbstractPacketHandler {
                     return;
                 }
             }
+
+            if (!server.validateCharacteridInTransition(c, cid)) {
+                c.disconnect(true, false);
+                return;
+            }
+
             c.setPlayer(player);
             c.setAccID(player.getAccountId());
+
+            final Hwid hwid;
+            if (newcomer) {
+                // 按账号拾取登录会话 hwid（原按远程 IP 取出即删，同 IP 并发登录会互相挤掉，见 doc/TODO.md）
+                hwid = SessionCoordinator.getInstance().pickLoginSessionHwid(player.getAccountId());
+                if (hwid == null) {
+                    c.disconnect(true, false);
+                    return;
+                }
+            } else {
+                hwid = player.getClient().getHwid();
+            }
+
+            c.setHwid(hwid);
 
             boolean allowLogin = true;
 
