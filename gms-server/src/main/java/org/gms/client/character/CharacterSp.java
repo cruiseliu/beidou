@@ -8,7 +8,7 @@ import java.util.Arrays;
 
 /**
  * SP（技能点）：数据 + 全部 SP 逻辑（查询/获得/变更/加载解析）。
- * 持有 owner 反向引用，通过 Locks 使用其锁（effLock / stats.rLock / stats.wLock）。
+ * 持有 owner 反向引用，SP 操作经 stats.wLock/rLock 保护（通过 Locks）。
  * SP 不与属性/AP 共用 StatsUpdate 管道（无逻辑关联），公告走 owner.announceStatsUpdate。
  */
 class CharacterSp {
@@ -47,7 +47,7 @@ class CharacterSp {
     }
 
     void setRemainingSp(int[] sps) {
-        try (var ignored = Locks.acquire(owner.effLock, owner.stats.wLock)) {
+        try (var ignored = Locks.acquire(owner.stats.wLock)) {
             System.arraycopy(sps, 0, remainingSp, 0, Math.min(sps.length, remainingSp.length));
         }
     }
@@ -57,7 +57,7 @@ class CharacterSp {
      * silent = true 时不发包（如 resetStats 需与属性变更合并为一次公告）。
      */
     int changeRemainingSp(int remainingSp, int jobId, boolean silent) {
-        try (var ignored = Locks.acquire(owner.effLock, owner.stats.wLock)) {
+        try (var ignored = Locks.acquire(owner.stats.wLock)) {
             setRemainingSp(remainingSp, jobId);
             int applied = this.remainingSp[indexOf(jobId)];
             if (!silent) {
@@ -69,7 +69,7 @@ class CharacterSp {
     }
 
     void gainSp(int deltaSp, int jobId, boolean silent) {
-        try (var ignored = Locks.acquire(owner.effLock, owner.stats.wLock)) {
+        try (var ignored = Locks.acquire(owner.stats.wLock)) {
             int idx = indexOf(jobId);
             changeRemainingSp(Math.max(0, remainingSp[idx] + deltaSp), jobId, silent);
         }

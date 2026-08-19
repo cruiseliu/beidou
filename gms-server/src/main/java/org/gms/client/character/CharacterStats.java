@@ -11,7 +11,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * 角属属性数据 + 纯计算 + 属性读写锁（statRlock/statWlock）。无 I/O、无发包。
+ * 角属属性数据 + 纯计算 + 属性读写锁（rLock/wLock）。无 I/O、无发包。
  * 持锁路径直读字段更快；无外层锁时的单维读取走 getAttr。
  * 字段 package-private，同包的 Character 直接访问，不提供 getter/setter。
  */

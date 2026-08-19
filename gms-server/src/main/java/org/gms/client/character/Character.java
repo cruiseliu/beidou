@@ -123,9 +123,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -142,13 +140,9 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterStats stats = new CharacterStats();
     final CharacterAp ap = new CharacterAp(this);
     final CharacterSp sp = new CharacterSp(this);
-    final CharacterEffects effectState = new CharacterEffects(this);
-    final CharacterBuffs buffs = new CharacterBuffs(this, effectState);
+    // ActiveBuffs 实例由 CharacterBuffs 内部组合创建（见 CharacterBuffs 构造器）
+    final CharacterBuffs buffs = new CharacterBuffs(this);
 
-    final ReadWriteLock statLock = new ReentrantReadWriteLock(true);
-    final Lock effLock = new ReentrantLock(true);
-    final Lock statRlock = statLock.readLock();
-    final Lock statWlock = statLock.writeLock();
 
     @Getter
     @Setter
@@ -707,7 +701,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     /** 应用属性更新并返回本次变更集（不发包） */
     Map<Stat, Integer> applyUpdateSilently(StatsUpdate u) {
-        try (var ignored = Locks.acquire(effLock, statWlock)) {
+        try (var ignored = Locks.acquire(stats.wLock)) {
             Map<Stat, Integer> statUpdates = new HashMap<>();
             boolean poolUpdate = false;
             boolean statUpdate = false;
@@ -824,7 +818,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     private void enforceMaxHpMp() {
-        effLock.lock();
+
         stats.wLock.lock();
         try {
             if (stats.mp > stats.localMaxMp || stats.hp > stats.localMaxHp) {
@@ -832,12 +826,12 @@ public class Character extends AbstractAnimatedMapObject {
             }
         } finally {
             stats.wLock.unlock();
-            effLock.unlock();
+
         }
     }
 
     public int safeAddHP(int delta) {
-        effLock.lock();
+
         stats.wLock.lock();
         try {
             if (stats.hp + delta <= 0) {
@@ -848,45 +842,45 @@ public class Character extends AbstractAnimatedMapObject {
             return delta;
         } finally {
             stats.wLock.unlock();
-            effLock.unlock();
+
         }
     }
 
     public void addHP(int delta) {
-        effLock.lock();
+
         stats.wLock.lock();
         try {
             updateHp(stats.hp + delta);
         } finally {
             stats.wLock.unlock();
-            effLock.unlock();
+
         }
     }
 
     public void addMP(int delta) {
-        effLock.lock();
+
         stats.wLock.lock();
         try {
             updateMp(stats.mp + delta);
         } finally {
             stats.wLock.unlock();
-            effLock.unlock();
+
         }
     }
 
     public void addMPHP(int hpDelta, int mpDelta) {
-        effLock.lock();
+
         stats.wLock.lock();
         try {
             updateHpMp(stats.hp + hpDelta, stats.mp + mpDelta);
         } finally {
             stats.wLock.unlock();
-            effLock.unlock();
+
         }
     }
 
     private void addMaxMPMaxHP(int hpdelta, int mpdelta, boolean silent) {
-        try (var ignored = Locks.acquire(effLock, statWlock)) {
+        try (var ignored = Locks.acquire(stats.wLock)) {
             StatsUpdate u = new StatsUpdate().setMaxHp(stats.maxHp + hpdelta).setMaxMp(stats.maxMp + mpdelta);
             if (silent) {
                 applyUpdateSilently(u);
@@ -897,24 +891,24 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void addMaxHP(int delta) {
-        effLock.lock();
+
         stats.wLock.lock();
         try {
             updateMaxHp(stats.maxHp + delta);
         } finally {
             stats.wLock.unlock();
-            effLock.unlock();
+
         }
     }
 
     public void addMaxMP(int delta) {
-        effLock.lock();
+
         stats.wLock.lock();
         try {
             updateMaxMp(stats.maxMp + delta);
         } finally {
             stats.wLock.unlock();
-            effLock.unlock();
+
         }
     }
 
@@ -1215,18 +1209,6 @@ public class Character extends AbstractAnimatedMapObject {
                 beholderBuffSchedule.cancel(false);
                 beholderBuffSchedule = null;
             }
-        }
-    }
-
-    /**
-     * 冻结恢复时的召唤物/傀儡重建：仅服务端登记（summons/puppet 关联），不生成地图对象、不发包——
-     * 原版静默恢复语义，客户端无感知直至重新施放。
-     */
-    public void restoreSummonAndPuppet(int skillid, SummonMovementType movementType, int hp) {
-        Summon summon = new Summon(this, skillid, getPosition(), movementType);
-        if (!summon.isStationary()) {
-            addSummon(skillid, summon);
-            summon.addHP(hp);
         }
     }
 
@@ -1641,7 +1623,7 @@ public class Character extends AbstractAnimatedMapObject {
             addhp += CharacterStats.getHpMpGainFromRange(300, 350, fixedLevelUpHpMp);
             addmp += CharacterStats.getHpMpGainFromRange(150, 200, fixedLevelUpHpMp);
         }
-        
+
         /*
         //aran perks?
         int newJobId = newJob.getId();
@@ -1656,7 +1638,7 @@ public class Character extends AbstractAnimatedMapObject {
         }
         */
 
-        effLock.lock();
+        // effLock 已冗余：addMaxMPMaxHP/recalcLocalStats 只需 stats.wLock
         stats.wLock.lock();
         try {
             addMaxMPMaxHP(addhp, addmp, true);
@@ -1673,7 +1655,7 @@ public class Character extends AbstractAnimatedMapObject {
             sendPacket(PacketCreator.updatePlayerStats(statup, true, this));
         } finally {
             stats.wLock.unlock();
-            effLock.unlock();
+
         }
 
         setMPC(new PartyCharacter(this));
@@ -1943,10 +1925,10 @@ public class Character extends AbstractAnimatedMapObject {
         int thisMapid = mapId;
         int returnMapid = client.getChannelServer().getMapFactory().getMap(thisMapid).getReturnMapId();
 
-        effLock.lock();
-        chrLock.lock();
+        // effLock/chrLock 已冗余：激活表为不可变快照，无锁迭代
+
         try {
-            for (Entry<EffectType, EffectStatus> mbs : effectState.effects.entrySet()) {
+            for (Entry<EffectType, EffectStatus> mbs : buffs.getActive().effects.entrySet()) {
                 if (mbs.getKey() == EffectType.MAP_PROTECTION) {
                     byte value = (byte) mbs.getValue().value;
 
@@ -1959,8 +1941,8 @@ public class Character extends AbstractAnimatedMapObject {
                 }
             }
         } finally {
-            chrLock.unlock();
-            effLock.unlock();
+
+
         }
 
         for (Item it : this.getInventory(InventoryType.EQUIPPED).list()) {
@@ -2780,7 +2762,7 @@ public class Character extends AbstractAnimatedMapObject {
             stats.rLock.unlock();
         }
 
-        effLock.lock();
+        // effLock 已冗余：getChairTaskIntervalRate 纯计算
         stats.wLock.lock();
         try {
             Pair<Integer, Pair<Integer, Integer>> p = getChairTaskIntervalRate(stats.localMaxHp, stats.localMaxMp);
@@ -2790,7 +2772,7 @@ public class Character extends AbstractAnimatedMapObject {
             stats.localchairmp = p.getRight().getRight();
         } finally {
             stats.wLock.unlock();
-            effLock.unlock();
+
         }
     }
 
@@ -2800,12 +2782,12 @@ public class Character extends AbstractAnimatedMapObject {
         }
 
         int healInterval;
-        effLock.lock();
+        updateChairHealStats();
+        stats.rLock.lock();
         try {
-            updateChairHealStats();
             healInterval = stats.localchairrate;
         } finally {
-            effLock.unlock();
+            stats.rLock.unlock();
         }
 
         chrLock.lock();
@@ -3518,19 +3500,19 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public Long getBuffedStarttime(EffectType effect) {
-        return effectState.getBuffedStarttime(effect);
+        return buffs.getActive().getBuffedStarttime(effect);
     }
 
     public Integer getBuffedValue(EffectType effect) {
-        return effectState.getBuffedValue(effect);
+        return buffs.getActive().getBuffedValue(effect);
     }
 
     public int getBuffSource(EffectType stat) {
-        return effectState.getBuffSource(stat);
+        return buffs.getActive().getBuffSource(stat);
     }
 
     public BuffEffectData getBuffEffect(EffectType stat) {
-        return effectState.getBuffEffect(stat);
+        return buffs.getActive().getBuffEffect(stat);
     }
 
     List<EffectStatus> getAllStatups() {
@@ -3541,8 +3523,8 @@ public class Character extends AbstractAnimatedMapObject {
         buffs.updateActiveEffects();
     }
 
-    public void registerEffect(BuffEffectData effect, long starttime, long expirationtime, boolean isSilent) {
-        buffs.registerEffect(effect, starttime, expirationtime, isSilent);
+    public void registerEffect(BuffEffectData effect, long starttime, long expirationtime) {
+        buffs.registerEffect(effect, starttime, expirationtime);
     }
 
     public void cancelEffect(int itemId) {
@@ -4768,17 +4750,17 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public BuffEffectData getStatForBuff(EffectType effect) {
-        effLock.lock();
-        chrLock.lock();
+        // effLock/chrLock 已冗余：激活表为不可变快照，无锁读
+
         try {
-            EffectStatus mbsvh = effectState.effects.get(effect);
+            EffectStatus mbsvh = buffs.getActive().effects.get(effect);
             if (mbsvh == null) {
                 return null;
             }
             return mbsvh.getData();
         } finally {
-            chrLock.unlock();
-            effLock.unlock();
+
+
         }
     }
 
@@ -4948,7 +4930,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public boolean isBuffFrom(EffectType stat, Skill skill) {
-        return effectState.isBuffFrom(stat, skill);
+        return buffs.getActive().isBuffFrom(stat, skill);
     }
 
     public boolean isGmJob() {
@@ -5089,7 +5071,7 @@ public class Character extends AbstractAnimatedMapObject {
 
         boolean isBeginner = isBeginnerJob();
         if (GameConfig.getServerBoolean("use_auto_assign_starters_ap") && isBeginner && level < 11) {
-            effLock.lock();
+        // effLock 已冗余：gainAp/assignStrDexIntLuk 只需 stats.wLock
             stats.wLock.lock();
             try {
                 gainAp(5, true);
@@ -5105,7 +5087,7 @@ public class Character extends AbstractAnimatedMapObject {
                 assignStrDexIntLuk(str, dex, 0, 0);
             } finally {
                 stats.wLock.unlock();
-                effLock.unlock();
+
             }
         } else {
             int remainingAp = GameConfig.getServerInt("level_up_ap_gain");
@@ -5189,7 +5171,7 @@ public class Character extends AbstractAnimatedMapObject {
 
         levelUpGainSp();
 
-        effLock.lock();
+        // effLock 已冗余：recalcLocalStats/changeHpMp 只需 stats.wLock
         stats.wLock.lock();
         try {
             recalcLocalStats();
@@ -5210,7 +5192,7 @@ public class Character extends AbstractAnimatedMapObject {
             sendPacket(PacketCreator.updatePlayerStats(statup, true, this));
         } finally {
             stats.wLock.unlock();
-            effLock.unlock();
+
         }
 
         getMap().broadcastMessage(this, PacketCreator.showForeignEffect(getId(), 0), false);
@@ -5366,16 +5348,16 @@ public class Character extends AbstractAnimatedMapObject {
             return;
         }
 
-        effLock.lock();
-        chrLock.lock();
+        // effLock/chrLock 已冗余：revert/setCouponRates 内部自持锁
+
         cashInv.lockInventory();
         try {
             revertCouponRates();
             setCouponRates();
         } finally {
             cashInv.unlockInventory();
-            chrLock.unlock();
-            effLock.unlock();
+
+
         }
     }
 
@@ -5839,8 +5821,8 @@ public class Character extends AbstractAnimatedMapObject {
         cdo.setLevel(chr.getLevel());
         cdo.setFame(chr.getFame());
 
-        chr.effLock.lock();
-        chr.stats.statWlock.lock();
+        chr.buffs.lock.lock();
+        chr.stats.wLock.lock();
         try {
             // 此处虽然是可重入锁，但仍不建议锁2次，所以不使用get方法
             cdo.setExp(Math.abs(chr.exp.get()));
@@ -5854,8 +5836,8 @@ public class Character extends AbstractAnimatedMapObject {
             cdo.setSp(sps.toString());
             cdo.setAp(chr.remainingAp);
         } finally {
-            chr.stats.statWlock.unlock();
-            chr.effLock.unlock();
+            chr.stats.wLock.unlock();
+            chr.buffs.lock.unlock();
         }
 
         cdo.setGm(chr.gmLevel());
@@ -6147,8 +6129,6 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void reapplyLocalStats() {
-        effLock.lock();
-        chrLock.lock();
         stats.wLock.lock();
         try {
             stats.resetLocalToBase();
@@ -6262,14 +6242,10 @@ public class Character extends AbstractAnimatedMapObject {
             }
         } finally {
             stats.wLock.unlock();
-            chrLock.unlock();
-            effLock.unlock();
         }
     }
 
     public List<Pair<Stat, Integer>> recalcLocalStats() {
-        effLock.lock();
-        chrLock.lock();
         stats.wLock.lock();
         try {
             List<Pair<Stat, Integer>> hpmpupdate = new ArrayList<>(2);
@@ -6307,14 +6283,11 @@ public class Character extends AbstractAnimatedMapObject {
             return hpmpupdate;
         } finally {
             stats.wLock.unlock();
-            chrLock.unlock();
-            effLock.unlock();
         }
     }
 
     void updateLocalStats() {
         prtLock.lock();
-        effLock.lock();
         stats.wLock.lock();
         try {
             int oldmaxhp = stats.localMaxHp;
@@ -6330,15 +6303,14 @@ public class Character extends AbstractAnimatedMapObject {
             }
         } finally {
             stats.wLock.unlock();
-            effLock.unlock();
             prtLock.unlock();
         }
     }
 
     public void receivePartyMemberHP() {
         // 不在此处包一层 prtLock:getPartyMembersOnSameMap 内部已持 prtLock 保护 party 引用。
-        // 若再包一层,会在持 prtLock 的同时对同图队友逐个取 getHp()(对方 statRlock),
-        // 与 updateLocalStats(本角色 statWlock 后再 updatePartyMemberHP 取 prtLock)形成
+        // 若再包一层,会在持 prtLock 的同时对同图队友逐个取 getHp()(对方 stats.rLock),
+        // 与 updateLocalStats(本角色 stats.wLock 后再 updatePartyMemberHP 取 prtLock)形成
         // 跨角色反向锁顺序,存在死锁窗口。
         for (Character partychar : this.getPartyMembersOnSameMap()) {
             sendPacket(PacketCreator.updatePartyMemberHP(partychar.getId(), partychar.getHp(), partychar.getCurrentMaxHp()));
@@ -6391,7 +6363,7 @@ public class Character extends AbstractAnimatedMapObject {
             return;
         }
 
-        effLock.lock();
+        // effLock 已冗余：reset 仅动 stats/ap + applyUpdateSilently
         stats.wLock.lock();
         try {
             int tap = ap.remainingAp + stats.attrs[STR] + stats.attrs[DEX] + stats.attrs[INT] + stats.attrs[LUK], tsp = 1;
@@ -6439,7 +6411,7 @@ public class Character extends AbstractAnimatedMapObject {
             }
         } finally {
             stats.wLock.unlock();
-            effLock.unlock();
+
         }
     }
 
@@ -6697,8 +6669,7 @@ public class Character extends AbstractAnimatedMapObject {
                     ps.setInt(1, level);    // thanks CanIGetaPR for noticing an unnecessary "level" limitation when persisting DB data
                     ps.setInt(2, fame);
 
-                    effLock.lock();
-                    stats.wLock.lock();
+                    stats.wLock.lock();   // effLock 已移除：仅序列化 stats + 读原子字段
                     try {
                         statsJson = toData().serialize();
 
@@ -6706,7 +6677,6 @@ public class Character extends AbstractAnimatedMapObject {
                         ps.setInt(4, Math.abs(gachaExp.get()));
                     } finally {
                         stats.wLock.unlock();
-                        effLock.unlock();
                     }
 
                     ps.setInt(5, gmLevel);
@@ -7093,7 +7063,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void setBuffedValue(EffectType effect, int value) {
-        effectState.setBuffedValue(effect, value);
+        buffs.getActive().setBuffedValue(effect, value);
     }
 
     public List<BuffEffectData> getAllBuffs() {
@@ -7105,7 +7075,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public boolean hasActiveBuff(int sourceid) {
-        return effectState.hasActiveBuff(sourceid);
+        return buffs.getActive().hasActiveBuff(sourceid);
     }
 
     public void debugListAllBuffs() {
@@ -7292,7 +7262,7 @@ public class Character extends AbstractAnimatedMapObject {
     public boolean applyHpMpChange(int hpCon, int hpchange, int mpchange) {
         boolean zombify = hasDisease(Disease.ZOMBIFY);
 
-        effLock.lock();
+        // effLock 已冗余：块内仅 updateHpMp；zombify 检查在加锁前
         stats.wLock.lock();
         try {
             int nextHp = stats.hp + hpchange, nextMp = stats.mp + mpchange;
@@ -7312,7 +7282,7 @@ public class Character extends AbstractAnimatedMapObject {
             updateHpMp(nextHp, nextMp);
         } finally {
             stats.wLock.unlock();
-            effLock.unlock();
+
         }
 
         if (GameConfig.getServerBoolean("use_server_auto_pot") || GameConfig.getServerBoolean("use_compulsory_auto_pot")) {
@@ -8135,7 +8105,7 @@ public class Character extends AbstractAnimatedMapObject {
         if (!this.isHidden() || client.getPlayer().gmLevel() > 1) {
             client.sendPacket(PacketCreator.spawnPlayerMapObject(client, this, false));
 
-            if (buffs.entries.containsKey(getJobMapChair(job))) { // mustn't effLock, chrLock sendSpawnData
+            if (buffs.entries.containsKey(getJobMapChair(job))) { // mustn't buffs.lock, chrLock sendSpawnData
                 client.sendPacket(PacketCreator.giveForeignChairSkillEffect(id));
             }
         }

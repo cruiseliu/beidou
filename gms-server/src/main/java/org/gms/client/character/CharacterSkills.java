@@ -19,7 +19,7 @@ import java.util.Map;
 
 /**
  * 技能等级与技能 CD：数据 + 管理逻辑（查询/变更/CD 定时/持久化）。
- * 持有 owner 反向引用，CD 并发用 Locks 取 owner 的 effLock/chrLock，
+ * 持有 owner 反向引用，CD 并发用 Locks 取 owner 的 chrLock（每角色战斗状态域，非 buff 域），
  * 技能变更发包走 owner.sendPacket。Character 保留公开具名包装。
  */
 class CharacterSkills {
@@ -118,7 +118,7 @@ class CharacterSkills {
         // 此处统一补排；已过期的由 scheduleOrTrigger 立即触发清除
         List<CooldownValueHolder> cds;
         List<Map.Entry<Skill, SkillEntry>> expiring = new ArrayList<>();
-        try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
+        try (var ignored = Locks.acquire(owner.chrLock)) {
             cds = new ArrayList<>(coolDowns.values());
             for (Map.Entry<Skill, SkillEntry> e : entries.entrySet()) {
                 if (e.getValue().expiration != -1) {
@@ -140,7 +140,7 @@ class CharacterSkills {
     }
 
     void addCooldown(int skillId, long startTime, long length) {
-        try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
+        try (var ignored = Locks.acquire(owner.chrLock)) {
             coolDowns.put(skillId, new CooldownValueHolder(skillId, startTime, length));
         }
         cooldownTimer.schedule(skillId, startTime + length);
@@ -160,7 +160,7 @@ class CharacterSkills {
     List<PlayerCoolDownValueHolder> getAllCooldowns() {
         List<PlayerCoolDownValueHolder> ret = new ArrayList<>();
 
-        try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
+        try (var ignored = Locks.acquire(owner.chrLock)) {
             for (CooldownValueHolder mcdvh : coolDowns.values()) {
                 ret.add(new PlayerCoolDownValueHolder(mcdvh.skillId, mcdvh.startTime, mcdvh.length));
             }
@@ -170,20 +170,20 @@ class CharacterSkills {
     }
 
     boolean skillIsCooling(int skillId) {
-        try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
+        try (var ignored = Locks.acquire(owner.chrLock)) {
             return coolDowns.containsKey(Integer.valueOf(skillId));
         }
     }
 
     void removeCooldown(int skillId) {
         cooldownTimer.cancel(skillId);
-        try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
+        try (var ignored = Locks.acquire(owner.chrLock)) {
             coolDowns.remove(skillId);
         }
     }
 
     void removeAllCooldownsExcept(int id, boolean packet) {
-        try (var ignored = Locks.acquire(owner.effLock, owner.chrLock)) {
+        try (var ignored = Locks.acquire(owner.chrLock)) {
             ArrayList<CooldownValueHolder> list = new ArrayList<>(coolDowns.values());
             for (CooldownValueHolder mcvh : list) {
                 if (mcvh.skillId != id) {

@@ -9,8 +9,8 @@ class EffectStatus {
     public final EffectType type;
     /** 所属 buff（提供 data/startTime 的溯源） */
     public final BuffStatus buff;
-    /** 槽位值 */
-    public int value;
+    /** 槽位值（volatile：激活表快照化后 setBuffedValue 的就地写需安全发布给无锁读者） */
+    public volatile int value;
 
     public EffectStatus(EffectType type, BuffStatus buff, int value) {
         this.type = type;

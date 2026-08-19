@@ -10,7 +10,7 @@ import static org.gms.client.character.BaseStat.*;
 
 /**
  * AP（能力点）：数据 + 全部"仅与 AP 相关"和"将 AP 分配到属性"的逻辑。
- * 持有 owner 反向引用，通过 Locks 使用其锁（effLock / stats.statWlock），派发走 owner.applyUpdate。
+ * 持有 owner 反向引用，AP 操作经 stats.wLock 保护（通过 Locks），派发走 owner.applyUpdate。
  * 四维/HP/MP 与 AP 的原子写入管道、发包留在 Character。
  */
 public class CharacterAp {
@@ -36,7 +36,7 @@ public class CharacterAp {
     }
 
     void changeRemainingAp(int x, boolean silent) {
-        try (var ignored = Locks.acquire(owner.effLock, owner.stats.wLock)) {
+        try (var ignored = Locks.acquire(owner.stats.wLock)) {
             StatsUpdate u = new StatsUpdate();
             for (int i = 0; i < BASE_STAT_COUNT; i++) {
                 u.setAttr(i, owner.stats.attrs[i]);
@@ -51,7 +51,7 @@ public class CharacterAp {
     }
 
     void gainAp(int deltaAp, boolean silent) {
-        try (var ignored = Locks.acquire(owner.effLock, owner.stats.wLock)) {
+        try (var ignored = Locks.acquire(owner.stats.wLock)) {
             changeRemainingAp(Math.max(0, remainingAp + deltaAp), silent);
         }
     }
@@ -65,7 +65,7 @@ public class CharacterAp {
 
     /** 多维分配：delta[i] 为 null 的维不变；AP 余额或任一维 4..max_ap 校验失败返回 false */
     boolean assignAttrs(Integer[] delta) {
-        try (var ignored = Locks.acquire(owner.effLock, owner.stats.wLock)) {
+        try (var ignored = Locks.acquire(owner.stats.wLock)) {
             int apUsed = 0;
             int[] newAttrs = Arrays.copyOf(owner.stats.attrs, BASE_STAT_COUNT);
             for (int i = 0; i < BASE_STAT_COUNT; i++) {
@@ -96,7 +96,7 @@ public class CharacterAp {
     }
 
     boolean assignHP(int deltaHP, int deltaAp) {
-        try (var ignored = Locks.acquire(owner.effLock, owner.stats.wLock)) {
+        try (var ignored = Locks.acquire(owner.stats.wLock)) {
             if (!canSpendAp(deltaAp, owner.stats.maxHp >= 30000)) {
                 return false;
             }
@@ -114,7 +114,7 @@ public class CharacterAp {
     }
 
     boolean assignMP(int deltaMP, int deltaAp) {
-        try (var ignored = Locks.acquire(owner.effLock, owner.stats.wLock)) {
+        try (var ignored = Locks.acquire(owner.stats.wLock)) {
             if (!canSpendAp(deltaAp, owner.stats.maxMp >= 30000)) {
                 return false;
             }

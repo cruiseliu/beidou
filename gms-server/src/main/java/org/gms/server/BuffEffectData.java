@@ -1236,22 +1236,6 @@ public class BuffEffectData {
         return !GameConfig.getServerBoolean("use_buff_everlasting") ? duration : Integer.MAX_VALUE;
     }
 
-    public void silentApplyBuff(Character chr, long localStartTime) {
-        int localDuration = getBuffLocalDuration();
-        localDuration = alchemistModifyVal(chr, localDuration, false);
-        //CancelEffectAction cancelAction = new CancelEffectAction(chr, this, starttime);
-        //ScheduledFuture<?> schedule = TimerManager.getInstance().schedule(cancelAction, ((starttime + localDuration) - Server.getInstance().getCurrentTime()));
-
-        chr.registerEffect(this, localStartTime, localStartTime + localDuration, true);
-        SummonMovementType summonMovementType = getSummonMovementType();
-        if (summonMovementType != null) {
-            chr.restoreSummonAndPuppet(sourceid, summonMovementType, x);
-        }
-        if (sourceid == Corsair.BATTLE_SHIP) {
-            chr.announceBattleshipHp();
-        }
-    }
-
     public final void applyComboBuff(final Character applyto, int combo) {
         final List<Pair<EffectType, Integer>> stat = Collections.singletonList(new Pair<>(EffectType.ARAN_COMBO, combo));
         applyto.sendPacket(PacketCreator.giveBuff(sourceid, 99999, stat));
@@ -1259,7 +1243,7 @@ public class BuffEffectData {
         final long starttime = Server.getInstance().getCurrentTime();
 //	final CancelEffectAction cancelAction = new CancelEffectAction(applyto, this, starttime);
 //	final ScheduledFuture<?> schedule = TimerManager.getInstance().schedule(cancelAction, ((starttime + 99999) - Server.getInstance().getCurrentTime()));
-        applyto.registerEffect(this, starttime, Long.MAX_VALUE, false);
+        applyto.registerEffect(this, starttime, Long.MAX_VALUE);
     }
 
     public final void applyBeaconBuff(final Character applyto, int objectid) { // thanks Thora & Hyun for reporting an issue with homing beacon autoflagging mobs when changing maps
@@ -1267,7 +1251,7 @@ public class BuffEffectData {
         applyto.sendPacket(PacketCreator.giveBuff(1, sourceid, stat));
 
         final long starttime = Server.getInstance().getCurrentTime();
-        applyto.registerEffect(this, starttime, Long.MAX_VALUE, false);
+        applyto.registerEffect(this, starttime, Long.MAX_VALUE);
     }
 
     public void updateBuffEffect(Character target, List<Pair<EffectType, Integer>> activeStats, long starttime) {
@@ -1400,7 +1384,7 @@ public class BuffEffectData {
             long starttime = Server.getInstance().getCurrentTime();
             //CancelEffectAction cancelAction = new CancelEffectAction(applyto, this, starttime);
             //ScheduledFuture<?> schedule = TimerManager.getInstance().schedule(cancelAction, localDuration);
-            applyto.registerEffect(this, starttime, starttime + localDuration, false);
+            applyto.registerEffect(this, starttime, starttime + localDuration);
             if (mbuff != null) {
                 applyto.getMap().broadcastMessage(applyto, mbuff, false);
             }
