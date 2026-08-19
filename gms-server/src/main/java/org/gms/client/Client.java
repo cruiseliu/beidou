@@ -1068,7 +1068,6 @@ public class Client extends ChannelInboundHandlerAdapter {
                     wserv.removePlayer(player);
                     //getChannelServer().removePlayer(player); already being done
 
-                    player.saveDiseases();
                                 player.saveCharToDB(true);
 
                     player.logOff();
@@ -1079,7 +1078,6 @@ public class Client extends ChannelInboundHandlerAdapter {
                 } else {
                     getChannelServer().removePlayer(player);
 
-                    player.saveDiseases();
                                 player.saveCharToDB();
                 }
             }

@@ -2868,14 +2868,9 @@ public class Character extends AbstractAnimatedMapObject {
 
     public final int getDiseasesSize() { return debuffs.getDebuffsSize(); }
 
-
-
-
-    public void silentApplyDiseases(Map<Disease, Pair<Long, MobSkill>> diseaseMap) { debuffs.silentApplyDebuffs(diseaseMap); }
-
-
     public void announceDiseases() { debuffs.announceDebuffs(); }
 
+    public void announceDebuffsToOwner() { debuffs.announceDebuffsToOwner(); }
 
     public void collectDiseases() { debuffs.collectDebuffs(); }
 
@@ -5388,6 +5383,8 @@ public class Character extends AbstractAnimatedMapObject {
         data.skills = skills.toData();
         data.ap = ap.toData();
         data.sp = sp.toData();
+        data.debuffs = debuffs.toData();
+        data.timestamp = Server.getInstance().getCurrentTime();
         return data;
     }
 
@@ -5396,6 +5393,7 @@ public class Character extends AbstractAnimatedMapObject {
         skills.applyData(data.skills);
         ap.applyData(data.ap);
         sp.applyData(data.sp);
+        debuffs.applyData(data.debuffs, data.timestamp);
     }
 
     // stats/skills 等域均存于 character_json，此处加载整个信封
@@ -6011,8 +6009,6 @@ public class Character extends AbstractAnimatedMapObject {
             }
         }
     }
-
-    public synchronized void saveDiseases() { debuffs.saveDebuffs(); }
 
 
     public void saveGuildStatus() {

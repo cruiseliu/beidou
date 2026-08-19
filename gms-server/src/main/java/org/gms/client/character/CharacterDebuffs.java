@@ -2,25 +2,19 @@ package org.gms.client.character;
 
 import org.gms.client.Disease;
 import org.gms.constants.skills.Bishop;
+import org.gms.model.json.CharacterDebuffsData;
 import org.gms.net.server.Server;
 import org.gms.server.life.MobSkill;
+import org.gms.server.life.MobSkillFactory;
 import org.gms.server.life.MobSkillId;
+import org.gms.server.life.MobSkillType;
 import org.gms.util.Locks;
-import org.gms.util.DatabaseConnection;
 import org.gms.util.PacketCreator;
 import org.gms.util.TimeoutHelper;import org.gms.util.Pair;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;import java.util.EnumMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -41,7 +35,7 @@ class CharacterDebuffs {
     /** 疾病模块锁：串行化疾病表/到期定时 */
     private final Lock lock = new ReentrantLock(true);
 
-    /** debuff 到期定时器（id = disease.ordinal()，timestamp = 到期时刻），替代原 1.5s 周期扫描 */
+    /** debuff 到期定时器（id = debuff.ordinal()，timestamp = 到期时刻），替代原 1.5s 周期扫描 */
     private final TimeoutHelper debuffExpireTimer = new TimeoutHelper();
 
     /** 冻结时刻，-1 = 未冻结（离开世界：换频道/商城/MTS） */
@@ -68,36 +62,7 @@ class CharacterDebuffs {
         }
     }
 
-    Map<Disease, Pair<Long, MobSkill>> getAllDebuffs() {
-        try (var ignored = Locks.acquire(lock)) {
-            long curtime = Server.getInstance().getCurrentTime();
-            Map<Disease, Pair<Long, MobSkill>> ret = new LinkedHashMap<>();
-
-            for (Entry<Disease, DebuffStatus> de : debuffs.entrySet()) {
-                DebuffStatus status = de.getValue();
-
-                ret.put(de.getKey(), new Pair<>(status.length - (curtime - status.startTime), status.source));
-            }
-
-            return ret;
-        }
-    }
-
     // ── 施加/恢复 ──
-
-    void silentApplyDebuffs(Map<Disease, Pair<Long, MobSkill>> debuffMap) {
-        try (var ignored = Locks.acquire(lock)) {
-            long curTime = Server.getInstance().getCurrentTime();
-
-            for (Entry<Disease, Pair<Long, MobSkill>> di : debuffMap.entrySet()) {
-                long expTime = curTime + di.getValue().getLeft();
-
-                // 反序列化/恢复只登记、不调度：定时器尚未激活，schedule 会被丢弃（死代码）；
-                // 真正的初次调度由 startExpireTimer 的补排（scheduleOrTrigger）在激活时点统一完成。
-                debuffs.put(di.getKey(), new DebuffStatus(di.getKey(), di.getValue().getRight(), curTime, di.getValue().getLeft()));
-            }
-        }
-    }
 
     void giveDebuff(final Disease debuff, MobSkill skill) {
         if (!hasDebuff(debuff) && getDebuffsSize() < 2) {
@@ -177,7 +142,7 @@ class CharacterDebuffs {
 
     /** 疾病可见性跨地图过渡延续（换图/进商城重入时向全图广播本角色疾病） */
     void announceDebuffs() {
-        Set<Entry<Disease, DebuffStatus>> chrDebuffs;
+        List<DebuffStatus> all;
 
         try (var ignored = Locks.acquire(lock)) {
             // Poison damage visibility and debuffs status visibility, extended through map transitions thanks to Ronan
@@ -185,12 +150,12 @@ class CharacterDebuffs {
                 return;
             }
 
-            chrDebuffs = new LinkedHashSet<>(debuffs.entrySet());
+            all = new ArrayList<>(debuffs.values());
         }
 
-        for (Entry<Disease, DebuffStatus> di : chrDebuffs) {
-            Disease debuff = di.getKey();
-            MobSkill skill = di.getValue().source;
+        for (DebuffStatus status : all) {
+            Disease debuff = status.type;
+            MobSkill skill = status.source;
             final List<Pair<Disease, Integer>> debuffList = Collections.singletonList(new Pair<>(debuff, Integer.valueOf(skill.getX())));
 
             if (debuff != Disease.SLOW) {
@@ -201,14 +166,36 @@ class CharacterDebuffs {
         }
     }
 
+    /** 登录初始展示：把 character_json 恢复的 debuff 以 giveDebuff 包发给本人。
+     *  恢复（applyData）只登记不发包，此处由 PlayerLoggedinHandler 在登录时调用一次。 */
+    void announceDebuffsToOwner() {
+        List<DebuffStatus> all;
+
+        try (var ignored = Locks.acquire(lock)) {
+            all = new ArrayList<>(debuffs.values());
+        }
+
+        for (DebuffStatus status : all) {
+            Disease debuff = status.type;
+            MobSkill skill = status.source;
+            final List<Pair<Disease, Integer>> debuffList = Collections.singletonList(new Pair<>(debuff, Integer.valueOf(skill.getX())));
+            owner.sendPacket(PacketCreator.giveDebuff(debuffList, skill));
+        }
+    }
+
     /** 把全图所有玩家的疾病广播给本客户端（进图时同步他人 debuff 显示） */
     void collectDebuffs() {
         for (Character chr : owner.getMap().getAllPlayers()) {
             int cid = chr.getId();
 
-            for (Entry<Disease, Pair<Long, MobSkill>> di : chr.debuffs.getAllDebuffs().entrySet()) {
-                Disease debuff = di.getKey();
-                MobSkill skill = di.getValue().getRight();
+            List<DebuffStatus> all;
+            try (var ignored = Locks.acquire(chr.debuffs.lock)) {
+                all = new ArrayList<>(chr.debuffs.debuffs.values());
+            }
+
+            for (DebuffStatus status : all) {
+                Disease debuff = status.type;
+                MobSkill skill = status.source;
                 final List<Pair<Disease, Integer>> debuffList = Collections.singletonList(new Pair<>(debuff, Integer.valueOf(skill.getX())));
 
                 if (debuff != Disease.SLOW) {
@@ -267,33 +254,56 @@ class CharacterDebuffs {
 
     // ── 持久化 ──
 
-    /** 落库全部疾病（断开保存时调用；先删后插，保持 playerdebuffs 与内存一致） */
-    void saveDebuffs() {
-        Map<Disease, Pair<Long, MobSkill>> listds = getAllDebuffs();
-        if (!listds.isEmpty()) {
-            try (Connection con = DatabaseConnection.getConnection()) {
-                try (PreparedStatement ps = con.prepareStatement("DELETE FROM playerdebuffs WHERE charid = ?")) {
-                    ps.setInt(1, owner.getId());
-                    ps.executeUpdate();
+    /** 导出为 character_json 的 debuffs 域（断开保存时经 CharacterData 信封落库）。
+     *  startTime/length 原样保存，不做剩余时长换算；空表返回 null（无 debuff 不落库）。 */
+    CharacterDebuffsData toData() {
+        List<DebuffStatus> all;
+        try (var ignored = Locks.acquire(lock)) {
+            all = new ArrayList<>(debuffs.values());
+        }
+        if (all.isEmpty()) {
+            return null;
+        }
+
+        CharacterDebuffsData d = new CharacterDebuffsData();
+        d.debuffs = new ArrayList<>();
+        for (DebuffStatus status : all) {
+            CharacterDebuffsData.DebuffEntryData ed = new CharacterDebuffsData.DebuffEntryData();
+            MobSkillId msId = status.source.getId();
+            ed.debuff = status.type.ordinal();
+            ed.mobSkillType = msId.type().getId();
+            ed.mobSkillLevel = msId.level();
+            ed.startTime = status.startTime;
+            ed.length = status.length;
+            d.debuffs.add(ed);
+        }
+        return d;
+    }
+
+    /** 从 character_json 的 debuffs 域恢复：只登记、不调度。
+     *  snapshotTime = CharacterData.timestamp（保存时刻），startTime 推移 (now - snapshotTime)，
+     *  使恢复后的到期时刻 = 原到期时刻 + 离线时长。反序列化必须发生在定时器激活（startExpireTimer）之前。 */
+    void applyData(CharacterDebuffsData d, long snapshotTime) {
+        if (debuffExpireTimer.isActive()) {
+            throw new IllegalStateException("CharacterDebuffs.applyData 必须在定时器激活前调用（反序列化期）");
+        }
+        if (d == null || d.debuffs == null) {
+            return;
+        }
+        long shift = Server.getInstance().getCurrentTime() - snapshotTime;
+        try (var ignored = Locks.acquire(lock)) {
+            for (CharacterDebuffsData.DebuffEntryData e : d.debuffs) {
+                Disease debuff = Disease.ordinal(e.debuff);
+                if (debuff == Disease.NULL) {
+                    continue;
                 }
-                try (PreparedStatement ps = con.prepareStatement("INSERT INTO playerdebuffs (charid, debuff, mobskillid, mobskilllv, length) VALUES (?, ?, ?, ?, ?)")) {
-                    ps.setInt(1, owner.getId());
-
-                    for (Entry<Disease, Pair<Long, MobSkill>> e : listds.entrySet()) {
-                        ps.setInt(2, e.getKey().ordinal());
-
-                        MobSkill ms = e.getValue().getRight();
-                        MobSkillId msId = ms.getId();
-                        ps.setInt(3, msId.type().getId());
-                        ps.setInt(4, msId.level());
-                        ps.setInt(5, e.getValue().getLeft().intValue());
-                        ps.addBatch();
-                    }
-
-                    ps.executeBatch();
+                MobSkillType mobSkillType = MobSkillType.from(e.mobSkillType).orElse(null);
+                if (mobSkillType == null) {
+                    continue;
                 }
-            } catch (SQLException se) {
-                se.printStackTrace();
+                MobSkill mobSkill = MobSkillFactory.getMobSkillOrThrow(mobSkillType, e.mobSkillLevel);
+                // 恢复只登记、不调度：定时器尚未激活，真正的初次调度由 startExpireTimer 的补排统一完成。
+                debuffs.put(debuff, new DebuffStatus(debuff, mobSkill, e.startTime + shift, e.length));
             }
         }
     }

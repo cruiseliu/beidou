@@ -119,7 +119,6 @@ public class Server {
     private final Map<Integer, Guild> guilds = new HashMap<>(100);
     private final Map<Client, Long> inLoginState = new HashMap<>(100);
 
-    private final PlayerBuffStorage buffStorage = new PlayerBuffStorage();
     private final Map<Integer, Alliance> alliances = new HashMap<>(100);
     private final Map<Integer, NewYearCardRecord> newyears = new HashMap<>();
     private final List<Client> processDiseaseAnnouncePlayers = new LinkedList<>();
@@ -1074,9 +1073,6 @@ public class Server {
         }
     }
 
-    public PlayerBuffStorage getPlayerBuffStorage() {
-        return buffStorage;
-    }
 
     public void deleteGuildCharacter(Character mc) {
         setGuildMemberOnline(mc, false, (byte) -1);

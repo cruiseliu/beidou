@@ -26,9 +26,6 @@ import org.gms.net.server.world.Party;
 import org.gms.net.server.world.PartyCharacter;
 import org.gms.net.server.world.World;
 import org.gms.server.Storage;
-import org.gms.server.life.MobSkill;
-import org.gms.server.life.MobSkillFactory;
-import org.gms.server.life.MobSkillType;
 import org.gms.server.maps.*;
 import org.gms.util.*;
 import org.springframework.context.ApplicationContext;
@@ -55,7 +52,6 @@ import static org.gms.dao.entity.table.FamilyCharacterDOTableDef.FAMILY_CHARACTE
 import static org.gms.dao.entity.table.FredstorageDOTableDef.FREDSTORAGE_D_O;
 import static org.gms.dao.entity.table.KeymapDOTableDef.KEYMAP_D_O;
 import static org.gms.dao.entity.table.MonsterbookDOTableDef.MONSTERBOOK_D_O;
-import static org.gms.dao.entity.table.PlayerdiseasesDOTableDef.PLAYERDISEASES_D_O;
 import static org.gms.dao.entity.table.SavedlocationsDOTableDef.SAVEDLOCATIONS_D_O;
 import static org.gms.dao.entity.table.ServerQueueDOTableDef.SERVER_QUEUE_D_O;
 import static org.gms.dao.entity.table.SkillmacrosDOTableDef.SKILLMACROS_D_O;
@@ -75,7 +71,6 @@ public class CharacterService {
     private final BbsThreadsMapper bbsThreadsMapper;
     private final BbsRepliesMapper bbsRepliesMapper;
     private final WishlistsMapper wishlistsMapper;
-    private final PlayerdiseasesMapper playerdiseasesMapper;
     private final AreaInfoMapper areaInfoMapper;
     private final MonsterbookMapper monsterbookMapper;
     private final FamilyCharacterMapper familyCharacterMapper;
@@ -272,8 +267,6 @@ public class CharacterService {
         }
         // 删除wishlists
         wishlistsMapper.deleteByQuery(QueryWrapper.create().where(WISHLISTS_D_O.CHARID.eq(cid)));
-        // 删除playerdiseases
-        playerdiseasesMapper.deleteByQuery(QueryWrapper.create().where(PLAYERDISEASES_D_O.CHARID.eq(cid)));
         // 删除area_info
         areaInfoMapper.deleteByQuery(QueryWrapper.create().where(AREA_INFO_D_O.CHARID.eq(cid)));
         // 删除monsterbook
@@ -398,23 +391,6 @@ public class CharacterService {
 
         List<QuestStatus> questStatusList = questService.getQuestStatusByCharacter(cid);
         questStatusList.forEach(questStatus -> chr.getQuests().put(questStatus.getQuestID(), questStatus));
-
-        QueryWrapper pdWrapper = QueryWrapper.create().where(PLAYERDISEASES_D_O.CHARID.eq(cid));
-        List<PlayerdiseasesDO> playerdiseasesDOList = playerdiseasesMapper.selectListByQuery(pdWrapper);
-        Map<Disease, Pair<Long, MobSkill>> loadedDiseases = new LinkedHashMap<>();
-        playerdiseasesDOList.forEach(playerdiseasesDO -> {
-            Disease ordinal = Disease.ordinal(playerdiseasesDO.getDisease());
-            if (Disease.NULL.equals(ordinal)) {
-                return;
-            }
-            MobSkillType mobSkillType = MobSkillType.from(playerdiseasesDO.getMobskillid()).orElseThrow();
-            MobSkill mobSkill = MobSkillFactory.getMobSkillOrThrow(mobSkillType, playerdiseasesDO.getMobskilllv());
-            loadedDiseases.put(ordinal, new Pair<>(playerdiseasesDO.getLength(), mobSkill));
-        });
-        playerdiseasesMapper.deleteByQuery(pdWrapper);
-        if (!loadedDiseases.isEmpty()) {
-            Server.getInstance().getPlayerBuffStorage().addDiseasesToStorage(cid, loadedDiseases);
-        }
 
         List<SkillmacrosDO> skillmacrosDOList = skillmacrosMapper.selectListByQuery(QueryWrapper.create().where(SKILLMACROS_D_O.CHARACTERID.eq(cid)));
         skillmacrosDOList.forEach(skillmacrosDO -> chr.getSkillMacros()[skillmacrosDO.getPosition()] = new SkillMacro(

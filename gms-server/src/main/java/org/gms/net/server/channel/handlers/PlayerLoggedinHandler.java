@@ -26,7 +26,6 @@ import org.gms.client.BuddylistEntry;
 import org.gms.client.character.Character;
 import org.gms.client.CharacterNameAndId;
 import org.gms.client.Client;
-import org.gms.client.Disease;
 import org.gms.client.Family;
 import org.gms.client.FamilyEntry;
 import org.gms.client.Mount;
@@ -60,11 +59,9 @@ import org.gms.util.packets.WeddingPackets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.gms.scripting.event.EventInstanceManager;
-import org.gms.server.life.MobSkill;
 import org.gms.service.NoteService;
 import org.gms.util.DatabaseConnection;
 import org.gms.util.PacketCreator;
-import org.gms.util.Pair;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -240,11 +237,6 @@ public final class PlayerLoggedinHandler extends AbstractPacketHandler {
 
             player.resumeBuffs();   // 同对象冻结恢复（换频道/商城/MTS 重入）；未冻结时空操作
 
-            Map<Disease, Pair<Long, MobSkill>> diseases = server.getPlayerBuffStorage().getDiseasesFromStorage(cid);
-            if (diseases != null) {
-                player.silentApplyDiseases(diseases);
-            }
-
             c.sendPacket(PacketCreator.getCharInfo(player));    //这里发送登录成功封包
             if (player.isHidden()) {
                 if (!GameConfig.getServerBoolean("use_auto_hide_gm")) {
@@ -403,12 +395,8 @@ public final class PlayerLoggedinHandler extends AbstractPacketHandler {
                         Server.getInstance().broadcastMessage(c.getWorld(), PacketCreator.serverNotice(3, c.getChannel(), msg));
                     }
                 }
-                if (diseases != null) {
-                    for (Entry<Disease, Pair<Long, MobSkill>> e : diseases.entrySet()) {
-                        final List<Pair<Disease, Integer>> debuff = Collections.singletonList(new Pair<>(e.getKey(), e.getValue().getRight().getX()));
-                        c.sendPacket(PacketCreator.giveDebuff(debuff, e.getValue().getRight()));
-                    }
-                }
+                // 登录展示已恢复的 debuff（applyData 已恢复，发包逻辑在 CharacterDebuffs 内部）
+                player.announceDebuffsToOwner();
             } else {
                 if (player.isRidingBattleship()) {
                     player.announceBattleshipHp();
