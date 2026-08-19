@@ -143,6 +143,7 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterRates rates = new CharacterRates(this);
     final CharacterAntiCheat antiCheat = new CharacterAntiCheat(this);
     final CharacterMarket market = new CharacterMarket(this);
+    final CharacterQuests quests = new CharacterQuests(this);
 
     @Getter
     @Setter
@@ -180,9 +181,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     private int fame;
     private final Lock fameLock = new ReentrantLock(true);   // applyFame 的 fame 读改写专用（原误用 petLock）
-    @Getter
-    @Setter
-    private int questFame;
     @Getter
     @Setter
     private int initialSpawnPoint;
@@ -356,8 +354,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     private List<Integer> lastmonthfameids;
     private WeakReference<MapleMap> ownedMap = new WeakReference<>(null);
-    @Getter
-    private final Map<Short, QuestStatus> quests;
     private final Set<Monster> controlled = new LinkedHashSet<>();
     private final Map<Integer, String> entered = new LinkedHashMap<>();
     private final Set<MapObject> visibleMapObjects = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -373,12 +369,10 @@ public class Character extends AbstractAnimatedMapObject {
     @Setter
     private QuickslotBinding quickSlotKeyMapped;
     private Door pdoor = null;
-    private Map<Quest, Long> questExpirations = new LinkedHashMap<>();
     ScheduledFuture<?> dragonBloodSchedule;
     private ScheduledFuture<?> hpDecreaseTask;
     ScheduledFuture<?> beholderHealingSchedule, beholderBuffSchedule, berserkSchedule;
     private ScheduledFuture<?> itemExpireTask = null;
-    private ScheduledFuture<?> questExpireTask = null;
     ScheduledFuture<?> recoveryTask = null;
     ScheduledFuture<?> extraRecoveryTask = null;
     private ScheduledFuture<?> pendantOfSpirit = null; //1122017
@@ -409,7 +403,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Setter
     @Getter
     private PartyQuest partyQuest = null;
-    private final List<Pair<DelayedQuestUpdate, Object[]>> npcUpdateQuests = new LinkedList<>();
     @Setter
     @Getter
     private Dragon dragon = null;
@@ -513,7 +506,6 @@ public class Character extends AbstractAnimatedMapObject {
         for (int i = 0; i < SavedLocationType.values().length; i++) {
             savedLocations[i] = null;
         }
-        quests = new LinkedHashMap<>();
         setPosition(new Point(0, 0));
     }
 
@@ -1490,7 +1482,7 @@ public class Character extends AbstractAnimatedMapObject {
                         return;
                     }
 
-                    if (!this.needQuestItem(mapitem.getQuest(), mapitem.getItemId())) {
+                    if (!quests.needQuestItem(mapitem.getQuest(), mapitem.getItemId())) {
                         sendPacket(PacketCreator.showItemUnavailable());
                         enableActions();
                         return;
@@ -1643,23 +1635,6 @@ public class Character extends AbstractAnimatedMapObject {
             log.error(I18nUtil.getLogMessage("Character.deleteCharFromDB.error1"), e);
         }
         return false;
-    }
-
-    private static void deleteQuestProgressWhereCharacterId(Connection con, int cid) throws SQLException {
-        try (PreparedStatement ps = con.prepareStatement("DELETE FROM medalmaps WHERE characterid = ?")) {
-            ps.setInt(1, cid);
-            ps.executeUpdate();
-        }
-
-        try (PreparedStatement ps = con.prepareStatement("DELETE FROM questprogress WHERE characterid = ?")) {
-            ps.setInt(1, cid);
-            ps.executeUpdate();
-        }
-
-        try (PreparedStatement ps = con.prepareStatement("DELETE FROM queststatus WHERE characterid = ?")) {
-            ps.setInt(1, cid);
-            ps.executeUpdate();
-        }
     }
 
     private void deleteWhereCharacterId(Connection con, String sql) throws SQLException {
@@ -2177,23 +2152,6 @@ public class Character extends AbstractAnimatedMapObject {
         return client.getAbstractPlayerInteraction();
     }
 
-    private List<QuestStatus> getQuestValues() {
-        synchronized (quests) {
-            return new ArrayList<>(quests.values());
-        }
-    }
-
-    public final List<QuestStatus> getCompletedQuests() {
-        List<QuestStatus> ret = new LinkedList<>();
-        for (QuestStatus qs : getQuestValues()) {
-            if (qs.getStatus().equals(QuestStatus.Status.COMPLETED)) {
-                ret.add(qs);
-            }
-        }
-
-        return Collections.unmodifiableList(ret);
-    }
-
     public List<Ring> getCrushRings() {
         synchronized (crushRings) {
             Collections.sort(crushRings);
@@ -2691,73 +2649,6 @@ public class Character extends AbstractAnimatedMapObject {
         this.setMessengerPosition(4);
     }
 
-    public final byte getQuestStatus(final int quest) {
-        synchronized (quests) {
-            QuestStatus mqs = quests.get((short) quest);
-            if (mqs != null) {
-                return (byte) mqs.getStatus().getId();
-            } else {
-                return 0;
-            }
-        }
-    }
-
-    public QuestStatus getQuest(final int quest) {
-        return getQuest(Quest.getInstance(quest));
-    }
-
-    public QuestStatus getQuest(Quest quest) {
-        synchronized (quests) {
-            short questid = quest.getId();
-            QuestStatus qs = quests.get(questid);
-            if (qs == null) {
-                qs = new QuestStatus(quest, QuestStatus.Status.NOT_STARTED);
-                quests.put(questid, qs);
-            }
-            return qs;
-        }
-    }
-
-    public final QuestStatus getQuestNAdd(final Quest quest) {
-        synchronized (quests) {
-            if (!quests.containsKey(quest.getId())) {
-                final QuestStatus status = new QuestStatus(quest, QuestStatus.Status.NOT_STARTED);
-                quests.put(quest.getId(), status);
-                return status;
-            }
-            return quests.get(quest.getId());
-        }
-    }
-
-    public final QuestStatus getQuestNoAdd(final Quest quest) {
-        synchronized (quests) {
-            return quests.get(quest.getId());
-        }
-    }
-
-    public boolean needQuestItem(int questid, int itemid) {
-        if (questid <= 0) { //For non quest items :3
-            return true;
-        }
-
-        int amountNeeded, questStatus = this.getQuestStatus(questid);
-        if (questStatus == 0) {
-            amountNeeded = Quest.getInstance(questid).getStartItemAmountNeeded(itemid);
-            if (amountNeeded == Integer.MIN_VALUE) {
-                return false;
-            }
-        } else if (questStatus != 1) {
-            return false;
-        } else {
-            amountNeeded = Quest.getInstance(questid).getCompleteItemAmountNeeded(itemid);
-            if (amountNeeded == Integer.MAX_VALUE) {
-                return true;
-            }
-        }
-
-        return getInventory(ItemConstants.getInventoryType(itemid)).countById(itemid) < amountNeeded;
-    }
-
     public void clearSavedLocation(SavedLocationType type) {
         savedLocations[type.ordinal()] = null;
     }
@@ -2783,16 +2674,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     public int getSlot() {
         return slots;
-    }
-
-    public final List<QuestStatus> getStartedQuests() {
-        List<QuestStatus> ret = new LinkedList<>();
-        for (QuestStatus qs : getQuestValues()) {
-            if (QuestStatus.Status.STARTED.equals(qs.getStatus())) {
-                ret.add(qs);
-            }
-        }
-        return Collections.unmodifiableList(ret);
     }
 
     public BuffEffectData getStatForBuff(EffectType effect) {
@@ -3408,7 +3289,7 @@ public class Character extends AbstractAnimatedMapObject {
         chr.setName(charactersDO.getName());
         chr.setLevel(charactersDO.getLevel());
         chr.setFame(charactersDO.getFame());
-        chr.setQuestFame(charactersDO.getFquest());
+        chr.quests.setQuestFame(charactersDO.getFquest());
         loadDataFromJson(chr, charactersDO.getId());
         chr.setExp(charactersDO.getExp());
         chr.setGachaExp(charactersDO.getGachaexp());
@@ -3620,14 +3501,6 @@ public class Character extends AbstractAnimatedMapObject {
         return null;
     }
 
-    public void reloadQuestExpirations() {
-        for (QuestStatus mqs : getStartedQuests()) {
-            if (mqs.getExpirationTime() > 0) {
-                questTimeLimit2(mqs.getQuest(), mqs.getExpirationTime());
-            }
-        }
-    }
-
     public static String makeMapleReadable(String in) {
         return in.replace('I', 'i')
                 .replace('l', 'L')
@@ -3642,39 +3515,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void yellowMessage(String m) {
         sendPacket(PacketCreator.sendYellowTip(m));
-    }
-
-    public void raiseQuestMobCount(int id) {
-        // It seems nexon uses monsters that don't exist in the WZ (except string) to merge multiple mobs together for these 3 monsters.
-        // We also want to run mobKilled for both since there are some quest that don't use the updated ID...
-        if (id == MobId.GREEN_MUSHROOM || id == MobId.DEJECTED_GREEN_MUSHROOM) {
-            raiseQuestMobCount(MobId.GREEN_MUSHROOM_QUEST);
-        } else if (id == MobId.ZOMBIE_MUSHROOM || id == MobId.ANNOYED_ZOMBIE_MUSHROOM) {
-            raiseQuestMobCount(MobId.ZOMBIE_MUSHROOM_QUEST);
-        } else if (id == MobId.GHOST_STUMP || id == MobId.SMIRKING_GHOST_STUMP) {
-            raiseQuestMobCount(MobId.GHOST_STUMP_QUEST);
-        }
-
-        int lastQuestProcessed = 0;
-        try {
-            synchronized (quests) {
-                for (QuestStatus qs : getQuestValues()) {
-                    lastQuestProcessed = qs.getQuest().getId();
-                    if (qs.getStatus() == QuestStatus.Status.COMPLETED || qs.getQuest().canComplete(this, null)) {
-                        continue;
-                    }
-
-                    if (qs.progress(id)) {
-                        announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, false);
-                        if (qs.getInfoNumber() > 0) {
-                            announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, true);
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.warn("Character.mobKilled. chrId {}, last quest processed: {}", this.id, lastQuestProcessed, e);
-        }
     }
 
     public Mount mount(int id, int skillid) {
@@ -4163,7 +4003,7 @@ public class Character extends AbstractAnimatedMapObject {
                     ps.setInt(34, omoklosses);
                     ps.setInt(35, omokties);
                     ps.setString(36, dataString);
-                    ps.setInt(37, questFame);
+                    ps.setInt(37, quests.getQuestFame());
                     ps.setInt(38, partnerId);
                     ps.setInt(39, marriageItemId);
                     ps.setTimestamp(40, new Timestamp(lastExpGainTime));
@@ -4326,7 +4166,7 @@ public class Character extends AbstractAnimatedMapObject {
                     }
                 }
 
-                deleteQuestProgressWhereCharacterId(con, id);
+                CharacterQuests.deleteQuestProgressWhereCharacterId(con, id);
 
                 // Quests and medals
                 try (PreparedStatement psStatus = con.prepareStatement("INSERT INTO queststatus (`queststatusid`, `characterid`, `quest`, `status`, `time`, `expires`, `forfeited`, `completed`) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
@@ -4334,7 +4174,7 @@ public class Character extends AbstractAnimatedMapObject {
                      PreparedStatement psMedal = con.prepareStatement("INSERT INTO medalmaps VALUES (NULL, ?, ?, ?)")) {
                     psStatus.setInt(1, id);
 
-                    for (QuestStatus qs : getQuestValues()) {
+                    for (QuestStatus qs : quests.getQuestValues()) {
                         psStatus.setInt(2, qs.getQuest().getId());
                         psStatus.setInt(3, qs.getStatus().getId());
                         psStatus.setInt(4, (int) (qs.getCompletionTime() / 1000));
@@ -4934,213 +4774,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public void setQuestProgress(int id, int infoNumber, String progress) {
-        Quest q = Quest.getInstance(id);
-        QuestStatus qs = getQuest(q);
-
-        if (qs.getInfoNumber() == infoNumber && infoNumber > 0) {
-            Quest iq = Quest.getInstance(infoNumber);
-            QuestStatus iqs = getQuest(iq);
-            iqs.setProgress(0, progress);
-        } else {
-            qs.setProgress(infoNumber, progress);   // quest progress is thoroughly a string match, infoNumber is actually another questid
-        }
-
-        announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, false);
-        if (qs.getInfoNumber() > 0) {
-            announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, true);
-        }
-    }
-
-    public void awardQuestPoint(int awardedPoints) {
-        if (GameConfig.getServerInt("quest_point_requirement") < 1 || awardedPoints < 1) {
-            return;
-        }
-
-        int delta;
-        synchronized (quests) {
-            questFame += awardedPoints;
-
-            delta = questFame / GameConfig.getServerInt("quest_point_requirement");
-            questFame %= GameConfig.getServerInt("quest_point_requirement");
-        }
-
-        if (delta > 0) {
-            gainFame(delta);
-        }
-    }
-
-    private void announceUpdateQuestInternal(Character chr, Pair<DelayedQuestUpdate, Object[]> questUpdate) {
-        Object[] objs = questUpdate.getRight();
-
-        switch (questUpdate.getLeft()) {
-            case UPDATE:
-                sendPacket(PacketCreator.updateQuest(chr, (QuestStatus) objs[0], (Boolean) objs[1]));
-                break;
-
-            case FORFEIT:
-                sendPacket(PacketCreator.forfeitQuest((Short) objs[0]));
-                break;
-
-            case COMPLETE:
-                sendPacket(PacketCreator.completeQuest((Short) objs[0], (Long) objs[1]));
-                break;
-
-            case INFO:
-                QuestStatus qs = (QuestStatus) objs[0];
-                sendPacket(PacketCreator.updateQuestInfo(qs.getQuest().getId(), qs.getNpc()));
-                break;
-        }
-    }
-
-    public void announceUpdateQuest(DelayedQuestUpdate questUpdateType, Object... params) {
-        Pair<DelayedQuestUpdate, Object[]> p = new Pair<>(questUpdateType, params);
-        Client c = this.getClient();
-        if (c.getQM() != null || c.getCM() != null) {
-            synchronized (npcUpdateQuests) {
-                npcUpdateQuests.add(p);
-            }
-        } else {
-            announceUpdateQuestInternal(this, p);
-        }
-    }
-
-    public void flushDelayedUpdateQuests() {
-        List<Pair<DelayedQuestUpdate, Object[]>> qmQuestUpdateList;
-
-        synchronized (npcUpdateQuests) {
-            qmQuestUpdateList = new ArrayList<>(npcUpdateQuests);
-            npcUpdateQuests.clear();
-        }
-
-        for (Pair<DelayedQuestUpdate, Object[]> q : qmQuestUpdateList) {
-            announceUpdateQuestInternal(this, q);
-        }
-    }
-
-    public void updateQuestStatus(QuestStatus qs) {
-        synchronized (quests) {
-            quests.put(qs.getQuestID(), qs);
-        }
-        if (qs.getStatus().equals(QuestStatus.Status.STARTED)) {
-            announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, false);
-            if (qs.getInfoNumber() > 0) {
-                announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, true);
-            }
-            announceUpdateQuest(DelayedQuestUpdate.INFO, qs);
-        } else if (qs.getStatus().equals(QuestStatus.Status.COMPLETED)) {
-            Quest mquest = qs.getQuest();
-            short questid = mquest.getId();
-            if (!mquest.isSameDayRepeatable() && !Quest.isExploitableQuest(questid)) {
-                awardQuestPoint(GameConfig.getServerInt("quest_point_per_quest_complete"));
-            }
-            qs.setCompleted(qs.getCompleted() + 1);   // Jayd's idea - count quest completed
-
-            announceUpdateQuest(DelayedQuestUpdate.COMPLETE, questid, qs.getCompletionTime());
-            //announceUpdateQuest(DelayedQuestUpdate.INFO, qs); // happens after giving rewards, for non-next quests only
-        } else if (qs.getStatus().equals(QuestStatus.Status.NOT_STARTED)) {
-            announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, false);
-            if (qs.getInfoNumber() > 0) {
-                announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, true);
-            }
-            // reminder: do not reset quest progress of infoNumbers, some quests cannot backtrack
-        }
-    }
-
-    public void cancelQuestExpirationTask() {
-        evtLock.lock();
-        try {
-            if (questExpireTask != null) {
-                questExpireTask.cancel(false);
-                questExpireTask = null;
-            }
-        } finally {
-            evtLock.unlock();
-        }
-    }
-
-    public void forfeitExpirableQuests() {
-        evtLock.lock();
-        try {
-            for (Quest quest : questExpirations.keySet()) {
-                quest.forfeit(this);
-            }
-
-            questExpirations.clear();
-        } finally {
-            evtLock.unlock();
-        }
-    }
-
-    public void questExpirationTask() {
-        evtLock.lock();
-        try {
-            if (!questExpirations.isEmpty()) {
-                if (questExpireTask == null) {
-                    questExpireTask = TimerManager.getInstance().register(this::runQuestExpireTask, SECONDS.toMillis(10));
-                }
-            }
-        } finally {
-            evtLock.unlock();
-        }
-    }
-
-    private void runQuestExpireTask() {
-        evtLock.lock();
-        try {
-            long timeNow = Server.getInstance().getCurrentTime();
-            List<Quest> expireList = new LinkedList<>();
-
-            for (Entry<Quest, Long> qe : questExpirations.entrySet()) {
-                if (qe.getValue() <= timeNow) {
-                    expireList.add(qe.getKey());
-                }
-            }
-
-            if (!expireList.isEmpty()) {
-                for (Quest quest : expireList) {
-                    quest.expireQuest(this);
-                    questExpirations.remove(quest);
-                }
-
-                if (questExpirations.isEmpty()) {
-                    questExpireTask.cancel(false);
-                    questExpireTask = null;
-                }
-            }
-        } finally {
-            evtLock.unlock();
-        }
-    }
-
-    private void registerQuestExpire(Quest quest, long time) {
-        evtLock.lock();
-        try {
-            if (questExpireTask == null) {
-                questExpireTask = TimerManager.getInstance().register(this::runQuestExpireTask, SECONDS.toMillis(10));
-            }
-
-            questExpirations.put(quest, Server.getInstance().getCurrentTime() + time);
-        } finally {
-            evtLock.unlock();
-        }
-    }
-
-    public void questTimeLimit(final Quest quest, int seconds) {
-        registerQuestExpire(quest, SECONDS.toMillis(seconds));
-        sendPacket(PacketCreator.addQuestTimeLimit(quest.getId(), (int) SECONDS.toMillis(seconds)));
-    }
-
-    public void questTimeLimit2(final Quest quest, long expires) {
-        long timeLeft = expires - System.currentTimeMillis();
-
-        if (timeLeft <= 0) {
-            quest.expireQuest(this);
-        } else {
-            registerQuestExpire(quest, timeLeft);
-        }
-    }
-
     public void updateSingleStat(Stat stat, int newval) {
         updateSingleStat(stat, newval, false);
     }
@@ -5479,11 +5112,7 @@ public class Character extends AbstractAnimatedMapObject {
         cancelDiseaseExpireTask();
         stopSkillTimers();
         cancelExpirationTask();
-
-        if (questExpireTask != null) {
-            questExpireTask.cancel(true);
-        }
-        questExpireTask = null;
+        quests.empty();
 
         if (recoveryTask != null) {
             recoveryTask.cancel(true);
@@ -5501,19 +5130,6 @@ public class Character extends AbstractAnimatedMapObject {
         pendantOfSpirit = null;
 
         clearCpqTimer();
-
-        evtLock.lock();
-        try {
-            if (questExpireTask != null) {
-                questExpireTask.cancel(false);
-                questExpireTask = null;
-
-                questExpirations.clear();
-                questExpirations = null;
-            }
-        } finally {
-            evtLock.unlock();
-        }
 
         if (mapleMount != null) {
             mapleMount.empty();
@@ -6275,4 +5891,28 @@ public class Character extends AbstractAnimatedMapObject {
     public synchronized void withdrawMerchantMesos() { market.withdrawMerchantMesos(); }
     public void closePlayerShop() { market.closePlayerShop(); }
     public void closeHiredMerchant(boolean closeMerchant) { market.closeHiredMerchant(closeMerchant); }
+
+    // ── quest 门面 ──
+
+    public Map<Short, QuestStatus> getQuests() { return quests.getQuests(); }
+    public QuestStatus getQuest(final int quest) { return quests.getQuest(quest); }
+    public QuestStatus getQuest(Quest quest) { return quests.getQuest(quest); }
+    public byte getQuestStatus(final int quest) { return quests.getQuestStatus(quest); }
+    public QuestStatus getQuestNoAdd(final Quest quest) { return quests.getQuestNoAdd(quest); }
+    public QuestStatus getQuestNAdd(final Quest quest) { return quests.getQuestNAdd(quest); }
+    public List<QuestStatus> getCompletedQuests() { return quests.getCompletedQuests(); }
+    public List<QuestStatus> getStartedQuests() { return quests.getStartedQuests(); }
+    public boolean needQuestItem(int questid, int itemid) { return quests.needQuestItem(questid, itemid); }
+    public void updateQuestStatus(QuestStatus qs) { quests.updateQuestStatus(qs); }
+    public void setQuestProgress(int id, int infoNumber, String progress) { quests.setQuestProgress(id, infoNumber, progress); }
+    public void announceUpdateQuest(DelayedQuestUpdate questUpdateType, Object... params) { quests.announceUpdateQuest(questUpdateType, params); }
+    public void flushDelayedUpdateQuests() { quests.flushDelayedUpdateQuests(); }
+    public void questTimeLimit(final Quest quest, int seconds) { quests.questTimeLimit(quest, seconds); }
+    public void questTimeLimit2(final Quest quest, long expires) { quests.questTimeLimit2(quest, expires); }
+    public void raiseQuestMobCount(int id) { quests.raiseQuestMobCount(id); }
+    public void forfeitExpirableQuests() { quests.forfeitExpirableQuests(); }
+    public void questExpirationTask() { quests.questExpirationTask(); }
+    public void cancelQuestExpirationTask() { quests.cancelQuestExpirationTask(); }
+    public void reloadQuestExpirations() { quests.reloadQuestExpirations(); }
+    public void awardQuestPoint(int awardedPoints) { quests.awardQuestPoint(awardedPoints); }
 }
