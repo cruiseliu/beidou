@@ -142,6 +142,7 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterMap map = new CharacterMap(this);
     final CharacterRates rates = new CharacterRates(this);
     final CharacterAntiCheat antiCheat = new CharacterAntiCheat(this);
+    final CharacterMarket market = new CharacterMarket(this);
 
     @Getter
     @Setter
@@ -274,7 +275,7 @@ public class Character extends AbstractAnimatedMapObject {
     private long lastExpression = 0;
     @Getter
     private boolean hidden;
-    private boolean equipchanged = true, berserk, hasMerchant, hasSandboxItem = false, whiteChat = false;
+    private boolean equipchanged = true, berserk, hasSandboxItem = false, whiteChat = false;
 
     boolean isEquipChanged() { return equipchanged; }    // 包内可见：CharacterStats.recalcEquipStats 调用
     void setEquipChanged(boolean v) { equipchanged = v; }
@@ -306,14 +307,10 @@ public class Character extends AbstractAnimatedMapObject {
     private final AtomicInteger gachaExp = new AtomicInteger();
     private final AtomicInteger meso = new AtomicInteger();
     private long totalExpGained = 0;
-    private int merchantmeso;
     @Getter
     @Setter
     private BuddyList buddylist;
     private EventInstanceManager eventInstance = null;
-    @Setter
-    @Getter
-    private HiredMerchant hiredMerchant = null;
     @Getter
     @Setter
     Client client;
@@ -332,9 +329,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Setter
     private Mount mapleMount;
     Party party;    // 包内可见：CharacterMap.changeMapInternal 调用
-    @Getter
-    @Setter
-    private PlayerShop playerShop = null;
     @Getter
     @Setter
     private Shop shop = null;
@@ -2507,35 +2501,6 @@ public class Character extends AbstractAnimatedMapObject {
         this.meso.set(meso);
     }
 
-    public int getMerchantMeso() {
-        return merchantmeso;
-    }
-
-    public int getMerchantNetMeso() {
-        int elapsedDays = 0;
-
-        try (Connection con = DatabaseConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement("SELECT `timestamp` FROM `fredstorage` WHERE `cid` = ?")) {
-            ps.setInt(1, id);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    elapsedDays = FredrickProcessor.timestampElapsedDays(rs.getTimestamp(1), System.currentTimeMillis());
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        if (elapsedDays > 100) {
-            elapsedDays = 100;
-        }
-
-        long netMeso = merchantmeso; // negative mesos issues found thanks to Flash, Vcoc
-        netMeso = (netMeso * (100 - elapsedDays)) / 100;
-        return (int) netMeso;
-    }
-
     public GuildCharacter getMGC() {
         return mgc;
     }
@@ -2683,10 +2648,10 @@ public class Character extends AbstractAnimatedMapObject {
     public void closePlayerInteractions() {
         closeNpcShop();
         closeTrade();
-        closePlayerShop();
+        market.closePlayerShop();
         closeMiniGame(true);
         closeRPS();
-        closeHiredMerchant(false);
+        market.closeHiredMerchant(false);
         closePlayerMessenger();
 
         client.closePlayerScriptInteractions();
@@ -2701,32 +2666,6 @@ public class Character extends AbstractAnimatedMapObject {
         Trade.cancelTrade(this, Trade.TradeResult.PARTNER_CANCEL);
     }
 
-    public void closePlayerShop() {
-        PlayerShop mps = this.getPlayerShop();
-        if (mps == null) {
-            return;
-        }
-
-        if (mps.isOwner(this)) {
-            mps.setOpen(false);
-            getWorldServer().unregisterPlayerShop(mps);
-
-            for (PlayerShopItem mpsi : mps.getItems()) {
-                if (mpsi.getBundles() >= 2) {
-                    Item iItem = mpsi.getItem().copy();
-                    iItem.setQuantity((short) (mpsi.getBundles() * iItem.getQuantity()));
-                    InventoryManipulator.addFromDrop(this.getClient(), iItem, false);
-                } else if (mpsi.isExist()) {
-                    InventoryManipulator.addFromDrop(this.getClient(), mpsi.getItem(), true);
-                }
-            }
-            mps.closeShop();
-        } else {
-            mps.removeVisitor(this);
-        }
-        this.setPlayerShop(null);
-    }
-
     public void closeMiniGame(boolean forceClose) {
         MiniGame game = this.getMiniGame();
         if (game == null) {
@@ -2737,38 +2676,6 @@ public class Character extends AbstractAnimatedMapObject {
             game.closeRoom(forceClose);
         } else {
             game.removeVisitor(forceClose, this);
-        }
-    }
-
-    public void closeHiredMerchant(boolean closeMerchant) {
-        HiredMerchant merchant = this.getHiredMerchant();
-        if (merchant == null) {
-            return;
-        }
-
-        if (merchant.isOwner(this) && !merchant.isPublished()) {
-            merchant.closeOwnerMerchant(this);
-            return;
-        }
-
-        if (closeMerchant) {
-            if (merchant.isOwner(this) && merchant.getItems().isEmpty()) {
-                merchant.forceClose();
-            } else {
-                merchant.removeVisitor(this);
-                this.setHiredMerchant(null);
-            }
-        } else {
-            if (merchant.isOwner(this)) {
-                merchant.setOpen(true);
-            } else {
-                merchant.removeVisitor(this);
-            }
-            try {
-                merchant.saveItems(false);
-            } catch (SQLException e) {
-                log.error(I18nUtil.getLogMessage("Character.closeHiredMerchant.error1") + "{}", name, e);
-            }
         }
     }
 
@@ -3019,10 +2926,6 @@ public class Character extends AbstractAnimatedMapObject {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    public boolean hasMerchant() {
-        return hasMerchant;
     }
 
     public boolean haveItem(int itemid) {
@@ -4560,56 +4463,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void setGM(int level) {
         this.gmLevel = level;
-    }
-
-    public void setHasMerchant(boolean set) {
-        characterService.update(CharactersDO.builder()
-                .id(id)
-                .hasmerchant(set)
-                .build());
-        hasMerchant = set;
-    }
-
-    public void addMerchantMesos(int add) {
-        final int newAmount = (int) Math.min((long) merchantmeso + add, Integer.MAX_VALUE);
-        setMerchantMeso(newAmount);
-    }
-
-    public void setMerchantMeso(int set) {
-        characterService.update(CharactersDO.builder()
-                .id(id)
-                .merchantmesos(set)
-                .build());
-        merchantmeso = set;
-    }
-
-    public synchronized void withdrawMerchantMesos() {
-        int merchantMeso = this.getMerchantNetMeso();
-        int playerMeso = this.getMeso();
-
-        if (merchantMeso > 0) {
-            int possible = Integer.MAX_VALUE - playerMeso;
-
-            if (possible > 0) {
-                if (possible < merchantMeso) {
-                    this.gainMeso(possible, false);
-                    this.setMerchantMeso(merchantMeso - possible);
-                } else {
-                    this.gainMeso(merchantMeso, false);
-                    this.setMerchantMeso(0);
-                }
-            }
-        } else {
-            int nextMeso = playerMeso + merchantMeso;
-
-            if (nextMeso < 0) {
-                this.gainMeso(-playerMeso, false);
-                this.setMerchantMeso(merchantMeso + playerMeso);
-            } else {
-                this.gainMeso(merchantMeso, false);
-                this.setMerchantMeso(0);
-            }
-        }
     }
 
     // ── 属性变更钩子：原 CharacterListener 的实现合并至此 ──
@@ -6406,4 +6259,20 @@ public class Character extends AbstractAnimatedMapObject {
     public synchronized void consumeTeleportDistanceCheckContext() { antiCheat.consumeTeleportDistanceCheckContext(); }
     public synchronized void consumeMovementDistanceCheckContext() { antiCheat.consumeMovementDistanceCheckContext(); }
     public synchronized void clearTeleportDistanceContext() { antiCheat.clearTeleportDistanceContext(); }
+
+    // ── market 门面 ──
+
+    public HiredMerchant getHiredMerchant() { return market.getHiredMerchant(); }
+    public void setHiredMerchant(HiredMerchant hiredMerchant) { market.setHiredMerchant(hiredMerchant); }
+    public PlayerShop getPlayerShop() { return market.getPlayerShop(); }
+    public void setPlayerShop(PlayerShop playerShop) { market.setPlayerShop(playerShop); }
+    public boolean hasMerchant() { return market.hasMerchant(); }
+    public int getMerchantMeso() { return market.getMerchantMeso(); }
+    public int getMerchantNetMeso() { return market.getMerchantNetMeso(); }
+    public void setHasMerchant(boolean set) { market.setHasMerchant(set); }
+    public void addMerchantMesos(int add) { market.addMerchantMesos(add); }
+    public void setMerchantMeso(int set) { market.setMerchantMeso(set); }
+    public synchronized void withdrawMerchantMesos() { market.withdrawMerchantMesos(); }
+    public void closePlayerShop() { market.closePlayerShop(); }
+    public void closeHiredMerchant(boolean closeMerchant) { market.closeHiredMerchant(closeMerchant); }
 }
