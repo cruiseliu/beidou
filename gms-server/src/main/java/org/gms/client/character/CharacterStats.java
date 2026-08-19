@@ -40,10 +40,6 @@ public class CharacterStats {
     int equipmagic, equipwatk;
     int equipmaxhp, equipmaxmp;
 
-    int localchairrate = -1;  // -1 = 需重算（reapplyLocalStats 中重置，updateChairHealStats 中检查）
-    int localchairhp;
-    int localchairmp;
-
     // ── 操作方法（package-private，由 Character 在持锁状态下调用） ──
 
     /** 带锁读取单维（无外层锁时使用；持锁路径直读 attrs 更快） */
@@ -200,7 +196,6 @@ public class CharacterStats {
         }
         localmagic = localAttrs[BaseStat.INT];
         localwatk = 0;
-        localchairrate = -1;
     }
 
     // ── 持久化数据转换（stats 域的映射；信封 CharacterData 的组装/应用在 Character.toData/applyData） ──

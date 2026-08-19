@@ -142,6 +142,7 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterBuffs buffs = new CharacterBuffs(this);
     final CharacterPets pets = new CharacterPets(this);
     final CharacterDebuffs debuffs = new CharacterDebuffs(this);
+    final CharacterChair chair = new CharacterChair(this);
 
 
     @Getter
@@ -314,7 +315,6 @@ public class Character extends AbstractAnimatedMapObject {
     private final AtomicInteger exp = new AtomicInteger();
     private final AtomicInteger gachaExp = new AtomicInteger();
     private final AtomicInteger meso = new AtomicInteger();
-    private final AtomicInteger chair = new AtomicInteger(-1);
     private long totalExpGained = 0;
     private int merchantmeso;
     @Getter
@@ -402,7 +402,6 @@ public class Character extends AbstractAnimatedMapObject {
     private ScheduledFuture<?> questExpireTask = null;
     ScheduledFuture<?> recoveryTask = null;
     ScheduledFuture<?> extraRecoveryTask = null;
-    private ScheduledFuture<?> chairRecoveryTask = null;
     private ScheduledFuture<?> pendantOfSpirit = null; //1122017
     private ScheduledFuture<?> cpqSchedule = null;
 
@@ -2678,124 +2677,11 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     void stopChairTask() {
-        chrLock.lock();
-        try {
-            if (chairRecoveryTask != null) {
-                chairRecoveryTask.cancel(false);
-                chairRecoveryTask = null;
-            }
-        } finally {
-            chrLock.unlock();
-        }
-    }
-
-    private static Pair<Integer, Pair<Integer, Integer>> getChairTaskIntervalRate(int maxhp, int maxmp) {
-        /*
-        此处2个参数CHAIR_EXTRA_HEAL_MULTIPLIER和CHAIR_EXTRA_HEAL_MAX_DELAY已被我删除
-        1.在倍率固定的情况下，既不希望定时任务执行太快，又不希望定时任务执行太慢
-        2.在固定最大时间的情况下，既不希望恢复量太大，又不希望恢复量太小
-        3.关键是这2个参数又都能配置，在某些场景下，就会打破上述他自己设置的限制
-        4.所以，这个参数需要个人进行复杂的计算才能配置，不能乱配，但他又放开让你都允许配置
-        5.综上，这种属于既要又要，什么都要只会害了你，所以我把这2个参数都干掉了
-        6.如果确实要放开允许配置，最多把CHAIR_EXTRA_HEAL_MAX_DELAY放开即可，这个参数还算有点意义，但也需要简单计算一下得到他合适的值
-         */
-        float toHeal = Math.max(maxhp, maxmp);
-        float maxDuration = SECONDS.toMillis(21);
-
-        int rate = 0;
-        int minRegen = 1, maxRegen = 2559, midRegen = 1;
-        while (minRegen < maxRegen) {
-            midRegen = (int) ((minRegen + maxRegen) * 0.94);
-
-            float procs = toHeal / midRegen;
-            float newRate = maxDuration / procs;
-            rate = (int) newRate;
-
-            if (newRate < 420) {
-                minRegen = (int) (1.2 * midRegen);
-            } else if (newRate > 5000) {
-                maxRegen = (int) (0.8 * midRegen);
-            } else {
-                break;
-            }
-        }
-
-        float procs = maxDuration / rate;
-        int hpRegen, mpRegen;
-        if (maxhp > maxmp) {
-            hpRegen = midRegen;
-            mpRegen = (int) Math.ceil(maxmp / procs);
-        } else {
-            hpRegen = (int) Math.ceil(maxhp / procs);
-            mpRegen = midRegen;
-        }
-
-        return new Pair<>(rate, new Pair<>(hpRegen, mpRegen));
-    }
-
-    private void updateChairHealStats() {
-        stats.rLock.lock();
-        try {
-            if (stats.localchairrate != -1) {
-                return;
-            }
-        } finally {
-            stats.rLock.unlock();
-        }
-
-        // effLock 已冗余：getChairTaskIntervalRate 纯计算
-        stats.wLock.lock();
-        try {
-            Pair<Integer, Pair<Integer, Integer>> p = getChairTaskIntervalRate(stats.localMaxHp, stats.localMaxMp);
-
-            stats.localchairrate = p.getLeft();
-            stats.localchairhp = p.getRight().getLeft();
-            stats.localchairmp = p.getRight().getRight();
-        } finally {
-            stats.wLock.unlock();
-
-        }
+        chair.stopChairTask();
     }
 
     void startChairTask() {
-        if (chair.get() < 0) {
-            return;
-        }
-
-        int healInterval;
-        updateChairHealStats();
-        stats.rLock.lock();
-        try {
-            healInterval = stats.localchairrate;
-        } finally {
-            stats.rLock.unlock();
-        }
-
-        chrLock.lock();
-        try {
-            if (chairRecoveryTask != null) {
-                stopChairTask();
-            }
-
-            chairRecoveryTask = TimerManager.getInstance().register(() -> {
-                updateChairHealStats();
-                final int healHP = stats.localchairhp;
-                final int healMP = stats.localchairmp;
-
-                if (Character.this.getHp() < stats.localMaxHp) {
-                    byte recHP = (byte) (healHP / 10);
-
-                    sendPacket(PacketCreator.showOwnRecovery(recHP));
-                    getMap().broadcastMessage(Character.this, PacketCreator.showRecovery(id, recHP), false);
-                } else if (Character.this.getMp() >= stats.localMaxMp) {
-                    stopChairTask();    // optimizing schedule management when player is already with full pool.
-                }
-
-                addMPHP(healHP, healMP);
-            }, healInterval, healInterval);
-        } finally {
-            chrLock.unlock();
-        }
+        chair.startChairTask();
     }
 
     void stopExtraTask() {
@@ -3381,47 +3267,16 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    private static int getJobMapChair(Job job) {
-        return switch (job.getId() / 1000) {
-            case 0 -> Beginner.MAP_CHAIR;
-            case 1 -> Noblesse.MAP_CHAIR;
-            default -> Legend.MAP_CHAIR;
-        };
-    }
-
     public boolean unregisterChairBuff() {
-        if (!GameConfig.getServerBoolean("use_chair_extra_heal")) {
-            return false;
-        }
-
-        int skillId = getJobMapChair(job);
-        int skillLv = getSkillLevel(skillId);
-        if (skillLv > 0) {
-            BuffEffectData mapChairSkill = SkillFactory.getSkill(skillId).getEffect(skillLv);
-            return cancelEffect(mapChairSkill, false, -1);
-        }
-
-        return false;
+        return chair.unregisterChairBuff();
     }
 
     public boolean registerChairBuff() {
-        if (!GameConfig.getServerBoolean("use_chair_extra_heal")) {
-            return false;
-        }
-
-        int skillId = getJobMapChair(job);
-        int skillLv = getSkillLevel(skillId);
-        if (skillLv > 0) {
-            BuffEffectData mapChairSkill = SkillFactory.getSkill(skillId).getEffect(skillLv);
-            mapChairSkill.applyTo(this);
-            return true;
-        }
-
-        return false;
+        return chair.registerChairBuff();
     }
 
     public int getChair() {
-        return chair.get();
+        return chair.getChair();
     }
 
     public String getChalkboard() {
@@ -4572,14 +4427,14 @@ public class Character extends AbstractAnimatedMapObject {
     public boolean attemptCatchFish(int baitLevel) {
         return GameConfig.getServerBoolean("use_fishing_system") && MapId.isFishingArea(mapId) &&
                 this.getPosition().getY() > 0 &&
-                ItemConstants.isFishingChair(chair.get()) &&
+                ItemConstants.isFishingChair(chair.getChair()) &&
                 this.getWorldServer().registerFisherPlayer(this, baitLevel);
     }
 
     public void leaveMap() {
         releaseControlledMonsters();
         visibleMapObjects.clear();
-        setChair(-1);
+        chair.clearChair();
         if (hpDecreaseTask != null) {
             hpDecreaseTask.cancel(false);
         }
@@ -5631,52 +5486,12 @@ public class Character extends AbstractAnimatedMapObject {
             cancelEffectFromBuffStat(EffectType.MONSTER_RIDING);
         }
 
-        unsitChairInternal();
+        chair.unsitChairInternal();
         enableActions();
     }
 
-    private void unsitChairInternal() {
-        int chairid = chair.get();
-        if (chairid >= 0) {
-            if (ItemConstants.isFishingChair(chairid)) {
-                this.getWorldServer().unregisterFisherPlayer(this);
-            }
-
-            setChair(-1);
-            if (unregisterChairBuff()) {
-                getMap().broadcastMessage(this, PacketCreator.cancelForeignChairSkillEffect(this.getId()), false);
-            }
-
-            getMap().broadcastMessage(this, PacketCreator.showChair(this.getId(), 0), false);
-        }
-
-        sendPacket(PacketCreator.cancelChair(-1));
-    }
-
     public void sitChair(int itemId) {
-        if (this.isLoggedInWorld()) {
-            if (itemId >= 1000000) {    // sit on item chair
-                if (chair.get() < 0) {
-                    setChair(itemId);
-                    getMap().broadcastMessage(this, PacketCreator.showChair(this.getId(), itemId), false);
-                }
-                enableActions();
-            } else if (itemId >= 0) {    // sit on map chair
-                if (chair.get() < 0) {
-                    setChair(itemId);
-                    if (registerChairBuff()) {
-                        getMap().broadcastMessage(this, PacketCreator.giveForeignChairSkillEffect(this.getId()), false);
-                    }
-                    sendPacket(PacketCreator.cancelChair(itemId));
-                }
-            } else {    // stand up
-                unsitChairInternal();
-            }
-        }
-    }
-
-    private void setChair(int chair) {
-        this.chair.set(chair);
+        chair.sitChair(itemId);
     }
 
     public void respawn(int returnMap) {
@@ -5840,6 +5655,8 @@ public class Character extends AbstractAnimatedMapObject {
                 }
                 // Add throwing stars to dmg.
             }
+
+            chair.invalidateHealStats();    // 装备/属性变化后椅子恢复参数需重算
         } finally {
             stats.wLock.unlock();
         }
@@ -7587,7 +7404,7 @@ public class Character extends AbstractAnimatedMapObject {
         if (!this.isHidden() || client.getPlayer().gmLevel() > 1) {
             client.sendPacket(PacketCreator.spawnPlayerMapObject(client, this, false));
 
-            if (buffs.entries.containsKey(getJobMapChair(job))) { // mustn't buffs.lock, chrLock sendSpawnData
+            if (chair.hasMapChairBuff()) { // mustn't buffs.lock, chrLock sendSpawnData
                 client.sendPacket(PacketCreator.giveForeignChairSkillEffect(id));
             }
         }
@@ -8122,10 +7939,6 @@ public class Character extends AbstractAnimatedMapObject {
             extraRecoveryTask.cancel(true);
         }
         extraRecoveryTask = null;
-
-        // already done on unregisterChairBuff
-        /* if (chairRecoveryTask != null) { chairRecoveryTask.cancel(true); }
-        chairRecoveryTask = null; */
 
         if (pendantOfSpirit != null) {
             pendantOfSpirit.cancel(true);
