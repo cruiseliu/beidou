@@ -142,6 +142,7 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterChair chair = new CharacterChair(this);
     final CharacterJob job = new CharacterJob(this);
     final CharacterMap map = new CharacterMap(this);
+    final CharacterRates rates = new CharacterRates(this);
 
     @Getter
     @Setter
@@ -244,12 +245,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     @Setter
     private int vanquisherKills;
-    private float expRate = 1;
-    @Getter
-    private float mesoRate = 1;
-    @Getter
-    private float dropRate = 1;
-    private int expCoupon = 1, mesoCoupon = 1, dropCoupon = 1;
     @Getter
     @Setter
     private int omokwins;
@@ -373,8 +368,6 @@ public class Character extends AbstractAnimatedMapObject {
     private final Map<Integer, String> entered = new LinkedHashMap<>();
     private final Set<MapObject> visibleMapObjects = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final CharacterSkills skills = new CharacterSkills(this);
-    private final Map<Integer, Integer> activeCoupons = new LinkedHashMap<>();
-    private final Map<Integer, Integer> activeCouponRates = new LinkedHashMap<>();
     @Getter
     private final Map<Integer, KeyBinding> keymap = new LinkedHashMap<>();
     final Map<Integer, Summon> summons = new LinkedHashMap<>();
@@ -486,7 +479,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Setter
     @Getter
     private boolean chasing = false;
-    private float mobExpRate = -1;
 
     @Getter
     private boolean familyBuff = false;
@@ -2362,7 +2354,7 @@ public class Character extends AbstractAnimatedMapObject {
                 if (GameConfig.getServerBoolean("use_exp_gain_log")) {
                     ExpLogRecord expLogRecord = new ExpLogger.ExpLogRecord(
                             getWorldServer().getExpRate(),
-                            expCoupon,
+                            getCouponExpRate(),
                             totalExpGained,
                             exp.get(),
                             new Timestamp(lastExpGainTime),
@@ -2633,103 +2625,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     public int getGachaExp() {
         return gachaExp.get();
-    }
-
-    public boolean hasNoviceExpRate() {
-        return GameConfig.getServerBoolean("use_enforce_novice_exp_rate") && isBeginnerJob() && level < 11;
-    }
-
-    public float getExpRate() {
-        if (hasNoviceExpRate()) {   // base exp rate 1x for early levels idea thanks to Vcoc
-            return 1;
-        }
-
-        return expRate;
-    }
-
-    public float getLevelExpRate() {
-        if (hasNoviceExpRate()) return 1; // 新手经验保护
-
-        return 1f + GameConfig.getWorldFloat(getWorld(), "level_exp_rate") * level;
-    }
-
-    public float getQuickLevelExpRate() {
-        if (hasNoviceExpRate()) return 1; // 新手经验保护
-
-        int quickLv = GameConfig.getWorldInt(getWorld(), "quick_level");
-        if (level >= quickLv) return 1;
-
-        return 1f + (quickLv - level) * GameConfig.getWorldFloat(getWorld(), "quick_level_exp_rate");
-    }
-
-    public void updateMobExpRate() {
-        mobExpRate = getLevelExpRate() * getQuickLevelExpRate();
-    }
-
-    public float getMobExpRate() {
-        if (mobExpRate <= 0) updateMobExpRate();
-        return mobExpRate;
-    }
-
-    public int getCouponExpRate() {
-        return expCoupon;
-    }
-
-    public float getRawExpRate() {
-        return expRate / (expCoupon * getWorldServer().getExpRate());
-    }
-
-    public int getCouponDropRate() {
-        return dropCoupon;
-    }
-
-    public float getRawDropRate() {
-        return dropRate / (dropCoupon * getWorldServer().getDropRate());
-    }
-
-    public float getBossDropRate() {
-        World w = getWorldServer();
-        return (dropRate / w.getDropRate()) * w.getBossDropRate();
-    }
-
-    public int getCouponMesoRate() {
-        return mesoCoupon;
-    }
-
-    public float getRawMesoRate() {
-        return mesoRate / (mesoCoupon * getWorldServer().getMesoRate());
-    }
-
-    public float getQuestExpRate() {
-        if (hasNoviceExpRate()) {
-            return 1;
-        }
-
-        World w = getWorldServer();
-        return w.getExpRate() * w.getQuestRate();
-    }
-
-    public float getQuestMesoRate() {
-        World w = getWorldServer();
-        return w.getMesoRate() * w.getQuestRate();
-    }
-
-    public float getCardRate(int itemid) {
-        float rate = 100.0f;
-
-        if (itemid == 0) {
-            BuffEffectData mseMeso = getBuffEffect(EffectType.MESO_UP_BY_ITEM);
-            if (mseMeso != null) {
-                rate += mseMeso.getCardRate(getMapId(), itemid);
-            }
-        } else {
-            BuffEffectData mseItem = getBuffEffect(EffectType.ITEM_UP_BY_ITEM);
-            if (mseItem != null) {
-                rate += mseItem.getCardRate(getMapId(), itemid);
-            }
-        }
-
-        return rate / 100;
     }
 
     public Family getFamily() {
@@ -3817,233 +3712,15 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public void setPlayerRates() {
-        applySavedRateOrElse("expRate", () -> this.expRate *= GameConstants.getPlayerBonusExpRate(this.level / 20));
-        applySavedRateOrElse("mesoRate", () -> this.mesoRate *= GameConstants.getPlayerBonusMesoRate(this.level / 20));
-        applySavedRateOrElse("dropRate", () -> this.dropRate *= GameConstants.getPlayerBonusDropRate(this.level / 20));
-    }
 
-    public void revertLastPlayerRates() {
-        this.expRate /= GameConstants.getPlayerBonusExpRate((this.level - 1) / 20);
-        this.mesoRate /= GameConstants.getPlayerBonusMesoRate((this.level - 1) / 20);
-        this.dropRate /= GameConstants.getPlayerBonusDropRate((this.level - 1) / 20);
-    }
 
-    public void revertPlayerRates() {
-        this.expRate /= GameConstants.getPlayerBonusExpRate(this.level / 20);
-        this.mesoRate /= GameConstants.getPlayerBonusMesoRate(this.level / 20);
-        this.dropRate /= GameConstants.getPlayerBonusDropRate(this.level / 20);
-    }
 
-    public void setWorldRates() {
-        World worldz = getWorldServer();
-        applySavedRateOrElse("expRate", () -> this.expRate *= worldz.getExpRate());
-        applySavedRateOrElse("mesoRate", () -> this.mesoRate *= worldz.getMesoRate());
-        applySavedRateOrElse("dropRate", () -> this.dropRate *= worldz.getDropRate());
-    }
 
-    public void revertWorldRates() {
-        World worldz = getWorldServer();
-        this.expRate /= worldz.getExpRate();
-        this.mesoRate /= worldz.getMesoRate();
-        this.dropRate /= worldz.getDropRate();
-    }
 
-    private void applySavedRateOrElse(String type, Runnable runnable) {
-        ExtendValueDO extendValueDO = ExtendUtil.getExtendValue(String.valueOf(id), ExtendType.CHARACTER_EXTEND.getType(), type);
 
-        if (extendValueDO == null) {
-            runnable.run();
-            return;
-        }
-        float savedRateValue = Float.parseFloat(extendValueDO.getExtendValue());
-        switch (type) {
-            case "expRate" -> this.expRate = savedRateValue;
-            case "mesoRate" -> this.mesoRate = savedRateValue;
-            case "dropRate" -> this.dropRate = savedRateValue;
-        }
-    }
 
-    public void setCouponRates() {
-        List<Integer> couponEffects;
 
-        Collection<Item> cashItems = this.getInventory(InventoryType.CASH).list();
-        chrLock.lock();
-        try {
-            setActiveCoupons(cashItems);
-            couponEffects = activateCouponsEffects();
-        } finally {
-            chrLock.unlock();
-        }
 
-        for (Integer couponId : couponEffects) {
-            commitBuffCoupon(couponId);
-        }
-    }
-
-    private void revertCouponRates() {
-        revertCouponsEffects();
-    }
-
-    public void updateCouponRates() {
-        Inventory cashInv = this.getInventory(InventoryType.CASH);
-        if (cashInv == null) {
-            return;
-        }
-
-        // effLock/chrLock 已冗余：revert/setCouponRates 内部自持锁
-
-        cashInv.lockInventory();
-        try {
-            revertCouponRates();
-            setCouponRates();
-        } finally {
-            cashInv.unlockInventory();
-
-        }
-    }
-
-    public void resetPlayerRates() {
-        expRate = 1;
-        mesoRate = 1;
-        dropRate = 1;
-
-        expCoupon = 1;
-        mesoCoupon = 1;
-        dropCoupon = 1;
-    }
-
-    private int getCouponMultiplier(int couponId) {
-        return activeCouponRates.get(couponId);
-    }
-
-    private void setExpCouponRate(int couponId, int couponQty) {
-        this.expCoupon *= (getCouponMultiplier(couponId) * couponQty);
-    }
-
-    private void setDropCouponRate(int couponId, int couponQty) {
-        this.dropCoupon *= (getCouponMultiplier(couponId) * couponQty);
-        this.mesoCoupon *= (getCouponMultiplier(couponId) * couponQty);
-    }
-
-    private void revertCouponsEffects() {
-        dispelBuffCoupons();
-
-        this.expRate /= this.expCoupon;
-        this.dropRate /= this.dropCoupon;
-        this.mesoRate /= this.mesoCoupon;
-
-        this.expCoupon = 1;
-        this.dropCoupon = 1;
-        this.mesoCoupon = 1;
-    }
-
-    private List<Integer> activateCouponsEffects() {
-        List<Integer> toCommitEffect = new LinkedList<>();
-
-        if (GameConfig.getServerBoolean("use_stack_coupon_rates")) {
-            for (Entry<Integer, Integer> coupon : activeCoupons.entrySet()) {
-                int couponId = coupon.getKey();
-                int couponQty = coupon.getValue();
-
-                toCommitEffect.add(couponId);
-
-                if (ItemConstants.isExpCoupon(couponId)) {
-                    setExpCouponRate(couponId, couponQty);
-                } else {
-                    setDropCouponRate(couponId, couponQty);
-                }
-            }
-        } else {
-            int maxExpRate = 1, maxDropRate = 1, maxExpCouponId = -1, maxDropCouponId = -1;
-
-            for (Entry<Integer, Integer> coupon : activeCoupons.entrySet()) {
-                int couponId = coupon.getKey();
-
-                if (ItemConstants.isExpCoupon(couponId)) {
-                    if (maxExpRate < getCouponMultiplier(couponId)) {
-                        maxExpCouponId = couponId;
-                        maxExpRate = getCouponMultiplier(couponId);
-                    }
-                } else {
-                    if (maxDropRate < getCouponMultiplier(couponId)) {
-                        maxDropCouponId = couponId;
-                        maxDropRate = getCouponMultiplier(couponId);
-                    }
-                }
-            }
-
-            if (maxExpCouponId > -1) {
-                toCommitEffect.add(maxExpCouponId);
-            }
-            if (maxDropCouponId > -1) {
-                toCommitEffect.add(maxDropCouponId);
-            }
-
-            this.expCoupon = maxExpRate;
-            this.dropCoupon = maxDropRate;
-            this.mesoCoupon = maxDropRate;
-        }
-
-        this.expRate *= this.expCoupon;
-        this.dropRate *= this.dropCoupon;
-        this.mesoRate *= this.mesoCoupon;
-
-        return toCommitEffect;
-    }
-
-    private void setActiveCoupons(Collection<Item> cashItems) {
-        activeCoupons.clear();
-        activeCouponRates.clear();
-
-        Map<Integer, Integer> coupons = Server.getInstance().getCouponRates();
-        List<Integer> active = Server.getInstance().getActiveCoupons();
-
-        for (Item it : cashItems) {
-            if (ItemConstants.isRateCoupon(it.getItemId()) && active.contains(it.getItemId())) {
-                Integer count = activeCoupons.get(it.getItemId());
-
-                if (count != null) {
-                    activeCoupons.put(it.getItemId(), count + 1);
-                } else {
-                    activeCoupons.put(it.getItemId(), 1);
-                    activeCouponRates.put(it.getItemId(), coupons.get(it.getItemId()));
-                }
-            }
-        }
-    }
-
-    private void commitBuffCoupon(int couponid) {
-        if (!GameConfig.getServerBoolean("show_coupon_buff")) {
-            return;
-        }
-        if (!isLoggedIn() || getCashShop().isOpened()) {
-            return;
-        }
-
-        ItemInformationProvider ii = ItemInformationProvider.getInstance();
-        BuffEffectData mse = ii.getItemEffect(couponid);
-        mse.applyTo(this);
-    }
-
-    public void dispelBuffCoupons() {
-        List<EffectStatus> effects = getAllStatups();
-
-        for (EffectStatus effect : effects) {
-            if (ItemConstants.isRateCoupon(effect.getData().getSourceId())) {
-                cancelEffect(effect.getData(), false);
-            }
-        }
-    }
-
-    public Set<Integer> getActiveCoupons() {
-        chrLock.lock();
-        try {
-            return Collections.unmodifiableSet(activeCoupons.keySet());
-        } finally {
-            chrLock.unlock();
-        }
-    }
 
     public void addPlayerRing(Ring ring) {
         int ringItemId = ring.getItemId();
@@ -7542,6 +7219,37 @@ public class Character extends AbstractAnimatedMapObject {
     public int getDex() { return stats.getAttr(DEX); }
     public int getInt() { return stats.getAttr(INT); }
     public int getLuk() { return stats.getAttr(LUK); }
+
+    // ── rates 门面 ──
+
+    public float getMesoRate() { return rates.getMesoRate(); }
+    public float getDropRate() { return rates.getDropRate(); }
+    public boolean hasNoviceExpRate() { return rates.hasNoviceExpRate(); }
+    public float getExpRate() { return rates.getExpRate(); }
+    public float getLevelExpRate() { return rates.getLevelExpRate(); }
+    public float getQuickLevelExpRate() { return rates.getQuickLevelExpRate(); }
+    public void updateMobExpRate() { rates.updateMobExpRate(); }
+    public float getMobExpRate() { return rates.getMobExpRate(); }
+    public int getCouponExpRate() { return rates.getCouponExpRate(); }
+    public float getRawExpRate() { return rates.getRawExpRate(); }
+    public int getCouponDropRate() { return rates.getCouponDropRate(); }
+    public float getRawDropRate() { return rates.getRawDropRate(); }
+    public float getBossDropRate() { return rates.getBossDropRate(); }
+    public int getCouponMesoRate() { return rates.getCouponMesoRate(); }
+    public float getRawMesoRate() { return rates.getRawMesoRate(); }
+    public float getQuestExpRate() { return rates.getQuestExpRate(); }
+    public float getQuestMesoRate() { return rates.getQuestMesoRate(); }
+    public float getCardRate(int itemid) { return rates.getCardRate(itemid); }
+    public void setPlayerRates() { rates.setPlayerRates(); }
+    public void revertLastPlayerRates() { rates.revertLastPlayerRates(); }
+    public void revertPlayerRates() { rates.revertPlayerRates(); }
+    public void setWorldRates() { rates.setWorldRates(); }
+    public void revertWorldRates() { rates.revertWorldRates(); }
+    public void setCouponRates() { rates.setCouponRates(); }
+    public void updateCouponRates() { rates.updateCouponRates(); }
+    public void resetPlayerRates() { rates.resetPlayerRates(); }
+    public void dispelBuffCoupons() { rates.dispelBuffCoupons(); }
+    public Set<Integer> getActiveCoupons() { return rates.getActiveCoupons(); }
 
     // ── skills 门面 ──
 
