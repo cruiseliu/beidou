@@ -1069,8 +1069,7 @@ public class Client extends ChannelInboundHandlerAdapter {
                     //getChannelServer().removePlayer(player); already being done
 
                     player.saveDiseases();
-                    player.cancelAllDebuffs();
-                    player.saveCharToDB(true);
+                                player.saveCharToDB(true);
 
                     player.logOff();
                     if (GameConfig.getServerBoolean("instant_name_change")) {
@@ -1081,8 +1080,7 @@ public class Client extends ChannelInboundHandlerAdapter {
                     getChannelServer().removePlayer(player);
 
                     player.saveDiseases();
-                    player.cancelAllDebuffs();
-                    player.saveCharToDB();
+                                player.saveCharToDB();
                 }
             }
         }
@@ -1532,12 +1530,9 @@ public class Client extends ChannelInboundHandlerAdapter {
         player.unregisterChairBuff();
         player.freezeBuffs(true);
         player.removeSummonsFromMap();
-        server.getPlayerBuffStorage().addDiseasesToStorage(player.getId(), player.getAllDiseases());
         player.setDisconnectedFromChannelWorld();
         player.notifyMapTransferToPartner(-1);
         player.removeIncomingInvites();
-        player.cancelAllDebuffs();
-        player.cancelDiseaseExpireTask();
         player.stopSkillTimers();
         player.cancelQuestExpirationTask();
         //Cancelling magicdoor? Nope

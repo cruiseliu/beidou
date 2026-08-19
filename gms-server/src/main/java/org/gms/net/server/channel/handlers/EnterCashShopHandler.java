@@ -72,12 +72,9 @@ public class EnterCashShopHandler extends AbstractPacketHandler {
             mc.unregisterChairBuff();
             mc.freezeBuffs(true);
             mc.removeSummonsFromMap();
-            Server.getInstance().getPlayerBuffStorage().addDiseasesToStorage(mc.getId(), mc.getAllDiseases());
             mc.setAwayFromChannelWorld();
             mc.notifyMapTransferToPartner(-1);
             mc.removeIncomingInvites();
-            mc.cancelAllDebuffs();
-            mc.cancelDiseaseExpireTask();
             mc.stopSkillTimers();
             mc.cancelExpirationTask();
 

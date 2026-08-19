@@ -31,7 +31,6 @@ import org.gms.client.EffectType;
 import org.gms.client.CharacterNameAndId;
 import org.gms.client.Client;
 import org.gms.client.Disease;
-import org.gms.client.DiseaseValueHolder;
 import org.gms.client.Family;
 import org.gms.client.FamilyEntry;
 import org.gms.client.Job;
@@ -142,6 +141,7 @@ public class Character extends AbstractAnimatedMapObject {
     // ActiveBuffs 实例由 CharacterBuffs 内部组合创建（见 CharacterBuffs 构造器）
     final CharacterBuffs buffs = new CharacterBuffs(this);
     final CharacterPets pets = new CharacterPets(this);
+    final CharacterDebuffs debuffs = new CharacterDebuffs(this);
 
 
     @Getter
@@ -385,11 +385,9 @@ public class Character extends AbstractAnimatedMapObject {
     private final CharacterSkills skills = new CharacterSkills(this);
     private final Map<Integer, Integer> activeCoupons = new LinkedHashMap<>();
     private final Map<Integer, Integer> activeCouponRates = new LinkedHashMap<>();
-    private final Map<Disease, Long> diseaseExpires = new LinkedHashMap<>();
     @Getter
     private final Map<Integer, KeyBinding> keymap = new LinkedHashMap<>();
     final Map<Integer, Summon> summons = new LinkedHashMap<>();
-    private final EnumMap<Disease, Pair<DiseaseValueHolder, MobSkill>> diseases = new EnumMap<>(Disease.class);
     @Getter
     @Setter
     private byte[] quickSlotLoaded;
@@ -401,7 +399,6 @@ public class Character extends AbstractAnimatedMapObject {
     private ScheduledFuture<?> hpDecreaseTask;
     ScheduledFuture<?> beholderHealingSchedule, beholderBuffSchedule, berserkSchedule;
     private ScheduledFuture<?> itemExpireTask = null;
-    private ScheduledFuture<?> diseaseExpireTask = null;
     private ScheduledFuture<?> questExpireTask = null;
     ScheduledFuture<?> recoveryTask = null;
     ScheduledFuture<?> extraRecoveryTask = null;
@@ -2866,183 +2863,37 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public final boolean hasDisease(final Disease dis) {
-        chrLock.lock();
-        try {
-            return diseases.containsKey(dis);
-        } finally {
-            chrLock.unlock();
-        }
-    }
+    public final boolean hasDisease(final Disease dis) { return debuffs.hasDebuff(dis); }
 
-    public final int getDiseasesSize() {
-        chrLock.lock();
-        try {
-            return diseases.size();
-        } finally {
-            chrLock.unlock();
-        }
-    }
 
-    public Map<Disease, Pair<Long, MobSkill>> getAllDiseases() {
-        chrLock.lock();
-        try {
-            long curtime = Server.getInstance().getCurrentTime();
-            Map<Disease, Pair<Long, MobSkill>> ret = new LinkedHashMap<>();
+    public final int getDiseasesSize() { return debuffs.getDebuffsSize(); }
 
-            for (Entry<Disease, Long> de : diseaseExpires.entrySet()) {
-                Pair<DiseaseValueHolder, MobSkill> dee = diseases.get(de.getKey());
-                DiseaseValueHolder mdvh = dee.getLeft();
 
-                ret.put(de.getKey(), new Pair<>(mdvh.length - (curtime - mdvh.startTime), dee.getRight()));
-            }
 
-            return ret;
-        } finally {
-            chrLock.unlock();
-        }
-    }
 
-    public void silentApplyDiseases(Map<Disease, Pair<Long, MobSkill>> diseaseMap) {
-        chrLock.lock();
-        try {
-            long curTime = Server.getInstance().getCurrentTime();
+    public void silentApplyDiseases(Map<Disease, Pair<Long, MobSkill>> diseaseMap) { debuffs.silentApplyDebuffs(diseaseMap); }
 
-            for (Entry<Disease, Pair<Long, MobSkill>> di : diseaseMap.entrySet()) {
-                long expTime = curTime + di.getValue().getLeft();
 
-                diseaseExpires.put(di.getKey(), expTime);
-                diseases.put(di.getKey(), new Pair<>(new DiseaseValueHolder(curTime, di.getValue().getLeft()), di.getValue().getRight()));
-            }
-        } finally {
-            chrLock.unlock();
-        }
-    }
+    public void announceDiseases() { debuffs.announceDebuffs(); }
 
-    public void announceDiseases() {
-        Set<Entry<Disease, Pair<DiseaseValueHolder, MobSkill>>> chrDiseases;
 
-        chrLock.lock();
-        try {
-            // Poison damage visibility and diseases status visibility, extended through map transitions thanks to Ronan
-            if (!this.isLoggedInWorld()) {
-                return;
-            }
+    public void collectDiseases() { debuffs.collectDebuffs(); }
 
-            chrDiseases = new LinkedHashSet<>(diseases.entrySet());
-        } finally {
-            chrLock.unlock();
-        }
 
-        for (Entry<Disease, Pair<DiseaseValueHolder, MobSkill>> di : chrDiseases) {
-            Disease disease = di.getKey();
-            MobSkill skill = di.getValue().getRight();
-            final List<Pair<Disease, Integer>> debuff = Collections.singletonList(new Pair<>(disease, Integer.valueOf(skill.getX())));
+    public void giveDebuff(final Disease disease, MobSkill skill) { debuffs.giveDebuff(disease, skill); }
 
-            if (disease != Disease.SLOW) {
-                map.broadcastMessage(PacketCreator.giveForeignDebuff(id, debuff, skill));
-            } else {
-                map.broadcastMessage(PacketCreator.giveForeignSlowDebuff(id, debuff, skill));
-            }
-        }
-    }
 
-    public void collectDiseases() {
-        for (Character chr : map.getAllPlayers()) {
-            int cid = chr.getId();
+    public void dispelDebuff(Disease debuff) { debuffs.dispelDebuff(debuff); }
 
-            for (Entry<Disease, Pair<Long, MobSkill>> di : chr.getAllDiseases().entrySet()) {
-                Disease disease = di.getKey();
-                MobSkill skill = di.getValue().getRight();
-                final List<Pair<Disease, Integer>> debuff = Collections.singletonList(new Pair<>(disease, Integer.valueOf(skill.getX())));
 
-                if (disease != Disease.SLOW) {
-                    this.sendPacket(PacketCreator.giveForeignDebuff(cid, debuff, skill));
-                } else {
-                    this.sendPacket(PacketCreator.giveForeignSlowDebuff(cid, debuff, skill));
-                }
-            }
-        }
-    }
+    public void dispelDebuffs() { debuffs.dispelDebuffs(); }
 
-    public void giveDebuff(final Disease disease, MobSkill skill) {
-        if (!hasDisease(disease) && getDiseasesSize() < 2) {
-            if (!(disease == Disease.SEDUCE || disease == Disease.STUN)) {
-                if (hasActiveBuff(Bishop.HOLY_SHIELD)) {
-                    return;
-                }
-            }
 
-            chrLock.lock();
-            try {
-                long curTime = Server.getInstance().getCurrentTime();
-                diseaseExpires.put(disease, curTime + skill.getDuration());
-                diseases.put(disease, new Pair<>(new DiseaseValueHolder(curTime, skill.getDuration()), skill));
-            } finally {
-                chrLock.unlock();
-            }
+    public void purgeDebuffs() { debuffs.purgeDebuffs(); }
 
-            if (disease == Disease.SEDUCE && chair.get() < 0) {
-                sitChair(-1);
-            }
 
-            final List<Pair<Disease, Integer>> debuff = Collections.singletonList(new Pair<>(disease, Integer.valueOf(skill.getX())));
-            sendPacket(PacketCreator.giveDebuff(debuff, skill));
+    public void cancelAllDebuffs() { debuffs.cancelAllDebuffs(); }
 
-            if (disease != Disease.SLOW) {
-                map.broadcastMessage(this, PacketCreator.giveForeignDebuff(id, debuff, skill), false);
-            } else {
-                map.broadcastMessage(this, PacketCreator.giveForeignSlowDebuff(id, debuff, skill), false);
-            }
-        }
-    }
-
-    public void dispelDebuff(Disease debuff) {
-        if (hasDisease(debuff)) {
-            long mask = debuff.getValue();
-            sendPacket(PacketCreator.cancelDebuff(mask));
-
-            if (debuff != Disease.SLOW) {
-                map.broadcastMessage(this, PacketCreator.cancelForeignDebuff(id, mask), false);
-            } else {
-                map.broadcastMessage(this, PacketCreator.cancelForeignSlowDebuff(id), false);
-            }
-
-            chrLock.lock();
-            try {
-                diseases.remove(debuff);
-                diseaseExpires.remove(debuff);
-            } finally {
-                chrLock.unlock();
-            }
-        }
-    }
-
-    public void dispelDebuffs() {
-        dispelDebuff(Disease.CURSE);
-        dispelDebuff(Disease.DARKNESS);
-        dispelDebuff(Disease.POISON);
-        dispelDebuff(Disease.SEAL);
-        dispelDebuff(Disease.WEAKEN);
-        dispelDebuff(Disease.SLOW);    // thanks Conrad for noticing ZOMBIFY isn't dispellable
-    }
-
-    public void purgeDebuffs() {
-        dispelDebuff(Disease.SEDUCE);
-        dispelDebuff(Disease.ZOMBIFY);
-        dispelDebuff(Disease.CONFUSE);
-        dispelDebuffs();
-    }
-
-    public void cancelAllDebuffs() {
-        chrLock.lock();
-        try {
-            diseases.clear();
-            diseaseExpires.clear();
-        } finally {
-            chrLock.unlock();
-        }
-    }
 
     public void dispelSkill(int skillid) {
         List<EffectStatus> effects = getAllStatups();
@@ -3109,37 +2960,11 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public void cancelDiseaseExpireTask() {
-        if (diseaseExpireTask != null) {
-            diseaseExpireTask.cancel(false);
-            diseaseExpireTask = null;
-        }
-    }
+    public void cancelDiseaseExpireTask() { debuffs.stopExpireTimer(); }
 
-    public void diseaseExpireTask() {
-        if (diseaseExpireTask == null) {
-            diseaseExpireTask = TimerManager.getInstance().register(() -> {
-                Set<Disease> toExpire = new LinkedHashSet<>();
 
-                chrLock.lock();
-                try {
-                    long curTime = Server.getInstance().getCurrentTime();
+    public void diseaseExpireTask() { debuffs.startExpireTimer(); }
 
-                    for (Entry<Disease, Long> de : diseaseExpires.entrySet()) {
-                        if (de.getValue() < curTime) {
-                            toExpire.add(de.getKey());
-                        }
-                    }
-                } finally {
-                    chrLock.unlock();
-                }
-
-                for (Disease d : toExpire) {
-                    dispelDebuff(d);
-                }
-            }, 1500);
-        }
-    }
 
 
 
@@ -3534,6 +3359,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void freezeBuffs(boolean announceCancel) {
         buffs.freeze(announceCancel);
+        debuffs.freeze();
     }
 
     public boolean isBuffsFrozen() {
@@ -3542,6 +3368,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void resumeBuffs() {
         buffs.resume();
+        debuffs.resume();
     }
 
     /**
@@ -6189,32 +6016,8 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public synchronized void saveDiseases() {
-        Map<Disease, Pair<Long, MobSkill>> listds = getAllDiseases();
-        if (!listds.isEmpty()) {
-            try (Connection con = DatabaseConnection.getConnection()) {
-                deleteWhereCharacterId(con, "DELETE FROM playerdiseases WHERE charid = ?");
-                try (PreparedStatement ps = con.prepareStatement("INSERT INTO playerdiseases (charid, disease, mobskillid, mobskilllv, length) VALUES (?, ?, ?, ?, ?)")) {
-                    ps.setInt(1, getId());
+    public synchronized void saveDiseases() { debuffs.saveDebuffs(); }
 
-                    for (Entry<Disease, Pair<Long, MobSkill>> e : listds.entrySet()) {
-                        ps.setInt(2, e.getKey().ordinal());
-
-                        MobSkill ms = e.getValue().getRight();
-                        MobSkillId msId = ms.getId();
-                        ps.setInt(3, msId.type().getId());
-                        ps.setInt(4, msId.level());
-                        ps.setInt(5, e.getValue().getLeft().intValue());
-                        ps.addBatch();
-                    }
-
-                    ps.executeBatch();
-                }
-            } catch (SQLException se) {
-                se.printStackTrace();
-            }
-        }
-    }
 
     public void saveGuildStatus() {
         try (Connection con = DatabaseConnection.getConnection();
