@@ -49,7 +49,6 @@ import org.gms.client.inventory.Equip.StatUpgrade;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.client.keybind.KeyBinding;
 import org.gms.client.keybind.QuickslotBinding;
-import org.gms.client.processor.action.PetAutopotProcessor;
 import org.gms.client.processor.npc.FredrickProcessor;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.DelayedQuestUpdate;
@@ -62,7 +61,6 @@ import org.gms.constants.inventory.ItemConstants;
 import org.gms.constants.net.ServerConstants;
 import org.gms.constants.skills.*;
 import org.gms.constants.string.ExtendKey;
-import org.gms.constants.string.ExtendType;
 import org.gms.dao.entity.*;
 import org.gms.exception.NotEnabledException;
 import org.gms.manager.ServerManager;
@@ -132,7 +130,7 @@ public class Character extends AbstractAnimatedMapObject {
     private static final Logger log = LoggerFactory.getLogger(Character.class);
 
     // ── 属性核心（原 AbstractCharacterObject 合并而来） ──
-    final CharacterStats stats = new CharacterStats();
+    final CharacterStats stats = new CharacterStats(this);
     final CharacterAp ap = new CharacterAp(this);
     final CharacterSp sp = new CharacterSp(this);
     // ActiveBuffs 实例由 CharacterBuffs 内部组合创建（见 CharacterBuffs 构造器）
@@ -278,6 +276,9 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     private boolean hidden;
     private boolean equipchanged = true, berserk, hasMerchant, hasSandboxItem = false, whiteChat = false;
+
+    boolean isEquipChanged() { return equipchanged; }    // 包内可见：CharacterStats.recalcEquipStats 调用
+    void setEquipChanged(boolean v) { equipchanged = v; }
     @Setter
     boolean canRecvPartySearchInvite = true;    // 包内可见：CharacterJob.changeJob 读取
     private boolean usedSafetyCharm = false;
@@ -368,8 +369,10 @@ public class Character extends AbstractAnimatedMapObject {
     private final Map<Integer, String> entered = new LinkedHashMap<>();
     private final Set<MapObject> visibleMapObjects = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final CharacterSkills skills = new CharacterSkills(this);
-    @Getter
+
     private final Map<Integer, KeyBinding> keymap = new LinkedHashMap<>();
+
+    public Map<Integer, KeyBinding> getKeymap() { return keymap; }
     final Map<Integer, Summon> summons = new LinkedHashMap<>();
     @Getter
     @Setter
@@ -482,7 +485,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     @Getter
     private boolean familyBuff = false;
-    private boolean familyParty = false;
 
     // 获取 FamilyExp 的值
     @Getter
@@ -493,7 +495,7 @@ public class Character extends AbstractAnimatedMapObject {
     private static final NameChangeService nameChangeService = ServerManager.getApplicationContext().getBean(NameChangeService.class);
     private static final WorldTransferService worldTransferService = ServerManager.getApplicationContext().getBean(WorldTransferService.class);
     private static final AccountService accountService = ServerManager.getApplicationContext().getBean(AccountService.class);
-    private static final HpMpAlertService hpMpAlertService = ServerManager.getApplicationContext().getBean(HpMpAlertService.class);
+    static final HpMpAlertService hpMpAlertService = ServerManager.getApplicationContext().getBean(HpMpAlertService.class);    // 包内可见：CharacterStats.applyHpMpChange 调用
     private static final InventoryService inventoryService = ServerManager.getApplicationContext().getBean(InventoryService.class);
 
     public int getClientMaxHp() {
@@ -603,246 +605,6 @@ public class Character extends AbstractAnimatedMapObject {
         return stats.localMaxMp;
     }
 
-    private void setHp(int newHp) {
-        int oldHp = stats.hp;
-        stats.setHp(newHp);
-        hpChangeAction(oldHp);
-    }
-
-    private void setMp(int newMp) {
-        stats.setMp(newMp);
-    }
-
-    private void setMaxHp(int hp_) {
-        stats.setMaxHp(hp_);
-    }
-
-    private void setMaxMp(int mp_) {
-        stats.setMaxMp(mp_);
-    }
-
-    /** 应用属性更新（发包通知客户端），返回本次变更集 */
-    Map<Stat, Integer> applyUpdate(StatsUpdate u) {
-        Map<Stat, Integer> statUpdates = applyUpdateSilently(u);
-        if (!statUpdates.isEmpty()) {
-            announceStatsUpdate(statUpdates);
-        }
-        return statUpdates;
-    }
-
-    /** 应用属性更新并返回本次变更集（不发包） */
-    Map<Stat, Integer> applyUpdateSilently(StatsUpdate u) {
-        try (var ignored = Locks.acquire(stats.wLock)) {
-            Map<Stat, Integer> statUpdates = new HashMap<>();
-            boolean poolUpdate = false;
-            boolean statUpdate = false;
-
-            if (u.hp != null || u.mp != null || u.maxHp != null || u.maxMp != null) {
-                if (u.maxHp != null) {
-                    poolUpdate = true;
-                    setMaxHp(Math.max(50, u.maxHp));
-                    statUpdates.put(Stat.MAXHP, stats.clientMaxHp);
-                    statUpdates.put(Stat.HP, stats.hp);
-                }
-
-                if (u.hp != null) {
-                    setHp(u.hp);
-                    statUpdates.put(Stat.HP, stats.hp);
-                }
-
-                if (u.maxMp != null) {
-                    poolUpdate = true;
-                    setMaxMp(Math.max(5, u.maxMp));
-                    statUpdates.put(Stat.MAXMP, stats.clientMaxMp);
-                    statUpdates.put(Stat.MP, stats.mp);
-                }
-
-                if (u.mp != null) {
-                    setMp(u.mp);
-                    statUpdates.put(Stat.MP, stats.mp);
-                }
-            }
-
-            boolean basePresent = false;
-            for (int i = 0; i < BASE_STAT_COUNT; i++) {
-                Integer v = u.attrs[i];
-                if (v == null) {
-                    continue;
-                }
-                basePresent = true;
-                if (v >= 4) {   // 四维下限：低于 4 的写入被跳过
-                    stats.attrs[i] = v;
-                    statUpdates.put(KEYS[i], v);
-                }
-            }
-
-            boolean apPresent = u.ap != null && u.ap >= 0;
-            if (apPresent) {
-                ap.remainingAp = u.ap;
-                statUpdates.put(Stat.AVAILABLEAP, ap.remainingAp);
-            }
-
-            if (basePresent || apPresent) {
-                statUpdate = true;
-            }
-
-            if (!statUpdates.isEmpty()) {
-                if (poolUpdate) {
-                    statUpdates.putAll(onHpMpPoolUpdate());
-                }
-
-                if (statUpdate) {
-                    recalcLocalStats();
-                }
-            }
-            return statUpdates;
-        }
-    }
-
-    public void healHpMp() {
-        updateHpMp(30000);
-    }
-
-    public void updateHpMp(int x) {
-        updateHpMp(x, x);
-    }
-
-    public void updateHpMp(int newhp, int newmp) {
-        applyUpdate(new StatsUpdate().setHp(newhp).setMp(newmp));
-    }
-
-    public void changeHpMp(int newhp, int newmp, boolean silent) {
-        StatsUpdate u = new StatsUpdate().setHp(newhp).setMp(newmp);
-        if (silent) {
-            applyUpdateSilently(u);
-        } else {
-            applyUpdate(u);
-        }
-    }
-
-    public void updateHp(int hp) {
-        applyUpdate(new StatsUpdate().setHp(hp));
-    }
-
-    public void updateMaxHp(int maxhp) {
-        applyUpdate(new StatsUpdate().setMaxHp(maxhp));
-    }
-
-    public void updateHpMaxHp(int hp, int maxhp) {
-        applyUpdate(new StatsUpdate().setHp(hp).setMaxHp(maxhp));
-    }
-
-    public void updateMp(int mp) {
-        applyUpdate(new StatsUpdate().setMp(mp));
-    }
-
-    public void updateMaxMp(int maxmp) {
-        applyUpdate(new StatsUpdate().setMaxMp(maxmp));
-    }
-
-    public void updateMpMaxMp(int mp, int maxmp) {
-        applyUpdate(new StatsUpdate().setMp(mp).setMaxMp(maxmp));
-    }
-
-    public void updateMaxHpMaxMp(int maxhp, int maxmp) {
-        applyUpdate(new StatsUpdate().setMaxHp(maxhp).setMaxMp(maxmp));
-    }
-
-    private void enforceMaxHpMp() {
-
-        stats.wLock.lock();
-        try {
-            if (stats.mp > stats.localMaxMp || stats.hp > stats.localMaxHp) {
-                changeHpMp(stats.hp, stats.mp, false);
-            }
-        } finally {
-            stats.wLock.unlock();
-
-        }
-    }
-
-    public int safeAddHP(int delta) {
-
-        stats.wLock.lock();
-        try {
-            if (stats.hp + delta <= 0) {
-                delta = -stats.hp + 1;
-            }
-
-            addHP(delta);
-            return delta;
-        } finally {
-            stats.wLock.unlock();
-
-        }
-    }
-
-    public void addHP(int delta) {
-
-        stats.wLock.lock();
-        try {
-            updateHp(stats.hp + delta);
-        } finally {
-            stats.wLock.unlock();
-
-        }
-    }
-
-    public void addMP(int delta) {
-
-        stats.wLock.lock();
-        try {
-            updateMp(stats.mp + delta);
-        } finally {
-            stats.wLock.unlock();
-
-        }
-    }
-
-    public void addMPHP(int hpDelta, int mpDelta) {
-
-        stats.wLock.lock();
-        try {
-            updateHpMp(stats.hp + hpDelta, stats.mp + mpDelta);
-        } finally {
-            stats.wLock.unlock();
-
-        }
-    }
-
-    void addMaxMPMaxHP(int hpdelta, int mpdelta, boolean silent) {
-        try (var ignored = Locks.acquire(stats.wLock)) {
-            StatsUpdate u = new StatsUpdate().setMaxHp(stats.maxHp + hpdelta).setMaxMp(stats.maxMp + mpdelta);
-            if (silent) {
-                applyUpdateSilently(u);
-            } else {
-                applyUpdate(u);
-            }
-        }
-    }
-
-    public void addMaxHP(int delta) {
-
-        stats.wLock.lock();
-        try {
-            updateMaxHp(stats.maxHp + delta);
-        } finally {
-            stats.wLock.unlock();
-
-        }
-    }
-
-    public void addMaxMP(int delta) {
-
-        stats.wLock.lock();
-        try {
-            updateMaxMp(stats.maxMp + delta);
-        } finally {
-            stats.wLock.unlock();
-
-        }
-    }
-
     public boolean assignStrDexIntLuk(int deltaStr, int deltaDex, int deltaInt, int deltaLuk) {
         Integer[] delta = new Integer[BASE_STAT_COUNT];
         delta[STR] = deltaStr;
@@ -858,7 +620,7 @@ public class Character extends AbstractAnimatedMapObject {
         for (int i = 0; i < BASE_STAT_COUNT; i++) {
             u.setAttr(i, x);
         }
-        applyUpdate(u);
+        stats.applyUpdate(u);
     }
 
     private void setRemainingSp(int[] sps) {
@@ -880,9 +642,9 @@ public class Character extends AbstractAnimatedMapObject {
         ret.client = c;
         ret.setGMLevel(0);
         ret.stats.hp = 50;
-        ret.setMaxHp(50);
+        ret.stats.setMaxHp(50);
         ret.stats.mp = 5;
-        ret.setMaxMp(5);
+        ret.stats.setMaxMp(5);
         ret.stats.attrs[STR] = 12;
         ret.stats.attrs[DEX] = 5;
         ret.stats.attrs[INT] = 4;
@@ -3381,13 +3143,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    private static String getTimeRemaining(long timeLeft) {
-        int seconds = (int) Math.floor((double) timeLeft / SECONDS.toMillis(1)) % 60;
-        int minutes = (int) Math.floor((double) timeLeft / MINUTES.toMillis(1)) % 60;
-
-        return (minutes > 0 ? (String.format("%02d", minutes) + " minutes, ") : "") + String.format("%02d", seconds) + " seconds";
-    }
-
     public boolean isGM() {
         return gmLevel > 1;
     }
@@ -3798,9 +3553,9 @@ public class Character extends AbstractAnimatedMapObject {
             ret.stats.attrs[i] = this.stats.getAttr(i);
         }
         ret.stats.hp = this.getHp();
-        ret.setMaxHp(this.getMaxHp());
+        ret.stats.setMaxHp(this.getMaxHp());
         ret.stats.mp = this.getMp();
-        ret.setMaxMp(this.getMaxMp());
+        ret.stats.setMaxMp(this.getMaxMp());
         ret.ap.remainingAp = this.getRemainingAp();
         ret.setRemainingSp(this.getRemainingSps());
         ret.exp.set(this.getExp());
@@ -4112,7 +3867,7 @@ public class Character extends AbstractAnimatedMapObject {
         return mount;
     }
 
-    private void playerDead() {
+    void playerDead() {    // 包内可见：CharacterStats.hpChangeAction 调用
         if (this.getMap().isCPQMap()) {
             int losing = getMap().getDeathCP();
             if (getCP() < losing) {
@@ -4216,199 +3971,9 @@ public class Character extends AbstractAnimatedMapObject {
         }, 4000, 4000);
     }
 
-    private void recalcEquipStats() {
-        if (equipchanged) {
-            // 把 EQUIPPED 背包的 Equip 列表传给 stats 聚合
-            java.util.List<org.gms.client.inventory.Equip> equippedList = new java.util.ArrayList<>();
-            for (Item item : getInventory(InventoryType.EQUIPPED)) {
-                equippedList.add((org.gms.client.inventory.Equip) item);
-            }
-            stats.aggregateEquipStats(equippedList);
-            equipchanged = false;
-        }
-        stats.applyEquipToLocal();
-    }
 
-    public void reapplyLocalStats() {
-        stats.wLock.lock();
-        try {
-            stats.resetLocalToBase();
 
-            recalcEquipStats();
 
-            stats.localmagic = Math.min(stats.localmagic, 2000);
-
-            Integer hbhp = getBuffedValue(EffectType.HYPERBODYHP);
-            if (hbhp != null) {
-                stats.localMaxHp += (int) ((hbhp.doubleValue() / 100) * stats.localMaxHp);
-            }
-            Integer hbmp = getBuffedValue(EffectType.HYPERBODYMP);
-            if (hbmp != null) {
-                stats.localMaxMp += (int) ((hbmp.doubleValue() / 100) * stats.localMaxMp);
-            }
-
-            stats.localMaxHp = Math.min(30000, stats.localMaxHp);
-            stats.localMaxMp = Math.min(30000, stats.localMaxMp);
-
-            BuffEffectData combo = getBuffEffect(EffectType.ARAN_COMBO);
-            if (combo != null) {
-                stats.localwatk += combo.getX();
-            }
-
-            if (energyBar == 15000) {
-                Skill energycharge = isCygnus() ? SkillFactory.getSkill(ThunderBreaker.ENERGY_CHARGE) : SkillFactory.getSkill(Marauder.ENERGY_CHARGE);
-                BuffEffectData ceffect = energycharge.getEffect(getSkillLevel(energycharge));
-                stats.localwatk += ceffect.getWatk();
-            }
-
-            Integer mwarr = getBuffedValue(EffectType.MAPLE_WARRIOR);
-            if (mwarr != null) {
-                stats.localAttrs[STR] += getStr() * mwarr / 100;
-                stats.localAttrs[DEX] += getDex() * mwarr / 100;
-                stats.localAttrs[INT] += getInt() * mwarr / 100;
-                stats.localAttrs[LUK] += getLuk() * mwarr / 100;
-            }
-            if (job.isA(Job.BOWMAN)) {
-                Skill expert = null;
-                if (job.isA(Job.MARKSMAN)) {
-                    expert = SkillFactory.getSkill(3220004);
-                } else if (job.isA(Job.BOWMASTER)) {
-                    expert = SkillFactory.getSkill(3120005);
-                }
-                if (expert != null) {
-                    int boostLevel = getSkillLevel(expert);
-                    if (boostLevel > 0) {
-                        stats.localwatk += expert.getEffect(boostLevel).getX();
-                    }
-                }
-            }
-
-            Integer watkbuff = getBuffedValue(EffectType.WATK);
-            if (watkbuff != null) {
-                stats.localwatk += watkbuff;
-            }
-            Integer matkbuff = getBuffedValue(EffectType.MATK);
-            if (matkbuff != null) {
-                stats.localmagic += matkbuff;
-            }
-
-            /*
-            Integer speedbuff = getBuffedValue(BuffStat.SPEED);
-            if (speedbuff != null) {
-                localspeed += speedbuff.intValue();
-            }
-            Integer jumpbuff = getBuffedValue(BuffStat.JUMP);
-            if (jumpbuff != null) {
-                localjump += jumpbuff.intValue();
-            }
-            */
-
-            int blessing = getSkillLevel(10000000 * getJobType() + 12);
-            if (blessing > 0) {
-                stats.localwatk += blessing;
-                stats.localmagic += blessing * 2;
-            }
-
-            if (job.isA(Job.THIEF) || job.isA(Job.BOWMAN) || job.isA(Job.PIRATE) || job.isA(Job.NIGHTWALKER1) || job.isA(Job.WINDARCHER1)) {
-                Item weapon_item = getInventory(InventoryType.EQUIPPED).getItem((short) -11);
-                if (weapon_item != null) {
-                    ItemInformationProvider ii = ItemInformationProvider.getInstance();
-                    WeaponType weapon = ii.getWeaponType(weapon_item.getItemId());
-                    boolean bow = weapon == WeaponType.BOW;
-                    boolean crossbow = weapon == WeaponType.CROSSBOW;
-                    boolean claw = weapon == WeaponType.CLAW;
-                    boolean gun = weapon == WeaponType.GUN;
-                    if (bow || crossbow || claw || gun) {
-                        // Also calc stars into this.
-                        Inventory inv = getInventory(InventoryType.USE);
-                        for (short i = 1; i <= inv.getSlotLimit(); i++) {
-                            Item item = inv.getItem(i);
-                            if (item == null) {
-                                continue;
-                            }
-                            if ((claw && ItemConstants.isThrowingStar(item.getItemId()))
-                                    || (gun && ItemConstants.isBullet(item.getItemId()))
-                                    || (bow && ItemConstants.isArrowForBow(item.getItemId()))
-                                    || (crossbow && ItemConstants.isArrowForCrossBow(item.getItemId()))) {
-                                if (item.getQuantity() > 0) {
-                                    // Finally there!
-                                    stats.localwatk += ii.getWatkForProjectile(item.getItemId());
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-                // Add throwing stars to dmg.
-            }
-
-            chair.invalidateHealStats();    // 装备/属性变化后椅子恢复参数需重算
-        } finally {
-            stats.wLock.unlock();
-        }
-    }
-
-    public List<Pair<Stat, Integer>> recalcLocalStats() {
-        stats.wLock.lock();
-        try {
-            List<Pair<Stat, Integer>> hpmpupdate = new ArrayList<>(2);
-            int oldlocalmaxhp = stats.localMaxHp;
-            int oldlocalmaxmp = stats.localMaxMp;
-
-            reapplyLocalStats();
-
-            if (GameConfig.getServerBoolean("use_fixed_ratio_hpmp_update")) {
-                if (stats.localMaxHp != oldlocalmaxhp) {
-                    Pair<Stat, Integer> hpUpdate;
-
-                    if (stats.transientHp == Float.NEGATIVE_INFINITY) {
-                        hpUpdate = calcHpRatioUpdate(stats.localMaxHp, oldlocalmaxhp);
-                    } else {
-                        hpUpdate = calcHpRatioTransient();
-                    }
-
-                    hpmpupdate.add(hpUpdate);
-                }
-
-                if (stats.localMaxMp != oldlocalmaxmp) {
-                    Pair<Stat, Integer> mpUpdate;
-
-                    if (stats.transientMp == Float.NEGATIVE_INFINITY) {
-                        mpUpdate = calcMpRatioUpdate(stats.localMaxMp, oldlocalmaxmp);
-                    } else {
-                        mpUpdate = calcMpRatioTransient();
-                    }
-
-                    hpmpupdate.add(mpUpdate);
-                }
-            }
-
-            return hpmpupdate;
-        } finally {
-            stats.wLock.unlock();
-        }
-    }
-
-    void updateLocalStats() {
-        prtLock.lock();
-        stats.wLock.lock();
-        try {
-            int oldmaxhp = stats.localMaxHp;
-            List<Pair<Stat, Integer>> hpmpupdate = recalcLocalStats();
-            enforceMaxHpMp();
-
-            if (!hpmpupdate.isEmpty()) {
-                sendPacket(PacketCreator.updatePlayerStats(hpmpupdate, true, this));
-            }
-
-            if (oldmaxhp != stats.localMaxHp) {   // thanks Wh1SK3Y (Suwaidy) for pointing out a deadlock occuring related to party members HP
-                updatePartyMemberHP();
-            }
-        } finally {
-            stats.wLock.unlock();
-            prtLock.unlock();
-        }
-    }
 
     public void receivePartyMemberHP() {
         // 不在此处包一层 prtLock:getPartyMembersOnSameMap 内部已持 prtLock 保护 party 引用。
@@ -4468,10 +4033,10 @@ public class Character extends AbstractAnimatedMapObject {
 
             if (tap >= 0) {
                 // 属性与 SP 分两次静默应用，拼装变更集后一次性公告
-                Map<Stat, Integer> statUpdates = applyUpdateSilently(new StatsUpdate()
+                Map<Stat, Integer> statUpdates = stats.applyUpdateSilently(new StatsUpdate()
                         .setAttr(STR, tstr).setAttr(DEX, tdex).setAttr(INT, tint).setAttr(LUK, tluk).setAp(tap));
                 statUpdates.put(Stat.AVAILABLESP, sp.changeRemainingSp(tsp, job.getId(), true));
-                announceStatsUpdate(statUpdates);
+                stats.announceStatsUpdate(statUpdates);
             } else {
                 log.warn("Chr {} tried to have its stats reset without enough AP available", getName());
             }
@@ -4536,8 +4101,8 @@ public class Character extends AbstractAnimatedMapObject {
         stats.attrs[DEX] = recipe.getDex();
         stats.attrs[INT] = recipe.getInt();
         stats.attrs[LUK] = recipe.getLuk();
-        setMaxHp(recipe.getMaxHp());
-        setMaxMp(recipe.getMaxMp());
+        stats.setMaxHp(recipe.getMaxHp());
+        stats.setMaxMp(recipe.getMaxMp());
         stats.hp = stats.maxHp;
         stats.mp = stats.maxMp;
         level = recipe.getLevel();
@@ -5162,153 +4727,16 @@ public class Character extends AbstractAnimatedMapObject {
     // ── 属性变更钩子：原 CharacterListener 的实现合并至此 ──
 
     /** HP/MP 池更新后的重算与钳制，返回需并入本次公告的属性修正 */
-    private Map<Stat, Integer> onHpMpPoolUpdate() {
-        Map<Stat, Integer> updates = new HashMap<>();
-        List<Pair<Stat, Integer>> hpmpupdate = recalcLocalStats();
-        for (Pair<Stat, Integer> p : hpmpupdate) {
-            updates.put(p.getLeft(), p.getRight());
-        }
 
-        if (stats.hp > stats.localMaxHp) {
-            setHp(stats.localMaxHp);
-            updates.put(Stat.HP, stats.hp);
-        }
 
-        if (stats.mp > stats.localMaxMp) {
-            setMp(stats.localMaxMp);
-            updates.put(Stat.MP, stats.mp);
-        }
-        return updates;
-    }
-
-    void announceStatsUpdate(Map<Stat, Integer> statUpdates) {
-        List<Pair<Stat, Integer>> statup = new ArrayList<>(statUpdates.size());
-        for (Map.Entry<Stat, Integer> s : statUpdates.entrySet()) {
-            statup.add(new Pair<>(s.getKey(), s.getValue()));
-        }
-
-        sendPacket(PacketCreator.updatePlayerStats(statup, true, this));
-    }
-
-    public void hpChangeAction(int oldHp) {
-        boolean playerDied = false;
-        if (stats.hp <= 0) {
-            if (oldHp > stats.hp) {
-                playerDied = true;
-            }
-        }
-
-        final boolean chrDied = playerDied;
-        Runnable r = () -> {
-            updatePartyMemberHP();    // thanks BHB (BHB88) for detecting a deadlock case within player stats.
-
-            if (chrDied) {
-                playerDead();
-            } else {
-                checkBerserk(isHidden());
-            }
-        };
-        if (getMap() != null) {
-            getMap().registerCharacterStatUpdate(r);
-        }
-    }
 
     // calcHpRatioUpdate / calcMpRatioUpdate / calcTransientRatio / calcHpRatioTransient / calcMpRatioTransient
     // 计算部分已迁移到 CharacterStats，以下是使用这些计算的编排方法
 
-    private Pair<Stat, Integer> calcHpRatioUpdate(int newHp, int oldHp) {
-        int delta = newHp - oldHp;
-        stats.hp = stats.calcHpRatioUpdate(stats.hp, oldHp, delta);
-        hpChangeAction(Short.MIN_VALUE);
-        return new Pair<>(Stat.HP, stats.hp);
-    }
 
-    private Pair<Stat, Integer> calcMpRatioUpdate(int newMp, int oldMp) {
-        int delta = newMp - oldMp;
-        stats.mp = stats.calcMpRatioUpdate(stats.mp, oldMp, delta);
-        return new Pair<>(Stat.MP, stats.mp);
-    }
 
-    private Pair<Stat, Integer> calcHpRatioTransient() {
-        stats.hp = stats.calcHpFromTransient();
-        hpChangeAction(Short.MIN_VALUE);
-        return new Pair<>(Stat.HP, stats.hp);
-    }
 
-    private Pair<Stat, Integer> calcMpRatioTransient() {
-        stats.mp = stats.calcMpFromTransient();
-        return new Pair<>(Stat.MP, stats.mp);
-    }
 
-    public boolean applyHpMpChange(int hpCon, int hpchange, int mpchange) {
-        boolean zombify = hasDisease(Disease.ZOMBIFY);
-
-        // effLock 已冗余：块内仅 updateHpMp；zombify 检查在加锁前
-        stats.wLock.lock();
-        try {
-            int nextHp = stats.hp + hpchange, nextMp = stats.mp + mpchange;
-            boolean cannotApplyHp = hpchange != 0 && nextHp <= 0 && (!zombify || hpCon > 0);
-            boolean cannotApplyMp = mpchange != 0 && nextMp < 0;
-
-            if (cannotApplyHp || cannotApplyMp) {
-                if (!isGM()) {
-                    return false;
-                }
-
-                if (cannotApplyHp) {
-                    nextHp = 1;
-                }
-            }
-
-            updateHpMp(nextHp, nextMp);
-        } finally {
-            stats.wLock.unlock();
-
-        }
-
-        if (GameConfig.getServerBoolean("use_server_auto_pot") || GameConfig.getServerBoolean("use_compulsory_auto_pot")) {
-            float autoHpAlert, autoMpAlert;
-            if (GameConfig.getServerBoolean("use_server_auto_pot")) {
-                autoHpAlert = hpMpAlertService.getHpAlertPer(id);
-                autoMpAlert = hpMpAlertService.getMpAlertPer(id);
-            } else {
-                autoHpAlert = (float) GameConfig.getServerFloat("pet_auto_hp_ratio");
-                autoMpAlert = (float) GameConfig.getServerFloat("pet_auto_mp_ratio");
-            }
-
-            if (hpchange < 0) {
-                KeyBinding autoHpPot = this.getKeymap().get(91);
-                if (autoHpPot != null) {
-                    int autoHpItemId = autoHpPot.getAction();
-                    if (((float) this.getHp()) / this.getCurrentMaxHp() <= autoHpAlert) {
-                        Item autoHpItem = this.getInventory(InventoryType.USE).findById(autoHpItemId);
-                        if (autoHpItem != null) {
-                            PetAutopotProcessor.runAutopotAction(client, autoHpItem.getPosition(), autoHpItemId);
-                        }
-                    }
-                }
-            }
-
-            if (mpchange < 0) {
-                KeyBinding autoMpPot = this.getKeymap().get(92);
-                if (autoMpPot != null) {
-                    int autoMpItemId = autoMpPot.getAction();
-                    if (((float) this.getMp()) / this.getCurrentMaxMp() <= autoMpAlert) {
-                        Item autoMpItem = this.getInventory(InventoryType.USE).findById(autoMpItemId);
-                        if (autoMpItem != null) {
-                            PetAutopotProcessor.runAutopotAction(client, autoMpItem.getPosition(), autoMpItemId);
-                        }
-                    }
-                }
-            }
-        } else {
-            if (hpchange < 0) {
-                sendPacket(PacketCreator.onNotifyHPDecByField(hpchange * -1));
-            }
-        }
-
-        return true;
-    }
 
     public void setMiniGamePoints(Character visitor, int winnerslot, boolean omok) {
         if (omok) {
@@ -7219,6 +6647,108 @@ public class Character extends AbstractAnimatedMapObject {
     public int getDex() { return stats.getAttr(DEX); }
     public int getInt() { return stats.getAttr(INT); }
     public int getLuk() { return stats.getAttr(LUK); }
+
+
+    public void healHpMp() {
+        stats.applyUpdate(new StatsUpdate().setHp(30000).setMp(30000));
+    }
+
+    public void updateHpMp(int x) {
+        stats.applyUpdate(new StatsUpdate().setHp(x).setMp(x));
+    }
+
+    public void updateHpMp(int newhp, int newmp) {
+        stats.applyUpdate(new StatsUpdate().setHp(newhp).setMp(newmp));
+    }
+
+    public void changeHpMp(int newhp, int newmp, boolean silent) {
+        StatsUpdate u = new StatsUpdate().setHp(newhp).setMp(newmp);
+        if (silent) {
+            stats.applyUpdateSilently(u);
+        } else {
+            stats.applyUpdate(u);
+        }
+    }
+
+    public void updateHp(int hp) {
+        stats.applyUpdate(new StatsUpdate().setHp(hp));
+    }
+
+    public void updateMaxHp(int maxhp) {
+        stats.applyUpdate(new StatsUpdate().setMaxHp(maxhp));
+    }
+
+    public void updateHpMaxHp(int hp, int maxhp) {
+        stats.applyUpdate(new StatsUpdate().setHp(hp).setMaxHp(maxhp));
+    }
+
+    public void updateMp(int mp) {
+        stats.applyUpdate(new StatsUpdate().setMp(mp));
+    }
+
+    public void updateMaxMp(int maxmp) {
+        stats.applyUpdate(new StatsUpdate().setMaxMp(maxmp));
+    }
+
+    public void updateMpMaxMp(int mp, int maxmp) {
+        stats.applyUpdate(new StatsUpdate().setMp(mp).setMaxMp(maxmp));
+    }
+
+    public void updateMaxHpMaxMp(int maxhp, int maxmp) {
+        stats.applyUpdate(new StatsUpdate().setMaxHp(maxhp).setMaxMp(maxmp));
+    }
+
+    public int safeAddHP(int delta) {
+        return stats.safeAddHP(delta);
+    }
+
+    public void addHP(int delta) {
+        stats.addHP(delta);
+    }
+
+    public void addMP(int delta) {
+        stats.addMP(delta);
+    }
+
+    public void addMPHP(int hpDelta, int mpDelta) {
+        stats.addMPHP(hpDelta, mpDelta);
+    }
+
+    void addMaxMPMaxHP(int hpdelta, int mpdelta, boolean silent) {
+        stats.addMaxMPMaxHP(hpdelta, mpdelta, silent);
+    }
+
+    public void addMaxHP(int delta) {
+        stats.addMaxHP(delta);
+    }
+
+    public void addMaxMP(int delta) {
+        stats.addMaxMP(delta);
+    }
+
+    public void reapplyLocalStats() {
+        stats.reapplyLocalStats();
+    }
+
+    public List<Pair<Stat, Integer>> recalcLocalStats() {
+        return stats.recalcLocalStats();
+    }
+
+    void updateLocalStats() {
+        stats.updateLocalStats();
+    }
+
+    void announceStatsUpdate(Map<Stat, Integer> statUpdates) {
+        stats.announceStatsUpdate(statUpdates);
+    }
+
+    public void hpChangeAction(int oldHp) {
+        stats.hpChangeAction(oldHp);
+    }
+
+    public boolean applyHpMpChange(int hpCon, int hpchange, int mpchange) {
+        return stats.applyHpMpChange(hpCon, hpchange, mpchange);
+    }
 
     // ── rates 门面 ──
 

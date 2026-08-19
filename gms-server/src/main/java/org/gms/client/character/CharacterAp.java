@@ -43,9 +43,9 @@ public class CharacterAp {
             }
             u.setAp(x);
             if (silent) {
-                owner.applyUpdateSilently(u);
+                owner.stats.applyUpdateSilently(u);
             } else {
-                owner.applyUpdate(u);
+                owner.stats.applyUpdate(u);
             }
         }
     }
@@ -90,7 +90,7 @@ public class CharacterAp {
                 u.setAttr(i, newAttrs[i]);
             }
             u.setAp(remainingAp - apUsed);
-            owner.applyUpdate(u);
+            owner.stats.applyUpdate(u);
             return true;
         }
     }
@@ -107,7 +107,7 @@ public class CharacterAp {
             for (int i = 0; i < BASE_STAT_COUNT; i++) {
                 u.setAttr(i, owner.stats.attrs[i]);
             }
-            owner.applyUpdate(u);
+            owner.stats.applyUpdate(u);
             hpMpApUsed += deltaAp;
             return true;
         }
@@ -125,7 +125,7 @@ public class CharacterAp {
             for (int i = 0; i < BASE_STAT_COUNT; i++) {
                 u.setAttr(i, owner.stats.attrs[i]);
             }
-            owner.applyUpdate(u);
+            owner.stats.applyUpdate(u);
             hpMpApUsed += deltaAp;
             return true;
         }
