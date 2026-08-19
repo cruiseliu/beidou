@@ -125,7 +125,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static org.gms.client.character.BaseStat.*;
 
@@ -142,6 +141,7 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterSp sp = new CharacterSp(this);
     // ActiveBuffs 实例由 CharacterBuffs 内部组合创建（见 CharacterBuffs 构造器）
     final CharacterBuffs buffs = new CharacterBuffs(this);
+    final CharacterPets pets = new CharacterPets(this);
 
 
     @Getter
@@ -179,6 +179,7 @@ public class Character extends AbstractAnimatedMapObject {
     @Setter
     @Getter
     private int fame;
+    private final Lock fameLock = new ReentrantLock(true);   // applyFame 的 fame 读改写专用（原误用 petLock）
     @Getter
     @Setter
     private int questFame;
@@ -344,7 +345,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Setter
     private Mount mapleMount;
     private Party party;
-    private final Pet[] pets = new Pet[3];
     @Getter
     @Setter
     private PlayerShop playerShop = null;
@@ -375,6 +375,7 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     private List<Integer> lastmonthfameids;
     private final List<WeakReference<MapleMap>> lastVisitedMaps = new LinkedList<>();
+    private final Lock mapHistoryLock = new ReentrantLock(true);   // 原误用 petLock（保护 lastVisitedMaps），重构后归位
     private WeakReference<MapleMap> ownedMap = new WeakReference<>(null);
     @Getter
     private final Map<Short, QuestStatus> quests;
@@ -411,11 +412,8 @@ public class Character extends AbstractAnimatedMapObject {
     private ScheduledFuture<?> FamilyBuffTimer = null;
     final Lock chrLock = new ReentrantLock(true);
     private final Lock evtLock = new ReentrantLock(true);
-    private final Lock petLock = new ReentrantLock(true);
     final Lock prtLock = new ReentrantLock();
     private final Lock cpnLock = new ReentrantLock();
-    private final Map<Integer, Set<Integer>> excluded = new LinkedHashMap<>();
-    private final Set<Integer> excludedItems = new LinkedHashSet<>();
     @Getter
     private final Set<Integer> disabledPartySearchInvites = new LinkedHashSet<>();
     private long portaldelay = 0;
@@ -431,9 +429,6 @@ public class Character extends AbstractAnimatedMapObject {
     private long teleportContextExpireTime = 0L; // 传送上下文过期时间戳（单调时钟纳秒）
     private byte teleportContextRemainingChecks = 0; // 传送上下文剩余可用攻击校验次数
     // 宠物拾取传送补偿：内传送门后记录传送前玩家坐标，用于宠物旧位置物品捡取防误判
-    private Point petLootTeleportBeforePos = null;
-    private long petLootTeleportBeforePosTime = 0;
-    private static final long PET_LOOT_TELEPORT_CONTEXT_EXPIRE_NS = MILLISECONDS.toNanos(1500L);
     // 普通移动距离误判修正上下文：只覆盖“移动包后紧跟攻击包”的极短时间窗
     private static final long MOVEMENT_DISTANCE_CONTEXT_EXPIRE_NS = MILLISECONDS.toNanos(350L);
     private static final byte MOVEMENT_DISTANCE_CONTEXT_MAX_ATTACK_CHECKS = 1;
@@ -1174,19 +1169,8 @@ public class Character extends AbstractAnimatedMapObject {
         this.mesosTraded += gain;
     }
 
-    public void addPet(Pet pet) {
-        petLock.lock();
-        try {
-            for (int i = 0; i < 3; i++) {
-                if (pets[i] == null) {
-                    pets[i] = pet;
-                    return;
-                }
-            }
-        } finally {
-            petLock.unlock();
-        }
-    }
+    public void addPet(Pet pet) { pets.addPet(pet); }
+
 
     /**
      * 召唤物/傀儡的地图侧移除：广播、地图对象、登记与小灵伴随调度清理。
@@ -1959,7 +1943,7 @@ public class Character extends AbstractAnimatedMapObject {
     public List<Integer> getLastVisitedMapIds() {
         List<Integer> lastVisited = new ArrayList<>(5);
 
-        petLock.lock();
+        mapHistoryLock.lock();
         try {
             for (WeakReference<MapleMap> lv : lastVisitedMaps) {
                 MapleMap lvm = lv.get();
@@ -1969,7 +1953,7 @@ public class Character extends AbstractAnimatedMapObject {
                 }
             }
         } finally {
-            petLock.unlock();
+            mapHistoryLock.unlock();
         }
 
         return lastVisited;
@@ -1978,11 +1962,11 @@ public class Character extends AbstractAnimatedMapObject {
     public void partyOperationUpdate(Party party, List<Character> exPartyMembers) {
         List<WeakReference<MapleMap>> mapIds;
 
-        petLock.lock();
+        mapHistoryLock.lock();
         try {
             mapIds = new LinkedList<>(lastVisitedMaps);
         } finally {
-            petLock.unlock();
+            mapHistoryLock.unlock();
         }
 
         List<Character> partyMembers = new LinkedList<>();
@@ -2121,7 +2105,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void visitMap(MapleMap map) {
-        petLock.lock();
+        mapHistoryLock.lock();
         try {
             int idx = getVisitedMapIndex(map);
 
@@ -2137,7 +2121,7 @@ public class Character extends AbstractAnimatedMapObject {
 
             lastVisitedMaps.add(new WeakReference<>(map));
         } finally {
-            petLock.unlock();
+            mapHistoryLock.unlock();
         }
     }
 
@@ -3398,7 +3382,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     private Pair<Integer, Integer> applyFame(int delta) {
-        petLock.lock();
+        fameLock.lock();
         try {
             int newFame = fame + delta;
             if (newFame < -30000) {
@@ -3410,7 +3394,7 @@ public class Character extends AbstractAnimatedMapObject {
             fame += delta;
             return new Pair<>(fame, delta);
         } finally {
-            petLock.unlock();
+            fameLock.unlock();
         }
     }
 
@@ -3453,7 +3437,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void gainMeso(int gain, boolean show, boolean enableActions, boolean inChat) {
         long nextMeso;
-        petLock.lock();
+        mapHistoryLock.lock();
         try {
             nextMeso = (long) meso.get() + gain;  // thanks Thora for pointing integer overflow here
             if (nextMeso > Integer.MAX_VALUE) {
@@ -3463,7 +3447,7 @@ public class Character extends AbstractAnimatedMapObject {
             }
             nextMeso = meso.addAndGet(gain);
         } finally {
-            petLock.unlock();
+            mapHistoryLock.unlock();
         }
 
         if (gain != 0) {
@@ -3737,168 +3721,48 @@ public class Character extends AbstractAnimatedMapObject {
         return (Marriage) getEventInstance();
     }
 
-    public void resetExcluded(int petId) {
-        chrLock.lock();
-        try {
-            Set<Integer> petExclude = excluded.get(petId);
+    public void resetExcluded(int petId) { pets.resetExcluded(petId); }
 
-            if (petExclude != null) {
-                petExclude.clear();
-            } else {
-                excluded.put(petId, new LinkedHashSet<Integer>());
-            }
-        } finally {
-            chrLock.unlock();
-        }
-    }
 
-    public void addExcluded(int petId, int x) {
-        chrLock.lock();
-        try {
-            excluded.get(petId).add(x);
-        } finally {
-            chrLock.unlock();
-        }
-    }
+    public void addExcluded(int petId, int x) { pets.addExcluded(petId, x); }
+
 
     /**
      * 统一从数据库加载单只宠物的过滤配置，确保召唤时内存状态与数据库保持一致。
      */
-    public void loadPetExcludedItems(int petId) {
-        List<Integer> excludedItemIds = inventoryService.getPetIgnoreByPetId(petId).stream()
-                .map(PetignoresDO::getItemid)
-                .filter(Objects::nonNull)
-                .toList();
-        replacePetExcludedItemsInMemory(petId, excludedItemIds);
-    }
+    public void loadPetExcludedItems(int petId) { pets.loadPetExcludedItems(petId); }
+
 
     /**
      * 客户端提交过滤设置时，直接按差异增量更新数据库，避免角色保存时再做危险的全量删写。
      */
-    public void updatePetExcludedItems(int petId, Set<Integer> newExcludedItems) {
-        Set<Integer> currentExcludedItems = getExcludedForPet(petId);
-        Set<Integer> normalizedExcludedItems = new LinkedHashSet<>(newExcludedItems);
+    public void updatePetExcludedItems(int petId, Set<Integer> newExcludedItems) { pets.updatePetExcludedItems(petId, newExcludedItems); }
 
-        Set<Integer> toAdd = new LinkedHashSet<>(normalizedExcludedItems);
-        toAdd.removeAll(currentExcludedItems);
-
-        Set<Integer> toRemove = new LinkedHashSet<>(currentExcludedItems);
-        toRemove.removeAll(normalizedExcludedItems);
-
-        inventoryService.addPetIgnoreItems(petId, toAdd);
-        inventoryService.removePetIgnoreItems(petId, toRemove);
-        replacePetExcludedItemsInMemory(petId, normalizedExcludedItems);
-    }
 
     /**
      * 宠物被永久删除时同步清理数据库和角色内存中的过滤配置，避免残留脏数据。
      */
-    public void deletePetExcludedData(int petId) {
-        inventoryService.deletePetData(petId);
-        removeExcluded(petId);
-    }
+    public void deletePetExcludedData(int petId) { pets.deletePetExcludedData(petId); }
 
-    public Set<Integer> getExcludedForPet(int petId) {
-        chrLock.lock();
-        try {
-            Set<Integer> petExcludedItems = excluded.get(petId);
-            if (petExcludedItems == null) {
-                return Collections.emptySet();
-            }
-            return Collections.unmodifiableSet(new LinkedHashSet<>(petExcludedItems));
-        } finally {
-            chrLock.unlock();
-        }
-    }
 
-    private void replacePetExcludedItemsInMemory(int petId, Collection<Integer> itemIds) {
-        chrLock.lock();
-        try {
-            excluded.remove(petId);
-            if (itemIds != null && !itemIds.isEmpty()) {
-                LinkedHashSet<Integer> normalizedItems = itemIds.stream()
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toCollection(LinkedHashSet::new));
-                if (!normalizedItems.isEmpty()) {
-                    excluded.put(petId, normalizedItems);
-                }
-            }
-        } finally {
-            chrLock.unlock();
-        }
-    }
+    public Set<Integer> getExcludedForPet(int petId) { return pets.getExcludedForPet(petId); }
 
-    private void removeExcluded(int petId) {
-        chrLock.lock();
-        try {
-            excluded.remove(petId);
-        } finally {
-            chrLock.unlock();
-        }
-    }
 
-    public void commitExcludedItems() {
-        Map<Integer, Set<Integer>> petExcluded = this.getExcluded();
 
-        chrLock.lock();
-        try {
-            excludedItems.clear();
-        } finally {
-            chrLock.unlock();
-        }
 
-        for (Map.Entry<Integer, Set<Integer>> pe : petExcluded.entrySet()) {
-            byte petIndex = this.getPetIndex(pe.getKey());
-            if (petIndex < 0) {
-                continue;
-            }
 
-            Set<Integer> exclItems = pe.getValue();
-            if (!exclItems.isEmpty()) {
-                sendPacket(PacketCreator.loadExceptionList(this.getId(), pe.getKey(), petIndex, new ArrayList<>(exclItems)));
 
-                chrLock.lock();
-                try {
-                    excludedItems.addAll(exclItems);
-                } finally {
-                    chrLock.unlock();
-                }
-            }
-        }
-    }
+    public void commitExcludedItems() { pets.commitExcludedItems(); }
 
-    public void exportExcludedItems(Client c) {
-        Map<Integer, Set<Integer>> petExcluded = this.getExcluded();
-        for (Map.Entry<Integer, Set<Integer>> pe : petExcluded.entrySet()) {
-            byte petIndex = this.getPetIndex(pe.getKey());
-            if (petIndex < 0) {
-                continue;
-            }
 
-            Set<Integer> exclItems = pe.getValue();
-            if (!exclItems.isEmpty()) {
-                c.sendPacket(PacketCreator.loadExceptionList(this.getId(), pe.getKey(), petIndex, new ArrayList<>(exclItems)));
-            }
-        }
-    }
+    public void exportExcludedItems(Client c) { pets.exportExcludedItems(c); }
 
-    public Map<Integer, Set<Integer>> getExcluded() {
-        chrLock.lock();
-        try {
-            return Collections.unmodifiableMap(excluded);
-        } finally {
-            chrLock.unlock();
-        }
-    }
 
-    public Set<Integer> getExcludedItems() {
-        chrLock.lock();
-        try {
-            return Collections.unmodifiableSet(excludedItems);
-        } finally {
-            chrLock.unlock();
-        }
-    }
+    public Map<Integer, Set<Integer>> getExcluded() { return pets.getExcluded(); }
+
+
+    public Set<Integer> getExcludedItems() { return pets.getExcludedItems(); }
+
 
     public int getExp() {
         return exp.get();
@@ -4312,20 +4176,8 @@ public class Character extends AbstractAnimatedMapObject {
         return bookCover;
     }
 
-    public int getNoPets() {
-        petLock.lock();
-        try {
-            int ret = 0;
-            for (int i = 0; i < 3; i++) {
-                if (pets[i] != null) {
-                    ret++;
-                }
-            }
-            return ret;
-        } finally {
-            petLock.unlock();
-        }
-    }
+    public int getNoPets() { return pets.getNoPets(); }
+
 
     public Party getParty() {
         prtLock.lock();
@@ -4522,108 +4374,35 @@ public class Character extends AbstractAnimatedMapObject {
         this.setMessengerPosition(4);
     }
 
-    public Pet[] getPets() {
-        petLock.lock();
-        try {
-            return Arrays.copyOf(pets, pets.length);
-        } finally {
-            petLock.unlock();
-        }
-    }
+    public Pet[] getPets() { return pets.getPets(); }
 
-    public Pet getPet(int index) {
-        if (index < 0) {
-            return null;
-        }
 
-        petLock.lock();
-        try {
-            return pets[index];
-        } finally {
-            petLock.unlock();
-        }
-    }
+    public Pet getPet(int index) { return pets.getPet(index); }
 
-    public byte getPetIndex(int petId) {
-        petLock.lock();
-        try {
-            for (byte i = 0; i < 3; i++) {
-                if (pets[i] != null) {
-                    if (pets[i].getUniqueId() == petId) {
-                        return i;
-                    }
-                }
-            }
-            return -1;
-        } finally {
-            petLock.unlock();
-        }
-    }
 
-    public byte getPetIndex(Pet pet) {
-        petLock.lock();
-        try {
-            for (byte i = 0; i < 3; i++) {
-                if (pets[i] != null) {
-                    if (pets[i].getUniqueId() == pet.getUniqueId()) {
-                        return i;
-                    }
-                }
-            }
-            return -1;
-        } finally {
-            petLock.unlock();
-        }
-    }
+    public byte getPetIndex(int petId) { return pets.getPetIndex(petId); }
 
-    public int getPetEquipItemId(byte petIndex) {
-        if (!ItemConstants.isValidPetIndex(petIndex)) {
-            return 0;
-        }
 
-        Item petEqp = getInventory(InventoryType.EQUIPPED).getItem(ItemConstants.PET_EQUIP_SLOTS.get(petIndex).equip());
-        return petEqp == null ? 0 : petEqp.getItemId();
-    }
+    public byte getPetIndex(Pet pet) { return pets.getPetIndex(pet); }
 
-    public boolean hasPetNameTag(byte petIndex) {
-        if (!ItemConstants.isValidPetIndex(petIndex)) {
-            return false;
-        }
 
-        return getInventory(InventoryType.EQUIPPED).getItem(ItemConstants.PET_EQUIP_SLOTS.get(petIndex).nameTag()) != null;
-    }
+    public int getPetEquipItemId(byte petIndex) { return pets.getPetEquipItemId(petIndex); }
 
-    public boolean hasPetChatballoon(byte petIndex) {
-        if (!ItemConstants.isValidPetIndex(petIndex)) {
-            return false;
-        }
 
-        return getInventory(InventoryType.EQUIPPED).getItem(ItemConstants.PET_EQUIP_SLOTS.get(petIndex).chatBalloon()) != null;
-    }
+    public boolean hasPetNameTag(byte petIndex) { return pets.hasPetNameTag(petIndex); }
 
-    public boolean isEquippedMesoMagnet(byte petIndex) {
-        if (!ItemConstants.isValidPetIndex(petIndex)) {
-            return false;
-        }
 
-        return getInventory(InventoryType.EQUIPPED).getItem(ItemConstants.PET_EQUIP_SLOTS.get(petIndex).mesoMagnet()) != null;
-    }
+    public boolean hasPetChatballoon(byte petIndex) { return pets.hasPetChatballoon(petIndex); }
 
-    public boolean isEquippedItemPouch(byte petIndex) {
-        if (!ItemConstants.isValidPetIndex(petIndex)) {
-            return false;
-        }
 
-        return getInventory(InventoryType.EQUIPPED).getItem(ItemConstants.PET_EQUIP_SLOTS.get(petIndex).itemPouch()) != null;
-    }
+    public boolean isEquippedMesoMagnet(byte petIndex) { return pets.isEquippedMesoMagnet(petIndex); }
 
-    public boolean isEquippedPetItemIgnore(byte petIndex) {
-        if (!ItemConstants.isValidPetIndex(petIndex)) {
-            return false;
-        }
 
-        return getInventory(InventoryType.EQUIPPED).getItem(ItemConstants.PET_EQUIP_SLOTS.get(petIndex).itemIgnore()) != null;
-    }
+    public boolean isEquippedItemPouch(byte petIndex) { return pets.isEquippedItemPouch(petIndex); }
+
+
+    public boolean isEquippedPetItemIgnore(byte petIndex) { return pets.isEquippedPetItemIgnore(petIndex); }
+
 
     public final byte getQuestStatus(final int quest) {
         synchronized (quests) {
@@ -6325,34 +6104,8 @@ public class Character extends AbstractAnimatedMapObject {
         skills.removeCooldown(skillId);
     }
 
-    public void removePet(Pet pet, boolean shift_left) {
-        petLock.lock();
-        try {
-            int slot = -1;
-            for (int i = 0; i < 3; i++) {
-                if (pets[i] != null) {
-                    if (pets[i].getUniqueId() == pet.getUniqueId()) {
-                        pets[i] = null;
-                        slot = i;
-                        break;
-                    }
-                }
-            }
-            if (shift_left) {
-                if (slot > -1) {
-                    for (int i = slot; i < 3; i++) {
-                        if (i != 2) {
-                            pets[i] = pets[i + 1];
-                        } else {
-                            pets[i] = null;
-                        }
-                    }
-                }
-            }
-        } finally {
-            petLock.unlock();
-        }
-    }
+    public void removePet(Pet pet, boolean shift_left) { pets.removePet(pet, shift_left); }
+
 
     public void removeVisibleMapObject(MapObject mo) {
         visibleMapObjects.remove(mo);
@@ -6775,21 +6528,7 @@ public class Character extends AbstractAnimatedMapObject {
                     ps.executeUpdate();
                 }
 
-                List<Pet> petList = new LinkedList<>();
-                petLock.lock();
-                try {
-                    for (int i = 0; i < 3; i++) {
-                        if (pets[i] != null) {
-                            petList.add(pets[i]);
-                        }
-                    }
-                } finally {
-                    petLock.unlock();
-                }
-
-                for (Pet pet : petList) {
-                    pet.saveToDb();
-                }
+                pets.saveToDb(con);   // 并入主事务连接，消除第二写者（SQLITE_BUSY）
 
                 // Key config
                 deleteWhereCharacterId(con, "DELETE FROM keymap WHERE characterid = ?");
@@ -7686,18 +7425,8 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
 
-    public void shiftPetsRight() {
-        petLock.lock();
-        try {
-            if (pets[2] == null) {
-                pets[2] = pets[1];
-                pets[1] = pets[0];
-                pets[0] = null;
-            }
-        } finally {
-            petLock.unlock();
-        }
-    }
+    public void shiftPetsRight() { pets.shiftPetsRight(); }
+
 
     private long getDojoTimeLeft() {
         return client.getChannelServer().getDojoFinishTime(map.getId()) - Server.getInstance().getCurrentTime();
@@ -7761,27 +7490,8 @@ public class Character extends AbstractAnimatedMapObject {
         return skills.skillIsCooling(skillId);
     }
 
-    public void runFullnessSchedule(int petSlot) {
-        Pet pet = getPet(petSlot);
-        if (pet == null) {
-            return;
-        }
+    public void runFullnessSchedule(int petSlot) { pets.runFullnessSchedule(petSlot); }
 
-        int newFullness = pet.getFullness() - PetDataFactory.getHunger(pet.getItemId());
-        if (newFullness <= 5) {
-            pet.setFullness(15);
-            pet.saveToDb();
-            unEquipPet(pet, true);
-            dropMessage(6, I18nUtil.getMessage("Character.runFullnessSchedule"));
-        } else {
-            pet.setFullness(newFullness);
-            pet.saveToDb();
-            Item petz = getInventory(InventoryType.CASH).getItem(pet.getPosition());
-            if (petz != null) {
-                forceUpdateItem(petz);
-            }
-        }
-    }
 
     public boolean runTirednessSchedule() {
         if (mapleMount != null) {
@@ -7809,37 +7519,14 @@ public class Character extends AbstractAnimatedMapObject {
         TimerManager.getInstance().schedule(() -> sendPacket(mapEffect.makeDestroyData()), duration);
     }
 
-    public void unEquipAllPets() {
-        for (int i = 0; i < 3; i++) {
-            Pet pet = getPet(i);
-            if (pet != null) {
-                unEquipPet(pet, true);
-            }
-        }
-    }
+    public void unEquipAllPets() { pets.unEquipAllPets(); }
 
-    public void unEquipPet(Pet pet, boolean shift_left) {
-        unEquipPet(pet, shift_left, false);
-    }
 
-    public void unEquipPet(Pet pet, boolean shift_left, boolean hunger) {
-        byte petIdx = this.getPetIndex(pet);
-        Pet chrPet = this.getPet(petIdx);
+    public void unEquipPet(Pet pet, boolean shift_left) { pets.unEquipPet(pet, shift_left); }
 
-        if (chrPet != null) {
-            chrPet.setSummoned(false);
-            chrPet.saveToDb();
-        }
 
-        this.getClient().getWorldServer().unregisterPetHunger(this, petIdx);
-        getMap().broadcastMessage(this, PacketCreator.showPet(this, pet, true, hunger), true);
+    public void unEquipPet(Pet pet, boolean shift_left, boolean hunger) { pets.unEquipPet(pet, shift_left, hunger); }
 
-        removePet(pet, shift_left);
-        commitExcludedItems();
-
-        sendPacket(PacketCreator.petStatUpdate(this));
-        enableActions();
-    }
 
     public void updateMacros(int position, SkillMacro updateMacro) {
         skillMacros[position] = updateMacro;
@@ -8247,25 +7934,15 @@ public class Character extends AbstractAnimatedMapObject {
      * 记录传送前玩家坐标，供宠物拾取反作弊旧位置物品补偿使用。
      * 每次内传送门触发时由 InnerPortalHandler 调用。
      */
-    public void setPetLootTeleportBeforePos(Point pos) {
-        this.petLootTeleportBeforePos = pos;
-        this.petLootTeleportBeforePosTime = monotonicNow();
-    }
+    public void setPetLootTeleportBeforePos(Point pos) { pets.setPetLootTeleportBeforePos(pos); }
+
 
     /**
      * 获取宠物拾取补偿用的传送前坐标。
      * 1.5s 内有效，超时自动失效，避免旧坐标残留下一次捡包误判。
      */
-    public Point getPetLootTeleportBeforePos() {
-        if (petLootTeleportBeforePos == null) {
-            return null;
-        }
-        if (monotonicNow() - petLootTeleportBeforePosTime > PET_LOOT_TELEPORT_CONTEXT_EXPIRE_NS) {
-            petLootTeleportBeforePos = null;
-            return null;
-        }
-        return new Point(petLootTeleportBeforePos);
-    }
+    public Point getPetLootTeleportBeforePos() { return pets.getPetLootTeleportBeforePos(); }
+
 
     /**
      * 消费一次传送距离保护校验次数（按攻击包维度消费）。

@@ -1,0 +1,444 @@
+package org.gms.client.character;
+
+import org.gms.client.Client;
+import org.gms.client.inventory.InventoryType;
+import org.gms.client.inventory.Item;
+import org.gms.client.inventory.Pet;
+import org.gms.client.inventory.PetDataFactory;
+import org.gms.constants.inventory.ItemConstants;
+import org.gms.dao.entity.PetignoresDO;
+import org.gms.manager.ServerManager;
+import org.gms.service.InventoryService;
+import org.gms.util.I18nUtil;
+import org.gms.util.Locks;
+import org.gms.util.PacketCreator;
+
+import java.awt.Point;
+import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
+
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
+/**
+ * 宠物模块组件：三个宠物槽位 + 过滤配置（petignores 内存态）+ 拾取瞬移上下文 + 持久化。
+ * 仿照 CharacterBuffs 模式：数据 + 领域逻辑内聚于此，持有 owner 反向引用，自有锁（lock）串行化，
+ * Character 保留公开具名门面（getPets/unEquipPet/... 对外转发）。
+ *
+ * 锁说明：pets 数组、excluded/excludedItems、拾取上下文共用本类 lock——
+ * 原实现 pets 用 petLock、excluded 用 chrLock、且 petLock 还被 lastVisitedMaps 误用，
+ * 重构时统一收敛（lastVisitedMaps 已在 Character 中改用自己的锁）。
+ */
+class CharacterPets {
+    private static final InventoryService inventoryService = ServerManager.getApplicationContext().getBean(InventoryService.class);
+    private static final long PET_LOOT_TELEPORT_CONTEXT_EXPIRE_NS = MILLISECONDS.toNanos(1500L);
+
+    private final Character owner;
+
+    /** 三个宠物槽位 */
+    private final Pet[] pets = new Pet[3];
+
+    /** 宠物模块锁：串行化槽位/过滤配置/拾取上下文 */
+    private final Lock lock = new ReentrantLock(true);
+
+    /** 宠物ID → 屏蔽道具ID集（内存态，增量同步到 petignores 表） */
+    private final Map<Integer, Set<Integer>> excluded = new LinkedHashMap<>();
+
+    /** 本角色已生效的屏蔽道具ID集（客户端加载列表用） */
+    private final Set<Integer> excludedItems = new LinkedHashSet<>();
+
+    /** 宠物拾取补偿用传送前坐标（1.5s 有效） */
+    private Point petLootTeleportBeforePos = null;
+    private long petLootTeleportBeforePosTime = 0;
+
+    CharacterPets(Character owner) {
+        this.owner = owner;
+    }
+
+    // ── 槽位管理 ──
+
+    void addPet(Pet pet) {
+        try (var ignored = Locks.acquire(lock)) {
+            for (int i = 0; i < 3; i++) {
+                if (pets[i] == null) {
+                    pets[i] = pet;
+                    return;
+                }
+            }
+        }
+    }
+
+    void removePet(Pet pet, boolean shift_left) {
+        try (var ignored = Locks.acquire(lock)) {
+            int slot = -1;
+            for (int i = 0; i < 3; i++) {
+                if (pets[i] != null) {
+                    if (pets[i].getUniqueId() == pet.getUniqueId()) {
+                        pets[i] = null;
+                        slot = i;
+                        break;
+                    }
+                }
+            }
+            if (shift_left) {
+                if (slot > -1) {
+                    for (int i = slot; i < 3; i++) {
+                        if (i != 2) {
+                            pets[i] = pets[i + 1];
+                        } else {
+                            pets[i] = null;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    void shiftPetsRight() {
+        try (var ignored = Locks.acquire(lock)) {
+            if (pets[2] == null) {
+                pets[2] = pets[1];
+                pets[1] = pets[0];
+                pets[0] = null;
+            }
+        }
+    }
+
+    int getNoPets() {
+        try (var ignored = Locks.acquire(lock)) {
+            int ret = 0;
+            for (int i = 0; i < 3; i++) {
+                if (pets[i] != null) {
+                    ret++;
+                }
+            }
+            return ret;
+        }
+    }
+
+    Pet[] getPets() {
+        try (var ignored = Locks.acquire(lock)) {
+            return Arrays.copyOf(pets, pets.length);
+        }
+    }
+
+    Pet getPet(int index) {
+        if (index < 0) {
+            return null;
+        }
+        try (var ignored = Locks.acquire(lock)) {
+            return pets[index];
+        }
+    }
+
+    byte getPetIndex(int petId) {
+        try (var ignored = Locks.acquire(lock)) {
+            for (byte i = 0; i < 3; i++) {
+                if (pets[i] != null) {
+                    if (pets[i].getUniqueId() == petId) {
+                        return i;
+                    }
+                }
+            }
+            return -1;
+        }
+    }
+
+    byte getPetIndex(Pet pet) {
+        try (var ignored = Locks.acquire(lock)) {
+            for (byte i = 0; i < 3; i++) {
+                if (pets[i] != null) {
+                    if (pets[i].getUniqueId() == pet.getUniqueId()) {
+                        return i;
+                    }
+                }
+            }
+            return -1;
+        }
+    }
+
+    // ── 装备配件（读 EQUIPPED 背包的宠物装备槽） ──
+
+    int getPetEquipItemId(byte petIndex) {
+        if (!ItemConstants.isValidPetIndex(petIndex)) {
+            return 0;
+        }
+        Item petEqp = owner.getInventory(InventoryType.EQUIPPED).getItem(ItemConstants.PET_EQUIP_SLOTS.get(petIndex).equip());
+        return petEqp == null ? 0 : petEqp.getItemId();
+    }
+
+    boolean hasPetNameTag(byte petIndex) {
+        if (!ItemConstants.isValidPetIndex(petIndex)) {
+            return false;
+        }
+        return owner.getInventory(InventoryType.EQUIPPED).getItem(ItemConstants.PET_EQUIP_SLOTS.get(petIndex).nameTag()) != null;
+    }
+
+    boolean hasPetChatballoon(byte petIndex) {
+        if (!ItemConstants.isValidPetIndex(petIndex)) {
+            return false;
+        }
+        return owner.getInventory(InventoryType.EQUIPPED).getItem(ItemConstants.PET_EQUIP_SLOTS.get(petIndex).chatBalloon()) != null;
+    }
+
+    boolean isEquippedMesoMagnet(byte petIndex) {
+        if (!ItemConstants.isValidPetIndex(petIndex)) {
+            return false;
+        }
+        return owner.getInventory(InventoryType.EQUIPPED).getItem(ItemConstants.PET_EQUIP_SLOTS.get(petIndex).mesoMagnet()) != null;
+    }
+
+    boolean isEquippedItemPouch(byte petIndex) {
+        if (!ItemConstants.isValidPetIndex(petIndex)) {
+            return false;
+        }
+        return owner.getInventory(InventoryType.EQUIPPED).getItem(ItemConstants.PET_EQUIP_SLOTS.get(petIndex).itemPouch()) != null;
+    }
+
+    boolean isEquippedPetItemIgnore(byte petIndex) {
+        if (!ItemConstants.isValidPetIndex(petIndex)) {
+            return false;
+        }
+        return owner.getInventory(InventoryType.EQUIPPED).getItem(ItemConstants.PET_EQUIP_SLOTS.get(petIndex).itemIgnore()) != null;
+    }
+
+    // ── 生命周期 ──
+
+    void unEquipAllPets() {
+        for (int i = 0; i < 3; i++) {
+            Pet pet = getPet(i);
+            if (pet != null) {
+                unEquipPet(pet, true);
+            }
+        }
+    }
+
+    void unEquipPet(Pet pet, boolean shift_left) {
+        unEquipPet(pet, shift_left, false);
+    }
+
+    void unEquipPet(Pet pet, boolean shift_left, boolean hunger) {
+        byte petIdx = getPetIndex(pet);
+        Pet chrPet = getPet(petIdx);
+
+        if (chrPet != null) {
+            chrPet.setSummoned(false);
+            chrPet.saveToDb();
+        }
+
+        owner.getClient().getWorldServer().unregisterPetHunger(owner, petIdx);
+        owner.getMap().broadcastMessage(owner, PacketCreator.showPet(owner, pet, true, hunger), true);
+
+        removePet(pet, shift_left);
+        commitExcludedItems();
+
+        owner.sendPacket(PacketCreator.petStatUpdate(owner));
+        owner.enableActions();
+    }
+
+    void runFullnessSchedule(int petSlot) {
+        Pet pet = getPet(petSlot);
+        if (pet == null) {
+            return;
+        }
+
+        int newFullness = pet.getFullness() - PetDataFactory.getHunger(pet.getItemId());
+        if (newFullness <= 5) {
+            pet.setFullness(15);
+            pet.saveToDb();
+            unEquipPet(pet, true);
+            owner.dropMessage(6, I18nUtil.getMessage("Character.runFullnessSchedule"));
+        } else {
+            pet.setFullness(newFullness);
+            pet.saveToDb();
+            Item petz = owner.getInventory(InventoryType.CASH).getItem(pet.getPosition());
+            if (petz != null) {
+                owner.forceUpdateItem(petz);
+            }
+        }
+    }
+
+    // ── 过滤配置（petignores 内存态） ──
+
+    void resetExcluded(int petId) {
+        try (var ignored = Locks.acquire(lock)) {
+            Set<Integer> petExclude = excluded.get(petId);
+
+            if (petExclude != null) {
+                petExclude.clear();
+            } else {
+                excluded.put(petId, new LinkedHashSet<>());
+            }
+        }
+    }
+
+    void addExcluded(int petId, int x) {
+        try (var ignored = Locks.acquire(lock)) {
+            excluded.get(petId).add(x);
+        }
+    }
+
+    void loadPetExcludedItems(int petId) {
+        List<Integer> excludedItemIds = inventoryService.getPetIgnoreByPetId(petId).stream()
+                .map(PetignoresDO::getItemid)
+                .filter(Objects::nonNull)
+                .toList();
+        replacePetExcludedItemsInMemory(petId, excludedItemIds);
+    }
+
+    /** 客户端提交过滤设置时，直接按差异增量更新数据库，避免角色保存时再做危险的全量删写。 */
+    void updatePetExcludedItems(int petId, Set<Integer> newExcludedItems) {
+        Set<Integer> currentExcludedItems = getExcludedForPet(petId);
+        Set<Integer> normalizedExcludedItems = new LinkedHashSet<>(newExcludedItems);
+
+        Set<Integer> toAdd = new LinkedHashSet<>(normalizedExcludedItems);
+        toAdd.removeAll(currentExcludedItems);
+
+        Set<Integer> toRemove = new LinkedHashSet<>(currentExcludedItems);
+        toRemove.removeAll(normalizedExcludedItems);
+
+        inventoryService.addPetIgnoreItems(petId, toAdd);
+        inventoryService.removePetIgnoreItems(petId, toRemove);
+        replacePetExcludedItemsInMemory(petId, normalizedExcludedItems);
+    }
+
+    /** 宠物被永久删除时同步清理数据库和角色内存中的过滤配置，避免残留脏数据。 */
+    void deletePetExcludedData(int petId) {
+        inventoryService.deletePetData(petId);
+        removeExcluded(petId);
+    }
+
+    Set<Integer> getExcludedForPet(int petId) {
+        try (var ignored = Locks.acquire(lock)) {
+            Set<Integer> petExcludedItems = excluded.get(petId);
+            if (petExcludedItems == null) {
+                return Collections.emptySet();
+            }
+            return Collections.unmodifiableSet(new LinkedHashSet<>(petExcludedItems));
+        }
+    }
+
+    Map<Integer, Set<Integer>> getExcluded() {
+        try (var ignored = Locks.acquire(lock)) {
+            return Collections.unmodifiableMap(new LinkedHashMap<>(excluded));
+        }
+    }
+
+    Set<Integer> getExcludedItems() {
+        try (var ignored = Locks.acquire(lock)) {
+            return Collections.unmodifiableSet(excludedItems);
+        }
+    }
+
+    void commitExcludedItems() {
+        Map<Integer, Set<Integer>> petExcluded = getExcluded();
+
+        try (var ignored = Locks.acquire(lock)) {
+            excludedItems.clear();
+        }
+
+        for (Map.Entry<Integer, Set<Integer>> pe : petExcluded.entrySet()) {
+            byte petIndex = getPetIndex(pe.getKey());
+            if (petIndex < 0) {
+                continue;
+            }
+
+            Set<Integer> exclItems = pe.getValue();
+            if (!exclItems.isEmpty()) {
+                owner.sendPacket(PacketCreator.loadExceptionList(owner.getId(), pe.getKey(), petIndex, new ArrayList<>(exclItems)));
+
+                try (var ignored = Locks.acquire(lock)) {
+                    excludedItems.addAll(exclItems);
+                }
+            }
+        }
+    }
+
+    void exportExcludedItems(Client c) {
+        Map<Integer, Set<Integer>> petExcluded = getExcluded();
+        for (Map.Entry<Integer, Set<Integer>> pe : petExcluded.entrySet()) {
+            byte petIndex = getPetIndex(pe.getKey());
+            if (petIndex < 0) {
+                continue;
+            }
+
+            Set<Integer> exclItems = pe.getValue();
+            if (!exclItems.isEmpty()) {
+                c.sendPacket(PacketCreator.loadExceptionList(owner.getId(), pe.getKey(), petIndex, new ArrayList<>(exclItems)));
+            }
+        }
+    }
+
+    private void replacePetExcludedItemsInMemory(int petId, Collection<Integer> itemIds) {
+        try (var ignored = Locks.acquire(lock)) {
+            excluded.remove(petId);
+            if (itemIds != null && !itemIds.isEmpty()) {
+                LinkedHashSet<Integer> normalizedItems = itemIds.stream()
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
+                if (!normalizedItems.isEmpty()) {
+                    excluded.put(petId, normalizedItems);
+                }
+            }
+        }
+    }
+
+    private void removeExcluded(int petId) {
+        try (var ignored = Locks.acquire(lock)) {
+            excluded.remove(petId);
+        }
+    }
+
+    // ── 拾取瞬移上下文 ──
+
+    void setPetLootTeleportBeforePos(Point pos) {
+        this.petLootTeleportBeforePos = pos;
+        this.petLootTeleportBeforePosTime = monotonicNow();
+    }
+
+    /** 获取宠物拾取补偿用的传送前坐标。1.5s 内有效，超时自动失效，避免旧坐标残留下一次捡包误判。 */
+    Point getPetLootTeleportBeforePos() {
+        if (petLootTeleportBeforePos == null) {
+            return null;
+        }
+        if (monotonicNow() - petLootTeleportBeforePosTime > PET_LOOT_TELEPORT_CONTEXT_EXPIRE_NS) {
+            petLootTeleportBeforePos = null;
+            return null;
+        }
+        return new Point(petLootTeleportBeforePos);
+    }
+
+    private static long monotonicNow() {
+        return System.nanoTime();
+    }
+
+    // ── 持久化 ──
+
+    /** 角色保存主事务内调用：用传入连接保存全部宠物（消除第二写者，见 Pet.saveToDb(Connection)） */
+    void saveToDb(Connection con) {
+        List<Pet> petList = new LinkedList<>();
+        try (var ignored = Locks.acquire(lock)) {
+            for (int i = 0; i < 3; i++) {
+                if (pets[i] != null) {
+                    petList.add(pets[i]);
+                }
+            }
+        }
+
+        for (Pet pet : petList) {
+            pet.saveToDb(con);
+        }
+    }
+}

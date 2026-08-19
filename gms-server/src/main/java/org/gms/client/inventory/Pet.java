@@ -107,8 +107,16 @@ public class Pet extends Item {
     }
 
     public void saveToDb() {
-        try (Connection con = DatabaseConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement("UPDATE pets SET name = ?, level = ?, closeness = ?, fullness = ?, summoned = ?, flag = ? WHERE petid = ?")) {
+        try (Connection con = DatabaseConnection.getConnection()) {
+            saveToDb(con);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /** 用指定连接保存：角色保存主事务内调用，消除第二写者（SQLite 单写者下避免 SQLITE_BUSY） */
+    public void saveToDb(Connection con) {
+        try (PreparedStatement ps = con.prepareStatement("UPDATE pets SET name = ?, level = ?, closeness = ?, fullness = ?, summoned = ?, flag = ? WHERE petid = ?")) {
             ps.setString(1, getName());
             ps.setInt(2, getLevel());
             ps.setInt(3, getTameness());
