@@ -143,6 +143,7 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterPets pets = new CharacterPets(this);
     final CharacterDebuffs debuffs = new CharacterDebuffs(this);
     final CharacterChair chair = new CharacterChair(this);
+    final CharacterJob job = new CharacterJob(this);
 
 
     @Getter
@@ -288,7 +289,7 @@ public class Character extends AbstractAnimatedMapObject {
     private boolean hidden;
     private boolean equipchanged = true, berserk, hasMerchant, hasSandboxItem = false, whiteChat = false;
     @Setter
-    private boolean canRecvPartySearchInvite = true;
+    boolean canRecvPartySearchInvite = true;    // 包内可见：CharacterJob.changeJob 读取
     private boolean usedSafetyCharm = false;
     @Getter
     @Setter
@@ -330,9 +331,6 @@ public class Character extends AbstractAnimatedMapObject {
     private GuildCharacter mgc = null;
     private PartyCharacter mpc = null;
     private Inventory[] inventory;
-    @Setter
-    @Getter
-    private Job job = Job.BEGINNER;
     @Getter
     @Setter
     private Messenger messenger = null;
@@ -870,7 +868,7 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    private void addMaxMPMaxHP(int hpdelta, int mpdelta, boolean silent) {
+    void addMaxMPMaxHP(int hpdelta, int mpdelta, boolean silent) {
         try (var ignored = Locks.acquire(stats.wLock)) {
             StatsUpdate u = new StatsUpdate().setMaxHp(stats.maxHp + hpdelta).setMaxMp(stats.maxMp + mpdelta);
             if (silent) {
@@ -972,7 +970,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public Job getJobStyle(byte opt) {
-        return Job.getJobStyleInternal(this.getJob().getId(), opt);
+        return job.getJobStyle(opt);
     }
 
     public void setHair(int hair) {
@@ -982,7 +980,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public Job getJobStyle() {
-        return getJobStyle((byte) ((this.getStr() > this.getDex()) ? 0x80 : 0x40));
+        return job.getJobStyle();
     }
 
     public static Character getDefault(Client c) {
@@ -998,7 +996,7 @@ public class Character extends AbstractAnimatedMapObject {
         ret.stats.attrs[INT] = 4;
         ret.stats.attrs[LUK] = 4;
         ret.map = null;
-        ret.job = Job.BEGINNER;
+        ret.setJob(Job.BEGINNER);
         ret.level = 1;
         ret.accountId = c.getAccID();
         ret.buddylist = new BuddyList(20);
@@ -1220,7 +1218,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     public int calculateMaxBaseDamage(int watk, WeaponType weapon) {
         int mainstat, secondarystat;
-        if (getJob().isA(Job.THIEF) && weapon == WeaponType.DAGGER_OTHER) {
+        if (job.isA(Job.THIEF) && weapon == WeaponType.DAGGER_OTHER) {
             weapon = WeaponType.DAGGER_THIEVES;
         }
 
@@ -1437,239 +1435,8 @@ public class Character extends AbstractAnimatedMapObject {
         this.ci = type;
     }
 
-    public void setMasteries(int jobId) {
-        int[] skills = new int[]{0, 0, 0, 0};
-        if (jobId == 112) {
-            skills[0] = Hero.ACHILLES;
-            skills[1] = Hero.MONSTER_MAGNET;
-            skills[2] = Hero.BRANDISH;
-        } else if (jobId == 122) {
-            skills[0] = Paladin.ACHILLES;
-            skills[1] = Paladin.MONSTER_MAGNET;
-            skills[2] = Paladin.BLAST;
-        } else if (jobId == 132) {
-            skills[0] = DarkKnight.BEHOLDER;
-            skills[1] = DarkKnight.ACHILLES;
-            skills[2] = DarkKnight.MONSTER_MAGNET;
-        } else if (jobId == 212) {
-            skills[0] = FPArchMage.BIG_BANG;
-            skills[1] = FPArchMage.MANA_REFLECTION;
-            skills[2] = FPArchMage.PARALYZE;
-        } else if (jobId == 222) {
-            skills[0] = ILArchMage.BIG_BANG;
-            skills[1] = ILArchMage.MANA_REFLECTION;
-            skills[2] = ILArchMage.CHAIN_LIGHTNING;
-        } else if (jobId == 232) {
-            skills[0] = Bishop.BIG_BANG;
-            skills[1] = Bishop.MANA_REFLECTION;
-            skills[2] = Bishop.HOLY_SHIELD;
-        } else if (jobId == 312) {
-            skills[0] = Bowmaster.BOW_EXPERT;
-            skills[1] = Bowmaster.HAMSTRING;
-            skills[2] = Bowmaster.SHARP_EYES;
-        } else if (jobId == 322) {
-            skills[0] = Marksman.MARKSMAN_BOOST;
-            skills[1] = Marksman.BLIND;
-            skills[2] = Marksman.SHARP_EYES;
-        } else if (jobId == 412) {
-            skills[0] = NightLord.SHADOW_STARS;
-            skills[1] = NightLord.SHADOW_SHIFTER;
-            skills[2] = NightLord.VENOMOUS_STAR;
-        } else if (jobId == 422) {
-            skills[0] = Shadower.SHADOW_SHIFTER;
-            skills[1] = Shadower.VENOMOUS_STAB;
-            skills[2] = Shadower.BOOMERANG_STEP;
-        } else if (jobId == 512) {
-            skills[0] = Buccaneer.BARRAGE;
-            skills[1] = Buccaneer.ENERGY_ORB;
-            skills[2] = Buccaneer.SPEED_INFUSION;
-            skills[3] = Buccaneer.DRAGON_STRIKE;
-        } else if (jobId == 522) {
-            skills[0] = Corsair.ELEMENTAL_BOOST;
-            skills[1] = Corsair.BULLSEYE;
-            skills[2] = Corsair.WRATH_OF_THE_OCTOPI;
-            skills[3] = Corsair.RAPID_FIRE;
-        } else if (jobId == 2112) {
-            skills[0] = Aran.OVER_SWING;
-            skills[1] = Aran.HIGH_MASTERY;
-            skills[2] = Aran.FREEZE_STANDING;
-        } else if (jobId == 2217) {
-            skills[0] = Evan.MAPLE_WARRIOR;
-            skills[1] = Evan.ILLUSION;
-        } else if (jobId == 2218) {
-            skills[0] = Evan.BLESSING_OF_THE_ONYX;
-            skills[1] = Evan.BLAZE;
-        }
-        for (Integer skillId : skills) {
-            if (skillId != 0) {
-                Skill skill = SkillFactory.getSkill(skillId);
-                final int skilllevel = getSkillLevel(skill);
-                if (skilllevel > 0) {
-                    continue;
-                }
-
-                changeSkillLevel(skill, (byte) 0, 10, -1);
-            }
-        }
-    }
-
-    private void broadcastChangeJob() {
-        for (Character chr : map.getAllPlayers()) {
-            Client chrC = chr.getClient();
-
-            if (chrC != null) {     // propagate new job 3rd-person effects (FJ, Aran 1st strike, etc)
-                this.sendDestroyData(chrC);
-                this.sendSpawnData(chrC);
-            }
-        }
-
-        // need to delay to ensure clientside has finished reloading character data     //需要延迟以确保客户端已完成重新加载角色数据
-        TimerManager.getInstance().schedule(() -> {
-            Character thisChr = Character.this;
-            MapleMap map = thisChr.getMap();
-
-            if (map != null) {
-                map.broadcastMessage(thisChr, PacketCreator.showForeignEffect(thisChr.getId(), 8), false);
-            }
-        }, 777);
-    }
-
     public synchronized void changeJob(Job newJob) {
-        if (newJob == null) {
-            return;//the fuck you doing idiot!
-        }
-
-        if (canRecvPartySearchInvite && getParty() == null) {
-            this.updatePartySearchAvailability(false);
-            this.job = newJob;
-            this.updatePartySearchAvailability(true);
-        } else {
-            this.job = newJob;
-        }
-
-        int spGain = 1;
-        if (GameConstants.hasSPTable(newJob)) {
-            spGain += 2;
-        } else {
-            if (newJob.getId() % 10 == 2) {
-                spGain += 2;
-            }
-
-            if (GameConfig.getServerBoolean("use_enforce_job_sp_range")) {
-                spGain = getChangedJobSp(newJob);
-            }
-        }
-
-        if (spGain > 0) {
-            gainSp(spGain, newJob.getId(), true);
-        }
-
-        // thanks xinyifly for finding out missing AP awards (AP Reset can be used as a compass)
-        if (newJob.getId() % 100 >= 1) {
-            if (this.isCygnus()) {
-                gainAp(7, true);
-            } else {
-                if (GameConfig.getServerBoolean("use_starting_ap_4") || newJob.getId() % 10 >= 1) {
-                    gainAp(5, true);
-                }
-            }
-        } else {    // thanks Periwinks for noticing an AP shortage from lower levels
-            if (GameConfig.getServerBoolean("use_starting_ap_4") && newJob.getId() % 1000 >= 1) {
-                gainAp(4, true);
-            }
-        }
-
-        if (!isGM()) {
-            for (byte i = 1; i < 5; i++) {
-                gainSlots(i, 4, true);
-            }
-        }
-
-        boolean fixedLevelUpHpMp = true;  // todo: [refactor] hard coded config
-        int addhp = 0, addmp = 0;
-        int job_ = job.getId() % 1000; // lame temp "fix"
-        if (job_ == 100) {                      // 1st warrior
-            addhp += CharacterStats.getHpMpGainFromRange(200, 250, fixedLevelUpHpMp);
-        } else if (job_ == 200) {               // 1st mage
-            addmp += CharacterStats.getHpMpGainFromRange(100, 150, fixedLevelUpHpMp);
-        } else if (job_ % 100 == 0) {           // 1st others
-            addhp += CharacterStats.getHpMpGainFromRange(100, 150, fixedLevelUpHpMp);
-            addmp += CharacterStats.getHpMpGainFromRange(25, 50, fixedLevelUpHpMp);
-        } else if (job_ > 0 && job_ < 200) {    // 2nd~4th warrior
-            addhp += CharacterStats.getHpMpGainFromRange(300, 350, fixedLevelUpHpMp);
-        } else if (job_ < 300) {                // 2nd~4th mage
-            addmp += CharacterStats.getHpMpGainFromRange(450, 500, fixedLevelUpHpMp);
-        } else {                  // 2nd~4th others
-            addhp += CharacterStats.getHpMpGainFromRange(300, 350, fixedLevelUpHpMp);
-            addmp += CharacterStats.getHpMpGainFromRange(150, 200, fixedLevelUpHpMp);
-        }
-
-        /*
-        //aran perks?
-        int newJobId = newJob.getId();
-        if(newJobId == 2100) {          // become aran1
-            addhp += 275;
-            addmp += 15;
-        } else if(newJobId == 2110) {   // become aran2
-            addmp += 275;
-        } else if(newJobId == 2111) {   // become aran3
-            addhp += 275;
-            addmp += 275;
-        }
-        */
-
-        // effLock 已冗余：addMaxMPMaxHP/recalcLocalStats 只需 stats.wLock
-        stats.wLock.lock();
-        try {
-            addMaxMPMaxHP(addhp, addmp, true);
-            recalcLocalStats();
-
-            List<Pair<Stat, Integer>> statup = new ArrayList<>(7);
-            statup.add(new Pair<>(Stat.HP, stats.hp));
-            statup.add(new Pair<>(Stat.MP, stats.mp));
-            statup.add(new Pair<>(Stat.MAXHP, stats.clientMaxHp));
-            statup.add(new Pair<>(Stat.MAXMP, stats.clientMaxMp));
-            statup.add(new Pair<>(Stat.AVAILABLEAP, ap.remainingAp));
-            statup.add(new Pair<>(Stat.AVAILABLESP, sp.remainingSp[CharacterSp.indexOf(job.getId())]));
-            statup.add(new Pair<>(Stat.JOB, job.getId()));
-            sendPacket(PacketCreator.updatePlayerStats(statup, true, this));
-        } finally {
-            stats.wLock.unlock();
-
-        }
-
-        setMPC(new PartyCharacter(this));
-        silentPartyUpdate();
-
-        if (dragon != null) {
-            getMap().broadcastMessage(PacketCreator.removeDragon(dragon.getObjectId()));
-            dragon = null;
-        }
-
-        if (this.guildId > 0) {
-            getGuild().broadcast(PacketCreator.jobMessage(0, job.getId(), name), this.getId());
-        }
-        Family family = getFamily();
-        if (family != null) {
-            family.broadcast(PacketCreator.jobMessage(1, job.getId(), name), this.getId());
-        }
-        setMasteries(this.job.getId());
-        guildUpdate();
-
-        broadcastChangeJob();
-
-        if (GameConstants.hasSPTable(newJob) && newJob.getId() != 2001) {
-            if (getBuffedValue(EffectType.MONSTER_RIDING) != null) {
-                cancelBuffStats(EffectType.MONSTER_RIDING);
-            }
-            createDragon();
-        }
-
-        if (GameConfig.getServerBoolean("use_announce_change_job")) {
-            if (!this.isGM()) {
-                broadcastAcquaintances(6, I18nUtil.getMessage("Character.Job.Change.message", getName(), GameConstants.ordinal(GameConstants.getJobBranch(newJob)), GameConstants.getJobName(this.job.getId())));        // thanks Vcoc for noticing job name appearing in uppercase here
-            }
-        }
+        job.changeJob(newJob);
     }
 
     public void broadcastAcquaintances(int type, String message) {
@@ -2254,7 +2021,7 @@ public class Character extends AbstractAnimatedMapObject {
             berserkSchedule.cancel(false);
         }
         final Character chr = this;
-        if (job.equals(Job.DARKKNIGHT)) {
+        if (job.equalsJob(Job.DARKKNIGHT)) {
             Skill BerserkX = SkillFactory.getSkill(DarkKnight.BERSERK);
             final int skilllevel = getSkillLevel(BerserkX);
             if (skilllevel > 0) {
@@ -3693,8 +3460,16 @@ public class Character extends AbstractAnimatedMapObject {
         return count;
     }
 
+    public Job getJob() {
+        return job.getJob();
+    }
+
+    public void setJob(Job newJob) {
+        job.setJob(newJob);
+    }
+
     public int getJobType() {
-        return job.getId() / 1000;
+        return job.getJobType();
     }
 
     public int getFh() {
@@ -3760,7 +3535,7 @@ public class Character extends AbstractAnimatedMapObject {
             return getMaxClassLevel();
         }
 
-        return GameConstants.getJobMaxLevel(job);
+        return GameConstants.getJobMaxLevel(getJob());
     }
 
     public int getMeso() {
@@ -4252,7 +4027,7 @@ public class Character extends AbstractAnimatedMapObject {
         return gmLevel;
     }
 
-    private void guildUpdate() {
+    void guildUpdate() {
         mgc.setLevel(level);
         mgc.setJobId(job.getId());
 
@@ -4386,20 +4161,19 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public boolean isGmJob() {
-        int jn = job.getJobNiche();
-        return jn >= 8 && jn <= 9;
+        return job.isGmJob();
     }
 
     public boolean isCygnus() {
-        return getJobType() == 1;
+        return job.isCygnus();
     }
 
     public boolean isAran() {
-        return job.getId() >= 2000 && job.getId() <= 2112;
+        return job.isAran();
     }
 
     public boolean isBeginnerJob() {
-        return (job.getId() == 0 || job.getId() == 1000 || job.getId() == 2000);
+        return job.isBeginnerJob();
     }
 
     public boolean isGM() {
@@ -4445,7 +4219,7 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    private int getChangedJobSp(Job newJob) {
+    int getChangedJobSp(Job newJob) {    // 包内可见：CharacterJob.changeJob 调用
         int curSp = getUsedSp(newJob) + getJobRemainingSp(newJob);
         int spGain = 0;
         int expectedSp = getJobLevelSp(level - 10, newJob, GameConstants.getJobBranch(newJob));
@@ -4479,7 +4253,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     private int getJobMaxSp(Job job) {
-        int jobBranch = GameConstants.getJobBranch(job);
+        int jobBranch = GameConstants.getJobBranch(getJob());
         int jobRange = GameConstants.getJobUpgradeLevelRange(jobBranch);
         return getJobLevelSp(jobRange, job, jobBranch);
     }
@@ -4499,13 +4273,13 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     private void levelUpGainSp() {
-        if (GameConstants.getJobBranch(job) == 0) {
+        if (GameConstants.getJobBranch(getJob()) == 0) {
             return;
         }
 
         int spGain = GameConfig.getServerInt("level_up_sp_gain");
-        if (GameConfig.getServerBoolean("use_enforce_job_sp_range") && !GameConstants.hasSPTable(job)) {
-            spGain = getSpGain(spGain, job);
+        if (GameConfig.getServerBoolean("use_enforce_job_sp_range") && !GameConstants.hasSPTable(getJob())) {
+            spGain = getSpGain(spGain, getJob());
         }
 
         if (spGain > 0) {
@@ -4558,7 +4332,7 @@ public class Character extends AbstractAnimatedMapObject {
         }
 
         int addhp, addmp;
-        Pair<Integer, Integer> basicHpMp = stats.getBasicLevelUpHpMp(job);
+        Pair<Integer, Integer> basicHpMp = stats.getBasicLevelUpHpMp(getJob());
         addhp = basicHpMp.getLeft();
         addmp = basicHpMp.getRight();
 
@@ -4610,7 +4384,7 @@ public class Character extends AbstractAnimatedMapObject {
             if (level == maxClassLevel) {
                 if (!this.isGM()) {
                     if (GameConfig.getServerBoolean("playernpc_auto_deploy")) {
-                        ThreadManager.getInstance().newTask(() -> PlayerNPC.spawnPlayerNPC(GameConstants.getHallOfFameMapid(job), Character.this));
+                        ThreadManager.getInstance().newTask(() -> PlayerNPC.spawnPlayerNPC(GameConstants.getHallOfFameMapid(getJob()), Character.this));
                     }
 
                     final String names = (getMedalText() + name);
@@ -4985,7 +4759,7 @@ public class Character extends AbstractAnimatedMapObject {
             // skipping pets, probably unneeded here
 
             ret.level = rs.getInt("level");
-            ret.job = Job.getById(rs.getInt("job"));
+            ret.setJob(Job.getById(rs.getInt("job")));
             ret.applyData(CharacterData.deserialize(rs.getString("stats_json")));
             ret.exp.set(rs.getInt("exp"));
             ret.fame = rs.getInt("fame");
@@ -5026,7 +4800,7 @@ public class Character extends AbstractAnimatedMapObject {
         // skipping pets, probably unneeded here
 
         ret.level = this.getLevel();
-        ret.job = this.getJob();
+        ret.setJob(this.getJob());
         for (int i = 0; i < BASE_STAT_COUNT; i++) {
             ret.stats.attrs[i] = this.stats.getAttr(i);
         }
@@ -5298,7 +5072,7 @@ public class Character extends AbstractAnimatedMapObject {
         cdo.setGm(chr.gmLevel());
         cdo.setSkincolor(chr.getSkinColor().getId());
         cdo.setGender(chr.getGender());
-        cdo.setJob(chr.getJob().getId());
+        cdo.setJob(chr.job.getId());
         cdo.setHair(chr.getHair());
         cdo.setFace(chr.getFace());
         if (chr.getMap() == null || (chr.getCashShop() != null && chr.getCashShop().isOpened())) {
@@ -5896,7 +5670,7 @@ public class Character extends AbstractAnimatedMapObject {
                     ps.setInt(1, gmLevel);
                     ps.setInt(2, skinColor.getId());
                     ps.setInt(3, gender);
-                    ps.setInt(4, getJob().getId());
+                    ps.setInt(4, job.getId());
                     ps.setInt(5, hair);
                     ps.setInt(6, face);
                     ps.setInt(7, mapId);
