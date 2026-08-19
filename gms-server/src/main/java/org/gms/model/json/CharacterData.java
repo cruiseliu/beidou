@@ -13,6 +13,8 @@ public class CharacterData {
     public CharacterApData ap;
     public CharacterSpData sp;
     public CharacterDebuffsData debuffs;
+    /** 反作弊数据（监狱刑期等） */
+    public CharacterAntiCheatData antiCheat;
     /** 职业 id（CharacterJob.job），与 character 表 job 列冗余双写 */
     public int jobId;
     /** 当前地图 id（CharacterMap.mapId），与 character 表 map 列冗余双写 */

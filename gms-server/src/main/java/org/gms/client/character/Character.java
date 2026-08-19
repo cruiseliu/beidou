@@ -141,6 +141,7 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterJob job = new CharacterJob(this);
     final CharacterMap map = new CharacterMap(this);
     final CharacterRates rates = new CharacterRates(this);
+    final CharacterAntiCheat antiCheat = new CharacterAntiCheat(this);
 
     @Getter
     @Setter
@@ -271,8 +272,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     private long lastUsedCashItem;
     private long lastExpression = 0;
-    @Setter
-    private long jailExpiration = -1;
     @Getter
     private boolean hidden;
     private boolean equipchanged = true, berserk, hasMerchant, hasSandboxItem = false, whiteChat = false;
@@ -399,27 +398,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     private final Set<Integer> disabledPartySearchInvites = new LinkedHashSet<>();
     private long portaldelay = 0;
-    // 记录最近一次“瞬移类位移”发生时间（单调时钟纳秒，用于短时间内的距离检测防误判）
-    private volatile long lastTeleportLikeMoveTime = 0;
-    // 传送距离误判修正上下文：用于“传送前坐标 + 当前坐标”双坐标校验
-    private static final long TELEPORT_DISTANCE_CONTEXT_EXPIRE_NS = MILLISECONDS.toNanos(1200L); // 保护窗口，过长会增加可利用面
-    private static final byte TELEPORT_DISTANCE_CONTEXT_MAX_ATTACK_CHECKS = 2; // 最多保护 2 次攻击包
-    private static final double TELEPORT_DISTANCE_CONTEXT_MIN_SHIFT_SQ = 1600.0; // 至少 40px 位移才建立上下文
-    private Point teleportBeforePos = null; // 传送前服务端坐标（用于双坐标距离复核）
-    private Point teleportAfterPos = null; // 传送后服务端坐标（用于确认确实发生了传送位移）
-    private int teleportContextMapId = MapId.NONE; // 传送上下文所属地图，跨图后自动失效
-    private long teleportContextExpireTime = 0L; // 传送上下文过期时间戳（单调时钟纳秒）
-    private byte teleportContextRemainingChecks = 0; // 传送上下文剩余可用攻击校验次数
-    // 宠物拾取传送补偿：内传送门后记录传送前玩家坐标，用于宠物旧位置物品捡取防误判
-    // 普通移动距离误判修正上下文：只覆盖“移动包后紧跟攻击包”的极短时间窗
-    private static final long MOVEMENT_DISTANCE_CONTEXT_EXPIRE_NS = MILLISECONDS.toNanos(350L);
-    private static final byte MOVEMENT_DISTANCE_CONTEXT_MAX_ATTACK_CHECKS = 1;
-    private static final double MOVEMENT_DISTANCE_CONTEXT_MIN_SHIFT_SQ = 400.0; // 至少 20px 位移才建立上下文
-    private Point movementBeforePos = null;
-    private Point movementAfterPos = null;
-    private int movementContextMapId = MapId.NONE;
-    private long movementContextExpireTime = 0L;
-    private byte movementContextRemainingChecks = 0;
     @Getter
     @Setter
     private long lastCombo = 0;
@@ -427,10 +405,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     private final List<String> blockedPortals = new ArrayList<>();
     private final Map<Short, String> area_info = new LinkedHashMap<>();
-    private AutobanManager autoBan;
-    @Getter
-    @Setter
-    private boolean banned = false;
     private boolean blockCashShop = false;
     private boolean allowExpGain = true;
     private byte pendantExp = 0, doorSlot = -1;
@@ -470,9 +444,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     private long targetHpBarTime = 0;
     private long nextWarningTime = 0;
-    private int banishMap = -1;
-    private int banishSp = -1;
-    private long banishTime = 0;
     @Setter
     private long lastExpGainTime;
     private boolean pendingNameChange; //only used to change name on logout, not to be relied upon elsewhere
@@ -494,7 +465,7 @@ public class Character extends AbstractAnimatedMapObject {
     static final CharacterService characterService = ServerManager.getApplicationContext().getBean(CharacterService.class);
     private static final NameChangeService nameChangeService = ServerManager.getApplicationContext().getBean(NameChangeService.class);
     private static final WorldTransferService worldTransferService = ServerManager.getApplicationContext().getBean(WorldTransferService.class);
-    private static final AccountService accountService = ServerManager.getApplicationContext().getBean(AccountService.class);
+    static final AccountService accountService = ServerManager.getApplicationContext().getBean(AccountService.class);    // 包内可见：CharacterAntiCheat.ban/block 调用
     static final HpMpAlertService hpMpAlertService = ServerManager.getApplicationContext().getBean(HpMpAlertService.class);    // 包内可见：CharacterStats.applyHpMpChange 调用
     private static final InventoryService inventoryService = ServerManager.getApplicationContext().getBean(InventoryService.class);
 
@@ -849,20 +820,6 @@ public class Character extends AbstractAnimatedMapObject {
         visibleMapObjects.add(mo);
     }
 
-    public void ban(String reason) {
-        accountService.ban(this, reason);
-    }
-
-    public static boolean ban(String id, String reason, boolean accountId) {
-        try {
-            accountService.ban(id, reason, accountId);
-            return true;
-        } catch (Exception ex) {
-            log.error(I18nUtil.getLogMessage("Character.ban.error1"), id, ex);
-        }
-        return false;
-    }
-
     public int calculateMaxBaseDamage(int watk, WeaponType weapon) {
         int mainstat, secondarystat;
         if (job.isA(Job.THIEF) && weapon == WeaponType.DAGGER_OTHER) {
@@ -1125,50 +1082,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void broadcastStance() {
         getMap().broadcastMessage(this, PacketCreator.movePlayer(id, this.getIdleMovement(), AbstractAnimatedMapObject.IDLE_MOVEMENT_PACKET_LENGTH), false);
-    }
-
-    public boolean canRecoverLastBanish() {
-        return System.currentTimeMillis() - this.banishTime < MINUTES.toMillis(5);
-    }
-
-    public Pair<Integer, Integer> getLastBanishData() {
-        return new Pair<>(this.banishMap, this.banishSp);
-    }
-
-    public void clearBanishPlayerData() {
-        this.banishMap = -1;
-        this.banishSp = -1;
-        this.banishTime = 0;
-    }
-
-    public void setBanishPlayerData(int banishMap, int banishSp, long banishTime) {
-        this.banishMap = banishMap;
-        this.banishSp = banishSp;
-        this.banishTime = banishTime;
-    }
-
-    public void changeMapBanish(int mapid, String portal, String msg) {
-        if (GameConfig.getServerBoolean("use_spikes_avoid_banish")) {
-            for (Item it : this.getInventory(InventoryType.EQUIPPED).list()) {
-                if ((it.getFlag() & ItemConstants.SPIKES) == ItemConstants.SPIKES) {
-                    return;
-                }
-            }
-        }
-
-        int banMap = this.getMapId();
-        int banSp = this.getMap().findClosestPlayerSpawnpoint(this.getPosition()).getId();
-        long banTime = System.currentTimeMillis();
-
-        if (msg != null) {
-            dropMessage(5, msg);
-        }
-
-        MapleMap map_ = getWarpMap(mapid);
-        Portal portal_ = map_.getPortal(portal);
-        changeMap(map_, portal_ != null ? portal_ : map_.getRandomPlayerSpawnpoint());
-
-        setBanishPlayerData(banMap, banSp, banTime);
     }
 
     private boolean buffMapProtection() {
@@ -3615,7 +3528,6 @@ public class Character extends AbstractAnimatedMapObject {
         chr.setFace(charactersDO.getFace());
         chr.setAccountId(charactersDO.getAccountid());
         // mapId 仅从 character_json 恢复（applyData），character 表 map 列为冗余双写
-        chr.setJailExpiration(charactersDO.getJailexpire());
         chr.setInitialSpawnPoint(charactersDO.getSpawnpoint());
         chr.setWorld(charactersDO.getWorld());
         chr.setRank(charactersDO.getRank());
@@ -3761,6 +3673,7 @@ public class Character extends AbstractAnimatedMapObject {
         data.ap = ap.toData();
         data.sp = sp.toData();
         data.debuffs = debuffs.toData();
+        data.antiCheat = antiCheat.toData();
         data.jobId = job.getId();
         data.mapId = getMapId();
         data.timestamp = Server.getInstance().getCurrentTime();
@@ -3773,6 +3686,7 @@ public class Character extends AbstractAnimatedMapObject {
         ap.applyData(data.ap);
         sp.applyData(data.sp);
         debuffs.applyData(data.debuffs, data.timestamp);
+        antiCheat.applyData(data.antiCheat);
         job.setJob(Job.getById(data.jobId));
         map.setMapId(data.mapId);
     }
@@ -4267,7 +4181,7 @@ public class Character extends AbstractAnimatedMapObject {
             try {
                 String statsJson;
 
-                try (PreparedStatement ps = con.prepareStatement("UPDATE characters SET level = ?, fame = ?, exp = ?, gachaexp = ?, gm = ?, skincolor = ?, gender = ?, job = ?, hair = ?, face = ?, meso = ?, spawnpoint = ?, party = ?, buddyCapacity = ?, messengerid = ?, messengerposition = ?, mountlevel = ?, mountexp = ?, mounttiredness= ?, equipslots = ?, useslots = ?, setupslots = ?, etcslots = ?,  monsterbookcover = ?, vanquisherStage = ?, dojoPoints = ?, lastDojoStage = ?, finishedDojoTutorial = ?, vanquisherKills = ?, matchcardwins = ?, matchcardlosses = ?, matchcardties = ?, omokwins = ?, omoklosses = ?, omokties = ?, dataString = ?, fquest = ?, jailexpire = ?, partnerId = ?, marriageItemId = ?, lastExpGainTime = ?, ariantPoints = ?, partySearch = ? WHERE id = ?", Statement.RETURN_GENERATED_KEYS)) {
+                try (PreparedStatement ps = con.prepareStatement("UPDATE characters SET level = ?, fame = ?, exp = ?, gachaexp = ?, gm = ?, skincolor = ?, gender = ?, job = ?, hair = ?, face = ?, meso = ?, spawnpoint = ?, party = ?, buddyCapacity = ?, messengerid = ?, messengerposition = ?, mountlevel = ?, mountexp = ?, mounttiredness= ?, equipslots = ?, useslots = ?, setupslots = ?, etcslots = ?,  monsterbookcover = ?, vanquisherStage = ?, dojoPoints = ?, lastDojoStage = ?, finishedDojoTutorial = ?, vanquisherKills = ?, matchcardwins = ?, matchcardlosses = ?, matchcardties = ?, omokwins = ?, omoklosses = ?, omokties = ?, dataString = ?, fquest = ?, partnerId = ?, marriageItemId = ?, lastExpGainTime = ?, ariantPoints = ?, partySearch = ? WHERE id = ?", Statement.RETURN_GENERATED_KEYS)) {
                     ps.setInt(1, level);    // thanks CanIGetaPR for noticing an unnecessary "level" limitation when persisting DB data
                     ps.setInt(2, fame);
 
@@ -4347,13 +4261,12 @@ public class Character extends AbstractAnimatedMapObject {
                     ps.setInt(35, omokties);
                     ps.setString(36, dataString);
                     ps.setInt(37, questFame);
-                    ps.setLong(38, jailExpiration);
-                    ps.setInt(39, partnerId);
-                    ps.setInt(40, marriageItemId);
-                    ps.setTimestamp(41, new Timestamp(lastExpGainTime));
-                    ps.setInt(42, ariantPoints);
-                    ps.setBoolean(43, canRecvPartySearchInvite);
-                    ps.setInt(44, id);
+                    ps.setInt(38, partnerId);
+                    ps.setInt(39, marriageItemId);
+                    ps.setTimestamp(40, new Timestamp(lastExpGainTime));
+                    ps.setInt(41, ariantPoints);
+                    ps.setBoolean(42, canRecvPartySearchInvite);
+                    ps.setInt(43, id);
 
                     int updateRows = ps.executeUpdate();
                     if (updateRows < 1) {
@@ -4589,31 +4502,6 @@ public class Character extends AbstractAnimatedMapObject {
         } catch (Exception e) {
             log.error("Error saving chr {}, level: {}, job: {}", name, level, job.getId(), e);
         }
-    }
-
-    public void sendPolice(int greason, String reason, int duration) {
-        sendPacket(PacketCreator.sendPolice(String.format("You have been blocked by the#b %s Police for %s.#k", "Cosmic", reason)));
-        this.banned = true;
-        TimerManager.getInstance().schedule(() -> client.disconnect(false, false), duration);
-    }
-
-    public void sendPolice(String text) {
-        final String message = getName() + " received this - " + text;
-        if (Server.getInstance().isGmOnline(this.getWorld())) { //Alert and log if a GM is online
-            Server.getInstance().broadcastGMMessage(this.getWorld(), PacketCreator.sendYellowTip(message));
-        } else { //Auto DC and log if no GM is online
-            client.disconnect(false, false);
-        }
-        log.info(message);
-        //Server.getInstance().broadcastGMMessage(0, PacketCreator.serverNotice(1, getName() + " received this - " + text));
-        //sendPacket(PacketCreator.sendPolice(text));
-        //this.isbanned = true;
-        //TimerManager.getInstance().schedule(new Runnable() {
-        //    @Override
-        //    public void run() {
-        //        client.disconnect(false, false);
-        //    }
-        //}, 6000);
     }
 
     public void sendKeymap() {
@@ -5496,178 +5384,6 @@ public class Character extends AbstractAnimatedMapObject {
         return portaldelay;
     }
 
-    /**
-     * 标记一次瞬移类位移（例如树洞/传送动作）。
-     */
-    public void markTeleportLikeMove() {
-        this.lastTeleportLikeMoveTime = monotonicNow();
-    }
-
-    /**
-     * 标记一次瞬移类位移，并记录传送前后坐标用于后续攻击距离双坐标校验。
-     *
-     * <p>只在位移明显时建立上下文，避免普通小步移动误入传送保护逻辑。</p>
-     */
-    public synchronized void markTeleportLikeMove(Point beforePos, Point afterPos) {
-        long now = monotonicNow();
-        this.lastTeleportLikeMoveTime = now;
-
-        if (!shouldBuildTeleportDistanceContext(beforePos, afterPos)) {
-            clearTeleportDistanceContextLocked();
-            return;
-        }
-
-        this.teleportBeforePos = copyPoint(beforePos);
-        this.teleportAfterPos = copyPoint(afterPos);
-        this.teleportContextMapId = getMapId();
-        this.teleportContextExpireTime = now + TELEPORT_DISTANCE_CONTEXT_EXPIRE_NS;
-        this.teleportContextRemainingChecks = TELEPORT_DISTANCE_CONTEXT_MAX_ATTACK_CHECKS;
-    }
-
-    /**
-     * 记录一次普通移动前后坐标，用于极短时间窗内的攻击距离双坐标校验。
-     */
-    public synchronized void markRegularMove(Point beforePos, Point afterPos) {
-        long now = monotonicNow();
-        if (!shouldBuildMovementDistanceContext(beforePos, afterPos)) {
-            clearMovementDistanceContextLocked();
-            return;
-        }
-
-        this.movementBeforePos = copyPoint(beforePos);
-        this.movementAfterPos = copyPoint(afterPos);
-        this.movementContextMapId = getMapId();
-        this.movementContextExpireTime = now + MOVEMENT_DISTANCE_CONTEXT_EXPIRE_NS;
-        this.movementContextRemainingChecks = MOVEMENT_DISTANCE_CONTEXT_MAX_ATTACK_CHECKS;
-    }
-
-    /**
-     * 获取最近一次瞬移类位移时间戳（单调时钟纳秒）。
-     */
-    public long getLastTeleportLikeMoveTime() {
-        return lastTeleportLikeMoveTime;
-    }
-
-    /**
-     * 获取用于攻击距离校验的“传送前坐标”。
-     *
-     * <p>仅在上下文仍有效时返回，超时/跨图/次数耗尽会自动清理。</p>
-     */
-    public synchronized Point getTeleportBeforePositionForDistanceCheck() {
-        if (!isTeleportDistanceContextActiveLocked(monotonicNow())) {
-            clearTeleportDistanceContextLocked();
-            return null;
-        }
-        return copyPoint(teleportBeforePos);
-    }
-
-    /**
-     * 获取用于攻击距离校验的“普通移动前坐标”。
-     */
-    public synchronized Point getMovementBeforePositionForDistanceCheck() {
-        if (!isMovementDistanceContextActiveLocked(monotonicNow())) {
-            clearMovementDistanceContextLocked();
-            return null;
-        }
-        return copyPoint(movementBeforePos);
-    }
-
-    /**
-     * 消费一次传送距离保护校验次数（按攻击包维度消费）。
-     */
-    public synchronized void consumeTeleportDistanceCheckContext() {
-        if (!isTeleportDistanceContextActiveLocked(monotonicNow())) {
-            clearTeleportDistanceContextLocked();
-            return;
-        }
-
-        teleportContextRemainingChecks--;
-        if (teleportContextRemainingChecks <= 0) {
-            clearTeleportDistanceContextLocked();
-        }
-    }
-
-    /**
-     * 消费一次普通移动距离保护校验次数。
-     */
-    public synchronized void consumeMovementDistanceCheckContext() {
-        if (!isMovementDistanceContextActiveLocked(monotonicNow())) {
-            clearMovementDistanceContextLocked();
-            return;
-        }
-
-        movementContextRemainingChecks--;
-        if (movementContextRemainingChecks <= 0) {
-            clearMovementDistanceContextLocked();
-        }
-    }
-
-    /**
-     * 显式清空“传送距离校验上下文”。
-     *
-     * <p>用于跨图切换等关键状态变更点，确保不会携带旧地图上下文参与后续判定。</p>
-     */
-    public synchronized void clearTeleportDistanceContext() {
-        clearTeleportDistanceContextLocked();
-        clearMovementDistanceContextLocked();
-        lastTeleportLikeMoveTime = 0L;
-    }
-
-    private boolean isTeleportDistanceContextActiveLocked(long now) {
-        return teleportBeforePos != null
-                && teleportAfterPos != null
-                && teleportContextRemainingChecks > 0
-                && now <= teleportContextExpireTime
-                && teleportContextMapId == getMapId();
-    }
-
-    private boolean isMovementDistanceContextActiveLocked(long now) {
-        return movementBeforePos != null
-                && movementAfterPos != null
-                && movementContextRemainingChecks > 0
-                && now <= movementContextExpireTime
-                && movementContextMapId == getMapId();
-    }
-
-    private void clearTeleportDistanceContextLocked() {
-        teleportBeforePos = null;
-        teleportAfterPos = null;
-        teleportContextMapId = MapId.NONE;
-        teleportContextExpireTime = 0L;
-        teleportContextRemainingChecks = 0;
-    }
-
-    private void clearMovementDistanceContextLocked() {
-        movementBeforePos = null;
-        movementAfterPos = null;
-        movementContextMapId = MapId.NONE;
-        movementContextExpireTime = 0L;
-        movementContextRemainingChecks = 0;
-    }
-
-    /**
-     * 仅当传送前后坐标有效且位移幅度足够大时，才建立距离校验上下文。
-     */
-    private static boolean shouldBuildTeleportDistanceContext(Point beforePos, Point afterPos) {
-        return beforePos != null
-                && afterPos != null
-                && beforePos.distanceSq(afterPos) >= TELEPORT_DISTANCE_CONTEXT_MIN_SHIFT_SQ;
-    }
-
-    private static boolean shouldBuildMovementDistanceContext(Point beforePos, Point afterPos) {
-        return beforePos != null
-                && afterPos != null
-                && beforePos.distanceSq(afterPos) >= MOVEMENT_DISTANCE_CONTEXT_MIN_SHIFT_SQ;
-    }
-
-    private static Point copyPoint(Point pos) {
-        return pos == null ? null : new Point(pos);
-    }
-
-    private static long monotonicNow() {
-        return System.nanoTime();
-    }
-
     public void blockPortal(String scriptName) {
         if (!blockedPortals.contains(scriptName) && scriptName != null) {
             blockedPortals.add(scriptName);
@@ -5696,28 +5412,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     public Map<Short, String> getAreaInfos() {
         return area_info;
-    }
-
-    public void autoBan(String reason) {
-        if (this.isGM() || this.isBanned()) {  // thanks RedHat for noticing GM's being able to get banned
-            return;
-        }
-        this.ban(reason);
-        sendPacket(PacketCreator.sendPolice(I18nUtil.getMessage("Character.autoBan.message1")));  //发送自动封禁提示
-        TimerManager.getInstance().schedule(() -> client.disconnect(false, false), 5000);
-
-        Server.getInstance().broadcastGMMessage(this.getWorld(), PacketCreator.serverNotice(6, Character.makeMapleReadable(this.name) + " was autobanned for " + reason));
-    }
-
-    public void block(int reason, int days, String desc) {
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DATE, days);
-        accountService.update(AccountsDO.builder()
-                .id(accountId)
-                .banreason(desc)
-                .tempban(new Timestamp(cal.getTimeInMillis()))
-                .greason(reason)
-                .build());
     }
 
     public List<Integer> getTrockMaps() {
@@ -5783,14 +5477,6 @@ public class Character extends AbstractAnimatedMapObject {
     public boolean isVipTrockMap(int id) {
         int index = viptrockmaps.indexOf(id);
         return index != -1;
-    }
-
-    public AutobanManager getAutoBanManager() {
-        return autoBan;
-    }
-
-    public void setAutoBanManager(AutobanManager autoBan) {
-        this.autoBan = autoBan;
     }
 
     public void equippedItem(Equip equip) {
@@ -6043,28 +5729,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void createDragon() {
         dragon = new Dragon(this);
-    }
-
-    public long getJailExpirationTimeLeft() {
-        return jailExpiration - System.currentTimeMillis();
-    }
-
-    private void setFutureJailExpiration(long time) {
-        jailExpiration = System.currentTimeMillis() + time;
-    }
-
-    public void addJailExpirationTime(long time) {
-        long timeLeft = getJailExpirationTimeLeft();
-
-        if (timeLeft <= 0) {
-            setFutureJailExpiration(time);
-        } else {
-            setFutureJailExpiration(timeLeft + time);
-        }
-    }
-
-    public void removeJailExpirationTime() {
-        jailExpiration = 0;
     }
 
     public boolean registerNameChange(String newName) {
@@ -6407,106 +6071,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     // ==================== 攻击间隔滑动窗口（稳定度识别） ====================
 
-    /** 窗口大小：最近 N 次攻击间隔 */
-    public static final int WINDOW_SIZE = 10;
-    /** 变异系数阈值：CV < 此值判定为稳定高速 */
-    public static final double STABLE_CV = 0.3;
-    /** 网络抖动透明上限：< 此值的间隔不更新状态、不入窗口 */
-    public static final long MIN_INTERVAL = 50;
-    /** 平均阈值：窗口 avg >= 此值判定为正常频率 */
-    public static final long NORMAL_AVG = 250;
-    /** 窗口自动过期时间：60s 无写入自动重置 */
-    private static final long CLEANUP_MS = 60_000;
-
-    /** 各技能攻击间隔滑动窗口 */
-    private final ConcurrentHashMap<Integer, AttackWindow> skillWindows = new ConcurrentHashMap<>();
-
-    /** 全局最后攻击时间戳，只被正常主动技能更新 */
-    private volatile long globalAttackTime;
-
-    /** 滑动窗口判定结果 */
-    public enum SkillWindowResult {
-        PASS,          // 数据不足 / avg >= 250 → 正常
-        STABLE_HACK,   // avg < 250 且 CV < STABLE_CV → 稳定高速
-        BURST          // avg < 250 但 CV >= STABLE_CV → 网络暴发
-    }
-
-    /** 环形缓冲，保存最近 N 次攻击间隔，满后自动计算 avg + CV */
-    static final class AttackWindow {
-        private final long[] buf = new long[WINDOW_SIZE];
-        private int idx;
-        private int count;
-        private long lastPush;
-
-        AttackWindow() {
-            this.lastPush = System.currentTimeMillis();
-        }
-
-        synchronized void push(long interval) {
-            long now = System.currentTimeMillis();
-            if (now - lastPush > CLEANUP_MS) {
-                idx = 0;
-                count = 0;
-            }
-            buf[idx] = interval;
-            idx = (idx + 1) % WINDOW_SIZE;
-            if (count < WINDOW_SIZE) count++;
-            lastPush = now;
-        }
-
-        synchronized boolean isFull() {
-            return count == WINDOW_SIZE;
-        }
-
-        synchronized double avg() {
-            long sum = 0;
-            for (int i = 0; i < count; i++) sum += buf[i];
-            return (double) sum / count;
-        }
-
-        synchronized double stddev() {
-            double a = avg();
-            double sumSq = 0;
-            for (int i = 0; i < count; i++) {
-                double d = buf[i] - a;
-                sumSq += d * d;
-            }
-            return Math.sqrt(sumSq / count);
-        }
-    }
-
-    /**
-     * 推入间隔到滑动窗口，返回窗口判定结果。
-     * 窗口不满或 avg >= 250 返回 PASS；
-     * avg < 250 且 CV < STABLE_CV 返回 STABLE_HACK；
-     * avg < 250 但 CV >= STABLE_CV 返回 BURST。
-     */
-    public SkillWindowResult checkSkillWindow(int skillId, long interval) {
-        AttackWindow w = skillWindows.computeIfAbsent(skillId, k -> new AttackWindow());
-        w.push(interval);
-        if (!w.isFull()) return SkillWindowResult.PASS;
-        double avg = w.avg();
-        if (avg >= NORMAL_AVG) return SkillWindowResult.PASS;
-        double cv = w.stddev() / avg;
-        return cv < STABLE_CV ? SkillWindowResult.STABLE_HACK : SkillWindowResult.BURST;
-    }
-
-    /** 获取指定技能的滑动窗口（外部只读 avg / isFull），无则返回 null */
-    public AttackWindow getSkillWindow(int skillId) {
-        return skillWindows.get(skillId);
-    }
-
-    /** 获取全局攻击间隔。首次或未设时返回 Long.MAX_VALUE */
-    public long getGlobalInterval(long now) {
-        long last = globalAttackTime;
-        return last == 0 ? Long.MAX_VALUE : now - last;
-    }
-
-    /** 更新全局攻击时间戳，只被正常主动技能调用 */
-    public void updateGlobalTime(long now) {
-        globalAttackTime = now;
-    }
-
     // ══════════════════ 组件门面（按模块归类） ══════════════════
 
     // ── buffs 门面 ──
@@ -6620,6 +6184,11 @@ public class Character extends AbstractAnimatedMapObject {
     public void setMap(int PmapId) { map.setMap(PmapId); }
     public void setMapId(int mapId) { map.setMapId(mapId); }
     public MapleMap getMap(int mapid, boolean showMsg) { return map.getMap(mapid, showMsg); }
+    public boolean canRecoverLastBanish() { return map.canRecoverLastBanish(); }
+    public Pair<Integer, Integer> getLastBanishData() { return map.getLastBanishData(); }
+    public void clearBanishPlayerData() { map.clearBanishPlayerData(); }
+    public void setBanishPlayerData(int banishMap, int banishSp, long banishTime) { map.setBanishPlayerData(banishMap, banishSp, banishTime); }
+    public void changeMapBanish(int mapid, String portal, String msg) { map.changeMapBanish(mapid, portal, msg); }
 
     // ── ap 门面 ──
 
@@ -6798,4 +6367,43 @@ public class Character extends AbstractAnimatedMapObject {
     public void removeAllCooldownsExcept(int id, boolean packet) { skills.removeAllCooldownsExcept(id, packet); }
     public void removeCooldown(int skillId) { skills.removeCooldown(skillId); }
     public boolean skillIsCooling(int skillId) { return skills.skillIsCooling(skillId); }
+
+    // ── antiCheat 门面 ──
+
+    /** 滑动窗口判定结果（public API：供 AbstractDealDamageHandler 等外部 switch，判定逻辑在 CharacterAntiCheat） */
+    public enum SkillWindowResult {
+        PASS,          // 数据不足 / avg >= 250 → 正常
+        STABLE_HACK,   // avg < 250 且 CV < STABLE_CV → 稳定高速
+        BURST          // avg < 250 但 CV >= STABLE_CV → 网络暴发
+    }
+
+    /** 网络抖动透明上限：< 此值的间隔不更新状态、不入窗口（转发 CharacterAntiCheat） */
+    public static final long MIN_INTERVAL = CharacterAntiCheat.MIN_INTERVAL;
+    /** 平均阈值：窗口 avg >= 此值判定为正常频率（转发 CharacterAntiCheat） */
+    public static final long NORMAL_AVG = CharacterAntiCheat.NORMAL_AVG;
+
+    public void ban(String reason) { antiCheat.ban(reason); }
+    public static boolean ban(String id, String reason, boolean accountId) { return CharacterAntiCheat.ban(id, reason, accountId); }
+    public void autoBan(String reason) { antiCheat.autoBan(reason); }
+    public void block(int reason, int days, String desc) { antiCheat.block(reason, days, desc); }
+    public void sendPolice(int greason, String reason, int duration) { antiCheat.sendPolice(greason, reason, duration); }
+    public void sendPolice(String text) { antiCheat.sendPolice(text); }
+    public boolean isBanned() { return antiCheat.isBanned(); }
+    public void setBanned(boolean banned) { antiCheat.setBanned(banned); }
+    public AutobanManager getAutoBanManager() { return antiCheat.getAutoBanManager(); }
+    public void setAutoBanManager(AutobanManager autoBan) { antiCheat.setAutoBanManager(autoBan); }
+    public long getJailExpirationTimeLeft() { return antiCheat.getJailExpirationTimeLeft(); }
+    public void addJailExpirationTime(long time) { antiCheat.addJailExpirationTime(time); }
+    public void removeJailExpirationTime() { antiCheat.removeJailExpirationTime(); }
+    public SkillWindowResult checkSkillWindow(int skillId, long interval) { return antiCheat.checkSkillWindow(skillId, interval); }
+    public CharacterAntiCheat.AttackWindow getSkillWindow(int skillId) { return antiCheat.getSkillWindow(skillId); }
+    public long getGlobalInterval(long now) { return antiCheat.getGlobalInterval(now); }
+    public void updateGlobalTime(long now) { antiCheat.updateGlobalTime(now); }
+    public synchronized void markTeleportLikeMove(Point beforePos, Point afterPos) { antiCheat.markTeleportLikeMove(beforePos, afterPos); }
+    public synchronized void markRegularMove(Point beforePos, Point afterPos) { antiCheat.markRegularMove(beforePos, afterPos); }
+    public synchronized Point getTeleportBeforePositionForDistanceCheck() { return antiCheat.getTeleportBeforePositionForDistanceCheck(); }
+    public synchronized Point getMovementBeforePositionForDistanceCheck() { return antiCheat.getMovementBeforePositionForDistanceCheck(); }
+    public synchronized void consumeTeleportDistanceCheckContext() { antiCheat.consumeTeleportDistanceCheckContext(); }
+    public synchronized void consumeMovementDistanceCheckContext() { antiCheat.consumeMovementDistanceCheckContext(); }
+    public synchronized void clearTeleportDistanceContext() { antiCheat.clearTeleportDistanceContext(); }
 }

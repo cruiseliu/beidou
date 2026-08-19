@@ -171,6 +171,4 @@ public class CharactersDO implements Serializable {
     @Column("partySearch")
     private Boolean partySearch;
 
-    private Long jailexpire;
-
 }

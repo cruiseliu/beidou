@@ -17,6 +17,7 @@ import org.gms.server.Trade;
 import org.gms.server.maps.MapleMap;
 import org.gms.server.maps.Portal;
 import org.gms.util.I18nUtil;
+import org.gms.util.Pair;
 import org.gms.util.PacketCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,13 +31,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
+
 /**
- * 地图模块组件：当前地图（map/mapId）+ 换图状态 + 换图流程（changeMap 系列）+ 地图历史。
+ * 地图模块组件：当前地图（map/mapId）+ 换图状态 + 换图流程（changeMap 系列）+ 地图历史 + 放逐（banish）。
  * 仿照 CharacterBuffs/CharacterChair 模式：数据 + 领域逻辑内聚于此，持有 owner 反向引用，
  * Character 保留公开具名门面（getMap/getMapId/changeMap/... 对外转发）。
  *
- * 边界：只承载地图管理语义——当前图状态、换图（warp）、地图历史。
- * 换图流程中编排的其他模块（party/Trade/chair/banish/event/summons 等）经 owner 门面调用；
+ * 边界：只承载地图管理语义——当前图状态、换图（warp）、地图历史、放逐（banish 城镇卷轴/怪物放逐）。
+ * 换图流程中编排的其他模块（party/Trade/chair/event/summons 等）经 owner 门面调用；
  * partyOperationUpdate（组队地图协作）属 party 语义，留在 Character。
  */
 class CharacterMap {
@@ -64,6 +67,11 @@ class CharacterMap {
     private final LinkedList<WeakReference<MapleMap>> lastVisitedMaps = new LinkedList<>();
     /** 地图历史锁 */
     private final Lock mapHistoryLock = new ReentrantLock(true);
+
+    /** 放逐前位置记录（回城卷轴/怪物放逐写入，防放逐卷轴读取恢复） */
+    private int banishMap = -1;
+    private int banishSp = -1;
+    private long banishTime = 0;
 
     CharacterMap(Character owner) {
         this.owner = owner;
@@ -300,7 +308,7 @@ class CharacterMap {
         owner.clearTeleportDistanceContext();
 
         owner.unregisterChairBuff();
-        owner.clearBanishPlayerData();
+        clearBanishPlayerData();
         Trade.cancelTrade(owner, Trade.TradeResult.UNSUCCESSFUL_ANOTHER_MAP);
         owner.closePlayerInteractions();
 
@@ -434,5 +442,59 @@ class CharacterMap {
         } finally {
             mapHistoryLock.unlock();
         }
+    }
+
+    // ── 放逐（banish）──
+
+    /** 放逐前位置是否仍可恢复（5 分钟内） */
+    boolean canRecoverLastBanish() {
+        return System.currentTimeMillis() - this.banishTime < MINUTES.toMillis(5);
+    }
+
+    /** 放逐前位置（地图 + 出生点） */
+    Pair<Integer, Integer> getLastBanishData() {
+        return new Pair<>(this.banishMap, this.banishSp);
+    }
+
+    /** 清空放逐前位置记录（换图/断线时调用） */
+    void clearBanishPlayerData() {
+        this.banishMap = -1;
+        this.banishSp = -1;
+        this.banishTime = 0;
+    }
+
+    /** 记录放逐前位置（回城卷轴/怪物放逐写入） */
+    void setBanishPlayerData(int banishMap, int banishSp, long banishTime) {
+        this.banishMap = banishMap;
+        this.banishSp = banishSp;
+        this.banishTime = banishTime;
+    }
+
+    /**
+     * 怪物放逐：记录当前位置后强制换图到放逐点（可被防放逐卷轴返回）。
+     * 穿着钉子鞋（SPIKES）且开启 use_spikes_avoid_banish 时免疫。
+     */
+    void changeMapBanish(int mapid, String portal, String msg) {
+        if (GameConfig.getServerBoolean("use_spikes_avoid_banish")) {
+            for (Item it : owner.getInventory(InventoryType.EQUIPPED).list()) {
+                if ((it.getFlag() & ItemConstants.SPIKES) == ItemConstants.SPIKES) {
+                    return;
+                }
+            }
+        }
+
+        int banMap = getMapId();
+        int banSp = getMap().findClosestPlayerSpawnpoint(owner.getPosition()).getId();
+        long banTime = System.currentTimeMillis();
+
+        if (msg != null) {
+            owner.dropMessage(5, msg);
+        }
+
+        MapleMap map_ = getWarpMap(mapid);
+        Portal portal_ = map_.getPortal(portal);
+        changeMap(map_, portal_ != null ? portal_ : map_.getRandomPlayerSpawnpoint());
+
+        setBanishPlayerData(banMap, banSp, banTime);
     }
 }
