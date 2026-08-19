@@ -92,8 +92,9 @@ class CharacterDebuffs {
             for (Entry<Disease, Pair<Long, MobSkill>> di : debuffMap.entrySet()) {
                 long expTime = curTime + di.getValue().getLeft();
 
+                // 反序列化/恢复只登记、不调度：定时器尚未激活，schedule 会被丢弃（死代码）；
+                // 真正的初次调度由 startExpireTimer 的补排（scheduleOrTrigger）在激活时点统一完成。
                 debuffs.put(di.getKey(), new DebuffStatus(di.getKey(), di.getValue().getRight(), curTime, di.getValue().getLeft()));
-                debuffExpireTimer.schedule(di.getKey().ordinal(), curTime + di.getValue().getLeft());
             }
         }
     }

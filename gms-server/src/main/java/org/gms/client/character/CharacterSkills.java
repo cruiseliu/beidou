@@ -146,17 +146,6 @@ class CharacterSkills {
         cooldownTimer.schedule(skillId, startTime + length);
     }
 
-    void giveCoolDowns(final int skillid, long starttime, long length) {
-        if (skillid == 5221999) {
-            owner.battleshipHp = (int) length;
-            addCooldown(skillid, 0, length);
-        } else {
-            long timeNow = Server.getInstance().getCurrentTime();
-            int time = (int) ((length + starttime) - timeNow);
-            addCooldown(skillid, timeNow, time);
-        }
-    }
-
     List<PlayerCoolDownValueHolder> getAllCooldowns() {
         List<PlayerCoolDownValueHolder> ret = new ArrayList<>();
 
@@ -218,6 +207,11 @@ class CharacterSkills {
     }
 
     void applyData(CharacterSkillsData d) {
+        // 反序列化只恢复状态、不调度：applyData 必须发生在定时器激活（startTimers）之前，
+        // 否则"只填状态、不调度"的前提就不成立——先断言定时器未激活，杜绝"schedule 先于 start"重现。
+        if (cooldownTimer.isActive() || skillExpireTimer.isActive()) {
+            throw new IllegalStateException("CharacterSkills.applyData 必须在定时器激活前调用（反序列化期）");
+        }
         entries.clear();
         for (Map.Entry<Integer, CharacterSkillsData.SkillEntryData> e : d.entries.entrySet()) {
             Skill skill = SkillFactory.getSkill(e.getKey());
@@ -226,9 +220,23 @@ class CharacterSkills {
                 entries.put(skill, new SkillEntry(e.getValue().level, e.getValue().masterLevel, expiration));
             }
         }
+        // 反序列化只恢复状态、不调度：定时器尚未激活，schedule 会被 TimeoutHelper 丢弃（死代码）；
+        // 真正的初次调度由 startTimers 的补排（scheduleOrTrigger）在激活时点统一完成。
         coolDowns.clear();
-        for (Map.Entry<Integer, CharacterSkillsData.CooldownData> e : d.cooldowns.entrySet()) {
-            giveCoolDowns(e.getKey(), e.getValue().startTime, e.getValue().length);
+        long timeNow = Server.getInstance().getCurrentTime();
+        try (var ignored = Locks.acquire(owner.chrLock)) {
+            for (Map.Entry<Integer, CharacterSkillsData.CooldownData> e : d.cooldowns.entrySet()) {
+                int skillId = e.getKey();
+                long startTime = e.getValue().startTime;
+                long length = e.getValue().length;
+                if (skillId == 5221999) {   // 战船冷却槽复用为血量标记
+                    owner.battleshipHp = (int) length;
+                    coolDowns.put(skillId, new CooldownValueHolder(skillId, 0, length));
+                } else {
+                    int remaining = (int) ((length + startTime) - timeNow);
+                    coolDowns.put(skillId, new CooldownValueHolder(skillId, timeNow, remaining));
+                }
+            }
         }
     }
 

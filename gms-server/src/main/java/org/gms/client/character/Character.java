@@ -4398,10 +4398,6 @@ public class Character extends AbstractAnimatedMapObject {
         return Server.getInstance().getWorld(world);
     }
 
-    public void giveCoolDowns(final int skillid, long starttime, long length) {
-        skills.giveCoolDowns(skillid, starttime, length);
-    }
-
     public int gmLevel() {
         return gmLevel;
     }
