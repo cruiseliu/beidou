@@ -94,8 +94,14 @@ class CharacterMap {
         this.mapId = mapId;
     }
 
-    /** 按 id 取地图（带错误提示）；null 且 showMsg 时告警 */
+    /**
+     * 获取地图类
+     * @param mapid 地图ID
+     * @param showMsg   true = 地图不存在弹出提示，false = 不提示
+     * @return
+     */
     MapleMap getMap(int mapid, boolean showMsg) {
+        /** 按 id 取地图（带错误提示）；null 且 showMsg 时告警 */
         MapleMap map = null;
         try {
             map = owner.getClient().getChannelServer().getMapFactory().getMap(mapid);
@@ -122,10 +128,17 @@ class CharacterMap {
         return warpMap;
     }
 
+    /**
+     * 玩家角色是否处于切换地图的状态
+     * @return boolean
+     */
     boolean isChangingMaps() {
         return this.mapTransitioning.get();
     }
 
+    /**
+     *  设置地图转换完成
+     */
     void setMapTransitionComplete() {
         this.mapTransitioning.set(false);
     }
@@ -141,6 +154,10 @@ class CharacterMap {
         changeMap(map, null);
     }
 
+    /**
+     * 玩家角色更改地图
+     * @param mapid   地图ID
+     */
     void changeMap(int map, Object pt) {
         MapleMap warpMap;
         EventInstanceManager eim = owner.getEventInstance();

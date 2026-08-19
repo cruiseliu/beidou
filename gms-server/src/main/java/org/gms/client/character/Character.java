@@ -16,7 +16,6 @@
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU Affero General Public License for more details.
 
-
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -143,7 +142,6 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterChair chair = new CharacterChair(this);
     final CharacterJob job = new CharacterJob(this);
     final CharacterMap map = new CharacterMap(this);
-
 
     @Getter
     @Setter
@@ -538,7 +536,6 @@ public class Character extends AbstractAnimatedMapObject {
         return intervalRef.get();
     }
 
-
     private Character() {
         useCS = false;
         setStance(0);
@@ -559,40 +556,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
         quests = new LinkedHashMap<>();
         setPosition(new Point(0, 0));
-    }
-
-    // ── 属性读写与更新（原 AbstractCharacterObject 合并而来） ──
-
-    public int getStr() {
-        return stats.getAttr(STR);
-    }
-
-    public int getDex() {
-        return stats.getAttr(DEX);
-    }
-
-    public int getInt() {
-        return stats.getAttr(INT);
-    }
-
-    public int getLuk() {
-        return stats.getAttr(LUK);
-    }
-
-    public int getRemainingAp() {
-        return ap.getRemainingAp();
-    }
-
-    public int getRemainingSp(int jobId) {
-        return sp.getRemainingSp(jobId);
-    }
-
-    public int[] getRemainingSps() {
-        return sp.getRemainingSps();
-    }
-
-    public int getHpMpApUsed() {
-        return ap.getHpMpApUsed();
     }
 
     public boolean isAlive() {
@@ -656,10 +619,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     private void setMp(int newMp) {
         stats.setMp(newMp);
-    }
-
-    public void setRemainingSp(int remainingSp, int jobId) {
-        sp.setRemainingSp(remainingSp, jobId);
     }
 
     private void setMaxHp(int hp_) {
@@ -892,36 +851,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-
-
-
-
-    // ── AP 委托：实现集中在 CharacterAp ──
-
-    public boolean assignHP(int deltaHP, int deltaAp) {
-        return ap.assignHP(deltaHP, deltaAp);
-    }
-
-    public boolean assignMP(int deltaMP, int deltaAp) {
-        return ap.assignMP(deltaMP, deltaAp);
-    }
-
-    public boolean assignStr(int x) {
-        return ap.assignAttr(STR, x);
-    }
-
-    public boolean assignDex(int x) {
-        return ap.assignAttr(DEX, x);
-    }
-
-    public boolean assignInt(int x) {
-        return ap.assignAttr(INT, x);
-    }
-
-    public boolean assignLuk(int x) {
-        return ap.assignAttr(LUK, x);
-    }
-
     public boolean assignStrDexIntLuk(int deltaStr, int deltaDex, int deltaInt, int deltaLuk) {
         Integer[] delta = new Integer[BASE_STAT_COUNT];
         delta[STR] = deltaStr;
@@ -929,14 +858,6 @@ public class Character extends AbstractAnimatedMapObject {
         delta[INT] = deltaInt;
         delta[LUK] = deltaLuk;
         return ap.assignAttrs(delta);
-    }
-
-    public void changeRemainingAp(int x, boolean silent) {
-        ap.changeRemainingAp(x, silent);
-    }
-
-    public void gainAp(int deltaAp, boolean silent) {
-        ap.gainAp(deltaAp, silent);
     }
 
     /** 四维全部设为 x（管理命令用） */
@@ -956,22 +877,10 @@ public class Character extends AbstractAnimatedMapObject {
         sp.changeRemainingSp(remainingSp, jobId, false);
     }
 
-    public void gainSp(int deltaSp, int jobId, boolean silent) {
-        sp.gainSp(deltaSp, jobId, silent);
-    }
-
-    public Job getJobStyle(byte opt) {
-        return job.getJobStyle(opt);
-    }
-
     public void setHair(int hair) {
         int oldHair = this.hair;
         this.hair = hair;
         DynamicHairMedal.onHairChanged(this, oldHair, hair);
-    }
-
-    public Job getJobStyle() {
-        return job.getJobStyle();
     }
 
     public static Character getDefault(Client c) {
@@ -1097,10 +1006,6 @@ public class Character extends AbstractAnimatedMapObject {
         npcCd = d;
     }
 
-    public void addCooldown(int skillId, long startTime, long length) {
-        skills.addCooldown(skillId, startTime, length);
-    }
-
     public Ring getRingById(int id) {
         Optional<Ring> ringOptional = getCrushRings().stream().filter(ring -> ring.getRingId() == id).findFirst();
         if (ringOptional.isPresent()) {
@@ -1153,9 +1058,6 @@ public class Character extends AbstractAnimatedMapObject {
     public void addMesosTraded(int gain) {
         this.mesosTraded += gain;
     }
-
-    public void addPet(Pet pet) { pets.addPet(pet); }
-
 
     /**
      * 召唤物/傀儡的地图侧移除：广播、地图对象、登记与小灵伴随调度清理。
@@ -1426,10 +1328,6 @@ public class Character extends AbstractAnimatedMapObject {
         this.ci = type;
     }
 
-    public synchronized void changeJob(Job newJob) {
-        job.changeJob(newJob);
-    }
-
     public void broadcastAcquaintances(int type, String message) {
         broadcastAcquaintances(PacketCreator.serverNotice(type, message));
     }
@@ -1473,15 +1371,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void broadcastStance() {
         getMap().broadcastMessage(this, PacketCreator.movePlayer(id, this.getIdleMovement(), AbstractAnimatedMapObject.IDLE_MOVEMENT_PACKET_LENGTH), false);
-    }
-
-    public MapleMap getWarpMap(int mapid) {
-        return map.getWarpMap(mapid);
-    }
-
-    // for use ONLY inside OnUserEnter map scripts that requires a player to change map while still moving between maps.
-    public void warpAhead(int mapid) {
-        map.warpAhead(mapid);
     }
 
     public boolean canRecoverLastBanish() {
@@ -1528,44 +1417,8 @@ public class Character extends AbstractAnimatedMapObject {
         setBanishPlayerData(banMap, banSp, banTime);
     }
 
-    public void changeMap(int mapid) {
-        map.changeMap(mapid);
-    }
-
-    /**
-     * 玩家角色更改地图
-     * @param mapid   地图ID
-     */
-    public void changeMap(int mapid, Object pt) {
-        map.changeMap(mapid, pt);
-    }
-
-    public void changeMap(MapleMap to) {
-        map.changeMap(to);
-    }
-
-    public void changeMap(MapleMap to, int portal) {
-        map.changeMap(to, portal);
-    }
-
-    public void changeMap(final MapleMap target, Portal pto) {
-        map.changeMap(target, pto);
-    }
-
-    public void changeMap(final MapleMap target, final Point pos) {
-        map.changeMap(target, pos);
-    }
-
-    public void forceChangeMap(final MapleMap target, Portal pto) {
-        map.forceChangeMap(target, pto);
-    }
-
     private boolean buffMapProtection() {
         return map.buffMapProtection();
-    }
-
-    public List<Integer> getLastVisitedMapIds() {
-        return map.getLastVisitedMapIds();
     }
 
     public void partyOperationUpdate(Party party, List<Character> exPartyMembers) {
@@ -1695,10 +1548,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public void visitMap(MapleMap to) {
-        map.visitMap(to);
-    }
-
     public void setOwnedMap(MapleMap map) {
         ownedMap = new WeakReference<>(map);
     }
@@ -1720,27 +1569,8 @@ public class Character extends AbstractAnimatedMapObject {
         InviteCoordinator.removePlayerIncomingInvites(id);
     }
 
-    /**
-     * 玩家角色是否处于切换地图的状态
-     * @return boolean
-     */
-    public boolean isChangingMaps() {
-        return map.isChangingMaps();
-    }
-
-    /**
-     *  设置地图转换完成
-     */
-    public void setMapTransitionComplete() {
-        map.setMapTransitionComplete();
-    }
-
     public void changePage(int page) {
         this.currentPage = page;
-    }
-
-    public void changeSkillLevel(Skill skill, int newLevel, int newMasterlevel, long expiration) {
-        skills.changeSkillLevel(skill, newLevel, newMasterlevel, expiration);
     }
 
     public void changeTab(int tab) {
@@ -2251,33 +2081,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public final boolean hasDisease(final Disease dis) { return debuffs.hasDebuff(dis); }
-
-
-    public final int getDiseasesSize() { return debuffs.getDebuffsSize(); }
-
-    public void announceDiseases() { debuffs.announceDebuffs(); }
-
-    public void announceDebuffsToOwner() { debuffs.announceDebuffsToOwner(); }
-
-    public void collectDiseases() { debuffs.collectDebuffs(); }
-
-
-    public void giveDebuff(final Disease disease, MobSkill skill) { debuffs.giveDebuff(disease, skill); }
-
-
-    public void dispelDebuff(Disease debuff) { debuffs.dispelDebuff(debuff); }
-
-
-    public void dispelDebuffs() { debuffs.dispelDebuffs(); }
-
-
-    public void purgeDebuffs() { debuffs.purgeDebuffs(); }
-
-
-    public void cancelAllDebuffs() { debuffs.cancelAllDebuffs(); }
-
-
     public void dispelSkill(int skillid) {
         List<EffectStatus> effects = getAllStatups();
         for (EffectStatus effect : effects) {
@@ -2341,22 +2144,6 @@ public class Character extends AbstractAnimatedMapObject {
         if (getMessenger() != null) {
             getWorldServer().updateMessenger(getMessenger(), getName(), getWorld(), client.getChannel());
         }
-    }
-
-    public void cancelDiseaseExpireTask() { debuffs.stopExpireTimer(); }
-
-
-    public void diseaseExpireTask() { debuffs.startExpireTimer(); }
-
-
-
-
-    public void stopSkillTimers() {
-        skills.stopTimers();
-    }
-
-    public void startSkillTimers() {
-        skills.startTimers();
     }
 
     public void cancelExpirationTask() {
@@ -2672,10 +2459,6 @@ public class Character extends AbstractAnimatedMapObject {
         this.sendPacket(GuildPackets.genericGuildMessage((byte) code));
     }
 
-    public List<PlayerCoolDownValueHolder> getAllCooldowns() {
-        return skills.getAllCooldowns();
-    }
-
     public void updateAriantScore() {
         updateAriantScore(0);
     }
@@ -2691,32 +2474,8 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public Long getBuffedStarttime(EffectType effect) {
-        return buffs.getActive().getBuffedStarttime(effect);
-    }
-
-    public Integer getBuffedValue(EffectType effect) {
-        return buffs.getActive().getBuffedValue(effect);
-    }
-
-    public int getBuffSource(EffectType stat) {
-        return buffs.getActive().getBuffSource(stat);
-    }
-
-    public BuffEffectData getBuffEffect(EffectType stat) {
-        return buffs.getActive().getBuffEffect(stat);
-    }
-
     List<EffectStatus> getAllStatups() {
         return buffs.getAllEffects();
-    }
-
-    public void updateActiveEffects() {
-        buffs.updateActiveEffects();
-    }
-
-    public void registerEffect(BuffEffectData effect, long starttime, long expirationtime) {
-        buffs.registerEffect(effect, starttime, expirationtime);
     }
 
     public void cancelEffect(int itemId) {
@@ -2724,29 +2483,9 @@ public class Character extends AbstractAnimatedMapObject {
         buffs.cancelBuff(ii.getItemEffect(itemId).getBuffSourceId(), false);
     }
 
-    public boolean cancelEffect(BuffEffectData effect, boolean overwrite) {
-        return buffs.cancelBuff(effect.getBuffSourceId(), overwrite);
-    }
-
-    public boolean cancelEffect(BuffEffectData effect, boolean overwrite, long _unused_startTime) {
-        return buffs.cancelBuff(effect.getBuffSourceId(), overwrite);
-    }
-
-    public void cancelEffectFromBuffStat(EffectType stat) {
-        buffs.cancelEffectFromBuffStat(stat);
-    }
-
-    public void cancelBuffStats(EffectType stat) {
-        buffs.cancelBuffStats(stat);
-    }
-
     public void freezeBuffs(boolean announceCancel) {
         buffs.freeze(announceCancel);
         debuffs.freeze();
-    }
-
-    public boolean isBuffsFrozen() {
-        return buffs.isFrozen();
     }
 
     public void resumeBuffs() {
@@ -2767,18 +2506,6 @@ public class Character extends AbstractAnimatedMapObject {
                 getMap().removePlayerPuppet(this);
             }
         }
-    }
-
-    public boolean unregisterChairBuff() {
-        return chair.unregisterChairBuff();
-    }
-
-    public boolean registerChairBuff() {
-        return chair.registerChairBuff();
-    }
-
-    public int getChair() {
-        return chair.getChair();
     }
 
     public String getChalkboard() {
@@ -2899,49 +2626,6 @@ public class Character extends AbstractAnimatedMapObject {
     public Marriage getMarriageInstance() {
         return (Marriage) getEventInstance();
     }
-
-    public void resetExcluded(int petId) { pets.resetExcluded(petId); }
-
-
-    public void addExcluded(int petId, int x) { pets.addExcluded(petId, x); }
-
-
-    /**
-     * 统一从数据库加载单只宠物的过滤配置，确保召唤时内存状态与数据库保持一致。
-     */
-    public void loadPetExcludedItems(int petId) { pets.loadPetExcludedItems(petId); }
-
-
-    /**
-     * 客户端提交过滤设置时，直接按差异增量更新数据库，避免角色保存时再做危险的全量删写。
-     */
-    public void updatePetExcludedItems(int petId, Set<Integer> newExcludedItems) { pets.updatePetExcludedItems(petId, newExcludedItems); }
-
-
-    /**
-     * 宠物被永久删除时同步清理数据库和角色内存中的过滤配置，避免残留脏数据。
-     */
-    public void deletePetExcludedData(int petId) { pets.deletePetExcludedData(petId); }
-
-
-    public Set<Integer> getExcludedForPet(int petId) { return pets.getExcludedForPet(petId); }
-
-
-
-
-
-
-    public void commitExcludedItems() { pets.commitExcludedItems(); }
-
-
-    public void exportExcludedItems(Client c) { pets.exportExcludedItems(c); }
-
-
-    public Map<Integer, Set<Integer>> getExcluded() { return pets.getExcluded(); }
-
-
-    public Set<Integer> getExcludedItems() { return pets.getExcludedItems(); }
-
 
     public int getExp() {
         return exp.get();
@@ -3099,7 +2783,6 @@ public class Character extends AbstractAnimatedMapObject {
         return null;
     }
 
-
     public static int getAccountIdByName(String name) {
         final int id;
         try (Connection con = DatabaseConnection.getConnection();
@@ -3195,18 +2878,6 @@ public class Character extends AbstractAnimatedMapObject {
         return count;
     }
 
-    public Job getJob() {
-        return job.getJob();
-    }
-
-    public void setJob(Job newJob) {
-        job.setJob(newJob);
-    }
-
-    public int getJobType() {
-        return job.getJobType();
-    }
-
     public int getFh() {
         Point pos = this.getPosition();
         pos.y -= 6;
@@ -3218,24 +2889,8 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public MapleMap getMap() {
-        return map.getMap();
-    }
-
-    public int getMapId() {
-        return map.getMapId();
-    }
-
     public Ring getMarriageRing() {
         return partnerId > 0 ? marriageRing : null;
-    }
-
-    public int getMasterLevel(int skill) {
-        return skills.getMasterLevel(skill);
-    }
-
-    public int getMasterLevel(Skill skill) {
-        return skills.getMasterLevel(skill);
     }
 
     public int getTotalStr() {
@@ -3363,9 +3018,6 @@ public class Character extends AbstractAnimatedMapObject {
     public int getMonsterBookCover() {
         return bookCover;
     }
-
-    public int getNoPets() { return pets.getNoPets(); }
-
 
     public Party getParty() {
         prtLock.lock();
@@ -3562,36 +3214,6 @@ public class Character extends AbstractAnimatedMapObject {
         this.setMessengerPosition(4);
     }
 
-    public Pet[] getPets() { return pets.getPets(); }
-
-
-    public Pet getPet(int index) { return pets.getPet(index); }
-
-
-    public byte getPetIndex(int petId) { return pets.getPetIndex(petId); }
-
-
-    public byte getPetIndex(Pet pet) { return pets.getPetIndex(pet); }
-
-
-    public int getPetEquipItemId(byte petIndex) { return pets.getPetEquipItemId(petIndex); }
-
-
-    public boolean hasPetNameTag(byte petIndex) { return pets.hasPetNameTag(petIndex); }
-
-
-    public boolean hasPetChatballoon(byte petIndex) { return pets.hasPetChatballoon(petIndex); }
-
-
-    public boolean isEquippedMesoMagnet(byte petIndex) { return pets.isEquippedMesoMagnet(petIndex); }
-
-
-    public boolean isEquippedItemPouch(byte petIndex) { return pets.isEquippedItemPouch(petIndex); }
-
-
-    public boolean isEquippedPetItemIgnore(byte petIndex) { return pets.isEquippedPetItemIgnore(petIndex); }
-
-
     public final byte getQuestStatus(final int quest) {
         synchronized (quests) {
             QuestStatus mqs = quests.get((short) quest);
@@ -3678,28 +3300,8 @@ public class Character extends AbstractAnimatedMapObject {
         return m;
     }
 
-    public Map<Skill, SkillEntry> getSkills() {
-        return skills.getSkillsView();
-    }
-
     public Map<Skill, SkillEntry> getEditableSkills() {
         return skills.entries;
-    }
-
-    public int getSkillLevel(int skill) {
-        return skills.getSkillLevel(skill);
-    }
-
-    public int getSkillLevel(Skill skill) {
-        return skills.getSkillLevel(skill);
-    }
-
-    public long getSkillExpiration(int skill) {
-        return skills.getSkillExpiration(skill);
-    }
-
-    public long getSkillExpiration(Skill skill) {
-        return skills.getSkillExpiration(skill);
     }
 
     public int getSlot() {
@@ -3726,7 +3328,6 @@ public class Character extends AbstractAnimatedMapObject {
             }
             return mbsvh.getData();
         } finally {
-
 
         }
     }
@@ -3890,26 +3491,6 @@ public class Character extends AbstractAnimatedMapObject {
         int minutes = (int) Math.floor((double) timeLeft / MINUTES.toMillis(1)) % 60;
 
         return (minutes > 0 ? (String.format("%02d", minutes) + " minutes, ") : "") + String.format("%02d", seconds) + " seconds";
-    }
-
-    public boolean isBuffFrom(EffectType stat, Skill skill) {
-        return buffs.getActive().isBuffFrom(stat, skill);
-    }
-
-    public boolean isGmJob() {
-        return job.isGmJob();
-    }
-
-    public boolean isCygnus() {
-        return job.isCygnus();
-    }
-
-    public boolean isAran() {
-        return job.isAran();
-    }
-
-    public boolean isBeginnerJob() {
-        return job.isBeginnerJob();
     }
 
     public boolean isGM() {
@@ -4318,7 +3899,6 @@ public class Character extends AbstractAnimatedMapObject {
             setCouponRates();
         } finally {
             cashInv.unlockInventory();
-
 
         }
     }
@@ -4782,78 +4362,6 @@ public class Character extends AbstractAnimatedMapObject {
         throw new IllegalStateException("character_json 缺少角色属性数据, cid=" + cid);
     }
 
-    // 死代码，唯一调用方 CharacterService.saveCharToDB(ORM版) 已一并注释：
-    // 该路径用 insertSelective 插新行而非更新，且 stat 已迁 character_json、字段永远填不全
-    /*
-    public static CharactersDO toCharactersDO(Character chr) {
-        CharactersDO cdo = new CharactersDO();
-        cdo.setLevel(chr.getLevel());
-        cdo.setFame(chr.getFame());
-
-        chr.buffs.lock.lock();
-        chr.stats.wLock.lock();
-        try {
-            // 此处虽然是可重入锁，但仍不建议锁2次，所以不使用get方法
-            cdo.setExp(Math.abs(chr.exp.get()));
-            cdo.setGachaexp(Math.abs(chr.gachaExp.get()));
-            StringBuilder sps = new StringBuilder();
-            for (int sp : chr.sp.remainingSp) {
-                sps.append(sp);
-                sps.append(",");
-            }
-            sps.deleteCharAt(sps.length() - 1);
-            cdo.setSp(sps.toString());
-            cdo.setAp(chr.remainingAp);
-        } finally {
-            chr.stats.wLock.unlock();
-            chr.buffs.lock.unlock();
-        }
-
-        cdo.setGm(chr.gmLevel());
-        cdo.setSkincolor(chr.getSkinColor().getId());
-        cdo.setGender(chr.getGender());
-        cdo.setJob(chr.job.getId());
-        cdo.setHair(chr.getHair());
-        cdo.setFace(chr.getFace());
-        cdo.setMeso(chr.getMeso());
-        cdo.setHpMpUsed(chr.getHpMpApUsed());
-        if (chr.getMap() == null || chr.getMap().getId() == MapId.CRIMSONWOOD_VALLEY_1 || chr.getMap().getId() == MapId.CRIMSONWOOD_VALLEY_2) {
-            cdo.setSpawnpoint(0);
-        } else {
-            Portal closest = chr.getMap().findClosestPlayerSpawnpoint(chr.getPosition());
-            if (closest != null) {
-                cdo.setSpawnpoint(closest.getId());
-            } else {
-                cdo.setSpawnpoint(0);
-            }
-        }
-        cdo.setParty(chr.getPartyId());
-        cdo.setBuddyCapacity(chr.getBuddylist().getCapacity());
-        if (chr.getMessenger() == null) {
-            cdo.setMessengerid(0);
-            cdo.setMessengerposition(4);
-        } else {
-            cdo.setMessengerid(chr.getMessenger().getId());
-            cdo.setMessengerposition(chr.getMessengerPosition());
-        }
-        if (chr.getMapleMount() == null) {
-            cdo.setMountlevel(1);
-            cdo.setMountexp(0);
-            cdo.setMounttiredness(0);
-        } else {
-            cdo.setMountlevel(chr.getMapleMount().getLevel());
-            cdo.setMountexp(chr.getMapleMount().getExp());
-            cdo.setMounttiredness(chr.getMapleMount().getTiredness());
-        }
-        cdo.setEquipslots((int) chr.getSlots(0));
-        cdo.setUseslots((int) chr.getSlots(1));
-        cdo.setSetupslots((int) chr.getSlots(2));
-        cdo.setEtcslots((int) chr.getSlots(3));
-        // todo 未完成
-        return cdo;
-    }
-    */
-
     public static Character loadCharFromDB(final int cid, Client client, boolean channelServer) {
         try {
             return characterService.loadCharFromDB(cid, client, channelServer);
@@ -4993,10 +4501,6 @@ public class Character extends AbstractAnimatedMapObject {
 
         chair.unsitChairInternal();
         enableActions();
-    }
-
-    public void sitChair(int itemId) {
-        chair.sitChair(itemId);
     }
 
     public void respawn(int returnMap) {
@@ -5239,17 +4743,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public void removeAllCooldownsExcept(int id, boolean packet) {
-        skills.removeAllCooldownsExcept(id, packet);
-    }
-
-    public void removeCooldown(int skillId) {
-        skills.removeCooldown(skillId);
-    }
-
-    public void removePet(Pet pet, boolean shift_left) { pets.removePet(pet, shift_left); }
-
-
     public void removeVisibleMapObject(MapObject mo) {
         visibleMapObjects.remove(mo);
     }
@@ -5332,7 +4825,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-
     public void saveGuildStatus() {
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement("UPDATE characters SET guildid = ?, guildrank = ?, allianceRank = ? WHERE id = ?")) {
@@ -5389,7 +4881,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
 
         this.events.put("rescueGaga", new RescueGaga(0));
-
 
         try (Connection con = DatabaseConnection.getConnection()) {
             con.setAutoCommit(false);
@@ -5908,38 +5399,6 @@ public class Character extends AbstractAnimatedMapObject {
         sendPacket(PacketCreator.updateBuddyCapacity(capacity));
     }
 
-    public void setBuffedValue(EffectType effect, int value) {
-        buffs.getActive().setBuffedValue(effect, value);
-    }
-
-    public List<BuffEffectData> getAllBuffs() {
-        return buffs.getAllBuffEffectData();
-    }
-
-    public boolean hasBuffFromSourceid(int sourceid) {
-        return buffs.containsSourceId(sourceid);
-    }
-
-    public boolean hasActiveBuff(int sourceid) {
-        return buffs.getActive().hasActiveBuff(sourceid);
-    }
-
-    public void debugListAllBuffs() {
-        buffs.debugListAllBuffs();
-    }
-
-    public void cancelAllBuffs(boolean softcancel) {
-        buffs.cancelAllBuffs(softcancel);
-    }
-
-    public void buffExpireTask() {
-        buffs.startExpireTimer();
-    }
-
-    public void cancelBuffExpireTask() {
-        buffs.stopExpireTimer();
-    }
-
     public void setChalkboard(String text) {
         this.chalktext = text;
     }
@@ -5947,7 +5406,6 @@ public class Character extends AbstractAnimatedMapObject {
     public void setDojoEnergy(int x) {
         this.dojoEnergy = Math.min(x, 10000);
     }
-
 
     public void setEventInstance(EventInstanceManager eventInstance) {
         evtLock.lock();
@@ -6173,18 +5631,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
 
         return true;
-    }
-
-    public void setMap(MapleMap to) {
-        map.setMap(to);
-    }
-
-    public void setMap(int PmapId) {
-        map.setMap(PmapId);
-    }
-
-    public void setMapId(int mapId) {
-        map.setMapId(mapId);
     }
 
     public void setMiniGamePoints(Character visitor, int winnerslot, boolean omok) {
@@ -6535,10 +5981,6 @@ public class Character extends AbstractAnimatedMapObject {
         slots = slotid;
     }
 
-
-    public void shiftPetsRight() { pets.shiftPetsRight(); }
-
-
     private long getDojoTimeLeft() {
         return client.getChannelServer().getDojoFinishTime(getMap().getId()) - Server.getInstance().getCurrentTime();
     }
@@ -6597,13 +6039,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public boolean skillIsCooling(int skillId) {
-        return skills.skillIsCooling(skillId);
-    }
-
-    public void runFullnessSchedule(int petSlot) { pets.runFullnessSchedule(petSlot); }
-
-
     public boolean runTirednessSchedule() {
         if (mapleMount != null) {
             int tiredness = mapleMount.incrementAndGetTiredness();
@@ -6629,15 +6064,6 @@ public class Character extends AbstractAnimatedMapObject {
         sendPacket(mapEffect.makeStartData());
         TimerManager.getInstance().schedule(() -> sendPacket(mapEffect.makeDestroyData()), duration);
     }
-
-    public void unEquipAllPets() { pets.unEquipAllPets(); }
-
-
-    public void unEquipPet(Pet pet, boolean shift_left) { pets.unEquipPet(pet, shift_left); }
-
-
-    public void unEquipPet(Pet pet, boolean shift_left, boolean hunger) { pets.unEquipPet(pet, shift_left, hunger); }
-
 
     public void updateMacros(int position, SkillMacro updateMacro) {
         skillMacros[position] = updateMacro;
@@ -7040,20 +6466,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
         return copyPoint(movementBeforePos);
     }
-
-    /**
-     * 记录传送前玩家坐标，供宠物拾取反作弊旧位置物品补偿使用。
-     * 每次内传送门触发时由 InnerPortalHandler 调用。
-     */
-    public void setPetLootTeleportBeforePos(Point pos) { pets.setPetLootTeleportBeforePos(pos); }
-
-
-    /**
-     * 获取宠物拾取补偿用的传送前坐标。
-     * 1.5s 内有效，超时自动失效，避免旧坐标残留下一次捡包误判。
-     */
-    public Point getPetLootTeleportBeforePos() { return pets.getPetLootTeleportBeforePos(); }
-
 
     /**
      * 消费一次传送距离保护校验次数（按攻击包维度消费）。
@@ -7496,7 +6908,6 @@ public class Character extends AbstractAnimatedMapObject {
                 .build());
     }
 
-
     public long getLoggedInTime() {
         return System.currentTimeMillis() - loginTime;
     }
@@ -7883,16 +7294,6 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     /**
-     * 获取地图类
-     * @param mapid 地图ID
-     * @param showMsg   true = 地图不存在弹出提示，false = 不提示
-     * @return
-     */
-    public MapleMap getMap(int mapid, boolean showMsg) {
-        return map.getMap(mapid, showMsg);
-    }
-
-    /**
      * 通知客户端启用操作，解除假死
      */
     public void enableActions() {
@@ -8000,4 +7401,163 @@ public class Character extends AbstractAnimatedMapObject {
     public void updateGlobalTime(long now) {
         globalAttackTime = now;
     }
+
+    // ══════════════════ 组件门面（按模块归类） ══════════════════
+
+    // ── buffs 门面 ──
+
+    public Long getBuffedStarttime(EffectType effect) { return buffs.getActive().getBuffedStarttime(effect); }
+    public Integer getBuffedValue(EffectType effect) { return buffs.getActive().getBuffedValue(effect); }
+    public int getBuffSource(EffectType stat) { return buffs.getActive().getBuffSource(stat); }
+    public BuffEffectData getBuffEffect(EffectType stat) { return buffs.getActive().getBuffEffect(stat); }
+    public void updateActiveEffects() { buffs.updateActiveEffects(); }
+    public void registerEffect(BuffEffectData effect, long starttime, long expirationtime) { buffs.registerEffect(effect, starttime, expirationtime); }
+    public boolean cancelEffect(BuffEffectData effect, boolean overwrite) { return buffs.cancelBuff(effect.getBuffSourceId(), overwrite); }
+    public void cancelEffectFromBuffStat(EffectType stat) { buffs.cancelEffectFromBuffStat(stat); }
+    public void cancelBuffStats(EffectType stat) { buffs.cancelBuffStats(stat); }
+    public boolean isBuffsFrozen() { return buffs.isFrozen(); }
+    public boolean isBuffFrom(EffectType stat, Skill skill) { return buffs.getActive().isBuffFrom(stat, skill); }
+    public void setBuffedValue(EffectType effect, int value) { buffs.getActive().setBuffedValue(effect, value); }
+    public List<BuffEffectData> getAllBuffs() { return buffs.getAllBuffEffectData(); }
+    public boolean hasBuffFromSourceid(int sourceid) { return buffs.containsSourceId(sourceid); }
+    public boolean hasActiveBuff(int sourceid) { return buffs.getActive().hasActiveBuff(sourceid); }
+    public void debugListAllBuffs() { buffs.debugListAllBuffs(); }
+    public void cancelAllBuffs(boolean softcancel) { buffs.cancelAllBuffs(softcancel); }
+    public void buffExpireTask() { buffs.startExpireTimer(); }
+    public void cancelBuffExpireTask() { buffs.stopExpireTimer(); }
+
+    // ── pets 门面 ──
+
+    public void addPet(Pet pet) { pets.addPet(pet); }
+    public void resetExcluded(int petId) { pets.resetExcluded(petId); }
+    public void addExcluded(int petId, int x) { pets.addExcluded(petId, x); }
+    public void loadPetExcludedItems(int petId) { pets.loadPetExcludedItems(petId); }
+    public void updatePetExcludedItems(int petId, Set<Integer> newExcludedItems) { pets.updatePetExcludedItems(petId, newExcludedItems); }
+    public void deletePetExcludedData(int petId) { pets.deletePetExcludedData(petId); }
+    public Set<Integer> getExcludedForPet(int petId) { return pets.getExcludedForPet(petId); }
+    public void commitExcludedItems() { pets.commitExcludedItems(); }
+    public void exportExcludedItems(Client c) { pets.exportExcludedItems(c); }
+    public Map<Integer, Set<Integer>> getExcluded() { return pets.getExcluded(); }
+    public Set<Integer> getExcludedItems() { return pets.getExcludedItems(); }
+    public int getNoPets() { return pets.getNoPets(); }
+    public Pet[] getPets() { return pets.getPets(); }
+    public Pet getPet(int index) { return pets.getPet(index); }
+    public byte getPetIndex(int petId) { return pets.getPetIndex(petId); }
+    public byte getPetIndex(Pet pet) { return pets.getPetIndex(pet); }
+    public int getPetEquipItemId(byte petIndex) { return pets.getPetEquipItemId(petIndex); }
+    public boolean hasPetNameTag(byte petIndex) { return pets.hasPetNameTag(petIndex); }
+    public boolean hasPetChatballoon(byte petIndex) { return pets.hasPetChatballoon(petIndex); }
+    public boolean isEquippedMesoMagnet(byte petIndex) { return pets.isEquippedMesoMagnet(petIndex); }
+    public boolean isEquippedItemPouch(byte petIndex) { return pets.isEquippedItemPouch(petIndex); }
+    public boolean isEquippedPetItemIgnore(byte petIndex) { return pets.isEquippedPetItemIgnore(petIndex); }
+    public void removePet(Pet pet, boolean shift_left) { pets.removePet(pet, shift_left); }
+    public void shiftPetsRight() { pets.shiftPetsRight(); }
+    public void runFullnessSchedule(int petSlot) { pets.runFullnessSchedule(petSlot); }
+    public void unEquipAllPets() { pets.unEquipAllPets(); }
+    public void unEquipPet(Pet pet, boolean shift_left) { pets.unEquipPet(pet, shift_left); }
+    public void unEquipPet(Pet pet, boolean shift_left, boolean hunger) { pets.unEquipPet(pet, shift_left, hunger); }
+    public void setPetLootTeleportBeforePos(Point pos) { pets.setPetLootTeleportBeforePos(pos); }
+    public Point getPetLootTeleportBeforePos() { return pets.getPetLootTeleportBeforePos(); }
+
+    // ── debuffs 门面 ──
+
+    public final boolean hasDisease(final Disease dis) { return debuffs.hasDebuff(dis); }
+    public final int getDiseasesSize() { return debuffs.getDebuffsSize(); }
+    public void announceDiseases() { debuffs.announceDebuffs(); }
+    public void announceDebuffsToOwner() { debuffs.announceDebuffsToOwner(); }
+    public void collectDiseases() { debuffs.collectDebuffs(); }
+    public void giveDebuff(final Disease disease, MobSkill skill) { debuffs.giveDebuff(disease, skill); }
+    public void dispelDebuff(Disease debuff) { debuffs.dispelDebuff(debuff); }
+    public void dispelDebuffs() { debuffs.dispelDebuffs(); }
+    public void purgeDebuffs() { debuffs.purgeDebuffs(); }
+    public void cancelAllDebuffs() { debuffs.cancelAllDebuffs(); }
+    public void cancelDiseaseExpireTask() { debuffs.stopExpireTimer(); }
+    public void diseaseExpireTask() { debuffs.startExpireTimer(); }
+
+    // ── chair 门面 ──
+
+    public boolean unregisterChairBuff() { return chair.unregisterChairBuff(); }
+    public boolean registerChairBuff() { return chair.registerChairBuff(); }
+    public int getChair() { return chair.getChair(); }
+    public void sitChair(int itemId) { chair.sitChair(itemId); }
+
+    // ── job 门面 ──
+
+    public Job getJobStyle(byte opt) { return job.getJobStyle(opt); }
+    public Job getJobStyle() { return job.getJobStyle(); }
+    public synchronized void changeJob(Job newJob) { job.changeJob(newJob); }
+    public Job getJob() { return job.getJob(); }
+    public void setJob(Job newJob) { job.setJob(newJob); }
+    public int getJobType() { return job.getJobType(); }
+    public boolean isGmJob() { return job.isGmJob(); }
+    public boolean isCygnus() { return job.isCygnus(); }
+    public boolean isAran() { return job.isAran(); }
+    public boolean isBeginnerJob() { return job.isBeginnerJob(); }
+
+    // ── map 门面 ──
+
+    public MapleMap getWarpMap(int mapid) { return map.getWarpMap(mapid); }
+    public void warpAhead(int mapid) { map.warpAhead(mapid); }
+    public void changeMap(int mapid) { map.changeMap(mapid); }
+    public void changeMap(int mapid, Object pt) { map.changeMap(mapid, pt); }
+    public void changeMap(MapleMap to) { map.changeMap(to); }
+    public void changeMap(MapleMap to, int portal) { map.changeMap(to, portal); }
+    public void changeMap(final MapleMap target, Portal pto) { map.changeMap(target, pto); }
+    public void changeMap(final MapleMap target, final Point pos) { map.changeMap(target, pos); }
+    public void forceChangeMap(final MapleMap target, Portal pto) { map.forceChangeMap(target, pto); }
+    public List<Integer> getLastVisitedMapIds() { return map.getLastVisitedMapIds(); }
+    public void visitMap(MapleMap to) { map.visitMap(to); }
+    public boolean isChangingMaps() { return map.isChangingMaps(); }
+    public void setMapTransitionComplete() { map.setMapTransitionComplete(); }
+    public MapleMap getMap() { return map.getMap(); }
+    public int getMapId() { return map.getMapId(); }
+    public void setMap(MapleMap to) { map.setMap(to); }
+    public void setMap(int PmapId) { map.setMap(PmapId); }
+    public void setMapId(int mapId) { map.setMapId(mapId); }
+    public MapleMap getMap(int mapid, boolean showMsg) { return map.getMap(mapid, showMsg); }
+
+    // ── ap 门面 ──
+
+    public int getRemainingAp() { return ap.getRemainingAp(); }
+    public int getHpMpApUsed() { return ap.getHpMpApUsed(); }
+    public boolean assignHP(int deltaHP, int deltaAp) { return ap.assignHP(deltaHP, deltaAp); }
+    public boolean assignMP(int deltaMP, int deltaAp) { return ap.assignMP(deltaMP, deltaAp); }
+    public boolean assignStr(int x) { return ap.assignAttr(STR, x); }
+    public boolean assignDex(int x) { return ap.assignAttr(DEX, x); }
+    public boolean assignInt(int x) { return ap.assignAttr(INT, x); }
+    public boolean assignLuk(int x) { return ap.assignAttr(LUK, x); }
+    public void changeRemainingAp(int x, boolean silent) { ap.changeRemainingAp(x, silent); }
+    public void gainAp(int deltaAp, boolean silent) { ap.gainAp(deltaAp, silent); }
+
+    // ── sp 门面 ──
+
+    public int getRemainingSp(int jobId) { return sp.getRemainingSp(jobId); }
+    public int[] getRemainingSps() { return sp.getRemainingSps(); }
+    public void setRemainingSp(int remainingSp, int jobId) { sp.setRemainingSp(remainingSp, jobId); }
+    public void gainSp(int deltaSp, int jobId, boolean silent) { sp.gainSp(deltaSp, jobId, silent); }
+
+    // ── stats 门面 ──
+
+    public int getStr() { return stats.getAttr(STR); }
+    public int getDex() { return stats.getAttr(DEX); }
+    public int getInt() { return stats.getAttr(INT); }
+    public int getLuk() { return stats.getAttr(LUK); }
+
+    // ── skills 门面 ──
+
+    public void addCooldown(int skillId, long startTime, long length) { skills.addCooldown(skillId, startTime, length); }
+    public void changeSkillLevel(Skill skill, int newLevel, int newMasterlevel, long expiration) { skills.changeSkillLevel(skill, newLevel, newMasterlevel, expiration); }
+    public void stopSkillTimers() { skills.stopTimers(); }
+    public void startSkillTimers() { skills.startTimers(); }
+    public List<PlayerCoolDownValueHolder> getAllCooldowns() { return skills.getAllCooldowns(); }
+    public int getMasterLevel(int skill) { return skills.getMasterLevel(skill); }
+    public int getMasterLevel(Skill skill) { return skills.getMasterLevel(skill); }
+    public Map<Skill, SkillEntry> getSkills() { return skills.getSkillsView(); }
+    public int getSkillLevel(int skill) { return skills.getSkillLevel(skill); }
+    public int getSkillLevel(Skill skill) { return skills.getSkillLevel(skill); }
+    public long getSkillExpiration(int skill) { return skills.getSkillExpiration(skill); }
+    public long getSkillExpiration(Skill skill) { return skills.getSkillExpiration(skill); }
+    public void removeAllCooldownsExcept(int id, boolean packet) { skills.removeAllCooldownsExcept(id, packet); }
+    public void removeCooldown(int skillId) { skills.removeCooldown(skillId); }
+    public boolean skillIsCooling(int skillId) { return skills.skillIsCooling(skillId); }
 }

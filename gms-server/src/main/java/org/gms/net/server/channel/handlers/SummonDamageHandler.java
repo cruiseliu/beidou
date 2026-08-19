@@ -126,7 +126,7 @@ public final class SummonDamageHandler extends AbstractDealDamageHandler {
         }
 
         if (summon.getSkill() == Outlaw.GAVIOTA) {  // thanks Periwinks for noticing Gaviota not cancelling after grenade toss
-            player.cancelEffect(summonEffect, false, -1);
+            player.cancelEffect(summonEffect, false);
         }
     }
 

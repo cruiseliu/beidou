@@ -946,7 +946,7 @@ public class AbstractPlayerInteraction {
     }
 
     public void cancelItem(final int id) {
-        getPlayer().cancelEffect(ItemInformationProvider.getInstance().getItemEffect(id), false, -1);
+        getPlayer().cancelEffect(ItemInformationProvider.getInstance().getItemEffect(id), false);
     }
 
     public void teachSkill(int skillid, byte level, byte masterLevel, long expiration) {

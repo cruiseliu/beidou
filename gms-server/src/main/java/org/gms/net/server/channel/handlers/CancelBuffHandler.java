@@ -56,7 +56,7 @@ public final class CancelBuffHandler extends AbstractPacketHandler implements Pa
                 break;
 
             default:
-                c.getPlayer().cancelEffect(SkillFactory.getSkill(sourceid).getEffect(1), false, -1);
+                c.getPlayer().cancelEffect(SkillFactory.getSkill(sourceid).getEffect(1), false);
                 break;
         }
     }

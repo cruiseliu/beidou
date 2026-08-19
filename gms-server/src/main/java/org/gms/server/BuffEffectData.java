@@ -1270,7 +1270,7 @@ public class BuffEffectData {
 
     private void applyBuffEffect(Character applyfrom, Character applyto, boolean primary) {
         if (!isMonsterRiding() && !isCouponBuff() && !isMysticDoor() && !isHyperBody() && !isCombo()) {     // last mystic door already dispelled if it has been used before.
-            applyto.cancelEffect(this, true, -1);
+            applyto.cancelEffect(this, true);
         }
 
         List<Pair<EffectType, Integer>> localstatups = statups;

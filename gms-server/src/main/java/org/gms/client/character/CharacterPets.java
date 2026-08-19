@@ -290,6 +290,9 @@ class CharacterPets {
         }
     }
 
+    /**
+     * 统一从数据库加载单只宠物的过滤配置，确保召唤时内存状态与数据库保持一致。
+     */
     void loadPetExcludedItems(int petId) {
         List<Integer> excludedItemIds = inventoryService.getPetIgnoreByPetId(petId).stream()
                 .map(PetignoresDO::getItemid)
@@ -403,6 +406,10 @@ class CharacterPets {
 
     // ── 拾取瞬移上下文 ──
 
+    /**
+     * 记录传送前玩家坐标，供宠物拾取反作弊旧位置物品补偿使用。
+     * 每次内传送门触发时由 InnerPortalHandler 调用。
+     */
     void setPetLootTeleportBeforePos(Point pos) {
         this.petLootTeleportBeforePos = pos;
         this.petLootTeleportBeforePosTime = monotonicNow();

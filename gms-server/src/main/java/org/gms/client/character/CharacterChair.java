@@ -153,7 +153,7 @@ class CharacterChair {
         int skillLv = owner.getSkillLevel(skillId);
         if (skillLv > 0) {
             BuffEffectData mapChairSkill = SkillFactory.getSkill(skillId).getEffect(skillLv);
-            return owner.cancelEffect(mapChairSkill, false, -1);
+            return owner.cancelEffect(mapChairSkill, false);
         }
 
         return false;
