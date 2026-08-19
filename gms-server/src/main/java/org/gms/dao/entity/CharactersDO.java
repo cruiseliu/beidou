@@ -60,8 +60,6 @@ public class CharactersDO implements Serializable {
 
     private Integer face;
 
-    private Integer map;
-
     private Integer spawnpoint;
 
     private Integer gm;

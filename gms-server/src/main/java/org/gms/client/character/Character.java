@@ -133,8 +133,6 @@ public class Character extends AbstractAnimatedMapObject {
     private static final Logger log = LoggerFactory.getLogger(Character.class);
 
     // ── 属性核心（原 AbstractCharacterObject 合并而来） ──
-    @Getter
-    MapleMap map;
     final CharacterStats stats = new CharacterStats();
     final CharacterAp ap = new CharacterAp(this);
     final CharacterSp sp = new CharacterSp(this);
@@ -144,6 +142,7 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterDebuffs debuffs = new CharacterDebuffs(this);
     final CharacterChair chair = new CharacterChair(this);
     final CharacterJob job = new CharacterJob(this);
+    final CharacterMap map = new CharacterMap(this);
 
 
     @Getter
@@ -188,8 +187,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     @Setter
     private int initialSpawnPoint;
-    @Setter
-    private int mapId;
     @Getter
     private int currentPage;
     @Getter
@@ -311,7 +308,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     @Setter
     private String search = null;
-    private final AtomicBoolean mapTransitioning = new AtomicBoolean(true);  // player client is currently trying to change maps or log in the game map //玩家客户端当前正在尝试更改地图或登录游戏地图
     final AtomicBoolean awayFromWorld = new AtomicBoolean(true);  // player is online, but on cash shop or mts
     private final AtomicInteger exp = new AtomicInteger();
     private final AtomicInteger gachaExp = new AtomicInteger();
@@ -329,7 +325,7 @@ public class Character extends AbstractAnimatedMapObject {
     @Setter
     Client client;
     private GuildCharacter mgc = null;
-    private PartyCharacter mpc = null;
+    PartyCharacter mpc = null;    // 包内可见：CharacterMap.changeMapInternal 调用
     private Inventory[] inventory;
     @Getter
     @Setter
@@ -342,7 +338,7 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     @Setter
     private Mount mapleMount;
-    private Party party;
+    Party party;    // 包内可见：CharacterMap.changeMapInternal 调用
     @Getter
     @Setter
     private PlayerShop playerShop = null;
@@ -372,8 +368,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Setter
     @Getter
     private List<Integer> lastmonthfameids;
-    private final List<WeakReference<MapleMap>> lastVisitedMaps = new LinkedList<>();
-    private final Lock mapHistoryLock = new ReentrantLock(true);   // 原误用 petLock（保护 lastVisitedMaps），重构后归位
     private WeakReference<MapleMap> ownedMap = new WeakReference<>(null);
     @Getter
     private final Map<Short, QuestStatus> quests;
@@ -473,9 +467,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     private boolean useCS;  //chaos scroll upon crafting item.
     private long npcCd;
-    private int newWarpMap = -1;
-    private boolean canWarpMap = true;  //only one "warp" must be used per call, and this will define the right one.
-    private int canWarpCounter = 0;     //counts how many times "inner warps" have been called.
     byte extraHpRec = 0, extraMpRec = 0;
     short extraRecInterval;
     @Setter
@@ -995,7 +986,7 @@ public class Character extends AbstractAnimatedMapObject {
         ret.stats.attrs[DEX] = 5;
         ret.stats.attrs[INT] = 4;
         ret.stats.attrs[LUK] = 4;
-        ret.map = null;
+        ret.setMap((MapleMap) null);
         ret.setJob(Job.BEGINNER);
         ret.level = 1;
         ret.accountId = c.getAccID();
@@ -1140,7 +1131,7 @@ public class Character extends AbstractAnimatedMapObject {
 
             if (prop != null) {
                 return (Integer.parseInt(prop) == id || eim.getIntProperty("brideId") == id) &&
-                        (mapId == MapId.CHAPEL_WEDDING_ALTAR || mapId == MapId.CATHEDRAL_WEDDING_ALTAR);
+                        (getMapId() == MapId.CHAPEL_WEDDING_ALTAR || getMapId() == MapId.CATHEDRAL_WEDDING_ALTAR);
             }
         }
 
@@ -1177,7 +1168,7 @@ public class Character extends AbstractAnimatedMapObject {
 
         summons.remove(summon.getSkill());
         if (summon.isPuppet()) {
-            map.removePlayerPuppet(this);
+            getMap().removePlayerPuppet(this);
         } else if (summon.getSkill() == DarkKnight.BEHOLDER) {
             if (beholderHealingSchedule != null) {
                 beholderHealingSchedule.cancel(false);
@@ -1194,7 +1185,7 @@ public class Character extends AbstractAnimatedMapObject {
         summons.put(id, summon);
 
         if (summon.isPuppet()) {
-            map.addPlayerPuppet(this);
+            getMap().addPlayerPuppet(this);
         }
     }
 
@@ -1306,10 +1297,10 @@ public class Character extends AbstractAnimatedMapObject {
         this.loggedIn = true;
         c.setAccountName(this.client.getAccountName());//No null's for accountName
         this.setClient(c);
-        this.map = c.getChannelServer().getMapFactory().getMap(getMapId());
-        Portal portal = map.findClosestPlayerSpawnpoint(getPosition());
+        setMap(c.getChannelServer().getMapFactory().getMap(getMapId()));
+        Portal portal = getMap().findClosestPlayerSpawnpoint(getPosition());
         if (portal == null) {
-            portal = map.getPortal(0);
+            portal = getMap().getPortal(0);
         }
         this.setPosition(portal.getPosition());
         this.initialSpawnPoint = portal.getId();
@@ -1481,39 +1472,16 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void broadcastStance() {
-        map.broadcastMessage(this, PacketCreator.movePlayer(id, this.getIdleMovement(), AbstractAnimatedMapObject.IDLE_MOVEMENT_PACKET_LENGTH), false);
+        getMap().broadcastMessage(this, PacketCreator.movePlayer(id, this.getIdleMovement(), AbstractAnimatedMapObject.IDLE_MOVEMENT_PACKET_LENGTH), false);
     }
 
-    public MapleMap getWarpMap(int map) {
-        MapleMap warpMap;
-        EventInstanceManager eim = getEventInstance();
-        if (eim != null) {
-            warpMap = eim.getMapInstance(map);
-        } else if (this.getMonsterCarnival() != null && this.getMonsterCarnival().getEventMap().getId() == map) {
-            warpMap = this.getMonsterCarnival().getEventMap();
-        } else {
-            warpMap = client.getChannelServer().getMapFactory().getMap(map);
-        }
-        return warpMap;
+    public MapleMap getWarpMap(int mapid) {
+        return map.getWarpMap(mapid);
     }
 
     // for use ONLY inside OnUserEnter map scripts that requires a player to change map while still moving between maps.
-    public void warpAhead(int map) {
-        newWarpMap = map;
-    }
-
-    private void eventChangedMap(int map) {
-        EventInstanceManager eim = getEventInstance();
-        if (eim != null) {
-            eim.changedMap(this, map);
-        }
-    }
-
-    private void eventAfterChangedMap(int map) {
-        EventInstanceManager eim = getEventInstance();
-        if (eim != null) {
-            eim.afterChangedMap(this, map);
-        }
+    public void warpAhead(int mapid) {
+        map.warpAhead(mapid);
     }
 
     public boolean canRecoverLastBanish() {
@@ -1560,177 +1528,48 @@ public class Character extends AbstractAnimatedMapObject {
         setBanishPlayerData(banMap, banSp, banTime);
     }
 
-    public void changeMap(int map) {
-        changeMap(map, null);
+    public void changeMap(int mapid) {
+        map.changeMap(mapid);
     }
-
 
     /**
      * 玩家角色更改地图
-     * @param map   地图ID
+     * @param mapid   地图ID
      */
-    public void changeMap(int map, Object pt) {
-        MapleMap warpMap;
-        EventInstanceManager eim = getEventInstance();
-
-        if (eim != null) {
-            warpMap = eim.getMapInstance(map);
-        } else {
-            warpMap = getMap(map, true);
-            if (warpMap == null) return; //判断地图不存在则直接返回并发送提示消息。
-        }
-
-        Portal portal = switch (pt) {
-            case null -> warpMap.getRandomPlayerSpawnpoint();
-            case Integer i -> warpMap.getPortal(i);
-            case String s -> warpMap.getPortal(s);
-            case Portal p -> p;
-            default -> warpMap.getPortal(0);
-        };
-        changeMap(warpMap, portal);
+    public void changeMap(int mapid, Object pt) {
+        map.changeMap(mapid, pt);
     }
 
     public void changeMap(MapleMap to) {
-        changeMap(to, 0);
+        map.changeMap(to);
     }
 
     public void changeMap(MapleMap to, int portal) {
-        changeMap(to, to.getPortal(portal));
+        map.changeMap(to, portal);
     }
 
     public void changeMap(final MapleMap target, Portal pto) {
-        canWarpCounter++;
-
-        eventChangedMap(target.getId());    // player can be dropped from an event here, hence the new warping target.  //玩家可以从这里的事件中退出，因此成为新的扭曲目标。
-        MapleMap to = getWarpMap(target.getId());
-        if (pto == null) {
-            pto = to.getPortal(0);
-        }
-        changeMapInternal(to, pto.getPosition(), PacketCreator.getWarpToMap(to, pto.getId(), this));
-        canWarpMap = false;
-
-        canWarpCounter--;
-        if (canWarpCounter == 0) {
-            canWarpMap = true;
-        }
-
-        eventAfterChangedMap(this.getMapId());
+        map.changeMap(target, pto);
     }
 
     public void changeMap(final MapleMap target, final Point pos) {
-        canWarpCounter++;
-
-        eventChangedMap(target.getId());
-        MapleMap to = getWarpMap(target.getId());
-        changeMapInternal(to, pos, PacketCreator.getWarpToMap(to, 0x80, pos, this));
-        canWarpMap = false;
-
-        canWarpCounter--;
-        if (canWarpCounter == 0) {
-            canWarpMap = true;
-        }
-
-        eventAfterChangedMap(this.getMapId());
+        map.changeMap(target, pos);
     }
 
     public void forceChangeMap(final MapleMap target, Portal pto) {
-        // will actually enter the map given as parameter, regardless of being an eventmap or whatnot       //将实际输入作为参数给出的映射，无论是事件映射还是其他什么
-
-        canWarpCounter++;
-        eventChangedMap(MapId.NONE);
-
-        EventInstanceManager mapEim = target.getEventInstance();
-        if (mapEim != null) {
-            EventInstanceManager playerEim = this.getEventInstance();
-            if (playerEim != null) {
-                playerEim.exitPlayer(this);
-                if (playerEim.getPlayerCount() == 0) {
-                    playerEim.dispose();
-                }
-            }
-
-            // thanks Thora for finding an issue with players not being actually warped into the target event map (rather sent to the event starting map)
-            //感谢Thora发现玩家实际上没有被扭曲到目标事件地图中（而是被发送到事件开始地图）的问题
-            mapEim.registerPlayer(this, false);
-        }
-
-        if (pto == null) {
-            pto = target.getPortal(0);
-        }
-        changeMapInternal(target, pto.getPosition(), PacketCreator.getWarpToMap(target, pto.getId(), this));
-        canWarpMap = false;
-
-        canWarpCounter--;
-        if (canWarpCounter == 0) {
-            canWarpMap = true;
-        }
-
-        eventAfterChangedMap(this.getMapId());
+        map.forceChangeMap(target, pto);
     }
 
     private boolean buffMapProtection() {
-        int thisMapid = mapId;
-        int returnMapid = client.getChannelServer().getMapFactory().getMap(thisMapid).getReturnMapId();
-
-        // effLock/chrLock 已冗余：激活表为不可变快照，无锁迭代
-
-        try {
-            for (Entry<EffectType, EffectStatus> mbs : buffs.getActive().effects.entrySet()) {
-                if (mbs.getKey() == EffectType.MAP_PROTECTION) {
-                    byte value = (byte) mbs.getValue().value;
-
-                    if (value == 1 && ((returnMapid == MapId.EL_NATH && thisMapid != MapId.ORBIS_TOWER_BOTTOM)
-                            || returnMapid == MapId.INTERNET_CAFE)) {
-                        return true;        //protection from cold
-                    } else {
-                        return value == 2 && (returnMapid == MapId.AQUARIUM || thisMapid == MapId.ORBIS_TOWER_BOTTOM);        //breathing underwater
-                    }
-                }
-            }
-        } finally {
-
-
-        }
-
-        for (Item it : this.getInventory(InventoryType.EQUIPPED).list()) {
-            if ((it.getFlag() & ItemConstants.COLD) == ItemConstants.COLD
-                    && ((returnMapid == MapId.EL_NATH && thisMapid != MapId.ORBIS_TOWER_BOTTOM)
-                    || returnMapid == MapId.INTERNET_CAFE)) {
-                return true;        //protection from cold
-            }
-        }
-
-        return false;
+        return map.buffMapProtection();
     }
 
     public List<Integer> getLastVisitedMapIds() {
-        List<Integer> lastVisited = new ArrayList<>(5);
-
-        mapHistoryLock.lock();
-        try {
-            for (WeakReference<MapleMap> lv : lastVisitedMaps) {
-                MapleMap lvm = lv.get();
-
-                if (lvm != null) {
-                    lastVisited.add(lvm.getId());
-                }
-            }
-        } finally {
-            mapHistoryLock.unlock();
-        }
-
-        return lastVisited;
+        return map.getLastVisitedMapIds();
     }
 
     public void partyOperationUpdate(Party party, List<Character> exPartyMembers) {
-        List<WeakReference<MapleMap>> mapIds;
-
-        mapHistoryLock.lock();
-        try {
-            mapIds = new LinkedList<>(lastVisitedMaps);
-        } finally {
-            mapHistoryLock.unlock();
-        }
+        List<WeakReference<MapleMap>> mapIds = map.getLastVisitedMaps();
 
         List<Character> partyMembers = new LinkedList<>();
         for (Character mc : (exPartyMembers != null) ? exPartyMembers : this.getPartyMembersOnline()) {
@@ -1856,36 +1695,8 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    private Integer getVisitedMapIndex(MapleMap map) {
-        int idx = 0;
-        for (WeakReference<MapleMap> mapRef : lastVisitedMaps) {
-            if (map.equals(mapRef.get())) {
-                return idx;
-            }
-            idx++;
-        }
-        return -1;
-    }
-
-    public void visitMap(MapleMap map) {
-        mapHistoryLock.lock();
-        try {
-            int idx = getVisitedMapIndex(map);
-
-            if (idx == -1) {
-                if (lastVisitedMaps.size() == GameConfig.getServerInt("map_visited_size")) {
-                    lastVisitedMaps.removeFirst();
-                }
-            } else {
-                WeakReference<MapleMap> mapRef = lastVisitedMaps.remove(idx);
-                lastVisitedMaps.add(mapRef);
-                return;
-            }
-
-            lastVisitedMaps.add(new WeakReference<>(map));
-        } finally {
-            mapHistoryLock.unlock();
-        }
+    public void visitMap(MapleMap to) {
+        map.visitMap(to);
     }
 
     public void setOwnedMap(MapleMap map) {
@@ -1910,94 +1721,18 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     /**
-     * 玩家更改地图 内部方法
-     * @param to
-     * @param pos
-     * @param warpPacket
-     */
-    private void changeMapInternal(final MapleMap to, final Point pos, Packet warpPacket) {
-        if (!canWarpMap) {
-            return;
-        }
-        if (getMap(to.getId(), true) == null) return; //判断地图不存在则直接返回并发送提示消息。
-
-        this.mapTransitioning.set(true);
-        // 显式清空“传送距离校验上下文”，避免跨图后旧上下文残留
-        clearTeleportDistanceContext();
-
-        this.unregisterChairBuff();
-        this.clearBanishPlayerData();
-        Trade.cancelTrade(this, Trade.TradeResult.UNSUCCESSFUL_ANOTHER_MAP);
-        this.closePlayerInteractions();
-
-        Party e = null;
-        if (this.getParty() != null && this.getParty().getEnemy() != null) {
-            e = this.getParty().getEnemy();
-        }
-        final Party k = e;
-
-        sendPacket(warpPacket);
-        map.removePlayer(this);
-        if (client.getChannelServer().getPlayerStorage().getCharacterById(getId()) != null) {
-            map = to;
-            setPosition(pos);
-            map.addPlayer(this);
-            visitMap(map);
-
-            prtLock.lock();
-            try {
-                if (party != null) {
-                    mpc.setMapId(to.getId());
-                    sendPacket(PacketCreator.updateParty(client.getChannel(), party, PartyOperation.SILENT_UPDATE, null));
-                    updatePartyMemberHPInternal();
-                }
-            } finally {
-                prtLock.unlock();
-            }
-            if (Character.this.getParty() != null) {
-                Character.this.getParty().setEnemy(k);
-            }
-            silentPartyUpdateInternal(getParty());  // EIM script calls inside
-        } else {    //切换地图时卡住了
-            log.warn(I18nUtil.getLogMessage("Character.Map.Change.warn2"), getName(), map.getMapName(), map.getId());
-            client.disconnect(true, false);     // thanks BHB for noticing a player storage stuck case here
-            return;
-        }
-
-        notifyMapTransferToPartner(map.getId());
-
-        //alas, new map has been specified when a warping was being processed...
-        if (newWarpMap != -1) {
-            canWarpMap = true;
-
-            int temp = newWarpMap;
-            newWarpMap = -1;
-            changeMap(temp);
-        } else {
-            // if this event map has a gate already opened, render it
-            EventInstanceManager eim = getEventInstance();
-            if (eim != null) {
-                eim.recoverOpenedGate(this, map.getId());
-            }
-
-            // if this map has obstacle components moving, make it do so for this client
-            sendPacket(PacketCreator.environmentMoveList(map.getEnvironment().entrySet()));
-        }
-    }
-
-    /**
      * 玩家角色是否处于切换地图的状态
      * @return boolean
      */
     public boolean isChangingMaps() {
-        return this.mapTransitioning.get();
+        return map.isChangingMaps();
     }
 
     /**
      *  设置地图转换完成
      */
     public void setMapTransitionComplete() {
-        this.mapTransitioning.set(false);
+        map.setMapTransitionComplete();
     }
 
     public void changePage(int page) {
@@ -2910,18 +2645,18 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void gainMeso(int gain, boolean show, boolean enableActions, boolean inChat) {
         long nextMeso;
-        mapHistoryLock.lock();
-        try {
-            nextMeso = (long) meso.get() + gain;  // thanks Thora for pointing integer overflow here
+        // meso 为 AtomicInteger，原 mapHistoryLock 保护系误用（与 map 历史无关）；改用 CAS 循环保证读改写原子
+        int cur;
+        do {
+            cur = meso.get();
+            nextMeso = (long) cur + gain;  // thanks Thora for pointing integer overflow here
             if (nextMeso > Integer.MAX_VALUE) {
-                gain -= (int) (nextMeso - Integer.MAX_VALUE);
+                nextMeso = Integer.MAX_VALUE;
             } else if (nextMeso < 0) {
-                gain = -meso.get();
+                nextMeso = 0;
             }
-            nextMeso = meso.addAndGet(gain);
-        } finally {
-            mapHistoryLock.unlock();
-        }
+        } while (!meso.compareAndSet(cur, (int) nextMeso));
+        gain = (int) (nextMeso - cur);
 
         if (gain != 0) {
             updateSingleStat(Stat.MESO, (int) nextMeso, enableActions);
@@ -3029,7 +2764,7 @@ public class Character extends AbstractAnimatedMapObject {
             getMap().removeMapObject(summon);
             removeVisibleMapObject(summon);
             if (summon.isPuppet()) {
-                map.removePlayerPuppet(this);
+                getMap().removePlayerPuppet(this);
             }
         }
     }
@@ -3301,12 +3036,12 @@ public class Character extends AbstractAnimatedMapObject {
         if (itemid == 0) {
             BuffEffectData mseMeso = getBuffEffect(EffectType.MESO_UP_BY_ITEM);
             if (mseMeso != null) {
-                rate += mseMeso.getCardRate(mapId, itemid);
+                rate += mseMeso.getCardRate(getMapId(), itemid);
             }
         } else {
             BuffEffectData mseItem = getBuffEffect(EffectType.ITEM_UP_BY_ITEM);
             if (mseItem != null) {
-                rate += mseItem.getCardRate(mapId, itemid);
+                rate += mseItem.getCardRate(getMapId(), itemid);
             }
         }
 
@@ -3476,18 +3211,19 @@ public class Character extends AbstractAnimatedMapObject {
         Point pos = this.getPosition();
         pos.y -= 6;
 
-        if (map.getFootholds().findBelow(pos) == null) {
+        if (getMap().getFootholds().findBelow(pos) == null) {
             return 0;
         } else {
-            return map.getFootholds().findBelow(pos).getY1();
+            return getMap().getFootholds().findBelow(pos).getY1();
         }
     }
 
+    public MapleMap getMap() {
+        return map.getMap();
+    }
+
     public int getMapId() {
-        if (map != null) {
-            return map.getId();
-        }
-        return mapId;
+        return map.getMapId();
     }
 
     public Ring getMarriageRing() {
@@ -4199,7 +3935,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public boolean attemptCatchFish(int baitLevel) {
-        return GameConfig.getServerBoolean("use_fishing_system") && MapId.isFishingArea(mapId) &&
+        return GameConfig.getServerBoolean("use_fishing_system") && MapId.isFishingArea(getMapId()) &&
                 this.getPosition().getY() > 0 &&
                 ItemConstants.isFishingChair(chair.getChair()) &&
                 this.getWorldServer().registerFisherPlayer(this, baitLevel);
@@ -4759,12 +4495,12 @@ public class Character extends AbstractAnimatedMapObject {
             // skipping pets, probably unneeded here
 
             ret.level = rs.getInt("level");
-            ret.setJob(Job.getById(rs.getInt("job")));
+            // job 仅从 character_json 恢复（applyData），character 表 job 列为冗余双写
             ret.applyData(CharacterData.deserialize(rs.getString("stats_json")));
             ret.exp.set(rs.getInt("exp"));
             ret.fame = rs.getInt("fame");
             ret.gachaExp.set(rs.getInt("gachaexp"));
-            ret.mapId = rs.getInt("map");
+            // mapId 仅从 character_json 恢复（applyData），character 表 map 列为冗余双写
             ret.initialSpawnPoint = rs.getInt("spawnpoint");
             ret.setGMLevel(rs.getInt("gm"));
             ret.world = rs.getByte("world");
@@ -4813,7 +4549,7 @@ public class Character extends AbstractAnimatedMapObject {
         ret.exp.set(this.getExp());
         ret.fame = this.getFame();
         ret.gachaExp.set(this.getGachaExp());
-        ret.mapId = this.getMapId();
+        ret.setMapId(this.getMapId());
         ret.initialSpawnPoint = this.getInitialSpawnPoint();
 
         ret.inventory[InventoryType.EQUIPPED.ordinal()] = this.getInventory(InventoryType.EQUIPPED);
@@ -4854,7 +4590,7 @@ public class Character extends AbstractAnimatedMapObject {
         chr.setGMLevel(charactersDO.getGm());
         chr.setSkinColor(SkinColor.getById(charactersDO.getSkincolor()));
         chr.setGender(charactersDO.getGender());
-        chr.setJob(Job.getById(charactersDO.getJob()));
+        // job 仅从 character_json 恢复（applyData），character 表 job 列为冗余双写
         chr.setFinishedDojoTutorial(charactersDO.getFinishedDojoTutorial() == 1);
         chr.setVanquisherKills(charactersDO.getVanquisherKills());
         chr.setOmokwins(charactersDO.getOmokwins());
@@ -4866,7 +4602,7 @@ public class Character extends AbstractAnimatedMapObject {
         chr.setHair(charactersDO.getHair());
         chr.setFace(charactersDO.getFace());
         chr.setAccountId(charactersDO.getAccountid());
-        chr.setMapId(charactersDO.getMap());
+        // mapId 仅从 character_json 恢复（applyData），character 表 map 列为冗余双写
         chr.setJailExpiration(charactersDO.getJailexpire());
         chr.setInitialSpawnPoint(charactersDO.getSpawnpoint());
         chr.setWorld(charactersDO.getWorld());
@@ -5013,6 +4749,8 @@ public class Character extends AbstractAnimatedMapObject {
         data.ap = ap.toData();
         data.sp = sp.toData();
         data.debuffs = debuffs.toData();
+        data.jobId = job.getId();
+        data.mapId = getMapId();
         data.timestamp = Server.getInstance().getCurrentTime();
         return data;
     }
@@ -5023,6 +4761,8 @@ public class Character extends AbstractAnimatedMapObject {
         ap.applyData(data.ap);
         sp.applyData(data.sp);
         debuffs.applyData(data.debuffs, data.timestamp);
+        job.setJob(Job.getById(data.jobId));
+        map.setMapId(data.mapId);
     }
 
     // stats/skills 等域均存于 character_json，此处加载整个信封
@@ -5075,15 +4815,6 @@ public class Character extends AbstractAnimatedMapObject {
         cdo.setJob(chr.job.getId());
         cdo.setHair(chr.getHair());
         cdo.setFace(chr.getFace());
-        if (chr.getMap() == null || (chr.getCashShop() != null && chr.getCashShop().isOpened())) {
-            cdo.setMap(chr.getMapId());
-        } else {
-            if (chr.getMap().getForcedReturnId() != MapId.NONE) {
-                cdo.setMap(chr.getMap().getForcedReturnId());
-            } else {
-                cdo.setMap(chr.getHp() < 1 ? chr.getMap().getReturnMapId() : chr.getMap().getId());
-            }
-        }
         cdo.setMeso(chr.getMeso());
         cdo.setHpMpUsed(chr.getHpMpApUsed());
         if (chr.getMap() == null || chr.getMap().getId() == MapId.CRIMSONWOOD_VALLEY_1 || chr.getMap().getId() == MapId.CRIMSONWOOD_VALLEY_2) {
@@ -5586,7 +5317,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void resetEnteredScript() {
-        entered.remove(map.getId());
+        entered.remove(getMap().getId());
     }
 
     public void resetEnteredScript(int mapId) {
@@ -5616,7 +5347,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void saveLocationOnWarp() {  // suggestion to remember the map before warp command thanks to Lei
-        Portal closest = map.findClosestPortal(getPosition());
+        Portal closest = getMap().findClosestPortal(getPosition());
         int curMapid = getMapId();
 
         for (int i = 0; i < savedLocations.length; i++) {
@@ -5627,7 +5358,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void saveLocation(String type) {
-        Portal closest = map.findClosestPortal(getPosition());
+        Portal closest = getMap().findClosestPortal(getPosition());
         savedLocations[SavedLocationType.fromString(type).ordinal()] = new SavedLocation(getMapId(), closest != null ? closest.getId() : 0);
     }
 
@@ -5643,7 +5374,7 @@ public class Character extends AbstractAnimatedMapObject {
         level = recipe.getLevel();
         ap.remainingAp = recipe.getRemainingAp();
         sp.remainingSp[CharacterSp.indexOf(job.getId())] = recipe.getRemainingSp();
-        mapId = recipe.getMap();
+        setMapId(recipe.getMap());
         meso.set(recipe.getMeso());
 
         List<Pair<Skill, Integer>> startingSkills = recipe.getStartingSkillLevel();
@@ -5666,20 +5397,19 @@ public class Character extends AbstractAnimatedMapObject {
 
             try {
                 // Character info
-                try (PreparedStatement ps = con.prepareStatement("INSERT INTO characters (gm, skincolor, gender, job, hair, face, map, meso, spawnpoint, accountid, name, world, level) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                try (PreparedStatement ps = con.prepareStatement("INSERT INTO characters (gm, skincolor, gender, job, hair, face, meso, spawnpoint, accountid, name, world, level) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
                     ps.setInt(1, gmLevel);
                     ps.setInt(2, skinColor.getId());
                     ps.setInt(3, gender);
                     ps.setInt(4, job.getId());
                     ps.setInt(5, hair);
                     ps.setInt(6, face);
-                    ps.setInt(7, mapId);
-                    ps.setInt(8, Math.abs(meso.get()));
-                    ps.setInt(9, 0);
-                    ps.setInt(10, accountId);
-                    ps.setString(11, name);
-                    ps.setInt(12, world);
-                    ps.setInt(13, level);
+                    ps.setInt(7, Math.abs(meso.get()));
+                    ps.setInt(8, 0);
+                    ps.setInt(9, accountId);
+                    ps.setString(10, name);
+                    ps.setInt(11, world);
+                    ps.setInt(12, level);
 
                     int updateRows = ps.executeUpdate();
                     if (updateRows < 1) {
@@ -5804,7 +5534,7 @@ public class Character extends AbstractAnimatedMapObject {
             try {
                 String statsJson;
 
-                try (PreparedStatement ps = con.prepareStatement("UPDATE characters SET level = ?, fame = ?, exp = ?, gachaexp = ?, gm = ?, skincolor = ?, gender = ?, job = ?, hair = ?, face = ?, map = ?, meso = ?, spawnpoint = ?, party = ?, buddyCapacity = ?, messengerid = ?, messengerposition = ?, mountlevel = ?, mountexp = ?, mounttiredness= ?, equipslots = ?, useslots = ?, setupslots = ?, etcslots = ?,  monsterbookcover = ?, vanquisherStage = ?, dojoPoints = ?, lastDojoStage = ?, finishedDojoTutorial = ?, vanquisherKills = ?, matchcardwins = ?, matchcardlosses = ?, matchcardties = ?, omokwins = ?, omoklosses = ?, omokties = ?, dataString = ?, fquest = ?, jailexpire = ?, partnerId = ?, marriageItemId = ?, lastExpGainTime = ?, ariantPoints = ?, partySearch = ? WHERE id = ?", Statement.RETURN_GENERATED_KEYS)) {
+                try (PreparedStatement ps = con.prepareStatement("UPDATE characters SET level = ?, fame = ?, exp = ?, gachaexp = ?, gm = ?, skincolor = ?, gender = ?, job = ?, hair = ?, face = ?, meso = ?, spawnpoint = ?, party = ?, buddyCapacity = ?, messengerid = ?, messengerposition = ?, mountlevel = ?, mountexp = ?, mounttiredness= ?, equipslots = ?, useslots = ?, setupslots = ?, etcslots = ?,  monsterbookcover = ?, vanquisherStage = ?, dojoPoints = ?, lastDojoStage = ?, finishedDojoTutorial = ?, vanquisherKills = ?, matchcardwins = ?, matchcardlosses = ?, matchcardties = ?, omokwins = ?, omoklosses = ?, omokties = ?, dataString = ?, fquest = ?, jailexpire = ?, partnerId = ?, marriageItemId = ?, lastExpGainTime = ?, ariantPoints = ?, partySearch = ? WHERE id = ?", Statement.RETURN_GENERATED_KEYS)) {
                     ps.setInt(1, level);    // thanks CanIGetaPR for noticing an unnecessary "level" limitation when persisting DB data
                     ps.setInt(2, fame);
 
@@ -5824,22 +5554,13 @@ public class Character extends AbstractAnimatedMapObject {
                     ps.setInt(8, job.getId());
                     ps.setInt(9, hair);
                     ps.setInt(10, face);
-                    if (map == null || (cashShop != null && cashShop.isOpened())) {
-                        ps.setInt(11, mapId);
+                    ps.setInt(11, meso.get());
+                    if (getMap() == null || getMap().getId() == MapId.CRIMSONWOOD_VALLEY_1 || getMap().getId() == MapId.CRIMSONWOOD_VALLEY_2) {  // reset to first spawnpoint on those maps
+                        ps.setInt(12, 0);
                     } else {
-                        if (map.getForcedReturnId() != MapId.NONE) {
-                            ps.setInt(11, map.getForcedReturnId());
-                        } else {
-                            ps.setInt(11, getHp() < 1 ? map.getReturnMapId() : map.getId());
-                        }
-                    }
-                    ps.setInt(12, meso.get());
-                    if (map == null || map.getId() == MapId.CRIMSONWOOD_VALLEY_1 || map.getId() == MapId.CRIMSONWOOD_VALLEY_2) {  // reset to first spawnpoint on those maps
-                        ps.setInt(13, 0);
-                    } else {
-                        Portal closest = map.findClosestPlayerSpawnpoint(getPosition());
+                        Portal closest = getMap().findClosestPlayerSpawnpoint(getPosition());
                         if (closest != null) {
-                            ps.setInt(13, closest.getId());
+                            ps.setInt(12, closest.getId());
                         } else {
                             ps.setInt(13, 0);
                         }
@@ -5848,58 +5569,58 @@ public class Character extends AbstractAnimatedMapObject {
                     prtLock.lock();
                     try {
                         if (party != null) {
-                            ps.setInt(14, party.getId());
+                            ps.setInt(13, party.getId());
                         } else {
-                            ps.setInt(14, -1);
+                            ps.setInt(13, -1);
                         }
                     } finally {
                         prtLock.unlock();
                     }
 
-                    ps.setInt(15, buddylist.getCapacity());
+                    ps.setInt(14, buddylist.getCapacity());
                     if (messenger != null) {
-                        ps.setInt(16, messenger.getId());
-                        ps.setInt(17, messengerPosition);
+                        ps.setInt(15, messenger.getId());
+                        ps.setInt(16, messengerPosition);
                     } else {
-                        ps.setInt(16, 0);
-                        ps.setInt(17, 4);
+                        ps.setInt(15, 0);
+                        ps.setInt(16, 4);
                     }
                     if (mapleMount != null) {
-                        ps.setInt(18, mapleMount.getLevel());
-                        ps.setInt(19, mapleMount.getExp());
-                        ps.setInt(20, mapleMount.getTiredness());
+                        ps.setInt(17, mapleMount.getLevel());
+                        ps.setInt(18, mapleMount.getExp());
+                        ps.setInt(19, mapleMount.getTiredness());
                     } else {
-                        ps.setInt(18, 1);
+                        ps.setInt(17, 1);
+                        ps.setInt(18, 0);
                         ps.setInt(19, 0);
-                        ps.setInt(20, 0);
                     }
                     for (int i = 1; i < 5; i++) {
-                        ps.setInt(i + 20, getSlots(i));
+                        ps.setInt(i + 19, getSlots(i));
                     }
 
                     monsterBook.saveCards(con, id);
 
-                    ps.setInt(25, bookCover);
-                    ps.setInt(26, vanquisherStage);
-                    ps.setInt(27, dojoPoints);
-                    ps.setInt(28, dojoStage);
-                    ps.setInt(29, finishedDojoTutorial ? 1 : 0);
-                    ps.setInt(30, vanquisherKills);
-                    ps.setInt(31, matchcardwins);
-                    ps.setInt(32, matchcardlosses);
-                    ps.setInt(33, matchcardties);
-                    ps.setInt(34, omokwins);
-                    ps.setInt(35, omoklosses);
-                    ps.setInt(36, omokties);
-                    ps.setString(37, dataString);
-                    ps.setInt(38, questFame);
-                    ps.setLong(39, jailExpiration);
-                    ps.setInt(40, partnerId);
-                    ps.setInt(41, marriageItemId);
-                    ps.setTimestamp(42, new Timestamp(lastExpGainTime));
-                    ps.setInt(43, ariantPoints);
-                    ps.setBoolean(44, canRecvPartySearchInvite);
-                    ps.setInt(45, id);
+                    ps.setInt(24, bookCover);
+                    ps.setInt(25, vanquisherStage);
+                    ps.setInt(26, dojoPoints);
+                    ps.setInt(27, dojoStage);
+                    ps.setInt(28, finishedDojoTutorial ? 1 : 0);
+                    ps.setInt(29, vanquisherKills);
+                    ps.setInt(30, matchcardwins);
+                    ps.setInt(31, matchcardlosses);
+                    ps.setInt(32, matchcardties);
+                    ps.setInt(33, omokwins);
+                    ps.setInt(34, omoklosses);
+                    ps.setInt(35, omokties);
+                    ps.setString(36, dataString);
+                    ps.setInt(37, questFame);
+                    ps.setLong(38, jailExpiration);
+                    ps.setInt(39, partnerId);
+                    ps.setInt(40, marriageItemId);
+                    ps.setTimestamp(41, new Timestamp(lastExpGainTime));
+                    ps.setInt(42, ariantPoints);
+                    ps.setBoolean(43, canRecvPartySearchInvite);
+                    ps.setInt(44, id);
 
                     int updateRows = ps.executeUpdate();
                     if (updateRows < 1) {
@@ -6352,8 +6073,8 @@ public class Character extends AbstractAnimatedMapObject {
                 checkBerserk(isHidden());
             }
         };
-        if (map != null) {
-            map.registerCharacterStatUpdate(r);
+        if (getMap() != null) {
+            getMap().registerCharacterStatUpdate(r);
         }
     }
 
@@ -6454,12 +6175,16 @@ public class Character extends AbstractAnimatedMapObject {
         return true;
     }
 
-    public void setMap(MapleMap map) {
-        this.map = map;
+    public void setMap(MapleMap to) {
+        map.setMap(to);
     }
 
     public void setMap(int PmapId) {
-        this.mapId = PmapId;
+        map.setMap(PmapId);
+    }
+
+    public void setMapId(int mapId) {
+        map.setMapId(mapId);
     }
 
     public void setMiniGamePoints(Character visitor, int winnerslot, boolean omok) {
@@ -6815,11 +6540,11 @@ public class Character extends AbstractAnimatedMapObject {
 
 
     private long getDojoTimeLeft() {
-        return client.getChannelServer().getDojoFinishTime(map.getId()) - Server.getInstance().getCurrentTime();
+        return client.getChannelServer().getDojoFinishTime(getMap().getId()) - Server.getInstance().getCurrentTime();
     }
 
     public void showDojoClock() {
-        if (GameConstants.isDojoBossArea(map.getId())) {
+        if (GameConstants.isDojoBossArea(getMap().getId())) {
             sendPacket(PacketCreator.getClock((int) (getDojoTimeLeft() / 1000)));
         }
     }
@@ -6866,7 +6591,7 @@ public class Character extends AbstractAnimatedMapObject {
         silentPartyUpdateInternal(getParty());
     }
 
-    private void silentPartyUpdateInternal(Party chrParty) {
+    void silentPartyUpdateInternal(Party chrParty) {    // 包内可见：CharacterMap.changeMapInternal 调用
         if (chrParty != null) {
             getWorldServer().updateParty(chrParty.getId(), PartyOperation.SILENT_UPDATE, getMPC());
         }
@@ -6927,7 +6652,7 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    private void updatePartyMemberHPInternal() {
+    void updatePartyMemberHPInternal() {    // 包内可见：CharacterMap.changeMapInternal 调用
         if (party != null) {
             int curmaxhp = getCurrentMaxHp();
             int curhp = getHp();
@@ -7752,7 +7477,7 @@ public class Character extends AbstractAnimatedMapObject {
 
             getWorldServer().registerTimedMapObject(() -> {
                 client = null;  // clients still triggers handlers a few times after disconnecting
-                map = null;
+        setMap((MapleMap) null);
 
                 // thanks Shavit for noticing a memory leak with inventories holding owner object
                 for (int i = 0; i < inventory.length; i++) {
@@ -8164,21 +7889,7 @@ public class Character extends AbstractAnimatedMapObject {
      * @return
      */
     public MapleMap getMap(int mapid, boolean showMsg) {
-        MapleMap map = null;
-        try {
-            map = client.getChannelServer().getMapFactory().getMap(mapid);
-        } catch (Exception ignored) {
-        }
-        if (map == null && showMsg) {
-            String msg = I18nUtil.getMessage("Character.Map.Change.message1", Integer.toString(mapid));
-            log.warn(I18nUtil.getLogMessage("Character.Map.Change.warn1"), getName(), getMap().getMapName(), getMapId(),
-                    I18nUtil.getLogMessage("SystemRescue.info.map.message1"),
-                    mapid);
-            dropMessage(5, msg);                 //聊天窗红色消息提示
-            dropMessage(1, msg);                 //弹窗消息
-            enableActions();
-        }
-        return map;
+        return map.getMap(mapid, showMsg);
     }
 
     /**
