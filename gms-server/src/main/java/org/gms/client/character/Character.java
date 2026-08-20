@@ -149,6 +149,9 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterFamily family = new CharacterFamily(this);
     final CharacterMarriage marriage = new CharacterMarriage(this);
     final CharacterMiniGame miniGame = new CharacterMiniGame(this);
+    final CharacterLevel level = new CharacterLevel(this);
+    final CharacterFame fame = new CharacterFame(this);
+    final CharacterGm gm = new CharacterGm(this);
 
     @Getter
     @Setter
@@ -159,9 +162,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     @Setter
     private int accountId;
-    @Getter
-    @Setter
-    private int level;
     @Getter
     @Setter
     private int rank;
@@ -182,10 +182,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Setter
     @Getter
     private int face;
-    @Setter
-    @Getter
-    private int fame;
-    private final Lock fameLock = new ReentrantLock(true);   // applyFame 的 fame 读改写专用（原误用 petLock）
     @Getter
     @Setter
     private int initialSpawnPoint;
@@ -204,7 +200,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     @Setter
     private int energyBar;
-    private int gmLevel;
     @Getter
     private int ci = 0;
     @Setter
@@ -235,14 +230,9 @@ public class Character extends AbstractAnimatedMapObject {
     private int owlSearch;
     @Setter
     @Getter
-    private long lastfametime;
-    @Setter
-    @Getter
     private long lastUsedCashItem;
     private long lastExpression = 0;
-    @Getter
-    private boolean hidden;
-    private boolean berserk, whiteChat = false;
+    private boolean berserk;
 
     @Setter
     private boolean usedSafetyCharm = false;
@@ -265,10 +255,7 @@ public class Character extends AbstractAnimatedMapObject {
     @Setter
     private String search = null;
     final AtomicBoolean awayFromWorld = new AtomicBoolean(true);  // player is online, but on cash shop or mts
-    private final AtomicInteger exp = new AtomicInteger();
-    private final AtomicInteger gachaExp = new AtomicInteger();
     private final AtomicInteger meso = new AtomicInteger();
-    private long totalExpGained = 0;
     @Getter
     @Setter
     private BuddyList buddylist;
@@ -305,9 +292,6 @@ public class Character extends AbstractAnimatedMapObject {
     private final SavedLocation[] savedLocations;
     @Getter
     private final SkillMacro[] skillMacros = new SkillMacro[5];
-    @Setter
-    @Getter
-    private List<Integer> lastmonthfameids;
     private WeakReference<MapleMap> ownedMap = new WeakReference<>(null);
     private final Set<Monster> controlled = new LinkedHashSet<>();
     private final Map<Integer, String> entered = new LinkedHashMap<>();
@@ -367,8 +351,7 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     private long targetHpBarTime = 0;
     private long nextWarningTime = 0;
-    @Setter
-    private long lastExpGainTime;
+    long lastExpGainTime;    // 包内可见：CharacterLevel.gainExpInternal 写入
     private boolean pendingNameChange; //only used to change name on logout, not to be relied upon elsewhere
     @Getter
     @Setter
@@ -490,7 +473,7 @@ public class Character extends AbstractAnimatedMapObject {
     public static Character getDefault(Client c) {
         Character ret = new Character();
         ret.client = c;
-        ret.setGMLevel(0);
+        ret.gm.setGMLevel(0);
         ret.stats.hp = 50;
         ret.stats.setMaxHp(50);
         ret.stats.mp = 5;
@@ -501,7 +484,7 @@ public class Character extends AbstractAnimatedMapObject {
         ret.stats.attrs[LUK] = 4;
         ret.setMap((MapleMap) null);
         ret.setJob(Job.BEGINNER);
-        ret.level = 1;
+        ret.level.setLevel(1);
         ret.accountId = c.getAccID();
         ret.buddylist = new BuddyList(20);
         ret.mapleMount = null;
@@ -736,45 +719,6 @@ public class Character extends AbstractAnimatedMapObject {
             medal = "<" + ItemInformationProvider.getInstance().getName(medalItem.getItemId()) + "> ";
         }
         return medal;
-    }
-
-    public void hide(boolean hide, boolean login) {
-        if (isGM() && hide != this.hidden) {
-            if (!hide) {
-                this.hidden = false;
-                sendPacket(PacketCreator.getGMEffect(0x10, (byte) 0));
-                List<EffectType> dsstat = Collections.singletonList(EffectType.DARKSIGHT);
-                getMap().broadcastGMMessage(this, PacketCreator.cancelForeignBuff(id, dsstat), false);
-                getMap().broadcastSpawnPlayerMapObjectMessage(this, this, false);
-
-                for (Summon ms : this.getSummonsValues()) {
-                    getMap().broadcastNONGMMessage(this, PacketCreator.spawnSummon(ms, false), false);
-                }
-
-                for (MapObject mo : this.getMap().getMonsters()) {
-                    Monster m = (Monster) mo;
-                    m.aggroUpdateController();
-                }
-            } else {
-                this.hidden = true;
-                sendPacket(PacketCreator.getGMEffect(0x10, (byte) 1));
-                if (!login) {
-                    getMap().broadcastNONGMMessage(this, PacketCreator.removePlayerFromMap(getId()), false);
-                }
-                List<Pair<EffectType, Integer>> ldsstat = Collections.singletonList(new Pair<EffectType, Integer>(EffectType.DARKSIGHT, 0));
-                getMap().broadcastGMMessage(this, PacketCreator.giveForeignBuff(id, ldsstat), false);
-                this.releaseControlledMonsters();
-            }
-            enableActions();
-        }
-    }
-
-    public void hide(boolean hide) {
-        hide(hide, false);
-    }
-
-    public void toggleHide(boolean login) {
-        hide(!hidden, login);
     }
 
     public static boolean canCreateChar(String name) {
@@ -1226,186 +1170,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public void gainGachaExp() {
-        int expgain = 0;
-        long currentgexp = gachaExp.get();
-
-        int levelUpNeed = ExpTable.getExpNeededForLevel(level) - exp.get();
-        if (currentgexp >= levelUpNeed) {
-            expgain += Math.max(0, levelUpNeed);
-
-            int nextneed = ExpTable.getExpNeededForLevel(level + 1);
-            if (currentgexp - expgain >= nextneed) {
-                expgain += nextneed;
-            }
-
-            this.gachaExp.set((int) (currentgexp - expgain));
-        } else {
-            expgain = this.gachaExp.getAndSet(0);
-        }
-        gainExp(expgain, false, true);
-        updateSingleStat(Stat.GACHAEXP, this.gachaExp.get());
-    }
-
-    public void addGachaExp(int gain) {
-        updateSingleStat(Stat.GACHAEXP, gachaExp.addAndGet(gain));
-    }
-
-    public void gainExp(int gain) {
-        gainExp(gain, true, true);
-    }
-
-    public void gainExp(int gain, boolean show, boolean inChat) {
-        gainExp(gain, show, inChat, true);
-    }
-
-    public void gainExp(int gain, boolean show, boolean inChat, boolean white) {
-        gainExp(gain, 0, show, inChat, white);
-    }
-
-    public void gainExp(int gain, int party, boolean show, boolean inChat, boolean white) {
-        if (hasDisease(Disease.CURSE)) {
-            gain *= 0.5;
-            party *= 0.5;
-        }
-
-        if (gain < 0) {
-            gain = Integer.MAX_VALUE;   // integer overflow, heh.
-        }
-
-        if (party < 0) {
-            party = Integer.MAX_VALUE;  // integer overflow, heh.
-        }
-
-        int equip = (int) Math.min((long) (gain / 10) * pendantExp, Integer.MAX_VALUE);
-
-        gainExpInternal(gain, equip, party, show, inChat, white);
-    }
-
-    public void loseExp(int loss, boolean show, boolean inChat) {
-        loseExp(loss, show, inChat, true);
-    }
-
-    public void loseExp(int loss, boolean show, boolean inChat, boolean white) {
-        gainExpInternal(-loss, 0, 0, show, inChat, white);
-    }
-
-    private void announceExpGain(long gain, int equip, int party, boolean inChat, boolean white) {
-        gain = Math.min(gain, Integer.MAX_VALUE);
-        if (gain == 0) {
-            if (party == 0) {
-                return;
-            }
-
-            gain = party;
-            party = 0;
-            white = false;
-        }
-
-        sendPacket(PacketCreator.getShowExpGain((int) gain, equip, party, inChat, white));
-    }
-
-    private synchronized void gainExpInternal(long gain, int equip, int party, boolean show, boolean inChat, boolean white) {   // need of method synchonization here detected thanks to MedicOP
-        long total = Math.max(gain + equip + party, -exp.get());
-
-        if (level < getMaxLevel() && (allowExpGain || this.getEventInstance() != null)) {
-            long leftover = 0;
-            long nextExp = exp.get() + total;
-
-            if (nextExp > (long) Integer.MAX_VALUE) {
-                total = Integer.MAX_VALUE - exp.get();
-                leftover = nextExp - Integer.MAX_VALUE;
-            }
-            updateSingleStat(Stat.EXP, exp.addAndGet((int) total));
-            totalExpGained += total;
-            if (show) {
-                announceExpGain(gain, equip, party, inChat, white);
-            }
-            while (exp.get() >= ExpTable.getExpNeededForLevel(level)) {
-                levelUp(true);
-
-                String msg = I18nUtil.getMessage("Character.levelUp.globalNotice", getName(), getMap().getMapName(), getLevel());
-                if (GameConfig.getServerBoolean("use_announce_global_level_up") && !isGM()) {
-                    for (Character player : getWorldServer().getPlayerStorage().getAllCharacters()) {
-                        // 如果玩家在商城，将会以弹窗的形式发送，一堆弹窗会把玩家逼疯！
-                        if (player.getCashShop().isOpened()) {
-                            continue;
-                        }
-                        player.dropMessage(6, msg);
-                    }
-                    log.info(msg);
-                }
-                if (level == getMaxLevel()) {
-                    setExp(0);
-                    updateSingleStat(Stat.EXP, 0);
-                    break;
-                }
-                if (GameConfig.getServerBoolean("use_level_up_protect")) break;
-            }
-
-            if (leftover > 0) {
-                gainExpInternal(leftover, equip, party, false, inChat, white);
-            } else {
-                lastExpGainTime = System.currentTimeMillis();
-
-                if (GameConfig.getServerBoolean("use_exp_gain_log")) {
-                    ExpLogRecord expLogRecord = new ExpLogger.ExpLogRecord(
-                            getWorldServer().getExpRate(),
-                            getCouponExpRate(),
-                            totalExpGained,
-                            exp.get(),
-                            new Timestamp(lastExpGainTime),
-                            id
-                    );
-                    ExpLogger.putExpLogRecord(expLogRecord);
-                }
-
-                totalExpGained = 0;
-            }
-        }
-    }
-
-    private Pair<Integer, Integer> applyFame(int delta) {
-        fameLock.lock();
-        try {
-            int newFame = fame + delta;
-            if (newFame < -30000) {
-                delta = -(30000 + fame);
-            } else if (newFame > 30000) {
-                delta = 30000 - fame;
-            }
-
-            fame += delta;
-            return new Pair<>(fame, delta);
-        } finally {
-            fameLock.unlock();
-        }
-    }
-
-    public void gainFame(int delta) {
-        gainFame(delta, null, 0);
-    }
-
-    public boolean gainFame(int delta, Character fromPlayer, int mode) {
-        Pair<Integer, Integer> fameRes = applyFame(delta);
-        delta = fameRes.getRight();
-        if (delta != 0) {
-            int thisFame = fameRes.getLeft();
-            updateSingleStat(Stat.FAME, thisFame);
-
-            if (fromPlayer != null) {
-                fromPlayer.sendPacket(PacketCreator.giveFameResponse(mode, getName(), thisFame));
-                sendPacket(PacketCreator.receiveFame(mode, fromPlayer.getName()));
-            } else {
-                sendPacket(PacketCreator.getShowFameGain(delta));
-            }
-
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     public void gainMeso(int gain) {
         gainMeso(gain, true, false, true);
     }
@@ -1484,14 +1248,6 @@ public class Character extends AbstractAnimatedMapObject {
         } finally {
             evtLock.unlock();
         }
-    }
-
-    public int getExp() {
-        return exp.get();
-    }
-
-    public int getGachaExp() {
-        return gachaExp.get();
     }
 
     public void setUsedStorage() {
@@ -1629,11 +1385,6 @@ public class Character extends AbstractAnimatedMapObject {
         return bookCover;
     }
 
-    public void setGMLevel(int level) {
-        this.gmLevel = Math.max(Math.min(level, 6), 0);
-        whiteChat = gmLevel >= 4;   // thanks ozanrijen for suggesting default white chat
-    }
-
     public void closePartySearchInteractions() {
         this.getWorldServer().getPartySearchCoordinator().unregisterPartyLeader(this);
         if (party.canRecvPartySearchInvite) {
@@ -1739,10 +1490,6 @@ public class Character extends AbstractAnimatedMapObject {
         return Server.getInstance().getWorld(world);
     }
 
-    public int gmLevel() {
-        return gmLevel;
-    }
-
     public void handleEnergyChargeGain() { // to get here energychargelevel has to be > 0
         Skill energycharge = isCygnus() ? SkillFactory.getSkill(ThunderBreaker.ENERGY_CHARGE) : SkillFactory.getSkill(Marauder.ENERGY_CHARGE);
         BuffEffectData ceffect;
@@ -1797,23 +1544,6 @@ public class Character extends AbstractAnimatedMapObject {
         return script.equals(e);
     }
 
-    public void hasGivenFame(Character to) {
-        lastfametime = System.currentTimeMillis();
-        lastmonthfameids.add(to.getId());
-        try (Connection con = DatabaseConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement("INSERT INTO famelog (characterid, characterid_to) VALUES (?, ?)")) {
-            ps.setInt(1, getId());
-            ps.setInt(2, to.getId());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public boolean isGM() {
-        return gmLevel > 1;
-    }
-
     public boolean isMapObjectVisible(MapObject mo) {
         return visibleMapObjects.contains(mo);
     }
@@ -1839,7 +1569,7 @@ public class Character extends AbstractAnimatedMapObject {
     int getChangedJobSp(Job newJob) {    // 包内可见：CharacterJob.changeJob 调用
         int curSp = getUsedSp(newJob) + getJobRemainingSp(newJob);
         int spGain = 0;
-        int expectedSp = getJobLevelSp(level - 10, newJob, GameConstants.getJobBranch(newJob));
+        int expectedSp = getJobLevelSp(level.getLevel() - 10, newJob, GameConstants.getJobBranch(newJob));
         if (curSp < expectedSp) {
             spGain += (expectedSp - curSp);
         }
@@ -1847,7 +1577,7 @@ public class Character extends AbstractAnimatedMapObject {
         return getSpGain(spGain, curSp, newJob);
     }
 
-    private int getUsedSp(Job job) {
+    int getUsedSp(Job job) {    // 包内可见：CharacterLevel.levelUpGainSp 调用
         int jobId = job.getId();
         int spUsed = 0;
 
@@ -1869,17 +1599,17 @@ public class Character extends AbstractAnimatedMapObject {
         return 3 * level + GameConstants.getChangeJobSpUpgrade(jobBranch);
     }
 
-    private int getJobMaxSp(Job job) {
+    int getJobMaxSp(Job job) {    // 包内可见：CharacterLevel.levelUpGainSp 调用
         int jobBranch = GameConstants.getJobBranch(getJob());
         int jobRange = GameConstants.getJobUpgradeLevelRange(jobBranch);
         return getJobLevelSp(jobRange, job, jobBranch);
     }
 
-    private int getJobRemainingSp(Job job) {
+    int getJobRemainingSp(Job job) {    // 包内可见：CharacterLevel.levelUpGainSp 调用
         return getRemainingSp(job.getId());
     }
 
-    private int getSpGain(int spGain, Job job) {
+    int getSpGain(int spGain, Job job) {    // 包内可见：CharacterLevel.levelUpGainSp 调用
         int curSp = getUsedSp(job) + getJobRemainingSp(job);
         return getSpGain(spGain, curSp, job);
     }
@@ -1889,209 +1619,7 @@ public class Character extends AbstractAnimatedMapObject {
         return Math.min(spGain, maxSp - curSp);
     }
 
-    private void levelUpGainSp() {
-        if (GameConstants.getJobBranch(getJob()) == 0) {
-            return;
-        }
-
-        int spGain = GameConfig.getServerInt("level_up_sp_gain");
-        if (GameConfig.getServerBoolean("use_enforce_job_sp_range") && !GameConstants.hasSPTable(getJob())) {
-            spGain = getSpGain(spGain, getJob());
-        }
-
-        if (spGain > 0) {
-            gainSp(spGain, job.getId(), true);
-        }
-    }
-
     // getHpMpGainFromRange 和 getBasicLevelUpHpMp 已迁移到 CharacterStats
-
-    public synchronized void levelUp(boolean takeexp) {
-        Skill improvingMaxHP = null;
-        Skill improvingMaxMP = null;
-        int improvingMaxHPLevel = 0;
-        int improvingMaxMPLevel = 0;
-
-        boolean isBeginner = isBeginnerJob();
-        if (GameConfig.getServerBoolean("use_auto_assign_starters_ap") && isBeginner && level < 11) {
-        // effLock 已冗余：gainAp/assignStrDexIntLuk 只需 stats.wLock
-            stats.wLock.lock();
-            try {
-                gainAp(5, true);
-
-                int str = 0, dex = 0;
-                if (level < 6) {
-                    str += 5;
-                } else {
-                    str += 4;
-                    dex += 1;
-                }
-
-                assignStrDexIntLuk(str, dex, 0, 0);
-            } finally {
-                stats.wLock.unlock();
-
-            }
-        } else {
-            int remainingAp = GameConfig.getServerInt("level_up_ap_gain");
-
-            if (isCygnus()) {
-                if (level > 10) {
-                    if (level <= 17) {
-                        remainingAp += 2;
-                    } else if (level < 77) {
-                        remainingAp++;
-                    }
-                }
-            }
-
-            gainAp(remainingAp, true);
-        }
-
-        int addhp, addmp;
-        Pair<Integer, Integer> basicHpMp = stats.getBasicLevelUpHpMp(getJob());
-        addhp = basicHpMp.getLeft();
-        addmp = basicHpMp.getRight();
-
-        // 技能加成（Improving MaxHP/MaxMP）仍按原逻辑计算
-        if (job.isA(Job.WARRIOR) || job.isA(Job.DAWNWARRIOR1)) {
-            improvingMaxHP = isCygnus() ? SkillFactory.getSkill(DawnWarrior.MAX_HP_INCREASE) : SkillFactory.getSkill(Warrior.IMPROVED_MAXHP);
-            if (job.isA(Job.CRUSADER)) {
-                improvingMaxMP = SkillFactory.getSkill(1210000);
-            } else if (job.isA(Job.DAWNWARRIOR2)) {
-                improvingMaxMP = SkillFactory.getSkill(11110000);
-            }
-            improvingMaxHPLevel = getSkillLevel(improvingMaxHP);
-        } else if (job.isA(Job.MAGICIAN) || job.isA(Job.BLAZEWIZARD1)) {
-            improvingMaxMP = isCygnus() ? SkillFactory.getSkill(BlazeWizard.INCREASING_MAX_MP) : SkillFactory.getSkill(Magician.IMPROVED_MAX_MP_INCREASE);
-            improvingMaxMPLevel = getSkillLevel(improvingMaxMP);
-        } else if (job.isA(Job.PIRATE) || job.isA(Job.THUNDERBREAKER1)) {
-            improvingMaxHP = isCygnus() ? SkillFactory.getSkill(ThunderBreaker.IMPROVE_MAX_HP) : SkillFactory.getSkill(Brawler.IMPROVE_MAX_HP);
-            improvingMaxHPLevel = getSkillLevel(improvingMaxHP);
-        }
-        if (improvingMaxHPLevel > 0 && (job.isA(Job.WARRIOR) || job.isA(Job.PIRATE) || job.isA(Job.DAWNWARRIOR1) || job.isA(Job.THUNDERBREAKER1))) {
-            addhp += improvingMaxHP.getEffect(improvingMaxHPLevel).getX();
-        }
-        if (improvingMaxMPLevel > 0 && (job.isA(Job.MAGICIAN) || job.isA(Job.CRUSADER) || job.isA(Job.BLAZEWIZARD1))) {
-            addmp += improvingMaxMP.getEffect(improvingMaxMPLevel).getX();
-        }
-
-        if (GameConfig.getServerBoolean("use_randomize_hpmp_gain")) {
-            if (getJobStyle() == Job.MAGICIAN) {
-                addmp += stats.localAttrs[INT] / 20;
-            } else {
-                addmp += stats.localAttrs[INT] / 10;
-            }
-        }
-
-        stats.addMaxMPMaxHP(addhp, addmp, true);
-
-        if (takeexp) {
-            exp.addAndGet(-ExpTable.getExpNeededForLevel(level));
-            if (exp.get() < 0) {
-                exp.set(0);
-            }
-        }
-
-        level++;
-        if (level >= getMaxClassLevel()) {
-            exp.set(0);
-
-            int maxClassLevel = getMaxClassLevel();
-            if (level == maxClassLevel) {
-                if (!this.isGM()) {
-                    if (GameConfig.getServerBoolean("playernpc_auto_deploy")) {
-                        ThreadManager.getInstance().newTask(() -> PlayerNPC.spawnPlayerNPC(GameConstants.getHallOfFameMapid(getJob()), Character.this));
-                    }
-
-                    final String names = (getMedalText() + name);
-                    getWorldServer().broadcastPacket(PacketCreator.serverNotice(6, String.format(ServerConstants.LEVEL_200, names, maxClassLevel, names)));
-                }
-            }
-
-            level = maxClassLevel; //To prevent levels past the maximum
-        }
-
-        levelUpGainSp();
-
-        // effLock 已冗余：recalcLocalStats/changeHpMp 只需 stats.wLock
-        stats.wLock.lock();
-        try {
-            recalcLocalStats();
-            changeHpMp(stats.localMaxHp, stats.localMaxMp, true);
-
-            List<Pair<Stat, Integer>> statup = new ArrayList<>(10);
-            statup.add(new Pair<>(Stat.AVAILABLEAP, ap.remainingAp));
-            statup.add(new Pair<>(Stat.AVAILABLESP, sp.remainingSp[CharacterSp.indexOf(job.getId())]));
-            statup.add(new Pair<>(Stat.HP, stats.hp));
-            statup.add(new Pair<>(Stat.MP, stats.mp));
-            statup.add(new Pair<>(Stat.EXP, exp.get()));
-            statup.add(new Pair<>(Stat.LEVEL, level));
-            statup.add(new Pair<>(Stat.MAXHP, stats.clientMaxHp));
-            statup.add(new Pair<>(Stat.MAXMP, stats.clientMaxMp));
-            statup.add(new Pair<>(Stat.STR, stats.attrs[STR]));
-            statup.add(new Pair<>(Stat.DEX, stats.attrs[DEX]));
-
-            sendPacket(PacketCreator.updatePlayerStats(statup, true, this));
-        } finally {
-            stats.wLock.unlock();
-
-        }
-
-        getMap().broadcastMessage(this, PacketCreator.showForeignEffect(getId(), 0), false);
-        setMPC(new PartyCharacter(this));
-        silentPartyUpdate();
-
-        if (guild.getGuildId() > 0) {
-            getGuild().broadcast(PacketCreator.levelUpMessage(2, level, name), this.getId());
-        }
-
-        if (level % 20 == 0) {
-            if (GameConfig.getServerBoolean("use_add_slots_by_level")) {
-                if (!isGM()) {
-                    for (byte i = 1; i < 5; i++) {
-                        gainSlots(i, 4, true);
-                    }
-
-                    this.yellowMessage(I18nUtil.getMessage("Character.levelUp.USE_ADD_SLOTS_BY_LEVEL", level));
-                }
-            }
-            if (GameConfig.getServerBoolean("use_add_rates_by_level")) { //For the rate upgrade
-                revertLastPlayerRates();
-                setPlayerRates();
-                this.yellowMessage(I18nUtil.getMessage("Character.levelUp.USE_ADD_RATES_BY_LEVEL", level));
-            }
-        }
-
-        if (GameConfig.getServerBoolean("use_perfect_pitch") && level >= 30) {
-            //milestones?
-            if (InventoryManipulator.checkSpace(client, ItemId.PERFECT_PITCH, (short) 1, "")) {
-                InventoryManipulator.addById(client, ItemId.PERFECT_PITCH, (short) 1, "", -1);
-            }
-        } else if (level == 10) {
-            ThreadManager.getInstance().newTask(() -> {
-                if (leaveParty()) {
-                    showHint(I18nUtil.getMessage("Character.levelUp.LeaveStarterParty"));
-                }
-            });
-        }
-
-        guild.guildUpdate();
-
-        FamilyEntry familyEntry = family.getFamilyEntry();
-        if (familyEntry != null) {
-            familyEntry.giveReputationToSenior(GameConfig.getServerInt("family_rep_per_level_up"), true);
-            FamilyEntry senior = familyEntry.getSenior();
-            if (senior != null) { //only send the message to direct senior
-                Character seniorChr = senior.getChr();
-                if (seniorChr != null) {
-                    seniorChr.sendPacket(PacketCreator.levelUpMessage(1, level, getName()));
-                }
-            }
-        }
-
-        updateMobExpRate();
-    }
 
     public static Character loadCharacterEntryFromDB(ResultSet rs, List<Item> equipped) {
         Character ret = new Character();
@@ -2107,15 +1635,15 @@ public class Character extends AbstractAnimatedMapObject {
 
             // skipping pets, probably unneeded here
 
-            ret.level = rs.getInt("level");
+            ret.level.setLevel(rs.getInt("level"));
             // job 仅从 character_json 恢复（applyData），character 表 job 列为冗余双写
             ret.applyData(CharacterData.deserialize(rs.getString("stats_json")));
-            ret.exp.set(rs.getInt("exp"));
-            ret.fame = rs.getInt("fame");
-            ret.gachaExp.set(rs.getInt("gachaexp"));
+            ret.level.setExp(rs.getInt("exp"));
+            ret.fame.setFame(rs.getInt("fame"));
+            ret.level.setGachaExp(rs.getInt("gachaexp"));
             // mapId 仅从 character_json 恢复（applyData），character 表 map 列为冗余双写
             ret.initialSpawnPoint = rs.getInt("spawnpoint");
-            ret.setGMLevel(rs.getInt("gm"));
+            ret.gm.setGMLevel(rs.getInt("gm"));
             ret.world = rs.getByte("world");
             ret.rank = rs.getInt("rank");
             ret.rankMove = rs.getInt("rankMove");
@@ -2148,7 +1676,7 @@ public class Character extends AbstractAnimatedMapObject {
 
         // skipping pets, probably unneeded here
 
-        ret.level = this.getLevel();
+        ret.level.setLevel(this.getLevel());
         ret.setJob(this.getJob());
         for (int i = 0; i < BASE_STAT_COUNT; i++) {
             ret.stats.attrs[i] = this.stats.getAttr(i);
@@ -2159,15 +1687,15 @@ public class Character extends AbstractAnimatedMapObject {
         ret.stats.setMaxMp(this.getMaxMp());
         ret.ap.remainingAp = this.getRemainingAp();
         ret.setRemainingSp(this.getRemainingSps());
-        ret.exp.set(this.getExp());
-        ret.fame = this.getFame();
-        ret.gachaExp.set(this.getGachaExp());
+        ret.level.setExp(this.getExp());
+        ret.fame.setFame(this.getFame());
+        ret.level.setGachaExp(this.getGachaExp());
         ret.setMapId(this.getMapId());
         ret.initialSpawnPoint = this.getInitialSpawnPoint();
 
         ret.inventory.inventories[InventoryType.EQUIPPED.ordinal()] = this.getInventory(InventoryType.EQUIPPED);
 
-        ret.setGMLevel(this.gmLevel());
+        ret.gm.setGMLevel(this.gmLevel());
         ret.world = this.getWorld();
         ret.rank = this.getRank();
         ret.rankMove = this.getRankMove();
@@ -2191,16 +1719,16 @@ public class Character extends AbstractAnimatedMapObject {
         chr.setId(charactersDO.getId());
 
         chr.setName(charactersDO.getName());
-        chr.setLevel(charactersDO.getLevel());
-        chr.setFame(charactersDO.getFame());
+        chr.level.setLevel(charactersDO.getLevel());
+        chr.fame.setFame(charactersDO.getFame());
         chr.quests.setQuestFame(charactersDO.getFquest());
         loadDataFromJson(chr, charactersDO.getId());
-        chr.setExp(charactersDO.getExp());
-        chr.setGachaExp(charactersDO.getGachaexp());
+        chr.level.setExp(charactersDO.getExp());
+        chr.level.setGachaExp(charactersDO.getGachaexp());
         chr.setHasMerchant(charactersDO.getHasmerchant());
         chr.setMeso(charactersDO.getMeso());
         chr.setMerchantMeso(charactersDO.getMerchantmesos());
-        chr.setGMLevel(charactersDO.getGm());
+        chr.gm.setGMLevel(charactersDO.getGm());
         chr.setSkinColor(SkinColor.getById(charactersDO.getSkincolor()));
         chr.setGender(charactersDO.getGender());
         // job 仅从 character_json 恢复（applyData），character 表 job 列为冗余双写
@@ -2235,7 +1763,7 @@ public class Character extends AbstractAnimatedMapObject {
         chr.pq.setDataString(charactersDO.getDataString());
         chr.guild.setMGC(new GuildCharacter(chr));
         chr.setBuddylist(new BuddyList(charactersDO.getBuddyCapacity()));
-        chr.setLastExpGainTime(charactersDO.getLastExpGainTime().getTime());
+        chr.lastExpGainTime = charactersDO.getLastExpGainTime().getTime();
         chr.party.setCanRecvPartySearchInvite(charactersDO.getPartySearch());
         chr.getInventory(InventoryType.EQUIP).setSlotLimit(charactersDO.getEquipslots());
         chr.getInventory(InventoryType.USE).setSlotLimit(charactersDO.getUseslots());
@@ -2639,7 +2167,7 @@ public class Character extends AbstractAnimatedMapObject {
         stats.setMaxMp(recipe.getMaxMp());
         stats.hp = stats.maxHp;
         stats.mp = stats.maxMp;
-        level = recipe.getLevel();
+        level.setLevel(recipe.getLevel());
         ap.remainingAp = recipe.getRemainingAp();
         sp.remainingSp[CharacterSp.indexOf(job.getId())] = recipe.getRemainingSp();
         setMapId(recipe.getMap());
@@ -2665,7 +2193,7 @@ public class Character extends AbstractAnimatedMapObject {
             try {
                 // Character info
                 try (PreparedStatement ps = con.prepareStatement("INSERT INTO characters (gm, skincolor, gender, job, hair, face, meso, spawnpoint, accountid, name, world, level) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
-                    ps.setInt(1, gmLevel);
+                    ps.setInt(1, gm.gmLevel());
                     ps.setInt(2, skinColor.getId());
                     ps.setInt(3, gender);
                     ps.setInt(4, job.getId());
@@ -2676,7 +2204,7 @@ public class Character extends AbstractAnimatedMapObject {
                     ps.setInt(9, accountId);
                     ps.setString(10, name);
                     ps.setInt(11, world);
-                    ps.setInt(12, level);
+                    ps.setInt(12, level.getLevel());
 
                     int updateRows = ps.executeUpdate();
                     if (updateRows < 1) {
@@ -2760,7 +2288,7 @@ public class Character extends AbstractAnimatedMapObject {
                 con.setAutoCommit(true);
             }
         } catch (Throwable t) {
-            log.error("Error creating chr {}, level: {}, job: {}", name, level, job.getId(), t);
+            log.error("Error creating chr {}, level: {}, job: {}", name, level.getLevel(), job.getId(), t);
         }
 
         return false;
@@ -2802,20 +2330,20 @@ public class Character extends AbstractAnimatedMapObject {
                 String statsJson;
 
                 try (PreparedStatement ps = con.prepareStatement("UPDATE characters SET level = ?, fame = ?, exp = ?, gachaexp = ?, gm = ?, skincolor = ?, gender = ?, job = ?, hair = ?, face = ?, meso = ?, spawnpoint = ?, party = ?, buddyCapacity = ?, messengerid = ?, messengerposition = ?, mountlevel = ?, mountexp = ?, mounttiredness= ?, equipslots = ?, useslots = ?, setupslots = ?, etcslots = ?,  monsterbookcover = ?, vanquisherStage = ?, dojoPoints = ?, lastDojoStage = ?, finishedDojoTutorial = ?, vanquisherKills = ?, matchcardwins = ?, matchcardlosses = ?, matchcardties = ?, omokwins = ?, omoklosses = ?, omokties = ?, dataString = ?, fquest = ?, partnerId = ?, marriageItemId = ?, lastExpGainTime = ?, ariantPoints = ?, partySearch = ? WHERE id = ?", Statement.RETURN_GENERATED_KEYS)) {
-                    ps.setInt(1, level);    // thanks CanIGetaPR for noticing an unnecessary "level" limitation when persisting DB data
-                    ps.setInt(2, fame);
+                    ps.setInt(1, level.getLevel());    // thanks CanIGetaPR for noticing an unnecessary "level" limitation when persisting DB data
+                    ps.setInt(2, fame.getFame());
 
                     stats.wLock.lock();   // effLock 已移除：仅序列化 stats + 读原子字段
                     try {
                         statsJson = toData().serialize();
 
-                        ps.setInt(3, Math.abs(exp.get()));
-                        ps.setInt(4, Math.abs(gachaExp.get()));
+                        ps.setInt(3, Math.abs(level.getExp()));
+                        ps.setInt(4, Math.abs(level.getGachaExp()));
                     } finally {
                         stats.wLock.unlock();
                     }
 
-                    ps.setInt(5, gmLevel);
+                    ps.setInt(5, gm.gmLevel());
                     ps.setInt(6, skinColor.getId());
                     ps.setInt(7, gender);
                     ps.setInt(8, job.getId());
@@ -3120,7 +2648,7 @@ public class Character extends AbstractAnimatedMapObject {
                 con.setAutoCommit(true);
             }
         } catch (Exception e) {
-            log.error("Error saving chr {}, level: {}, job: {}", name, level, job.getId(), e);
+            log.error("Error saving chr {}, level: {}, job: {}", name, level.getLevel(), job.getId(), e);
         }
     }
 
@@ -3166,20 +2694,8 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public void setExp(int amount) {
-        this.exp.set(amount);
-    }
-
-    public void setGachaExp(int exp) {
-        this.gachaExp.set(exp);
-    }
-
     public void finishDojoTutorial() {
         this.finishedDojoTutorial = true;
-    }
-
-    public void setGM(int level) {
-        this.gmLevel = level;
     }
 
     // ── 属性变更钩子：原 CharacterListener 的实现合并至此 ──
@@ -3564,14 +3080,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     public long getLoggedInTime() {
         return System.currentTimeMillis() - loginTime;
-    }
-
-    public boolean getWhiteChat() {
-        return isGM() && whiteChat;
-    }
-
-    public void toggleWhiteChat() {
-        whiteChat = !whiteChat;
     }
 
     public void createDragon() {
@@ -4250,4 +3758,47 @@ public class Character extends AbstractAnimatedMapObject {
     public void setMatchcardties(int matchcardties) { miniGame.setMatchcardties(matchcardties); }
     public int getMatchcardlosses() { return miniGame.getMatchcardlosses(); }
     public void setMatchcardlosses(int matchcardlosses) { miniGame.setMatchcardlosses(matchcardlosses); }
+
+    // ── level 门面 ──
+
+    public int getLevel() { return level.getLevel(); }
+    public void setLevel(int level) { this.level.setLevel(level); }
+    public int getExp() { return level.getExp(); }
+    public void setExp(int amount) { level.setExp(amount); }
+    public int getGachaExp() { return level.getGachaExp(); }
+    public void setGachaExp(int amount) { level.setGachaExp(amount); }
+    public void gainExp(int gain) { level.gainExp(gain); }
+    public void gainExp(int gain, boolean show, boolean inChat) { level.gainExp(gain, show, inChat); }
+    public void gainExp(int gain, boolean show, boolean inChat, boolean white) { level.gainExp(gain, show, inChat, white); }
+    public void gainExp(int gain, int party, boolean show, boolean inChat, boolean white) { level.gainExp(gain, party, show, inChat, white); }
+    public void loseExp(int loss, boolean show, boolean inChat) { level.loseExp(loss, show, inChat); }
+    public void loseExp(int loss, boolean show, boolean inChat, boolean white) { level.loseExp(loss, show, inChat, white); }
+    public void gainGachaExp() { level.gainGachaExp(); }
+    public void addGachaExp(int gain) { level.addGachaExp(gain); }
+    public synchronized void levelUp(boolean takeexp) { level.levelUp(takeexp); }
+
+    // ── fame 门面 ──
+
+    public int getFame() { return fame.getFame(); }
+    public void setFame(int fame) { this.fame.setFame(fame); }
+    public void gainFame(int delta) { fame.gainFame(delta); }
+    public boolean gainFame(int delta, Character fromPlayer, int mode) { return fame.gainFame(delta, fromPlayer, mode); }
+    public void hasGivenFame(Character to) { fame.hasGivenFame(to); }
+    public long getLastfametime() { return fame.getLastfametime(); }
+    public void setLastfametime(long lastfametime) { fame.setLastfametime(lastfametime); }
+    public List<Integer> getLastmonthfameids() { return fame.getLastmonthfameids(); }
+    public void setLastmonthfameids(List<Integer> lastmonthfameids) { fame.setLastmonthfameids(lastmonthfameids); }
+
+    // ── gm 门面 ──
+
+    public boolean isGM() { return gm.isGM(); }
+    public int gmLevel() { return gm.gmLevel(); }
+    public void setGMLevel(int level) { gm.setGMLevel(level); }
+    public void setGM(int level) { gm.setGM(level); }
+    public boolean isHidden() { return gm.isHidden(); }
+    public void hide(boolean hide, boolean login) { gm.hide(hide, login); }
+    public void hide(boolean hide) { gm.hide(hide); }
+    public void toggleHide(boolean login) { gm.toggleHide(login); }
+    public boolean getWhiteChat() { return gm.getWhiteChat(); }
+    public void toggleWhiteChat() { gm.toggleWhiteChat(); }
 }
