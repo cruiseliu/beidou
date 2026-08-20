@@ -101,7 +101,7 @@ class CharacterJob {
             return;//the fuck you doing idiot!
         }
 
-        if (owner.canRecvPartySearchInvite && owner.getParty() == null) {
+        if (owner.party.canRecvPartySearchInvite && owner.getParty() == null) {
             owner.updatePartySearchAvailability(false);
             this.job = newJob;
             owner.updatePartySearchAvailability(true);

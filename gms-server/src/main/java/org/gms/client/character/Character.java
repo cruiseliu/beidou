@@ -265,7 +265,6 @@ public class Character extends AbstractAnimatedMapObject {
     private boolean berserk, whiteChat = false;
 
     @Setter
-    boolean canRecvPartySearchInvite = true;    // 包内可见：CharacterJob.changeJob 读取
     private boolean usedSafetyCharm = false;
     @Getter
     @Setter
@@ -354,7 +353,6 @@ public class Character extends AbstractAnimatedMapObject {
     ScheduledFuture<?> beholderHealingSchedule, beholderBuffSchedule, berserkSchedule;
     ScheduledFuture<?> recoveryTask = null;
     ScheduledFuture<?> extraRecoveryTask = null;
-    private ScheduledFuture<?> pendantOfSpirit = null; //1122017
     private ScheduledFuture<?> cpqSchedule = null;
 
     private ScheduledFuture<?> FamilyBuffTimer = null;
@@ -372,8 +370,8 @@ public class Character extends AbstractAnimatedMapObject {
     private final List<String> blockedPortals = new ArrayList<>();
     private final Map<Short, String> area_info = new LinkedHashMap<>();
     private boolean blockCashShop = false;
-    private boolean allowExpGain = true;
-    private byte pendantExp = 0;
+    boolean allowExpGain = true;    // 包内可见：CharacterInventory.increaseEquipExp 读取
+    byte pendantExp = 0;    // 包内可见：CharacterInventory 精灵吊坠逻辑读写
     private final List<Integer> trockmaps = new ArrayList<>();
     private final List<Integer> viptrockmaps = new ArrayList<>();
     @Getter
@@ -436,30 +434,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     public int getClientMaxMp() {
         return stats.clientMaxMp;
-    }
-
-    /** 各技能原始时间戳，仅被 >= MIN_INTERVAL 的正常包更新，暴发包透明通过 */
-    private final ConcurrentHashMap<Integer, Long> normalAttackTimes = new ConcurrentHashMap<>();
-
-    /**
-     * 获取指定技能距上次攻击的间隔毫秒数，并更新最后攻击时间。
-     * 间隔 < MIN_INTERVAL 时不更新时间戳，视为网络抖动透明跳过。
-     * 首次调用或时钟回退时返回 Long.MAX_VALUE，本次不参与间隔判定。
-     */
-    public long getAttackInterval(int skillId, long now) {
-        AtomicLong intervalRef = new AtomicLong(Long.MAX_VALUE);
-        normalAttackTimes.compute(skillId, (ignored, prevTime) -> {
-            long prev = prevTime != null ? prevTime : 0L;
-            if (prev > 0L && now > prev) {
-                intervalRef.set(now - prev);
-            }
-            long interval = intervalRef.get();
-            if (interval != Long.MAX_VALUE && interval < MIN_INTERVAL) {
-                return prev;
-            }
-            return Math.max(prev, now);
-        });
-        return intervalRef.get();
     }
 
     private Character() {
@@ -613,7 +587,7 @@ public class Character extends AbstractAnimatedMapObject {
         awayFromWorld.set(false);
         client.getChannelServer().removePlayerAway(id);
 
-        if (canRecvPartySearchInvite) {
+        if (party.canRecvPartySearchInvite) {
             this.getWorldServer().getPartySearchCoordinator().attachPlayer(this);
         }
     }
@@ -634,34 +608,6 @@ public class Character extends AbstractAnimatedMapObject {
         } else {
             client.getChannelServer().removePlayerAway(id);
         }
-    }
-
-    public void updatePartySearchAvailability(boolean pSearchAvailable) {
-        if (pSearchAvailable) {
-            if (canRecvPartySearchInvite && getParty() == null) {
-                this.getWorldServer().getPartySearchCoordinator().attachPlayer(this);
-            }
-        } else {
-            if (canRecvPartySearchInvite) {
-                this.getWorldServer().getPartySearchCoordinator().detachPlayer(this);
-            }
-        }
-    }
-
-    public boolean toggleRecvPartySearchInvite() {
-        canRecvPartySearchInvite = !canRecvPartySearchInvite;
-
-        if (canRecvPartySearchInvite) {
-            updatePartySearchAvailability(getParty() == null);
-        } else {
-            this.getWorldServer().getPartySearchCoordinator().detachPlayer(this);
-        }
-
-        return canRecvPartySearchInvite;
-    }
-
-    public boolean isRecvPartySearchInviteEnabled() {
-        return canRecvPartySearchInvite;
     }
 
     public void setSessionTransitionState() {
@@ -910,16 +856,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void toggleHide(boolean login) {
         hide(!hidden, login);
-    }
-
-    public void cancelMagicDoor() {
-        List<EffectStatus> effects = buffs.getAllEffects();
-        for (EffectStatus effect : effects) {
-            if (effect.getData().isMagicDoor()) {
-                cancelEffect(effect.getData(), false);
-                break;
-            }
-        }
     }
 
     public static boolean canCreateChar(String name) {
@@ -1188,159 +1124,6 @@ public class Character extends AbstractAnimatedMapObject {
             this.getMonsterBook().addCard(client, itemId); // 添加到怪物图鉴
         }
         return true; // 成功执行消耗操作
-    }
-
-    public final void pickupItem(MapObject ob) {
-        pickupItem(ob, -1);
-    }
-
-    public final void pickupItem(MapObject ob, int petIndex) {     // yes, one picks the MapObject, not the MapItem     //是的，选择MapObject，而不是MapItem
-        if (ob == null) {                                               // pet index refers to the one picking up the item      //宠物指数是指捡起物品的人
-            return;
-        }
-
-        if (ob instanceof MapItem mapitem) {
-            if (System.currentTimeMillis() - mapitem.getDropTime() < 400) {
-                enableActions();
-                return;
-            }
-
-            // canBePickedBy 读/写 owner 字段,必须持 itemLock
-            mapitem.lockItem();
-            try {
-                if (!mapitem.canBePickedBy(this)) {
-                    enableActions();
-                    return;
-                }
-            } finally {
-                mapitem.unlockItem();
-            }
-
-            List<Character> mpcs = new LinkedList<>();
-            if (mapitem.getMeso() > 0 && !mapitem.isPickedUp()) {
-                mpcs = getPartyMembersOnSameMap();
-            }
-
-            ScriptedItem itemScript = null;
-            mapitem.lockItem();
-            try {
-                if (mapitem.isPickedUp()) {
-                    sendPacket(PacketCreator.showItemUnavailable());
-                    enableActions();
-                    return;
-                }
-
-                boolean isPet = petIndex > -1;
-                final Packet pickupPacket = PacketCreator.removeItemFromMap(mapitem.getObjectId(), (isPet) ? 5 : 2, this.getId(), isPet, petIndex);
-
-                Item mItem = mapitem.getItem();
-                boolean hasSpaceInventory = true;
-                ItemInformationProvider ii = ItemInformationProvider.getInstance();
-                if (ItemId.isNxCard(mapitem.getItemId()) || mapitem.getMeso() > 0 || ii.isConsumeOnPickup(mapitem.getItemId()) || (hasSpaceInventory = InventoryManipulator.checkSpace(client, mapitem.getItemId(), mItem.getQuantity(), mItem.getOwner()))) {
-                    int mapId = this.getMapId();
-
-                    if ((MapId.isSelfLootableOnly(mapId))) {//happyville trees and guild PQ
-                        if (!mapitem.isPlayerDrop() || mapitem.getDropper().getObjectId() == client.getPlayer().getObjectId()) {
-                            if (mapitem.getMeso() > 0) {
-                                if (!mpcs.isEmpty()) {
-                                    int mesosamm = mapitem.getMeso() / mpcs.size();
-                                    for (Character partymem : mpcs) {
-                                        if (partymem.isLoggedInWorld()) {
-                                            partymem.gainMeso(mesosamm, true, true, false);
-                                        }
-                                    }
-                                } else {
-                                    this.gainMeso(mapitem.getMeso(), true, true, false);
-                                }
-
-                                this.getMap().pickItemDrop(pickupPacket, mapitem);
-                            } else if (ItemId.isNxCard(mapitem.getItemId())) {
-                                // Add NX to account, show effect and make item disappear   //添加点券到账户，是否展示捡到点券，并移除物品
-                                int nxGain = (mapitem.getItemId() == ItemId.NX_CARD_100 ? 100 : 250) * mItem.getQuantity(); //使点券支持按数量相乘
-                                this.getCashShop().gainCash(CashShop.NX_CREDIT, nxGain);
-
-                                if (GameConfig.getServerBoolean("use_announce_nx_coupon_loot")) {       //捡到点券是否展示
-                                    showHint(I18nUtil.getMessage("Character.pickupItem.message1", nxGain, this.getCashShop().getCash(CashShop.NX_CREDIT)), 300);
-                                    //showHint("捡到 #e#b" + nxGain + " NX#k#n (" + this.getCashShop().getCash(CashShop.NX_CREDIT) + " NX)", 300);
-                                }
-
-                                this.getMap().pickItemDrop(pickupPacket, mapitem);
-                            } else if (InventoryManipulator.addFromDrop(client, mItem, true)) {
-                                this.getMap().pickItemDrop(pickupPacket, mapitem);
-                            } else {
-                                enableActions();
-                                return;
-                            }
-                        } else {
-                            sendPacket(PacketCreator.showItemUnavailable());
-                            enableActions();
-                            return;
-                        }
-                        enableActions();
-                        return;
-                    }
-
-                    if (!quests.needQuestItem(mapitem.getQuest(), mapitem.getItemId())) {
-                        sendPacket(PacketCreator.showItemUnavailable());
-                        enableActions();
-                        return;
-                    }
-
-                    if (mapitem.getMeso() > 0) {
-                        if (!mpcs.isEmpty()) {
-                            int mesosamm = mapitem.getMeso() / mpcs.size();
-                            for (Character partymem : mpcs) {
-                                if (partymem.isLoggedInWorld()) {
-                                    partymem.gainMeso(mesosamm, true, true, false);
-                                }
-                            }
-                        } else {
-                            this.gainMeso(mapitem.getMeso(), true, true, false);
-                        }
-                    } else if (mItem.getItemId() / 10000 == 243) {
-                        ScriptedItem info = ii.getScriptedItemInfo(mItem.getItemId());
-                        if (info != null && info.runOnPickup()) {
-                            itemScript = info;
-                        } else {
-                            if (!InventoryManipulator.addFromDrop(client, mItem, true)) {
-                                enableActions();
-                                return;
-                            }
-                        }
-                    } else if (ItemId.isNxCard(mapitem.getItemId())) {
-                        // Add NX to account, show effect and make item disappear
-                        int nxGain = (mapitem.getItemId() == ItemId.NX_CARD_100 ? 100 : 250) * mItem.getQuantity(); //使点券支持按数量相乘
-                        this.getCashShop().gainCash(CashShop.NX_CREDIT, nxGain);
-
-                        if (GameConfig.getServerBoolean("use_announce_nx_coupon_loot")) {       //捡到点券是否展示
-                            showHint(I18nUtil.getMessage("Character.pickupItem.message1", nxGain, this.getCashShop().getCash(CashShop.NX_CREDIT)), 300);
-                            //showHint("捡到 #e#b" + nxGain + " NX#k#n (" + this.getCashShop().getCash(CashShop.NX_CREDIT) + " NX)", 300);
-                        }
-                    } else if (applyConsumeOnPickup(mItem.getItemId())) {//此段判断为处理捡取治疗道具和怪物卡加入图鉴
-                    } else if (InventoryManipulator.addFromDrop(client, mItem, true)) {
-                        if (mItem.getItemId() == ItemId.ARPQ_SPIRIT_JEWEL) {
-                            updateAriantScore();
-                        }
-                    } else {
-                        enableActions();
-                        return;
-                    }
-
-                    this.getMap().pickItemDrop(pickupPacket, mapitem);
-                } else if (!hasSpaceInventory) {
-                    sendPacket(PacketCreator.getInventoryFull());
-                    sendPacket(PacketCreator.getShowInventoryFull());
-                }
-            } finally {
-                mapitem.unlockItem();
-            }
-
-            if (itemScript != null) {
-                ItemScriptManager ism = ItemScriptManager.getInstance();
-                ism.runItemScript(client, itemScript);
-            }
-        }
-        enableActions();
     }
 
     public boolean isRidingBattleship() {
@@ -1996,7 +1779,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void closePartySearchInteractions() {
         this.getWorldServer().getPartySearchCoordinator().unregisterPartyLeader(this);
-        if (canRecvPartySearchInvite) {
+        if (party.canRecvPartySearchInvite) {
             this.getWorldServer().getPartySearchCoordinator().detachPlayer(this);
         }
     }
@@ -2624,7 +2407,7 @@ public class Character extends AbstractAnimatedMapObject {
         chr.guild.setMGC(new GuildCharacter(chr));
         chr.setBuddylist(new BuddyList(charactersDO.getBuddyCapacity()));
         chr.setLastExpGainTime(charactersDO.getLastExpGainTime().getTime());
-        chr.setCanRecvPartySearchInvite(charactersDO.getPartySearch());
+        chr.party.setCanRecvPartySearchInvite(charactersDO.getPartySearch());
         chr.getInventory(InventoryType.EQUIP).setSlotLimit(charactersDO.getEquipslots());
         chr.getInventory(InventoryType.USE).setSlotLimit(charactersDO.getUseslots());
         chr.getInventory(InventoryType.SETUP).setSlotLimit(charactersDO.getSetupslots());
@@ -2918,16 +2701,6 @@ public class Character extends AbstractAnimatedMapObject {
             sendPacket(PacketCreator.showOwnBuffEffect(bloodEffect.getSourceId(), 5));
             getMap().broadcastMessage(Character.this, PacketCreator.showBuffEffect(getId(), bloodEffect.getSourceId(), 5), false);
         }, 4000, 4000);
-    }
-
-    public void receivePartyMemberHP() {
-        // 不在此处包一层 party.prtLock:getPartyMembersOnSameMap 内部已持 party.prtLock 保护 party 引用。
-        // 若再包一层,会在持 party.prtLock 的同时对同图队友逐个取 getHp()(对方 stats.rLock),
-        // 与 updateLocalStats(本角色 stats.wLock 后再 updatePartyMemberHP 取 party.prtLock)形成
-        // 跨角色反向锁顺序,存在死锁窗口。
-        for (Character partychar : this.getPartyMembersOnSameMap()) {
-            sendPacket(PacketCreator.updatePartyMemberHP(partychar.getId(), partychar.getHp(), partychar.getCurrentMaxHp()));
-        }
     }
 
     public void removeVisibleMapObject(MapObject mo) {
@@ -3283,7 +3056,7 @@ public class Character extends AbstractAnimatedMapObject {
                     ps.setInt(39, marriageItemId);
                     ps.setTimestamp(40, new Timestamp(lastExpGainTime));
                     ps.setInt(41, pq.getAriantPoints());
-                    ps.setBoolean(42, canRecvPartySearchInvite);
+                    ps.setBoolean(42, party.canRecvPartySearchInvite);
                     ps.setInt(43, id);
 
                     int updateRows = ps.executeUpdate();
@@ -3625,159 +3398,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    private static boolean hasMergeFlag(Item item) {
-        return (item.getFlag() & ItemConstants.MERGE_UNTRADEABLE) == ItemConstants.MERGE_UNTRADEABLE;
-    }
-
-    private static void setMergeFlag(Item item) {
-        short flag = item.getFlag();
-        flag |= ItemConstants.MERGE_UNTRADEABLE;
-        flag |= ItemConstants.UNTRADEABLE;
-        item.setFlag(flag);
-    }
-
-    private List<Equip> getUpgradeableEquipped() {
-        List<Equip> list = new LinkedList<>();
-
-        ItemInformationProvider ii = ItemInformationProvider.getInstance();
-        for (Item item : getInventory(InventoryType.EQUIPPED)) {
-            if (ii.isUpgradeable(item.getItemId())) {
-                list.add((Equip) item);
-            }
-        }
-
-        return list;
-    }
-
-    private static List<Equip> getEquipsWithStat(List<Pair<Equip, Map<StatUpgrade, Short>>> equipped, StatUpgrade stat) {
-        List<Equip> equippedWithStat = new LinkedList<>();
-
-        for (Pair<Equip, Map<StatUpgrade, Short>> eq : equipped) {
-            if (eq.getRight().containsKey(stat)) {
-                equippedWithStat.add(eq.getLeft());
-            }
-        }
-
-        return equippedWithStat;
-    }
-
-    public boolean mergeAllItemsFromName(String name) {
-        InventoryType type = InventoryType.EQUIP;
-
-        Inventory inv = getInventory(type);
-        inv.lockInventory();
-        try {
-            Item it = inv.findByName(name);
-            if (it == null) {
-                return false;
-            }
-
-            Map<StatUpgrade, Float> statups = new LinkedHashMap<>();
-            mergeAllItemsFromPosition(statups, it.getPosition());
-
-            List<Pair<Equip, Map<StatUpgrade, Short>>> upgradeableEquipped = new LinkedList<>();
-            Map<Equip, List<Pair<StatUpgrade, Integer>>> equipUpgrades = new LinkedHashMap<>();
-            for (Equip eq : getUpgradeableEquipped()) {
-                upgradeableEquipped.add(new Pair<>(eq, eq.getStats()));
-                equipUpgrades.put(eq, new LinkedList<Pair<StatUpgrade, Integer>>());
-            }
-
-            /*
-            for (Entry<StatUpgrade, Float> es : statups.entrySet()) {
-                System.out.println(es);
-            }
-            */
-
-            for (Entry<StatUpgrade, Float> e : statups.entrySet()) {
-                Double ev = Math.sqrt(e.getValue());
-
-                Set<Equip> extraEquipped = new LinkedHashSet<>(equipUpgrades.keySet());
-                List<Equip> statEquipped = getEquipsWithStat(upgradeableEquipped, e.getKey());
-                float extraRate = (float) (0.2 * Math.random());
-
-                if (!statEquipped.isEmpty()) {
-                    float statRate = 1.0f - extraRate;
-
-                    int statup = (int) Math.ceil((ev * statRate) / statEquipped.size());
-                    for (Equip statEq : statEquipped) {
-                        equipUpgrades.get(statEq).add(new Pair<>(e.getKey(), statup));
-                        extraEquipped.remove(statEq);
-                    }
-                }
-
-                if (!extraEquipped.isEmpty()) {
-                    int statup = (int) Math.round((ev * extraRate) / extraEquipped.size());
-                    if (statup > 0) {
-                        for (Equip extraEq : extraEquipped) {
-                            equipUpgrades.get(extraEq).add(new Pair<>(e.getKey(), statup));
-                        }
-                    }
-                }
-            }
-
-            dropMessage(6, "EQUIPMENT MERGE operation results:");
-            for (Entry<Equip, List<Pair<StatUpgrade, Integer>>> eqpUpg : equipUpgrades.entrySet()) {
-                List<Pair<StatUpgrade, Integer>> eqpStatups = eqpUpg.getValue();
-                if (!eqpStatups.isEmpty()) {
-                    Equip eqp = eqpUpg.getKey();
-                    setMergeFlag(eqp);
-
-                    String showStr = " '" + ItemInformationProvider.getInstance().getName(eqp.getItemId()) + "': ";
-                    String upgdStr = eqp.gainStats(eqpStatups).getLeft();
-
-                    this.forceUpdateItem(eqp);
-
-                    showStr += upgdStr;
-                    dropMessage(6, showStr);
-                }
-            }
-
-            return true;
-        } finally {
-            inv.unlockInventory();
-        }
-    }
-
-    public void mergeAllItemsFromPosition(Map<StatUpgrade, Float> statUps, short pos) {
-        Inventory inv = getInventory(InventoryType.EQUIP);
-        inv.lockInventory();
-        try {
-            for (short i = pos; i <= inv.getSlotLimit(); i++) {
-                standaloneMerge(statUps, getClient(), InventoryType.EQUIP, i, inv.getItem(i));
-            }
-        } finally {
-            inv.unlockInventory();
-        }
-    }
-
-    private void standaloneMerge(Map<StatUpgrade, Float> statUps, Client c, InventoryType type, short slot, Item item) {
-        short quantity;
-        ItemInformationProvider ii = ItemInformationProvider.getInstance();
-        if (item == null || (quantity = item.getQuantity()) < 1 || ii.isCash(item.getItemId()) || !ii.isUpgradeable(item.getItemId()) || hasMergeFlag(item)) {
-            return;
-        }
-
-        Equip e = (Equip) item;
-        for (Entry<StatUpgrade, Short> s : e.getStats().entrySet()) {
-            Float newVal = statUps.get(s.getKey());
-
-            float incVal = s.getValue().floatValue();
-            incVal = switch (s.getKey()) {
-                case incPAD, incMAD, incPDD, incMDD -> (float) Math.log(incVal);
-                default -> incVal;
-            };
-
-            if (newVal != null) {
-                newVal += incVal;
-            } else {
-                newVal = incVal;
-            }
-
-            statUps.put(s.getKey(), newVal);
-        }
-
-        InventoryManipulator.removeFromSlot(c, type, (byte) slot, quantity, false);
-    }
 
     private long getDojoTimeLeft() {
         return client.getChannelServer().getDojoFinishTime(getMap().getId()) - Server.getInstance().getCurrentTime();
@@ -4048,99 +3668,6 @@ public class Character extends AbstractAnimatedMapObject {
         return index != -1;
     }
 
-    public void equippedItem(Equip equip) {
-        int itemid = equip.getItemId();
-
-        if (itemid == ItemId.PENDANT_OF_THE_SPIRIT) {
-            this.equipPendantOfSpirit();
-        }
-    }
-
-    public void unequippedItem(Equip equip) {
-        int itemid = equip.getItemId();
-
-        if (itemid == ItemId.PENDANT_OF_THE_SPIRIT) {
-            this.unequipPendantOfSpirit();
-        }
-    }
-
-    private void equipPendantOfSpirit() {   //精灵吊坠装备时长经验计算
-        if (pendantOfSpirit == null) {
-            pendantOfSpirit = TimerManager.getInstance().register(() -> {
-                if (pendantExp < 3) {
-                    pendantExp++;
-                    //用于准确提示装备1小时内还是装备经过几小时
-                    message(I18nUtil.getMessage(pendantExp <= 2 ? "Character.equipPendantOfSpirit.message1" : "Character.equipPendantOfSpirit.message2", pendantExp == 3 ? 2 : pendantExp, pendantExp * 10));
-                } else {
-                    pendantOfSpirit.cancel(false);
-                }
-            }, 3600000); //1 hour
-        }
-    }
-
-    private void unequipPendantOfSpirit() {
-        if (pendantOfSpirit != null) {
-            pendantOfSpirit.cancel(false);
-            pendantOfSpirit = null;
-        }
-        pendantExp = 0;
-    }
-
-    private Collection<Item> getUpgradeableEquipList() {
-        Collection<Item> fullList = getInventory(InventoryType.EQUIPPED).list();
-        if (GameConfig.getServerBoolean("use_equipment_level_up_cash")) {
-            return fullList;
-        }
-
-        Collection<Item> eqpList = new LinkedHashSet<>();
-        ItemInformationProvider ii = ItemInformationProvider.getInstance();
-        for (Item it : fullList) {
-            if (!ii.isCash(it.getItemId())) {
-                eqpList.add(it);
-            }
-        }
-
-        return eqpList;
-    }
-
-    public void increaseEquipExp(int expGain) {
-        if (allowExpGain) {     // thanks Vcoc for suggesting equip EXP gain conditionally
-            if (expGain < 0) {
-                expGain = Integer.MAX_VALUE;
-            }
-
-            ItemInformationProvider ii = ItemInformationProvider.getInstance();
-            for (Item item : getUpgradeableEquipList()) {
-                Equip nEquip = (Equip) item;
-                String itemName = ii.getName(nEquip.getItemId());
-                if (itemName == null) {
-                    continue;
-                }
-
-                nEquip.gainItemExp(client, expGain);
-            }
-        }
-    }
-
-    public void showAllEquipFeatures() {
-        StringBuilder showMsg = new StringBuilder();
-
-        ItemInformationProvider ii = ItemInformationProvider.getInstance();
-        for (Item item : getInventory(InventoryType.EQUIPPED).list()) {
-            Equip nEquip = (Equip) item;
-            String itemName = ii.getName(nEquip.getItemId());
-            if (itemName == null) {
-                continue;
-            }
-
-            showMsg.append(nEquip.showEquipFeatures(client));
-        }
-
-        if (!showMsg.isEmpty()) {
-            this.showHint("#ePLAYER EQUIPMENTS:#n\r\n\r\n" + showMsg, 400);
-        }
-    }
-
     public void broadcastMarriageMessage() {
         Guild guild = this.getGuild();
         if (guild != null) {
@@ -4207,10 +3734,7 @@ public class Character extends AbstractAnimatedMapObject {
         }
         extraRecoveryTask = null;
 
-        if (pendantOfSpirit != null) {
-            pendantOfSpirit.cancel(true);
-        }
-        pendantOfSpirit = null;
+        inventory.clearPendantOfSpirit();
 
         clearCpqTimer();
 
@@ -4410,66 +3934,6 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     // MCPQ 相关字段与方法见 CharacterPartyQuest 组件
-
-    /**
-     * 发装备，除id外都可以传null，传null取装备默认属性
-     *
-     * @param itemId      装备id
-     * @param attStr      力量
-     * @param attDex      敏捷
-     * @param attInt      智力
-     * @param attLuk      运气
-     * @param attHp       血量
-     * @param attMp       蓝量
-     * @param pAtk        物理攻击
-     * @param mAtk        魔法攻击
-     * @param pDef        物理防御
-     * @param mDef        魔法防御
-     * @param acc         命中
-     * @param avoid       回避
-     * @param hands       攻击速度
-     * @param speed       移动速度
-     * @param jump        跳跃
-     * @param upgradeSlot 可升级次数
-     * @param expireTime  失效时间，-1为不失效 来自 @leevccc 的建议，传值则为分钟
-     */
-    public void gainEquip(int itemId, Short attStr, Short attDex, Short attInt, Short attLuk, Short attHp, Short attMp,
-                          Short pAtk, Short mAtk, Short pDef, Short mDef, Short acc, Short avoid, Short hands, Short speed,
-                          Short jump, Byte upgradeSlot, Long expireTime) {
-        if (!ItemConstants.getInventoryType(itemId).equals(InventoryType.EQUIP)) {
-            message(I18nUtil.getMessage("AbstractPlayerInteraction.gainEquip.message1"));
-            return;
-        }
-        Equip baseEquip = (Equip) ItemInformationProvider.getInstance().getEquipById(itemId);
-        baseEquip.setQuantity((short) 1);
-        if (!InventoryManipulator.checkSpace(getClient(), itemId, 1, baseEquip.getOwner())) {
-            message(I18nUtil.getMessage("AbstractPlayerInteraction.gainEquip.message2", InventoryType.EQUIP.getName()));
-        }
-        RequireUtil.requireNotEmptyAndThen(baseEquip, attStr, Equip::setStr);
-        RequireUtil.requireNotEmptyAndThen(baseEquip, attDex, Equip::setDex);
-        RequireUtil.requireNotEmptyAndThen(baseEquip, attInt, Equip::setInt);
-        RequireUtil.requireNotEmptyAndThen(baseEquip, attLuk, Equip::setLuk);
-        RequireUtil.requireNotEmptyAndThen(baseEquip, attHp, Equip::setHp);
-        RequireUtil.requireNotEmptyAndThen(baseEquip, attMp, Equip::setMp);
-        RequireUtil.requireNotEmptyAndThen(baseEquip, pAtk, Equip::setWatk);
-        RequireUtil.requireNotEmptyAndThen(baseEquip, mAtk, Equip::setMatk);
-        RequireUtil.requireNotEmptyAndThen(baseEquip, pDef, Equip::setWdef);
-        RequireUtil.requireNotEmptyAndThen(baseEquip, mDef, Equip::setMdef);
-        RequireUtil.requireNotEmptyAndThen(baseEquip, acc, Equip::setAcc);
-        RequireUtil.requireNotEmptyAndThen(baseEquip, avoid, Equip::setAvoid);
-        RequireUtil.requireNotEmptyAndThen(baseEquip, hands, Equip::setHands);
-        RequireUtil.requireNotEmptyAndThen(baseEquip, speed, Equip::setSpeed);
-        RequireUtil.requireNotEmptyAndThen(baseEquip, jump, Equip::setJump);
-        RequireUtil.requireNotEmptyAndThen(baseEquip, upgradeSlot, Equip::setUpgradeSlots);
-        RequireUtil.requireNotEmptyAndThen(baseEquip, expireTime, (eq, ep) -> {
-            if (ep > 0) {
-                eq.setExpiration(TimeUnit.MINUTES.toMillis(ep) + System.currentTimeMillis());
-            } else {
-                eq.setExpiration(-1);
-            }
-        });
-        InventoryManipulator.addFromDrop(getClient(), baseEquip, false);
-    }
 
     public void setFamilyBuff(boolean type, float exp, float drop) {
         this.familyBuff = type;
@@ -4943,4 +4407,28 @@ public class Character extends AbstractAnimatedMapObject {
     public void removeSandboxItems() { inventory.removeSandboxItems(); }
     public int sellAllItemsFromName(byte invTypeId, String name) { return inventory.sellAllItemsFromName(invTypeId, name); }
     public int sellAllItemsFromPosition(ItemInformationProvider ii, InventoryType type, short pos) { return inventory.sellAllItemsFromPosition(ii, type, pos); }
+    public final void pickupItem(MapObject ob) { inventory.pickupItem(ob); }
+    public final void pickupItem(MapObject ob, int petIndex) { inventory.pickupItem(ob, petIndex); }
+    public boolean mergeAllItemsFromName(String name) { return inventory.mergeAllItemsFromName(name); }
+    public void mergeAllItemsFromPosition(Map<StatUpgrade, Float> statUps, short pos) { inventory.mergeAllItemsFromPosition(statUps, pos); }
+    public void increaseEquipExp(int expGain) { inventory.increaseEquipExp(expGain); }
+    public void showAllEquipFeatures() { inventory.showAllEquipFeatures(); }
+    public void gainEquip(int itemId, Short attStr, Short attDex, Short attInt, Short attLuk, Short attHp, Short attMp, Short pAtk, Short mAtk, Short pDef, Short mDef, Short acc, Short avoid, Short hands, Short speed, Short jump, Byte upgradeSlot, Long expireTime) { inventory.gainEquip(itemId, attStr, attDex, attInt, attLuk, attHp, attMp, pAtk, mAtk, pDef, mDef, acc, avoid, hands, speed, jump, upgradeSlot, expireTime); }
+    public void equippedItem(Equip equip) { inventory.equippedItem(equip); }
+    public void unequippedItem(Equip equip) { inventory.unequippedItem(equip); }
+
+    // ── antiCheat 补充门面 ──
+
+    public long getAttackInterval(int skillId, long now) { return antiCheat.getAttackInterval(skillId, now); }
+
+    // ── party 补充门面 ──
+
+    public void updatePartySearchAvailability(boolean pSearchAvailable) { party.updatePartySearchAvailability(pSearchAvailable); }
+    public boolean toggleRecvPartySearchInvite() { return party.toggleRecvPartySearchInvite(); }
+    public boolean isRecvPartySearchInviteEnabled() { return party.isRecvPartySearchInviteEnabled(); }
+    public void receivePartyMemberHP() { party.receivePartyMemberHP(); }
+
+    // ── door 补充门面 ──
+
+    public void cancelMagicDoor() { door.cancelMagicDoor(); }
 }

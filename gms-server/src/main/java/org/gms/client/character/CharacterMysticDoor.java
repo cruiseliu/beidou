@@ -66,6 +66,16 @@ class CharacterMysticDoor {
         return null;
     }
 
+    void cancelMagicDoor() {
+        List<EffectStatus> effects = owner.buffs.getAllEffects();
+        for (EffectStatus effect : effects) {
+            if (effect.getData().isMagicDoor()) {
+                owner.cancelEffect(effect.getData(), false);
+                break;
+            }
+        }
+    }
+
     int getDoorSlot() {
         if (doorSlot != -1) {
             return doorSlot;

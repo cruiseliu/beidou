@@ -26,12 +26,15 @@ import java.util.concurrent.locks.ReentrantLock;
 class CharacterParty {
     private final Character owner;
 
-    /** 队伍引用（prtLock 保护；锁序：prtLock 最先获取） */
+    /** 队伍引用（lock 保护；锁序：lock 最先获取） */
     Party party;
     /** 队伍成员视图（null 表示不在队） */
     PartyCharacter mpc = null;
     /** 队伍锁（原 Character.prtLock） */
     final Lock lock = new ReentrantLock();
+
+    /** 是否接受组队邀请（party search；CharacterJob.changeJob 读取） */
+    boolean canRecvPartySearchInvite = true;
 
     CharacterParty(Character owner) {
         this.owner = owner;
@@ -207,6 +210,50 @@ class CharacterParty {
                 partychar.sendPacket(PacketCreator.updatePartyMemberHP(owner.getId(), curhp, curmaxhp));
             }
         }
+    }
+
+    void receivePartyMemberHP() {
+        // 不在此处包一层 lock:getPartyMembersOnSameMap 内部已持 lock 保护 party 引用。
+        // 若再包一层,会在持 lock 的同时对同图队友逐个取 getHp()(对方 stats.rLock),
+        // 与 updateLocalStats(本角色 stats.wLock 后再 updatePartyMemberHP 取 lock)形成
+        // 跨角色反向锁顺序,存在死锁窗口。
+        for (Character partychar : this.getPartyMembersOnSameMap()) {
+            owner.sendPacket(PacketCreator.updatePartyMemberHP(partychar.getId(), partychar.getHp(), partychar.getCurrentMaxHp()));
+        }
+    }
+
+    // ── 组队邀请（party search） ──
+
+    void updatePartySearchAvailability(boolean pSearchAvailable) {
+        if (pSearchAvailable) {
+            if (canRecvPartySearchInvite && getParty() == null) {
+                owner.getWorldServer().getPartySearchCoordinator().attachPlayer(owner);
+            }
+        } else {
+            if (canRecvPartySearchInvite) {
+                owner.getWorldServer().getPartySearchCoordinator().detachPlayer(owner);
+            }
+        }
+    }
+
+    boolean toggleRecvPartySearchInvite() {
+        canRecvPartySearchInvite = !canRecvPartySearchInvite;
+
+        if (canRecvPartySearchInvite) {
+            updatePartySearchAvailability(getParty() == null);
+        } else {
+            owner.getWorldServer().getPartySearchCoordinator().detachPlayer(owner);
+        }
+
+        return canRecvPartySearchInvite;
+    }
+
+    boolean isRecvPartySearchInviteEnabled() {
+        return canRecvPartySearchInvite;
+    }
+
+    void setCanRecvPartySearchInvite(boolean canRecvPartySearchInvite) {
+        this.canRecvPartySearchInvite = canRecvPartySearchInvite;
     }
 
     // ── 组队操作更新（含掉落归属；门更新编排经 owner 门面） ──

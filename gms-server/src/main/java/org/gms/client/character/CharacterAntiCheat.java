@@ -15,6 +15,7 @@ import java.awt.Point;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -72,6 +73,9 @@ class CharacterAntiCheat {
 
     /** 各技能攻击间隔滑动窗口 */
     private final ConcurrentHashMap<Integer, AttackWindow> skillWindows = new ConcurrentHashMap<>();
+
+    /** 各技能最近攻击时间戳（getAttackInterval 用） */
+    private final ConcurrentHashMap<Integer, Long> normalAttackTimes = new ConcurrentHashMap<>();
 
     /** 全局最后攻击时间戳，只被正常主动技能更新 */
     private volatile long globalAttackTime;
@@ -276,6 +280,27 @@ class CharacterAntiCheat {
     /** 更新全局攻击时间戳，只被正常主动技能调用 */
     void updateGlobalTime(long now) {
         globalAttackTime = now;
+    }
+
+    /**
+     * 获取指定技能距上次攻击的间隔毫秒数，并更新最后攻击时间。
+     * 间隔 < MIN_INTERVAL 时不更新时间戳，视为网络抖动透明跳过。
+     * 首次调用或时钟回退时返回 Long.MAX_VALUE，本次不参与间隔判定。
+     */
+    long getAttackInterval(int skillId, long now) {
+        AtomicLong intervalRef = new AtomicLong(Long.MAX_VALUE);
+        normalAttackTimes.compute(skillId, (ignored, prevTime) -> {
+            long prev = prevTime != null ? prevTime : 0L;
+            if (prev > 0L && now > prev) {
+                intervalRef.set(now - prev);
+            }
+            long interval = intervalRef.get();
+            if (interval != Long.MAX_VALUE && interval < MIN_INTERVAL) {
+                return prev;
+            }
+            return Math.max(prev, now);
+        });
+        return intervalRef.get();
     }
 
     // ── 移动距离检测 ──
