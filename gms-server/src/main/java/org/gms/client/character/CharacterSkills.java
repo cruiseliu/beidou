@@ -230,7 +230,7 @@ class CharacterSkills {
                 long startTime = e.getValue().startTime;
                 long length = e.getValue().length;
                 if (skillId == 5221999) {   // 战船冷却槽复用为血量标记
-                    owner.battleshipHp = (int) length;
+                    owner.specialSkills.battleshipHp = (int) length;
                     coolDowns.put(skillId, new CooldownValueHolder(skillId, 0, length));
                 } else {
                     int remaining = (int) ((length + startTime) - timeNow);

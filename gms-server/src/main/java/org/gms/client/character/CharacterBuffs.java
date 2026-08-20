@@ -1,11 +1,12 @@
 package org.gms.client.character;
 
 import org.gms.client.EffectType;
+import org.gms.config.GameConfig;
 import org.gms.net.server.Server;
 import org.gms.server.ItemInformationProvider;
 import org.gms.server.BuffEffectData;
 import org.gms.util.PacketCreator;
-import org.gms.constants.skills.Priest;
+import org.gms.constants.skills.*;
 import org.gms.server.maps.Door;
 import org.gms.util.Locks;
 import org.gms.util.Pair;
@@ -330,4 +331,57 @@ class CharacterBuffs {
 
         active.refreshLocalStats();   // 锁外刷新派生属性
     }
+
+
+    // ── 驱散 ──
+
+    void dispel() {
+        if (!(GameConfig.getServerBoolean("use_undispel_holy_shield") && owner.hasActiveBuff(Bishop.HOLY_SHIELD))) {
+            List<EffectStatus> effects = getAllEffects();
+            for (EffectStatus effect : effects) {
+                if (effect.getData().isSkill()) {
+                    if (effect.getData().getBuffSourceId() != Aran.COMBO_ABILITY) { // check discovered thanks to Croosade dev team
+                        owner.cancelEffect(effect.getData(), false);
+                    }
+                }
+            }
+        }
+    }
+
+    void dispelSkill(int skillid) {
+        List<EffectStatus> effects = getAllEffects();
+        for (EffectStatus effect : effects) {
+            if (skillid == 0) {
+                if (effect.getData().isSkill() && (effect.getData().getSourceId() % 10000000 == 1004 || dispelSkills(effect.getData().getSourceId()))) {
+                    owner.cancelEffect(effect.getData(), false);
+                }
+            } else if (effect.getData().isSkill() && effect.getData().getSourceId() == skillid) {
+                owner.cancelEffect(effect.getData(), false);
+            }
+        }
+    }
+
+    private static boolean dispelSkills(int skillid) {
+        return switch (skillid) {
+            case DarkKnight.BEHOLDER, FPArchMage.ELQUINES, ILArchMage.IFRIT, Priest.SUMMON_DRAGON, Bishop.BAHAMUT,
+                 Ranger.PUPPET, Ranger.SILVER_HAWK, Sniper.PUPPET, Sniper.GOLDEN_EAGLE, Hermit.SHADOW_PARTNER -> true;
+            default -> false;
+        };
+    }
+
+    // ── 效果查询 ──
+
+    BuffEffectData getStatForBuff(EffectType effect) {
+        // effLock/chrLock 已冗余：激活表为不可变快照，无锁读
+
+        try {
+            EffectStatus mbsvh = active.effects.get(effect);
+            if (mbsvh == null) {
+                return null;
+            }
+            return mbsvh.getData();
+        } finally {
+        }
+    }
+
 }

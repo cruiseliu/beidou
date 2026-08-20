@@ -3,8 +3,11 @@ package org.gms.client.character;
 import org.gms.client.Ring;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.id.MapId;
+import org.gms.client.Family;
+import org.gms.net.server.guild.Guild;
 import org.gms.scripting.event.EventInstanceManager;
 import org.gms.server.Marriage;
+import org.gms.util.PacketCreator;
 import org.gms.util.packets.WeddingPackets;
 
 import java.util.ArrayList;
@@ -146,4 +149,19 @@ class CharacterMarriage {
             }
         }
     }
+
+
+    /** 结婚消息广播（Guild/Family） */
+    void broadcastMarriageMessage() {
+        Guild guild = owner.getGuild();
+        if (guild != null) {
+            guild.broadcast(PacketCreator.marriageMessage(0, owner.getName()));
+        }
+
+        Family family = owner.getFamily();
+        if (family != null) {
+            family.broadcast(PacketCreator.marriageMessage(1, owner.getName()));
+        }
+    }
+
 }

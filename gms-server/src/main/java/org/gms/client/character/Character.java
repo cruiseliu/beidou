@@ -156,6 +156,9 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterDeath death = new CharacterDeath(this);
     final CharacterKeyBinding keybinding = new CharacterKeyBinding(this);
     final CharacterStorage storage = new CharacterStorage(this);
+    final CharacterSpecialSkills specialSkills = new CharacterSpecialSkills(this);
+    final CharacterSalon salon = new CharacterSalon(this);
+    final CharacterBuddies buddy = new CharacterBuddies(this);
 
     @Getter
     @Setter
@@ -182,11 +185,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     private int gender;
     @Getter
-    private int hair;
-    @Setter
-    @Getter
-    private int face;
-    @Getter
     @Setter
     private int initialSpawnPoint;
     @Getter
@@ -201,16 +199,12 @@ public class Character extends AbstractAnimatedMapObject {
     @Setter
     @Getter
     private int messengerPosition = 4;
-    @Getter
-    @Setter
-    private int energyBar;
+
     @Getter
     private int ci = 0;
     @Setter
     private int bookCover;
     @Setter
-    @Getter
-    int battleshipHp = 0;
     @Getter
     private int mesosTraded = 0;
     @Getter
@@ -235,7 +229,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Setter
     @Getter
     private long lastUsedCashItem;
-    private long lastExpression = 0;
     private boolean berserk;
 
     @Setter
@@ -257,9 +250,6 @@ public class Character extends AbstractAnimatedMapObject {
     private String search = null;
     final AtomicBoolean awayFromWorld = new AtomicBoolean(true);  // player is online, but on cash shop or mts
     private final AtomicInteger meso = new AtomicInteger();
-    @Getter
-    @Setter
-    private BuddyList buddylist;
     private EventInstanceManager eventInstance = null;
     @Getter
     @Setter
@@ -273,9 +263,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     @Setter
     private Shop shop = null;
-    @Getter
-    @Setter
-    private SkinColor skinColor = SkinColor.NORMAL;
     @Getter
     @Setter
     private Trade trade = null;
@@ -454,12 +441,6 @@ public class Character extends AbstractAnimatedMapObject {
         sp.changeRemainingSp(remainingSp, jobId, false);
     }
 
-    public void setHair(int hair) {
-        int oldHair = this.hair;
-        this.hair = hair;
-        DynamicHairMedal.onHairChanged(this, oldHair, hair);
-    }
-
     public static Character getDefault(Client c) {
         Character ret = new Character();
         ret.client = c;
@@ -476,7 +457,7 @@ public class Character extends AbstractAnimatedMapObject {
         ret.setJob(Job.BEGINNER);
         ret.level.setLevel(1);
         ret.accountId = c.getAccID();
-        ret.buddylist = new BuddyList(20);
+
         ret.mapleMount = null;
         ret.getInventory(InventoryType.EQUIP).setSlotLimit(24);
         ret.getInventory(InventoryType.USE).setSlotLimit(24);
@@ -734,7 +715,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void broadcastAcquaintances(Packet packet) {
-        buddylist.broadcast(packet, getWorldServer().getPlayerStorage());
+        buddy.getBuddylist().broadcast(packet, getWorldServer().getPlayerStorage());
         Family family = getFamily();
         if (family != null) {
             family.broadcast(packet, id);
@@ -948,57 +929,8 @@ public class Character extends AbstractAnimatedMapObject {
         return true; // 成功执行消耗操作
     }
 
-    public boolean isRidingBattleship() {
-        Integer bv = getBuffedValue(EffectType.MONSTER_RIDING);
-        return bv != null && bv.equals(Corsair.BATTLE_SHIP);
-    }
-
-    public void announceBattleshipHp() {
-        sendPacket(PacketCreator.skillCooldown(5221999, battleshipHp));
-    }
-
-    public void decreaseBattleshipHp(int decrease) {
-        this.battleshipHp -= decrease;
-        if (battleshipHp <= 0) {
-            Skill battleship = SkillFactory.getSkill(Corsair.BATTLE_SHIP);
-            int cooldown = battleship.getEffect(getSkillLevel(battleship)).getCooldown();
-            sendPacket(PacketCreator.skillCooldown(Corsair.BATTLE_SHIP, cooldown));
-            addCooldown(Corsair.BATTLE_SHIP, Server.getInstance().getCurrentTime(), SECONDS.toMillis(cooldown));
-            removeCooldown(5221999);
-            cancelEffectFromBuffStat(EffectType.MONSTER_RIDING);
-        } else {
-            announceBattleshipHp();
-            addCooldown(5221999, 0, Long.MAX_VALUE);
-        }
-    }
-
     public void decreaseReports() {
         this.possibleReports--;
-    }
-
-    private void nextPendingRequest(Client c) {
-        CharacterNameAndId pendingBuddyRequest = c.getPlayer().getBuddylist().pollPendingRequest();
-        if (pendingBuddyRequest != null) {
-            c.sendPacket(PacketCreator.requestBuddylistAdd(pendingBuddyRequest.getId(), c.getPlayer().getId(), pendingBuddyRequest.getName()));
-        }
-    }
-
-    private void notifyRemoteChannel(Client c, int remoteChannel, int otherCid, BuddyList.BuddyOperation operation) {
-        Character player = c.getPlayer();
-        if (remoteChannel != -1) {
-            c.getWorldServer().buddyChanged(otherCid, player.getId(), player.getName(), c.getChannel(), operation);
-        }
-    }
-
-    public void deleteBuddy(int otherCid) {
-        BuddyList bl = getBuddylist();
-
-        if (bl.containsVisible(otherCid)) {
-            notifyRemoteChannel(client, getWorldServer().find(otherCid), otherCid, BuddyList.BuddyOperation.DELETED);
-        }
-        bl.remove(otherCid);
-        sendPacket(PacketCreator.updateBuddylist(getBuddylist().getBuddies()));
-        nextPendingRequest(client);
     }
 
     public static boolean deleteCharFromDB(Character player, int senderAccId) {
@@ -1067,49 +999,6 @@ public class Character extends AbstractAnimatedMapObject {
 
             addMPHP(healHP, healMP);
         }, healInterval, healInterval);
-    }
-
-    public void dispel() {
-        if (!(GameConfig.getServerBoolean("use_undispel_holy_shield") && this.hasActiveBuff(Bishop.HOLY_SHIELD))) {
-            List<EffectStatus> effects = buffs.getAllEffects();
-            for (EffectStatus effect : effects) {
-                if (effect.getData().isSkill()) {
-                    if (effect.getData().getBuffSourceId() != Aran.COMBO_ABILITY) { // check discovered thanks to Croosade dev team
-                        cancelEffect(effect.getData(), false);
-                    }
-                }
-            }
-        }
-    }
-
-    public void dispelSkill(int skillid) {
-        List<EffectStatus> effects = buffs.getAllEffects();
-        for (EffectStatus effect : effects) {
-            if (skillid == 0) {
-                if (effect.getData().isSkill() && (effect.getData().getSourceId() % 10000000 == 1004 || dispelSkills(effect.getData().getSourceId()))) {
-                    cancelEffect(effect.getData(), false);
-                }
-            } else if (effect.getData().isSkill() && effect.getData().getSourceId() == skillid) {
-                cancelEffect(effect.getData(), false);
-            }
-        }
-    }
-
-    private static boolean dispelSkills(int skillid) {
-        return switch (skillid) {
-            case DarkKnight.BEHOLDER, FPArchMage.ELQUINES, ILArchMage.IFRIT, Priest.SUMMON_DRAGON, Bishop.BAHAMUT,
-                 Ranger.PUPPET, Ranger.SILVER_HAWK, Sniper.PUPPET, Sniper.GOLDEN_EAGLE, Hermit.SHADOW_PARTNER -> true;
-            default -> false;
-        };
-    }
-
-    public void changeFaceExpression(int emote) {
-        long timeNow = Server.getInstance().getCurrentTime();
-        // Client allows changing every 2 seconds. Give it a little bit of overhead for packet delays.
-        if (timeNow - lastExpression > 1500) {
-            lastExpression = timeNow;
-            getMap().broadcastMessage(this, PacketCreator.facialExpression(this, emote), false);
-        }
     }
 
     public void doHurtHp() {
@@ -1412,20 +1301,6 @@ public class Character extends AbstractAnimatedMapObject {
         return skills.entries;
     }
 
-    public BuffEffectData getStatForBuff(EffectType effect) {
-        // effLock/chrLock 已冗余：激活表为不可变快照，无锁读
-
-        try {
-            EffectStatus mbsvh = buffs.getActive().effects.get(effect);
-            if (mbsvh == null) {
-                return null;
-            }
-            return mbsvh.getData();
-        } finally {
-
-        }
-    }
-
     public Collection<Summon> getSummonsValues() {
         return summons.values();
     }
@@ -1452,46 +1327,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     public World getWorldServer() {
         return Server.getInstance().getWorld(world);
-    }
-
-    public void handleEnergyChargeGain() { // to get here energychargelevel has to be > 0
-        Skill energycharge = isCygnus() ? SkillFactory.getSkill(ThunderBreaker.ENERGY_CHARGE) : SkillFactory.getSkill(Marauder.ENERGY_CHARGE);
-        BuffEffectData ceffect;
-        ceffect = energycharge.getEffect(getSkillLevel(energycharge));
-        TimerManager tMan = TimerManager.getInstance();
-        if (energyBar < 10000) {
-            energyBar += 102;
-            if (energyBar > 10000) {
-                energyBar = 10000;
-            }
-            List<Pair<EffectType, Integer>> stat = Collections.singletonList(new Pair<>(EffectType.ENERGY_CHARGE, energyBar));
-            setBuffedValue(EffectType.ENERGY_CHARGE, energyBar);
-            sendPacket(PacketCreator.giveBuff(energyBar, 0, stat));
-            sendPacket(PacketCreator.showOwnBuffEffect(energycharge.getId(), 2));
-            getMap().broadcastPacket(this, PacketCreator.showBuffEffect(id, energycharge.getId(), 2));
-            getMap().broadcastPacket(this, PacketCreator.giveForeignPirateBuff(id, energycharge.getId(),
-                    ceffect.getDuration(), stat));
-        }
-        if (energyBar >= 10000 && energyBar < 11000) {
-            energyBar = 15000;
-            final Character chr = this;
-            tMan.schedule(() -> {
-                energyBar = 0;
-                List<Pair<EffectType, Integer>> stat = Collections.singletonList(new Pair<>(EffectType.ENERGY_CHARGE, energyBar));
-                setBuffedValue(EffectType.ENERGY_CHARGE, energyBar);
-                sendPacket(PacketCreator.giveBuff(energyBar, 0, stat));
-                getMap().broadcastPacket(chr, PacketCreator.cancelForeignFirstDebuff(id, ((long) 1) << 50));
-            }, ceffect.getDuration());
-        }
-    }
-
-    public void handleOrbconsume() {
-        int skillid = isCygnus() ? DawnWarrior.COMBO : Crusader.COMBO;
-        Skill combo = SkillFactory.getSkill(skillid);
-        List<Pair<EffectType, Integer>> stat = Collections.singletonList(new Pair<>(EffectType.COMBO, 1));
-        setBuffedValue(EffectType.COMBO, 1);
-        sendPacket(PacketCreator.giveBuff(skillid, combo.getEffect(getSkillLevel(combo)).getDuration() + (int) ((getBuffedStarttime(EffectType.COMBO) - System.currentTimeMillis())), stat));
-        getMap().broadcastMessage(this, PacketCreator.giveForeignBuff(getId(), stat), false);
     }
 
     public boolean hasEntered(String script) {
@@ -1593,9 +1428,9 @@ public class Character extends AbstractAnimatedMapObject {
             ret.id = rs.getInt("id");
             ret.name = rs.getString("name");
             ret.gender = rs.getInt("gender");
-            ret.skinColor = SkinColor.getById(rs.getInt("skincolor"));
-            ret.face = rs.getInt("face");
-            ret.hair = rs.getInt("hair");
+            ret.salon.setSkinColor(SkinColor.getById(rs.getInt("skincolor")));
+            ret.salon.setFace(rs.getInt("face"));
+            ret.salon.setHair(rs.getInt("hair"));
 
             // skipping pets, probably unneeded here
 
@@ -1634,9 +1469,9 @@ public class Character extends AbstractAnimatedMapObject {
         ret.id = this.getId();
         ret.name = this.getName();
         ret.gender = this.getGender();
-        ret.skinColor = this.getSkinColor();
-        ret.face = this.getFace();
-        ret.hair = this.getHair();
+        ret.salon.setSkinColor(this.getSkinColor());
+        ret.salon.setFace(this.getFace());
+        ret.salon.setHair(this.getHair());
 
         // skipping pets, probably unneeded here
 
@@ -1693,7 +1528,7 @@ public class Character extends AbstractAnimatedMapObject {
         chr.setMeso(charactersDO.getMeso());
         chr.setMerchantMeso(charactersDO.getMerchantmesos());
         chr.gm.setGMLevel(charactersDO.getGm());
-        chr.setSkinColor(SkinColor.getById(charactersDO.getSkincolor()));
+        chr.salon.setSkinColor(SkinColor.getById(charactersDO.getSkincolor()));
         chr.setGender(charactersDO.getGender());
         // job 仅从 character_json 恢复（applyData），character 表 job 列为冗余双写
         chr.setFinishedDojoTutorial(charactersDO.getFinishedDojoTutorial() == 1);
@@ -1704,8 +1539,8 @@ public class Character extends AbstractAnimatedMapObject {
         chr.miniGame.setMatchcardwins(charactersDO.getMatchcardwins());
         chr.miniGame.setMatchcardlosses(charactersDO.getMatchcardlosses());
         chr.miniGame.setMatchcardties(charactersDO.getMatchcardties());
-        chr.setHair(charactersDO.getHair());
-        chr.setFace(charactersDO.getFace());
+        chr.salon.setHair(charactersDO.getHair());
+        chr.salon.setFace(charactersDO.getFace());
         chr.setAccountId(charactersDO.getAccountid());
         // mapId 仅从 character_json 恢复（applyData），character 表 map 列为冗余双写
         chr.setInitialSpawnPoint(charactersDO.getSpawnpoint());
@@ -1726,7 +1561,7 @@ public class Character extends AbstractAnimatedMapObject {
         chr.setDojoStage(charactersDO.getLastDojoStage());
         chr.pq.setDataString(charactersDO.getDataString());
         chr.guild.setMGC(new GuildCharacter(chr));
-        chr.setBuddylist(new BuddyList(charactersDO.getBuddyCapacity()));
+        chr.buddy.setBuddylist(new BuddyList(charactersDO.getBuddyCapacity()));
         chr.lastExpGainTime = charactersDO.getLastExpGainTime().getTime();
         chr.party.setCanRecvPartySearchInvite(charactersDO.getPartySearch());
         chr.getInventory(InventoryType.EQUIP).setSlotLimit(charactersDO.getEquipslots());
@@ -1996,11 +1831,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public void resetBattleshipHp() {
-        int bshipLevel = Math.max(getLevel() - 120, 0);  // thanks alex12 for noticing battleship HP issues for low-level players
-        this.battleshipHp = 400 * getSkillLevel(SkillFactory.getSkill(Corsair.BATTLE_SHIP)) + (bshipLevel * 200);
-    }
-
     public void resetEnteredScript() {
         entered.remove(getMap().getId());
     }
@@ -2069,11 +1899,11 @@ public class Character extends AbstractAnimatedMapObject {
                 // Character info
                 try (PreparedStatement ps = con.prepareStatement("INSERT INTO characters (gm, skincolor, gender, job, hair, face, meso, spawnpoint, accountid, name, world, level) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
                     ps.setInt(1, gm.gmLevel());
-                    ps.setInt(2, skinColor.getId());
+                    ps.setInt(2, salon.getSkinColor().getId());
                     ps.setInt(3, gender);
                     ps.setInt(4, job.getId());
-                    ps.setInt(5, hair);
-                    ps.setInt(6, face);
+                    ps.setInt(5, salon.getHair());
+                    ps.setInt(6, salon.getFace());
                     ps.setInt(7, Math.abs(meso.get()));
                     ps.setInt(8, 0);
                     ps.setInt(9, accountId);
@@ -2219,11 +2049,11 @@ public class Character extends AbstractAnimatedMapObject {
                     }
 
                     ps.setInt(5, gm.gmLevel());
-                    ps.setInt(6, skinColor.getId());
+                    ps.setInt(6, salon.getSkinColor().getId());
                     ps.setInt(7, gender);
                     ps.setInt(8, job.getId());
-                    ps.setInt(9, hair);
-                    ps.setInt(10, face);
+                    ps.setInt(9, salon.getHair());
+                    ps.setInt(10, salon.getFace());
                     ps.setInt(11, meso.get());
                     if (getMap() == null || getMap().getId() == MapId.CRIMSONWOOD_VALLEY_1 || getMap().getId() == MapId.CRIMSONWOOD_VALLEY_2) {  // reset to first spawnpoint on those maps
                         ps.setInt(12, 0);
@@ -2247,7 +2077,7 @@ public class Character extends AbstractAnimatedMapObject {
                         party.lock.unlock();
                     }
 
-                    ps.setInt(14, buddylist.getCapacity());
+                    ps.setInt(14, buddy.getBuddylist().getCapacity());
                     if (messenger != null) {
                         ps.setInt(15, messenger.getId());
                         ps.setInt(16, messengerPosition);
@@ -2409,7 +2239,7 @@ public class Character extends AbstractAnimatedMapObject {
                 try (PreparedStatement psBuddy = con.prepareStatement("INSERT INTO buddies (characterid, `buddyid`, `pending`, `group`) VALUES (?, ?, 0, ?)")) {
                     psBuddy.setInt(1, id);
 
-                    for (BuddylistEntry entry : buddylist.getBuddies()) {
+                    for (BuddylistEntry entry : buddy.getBuddylist().getBuddies()) {
                         if (entry.isVisible()) {
                             psBuddy.setInt(2, entry.getCharacterId());
                             psBuddy.setString(3, entry.getGroup());
@@ -2530,11 +2360,6 @@ public class Character extends AbstractAnimatedMapObject {
     public void sendMacros() {
         // Always send the macro packet to fix a client side bug when switching characters.
         sendPacket(PacketCreator.getMacros(skillMacros));
-    }
-
-    public void setBuddyCapacity(int capacity) {
-        buddylist.setCapacity(capacity);
-        sendPacket(PacketCreator.updateBuddyCapacity(capacity));
     }
 
     public void setChalkboard(String text) {
@@ -2832,18 +2657,6 @@ public class Character extends AbstractAnimatedMapObject {
     public boolean isVipTrockMap(int id) {
         int index = viptrockmaps.indexOf(id);
         return index != -1;
-    }
-
-    public void broadcastMarriageMessage() {
-        Guild guild = this.getGuild();
-        if (guild != null) {
-            guild.broadcast(PacketCreator.marriageMessage(0, name));
-        }
-
-        Family family = this.getFamily();
-        if (family != null) {
-            family.broadcast(PacketCreator.marriageMessage(1, name));
-        }
     }
 
     public void setCpqTimer(ScheduledFuture<?> timer) {
@@ -3647,4 +3460,43 @@ public class Character extends AbstractAnimatedMapObject {
     public Storage getStorage() { return storage.getStorage(); }
     public void setStorage(Storage storage) { this.storage.setStorage(storage); }
     public void setUsedStorage() { storage.setUsedStorage(); }
+
+    // ── buffs 补充门面 ──
+
+    public void dispel() { buffs.dispel(); }
+    public void dispelSkill(int skillid) { buffs.dispelSkill(skillid); }
+    public BuffEffectData getStatForBuff(EffectType effect) { return buffs.getStatForBuff(effect); }
+
+    // ── marriage 补充门面 ──
+
+    public void broadcastMarriageMessage() { marriage.broadcastMarriageMessage(); }
+
+    // ── specialSkills 门面 ──
+
+    public int getEnergyBar() { return specialSkills.getEnergyBar(); }
+    public void setEnergyBar(int energyBar) { specialSkills.setEnergyBar(energyBar); }
+    public int getBattleshipHp() { return specialSkills.getBattleshipHp(); }
+    public boolean isRidingBattleship() { return specialSkills.isRidingBattleship(); }
+    public void announceBattleshipHp() { specialSkills.announceBattleshipHp(); }
+    public void decreaseBattleshipHp(int decrease) { specialSkills.decreaseBattleshipHp(decrease); }
+    public void resetBattleshipHp() { specialSkills.resetBattleshipHp(); }
+    public void handleEnergyChargeGain() { specialSkills.handleEnergyChargeGain(); }
+    public void handleOrbconsume() { specialSkills.handleOrbconsume(); }
+
+    // ── salon 门面 ──
+
+    public int getHair() { return salon.getHair(); }
+    public void setHair(int hair) { salon.setHair(hair); }
+    public int getFace() { return salon.getFace(); }
+    public void setFace(int face) { salon.setFace(face); }
+    public SkinColor getSkinColor() { return salon.getSkinColor(); }
+    public void setSkinColor(SkinColor skinColor) { salon.setSkinColor(skinColor); }
+    public void changeFaceExpression(int emote) { salon.changeFaceExpression(emote); }
+
+    // ── buddy 门面 ──
+
+    public BuddyList getBuddylist() { return buddy.getBuddylist(); }
+    public void setBuddylist(BuddyList buddylist) { buddy.setBuddylist(buddylist); }
+    public void deleteBuddy(int otherCid) { buddy.deleteBuddy(otherCid); }
+    public void setBuddyCapacity(int capacity) { buddy.setBuddyCapacity(capacity); }
 }
