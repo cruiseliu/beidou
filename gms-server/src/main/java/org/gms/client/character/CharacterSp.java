@@ -61,7 +61,7 @@ class CharacterSp {
             setRemainingSp(remainingSp, jobId);
             int applied = this.remainingSp[indexOf(jobId)];
             if (!silent) {
-                owner.announceStatsUpdate(new java.util.HashMap<>(
+                owner.stats.announceStatsUpdate(new java.util.HashMap<>(
                         java.util.Map.of(org.gms.client.Stat.AVAILABLESP, applied)));
             }
             return applied;

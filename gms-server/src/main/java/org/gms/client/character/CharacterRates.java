@@ -358,7 +358,7 @@ class CharacterRates {
     }
 
     public void dispelBuffCoupons() {
-        List<EffectStatus> effects = owner.getAllStatups();
+        List<EffectStatus> effects = owner.buffs.getAllEffects();
 
         for (EffectStatus effect : effects) {
             if (ItemConstants.isRateCoupon(effect.getData().getSourceId())) {

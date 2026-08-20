@@ -913,7 +913,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void cancelMagicDoor() {
-        List<EffectStatus> effects = getAllStatups();
+        List<EffectStatus> effects = buffs.getAllEffects();
         for (EffectStatus effect : effects) {
             if (effect.getData().isMagicDoor()) {
                 cancelEffect(effect.getData(), false);
@@ -1466,7 +1466,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void dispel() {
         if (!(GameConfig.getServerBoolean("use_undispel_holy_shield") && this.hasActiveBuff(Bishop.HOLY_SHIELD))) {
-            List<EffectStatus> effects = getAllStatups();
+            List<EffectStatus> effects = buffs.getAllEffects();
             for (EffectStatus effect : effects) {
                 if (effect.getData().isSkill()) {
                     if (effect.getData().getBuffSourceId() != Aran.COMBO_ABILITY) { // check discovered thanks to Croosade dev team
@@ -1478,7 +1478,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void dispelSkill(int skillid) {
-        List<EffectStatus> effects = getAllStatups();
+        List<EffectStatus> effects = buffs.getAllEffects();
         for (EffectStatus effect : effects) {
             if (skillid == 0) {
                 if (effect.getData().isSkill() && (effect.getData().getSourceId() % 10000000 == 1004 || dispelSkills(effect.getData().getSourceId()))) {
@@ -1744,10 +1744,6 @@ public class Character extends AbstractAnimatedMapObject {
         } else {
             enableActions();
         }
-    }
-
-    List<EffectStatus> getAllStatups() {
-        return buffs.getAllEffects();
     }
 
     public void cancelEffect(int itemId) {
@@ -2361,7 +2357,7 @@ public class Character extends AbstractAnimatedMapObject {
             }
         }
 
-        addMaxMPMaxHP(addhp, addmp, true);
+        stats.addMaxMPMaxHP(addhp, addmp, true);
 
         if (takeexp) {
             exp.addAndGet(-ExpTable.getExpNeededForLevel(level));
@@ -4675,19 +4671,26 @@ public class Character extends AbstractAnimatedMapObject {
     public int getDex() { return stats.getAttr(DEX); }
     public int getInt() { return stats.getAttr(INT); }
     public int getLuk() { return stats.getAttr(LUK); }
-
-
-    public void healHpMp() {
-        stats.applyUpdate(new StatsUpdate().setHp(30000).setMp(30000));
-    }
-
-    public void updateHpMp(int x) {
-        stats.applyUpdate(new StatsUpdate().setHp(x).setMp(x));
-    }
-
-    public void updateHpMp(int newhp, int newmp) {
-        stats.applyUpdate(new StatsUpdate().setHp(newhp).setMp(newmp));
-    }
+    public void healHpMp() { stats.applyUpdate(new StatsUpdate().setHp(30000).setMp(30000)); }
+    public void updateHpMp(int x) { stats.applyUpdate(new StatsUpdate().setHp(x).setMp(x)); }
+    public void updateHpMp(int newhp, int newmp) { stats.applyUpdate(new StatsUpdate().setHp(newhp).setMp(newmp)); }
+    public void updateHp(int hp) { stats.applyUpdate(new StatsUpdate().setHp(hp)); }
+    public void updateMaxHp(int maxhp) { stats.applyUpdate(new StatsUpdate().setMaxHp(maxhp)); }
+    public void updateHpMaxHp(int hp, int maxhp) { stats.applyUpdate(new StatsUpdate().setHp(hp).setMaxHp(maxhp)); }
+    public void updateMp(int mp) { stats.applyUpdate(new StatsUpdate().setMp(mp)); }
+    public void updateMaxMp(int maxmp) { stats.applyUpdate(new StatsUpdate().setMaxMp(maxmp)); }
+    public void updateMpMaxMp(int mp, int maxmp) { stats.applyUpdate(new StatsUpdate().setMp(mp).setMaxMp(maxmp)); }
+    public void updateMaxHpMaxMp(int maxhp, int maxmp) { stats.applyUpdate(new StatsUpdate().setMaxHp(maxhp).setMaxMp(maxmp)); }
+    public int safeAddHP(int delta) { return stats.safeAddHP(delta); }
+    public void addHP(int delta) { stats.addHP(delta); }
+    public void addMP(int delta) { stats.addMP(delta); }
+    public void addMPHP(int hpDelta, int mpDelta) { stats.addMPHP(hpDelta, mpDelta); }
+    public void addMaxHP(int delta) { stats.addMaxHP(delta); }
+    public void addMaxMP(int delta) { stats.addMaxMP(delta); }
+    public void reapplyLocalStats() { stats.reapplyLocalStats(); }
+    public List<Pair<Stat, Integer>> recalcLocalStats() { return stats.recalcLocalStats(); }
+    public void hpChangeAction(int oldHp) { stats.hpChangeAction(oldHp); }
+    public boolean applyHpMpChange(int hpCon, int hpchange, int mpchange) { return stats.applyHpMpChange(hpCon, hpchange, mpchange); }
 
     public void changeHpMp(int newhp, int newmp, boolean silent) {
         StatsUpdate u = new StatsUpdate().setHp(newhp).setMp(newmp);
@@ -4696,86 +4699,6 @@ public class Character extends AbstractAnimatedMapObject {
         } else {
             stats.applyUpdate(u);
         }
-    }
-
-    public void updateHp(int hp) {
-        stats.applyUpdate(new StatsUpdate().setHp(hp));
-    }
-
-    public void updateMaxHp(int maxhp) {
-        stats.applyUpdate(new StatsUpdate().setMaxHp(maxhp));
-    }
-
-    public void updateHpMaxHp(int hp, int maxhp) {
-        stats.applyUpdate(new StatsUpdate().setHp(hp).setMaxHp(maxhp));
-    }
-
-    public void updateMp(int mp) {
-        stats.applyUpdate(new StatsUpdate().setMp(mp));
-    }
-
-    public void updateMaxMp(int maxmp) {
-        stats.applyUpdate(new StatsUpdate().setMaxMp(maxmp));
-    }
-
-    public void updateMpMaxMp(int mp, int maxmp) {
-        stats.applyUpdate(new StatsUpdate().setMp(mp).setMaxMp(maxmp));
-    }
-
-    public void updateMaxHpMaxMp(int maxhp, int maxmp) {
-        stats.applyUpdate(new StatsUpdate().setMaxHp(maxhp).setMaxMp(maxmp));
-    }
-
-    public int safeAddHP(int delta) {
-        return stats.safeAddHP(delta);
-    }
-
-    public void addHP(int delta) {
-        stats.addHP(delta);
-    }
-
-    public void addMP(int delta) {
-        stats.addMP(delta);
-    }
-
-    public void addMPHP(int hpDelta, int mpDelta) {
-        stats.addMPHP(hpDelta, mpDelta);
-    }
-
-    void addMaxMPMaxHP(int hpdelta, int mpdelta, boolean silent) {
-        stats.addMaxMPMaxHP(hpdelta, mpdelta, silent);
-    }
-
-    public void addMaxHP(int delta) {
-        stats.addMaxHP(delta);
-    }
-
-    public void addMaxMP(int delta) {
-        stats.addMaxMP(delta);
-    }
-
-    public void reapplyLocalStats() {
-        stats.reapplyLocalStats();
-    }
-
-    public List<Pair<Stat, Integer>> recalcLocalStats() {
-        return stats.recalcLocalStats();
-    }
-
-    void updateLocalStats() {
-        stats.updateLocalStats();
-    }
-
-    void announceStatsUpdate(Map<Stat, Integer> statUpdates) {
-        stats.announceStatsUpdate(statUpdates);
-    }
-
-    public void hpChangeAction(int oldHp) {
-        stats.hpChangeAction(oldHp);
-    }
-
-    public boolean applyHpMpChange(int hpCon, int hpchange, int mpchange) {
-        return stats.applyHpMpChange(hpCon, hpchange, mpchange);
     }
 
     // ── rates 门面 ──

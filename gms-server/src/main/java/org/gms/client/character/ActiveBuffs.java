@@ -186,7 +186,7 @@ class ActiveBuffs {
      *  且持 wLock 期间经 recalcLocalStats 再取 chrLock——若在管线持锁（eff-only 或 chr）时调用，
      *  会分别形成 eff→prt 逆序与 chr→wLock 环，与定时器线程的锁序交叉死锁。 */
     void refreshLocalStats() {
-        owner.updateLocalStats();
+        owner.stats.updateLocalStats();
     }
 
     /** 通知客户端取消指定槽位（含对外广播）。调用方持锁；cancelBuffStats 取消整槽后也会调用。 */

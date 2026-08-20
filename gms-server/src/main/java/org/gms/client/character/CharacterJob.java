@@ -183,7 +183,7 @@ class CharacterJob {
         // effLock 已冗余：addMaxMPMaxHP/recalcLocalStats 只需 stats.wLock
         owner.stats.wLock.lock();
         try {
-            owner.addMaxMPMaxHP(addhp, addmp, true);
+            owner.stats.addMaxMPMaxHP(addhp, addmp, true);
             owner.recalcLocalStats();
 
             List<Pair<Stat, Integer>> statup = new ArrayList<>(7);
