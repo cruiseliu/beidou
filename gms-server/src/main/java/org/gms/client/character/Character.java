@@ -146,6 +146,9 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterPartyQuest pq = new CharacterPartyQuest(this);
     final CharacterGuild guild = new CharacterGuild(this);
     final CharacterInventory inventory = new CharacterInventory(this);
+    final CharacterFamily family = new CharacterFamily(this);
+    final CharacterMarriage marriage = new CharacterMarriage(this);
+    final CharacterMiniGame miniGame = new CharacterMiniGame(this);
 
     @Getter
     @Setter
@@ -204,11 +207,6 @@ public class Character extends AbstractAnimatedMapObject {
     private int gmLevel;
     @Getter
     private int ci = 0;
-    @Getter
-    private FamilyEntry familyEntry;
-    @Setter
-    @Getter
-    private int familyId;
     @Setter
     private int bookCover;
     @Setter
@@ -232,24 +230,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     @Setter
     private int vanquisherKills;
-    @Getter
-    @Setter
-    private int omokwins;
-    @Getter
-    @Setter
-    private int omokties;
-    @Getter
-    @Setter
-    private int omoklosses;
-    @Getter
-    @Setter
-    private int matchcardwins;
-    @Getter
-    @Setter
-    private int matchcardties;
-    @Getter
-    @Setter
-    private int matchcardlosses;
     @Getter
     @Setter
     private int owlSearch;
@@ -301,11 +281,6 @@ public class Character extends AbstractAnimatedMapObject {
     private Messenger messenger = null;
     @Getter
     @Setter
-    private MiniGame miniGame;
-    @Getter
-    private RockPaperScissor rps;
-    @Getter
-    @Setter
     private Mount mapleMount;
     @Getter
     @Setter
@@ -355,7 +330,6 @@ public class Character extends AbstractAnimatedMapObject {
     ScheduledFuture<?> extraRecoveryTask = null;
     private ScheduledFuture<?> cpqSchedule = null;
 
-    private ScheduledFuture<?> FamilyBuffTimer = null;
     final Lock chrLock = new ReentrantLock(true);
     private final Lock evtLock = new ReentrantLock(true);
     private final Lock cpnLock = new ReentrantLock();
@@ -379,16 +353,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Setter
     @Getter
     private Dragon dragon = null;
-    @Setter
-    private Ring marriageRing;
-    @Setter
-    @Getter
-    private int marriageItemId = -1;
-    @Setter
-    @Getter
-    private int partnerId = -1;
-    private final List<Ring> crushRings = new ArrayList<>();
-    private final List<Ring> friendshipRings = new ArrayList<>();
     @Getter
     @Setter
     private boolean loggedIn = false;
@@ -413,14 +377,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     private boolean chasing = false;
 
-    @Getter
-    private boolean familyBuff = false;
-
-    // 获取 FamilyExp 的值
-    @Getter
-    private float familyExp = 1;
-    @Getter
-    private float familyDrop = 1;
     static final CharacterService characterService = ServerManager.getApplicationContext().getBean(CharacterService.class);
     private static final NameChangeService nameChangeService = ServerManager.getApplicationContext().getBean(NameChangeService.class);
     private static final WorldTransferService worldTransferService = ServerManager.getApplicationContext().getBean(WorldTransferService.class);
@@ -620,43 +576,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void setNpcCooldown(long d) {
         npcCd = d;
-    }
-
-    public Ring getRingById(int id) {
-        Optional<Ring> ringOptional = getCrushRings().stream().filter(ring -> ring.getRingId() == id).findFirst();
-        if (ringOptional.isPresent()) {
-            return ringOptional.get();
-        }
-        ringOptional = getFriendshipRings().stream().filter(ring -> ring.getRingId() == id).findFirst();
-        if (ringOptional.isPresent()) {
-            return ringOptional.get();
-        }
-        if (marriageRing != null && marriageRing.getRingId() == id) {
-            return marriageRing;
-        }
-        return null;
-    }
-
-    public int getRelationshipId() {
-        return getWorldServer().getRelationshipId(id);
-    }
-
-    public boolean isMarried() {
-        return marriageRing != null && partnerId > 0;
-    }
-
-    public boolean hasJustMarried() {
-        EventInstanceManager eim = getEventInstance();
-        if (eim != null) {
-            String prop = eim.getProperty("groomId");
-
-            if (prop != null) {
-                return (Integer.parseInt(prop) == id || eim.getIntProperty("brideId") == id) &&
-                        (getMapId() == MapId.CHAPEL_WEDDING_ALTAR || getMapId() == MapId.CATHEDRAL_WEDDING_ALTAR);
-            }
-        }
-
-        return false;
     }
 
     public int addDojoPointsByMap(int mapId) {
@@ -941,15 +860,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     public MapleMap getOwnedMap() {
         return ownedMap.get();
-    }
-
-    public void notifyMapTransferToPartner(int mapid) {
-        if (partnerId > 0) {
-            final Character partner = getWorldServer().getPlayerStorage().getCharacterById(partnerId);
-            if (partner != null && !partner.isAwayFromWorld()) {
-                partner.sendPacket(WeddingPackets.OnNotifyWeddingPartnerTransfer(id, mapid));
-            }
-        }
     }
 
     public void removeIncomingInvites() {
@@ -1567,13 +1477,6 @@ public class Character extends AbstractAnimatedMapObject {
         return client.getAbstractPlayerInteraction();
     }
 
-    public List<Ring> getCrushRings() {
-        synchronized (crushRings) {
-            Collections.sort(crushRings);
-            return new ArrayList<>(crushRings);
-        }
-    }
-
     public EventInstanceManager getEventInstance() {
         evtLock.lock();
         try {
@@ -1581,10 +1484,6 @@ public class Character extends AbstractAnimatedMapObject {
         } finally {
             evtLock.unlock();
         }
-    }
-
-    public Marriage getMarriageInstance() {
-        return (Marriage) getEventInstance();
     }
 
     public int getExp() {
@@ -1595,30 +1494,8 @@ public class Character extends AbstractAnimatedMapObject {
         return gachaExp.get();
     }
 
-    public Family getFamily() {
-        if (familyEntry != null) {
-            return familyEntry.getFamily();
-        } else {
-            return null;
-        }
-    }
-
-    public void setFamilyEntry(FamilyEntry entry) {
-        if (entry != null) {
-            setFamilyId(entry.getFamily().getID());
-        }
-        this.familyEntry = entry;
-    }
-
     public void setUsedStorage() {
         usedStorage = true;
-    }
-
-    public List<Ring> getFriendshipRings() {
-        synchronized (friendshipRings) {
-            Collections.sort(friendshipRings);
-            return new ArrayList<>(friendshipRings);
-        }
     }
 
     public boolean isMale() {
@@ -1690,10 +1567,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public Ring getMarriageRing() {
-        return partnerId > 0 ? marriageRing : null;
-    }
-
     public int getTotalStr() {
         return stats.localAttrs[STR];
     }
@@ -1752,22 +1625,6 @@ public class Character extends AbstractAnimatedMapObject {
         setTargetHpBarTime(0);
     }
 
-    public int getMiniGamePoints(MiniGameResult type, boolean omok) {
-        if (omok) {
-            return switch (type) {
-                case WIN -> omokwins;
-                case LOSS -> omoklosses;
-                default -> omokties;
-            };
-        } else {
-            return switch (type) {
-                case WIN -> matchcardwins;
-                case LOSS -> matchcardlosses;
-                default -> matchcardties;
-            };
-        }
-    }
-
     public int getMonsterBookCover() {
         return bookCover;
     }
@@ -1788,8 +1645,8 @@ public class Character extends AbstractAnimatedMapObject {
         closeNpcShop();
         closeTrade();
         market.closePlayerShop();
-        closeMiniGame(true);
-        closeRPS();
+        miniGame.closeMiniGame(true);
+        miniGame.closeRPS();
         market.closeHiredMerchant(false);
         closePlayerMessenger();
 
@@ -1803,19 +1660,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void closeTrade() {
         Trade.cancelTrade(this, Trade.TradeResult.PARTNER_CANCEL);
-    }
-
-    public void closeMiniGame(boolean forceClose) {
-        MiniGame game = this.getMiniGame();
-        if (game == null) {
-            return;
-        }
-
-        if (game.isOwner(this)) {
-            game.closeRoom(forceClose);
-        } else {
-            game.removeVisitor(forceClose, this);
-        }
     }
 
     public void closePlayerMessenger() {
@@ -2234,7 +2078,7 @@ public class Character extends AbstractAnimatedMapObject {
 
         guild.guildUpdate();
 
-        FamilyEntry familyEntry = getFamilyEntry();
+        FamilyEntry familyEntry = family.getFamilyEntry();
         if (familyEntry != null) {
             familyEntry.giveReputationToSenior(GameConfig.getServerInt("family_rep_per_level_up"), true);
             FamilyEntry senior = familyEntry.getSenior();
@@ -2247,21 +2091,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
 
         updateMobExpRate();
-    }
-
-    public void addPlayerRing(Ring ring) {
-        int ringItemId = ring.getItemId();
-        if (ItemId.isWeddingRing(ringItemId)) {
-            this.marriageRing = ring;
-        } else if (ring.getItemId() > 1112012) {
-            synchronized (friendshipRings) {
-                this.friendshipRings.add(ring);
-            }
-        } else {
-            synchronized (crushRings) {
-                this.crushRings.add(ring);
-            }
-        }
     }
 
     public static Character loadCharacterEntryFromDB(ResultSet rs, List<Item> equipped) {
@@ -2377,12 +2206,12 @@ public class Character extends AbstractAnimatedMapObject {
         // job 仅从 character_json 恢复（applyData），character 表 job 列为冗余双写
         chr.setFinishedDojoTutorial(charactersDO.getFinishedDojoTutorial() == 1);
         chr.setVanquisherKills(charactersDO.getVanquisherKills());
-        chr.setOmokwins(charactersDO.getOmokwins());
-        chr.setOmoklosses(charactersDO.getOmoklosses());
-        chr.setOmokties(charactersDO.getOmokties());
-        chr.setMatchcardwins(charactersDO.getMatchcardwins());
-        chr.setMatchcardlosses(charactersDO.getMatchcardlosses());
-        chr.setMatchcardties(charactersDO.getMatchcardties());
+        chr.miniGame.setOmokwins(charactersDO.getOmokwins());
+        chr.miniGame.setOmoklosses(charactersDO.getOmoklosses());
+        chr.miniGame.setOmokties(charactersDO.getOmokties());
+        chr.miniGame.setMatchcardwins(charactersDO.getMatchcardwins());
+        chr.miniGame.setMatchcardlosses(charactersDO.getMatchcardlosses());
+        chr.miniGame.setMatchcardties(charactersDO.getMatchcardties());
         chr.setHair(charactersDO.getHair());
         chr.setFace(charactersDO.getFace());
         chr.setAccountId(charactersDO.getAccountid());
@@ -2396,7 +2225,7 @@ public class Character extends AbstractAnimatedMapObject {
         chr.guild.setGuildId(charactersDO.getGuildid());
         chr.guild.setGuildRank(charactersDO.getGuildrank());
         chr.guild.setAllianceRank(charactersDO.getAllianceRank());
-        chr.setFamilyId(charactersDO.getFamilyId());
+        chr.family.setFamilyId(charactersDO.getFamilyId());
         chr.setBookCover(charactersDO.getMonsterbookcover());
         chr.setMonsterBook(new MonsterBook(charactersDO.getId()));
         chr.setVanquisherStage(charactersDO.getVanquisherStage());
@@ -2447,14 +2276,14 @@ public class Character extends AbstractAnimatedMapObject {
         if ((sandboxCheck & ItemConstants.SANDBOX) == ItemConstants.SANDBOX) {
             chr.setHasSandboxItem();
         }
-        chr.setPartnerId(charactersDO.getPartnerId());
-        chr.setMarriageItemId(charactersDO.getMarriageItemId());
+        chr.marriage.setPartnerId(charactersDO.getPartnerId());
+        chr.marriage.setMarriageItemId(charactersDO.getMarriageItemId());
         World world = Server.getInstance().getWorld(charactersDO.getWorld());
         if (charactersDO.getMarriageItemId() > 0 && charactersDO.getPartnerId() <= 0) {
-            chr.setMarriageItemId(-1);
+            chr.marriage.setMarriageItemId(-1);
         } else if (charactersDO.getPartnerId() > 0 && world.getRelationshipId(charactersDO.getId()) <= 0) {
-            chr.setMarriageItemId(-1);
-            chr.setPartnerId(-1);
+            chr.marriage.setMarriageItemId(-1);
+            chr.marriage.setPartnerId(-1);
         }
         NewYearCardRecord.loadPlayerNewYearCards(chr);
 
@@ -3044,16 +2873,16 @@ public class Character extends AbstractAnimatedMapObject {
                     ps.setInt(27, dojoStage);
                     ps.setInt(28, finishedDojoTutorial ? 1 : 0);
                     ps.setInt(29, vanquisherKills);
-                    ps.setInt(30, matchcardwins);
-                    ps.setInt(31, matchcardlosses);
-                    ps.setInt(32, matchcardties);
-                    ps.setInt(33, omokwins);
-                    ps.setInt(34, omoklosses);
-                    ps.setInt(35, omokties);
+                    ps.setInt(30, miniGame.getMatchcardwins());
+                    ps.setInt(31, miniGame.getMatchcardlosses());
+                    ps.setInt(32, miniGame.getMatchcardties());
+                    ps.setInt(33, miniGame.getOmokwins());
+                    ps.setInt(34, miniGame.getOmoklosses());
+                    ps.setInt(35, miniGame.getOmokties());
                     ps.setString(36, pq.getDataString());
                     ps.setInt(37, quests.getQuestFame());
-                    ps.setInt(38, partnerId);
-                    ps.setInt(39, marriageItemId);
+                    ps.setInt(38, marriage.getPartnerId());
+                    ps.setInt(39, marriage.getMarriageItemId());
                     ps.setTimestamp(40, new Timestamp(lastExpGainTime));
                     ps.setInt(41, pq.getAriantPoints());
                     ps.setBoolean(42, party.canRecvPartySearchInvite);
@@ -3253,7 +3082,7 @@ public class Character extends AbstractAnimatedMapObject {
                     }
                 }
 
-                FamilyEntry familyEntry = getFamilyEntry(); //save family rep
+                FamilyEntry familyEntry = family.getFamilyEntry(); //save family rep
                 if (familyEntry != null) {
                     if (familyEntry.saveReputation(con)) {
                         familyEntry.savedSuccessfully();
@@ -3359,45 +3188,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     // calcHpRatioUpdate / calcMpRatioUpdate / calcTransientRatio / calcHpRatioTransient / calcMpRatioTransient
     // 计算部分已迁移到 CharacterStats，以下是使用这些计算的编排方法
-
-    public void setMiniGamePoints(Character visitor, int winnerslot, boolean omok) {
-        if (omok) {
-            if (winnerslot == 1) {
-                this.omokwins++;
-                visitor.omoklosses++;
-            } else if (winnerslot == 2) {
-                visitor.omokwins++;
-                this.omoklosses++;
-            } else {
-                this.omokties++;
-                visitor.omokties++;
-            }
-        } else {
-            if (winnerslot == 1) {
-                this.matchcardwins++;
-                visitor.matchcardlosses++;
-            } else if (winnerslot == 2) {
-                visitor.matchcardwins++;
-                this.matchcardlosses++;
-            } else {
-                this.matchcardties++;
-                visitor.matchcardties++;
-            }
-        }
-    }
-
-    public void setRPS(RockPaperScissor rps) {
-        this.rps = rps;
-    }
-
-    public void closeRPS() {
-        RockPaperScissor rps = this.rps;
-        if (rps != null) {
-            rps.dispose(client);
-            setRPS(null);
-        }
-    }
-
 
     private long getDojoTimeLeft() {
         return client.getChannelServer().getDojoFinishTime(getMap().getId()) - Server.getInstance().getCurrentTime();
@@ -3748,10 +3538,10 @@ public class Character extends AbstractAnimatedMapObject {
             party.mpc = null;
             guild.setMGC(null);
             party.party = null;
-            FamilyEntry familyEntry = getFamilyEntry();
+            FamilyEntry familyEntry = family.getFamilyEntry();
             if (familyEntry != null) {
                 familyEntry.setCharacter(null);
-                setFamilyEntry(null);
+                family.setFamilyEntry(null);
             }
 
             getWorldServer().registerTimedMapObject(() -> {
@@ -3934,32 +3724,6 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     // MCPQ 相关字段与方法见 CharacterPartyQuest 组件
-
-    public void setFamilyBuff(boolean type, float exp, float drop) {
-        this.familyBuff = type;
-        this.familyExp = exp;
-        this.familyDrop = drop;
-    }
-
-    public void startFamilyBuffTimer(int delay) {
-        if (FamilyBuffTimer != null && !FamilyBuffTimer.isCancelled()) {
-            FamilyBuffTimer.cancel(false);
-        }
-        FamilyBuffTimer = TimerManager.getInstance().schedule(() -> {
-            try {
-                sendPacket(PacketCreator.cancelFamilyBuff());
-            } finally {
-                cancelFamilyBuffTimer();
-            }
-        }, delay);
-    }
-
-    public void cancelFamilyBuffTimer() {
-        if (FamilyBuffTimer != null && !FamilyBuffTimer.isCancelled()) {
-            FamilyBuffTimer.cancel(false);
-            setFamilyBuff(false, 1, 1);
-        }
-    }
 
     /////////////////////////////////////////////////////////////////////////////////
     //module: 角色在线时间
@@ -4431,4 +4195,59 @@ public class Character extends AbstractAnimatedMapObject {
     // ── door 补充门面 ──
 
     public void cancelMagicDoor() { door.cancelMagicDoor(); }
+
+    // ── family 门面 ──
+
+    public Family getFamily() { return family.getFamily(); }
+    public FamilyEntry getFamilyEntry() { return family.getFamilyEntry(); }
+    public void setFamilyEntry(FamilyEntry entry) { family.setFamilyEntry(entry); }
+    public int getFamilyId() { return family.getFamilyId(); }
+    public void setFamilyId(int familyId) { family.setFamilyId(familyId); }
+    public boolean isFamilyBuff() { return family.isFamilyBuff(); }
+    public void setFamilyBuff(boolean type, float exp, float drop) { family.setFamilyBuff(type, exp, drop); }
+    public float getFamilyExp() { return family.getFamilyExp(); }
+    public float getFamilyDrop() { return family.getFamilyDrop(); }
+    public void startFamilyBuffTimer(int delay) { family.startFamilyBuffTimer(delay); }
+    public void cancelFamilyBuffTimer() { family.cancelFamilyBuffTimer(); }
+
+    // ── marriage 门面 ──
+
+    public Ring getMarriageRing() { return marriage.getMarriageRing(); }
+    public void setMarriageRing(Ring marriageRing) { marriage.setMarriageRing(marriageRing); }
+    public Ring getRingById(int id) { return marriage.getRingById(id); }
+    public int getRelationshipId() { return marriage.getRelationshipId(); }
+    public boolean isMarried() { return marriage.isMarried(); }
+    public boolean hasJustMarried() { return marriage.hasJustMarried(); }
+    public List<Ring> getCrushRings() { return marriage.getCrushRings(); }
+    public List<Ring> getFriendshipRings() { return marriage.getFriendshipRings(); }
+    public Marriage getMarriageInstance() { return marriage.getMarriageInstance(); }
+    public void addPlayerRing(Ring ring) { marriage.addPlayerRing(ring); }
+    public int getMarriageItemId() { return marriage.getMarriageItemId(); }
+    public void setMarriageItemId(int marriageItemId) { marriage.setMarriageItemId(marriageItemId); }
+    public int getPartnerId() { return marriage.getPartnerId(); }
+    public void setPartnerId(int partnerId) { marriage.setPartnerId(partnerId); }
+    public void notifyMapTransferToPartner(int mapid) { marriage.notifyMapTransferToPartner(mapid); }
+
+    // ── miniGame 门面 ──
+
+    public MiniGame getMiniGame() { return miniGame.getMiniGame(); }
+    public void setMiniGame(MiniGame miniGame) { this.miniGame.setMiniGame(miniGame); }
+    public RockPaperScissor getRps() { return miniGame.getRPS(); }
+    public void setRPS(RockPaperScissor rps) { miniGame.setRPS(rps); }
+    public void closeMiniGame(boolean forceClose) { miniGame.closeMiniGame(forceClose); }
+    public void closeRPS() { miniGame.closeRPS(); }
+    public int getMiniGamePoints(MiniGameResult type, boolean omok) { return miniGame.getMiniGamePoints(type, omok); }
+    public void setMiniGamePoints(Character visitor, int winnerslot, boolean omok) { miniGame.setMiniGamePoints(visitor, winnerslot, omok); }
+    public int getOmokwins() { return miniGame.getOmokwins(); }
+    public void setOmokwins(int omokwins) { miniGame.setOmokwins(omokwins); }
+    public int getOmokties() { return miniGame.getOmokties(); }
+    public void setOmokties(int omokties) { miniGame.setOmokties(omokties); }
+    public int getOmoklosses() { return miniGame.getOmoklosses(); }
+    public void setOmoklosses(int omoklosses) { miniGame.setOmoklosses(omoklosses); }
+    public int getMatchcardwins() { return miniGame.getMatchcardwins(); }
+    public void setMatchcardwins(int matchcardwins) { miniGame.setMatchcardwins(matchcardwins); }
+    public int getMatchcardties() { return miniGame.getMatchcardties(); }
+    public void setMatchcardties(int matchcardties) { miniGame.setMatchcardties(matchcardties); }
+    public int getMatchcardlosses() { return miniGame.getMatchcardlosses(); }
+    public void setMatchcardlosses(int matchcardlosses) { miniGame.setMatchcardlosses(matchcardlosses); }
 }

@@ -346,7 +346,7 @@ class CharacterMap {
             return;
         }
 
-        owner.notifyMapTransferToPartner(map.getId());
+        owner.marriage.notifyMapTransferToPartner(map.getId());
 
         //alas, new map has been specified when a warping was being processed...
         if (newWarpMap != -1) {
