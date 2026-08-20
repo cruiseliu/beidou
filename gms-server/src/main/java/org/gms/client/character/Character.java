@@ -49,14 +49,12 @@ import org.gms.client.inventory.Equip.StatUpgrade;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.client.keybind.KeyBinding;
 import org.gms.client.keybind.QuickslotBinding;
-import org.gms.client.processor.npc.FredrickProcessor;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.DelayedQuestUpdate;
 import org.gms.constants.game.ExpTable;
 import org.gms.constants.game.GameConstants;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.id.MapId;
-import org.gms.constants.id.MobId;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.constants.net.ServerConstants;
 import org.gms.constants.skills.*;
@@ -76,7 +74,6 @@ import org.gms.net.server.coordinator.world.InviteCoordinator;
 import org.gms.net.server.guild.Alliance;
 import org.gms.net.server.guild.Guild;
 import org.gms.net.server.guild.GuildCharacter;
-import org.gms.net.server.guild.GuildPackets;
 import org.gms.net.server.services.task.world.CharacterSaveService;
 import org.gms.net.server.services.type.WorldServices;
 import org.gms.net.server.world.*;
@@ -144,6 +141,10 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterAntiCheat antiCheat = new CharacterAntiCheat(this);
     final CharacterMarket market = new CharacterMarket(this);
     final CharacterQuests quests = new CharacterQuests(this);
+    final CharacterParty party = new CharacterParty(this);
+    final CharacterMysticDoor door = new CharacterMysticDoor(this);
+    final CharacterPartyQuest pq = new CharacterPartyQuest(this);
+    final CharacterGuild guild = new CharacterGuild(this);
 
     @Getter
     @Setter
@@ -195,15 +196,6 @@ public class Character extends AbstractAnimatedMapObject {
     private int itemEffect;
     @Setter
     @Getter
-    private int guildId;
-    @Setter
-    @Getter
-    private int guildRank;
-    @Setter
-    @Getter
-    private int allianceRank;
-    @Setter
-    @Getter
     private int messengerPosition = 4;
     private int slots = 0;
     @Getter
@@ -226,9 +218,6 @@ public class Character extends AbstractAnimatedMapObject {
     private int mesosTraded = 0;
     @Getter
     private int possibleReports = 10;
-    @Getter
-    @Setter
-    private int ariantPoints;
     @Setter
     @Getter
     private int dojoPoints;
@@ -295,8 +284,6 @@ public class Character extends AbstractAnimatedMapObject {
     private String name;
     private String chalktext;
     private String commandtext;
-    @Setter
-    private String dataString;
     @Getter
     @Setter
     private String search = null;
@@ -312,8 +299,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     @Setter
     Client client;
-    private GuildCharacter mgc = null;
-    PartyCharacter mpc = null;    // 包内可见：CharacterMap.changeMapInternal 调用
     private Inventory[] inventory;
     @Getter
     @Setter
@@ -326,7 +311,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     @Setter
     private Mount mapleMount;
-    Party party;    // 包内可见：CharacterMap.changeMapInternal 调用
     @Getter
     @Setter
     private Shop shop = null;
@@ -368,7 +352,6 @@ public class Character extends AbstractAnimatedMapObject {
     private byte[] quickSlotLoaded;
     @Setter
     private QuickslotBinding quickSlotKeyMapped;
-    private Door pdoor = null;
     ScheduledFuture<?> dragonBloodSchedule;
     private ScheduledFuture<?> hpDecreaseTask;
     ScheduledFuture<?> beholderHealingSchedule, beholderBuffSchedule, berserkSchedule;
@@ -381,7 +364,6 @@ public class Character extends AbstractAnimatedMapObject {
     private ScheduledFuture<?> FamilyBuffTimer = null;
     final Lock chrLock = new ReentrantLock(true);
     private final Lock evtLock = new ReentrantLock(true);
-    final Lock prtLock = new ReentrantLock();
     private final Lock cpnLock = new ReentrantLock();
     @Getter
     private final Set<Integer> disabledPartySearchInvites = new LinkedHashSet<>();
@@ -395,14 +377,11 @@ public class Character extends AbstractAnimatedMapObject {
     private final Map<Short, String> area_info = new LinkedHashMap<>();
     private boolean blockCashShop = false;
     private boolean allowExpGain = true;
-    private byte pendantExp = 0, doorSlot = -1;
+    private byte pendantExp = 0;
     private final List<Integer> trockmaps = new ArrayList<>();
     private final List<Integer> viptrockmaps = new ArrayList<>();
     @Getter
     private Map<String, Events> events = new LinkedHashMap<>();
-    @Setter
-    @Getter
-    private PartyQuest partyQuest = null;
     @Setter
     @Getter
     private Dragon dragon = null;
@@ -987,11 +966,6 @@ public class Character extends AbstractAnimatedMapObject {
         return false;
     }
 
-    public boolean canDoor() {
-        Door door = getPlayerDoor();
-        return door == null || (door.isActive() && door.getElapsedDeployTime() > 5000);
-    }
-
     public void setHasSandboxItem() {
         hasSandboxItem = true;
     }
@@ -1072,133 +1046,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     private boolean buffMapProtection() {
         return map.buffMapProtection();
-    }
-
-    public void partyOperationUpdate(Party party, List<Character> exPartyMembers) {
-        List<WeakReference<MapleMap>> mapIds = map.getLastVisitedMaps();
-
-        List<Character> partyMembers = new LinkedList<>();
-        for (Character mc : (exPartyMembers != null) ? exPartyMembers : this.getPartyMembersOnline()) {
-            if (mc.isLoggedInWorld()) {
-                partyMembers.add(mc);
-            }
-        }
-
-        Character partyLeaver = null;
-        if (exPartyMembers != null) {
-            partyMembers.remove(this);
-            partyLeaver = this;
-        }
-
-        MapleMap map = this.getMap();
-        List<MapItem> partyItems = null;
-
-        int partyId = exPartyMembers != null ? -1 : this.getPartyId();
-        for (WeakReference<MapleMap> mapRef : mapIds) {
-            MapleMap mapObj = mapRef.get();
-
-            if (mapObj != null) {
-                List<MapItem> partyMapItems = mapObj.updatePlayerItemDropsToParty(partyId, id, partyMembers, partyLeaver);
-                if (map.hashCode() == mapObj.hashCode()) {
-                    partyItems = partyMapItems;
-                }
-            }
-        }
-
-        if (partyItems != null && exPartyMembers == null) {
-            map.updatePartyItemDropsToNewcomer(this, partyItems);
-        }
-
-        updatePartyTownDoors(party, this, partyLeaver, partyMembers);
-    }
-
-    private static void addPartyPlayerDoor(Character target) {
-        Door targetDoor = target.getPlayerDoor();
-        if (targetDoor != null) {
-            target.applyPartyDoor(targetDoor, true);
-        }
-    }
-
-    private static void removePartyPlayerDoor(Party party, Character target) {
-        target.removePartyDoor(party);
-    }
-
-    private static void updatePartyTownDoors(Party party, Character target, Character partyLeaver, List<Character> partyMembers) {
-        if (partyLeaver != null) {
-            removePartyPlayerDoor(party, target);
-        } else {
-            addPartyPlayerDoor(target);
-        }
-
-        Map<Integer, Door> partyDoors = null;
-        if (!partyMembers.isEmpty()) {
-            partyDoors = party.getDoors();
-
-            for (Character pchr : partyMembers) {
-                Door door = partyDoors.get(pchr.getId());
-                if (door != null) {
-                    door.updateDoorPortal(pchr);
-                }
-            }
-
-            for (Door door : partyDoors.values()) {
-                for (Character pchar : partyMembers) {
-                    DoorObject mdo = door.getTownDoor();
-                    mdo.sendDestroyData(pchar.getClient(), true);
-                    pchar.removeVisibleMapObject(mdo);
-                }
-            }
-
-            if (partyLeaver != null) {
-                Collection<Door> leaverDoors = partyLeaver.getDoors();
-                for (Door door : leaverDoors) {
-                    for (Character pchar : partyMembers) {
-                        DoorObject mdo = door.getTownDoor();
-                        mdo.sendDestroyData(pchar.getClient(), true);
-                        pchar.removeVisibleMapObject(mdo);
-                    }
-                }
-            }
-
-            List<Integer> histMembers = party.getMembersSortedByHistory();
-            for (Integer chrid : histMembers) {
-                Door door = partyDoors.get(chrid);
-
-                if (door != null) {
-                    for (Character pchar : partyMembers) {
-                        DoorObject mdo = door.getTownDoor();
-                        mdo.sendSpawnData(pchar.getClient());
-                        pchar.addVisibleMapObject(mdo);
-                    }
-                }
-            }
-        }
-
-        if (partyLeaver != null) {
-            Collection<Door> leaverDoors = partyLeaver.getDoors();
-
-            if (partyDoors != null) {
-                for (Door door : partyDoors.values()) {
-                    DoorObject mdo = door.getTownDoor();
-                    mdo.sendDestroyData(partyLeaver.getClient(), true);
-                    partyLeaver.removeVisibleMapObject(mdo);
-                }
-            }
-
-            for (Door door : leaverDoors) {
-                DoorObject mdo = door.getTownDoor();
-                mdo.sendDestroyData(partyLeaver.getClient(), true);
-                partyLeaver.removeVisibleMapObject(mdo);
-            }
-
-            for (Door door : leaverDoors) {
-                door.updateDoorPortal(partyLeaver);
-
-                DoorObject mdo = door.getTownDoor();
-                mdo.sendSpawnData(partyLeaver.getClient());
-                partyLeaver.addVisibleMapObject(mdo);
-            }
-        }
     }
 
     public void setOwnedMap(MapleMap map) {
@@ -1596,10 +1443,6 @@ public class Character extends AbstractAnimatedMapObject {
         this.possibleReports--;
     }
 
-    public void deleteGuild(int guildId) {
-        characterService.deleteGuild(GuildsDO.builder().guildid((long) guildId).build());
-    }
-
     private void nextPendingRequest(Client c) {
         CharacterNameAndId pendingBuddyRequest = c.getPlayer().getBuddylist().pollPendingRequest();
         if (pendingBuddyRequest != null) {
@@ -1691,17 +1534,6 @@ public class Character extends AbstractAnimatedMapObject {
 
             addMPHP(healHP, healMP);
         }, healInterval, healInterval);
-    }
-
-    public void disbandGuild() {
-        if (guildId < 1 || guildRank != 1) {
-            return;
-        }
-        try {
-            Server.getInstance().disbandGuild(guildId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public void dispel() {
@@ -2091,25 +1923,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public void genericGuildMessage(int code) {
-        this.sendPacket(GuildPackets.genericGuildMessage((byte) code));
-    }
-
-    public void updateAriantScore() {
-        updateAriantScore(0);
-    }
-
-    public void updateAriantScore(int dropQty) {
-        AriantColiseum arena = this.getAriantColiseum();
-        if (arena != null) {
-            arena.updateAriantScore(this, countItem(ItemId.ARPQ_SPIRIT_JEWEL));
-
-            if (dropQty > 0) {
-                arena.addLostShards(dropQty);
-            }
-        }
-    }
-
     List<EffectStatus> getAllStatups() {
         return buffs.getAllEffects();
     }
@@ -2157,80 +1970,6 @@ public class Character extends AbstractAnimatedMapObject {
             Collections.sort(crushRings);
             return new ArrayList<>(crushRings);
         }
-    }
-
-    public Collection<Door> getDoors() {
-        prtLock.lock();
-        try {
-            return (party != null ? Collections.unmodifiableCollection(party.getDoors().values()) : (pdoor != null ? Collections.singleton(pdoor) : new LinkedHashSet<>()));
-        } finally {
-            prtLock.unlock();
-        }
-    }
-
-    public Door getPlayerDoor() {
-        prtLock.lock();
-        try {
-            return pdoor;
-        } finally {
-            prtLock.unlock();
-        }
-    }
-
-    public Door getMainTownDoor() {
-        for (Door door : getDoors()) {
-            if (door.getTownPortal().getId() == 0x80) {
-                return door;
-            }
-        }
-
-        return null;
-    }
-
-    public void applyPartyDoor(Door door, boolean partyUpdate) {
-        Party chrParty;
-        prtLock.lock();
-        try {
-            if (!partyUpdate) {
-                pdoor = door;
-            }
-
-            chrParty = getParty();
-            if (chrParty != null) {
-                chrParty.addDoor(id, door);
-            }
-        } finally {
-            prtLock.unlock();
-        }
-
-        silentPartyUpdateInternal(chrParty);
-    }
-
-    public Door removePartyDoor(boolean partyUpdate) {
-        Door ret = null;
-        Party chrParty;
-
-        prtLock.lock();
-        try {
-            chrParty = getParty();
-            if (chrParty != null) {
-                chrParty.removeDoor(id);
-            }
-
-            if (!partyUpdate) {
-                ret = pdoor;
-                pdoor = null;
-            }
-        } finally {
-            prtLock.unlock();
-        }
-
-        silentPartyUpdateInternal(chrParty);
-        return ret;
-    }
-
-    private void removePartyDoor(Party formerParty) {    // player is no longer registered at this party
-        formerParty.removeDoor(id);
     }
 
     public EventInstanceManager getEventInstance() {
@@ -2282,27 +2021,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     public boolean isMale() {
         return getGender() == 0;
-    }
-
-    public Guild getGuild() {
-        try {
-            return Server.getInstance().getGuild(getGuildId(), getWorld(), this);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return null;
-        }
-    }
-
-    public Alliance getAlliance() {
-        if (mgc != null) {
-            try {
-                return Server.getInstance().getAlliance(getGuild().getAllianceId());
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-
-        return null;
     }
 
     public static int getAccountIdByName(String name) {
@@ -2459,25 +2177,6 @@ public class Character extends AbstractAnimatedMapObject {
         this.meso.set(meso);
     }
 
-    public GuildCharacter getMGC() {
-        return mgc;
-    }
-
-    public void setMGC(GuildCharacter mgc) {
-        this.mgc = mgc;
-    }
-
-    public PartyCharacter getMPC() {
-        if (mpc == null) {
-            mpc = new PartyCharacter(this);
-        }
-        return mpc;
-    }
-
-    public void setMPC(PartyCharacter mpc) {
-        this.mpc = mpc;
-    }
-
     public void setPlayerAggro(int mobHash) {
         setTargetHpBarHash(mobHash);
         setTargetHpBarTime(System.currentTimeMillis());
@@ -2510,85 +2209,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     public int getMonsterBookCover() {
         return bookCover;
-    }
-
-    public Party getParty() {
-        prtLock.lock();
-        try {
-            return party;
-        } finally {
-            prtLock.unlock();
-        }
-    }
-
-    public int getPartyId() {
-        prtLock.lock();
-        try {
-            return (party != null ? party.getId() : -1);
-        } finally {
-            prtLock.unlock();
-        }
-    }
-
-    public List<Character> getPartyMembersOnline() {
-        List<Character> list = new LinkedList<>();
-
-        prtLock.lock();
-        try {
-            if (party != null) {
-                for (PartyCharacter mpc : party.getMembers()) {
-                    Character mc = mpc.getPlayer();
-                    if (mc != null) {
-                        list.add(mc);
-                    }
-                }
-            }
-        } finally {
-            prtLock.unlock();
-        }
-
-        return list;
-    }
-
-    public List<Character> getPartyMembersOnSameMap() {
-        List<Character> list = new LinkedList<>();
-        int thisMapHash = this.getMap().hashCode();
-
-        prtLock.lock();
-        try {
-            if (party != null) {
-                for (PartyCharacter mpc : party.getMembers()) {
-                    Character chr = mpc.getPlayer();
-                    if (chr != null) {
-                        MapleMap chrMap = chr.getMap();
-                        if (chrMap != null && chrMap.hashCode() == thisMapHash && chr.isLoggedInWorld()) {
-                            list.add(chr);
-                        }
-                    }
-                }
-            }
-        } finally {
-            prtLock.unlock();
-        }
-
-        return list;
-    }
-
-    public boolean isPartyMember(Character chr) {
-        return isPartyMember(chr.getId());
-    }
-
-    public boolean isPartyMember(int cid) {
-        prtLock.lock();
-        try {
-            if (party != null) {
-                return party.getMemberById(cid) != null;
-            }
-        } finally {
-            prtLock.unlock();
-        }
-
-        return false;
     }
 
     public void setGMLevel(int level) {
@@ -2722,26 +2342,6 @@ public class Character extends AbstractAnimatedMapObject {
         return gmLevel;
     }
 
-    void guildUpdate() {
-        mgc.setLevel(level);
-        mgc.setJobId(job.getId());
-
-        if (this.guildId < 1) {
-            return;
-        }
-
-        try {
-            Server.getInstance().memberLevelJobUpdate(this.mgc);
-            //Server.getInstance().getGuild(guildid, world, mgc).gainGP(40);
-            int allianceId = getGuild().getAllianceId();
-            if (allianceId > 0) {
-                Server.getInstance().allianceMessage(allianceId, GuildPackets.updateAllianceJobLevel(this), getId(), -1);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     public void handleEnergyChargeGain() { // to get here energychargelevel has to be > 0
         Skill energycharge = isCygnus() ? SkillFactory.getSkill(ThunderBreaker.ENERGY_CHARGE) : SkillFactory.getSkill(Marauder.ENERGY_CHARGE);
         BuffEffectData ceffect;
@@ -2825,41 +2425,12 @@ public class Character extends AbstractAnimatedMapObject {
         return getInventory(InventoryType.getByType(invType)).getNextFreeSlot() > -1;
     }
 
-    public void increaseGuildCapacity() {
-        int cost = Guild.getIncreaseGuildCost(getGuild().getCapacity());
-
-        if (getMeso() < cost) {
-            dropMessage(1, I18nUtil.getMessage("Character.increaseGuildCapacity.message1"));
-            return;
-        }
-
-        if (Server.getInstance().increaseGuildCapacity(guildId)) {
-            gainMeso(-cost, true, false, true);
-        } else {
-            dropMessage(1, I18nUtil.getMessage("Character.increaseGuildCapacity.message2"));
-        }
-    }
-
     public boolean isGM() {
         return gmLevel > 1;
     }
 
     public boolean isMapObjectVisible(MapObject mo) {
         return visibleMapObjects.contains(mo);
-    }
-
-    public boolean isPartyLeader() {
-        prtLock.lock();
-        try {
-            Party party = getParty();
-            return party != null && party.getLeaderId() == getId();
-        } finally {
-            prtLock.unlock();
-        }
-    }
-
-    public boolean isGuildLeader() {    // true on guild master or jr. master
-        return guildId > 0 && guildRank < 3;
     }
 
     public boolean attemptCatchFish(int baitLevel) {
@@ -2877,10 +2448,7 @@ public class Character extends AbstractAnimatedMapObject {
             hpDecreaseTask.cancel(false);
         }
 
-        AriantColiseum arena = this.getAriantColiseum();
-        if (arena != null) {
-            arena.leaveArena(this);
-        }
+        pq.leaveArenaIfPresent();
     }
 
     int getChangedJobSp(Job newJob) {    // 包内可见：CharacterJob.changeJob 调用
@@ -3089,7 +2657,7 @@ public class Character extends AbstractAnimatedMapObject {
         setMPC(new PartyCharacter(this));
         silentPartyUpdate();
 
-        if (this.guildId > 0) {
+        if (guild.getGuildId() > 0) {
             getGuild().broadcast(PacketCreator.levelUpMessage(2, level, name), this.getId());
         }
 
@@ -3123,7 +2691,7 @@ public class Character extends AbstractAnimatedMapObject {
             });
         }
 
-        guildUpdate();
+        guild.guildUpdate();
 
         FamilyEntry familyEntry = getFamilyEntry();
         if (familyEntry != null) {
@@ -3139,40 +2707,6 @@ public class Character extends AbstractAnimatedMapObject {
 
         updateMobExpRate();
     }
-
-    public boolean leaveParty() {
-        Party party;
-        boolean partyLeader;
-
-        prtLock.lock();
-        try {
-            party = getParty();
-            partyLeader = isPartyLeader();
-        } finally {
-            prtLock.unlock();
-        }
-
-        if (party != null) {
-            if (partyLeader) {
-                party.assignNewLeader(client);
-            }
-            Party.leaveParty(party, client);
-
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-
-
-
-
-
-
-
-
-
 
     public void addPlayerRing(Ring ring) {
         int ringItemId = ring.getItemId();
@@ -3318,18 +2852,18 @@ public class Character extends AbstractAnimatedMapObject {
         chr.setRankMove(charactersDO.getRankMove());
         chr.setJobRank(charactersDO.getJobRank());
         chr.setJobRankMove(charactersDO.getJobRankMove());
-        chr.setGuildId(charactersDO.getGuildid());
-        chr.setGuildRank(charactersDO.getGuildrank());
-        chr.setAllianceRank(charactersDO.getAllianceRank());
+        chr.guild.setGuildId(charactersDO.getGuildid());
+        chr.guild.setGuildRank(charactersDO.getGuildrank());
+        chr.guild.setAllianceRank(charactersDO.getAllianceRank());
         chr.setFamilyId(charactersDO.getFamilyId());
         chr.setBookCover(charactersDO.getMonsterbookcover());
         chr.setMonsterBook(new MonsterBook(charactersDO.getId()));
         chr.setVanquisherStage(charactersDO.getVanquisherStage());
-        chr.setAriantPoints(charactersDO.getAriantPoints());
+        chr.pq.setAriantPoints(charactersDO.getAriantPoints());
         chr.setDojoPoints(charactersDO.getDojoPoints());
         chr.setDojoStage(charactersDO.getLastDojoStage());
-        chr.setDataString(charactersDO.getDataString());
-        chr.setMGC(new GuildCharacter(chr));
+        chr.pq.setDataString(charactersDO.getDataString());
+        chr.guild.setMGC(new GuildCharacter(chr));
         chr.setBuddylist(new BuddyList(charactersDO.getBuddyCapacity()));
         chr.setLastExpGainTime(charactersDO.getLastExpGainTime().getTime());
         chr.setCanRecvPartySearchInvite(charactersDO.getPartySearch());
@@ -3527,11 +3061,11 @@ public class Character extends AbstractAnimatedMapObject {
     void playerDead() {    // 包内可见：CharacterStats.hpChangeAction 调用
         if (this.getMap().isCPQMap()) {
             int losing = getMap().getDeathCP();
-            if (getCP() < losing) {
-                losing = getCP();
+            if (pq.getCP() < losing) {
+                losing = pq.getCP();
             }
-            getMap().broadcastMessage(PacketCreator.playerDiedMessage(getName(), losing, getTeam()));
-            gainCP(-losing);
+            getMap().broadcastMessage(PacketCreator.playerDiedMessage(getName(), losing, pq.getTeam()));
+            pq.gainCP(-losing);
             return;
         }
 
@@ -3628,14 +3162,10 @@ public class Character extends AbstractAnimatedMapObject {
         }, 4000, 4000);
     }
 
-
-
-
-
     public void receivePartyMemberHP() {
-        // 不在此处包一层 prtLock:getPartyMembersOnSameMap 内部已持 prtLock 保护 party 引用。
-        // 若再包一层,会在持 prtLock 的同时对同图队友逐个取 getHp()(对方 stats.rLock),
-        // 与 updateLocalStats(本角色 stats.wLock 后再 updatePartyMemberHP 取 prtLock)形成
+        // 不在此处包一层 party.prtLock:getPartyMembersOnSameMap 内部已持 party.prtLock 保护 party 引用。
+        // 若再包一层,会在持 party.prtLock 的同时对同图队友逐个取 getHp()(对方 stats.rLock),
+        // 与 updateLocalStats(本角色 stats.wLock 后再 updatePartyMemberHP 取 party.prtLock)形成
         // 跨角色反向锁顺序,存在死锁窗口。
         for (Character partychar : this.getPartyMembersOnSameMap()) {
             sendPacket(PacketCreator.updatePartyMemberHP(partychar.getId(), partychar.getHp(), partychar.getCurrentMaxHp()));
@@ -3721,19 +3251,6 @@ public class Character extends AbstractAnimatedMapObject {
             if (entered.get(mapId).equals(script)) {
                 entered.remove(mapId);
             }
-        }
-    }
-
-    public void saveGuildStatus() {
-        try (Connection con = DatabaseConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement("UPDATE characters SET guildid = ?, guildrank = ?, allianceRank = ? WHERE id = ?")) {
-            ps.setInt(1, guildId);
-            ps.setInt(2, guildRank);
-            ps.setInt(3, allianceRank);
-            ps.setInt(4, id);
-            ps.executeUpdate();
-        } catch (SQLException se) {
-            se.printStackTrace();
         }
     }
 
@@ -3956,15 +3473,15 @@ public class Character extends AbstractAnimatedMapObject {
                         }
                     }
 
-                    prtLock.lock();
+                    party.lock.lock();
                     try {
-                        if (party != null) {
-                            ps.setInt(13, party.getId());
+                        if (party.party != null) {
+                            ps.setInt(13, party.party.getId());
                         } else {
                             ps.setInt(13, -1);
                         }
                     } finally {
-                        prtLock.unlock();
+                        party.lock.unlock();
                     }
 
                     ps.setInt(14, buddylist.getCapacity());
@@ -4002,12 +3519,12 @@ public class Character extends AbstractAnimatedMapObject {
                     ps.setInt(33, omokwins);
                     ps.setInt(34, omoklosses);
                     ps.setInt(35, omokties);
-                    ps.setString(36, dataString);
+                    ps.setString(36, pq.getDataString());
                     ps.setInt(37, quests.getQuestFame());
                     ps.setInt(38, partnerId);
                     ps.setInt(39, marriageItemId);
                     ps.setTimestamp(40, new Timestamp(lastExpGainTime));
-                    ps.setInt(41, ariantPoints);
+                    ps.setInt(41, pq.getAriantPoints());
                     ps.setBoolean(42, canRecvPartySearchInvite);
                     ps.setInt(43, id);
 
@@ -4309,15 +3826,8 @@ public class Character extends AbstractAnimatedMapObject {
 
     /** HP/MP 池更新后的重算与钳制，返回需并入本次公告的属性修正 */
 
-
-
     // calcHpRatioUpdate / calcMpRatioUpdate / calcTransientRatio / calcHpRatioTransient / calcMpRatioTransient
     // 计算部分已迁移到 CharacterStats，以下是使用这些计算的编排方法
-
-
-
-
-
 
     public void setMiniGamePoints(Character visitor, int winnerslot, boolean omok) {
         if (omok) {
@@ -4354,39 +3864,6 @@ public class Character extends AbstractAnimatedMapObject {
         if (rps != null) {
             rps.dispose(client);
             setRPS(null);
-        }
-    }
-
-    public int getDoorSlot() {
-        if (doorSlot != -1) {
-            return doorSlot;
-        }
-        return fetchDoorSlot();
-    }
-
-    public int fetchDoorSlot() {
-        prtLock.lock();
-        try {
-            doorSlot = (party == null) ? 0 : party.getPartyDoor(this.getId());
-            return doorSlot;
-        } finally {
-            prtLock.unlock();
-        }
-    }
-
-    public void setParty(Party p) {
-        prtLock.lock();
-        try {
-            if (p == null) {
-                this.mpc = null;
-                doorSlot = -1;
-
-                party = null;
-            } else {
-                party = p;
-            }
-        } finally {
-            prtLock.unlock();
         }
     }
 
@@ -4715,16 +4192,6 @@ public class Character extends AbstractAnimatedMapObject {
         client.announceHint(msg, length);
     }
 
-    public void silentPartyUpdate() {
-        silentPartyUpdateInternal(getParty());
-    }
-
-    void silentPartyUpdateInternal(Party chrParty) {    // 包内可见：CharacterMap.changeMapInternal 调用
-        if (chrParty != null) {
-            getWorldServer().updateParty(chrParty.getId(), PartyOperation.SILENT_UPDATE, getMPC());
-        }
-    }
-
     public boolean runTirednessSchedule() {
         if (mapleMount != null) {
             int tiredness = mapleMount.incrementAndGetTiredness();
@@ -4753,25 +4220,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void updateMacros(int position, SkillMacro updateMacro) {
         skillMacros[position] = updateMacro;
-    }
-
-    public void updatePartyMemberHP() {
-        prtLock.lock();
-        try {
-            updatePartyMemberHPInternal();
-        } finally {
-            prtLock.unlock();
-        }
-    }
-
-    void updatePartyMemberHPInternal() {    // 包内可见：CharacterMap.changeMapInternal 调用
-        if (party != null) {
-            int curmaxhp = getCurrentMaxHp();
-            int curhp = getHp();
-            for (Character partychar : this.getPartyMembersOnSameMap()) {
-                partychar.sendPacket(PacketCreator.updatePartyMemberHP(getId(), curhp, curmaxhp));
-            }
-        }
     }
 
     public void updateSingleStat(Stat stat, int newval) {
@@ -5136,11 +4584,11 @@ public class Character extends AbstractAnimatedMapObject {
             mapleMount = null;
         }
         if (remove) {
-            partyQuest = null;
+            pq.setPartyQuest(null);
             events = null;
-            mpc = null;
-            mgc = null;
-            party = null;
+            party.mpc = null;
+            guild.setMGC(null);
+            party.party = null;
             FamilyEntry familyEntry = getFamilyEntry();
             if (familyEntry != null) {
                 familyEntry.setCharacter(null);
@@ -5178,22 +4626,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void toggleWhiteChat() {
         whiteChat = !whiteChat;
-    }
-
-    public boolean gotPartyQuestItem(String partyquestchar) {
-        return dataString.contains(partyquestchar);
-    }
-
-    public void removePartyQuestItem(String letter) {
-        if (gotPartyQuestItem(letter)) {
-            dataString = dataString.substring(0, dataString.indexOf(letter)) + dataString.substring(dataString.indexOf(letter) + letter.length());
-        }
-    }
-
-    public void setPartyQuestItemObtained(String partyquestchar) {
-        if (!dataString.contains(partyquestchar)) {
-            this.dataString += partyquestchar;
-        }
     }
 
     public void createDragon() {
@@ -5329,8 +4761,6 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     //EVENTS
-    @Getter
-    private byte team = 0;
     @Setter
     @Getter
     private Fitness fitness;
@@ -5338,10 +4768,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     private Ola ola;
     private long snowballattack;
-
-    public void setTeam(int team) {
-        this.team = (byte) team;
-    }
 
     public long getLastSnowballAttack() {
         return snowballattack;
@@ -5351,78 +4777,7 @@ public class Character extends AbstractAnimatedMapObject {
         this.snowballattack = time;
     }
 
-    // MCPQ
-
-    @Setter
-    @Getter
-    public AriantColiseum ariantColiseum;
-    @Setter
-    @Getter
-    private MonsterCarnival monsterCarnival;
-    @Setter
-    @Getter
-    private MonsterCarnivalParty monsterCarnivalParty = null;
-
-    private int cp = 0;
-    private int totCP = 0;
-    @Setter
-    @Getter
-    private int FestivalPoints;
-    @Setter
-    @Getter
-    private boolean challenged = false;
-
-    public void gainFestivalPoints(int gain) {
-        this.FestivalPoints += gain;
-    }
-
-    public int getCP() {
-        return cp;
-    }
-
-    public void gainCP(int gain) {
-        if (this.getMonsterCarnival() != null) {
-            if (gain > 0) {
-                this.setTotalCP(this.getTotalCP() + gain);
-            }
-            this.setCP(this.getCP() + gain);
-            if (this.getParty() != null) {
-                this.getMonsterCarnival().setCP(this.getMonsterCarnival().getCP(team) + gain, team);
-                if (gain > 0) {
-                    this.getMonsterCarnival().setTotalCP(this.getMonsterCarnival().getTotalCP(team) + gain, team);
-                }
-            }
-            if (this.getCP() > this.getTotalCP()) {
-                this.setTotalCP(this.getCP());
-            }
-            sendPacket(PacketCreator.CPUpdate(false, this.getCP(), this.getTotalCP(), getTeam()));
-            if (this.getParty() != null && getTeam() != -1) {
-                this.getMap().broadcastMessage(PacketCreator.CPUpdate(true, this.getMonsterCarnival().getCP(team), this.getMonsterCarnival().getTotalCP(team), getTeam()));
-            }
-        }
-    }
-
-    public void setTotalCP(int a) {
-        this.totCP = a;
-    }
-
-    public void setCP(int a) {
-        this.cp = a;
-    }
-
-    public int getTotalCP() {
-        return totCP;
-    }
-
-    public void resetCP() {
-        this.cp = 0;
-        this.totCP = 0;
-        this.monsterCarnival = null;
-    }
-
-    public void gainAriantPoints(int points) {
-        this.ariantPoints += points;
-    }
+    // MCPQ 相关字段与方法见 CharacterPartyQuest 组件
 
     /**
      * 发装备，除id外都可以传null，传null取装备默认属性
@@ -5513,7 +4868,6 @@ public class Character extends AbstractAnimatedMapObject {
     /////////////////////////////////////////////////////////////////////////////////
     //module: 角色在线时间
     private int m_iCurrentOnlineTime = -1;//-1用于服务器重启时角色初始变量时间
-    private AtomicBoolean timeUpdating = new AtomicBoolean(false);
 
     public int getCurrentOnlineTime() {
         return this.m_iCurrentOnlineTime;
@@ -5915,4 +5269,85 @@ public class Character extends AbstractAnimatedMapObject {
     public void cancelQuestExpirationTask() { quests.cancelQuestExpirationTask(); }
     public void reloadQuestExpirations() { quests.reloadQuestExpirations(); }
     public void awardQuestPoint(int awardedPoints) { quests.awardQuestPoint(awardedPoints); }
+
+    // ── party 门面 ──
+
+    public Party getParty() { return party.getParty(); }
+    public int getPartyId() { return party.getPartyId(); }
+    public List<Character> getPartyMembersOnline() { return party.getPartyMembersOnline(); }
+    public List<Character> getPartyMembersOnSameMap() { return party.getPartyMembersOnSameMap(); }
+    public boolean isPartyMember(Character chr) { return party.isPartyMember(chr); }
+    public boolean isPartyMember(int cid) { return party.isPartyMember(cid); }
+    public boolean isPartyLeader() { return party.isPartyLeader(); }
+    public PartyCharacter getMPC() { return party.getMPC(); }
+    public void setMPC(PartyCharacter mpc) { party.setMPC(mpc); }
+    public void setParty(Party p) { party.setParty(p); }
+    public boolean leaveParty() { return party.leaveParty(); }
+    public void silentPartyUpdate() { party.silentPartyUpdate(); }
+    public void updatePartyMemberHP() { party.updatePartyMemberHP(); }
+    public void partyOperationUpdate(Party party, List<Character> exPartyMembers) { this.party.partyOperationUpdate(party, exPartyMembers); }
+
+    // ── door 门面 ──
+
+    public boolean canDoor() { return door.canDoor(); }
+    public Collection<Door> getDoors() { return door.getDoors(); }
+    public Door getPlayerDoor() { return door.getPlayerDoor(); }
+    public Door getMainTownDoor() { return door.getMainTownDoor(); }
+    public void applyPartyDoor(Door door, boolean partyUpdate) { this.door.applyPartyDoor(door, partyUpdate); }
+    public Door removePartyDoor(boolean partyUpdate) { return door.removePartyDoor(partyUpdate); }
+    public int getDoorSlot() { return door.getDoorSlot(); }
+    public int fetchDoorSlot() { return door.fetchDoorSlot(); }
+
+    // ── pq 门面 ──
+
+    public PartyQuest getPartyQuest() { return pq.getPartyQuest(); }
+    public void setPartyQuest(PartyQuest partyQuest) { pq.setPartyQuest(partyQuest); }
+    public AriantColiseum getAriantColiseum() { return pq.getAriantColiseum(); }
+    public void setAriantColiseum(AriantColiseum ariantColiseum) { pq.setAriantColiseum(ariantColiseum); }
+    public MonsterCarnival getMonsterCarnival() { return pq.getMonsterCarnival(); }
+    public void setMonsterCarnival(MonsterCarnival monsterCarnival) { pq.setMonsterCarnival(monsterCarnival); }
+    public MonsterCarnivalParty getMonsterCarnivalParty() { return pq.getMonsterCarnivalParty(); }
+    public void setMonsterCarnivalParty(MonsterCarnivalParty monsterCarnivalParty) { pq.setMonsterCarnivalParty(monsterCarnivalParty); }
+    public byte getTeam() { return pq.getTeam(); }
+    public void setTeam(int team) { pq.setTeam(team); }
+    public int getCP() { return pq.getCP(); }
+    public void setCP(int a) { pq.setCP(a); }
+    public int getTotalCP() { return pq.getTotalCP(); }
+    public void setTotalCP(int a) { pq.setTotalCP(a); }
+    public void gainCP(int gain) { pq.gainCP(gain); }
+    public void resetCP() { pq.resetCP(); }
+    public void gainAriantPoints(int points) { pq.gainAriantPoints(points); }
+    public void gainFestivalPoints(int gain) { pq.gainFestivalPoints(gain); }
+    public int getFestivalPoints() { return pq.getFestivalPoints(); }
+    public void setFestivalPoints(int FestivalPoints) { pq.setFestivalPoints(FestivalPoints); }
+    public boolean isChallenged() { return pq.isChallenged(); }
+    public void setChallenged(boolean challenged) { pq.setChallenged(challenged); }
+    public void updateAriantScore() { pq.updateAriantScore(); }
+    public void updateAriantScore(int dropQty) { pq.updateAriantScore(dropQty); }
+    public boolean gotPartyQuestItem(String partyquestchar) { return pq.gotPartyQuestItem(partyquestchar); }
+    public void removePartyQuestItem(String letter) { pq.removePartyQuestItem(letter); }
+    public void setPartyQuestItemObtained(String partyquestchar) { pq.setPartyQuestItemObtained(partyquestchar); }
+    public int getAriantPoints() { return pq.getAriantPoints(); }
+    public void setAriantPoints(int ariantPoints) { pq.setAriantPoints(ariantPoints); }
+    public String getDataString() { return pq.getDataString(); }
+    public void setDataString(String dataString) { pq.setDataString(dataString); }
+
+    // ── guild 门面 ──
+
+    public int getGuildId() { return guild.getGuildId(); }
+    public void setGuildId(int guildId) { guild.setGuildId(guildId); }
+    public int getGuildRank() { return guild.getGuildRank(); }
+    public void setGuildRank(int guildRank) { guild.setGuildRank(guildRank); }
+    public int getAllianceRank() { return guild.getAllianceRank(); }
+    public void setAllianceRank(int allianceRank) { guild.setAllianceRank(allianceRank); }
+    public GuildCharacter getMGC() { return guild.getMGC(); }
+    public void setMGC(GuildCharacter mgc) { guild.setMGC(mgc); }
+    public Guild getGuild() { return guild.getGuild(); }
+    public Alliance getAlliance() { return guild.getAlliance(); }
+    public boolean isGuildLeader() { return guild.isGuildLeader(); }
+    public void deleteGuild(int guildId) { guild.deleteGuild(guildId); }
+    public void disbandGuild() { guild.disbandGuild(); }
+    public void genericGuildMessage(int code) { guild.genericGuildMessage(code); }
+    public void increaseGuildCapacity() { guild.increaseGuildCapacity(); }
+    public void saveGuildStatus() { guild.saveGuildStatus(); }
 }

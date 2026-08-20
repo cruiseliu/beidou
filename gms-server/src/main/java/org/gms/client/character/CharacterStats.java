@@ -586,7 +586,7 @@ public class CharacterStats {
     }
 
     void updateLocalStats() {
-        owner.prtLock.lock();
+        owner.party.lock.lock();
         try (var ignored = Locks.acquire(wLock)) {
             int oldmaxhp = localMaxHp;
             List<Pair<Stat, Integer>> hpmpupdate = recalcLocalStats();
@@ -600,7 +600,7 @@ public class CharacterStats {
                 owner.updatePartyMemberHP();
             }
         } finally {
-            owner.prtLock.unlock();
+            owner.party.lock.unlock();
         }
     }
 

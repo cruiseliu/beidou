@@ -326,20 +326,20 @@ class CharacterMap {
             map.addPlayer(owner);
             visitMap(map);
 
-            owner.prtLock.lock();
+            owner.party.lock.lock();
             try {
-                if (owner.party != null) {
-                    owner.mpc.setMapId(to.getId());
-                    owner.sendPacket(PacketCreator.updateParty(owner.getClient().getChannel(), owner.party, PartyOperation.SILENT_UPDATE, null));
-                    owner.updatePartyMemberHPInternal();
+                if (owner.party.party != null) {
+                    owner.party.mpc.setMapId(to.getId());
+                    owner.sendPacket(PacketCreator.updateParty(owner.getClient().getChannel(), owner.party.party, PartyOperation.SILENT_UPDATE, null));
+                    owner.party.updatePartyMemberHPInternal();
                 }
             } finally {
-                owner.prtLock.unlock();
+                owner.party.lock.unlock();
             }
             if (owner.getParty() != null) {
                 owner.getParty().setEnemy(k);
             }
-            owner.silentPartyUpdateInternal(owner.getParty());  // EIM script calls inside
+            owner.party.silentPartyUpdateInternal(owner.getParty());  // EIM script calls inside
         } else {    //切换地图时卡住了
             log.warn(I18nUtil.getLogMessage("Character.Map.Change.warn2"), owner.getName(), map.getMapName(), map.getId());
             owner.getClient().disconnect(true, false);     // thanks BHB for noticing a player storage stuck case here

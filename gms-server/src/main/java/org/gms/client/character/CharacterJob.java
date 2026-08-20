@@ -216,7 +216,7 @@ class CharacterJob {
             family.broadcast(PacketCreator.jobMessage(1, getId(), owner.getName()), owner.getId());
         }
         setMasteries(this.getId());
-        owner.guildUpdate();
+        owner.guild.guildUpdate();
 
         broadcastChangeJob();
 

@@ -251,7 +251,7 @@ class CharacterBuffs {
         boolean isMagicDoor = false;
         boolean ret = false;
 
-        try (var ignored = Locks.acquire(owner.prtLock, lock)) {
+        try (var ignored = Locks.acquire(owner.party.lock, lock)) {
             BuffStatus buff = entries.get(sourceId);
             if (buff == null) {
                 return false;
@@ -270,7 +270,7 @@ class CharacterBuffs {
         active.refreshLocalStats();   // 锁外刷新派生属性（updateLocalStats 锁序约束，见 ActiveBuffs.refreshLocalStats）
 
         if (isMagicDoor && ret) {
-            try (var ignored = Locks.acquire(owner.prtLock, lock)) {
+            try (var ignored = Locks.acquire(owner.party.lock, lock)) {
                 if (!containsSourceId(Priest.MYSTIC_DOOR)) {
                     Door.attemptRemoveDoor(owner);
                 }
@@ -310,7 +310,7 @@ class CharacterBuffs {
 
     void registerEffect(BuffEffectData effect, long starttime, long expirationtime) {
         EffectChangeReport report;
-        try (var ignored = Locks.acquire(owner.prtLock, lock, owner.chrLock)) {
+        try (var ignored = Locks.acquire(owner.party.lock, lock, owner.chrLock)) {
             report = BuffSelector.selectRegistration(entries, active.effects, effect, starttime, expirationtime, owner);
             addBuff(report.candidate);
             active.applyReport(report);   // 应用+发布+伴随任务启动（仅对最终部署者，被压制者不启动）
