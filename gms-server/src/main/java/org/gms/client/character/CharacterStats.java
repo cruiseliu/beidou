@@ -431,13 +431,13 @@ public class CharacterStats {
     // ── local 重算（reapply/recalc/updateLocalStats） ──
 
     private void recalcEquipStats() {
-        if (owner.isEquipChanged()) {
+        if (owner.inventory.isEquipChanged()) {
             java.util.List<org.gms.client.inventory.Equip> equippedList = new java.util.ArrayList<>();
             for (Item item : owner.getInventory(InventoryType.EQUIPPED)) {
                 equippedList.add((org.gms.client.inventory.Equip) item);
             }
             aggregateEquipStats(equippedList);
-            owner.setEquipChanged(false);
+            owner.inventory.setEquipChanged(false);
         }
         applyEquipToLocal();
     }

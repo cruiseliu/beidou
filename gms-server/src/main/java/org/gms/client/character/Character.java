@@ -145,6 +145,7 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterMysticDoor door = new CharacterMysticDoor(this);
     final CharacterPartyQuest pq = new CharacterPartyQuest(this);
     final CharacterGuild guild = new CharacterGuild(this);
+    final CharacterInventory inventory = new CharacterInventory(this);
 
     @Getter
     @Setter
@@ -197,7 +198,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Setter
     @Getter
     private int messengerPosition = 4;
-    private int slots = 0;
     @Getter
     @Setter
     private int energyBar;
@@ -262,10 +262,8 @@ public class Character extends AbstractAnimatedMapObject {
     private long lastExpression = 0;
     @Getter
     private boolean hidden;
-    private boolean equipchanged = true, berserk, hasSandboxItem = false, whiteChat = false;
+    private boolean berserk, whiteChat = false;
 
-    boolean isEquipChanged() { return equipchanged; }    // 包内可见：CharacterStats.recalcEquipStats 调用
-    void setEquipChanged(boolean v) { equipchanged = v; }
     @Setter
     boolean canRecvPartySearchInvite = true;    // 包内可见：CharacterJob.changeJob 读取
     private boolean usedSafetyCharm = false;
@@ -299,7 +297,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     @Setter
     Client client;
-    private Inventory[] inventory;
     @Getter
     @Setter
     private Messenger messenger = null;
@@ -355,7 +352,6 @@ public class Character extends AbstractAnimatedMapObject {
     ScheduledFuture<?> dragonBloodSchedule;
     private ScheduledFuture<?> hpDecreaseTask;
     ScheduledFuture<?> beholderHealingSchedule, beholderBuffSchedule, berserkSchedule;
-    private ScheduledFuture<?> itemExpireTask = null;
     ScheduledFuture<?> recoveryTask = null;
     ScheduledFuture<?> extraRecoveryTask = null;
     private ScheduledFuture<?> pendantOfSpirit = null; //1122017
@@ -399,7 +395,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Setter
     private boolean loggedIn = false;
     @Getter
-    private boolean useCS;  //chaos scroll upon crafting item.
     private long npcCd;
     byte extraHpRec = 0, extraMpRec = 0;
     short extraRecInterval;
@@ -468,19 +463,8 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     private Character() {
-        useCS = false;
         setStance(0);
-        inventory = new Inventory[InventoryType.values().length];
         savedLocations = new SavedLocation[SavedLocationType.values().length];
-
-        for (InventoryType type : InventoryType.values()) {
-            byte b = 24;
-            if (type == InventoryType.CASH) {
-                b = 96;
-            }
-            inventory[type.ordinal()] = new Inventory(this, type, b);
-        }
-        inventory[InventoryType.CANHOLD.ordinal()] = new InventoryProof(this);
 
         for (int i = 0; i < SavedLocationType.values().length; i++) {
             savedLocations[i] = null;
@@ -682,10 +666,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void setSessionTransitionState() {
         client.setCharacterOnSessionTransitionState(this.getId());
-    }
-
-    public void setCS(boolean cs) {
-        useCS = cs;
     }
 
     public long getNpcCooldown() {
@@ -964,35 +944,6 @@ public class Character extends AbstractAnimatedMapObject {
             log.error(I18nUtil.getLogMessage("Character.ban.error2"), e);
         }
         return false;
-    }
-
-    public void setHasSandboxItem() {
-        hasSandboxItem = true;
-    }
-
-    public void removeSandboxItems() {  // sandbox idea thanks to Morty
-        if (!hasSandboxItem) {
-            return;
-        }
-
-        ItemInformationProvider ii = ItemInformationProvider.getInstance();
-        for (InventoryType invType : InventoryType.values()) {
-            Inventory inv = this.getInventory(invType);
-
-            inv.lockInventory();
-            try {
-                for (Item item : new ArrayList<>(inv.list())) {
-                    if (InventoryManipulator.isSandboxItem(item)) {
-                        InventoryManipulator.removeFromSlot(client, invType, item.getPosition(), item.getQuantity(), false);
-                        dropMessage(5, "[" + ii.getName(item.getItemId()) + "] " + I18nUtil.getMessage("Character.removeSandboxItems.message1"));
-                    }
-                }
-            } finally {
-                inv.unlockInventory();
-            }
-        }
-
-        hasSandboxItem = false;
     }
 
     public void changeCI(int type) {
@@ -1392,29 +1343,6 @@ public class Character extends AbstractAnimatedMapObject {
         enableActions();
     }
 
-    public int countItem(int itemid) {
-        return inventory[ItemConstants.getInventoryType(itemid).ordinal()].countById(itemid);
-    }
-
-    public boolean canHold(int itemid) {
-        return canHold(itemid, 1);
-    }
-
-    public boolean canHold(int itemid, int quantity) {
-        return client.getAbstractPlayerInteraction().canHold(itemid, quantity);
-    }
-
-    public boolean canHoldUniques(List<Integer> itemids) {
-        ItemInformationProvider ii = ItemInformationProvider.getInstance();
-        for (Integer itemid : itemids) {
-            if (ii.isPickupRestricted(itemid) && this.haveItem(itemid)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     public boolean isRidingBattleship() {
         Integer bv = getBuffedValue(EffectType.MONSTER_RIDING);
         return bv != null && bv.equals(Corsair.BATTLE_SHIP);
@@ -1605,106 +1533,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public void equipChanged() {
-        getMap().broadcastUpdateCharLookMessage(this, this);
-        equipchanged = true;
-        updateLocalStats();
-        if (getMessenger() != null) {
-            getWorldServer().updateMessenger(getMessenger(), getName(), getWorld(), client.getChannel());
-        }
-    }
-
-    public void cancelExpirationTask() {
-        if (itemExpireTask != null) {
-            itemExpireTask.cancel(false);
-            itemExpireTask = null;
-        }
-    }
-
-    public void expirationTask() {
-        if (itemExpireTask == null) {
-            itemExpireTask = TimerManager.getInstance().register(() -> {
-                boolean deletedCoupon = false;
-
-                long expiration, currenttime = System.currentTimeMillis();
-
-                List<Item> toberemove = new ArrayList<>();
-                for (Inventory inv : inventory) {
-                    for (Item item : inv.list()) {
-                        expiration = item.getExpiration();
-
-                        if (expiration != -1 && (expiration < currenttime) && ((item.getFlag() & ItemConstants.LOCK) == ItemConstants.LOCK)) {
-                            short lock = item.getFlag();
-                            lock &= ~(ItemConstants.LOCK);
-                            item.setFlag(lock); //Probably need a check, else people can make expiring items into permanent items...
-                            item.setExpiration(-1);
-                            forceUpdateItem(item);   //TEST :3
-                        } else if (expiration != -1 && expiration < currenttime) {
-                            if (!ItemConstants.isPet(item.getItemId())) {
-                                sendPacket(PacketCreator.itemExpired(item.getItemId()));
-                                toberemove.add(item);
-                                if (ItemConstants.isRateCoupon(item.getItemId())) {
-                                    deletedCoupon = true;
-                                }
-                            } else {
-                                Pet pet = item.getPet();   // thanks Lame for noticing pets not getting despawned after expiration time
-                                if (pet != null) {
-                                    unEquipPet(pet, true);
-                                }
-
-                                if (ItemConstants.isExpirablePet(item.getItemId())) {
-                                    if (item.getPetId() > -1) {
-                                        // 宠物道具真正过期销毁时，同时清理 pets/petignores，避免数据库残留孤儿数据。
-                                        Pet.deleteFromDb(this, item.getPetId());
-                                    }
-                                    sendPacket(PacketCreator.itemExpired(item.getItemId()));
-                                    toberemove.add(item);
-                                } else {
-                                    item.setExpiration(-1);
-                                    forceUpdateItem(item);
-                                }
-                            }
-                        }
-                    }
-
-                    if (!toberemove.isEmpty()) {
-                        for (Item item : toberemove) {
-                            InventoryManipulator.removeFromSlot(client, inv.getType(), item.getPosition(), item.getQuantity(), true);
-                        }
-
-                        ItemInformationProvider ii = ItemInformationProvider.getInstance();
-                        for (Item item : toberemove) {
-                            List<Integer> toadd = new ArrayList<>();
-                            Pair<Integer, String> replace = ii.getReplaceOnExpire(item.getItemId());
-                            if (replace.left > 0) {
-                                toadd.add(replace.left);
-                                if (!replace.right.isEmpty()) {
-                                    dropMessage(replace.right);
-                                }
-                            }
-                            for (Integer itemid : toadd) {
-                                InventoryManipulator.addById(client, itemid, (short) 1);
-                            }
-                        }
-
-                        toberemove.clear();
-                    }
-
-                    if (deletedCoupon) {
-                        updateCouponRates();
-                    }
-                }
-            }, 60000);
-        }
-    }
-
-    public void forceUpdateItem(Item item) {
-        final List<ModifyInventory> mods = new LinkedList<>();
-        mods.add(new ModifyInventory(3, item));
-        mods.add(new ModifyInventory(0, item));
-        sendPacket(PacketCreator.modifyInventory(true, mods));
-    }
-
     public void gainGachaExp() {
         int expgain = 0;
         long currentgexp = gachaExp.get();
@@ -1883,11 +1711,6 @@ public class Character extends AbstractAnimatedMapObject {
         } else {
             return false;
         }
-    }
-
-    public boolean canHoldMeso(int gain) {  // thanks lucasziron for pointing out a need to check space availability for mesos on player transactions
-        long nextMeso = (long) meso.get() + gain;
-        return nextMeso <= Integer.MAX_VALUE;
     }
 
     public void gainMeso(int gain) {
@@ -2077,47 +1900,6 @@ public class Character extends AbstractAnimatedMapObject {
         return null;
     }
 
-    public Inventory getInventory(InventoryType type) {
-        return inventory[type.ordinal()];
-    }
-
-    public boolean haveItemWithId(int itemid, boolean checkEquipped) {
-        return (inventory[ItemConstants.getInventoryType(itemid).ordinal()].findById(itemid) != null)
-                || (checkEquipped && inventory[InventoryType.EQUIPPED.ordinal()].findById(itemid) != null);
-    }
-
-    public boolean haveItemEquipped(int itemid) {
-        return (inventory[InventoryType.EQUIPPED.ordinal()].findById(itemid) != null);
-    }
-
-    public boolean haveWeddingRing() {
-        int[] rings = {ItemId.WEDDING_RING_STAR, ItemId.WEDDING_RING_MOONSTONE, ItemId.WEDDING_RING_GOLDEN, ItemId.WEDDING_RING_SILVER};
-
-        for (int ringid : rings) {
-            if (haveItemWithId(ringid, true)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public int getItemQuantity(int itemid, boolean checkEquipped) {
-        int count = inventory[ItemConstants.getInventoryType(itemid).ordinal()].countById(itemid);
-        if (checkEquipped) {
-            count += inventory[InventoryType.EQUIPPED.ordinal()].countById(itemid);
-        }
-        return count;
-    }
-
-    public int getCleanItemQuantity(int itemid, boolean checkEquipped) {
-        int count = inventory[ItemConstants.getInventoryType(itemid).ordinal()].countNotOwnedById(itemid);
-        if (checkEquipped) {
-            count += inventory[InventoryType.EQUIPPED.ordinal()].countNotOwnedById(itemid);
-        }
-        return count;
-    }
-
     public int getFh() {
         Point pos = this.getPosition();
         pos.y -= 6;
@@ -2292,10 +2074,6 @@ public class Character extends AbstractAnimatedMapObject {
         return skills.entries;
     }
 
-    public int getSlot() {
-        return slots;
-    }
-
     public BuffEffectData getStatForBuff(EffectType effect) {
         // effLock/chrLock 已冗余：激活表为不可变快照，无锁读
 
@@ -2407,22 +2185,6 @@ public class Character extends AbstractAnimatedMapObject {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    public boolean haveItem(int itemid) {
-        return getItemQuantity(itemid, ItemConstants.isEquipment(itemid)) > 0;
-    }
-
-    public boolean haveCleanItem(int itemid) {
-        return getCleanItemQuantity(itemid, ItemConstants.isEquipment(itemid)) > 0;
-    }
-
-    public boolean hasEmptySlot(int itemId) {
-        return getInventory(ItemConstants.getInventoryType(itemId)).getNextFreeSlot() > -1;
-    }
-
-    public boolean hasEmptySlot(byte invType) {
-        return getInventory(InventoryType.getByType(invType)).getNextFreeSlot() > -1;
     }
 
     public boolean isGM() {
@@ -2753,7 +2515,7 @@ public class Character extends AbstractAnimatedMapObject {
             ret.jobRankMove = rs.getInt("jobRankMove");
 
             if (equipped != null) {  // players can have no equipped items at all, ofc
-                Inventory inv = ret.inventory[InventoryType.EQUIPPED.ordinal()];
+                Inventory inv = ret.inventory.getInventory(InventoryType.EQUIPPED);
                 for (Item item : equipped) {
                     inv.addItemFromDB(item);
                 }
@@ -2795,7 +2557,7 @@ public class Character extends AbstractAnimatedMapObject {
         ret.setMapId(this.getMapId());
         ret.initialSpawnPoint = this.getInitialSpawnPoint();
 
-        ret.inventory[InventoryType.EQUIPPED.ordinal()] = this.getInventory(InventoryType.EQUIPPED);
+        ret.inventory.inventories[InventoryType.EQUIPPED.ordinal()] = this.getInventory(InventoryType.EQUIPPED);
 
         ret.setGMLevel(this.gmLevel());
         ret.world = this.getWorld();
@@ -3382,7 +3144,7 @@ public class Character extends AbstractAnimatedMapObject {
                 }
 
                 itemsWithType = new ArrayList<>();
-                for (Inventory iv : inventory) {
+                for (Inventory iv : inventory.getInventories()) {
                     for (Item item : iv.list()) {
                         itemsWithType.add(new Pair<>(item, iv.getType()));
                     }
@@ -3591,7 +3353,7 @@ public class Character extends AbstractAnimatedMapObject {
                 }
 
                 List<Pair<Item, InventoryType>> itemsWithType = new ArrayList<>();
-                for (Inventory iv : inventory) {
+                for (Inventory iv : inventory.getInventories()) {
                     for (Item item : iv.list()) {
                         itemsWithType.add(new Pair<>(item, iv.getType()));
                     }
@@ -3867,125 +3629,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    public byte getSlots(int type) {
-        return type == InventoryType.CASH.getType() ? 96 : inventory[type].getSlotLimit();
-    }
-
-    public boolean canGainSlots(int type, int slots) {
-        slots += inventory[type].getSlotLimit();
-        return slots <= 96;
-    }
-
-    public boolean gainSlots(int type, int slots) {
-        return gainSlots(type, slots, true);
-    }
-
-    public boolean gainSlots(int type, int slots, boolean update) {
-        int newLimit = gainSlotsInternal(type, slots);
-        if (newLimit != -1) {
-            this.saveCharToDB();
-            if (update) {
-                sendPacket(PacketCreator.updateInventorySlotLimit(type, newLimit));
-            }
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private int gainSlotsInternal(int type, int slots) {
-        inventory[type].lockInventory();
-        try {
-            if (canGainSlots(type, slots)) {
-                int newLimit = inventory[type].getSlotLimit() + slots;
-                inventory[type].setSlotLimit(newLimit);
-                return newLimit;
-            } else {
-                return -1;
-            }
-        } finally {
-            inventory[type].unlockInventory();
-        }
-    }
-
-    public int sellAllItemsFromName(byte invTypeId, String name) {
-        //player decides from which inventory items should be sold.
-        InventoryType type = InventoryType.getByType(invTypeId);
-
-        Inventory inv = getInventory(type);
-        inv.lockInventory();
-        try {
-            Item it = inv.findByName(name);
-            if (it == null) {
-                return (-1);
-            }
-
-            ItemInformationProvider ii = ItemInformationProvider.getInstance();
-            return (sellAllItemsFromPosition(ii, type, it.getPosition()));
-        } finally {
-            inv.unlockInventory();
-        }
-    }
-
-    public int sellAllItemsFromPosition(ItemInformationProvider ii, InventoryType type, short pos) {
-        int mesoGain = 0;
-
-        Inventory inv = getInventory(type);
-        inv.lockInventory();
-        try {
-            for (short i = pos; i <= inv.getSlotLimit(); i++) {
-                if (inv.getItem(i) == null) {
-                    continue;
-                }
-                mesoGain += standaloneSell(getClient(), ii, type, i, inv.getItem(i).getQuantity());
-            }
-        } finally {
-            inv.unlockInventory();
-        }
-
-        return (mesoGain);
-    }
-
-    private int standaloneSell(Client c, ItemInformationProvider ii, InventoryType type, short slot, short quantity) {
-        if (quantity == 0) {
-            quantity = 1;
-        }
-
-        Inventory inv = getInventory(type);
-        inv.lockInventory();
-        try {
-            Item item = inv.getItem(slot);
-            if (item == null) { //Basic check
-                return (0);
-            }
-
-            int itemid = item.getItemId();
-            if (ItemConstants.isRechargeable(itemid)) {
-                quantity = item.getQuantity();
-            } else if (ItemId.isWeddingToken(itemid) || ItemId.isWeddingRing(itemid)) {
-                return (0);
-            }
-
-            if (quantity < 0) {
-                return (0);
-            }
-            short iQuant = item.getQuantity();
-
-            if (quantity <= iQuant && iQuant > 0) {
-                InventoryManipulator.removeFromSlot(c, type, (byte) slot, quantity, false);
-                int recvMesos = ii.getPrice(itemid, quantity);
-                if (recvMesos > 0) {
-                    gainMeso(recvMesos, false);
-                    return (recvMesos);
-                }
-            }
-
-            return (0);
-        } finally {
-            inv.unlockInventory();
-        }
-    }
-
     private static boolean hasMergeFlag(Item item) {
         return (item.getFlag() & ItemConstants.MERGE_UNTRADEABLE) == ItemConstants.MERGE_UNTRADEABLE;
     }
@@ -4138,10 +3781,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
 
         InventoryManipulator.removeFromSlot(c, type, (byte) slot, quantity, false);
-    }
-
-    public void setSlot(int slotid) {
-        slots = slotid;
     }
 
     private long getDojoTimeLeft() {
@@ -4600,10 +4239,7 @@ public class Character extends AbstractAnimatedMapObject {
         setMap((MapleMap) null);
 
                 // thanks Shavit for noticing a memory leak with inventories holding owner object
-                for (int i = 0; i < inventory.length; i++) {
-                    inventory[i].dispose();
-                }
-                inventory = null;
+                inventory.disposeAll();
             }, MINUTES.toMillis(5));
         }
     }
@@ -5350,4 +4986,38 @@ public class Character extends AbstractAnimatedMapObject {
     public void genericGuildMessage(int code) { guild.genericGuildMessage(code); }
     public void increaseGuildCapacity() { guild.increaseGuildCapacity(); }
     public void saveGuildStatus() { guild.saveGuildStatus(); }
+
+    // ── inventory 门面 ──
+
+    public Inventory getInventory(InventoryType type) { return inventory.getInventory(type); }
+    public int countItem(int itemid) { return inventory.countItem(itemid); }
+    public boolean canHold(int itemid) { return inventory.canHold(itemid); }
+    public boolean canHold(int itemid, int quantity) { return inventory.canHold(itemid, quantity); }
+    public boolean canHoldUniques(List<Integer> itemids) { return inventory.canHoldUniques(itemids); }
+    public boolean canHoldMeso(int gain) { return inventory.canHoldMeso(gain); }
+    public boolean haveItemWithId(int itemid, boolean checkEquipped) { return inventory.haveItemWithId(itemid, checkEquipped); }
+    public boolean haveItemEquipped(int itemid) { return inventory.haveItemEquipped(itemid); }
+    public boolean haveWeddingRing() { return inventory.haveWeddingRing(); }
+    public int getItemQuantity(int itemid, boolean checkEquipped) { return inventory.getItemQuantity(itemid, checkEquipped); }
+    public int getCleanItemQuantity(int itemid, boolean checkEquipped) { return inventory.getCleanItemQuantity(itemid, checkEquipped); }
+    public boolean haveItem(int itemid) { return inventory.haveItem(itemid); }
+    public boolean haveCleanItem(int itemid) { return inventory.haveCleanItem(itemid); }
+    public boolean hasEmptySlot(int itemId) { return inventory.hasEmptySlot(itemId); }
+    public boolean hasEmptySlot(byte invType) { return inventory.hasEmptySlot(invType); }
+    public byte getSlots(int type) { return inventory.getSlots(type); }
+    public boolean canGainSlots(int type, int slots) { return inventory.canGainSlots(type, slots); }
+    public boolean gainSlots(int type, int slots) { return inventory.gainSlots(type, slots); }
+    public boolean gainSlots(int type, int slots, boolean update) { return inventory.gainSlots(type, slots, update); }
+    public int getSlot() { return inventory.getSlot(); }
+    public void setSlot(int slotid) { inventory.setSlot(slotid); }
+    public void setCS(boolean cs) { inventory.setCS(cs); }
+    public boolean isUseCS() { return inventory.isUseCS(); }
+    public void equipChanged() { inventory.equipChanged(); }
+    public void cancelExpirationTask() { inventory.cancelExpirationTask(); }
+    public void expirationTask() { inventory.expirationTask(); }
+    public void forceUpdateItem(Item item) { inventory.forceUpdateItem(item); }
+    public void setHasSandboxItem() { inventory.setHasSandboxItem(); }
+    public void removeSandboxItems() { inventory.removeSandboxItems(); }
+    public int sellAllItemsFromName(byte invTypeId, String name) { return inventory.sellAllItemsFromName(invTypeId, name); }
+    public int sellAllItemsFromPosition(ItemInformationProvider ii, InventoryType type, short pos) { return inventory.sellAllItemsFromPosition(ii, type, pos); }
 }
