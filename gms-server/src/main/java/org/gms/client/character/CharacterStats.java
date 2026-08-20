@@ -656,7 +656,7 @@ public class CharacterStats {
             owner.updatePartyMemberHP();    // thanks BHB (BHB88) for detecting a deadlock case within player stats.
 
             if (chrDied) {
-                owner.playerDead();
+                owner.death.playerDead();
             } else {
                 owner.checkBerserk(owner.isHidden());
             }

@@ -152,6 +152,10 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterLevel level = new CharacterLevel(this);
     final CharacterFame fame = new CharacterFame(this);
     final CharacterGm gm = new CharacterGm(this);
+    final CharacterRebirth reborn = new CharacterRebirth(this);
+    final CharacterDeath death = new CharacterDeath(this);
+    final CharacterKeyBinding keybinding = new CharacterKeyBinding(this);
+    final CharacterStorage storage = new CharacterStorage(this);
 
     @Getter
     @Setter
@@ -235,9 +239,7 @@ public class Character extends AbstractAnimatedMapObject {
     private boolean berserk;
 
     @Setter
-    private boolean usedSafetyCharm = false;
     @Getter
-    @Setter
     private int linkedLevel = 0;
     @Getter
     @Setter
@@ -245,7 +247,6 @@ public class Character extends AbstractAnimatedMapObject {
     @Getter
     @Setter
     private boolean finishedDojoTutorial;
-    private boolean usedStorage = false;
     @Getter
     @Setter
     private String name;
@@ -277,9 +278,6 @@ public class Character extends AbstractAnimatedMapObject {
     private SkinColor skinColor = SkinColor.NORMAL;
     @Getter
     @Setter
-    private Storage storage = null;
-    @Getter
-    @Setter
     private Trade trade = null;
     @Getter
     @Setter
@@ -298,15 +296,7 @@ public class Character extends AbstractAnimatedMapObject {
     private final Set<MapObject> visibleMapObjects = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final CharacterSkills skills = new CharacterSkills(this);
 
-    private final Map<Integer, KeyBinding> keymap = new LinkedHashMap<>();
-
-    public Map<Integer, KeyBinding> getKeymap() { return keymap; }
     final Map<Integer, Summon> summons = new LinkedHashMap<>();
-    @Getter
-    @Setter
-    private byte[] quickSlotLoaded;
-    @Setter
-    private QuickslotBinding quickSlotKeyMapped;
     ScheduledFuture<?> dragonBloodSchedule;
     private ScheduledFuture<?> hpDecreaseTask;
     ScheduledFuture<?> beholderHealingSchedule, beholderBuffSchedule, berserkSchedule;
@@ -492,16 +482,6 @@ public class Character extends AbstractAnimatedMapObject {
         ret.getInventory(InventoryType.USE).setSlotLimit(24);
         ret.getInventory(InventoryType.SETUP).setSlotLimit(24);
         ret.getInventory(InventoryType.ETC).setSlotLimit(24);
-
-        // Select a keybinding method
-        boolean useCustomKeySet = GameConfig.getServerBoolean("use_custom_keyset");
-        int[] selectedKey = GameConstants.getCustomKey(useCustomKeySet);
-        int[] selectedType = GameConstants.getCustomType(useCustomKeySet);
-        int[] selectedAction = GameConstants.getCustomAction(useCustomKeySet);
-
-        for (int i = 0; i < selectedKey.length; i++) {
-            ret.keymap.put(selectedKey[i], new KeyBinding(selectedType[i], selectedAction[i]));
-        }
 
         //to fix the map 0 lol
         for (int i = 0; i < 5; i++) {
@@ -771,18 +751,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
         */
         sendPacket(packet);
-    }
-
-    public void changeKeybinding(int key, KeyBinding keybinding) {
-        if (keybinding.getType() != 0) {
-            keymap.put(key, keybinding);
-        } else {
-            keymap.remove(key);
-        }
-    }
-
-    public void changeQuickslotKeybinding(byte[] aQuickslotKeyMapped) {
-        this.quickSlotKeyMapped = new QuickslotBinding(aQuickslotKeyMapped);
     }
 
     public void broadcastStance(int newStance) {
@@ -1248,10 +1216,6 @@ public class Character extends AbstractAnimatedMapObject {
         } finally {
             evtLock.unlock();
         }
-    }
-
-    public void setUsedStorage() {
-        usedStorage = true;
     }
 
     public boolean isMale() {
@@ -1874,8 +1838,8 @@ public class Character extends AbstractAnimatedMapObject {
         chr.getMapleMount().setActive(false);
         QuickslotkeymappedDO quickSlotKeyMap = accountService.getQuickSlotKeyMap(charactersDO.getAccountid());
         if (quickSlotKeyMap != null) {
-            chr.setQuickSlotLoaded(NumberTool.LongToBytes(quickSlotKeyMap.getKeymap()));
-            chr.setQuickSlotKeyMapped(new QuickslotBinding(chr.getQuickSlotLoaded()));
+            chr.keybinding.setQuickSlotLoaded(NumberTool.LongToBytes(quickSlotKeyMap.getKeymap()));
+            chr.keybinding.setQuickSlotKeyMapped(new QuickslotBinding(chr.keybinding.getQuickSlotLoaded()));
         }
         return chr;
     }
@@ -1954,95 +1918,6 @@ public class Character extends AbstractAnimatedMapObject {
         mount.setItemId(id);
         mount.setSkillId(skillid);
         return mount;
-    }
-
-    void playerDead() {    // 包内可见：CharacterStats.hpChangeAction 调用
-        if (this.getMap().isCPQMap()) {
-            int losing = getMap().getDeathCP();
-            if (pq.getCP() < losing) {
-                losing = pq.getCP();
-            }
-            getMap().broadcastMessage(PacketCreator.playerDiedMessage(getName(), losing, pq.getTeam()));
-            pq.gainCP(-losing);
-            return;
-        }
-
-        cancelAllBuffs(false);
-        dispelDebuffs();
-
-        EventInstanceManager eim = getEventInstance();
-        if (eim != null) {
-            eim.playerKilled(this);
-        }
-        int[] charmID = {ItemId.SAFETY_CHARM, ItemId.EASTER_BASKET, ItemId.EASTER_CHARM};
-        int possesed = 0;
-        int i;
-        for (i = 0; i < charmID.length; i++) {
-            int quantity = getItemQuantity(charmID[i], false);
-            if (quantity > 0) {
-                possesed = quantity;
-                break;
-            }
-        }
-        usedSafetyCharm = false;
-        if (possesed > 0 && !MapId.isDojo(getMapId())) {
-            message(I18nUtil.getMessage("Character.useItem.message1"));  //使用安全护符，不扣经验
-            InventoryManipulator.removeById(client, ItemConstants.getInventoryType(charmID[i]), charmID[i], 1, true, false);
-            usedSafetyCharm = true;
-        } else if (getJob() != Job.BEGINNER) { //Hmm...
-            if (!FieldLimit.NO_EXP_DECREASE.check(getMap().getFieldLimit())) {  // thanks Conrad for noticing missing FieldLimit check
-                int XPdummy = ExpTable.getExpNeededForLevel(getLevel());
-
-                if (getMap().isTown()) {    // thanks MindLove, SIayerMonkey, HaItsNotOver for noting players only lose 1% on town maps
-                    XPdummy /= 100;
-                } else {
-                    if (getLuk() < 50) {    // thanks Taiketo, Quit, Fishanelli for noting player EXP loss are fixed, 50-LUK threshold
-                        XPdummy /= 10;
-                    } else {
-                        XPdummy /= 20;
-                    }
-                }
-
-                int curExp = getExp();
-                if (curExp > XPdummy) {
-                    loseExp(XPdummy, false, false);
-                } else {
-                    loseExp(curExp, false, false);
-                }
-            }
-        }
-
-        if (getBuffedValue(EffectType.MORPH) != null) {
-            cancelEffectFromBuffStat(EffectType.MORPH);
-        }
-
-        if (getBuffedValue(EffectType.MONSTER_RIDING) != null) {
-            cancelEffectFromBuffStat(EffectType.MONSTER_RIDING);
-        }
-
-        chair.unsitChairInternal();
-        enableActions();
-    }
-
-    public void respawn(int returnMap) {
-        respawn(null, returnMap);    // unspecified EIM, don't force EIM unregister in this case
-    }
-
-    public void respawn(EventInstanceManager eim, int returnMap) {
-        if (eim != null) {
-            eim.unregisterPlayer(this);    // some event scripts uses this...
-        }
-        changeMap(returnMap);
-
-        cancelAllBuffs(false);  // thanks Oblivium91 for finding out players still could revive in area and take damage before returning to town
-
-        if (usedSafetyCharm) {  // thanks kvmba for noticing safety charm not providing 30% HP/MP
-            addMPHP((int) Math.ceil(stats.clientMaxHp * 0.3), (int) Math.ceil(stats.clientMaxMp * 0.3));
-        } else {
-            updateHp(50);
-        }
-
-        setStance(0);
     }
 
     void prepareDragonBlood(final BuffEffectData bloodEffect) {
@@ -2256,9 +2131,9 @@ public class Character extends AbstractAnimatedMapObject {
                 }
 
                 // No quickslots, or no change.
-                boolean bQuickslotEquals = this.quickSlotKeyMapped == null || (this.quickSlotLoaded != null && Arrays.equals(this.quickSlotKeyMapped.GetKeybindings(), this.quickSlotLoaded));
+                boolean bQuickslotEquals = this.keybinding.getQuickSlotKeyMapped() == null || (this.keybinding.getQuickSlotLoaded() != null && Arrays.equals(this.keybinding.getQuickSlotKeyMapped().GetKeybindings(), this.keybinding.getQuickSlotLoaded()));
                 if (!bQuickslotEquals) {
-                    long nQuickslotKeymapped = NumberTool.BytesToLong(this.quickSlotKeyMapped.GetKeybindings());
+                    long nQuickslotKeymapped = NumberTool.BytesToLong(this.keybinding.getQuickSlotKeyMapped().GetKeybindings());
 
                     // Quickslot key config
                     try (PreparedStatement ps = con.prepareStatement("INSERT INTO quickslotkeymapped (accountid, keymap) VALUES (?, ?) ON CONFLICT(accountid) DO UPDATE SET keymap = ?;")) {
@@ -2436,7 +2311,7 @@ public class Character extends AbstractAnimatedMapObject {
                 try (PreparedStatement psKey = con.prepareStatement("INSERT INTO keymap (characterid, `key`, `type`, `action`) VALUES (?, ?, ?, ?)")) {
                     psKey.setInt(1, id);
 
-                    Set<Entry<Integer, KeyBinding>> keybindingItems = Collections.unmodifiableSet(keymap.entrySet());
+                    Set<Entry<Integer, KeyBinding>> keybindingItems = Collections.unmodifiableSet(keybinding.getKeymap().entrySet());
                     for (Entry<Integer, KeyBinding> keybinding : keybindingItems) {
                         psKey.setInt(2, keybinding.getKey());
                         psKey.setInt(3, keybinding.getValue().getType());
@@ -2447,9 +2322,9 @@ public class Character extends AbstractAnimatedMapObject {
                 }
 
                 // No quickslots, or no change.
-                boolean bQuickslotEquals = this.quickSlotKeyMapped == null || (this.quickSlotLoaded != null && Arrays.equals(this.quickSlotKeyMapped.GetKeybindings(), this.quickSlotLoaded));
+                boolean bQuickslotEquals = this.keybinding.getQuickSlotKeyMapped() == null || (this.keybinding.getQuickSlotLoaded() != null && Arrays.equals(this.keybinding.getQuickSlotKeyMapped().GetKeybindings(), this.keybinding.getQuickSlotLoaded()));
                 if (!bQuickslotEquals) {
-                    long nQuickslotKeymapped = NumberTool.BytesToLong(this.quickSlotKeyMapped.GetKeybindings());
+                    long nQuickslotKeymapped = NumberTool.BytesToLong(this.keybinding.getQuickSlotKeyMapped().GetKeybindings());
 
                     try (final PreparedStatement psQuick = con.prepareStatement("INSERT INTO quickslotkeymapped (accountid, keymap) VALUES (?, ?) ON CONFLICT(accountid) DO UPDATE SET keymap = ?;")) {
                         psQuick.setInt(1, this.getAccountId());
@@ -2634,9 +2509,9 @@ public class Character extends AbstractAnimatedMapObject {
                     cashShop.save(con);
                 }
 
-                if (storage != null && usedStorage) {
-                    storage.saveToDB(con);
-                    usedStorage = false;
+                if (storage.getStorage() != null && storage.getUsedStorage()) {
+                    storage.getStorage().saveToDB(con);
+                    storage.resetUsedStorage();
                 }
 
                 con.commit();
@@ -2650,21 +2525,6 @@ public class Character extends AbstractAnimatedMapObject {
         } catch (Exception e) {
             log.error("Error saving chr {}, level: {}, job: {}", name, level.getLevel(), job.getId(), e);
         }
-    }
-
-    public void sendKeymap() {
-        sendPacket(PacketCreator.getKeymap(keymap));
-    }
-
-    public void sendQuickmap() {
-        // send quickslots to user
-        QuickslotBinding pQuickslotKeyMapped = this.quickSlotKeyMapped;
-
-        if (pQuickslotKeyMapped == null) {
-            pQuickslotKeyMapped = new QuickslotBinding(QuickslotBinding.DEFAULT_QUICKSLOTS);
-        }
-
-        this.sendPacket(PacketCreator.QuickslotMappedInit(pQuickslotKeyMapped));
     }
 
     public void sendMacros() {
@@ -3168,50 +3028,6 @@ public class Character extends AbstractAnimatedMapObject {
                 .id(accountId)
                 .rewardpoints(value)
                 .build());
-    }
-
-    public void setReborns(int value) {
-        if (!GameConfig.getServerBoolean("use_rebirth_system")) {
-            yellowMessage(I18nUtil.getMessage("Character.USE_REBIRTH_SYSTEM")); //重生系统未启用
-            throw new NotEnabledException();
-        }
-
-        characterService.update(CharactersDO.builder()
-                .id(id)
-                .reborns(value)
-                .build());
-    }
-
-    public void addReborns() {
-        setReborns(getReborns() + 1);
-    }
-
-    public int getReborns() {
-        if (!GameConfig.getServerBoolean("use_rebirth_system")) {
-            yellowMessage(I18nUtil.getMessage("Character.USE_REBIRTH_SYSTEM")); //重生系统未启用
-            throw new NotEnabledException();
-        }
-
-        CharactersDO charactersDO = characterService.findById(id);
-        return charactersDO == null ? 0 : Optional.ofNullable(charactersDO.getReborns()).orElse(0);
-    }
-
-    public void executeRebornAsId(int jobId) {
-        executeRebornAs(Job.getById(jobId));
-    }
-
-    public void executeRebornAs(Job job) {
-        if (!GameConfig.getServerBoolean("use_rebirth_system")) {
-            yellowMessage(I18nUtil.getMessage("Character.USE_REBIRTH_SYSTEM")); //重生系统未启用
-            throw new NotEnabledException();
-        }
-        if (getLevel() != getMaxClassLevel()) {
-            return;
-        }
-        addReborns();
-        changeJob(job);
-        setLevel(0);
-        levelUp(true);
     }
 
     //EVENTS
@@ -3801,4 +3617,34 @@ public class Character extends AbstractAnimatedMapObject {
     public void toggleHide(boolean login) { gm.toggleHide(login); }
     public boolean getWhiteChat() { return gm.getWhiteChat(); }
     public void toggleWhiteChat() { gm.toggleWhiteChat(); }
+
+    // ── reborn 门面 ──
+
+    public void setReborns(int value) { reborn.setReborns(value); }
+    public void addReborns() { reborn.addReborns(); }
+    public int getReborns() { return reborn.getReborns(); }
+    public void executeRebornAsId(int jobId) { reborn.executeRebornAsId(jobId); }
+    public void executeRebornAs(Job job) { reborn.executeRebornAs(job); }
+
+    // ── death 门面 ──
+
+    public void respawn(int returnMap) { death.respawn(returnMap); }
+    public void respawn(EventInstanceManager eim, int returnMap) { death.respawn(eim, returnMap); }
+
+    // ── keybinding 门面 ──
+
+    public Map<Integer, KeyBinding> getKeymap() { return keybinding.getKeymap(); }
+    public void changeKeybinding(int key, KeyBinding keybinding) { this.keybinding.changeKeybinding(key, keybinding); }
+    public void changeQuickslotKeybinding(byte[] aQuickslotKeyMapped) { keybinding.changeQuickslotKeybinding(aQuickslotKeyMapped); }
+    public void sendKeymap() { keybinding.sendKeymap(); }
+    public void sendQuickmap() { keybinding.sendQuickmap(); }
+    public byte[] getQuickSlotLoaded() { return keybinding.getQuickSlotLoaded(); }
+    public void setQuickSlotLoaded(byte[] quickSlotLoaded) { keybinding.setQuickSlotLoaded(quickSlotLoaded); }
+    public void setQuickSlotKeyMapped(QuickslotBinding quickSlotKeyMapped) { keybinding.setQuickSlotKeyMapped(quickSlotKeyMapped); }
+
+    // ── storage 门面 ──
+
+    public Storage getStorage() { return storage.getStorage(); }
+    public void setStorage(Storage storage) { this.storage.setStorage(storage); }
+    public void setUsedStorage() { storage.setUsedStorage(); }
 }
