@@ -377,6 +377,7 @@ public class SkillFactory {
             ret.addLevelEffect(BuffEffectData.loadSkillEffectFromData(level, id, isBuff));
         }
         ret.setAnimationTime(0);
+        ret.setMasterLevel(DataTool.getInt("masterLevel", data, 0));
         if (effect != null) {
             for (Data effectEntry : effect) {
                 ret.incAnimationTime(DataTool.getIntConvert("delay", effectEntry, 0));

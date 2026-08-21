@@ -4,9 +4,8 @@ import org.gms.client.EffectType;
 import org.gms.client.Disease;
 import org.gms.client.keybind.KeyBinding;
 import org.gms.client.processor.action.PetAutopotProcessor;
-import org.gms.manager.ServerManager;
-import org.gms.service.HpMpAlertService;
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
+import org.gms.client.job.GainStats;
 import org.gms.client.Stat;
 import org.gms.client.Skill;
 import org.gms.client.inventory.Inventory;
@@ -52,7 +51,7 @@ public class CharacterStats {
     }
 
     // ── 基础四维（下标见 BaseStat） ──
-    final int[] attrs = new int[BaseStat.BASE_STAT_COUNT];
+    final int[] attrs = new int[StatIndex.BASE_STAT_COUNT];
 
     // ── HP / MP ──
     int hp, mp;
@@ -62,12 +61,12 @@ public class CharacterStats {
     float transientMp = Float.NEGATIVE_INFINITY;
 
     // ── local 系列（派生四维，recalc 后有效；下标见 BaseStat） ──
-    final int[] localAttrs = new int[BaseStat.BASE_STAT_COUNT];
+    final int[] localAttrs = new int[StatIndex.BASE_STAT_COUNT];
     int localmagic, localwatk;
     int localMaxHp = 50, localMaxMp = 5;
 
     // ── equip 系列（装备聚合中间四维，recalcEquipStats 的输出、local 计算的输入；下标见 BaseStat） ──
-    final int[] equipAttrs = new int[BaseStat.BASE_STAT_COUNT];
+    final int[] equipAttrs = new int[StatIndex.BASE_STAT_COUNT];
     int equipmagic, equipwatk;
     int equipmaxhp, equipmaxmp;
 
@@ -114,44 +113,18 @@ public class CharacterStats {
 
     // ── 工具函数 ──
 
-    static int getHpMpGainFromRange(int min, int max, boolean fixed) {
-        return fixed ? (min + max) / 2 : Randomizer.rand(min, max);
+    /**
+     * 成长计算：NEW = (OLD + rand(addMin, addMax)) * multiply（各维度自己的乘数）。
+     * fixed = true 时区间取平均值（不浮动）；false 时随机取区间内值。
+     */
+    static int applyGrowth(int oldValue, GainStats.Growth growth, boolean fixed) {
+        int gain = fixed ? (growth.addMin() + growth.addMax()) / 2 : Randomizer.rand(growth.addMin(), growth.addMax());
+        return (int) ((oldValue + gain) * growth.multiply());
     }
 
     static int calcTransientRatio(float transientpoint) {
         int ret = (int) transientpoint;
         return !(ret <= 0 && transientpoint > 0.0f) ? ret : 1;
-    }
-
-    // ── 升级/转职 基础 HP/MP 计算 ──
-
-    Pair<Integer, Integer> getBasicLevelUpHpMp(Job job) {
-        boolean fixedLevelUpHpMp = true;  // todo: [refactor] hard coded config
-        int hp = 0, mp = 0;
-        if (job.isBeginnerJob()) {
-            hp = getHpMpGainFromRange(12, 16, fixedLevelUpHpMp);
-            mp = getHpMpGainFromRange(10, 12, fixedLevelUpHpMp);
-        } else if (job.isA(Job.WARRIOR) || job.isA(Job.DAWNWARRIOR1)) {
-            hp = getHpMpGainFromRange(24, 28, fixedLevelUpHpMp);
-            mp = getHpMpGainFromRange(4, 6, fixedLevelUpHpMp);
-        } else if (job.isA(Job.MAGICIAN) || job.isA(Job.BLAZEWIZARD1)) {
-            hp = getHpMpGainFromRange(10, 14, fixedLevelUpHpMp);
-            mp = getHpMpGainFromRange(22, 24, fixedLevelUpHpMp);
-        } else if (job.isA(Job.BOWMAN) || job.isA(Job.THIEF) || (job.getId() > 1299 && job.getId() < 1500)) {
-            hp = getHpMpGainFromRange(20, 24, fixedLevelUpHpMp);
-            mp = getHpMpGainFromRange(14, 16, fixedLevelUpHpMp);
-        } else if (job.isA(Job.GM)) {
-            hp = 30000;
-            mp = 30000;
-        } else if (job.isA(Job.PIRATE) || job.isA(Job.THUNDERBREAKER1)) {
-            hp = getHpMpGainFromRange(22, 28, fixedLevelUpHpMp);
-            mp = getHpMpGainFromRange(18, 23, fixedLevelUpHpMp);
-        } else if (job.isA(Job.ARAN1)) {
-            hp = getHpMpGainFromRange(44, 48, fixedLevelUpHpMp);
-            mp = getHpMpGainFromRange(4, 8, fixedLevelUpHpMp);
-            mp += (int) Math.floor(mp * 0.1);
-        }
-        return new Pair<>(hp, mp);
     }
 
     // ── HP/MP 比例计算（use_fixed_ratio_hpmp_update 启用时） ──
@@ -189,7 +162,7 @@ public class CharacterStats {
     void aggregateEquipStats(Iterable<org.gms.client.inventory.Equip> equips) {
         equipmaxhp = 0;
         equipmaxmp = 0;
-        for (int i = 0; i < BaseStat.BASE_STAT_COUNT; i++) {
+        for (int i = 0; i < StatIndex.BASE_STAT_COUNT; i++) {
             equipAttrs[i] = 0;
         }
         equipmagic = 0;
@@ -198,10 +171,10 @@ public class CharacterStats {
         for (var eq : equips) {
             equipmaxhp += eq.getHp();
             equipmaxmp += eq.getMp();
-            equipAttrs[BaseStat.DEX] += eq.getDex();
-            equipAttrs[BaseStat.INT] += eq.getInt();
-            equipAttrs[BaseStat.STR] += eq.getStr();
-            equipAttrs[BaseStat.LUK] += eq.getLuk();
+            equipAttrs[StatIndex.DEX] += eq.getDex();
+            equipAttrs[StatIndex.INT] += eq.getInt();
+            equipAttrs[StatIndex.STR] += eq.getStr();
+            equipAttrs[StatIndex.LUK] += eq.getLuk();
             equipmagic += eq.getMatk() + eq.getInt();
             equipwatk += eq.getWatk();
         }
@@ -211,7 +184,7 @@ public class CharacterStats {
     void applyEquipToLocal() {
         localMaxHp += equipmaxhp;
         localMaxMp += equipmaxmp;
-        for (int i = 0; i < BaseStat.BASE_STAT_COUNT; i++) {
+        for (int i = 0; i < StatIndex.BASE_STAT_COUNT; i++) {
             localAttrs[i] += equipAttrs[i];
         }
         localmagic += equipmagic;
@@ -222,10 +195,10 @@ public class CharacterStats {
     void resetLocalToBase() {
         localMaxHp = maxHp;
         localMaxMp = maxMp;
-        for (int i = 0; i < BaseStat.BASE_STAT_COUNT; i++) {
+        for (int i = 0; i < StatIndex.BASE_STAT_COUNT; i++) {
             localAttrs[i] = attrs[i];
         }
-        localmagic = localAttrs[BaseStat.INT];
+        localmagic = localAttrs[StatIndex.INT];
         localwatk = 0;
     }
 
@@ -233,10 +206,10 @@ public class CharacterStats {
 
     CharacterStatsData toData() {
         CharacterStatsData d = new CharacterStatsData();
-        d.str = attrs[BaseStat.STR];
-        d.dex = attrs[BaseStat.DEX];
-        d.int_ = attrs[BaseStat.INT];
-        d.luk = attrs[BaseStat.LUK];
+        d.str = attrs[StatIndex.STR];
+        d.dex = attrs[StatIndex.DEX];
+        d.int_ = attrs[StatIndex.INT];
+        d.luk = attrs[StatIndex.LUK];
         d.hp = hp;
         d.mp = mp;
         d.maxHp = maxHp;
@@ -245,10 +218,10 @@ public class CharacterStats {
     }
 
     void applyData(CharacterStatsData d) {
-        attrs[BaseStat.STR] = d.str;
-        attrs[BaseStat.DEX] = d.dex;
-        attrs[BaseStat.INT] = d.int_;
-        attrs[BaseStat.LUK] = d.luk;
+        attrs[StatIndex.STR] = d.str;
+        attrs[StatIndex.DEX] = d.dex;
+        attrs[StatIndex.INT] = d.int_;
+        attrs[StatIndex.LUK] = d.luk;
         hp = d.hp;
         mp = d.mp;
         maxHp = d.maxHp;
@@ -292,17 +265,6 @@ public class CharacterStats {
     public void addMPHP(int hpDelta, int mpDelta) {
         try (var ignored = Locks.acquire(wLock)) {
             applyUpdate(new StatsUpdate().setHp(hp + hpDelta).setMp(mp + mpDelta));
-        }
-    }
-
-    void addMaxMPMaxHP(int hpdelta, int mpdelta, boolean silent) {
-        try (var ignored = Locks.acquire(wLock)) {
-            StatsUpdate u = new StatsUpdate().setMaxHp(maxHp + hpdelta).setMaxMp(maxMp + mpdelta);
-            if (silent) {
-                applyUpdateSilently(u);
-            } else {
-                applyUpdate(u);
-            }
         }
     }
 
@@ -371,7 +333,7 @@ public class CharacterStats {
             }
 
             boolean basePresent = false;
-            for (int i = 0; i < BaseStat.BASE_STAT_COUNT; i++) {
+            for (int i = 0; i < StatIndex.BASE_STAT_COUNT; i++) {
                 Integer v = u.attrs[i];
                 if (v == null) {
                     continue;
@@ -379,7 +341,7 @@ public class CharacterStats {
                 basePresent = true;
                 if (v >= 4) {   // 四维下限：低于 4 的写入被跳过
                     attrs[i] = v;
-                    statUpdates.put(BaseStat.KEYS[i], v);
+                    statUpdates.put(StatIndex.KEYS[i], v);
                 }
             }
 
@@ -475,16 +437,16 @@ public class CharacterStats {
 
             Integer mwarr = owner.getBuffedValue(EffectType.MAPLE_WARRIOR);
             if (mwarr != null) {
-                localAttrs[BaseStat.STR] += owner.getStr() * mwarr / 100;
-                localAttrs[BaseStat.DEX] += owner.getDex() * mwarr / 100;
-                localAttrs[BaseStat.INT] += owner.getInt() * mwarr / 100;
-                localAttrs[BaseStat.LUK] += owner.getLuk() * mwarr / 100;
+                localAttrs[StatIndex.STR] += owner.getStr() * mwarr / 100;
+                localAttrs[StatIndex.DEX] += owner.getDex() * mwarr / 100;
+                localAttrs[StatIndex.INT] += owner.getInt() * mwarr / 100;
+                localAttrs[StatIndex.LUK] += owner.getLuk() * mwarr / 100;
             }
-            if (owner.getJob().isA(Job.BOWMAN)) {
+            if (owner.getJob().isA(JobEnum.BOWMAN)) {
                 Skill expert = null;
-                if (owner.getJob().isA(Job.MARKSMAN)) {
+                if (owner.getJob().isA(JobEnum.MARKSMAN)) {
                     expert = SkillFactory.getSkill(3220004);
-                } else if (owner.getJob().isA(Job.BOWMASTER)) {
+                } else if (owner.getJob().isA(JobEnum.BOWMASTER)) {
                     expert = SkillFactory.getSkill(3120005);
                 }
                 if (expert != null) {
@@ -510,7 +472,7 @@ public class CharacterStats {
                 localmagic += blessing * 2;
             }
 
-            if (owner.getJob().isA(Job.THIEF) || owner.getJob().isA(Job.BOWMAN) || owner.getJob().isA(Job.PIRATE) || owner.getJob().isA(Job.NIGHTWALKER1) || owner.getJob().isA(Job.WINDARCHER1)) {
+            if (owner.getJob().isA(JobEnum.THIEF) || owner.getJob().isA(JobEnum.BOWMAN) || owner.getJob().isA(JobEnum.PIRATE) || owner.getJob().isA(JobEnum.NIGHTWALKER1) || owner.getJob().isA(JobEnum.WINDARCHER1)) {
                 Item weapon_item = owner.getInventory(InventoryType.EQUIPPED).getItem((short) -11);
                 if (weapon_item != null) {
                     ItemInformationProvider ii = ItemInformationProvider.getInstance();

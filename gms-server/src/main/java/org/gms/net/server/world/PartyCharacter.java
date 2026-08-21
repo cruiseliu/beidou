@@ -22,7 +22,7 @@
 package org.gms.net.server.world;
 
 import org.gms.client.character.Character;
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 
 public class PartyCharacter {
     private final String name;
@@ -32,7 +32,7 @@ public class PartyCharacter {
     private int jobid;
     private int mapid;
     private boolean online;
-    private Job job;
+    private JobEnum job;
     private Character character;
 
     public PartyCharacter(Character maplechar) {
@@ -56,7 +56,7 @@ public class PartyCharacter {
         return character;
     }
 
-    public Job getJob() {
+    public JobEnum getJob() {
         return job;
     }
 

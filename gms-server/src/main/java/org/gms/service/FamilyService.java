@@ -4,7 +4,7 @@ import com.mybatisflex.core.query.QueryWrapper;
 import lombok.AllArgsConstructor;
 import org.gms.client.Family;
 import org.gms.client.FamilyEntry;
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.dao.entity.CharactersDO;
 import org.gms.dao.entity.FamilyCharacterDO;
 import org.gms.dao.entity.FamilyEntitlementDO;
@@ -45,7 +45,7 @@ public class FamilyService {
                 world.addFamily(familyCharacterDO.getFamilyid(), family);
             }
             FamilyEntry familyEntry = new FamilyEntry(family, charactersDO.getId(), charactersDO.getName(),
-                    charactersDO.getLevel(), Job.getById(charactersDO.getJob()));
+                    charactersDO.getLevel(), JobEnum.getById(charactersDO.getJob()));
             familyEntry.setReputation(familyCharacterDO.getReputation());
             familyEntry.setTodaysRep(familyCharacterDO.getTodaysrep());
             familyEntry.setTotalReputation(familyCharacterDO.getTotalreputation());

@@ -1,15 +1,12 @@
 package org.gms.client.character;
 
-import org.gms.client.Client;
 import org.gms.client.EffectType;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.Item;
 import org.gms.config.GameConfig;
-import org.gms.constants.game.GameConstants;
 import org.gms.constants.id.MapId;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.net.packet.Packet;
-import org.gms.net.server.guild.Guild;
 import org.gms.net.server.world.Party;
 import org.gms.net.server.world.PartyOperation;
 import org.gms.scripting.event.EventInstanceManager;

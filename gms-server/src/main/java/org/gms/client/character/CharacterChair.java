@@ -1,6 +1,6 @@
 package org.gms.client.character;
 
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.client.SkillFactory;
 import org.gms.config.GameConfig;
 import org.gms.constants.inventory.ItemConstants;
@@ -120,7 +120,7 @@ class CharacterChair {
 
     // ── 椅子 buff（职业椅子技能：额外的坐下回血） ──
 
-    private static int getJobMapChair(Job job) {
+    private static int getJobMapChair(JobEnum job) {
         return switch (job.getId() / 1000) {
             case 0 -> Beginner.MAP_CHAIR;
             case 1 -> Noblesse.MAP_CHAIR;

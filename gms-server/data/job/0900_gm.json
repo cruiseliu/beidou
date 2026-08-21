@@ -1,0 +1,55 @@
+{
+    "jobId": 900,
+    "faction": "GM",
+    "style": "WARRIOR",
+    "advancementCount": 0,
+    "advancementLevel": 0,
+    "advancementHint": 200,
+    "maxLevel": 200,
+    "previousJobId": -1,
+    "levelUp": [
+        {
+            "from": 1,
+            "to": 200,
+            "gainStats": {
+                "maxHp": {
+                    "addMin": 30000,
+                    "addMax": 30000,
+                    "multiply": 1.0
+                },
+                "maxMp": {
+                    "addMin": 30000,
+                    "addMax": 30000,
+                    "multiply": 1.0
+                },
+                "ap": 5,
+                "sp": 3
+            }
+        }
+    ],
+    "advancementGainStats": {
+        "maxHp": {
+            "addMin": 0,
+            "addMax": 0,
+            "multiply": 1.0
+        },
+        "maxMp": {
+            "addMin": 0,
+            "addMax": 0,
+            "multiply": 1.0
+        },
+        "ap": 0,
+        "sp": 1
+    },
+    "spChainShared": true,
+    "acquiredSkills": [
+        9001000,
+        9001001,
+        9001002
+    ],
+    "apAutoAssignKey": "default",
+    "forceAutoAssignAp": false,
+    "weaponStatRules": {},
+    "modifiers": [],
+    "listeners": []
+}

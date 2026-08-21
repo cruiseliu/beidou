@@ -1,0 +1,58 @@
+{
+    "jobId": 521,
+    "faction": "ADVENTURER",
+    "style": "PIRATE",
+    "advancementCount": 3,
+    "advancementLevel": 70,
+    "advancementHint": 120,
+    "maxLevel": 200,
+    "previousJobId": 520,
+    "levelUp": [
+        {
+            "from": 1,
+            "to": 200,
+            "gainStats": {
+                "maxHp": {
+                    "addMin": 22,
+                    "addMax": 28,
+                    "multiply": 1.0
+                },
+                "maxMp": {
+                    "addMin": 18,
+                    "addMax": 23,
+                    "multiply": 1.0
+                },
+                "ap": 5,
+                "sp": 3
+            }
+        }
+    ],
+    "advancementGainStats": {
+        "maxHp": {
+            "addMin": 300,
+            "addMax": 350,
+            "multiply": 1.0
+        },
+        "maxMp": {
+            "addMin": 150,
+            "addMax": 200,
+            "multiply": 1.0
+        },
+        "ap": 5,
+        "sp": 1
+    },
+    "spChainShared": true,
+    "acquiredSkills": [
+        5210000,
+        5211001,
+        5211002,
+        5211004,
+        5211005,
+        5211006
+    ],
+    "apAutoAssignKey": "default",
+    "forceAutoAssignAp": false,
+    "weaponStatRules": {},
+    "modifiers": [],
+    "listeners": []
+}

@@ -1,7 +1,6 @@
 package org.gms.client.character;
 
 import org.gms.constants.id.ItemId;
-import org.gms.net.server.world.Party;
 import org.gms.server.partyquest.AriantColiseum;
 import org.gms.server.partyquest.MonsterCarnival;
 import org.gms.server.partyquest.MonsterCarnivalParty;

@@ -25,7 +25,7 @@ package org.gms.client.command.commands.gm2;
 
 import org.gms.client.character.Character;
 import org.gms.client.Client;
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.client.command.Command;
@@ -53,7 +53,7 @@ public class ResetSkillCommand extends Command {
             }
         }
 
-        if (player.getJob().isA(Job.ARAN1) || player.getJob().isA(Job.LEGEND)) {
+        if (player.getJob().isA(JobEnum.ARAN1) || player.getJob().isA(JobEnum.LEGEND)) {
             Skill skill = SkillFactory.getSkill(5001005);
             player.changeSkillLevel(skill, (byte) -1, -1, -1);
         } else {

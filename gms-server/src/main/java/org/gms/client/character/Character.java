@@ -27,12 +27,11 @@ import lombok.Setter;
 import org.gms.client.BuddyList;
 import org.gms.client.BuddylistEntry;
 import org.gms.client.EffectType;
-import org.gms.client.CharacterNameAndId;
 import org.gms.client.Client;
 import org.gms.client.Disease;
 import org.gms.client.Family;
 import org.gms.client.FamilyEntry;
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.client.MonsterBook;
 import org.gms.client.Mount;
 import org.gms.client.QuestStatus;
@@ -46,12 +45,10 @@ import org.gms.client.autoban.AutobanManager;
 import org.gms.client.creator.CharacterFactoryRecipe;
 import org.gms.client.inventory.*;
 import org.gms.client.inventory.Equip.StatUpgrade;
-import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.client.keybind.KeyBinding;
 import org.gms.client.keybind.QuickslotBinding;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.DelayedQuestUpdate;
-import org.gms.constants.game.ExpTable;
 import org.gms.constants.game.GameConstants;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.id.MapId;
@@ -60,7 +57,6 @@ import org.gms.constants.net.ServerConstants;
 import org.gms.constants.skills.*;
 import org.gms.constants.string.ExtendKey;
 import org.gms.dao.entity.*;
-import org.gms.exception.NotEnabledException;
 import org.gms.manager.ServerManager;
 import org.gms.model.dto.InventorySearchReqDTO;
 import org.gms.model.dto.InventorySearchRtnDTO;
@@ -79,10 +75,7 @@ import org.gms.net.server.services.type.WorldServices;
 import org.gms.net.server.world.*;
 import org.gms.scripting.AbstractPlayerInteraction;
 import org.gms.scripting.event.EventInstanceManager;
-import org.gms.scripting.item.ItemScriptManager;
 import org.gms.server.*;
-import org.gms.server.ExpLogger.ExpLogRecord;
-import org.gms.server.ItemInformationProvider.ScriptedItem;
 import org.gms.server.events.Events;
 import org.gms.server.events.RescueGaga;
 import org.gms.server.events.gm.Fitness;
@@ -96,10 +89,8 @@ import org.gms.server.partyquest.MonsterCarnival;
 import org.gms.server.partyquest.MonsterCarnivalParty;
 import org.gms.server.partyquest.PartyQuest;
 import org.gms.server.quest.Quest;
-import org.gms.server.quest.medal.DynamicHairMedal;
 import org.gms.service.*;
 import org.gms.util.*;
-import org.gms.util.packets.WeddingPackets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,15 +102,13 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 
-import static org.gms.client.character.BaseStat.*;
+import static org.gms.client.character.StatIndex.*;
 
 import static java.util.concurrent.TimeUnit.*;
 
@@ -155,7 +144,7 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterRebirth reborn = new CharacterRebirth(this);
     final CharacterDeath death = new CharacterDeath(this);
     final CharacterKeyBinding keybinding = new CharacterKeyBinding(this);
-    final CharacterStorage storage = new CharacterStorage(this);
+    final CharacterStorage storage = new CharacterStorage();
     final CharacterSpecialSkills specialSkills = new CharacterSpecialSkills(this);
     final CharacterSalon salon = new CharacterSalon(this);
     final CharacterBuddies buddy = new CharacterBuddies(this);
@@ -454,7 +443,7 @@ public class Character extends AbstractAnimatedMapObject {
         ret.stats.attrs[INT] = 4;
         ret.stats.attrs[LUK] = 4;
         ret.setMap((MapleMap) null);
-        ret.setJob(Job.BEGINNER);
+        ret.setJob(JobEnum.BEGINNER);
         ret.level.setLevel(1);
         ret.accountId = c.getAccID();
 
@@ -576,7 +565,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     public int calculateMaxBaseDamage(int watk, WeaponType weapon) {
         int mainstat, secondarystat;
-        if (job.isA(Job.THIEF) && weapon == WeaponType.DAGGER_OTHER) {
+        if (job.isA(JobEnum.THIEF) && weapon == WeaponType.DAGGER_OTHER) {
             weapon = WeaponType.DAGGER_THIEVES;
         }
 
@@ -599,7 +588,7 @@ public class Character extends AbstractAnimatedMapObject {
         if (weapon_item != null) {
             maxbasedamage = calculateMaxBaseDamage(watk, ItemInformationProvider.getInstance().getWeaponType(weapon_item.getItemId()));
         } else {
-            if (job.isA(Job.PIRATE) || job.isA(Job.THUNDERBREAKER1)) {
+            if (job.isA(JobEnum.PIRATE) || job.isA(JobEnum.THUNDERBREAKER1)) {
                 double weapMulti = 3;
                 if (job.getId() % 100 != 0) {
                     weapMulti = 4.2;
@@ -776,7 +765,7 @@ public class Character extends AbstractAnimatedMapObject {
             berserkSchedule.cancel(false);
         }
         final Character chr = this;
-        if (job.equalsJob(Job.DARKKNIGHT)) {
+        if (job.equalsJob(JobEnum.DARKKNIGHT)) {
             Skill BerserkX = SkillFactory.getSkill(DarkKnight.BERSERK);
             final int skilllevel = getSkillLevel(BerserkX);
             if (skilllevel > 0) {
@@ -1201,15 +1190,11 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public int getMaxClassLevel() {
-        return isCygnus() ? 120 : 200;
+        return job.getMaxClassLevel();
     }
 
     public int getMaxLevel() {
-        if (!GameConfig.getServerBoolean("use_enforce_job_level_range") || isGmJob()) {
-            return getMaxClassLevel();
-        }
-
-        return GameConstants.getJobMaxLevel(getJob());
+        return job.getMaxLevel();
     }
 
     public int getMeso() {
@@ -1365,7 +1350,7 @@ public class Character extends AbstractAnimatedMapObject {
         pq.leaveArenaIfPresent();
     }
 
-    int getChangedJobSp(Job newJob) {    // 包内可见：CharacterJob.changeJob 调用
+    int getChangedJobSp(JobEnum newJob) {    // 包内可见：CharacterJob.changeJob 调用
         int curSp = getUsedSp(newJob) + getJobRemainingSp(newJob);
         int spGain = 0;
         int expectedSp = getJobLevelSp(level.getLevel() - 10, newJob, GameConstants.getJobBranch(newJob));
@@ -1376,7 +1361,7 @@ public class Character extends AbstractAnimatedMapObject {
         return getSpGain(spGain, curSp, newJob);
     }
 
-    int getUsedSp(Job job) {    // 包内可见：CharacterLevel.levelUpGainSp 调用
+    int getUsedSp(JobEnum job) {    // 包内可见：CharacterLevel.levelUpGainSp 调用
         int jobId = job.getId();
         int spUsed = 0;
 
@@ -1390,30 +1375,30 @@ public class Character extends AbstractAnimatedMapObject {
         return spUsed;
     }
 
-    private int getJobLevelSp(int level, Job job, int jobBranch) {
-        if (Job.getJobStyleInternal(job.getId(), (byte) 0x40) == Job.MAGICIAN) {
+    private int getJobLevelSp(int level, JobEnum job, int jobBranch) {
+        if (JobEnum.getJobStyleInternal(job.getId(), (byte) 0x40) == JobEnum.MAGICIAN) {
             level += 2;  // starts earlier, level 8
         }
 
         return 3 * level + GameConstants.getChangeJobSpUpgrade(jobBranch);
     }
 
-    int getJobMaxSp(Job job) {    // 包内可见：CharacterLevel.levelUpGainSp 调用
+    int getJobMaxSp(JobEnum job) {    // 包内可见：CharacterLevel.levelUpGainSp 调用
         int jobBranch = GameConstants.getJobBranch(getJob());
         int jobRange = GameConstants.getJobUpgradeLevelRange(jobBranch);
         return getJobLevelSp(jobRange, job, jobBranch);
     }
 
-    int getJobRemainingSp(Job job) {    // 包内可见：CharacterLevel.levelUpGainSp 调用
+    int getJobRemainingSp(JobEnum job) {    // 包内可见：CharacterLevel.levelUpGainSp 调用
         return getRemainingSp(job.getId());
     }
 
-    int getSpGain(int spGain, Job job) {    // 包内可见：CharacterLevel.levelUpGainSp 调用
+    int getSpGain(int spGain, JobEnum job) {    // 包内可见：CharacterLevel.levelUpGainSp 调用
         int curSp = getUsedSp(job) + getJobRemainingSp(job);
         return getSpGain(spGain, curSp, job);
     }
 
-    private int getSpGain(int spGain, int curSp, Job job) {
+    private int getSpGain(int spGain, int curSp, JobEnum job) {
         int maxSp = getJobMaxSp(job);
         return Math.min(spGain, maxSp - curSp);
     }
@@ -1702,7 +1687,7 @@ public class Character extends AbstractAnimatedMapObject {
         sp.applyData(data.sp);
         debuffs.applyData(data.debuffs, data.timestamp);
         antiCheat.applyData(data.antiCheat);
-        job.setJob(Job.getById(data.jobId));
+        job.setJob(JobEnum.getById(data.jobId));
         map.setMapId(data.mapId);
     }
 
@@ -2914,6 +2899,9 @@ public class Character extends AbstractAnimatedMapObject {
     public void cancelAllBuffs(boolean softcancel) { buffs.cancelAllBuffs(softcancel); }
     public void buffExpireTask() { buffs.startExpireTimer(); }
     public void cancelBuffExpireTask() { buffs.stopExpireTimer(); }
+    public void dispel() { buffs.dispel(); }
+    public void dispelSkill(int skillid) { buffs.dispelSkill(skillid); }
+    public BuffEffectData getStatForBuff(EffectType effect) { return buffs.getStatForBuff(effect); }
 
     // ── pets 门面 ──
 
@@ -2972,11 +2960,11 @@ public class Character extends AbstractAnimatedMapObject {
 
     // ── job 门面 ──
 
-    public Job getJobStyle(byte opt) { return job.getJobStyle(opt); }
-    public Job getJobStyle() { return job.getJobStyle(); }
-    public synchronized void changeJob(Job newJob) { job.changeJob(newJob); }
-    public Job getJob() { return job.getJob(); }
-    public void setJob(Job newJob) { job.setJob(newJob); }
+    public JobEnum getJobStyle(byte opt) { return job.getJobStyle(opt); }
+    public JobEnum getJobStyle() { return job.getJobStyle(); }
+    public synchronized void changeJob(JobEnum newJob) { job.changeJob(newJob); }
+    public JobEnum getJob() { return job.getJob(); }
+    public void setJob(JobEnum newJob) { job.setJob(newJob); }
     public int getJobType() { return job.getJobType(); }
     public boolean isGmJob() { return job.isGmJob(); }
     public boolean isCygnus() { return job.isCygnus(); }
@@ -3153,6 +3141,7 @@ public class Character extends AbstractAnimatedMapObject {
     public synchronized void consumeTeleportDistanceCheckContext() { antiCheat.consumeTeleportDistanceCheckContext(); }
     public synchronized void consumeMovementDistanceCheckContext() { antiCheat.consumeMovementDistanceCheckContext(); }
     public synchronized void clearTeleportDistanceContext() { antiCheat.clearTeleportDistanceContext(); }
+    public long getAttackInterval(int skillId, long now) { return antiCheat.getAttackInterval(skillId, now); }
 
     // ── market 门面 ──
 
@@ -3210,6 +3199,10 @@ public class Character extends AbstractAnimatedMapObject {
     public void silentPartyUpdate() { party.silentPartyUpdate(); }
     public void updatePartyMemberHP() { party.updatePartyMemberHP(); }
     public void partyOperationUpdate(Party party, List<Character> exPartyMembers) { this.party.partyOperationUpdate(party, exPartyMembers); }
+    public void updatePartySearchAvailability(boolean pSearchAvailable) { party.updatePartySearchAvailability(pSearchAvailable); }
+    public boolean toggleRecvPartySearchInvite() { return party.toggleRecvPartySearchInvite(); }
+    public boolean isRecvPartySearchInviteEnabled() { return party.isRecvPartySearchInviteEnabled(); }
+    public void receivePartyMemberHP() { party.receivePartyMemberHP(); }
 
     // ── door 门面 ──
 
@@ -3221,6 +3214,7 @@ public class Character extends AbstractAnimatedMapObject {
     public Door removePartyDoor(boolean partyUpdate) { return door.removePartyDoor(partyUpdate); }
     public int getDoorSlot() { return door.getDoorSlot(); }
     public int fetchDoorSlot() { return door.fetchDoorSlot(); }
+    public void cancelMagicDoor() { door.cancelMagicDoor(); }
 
     // ── pq 门面 ──
 
@@ -3318,21 +3312,6 @@ public class Character extends AbstractAnimatedMapObject {
     public void equippedItem(Equip equip) { inventory.equippedItem(equip); }
     public void unequippedItem(Equip equip) { inventory.unequippedItem(equip); }
 
-    // ── antiCheat 补充门面 ──
-
-    public long getAttackInterval(int skillId, long now) { return antiCheat.getAttackInterval(skillId, now); }
-
-    // ── party 补充门面 ──
-
-    public void updatePartySearchAvailability(boolean pSearchAvailable) { party.updatePartySearchAvailability(pSearchAvailable); }
-    public boolean toggleRecvPartySearchInvite() { return party.toggleRecvPartySearchInvite(); }
-    public boolean isRecvPartySearchInviteEnabled() { return party.isRecvPartySearchInviteEnabled(); }
-    public void receivePartyMemberHP() { party.receivePartyMemberHP(); }
-
-    // ── door 补充门面 ──
-
-    public void cancelMagicDoor() { door.cancelMagicDoor(); }
-
     // ── family 门面 ──
 
     public Family getFamily() { return family.getFamily(); }
@@ -3364,6 +3343,7 @@ public class Character extends AbstractAnimatedMapObject {
     public int getPartnerId() { return marriage.getPartnerId(); }
     public void setPartnerId(int partnerId) { marriage.setPartnerId(partnerId); }
     public void notifyMapTransferToPartner(int mapid) { marriage.notifyMapTransferToPartner(mapid); }
+    public void broadcastMarriageMessage() { marriage.broadcastMarriageMessage(); }
 
     // ── miniGame 门面 ──
 
@@ -3437,7 +3417,7 @@ public class Character extends AbstractAnimatedMapObject {
     public void addReborns() { reborn.addReborns(); }
     public int getReborns() { return reborn.getReborns(); }
     public void executeRebornAsId(int jobId) { reborn.executeRebornAsId(jobId); }
-    public void executeRebornAs(Job job) { reborn.executeRebornAs(job); }
+    public void executeRebornAs(JobEnum job) { reborn.executeRebornAs(job); }
 
     // ── death 门面 ──
 
@@ -3460,16 +3440,6 @@ public class Character extends AbstractAnimatedMapObject {
     public Storage getStorage() { return storage.getStorage(); }
     public void setStorage(Storage storage) { this.storage.setStorage(storage); }
     public void setUsedStorage() { storage.setUsedStorage(); }
-
-    // ── buffs 补充门面 ──
-
-    public void dispel() { buffs.dispel(); }
-    public void dispelSkill(int skillid) { buffs.dispelSkill(skillid); }
-    public BuffEffectData getStatForBuff(EffectType effect) { return buffs.getStatForBuff(effect); }
-
-    // ── marriage 补充门面 ──
-
-    public void broadcastMarriageMessage() { marriage.broadcastMarriageMessage(); }
 
     // ── specialSkills 门面 ──
 

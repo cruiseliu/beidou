@@ -24,7 +24,7 @@ package org.gms.server;
 import org.gms.client.EffectType;
 import org.gms.client.character.Character;
 import org.gms.client.Disease;
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.client.Mount;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
@@ -1451,10 +1451,10 @@ public class BuffEffectData {
         if (primary) {
             if (mpCon != 0) {
                 double mod = 1.0;
-                boolean isAFpMage = applyfrom.getJob().isA(Job.FP_MAGE);
-                boolean isCygnus = applyfrom.getJob().isA(Job.BLAZEWIZARD2);
-                boolean isEvan = applyfrom.getJob().isA(Job.EVAN7);
-                if (isAFpMage || isCygnus || isEvan || applyfrom.getJob().isA(Job.IL_MAGE)) {
+                boolean isAFpMage = applyfrom.getJob().isA(JobEnum.FP_MAGE);
+                boolean isCygnus = applyfrom.getJob().isA(JobEnum.BLAZEWIZARD2);
+                boolean isEvan = applyfrom.getJob().isA(JobEnum.EVAN7);
+                if (isAFpMage || isCygnus || isEvan || applyfrom.getJob().isA(JobEnum.IL_MAGE)) {
                     Skill amp = isAFpMage ? SkillFactory.getSkill(FPMage.ELEMENT_AMPLIFICATION) : (isCygnus ? SkillFactory.getSkill(BlazeWizard.ELEMENT_AMPLIFICATION) : (isEvan ? SkillFactory.getSkill(Evan.MAGIC_AMPLIFICATION) : SkillFactory.getSkill(ILMage.ELEMENT_AMPLIFICATION)));
                     int ampLevel = applyfrom.getSkillLevel(amp);
                     if (ampLevel > 0) {
@@ -1477,7 +1477,7 @@ public class BuffEffectData {
     }
 
     private int alchemistModifyVal(Character chr, int val, boolean withX) {
-        if (!skill && (chr.getJob().isA(Job.HERMIT) || chr.getJob().isA(Job.NIGHTWALKER3))) {
+        if (!skill && (chr.getJob().isA(JobEnum.HERMIT) || chr.getJob().isA(JobEnum.NIGHTWALKER3))) {
             BuffEffectData alchemistEffect = getAlchemistEffect(chr);
             if (alchemistEffect != null) {
                 return (int) (val * ((withX ? alchemistEffect.getX() : alchemistEffect.getY()) / 100.0));

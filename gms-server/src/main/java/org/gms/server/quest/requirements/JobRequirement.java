@@ -22,7 +22,7 @@
 package org.gms.server.quest.requirements;
 
 import org.gms.client.character.Character;
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.provider.Data;
 import org.gms.provider.DataTool;
 import org.gms.server.quest.Quest;
@@ -56,7 +56,7 @@ public class JobRequirement extends AbstractQuestRequirement {
     @Override
     public boolean check(Character chr, Integer npcid) {
         for (Integer job : jobs) {
-            if (chr.getJob().equals(Job.getById(job)) || chr.isGM()) {
+            if (chr.getJob().equals(JobEnum.getById(job)) || chr.isGM()) {
                 return true;
             }
         }

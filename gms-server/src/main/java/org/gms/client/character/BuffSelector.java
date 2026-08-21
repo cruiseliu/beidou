@@ -1,7 +1,7 @@
 package org.gms.client.character;
 
 import org.gms.client.EffectType;
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.ItemId;
 import org.gms.server.BuffEffectData;
@@ -427,7 +427,7 @@ class BuffSelector {
             recalcMseList.add(re.getValue().getLeft());
         }
 
-        boolean mageJob = owner.getJobStyle() == Job.MAGICIAN;
+        boolean mageJob = owner.getJobStyle() == JobEnum.MAGICIAN;
         do {
             List<BuffEffectData> mseList = recalcMseList;
             recalcMseList = new LinkedList<>();

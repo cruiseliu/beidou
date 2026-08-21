@@ -1,7 +1,7 @@
 package org.gms.client.character;
 
 import org.gms.client.EffectType;
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.constants.game.ExpTable;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.id.MapId;
@@ -66,7 +66,7 @@ class CharacterDeath {
             owner.message(I18nUtil.getMessage("Character.useItem.message1"));  //使用安全护符，不扣经验
             InventoryManipulator.removeById(owner.client, ItemConstants.getInventoryType(charmID[i]), charmID[i], 1, true, false);
             usedSafetyCharm = true;
-        } else if (owner.getJob() != Job.BEGINNER) { //Hmm...
+        } else if (owner.getJob() != JobEnum.BEGINNER) { //Hmm...
             if (!FieldLimit.NO_EXP_DECREASE.check(owner.getMap().getFieldLimit())) {  // thanks Conrad for noticing missing FieldLimit check
                 int XPdummy = ExpTable.getExpNeededForLevel(owner.getLevel());
 

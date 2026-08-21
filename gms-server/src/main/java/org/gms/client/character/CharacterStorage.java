@@ -11,16 +11,13 @@ import org.gms.server.Storage;
  * 持久化 SQL（storage 表）留在 Character.saveCharToDB，数据访问经组件。
  */
 class CharacterStorage {
-    private final Character owner;
-
     /** 仓库变更标记（仓库操作后置位，saveCharToDB 时落库并复位） */
     private boolean usedStorage = false;
 
     /** 仓库实例 */
     private Storage storage = null;
 
-    CharacterStorage(Character owner) {
-        this.owner = owner;
+    CharacterStorage() {
     }
 
     // ── 查询 ──

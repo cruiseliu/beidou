@@ -23,7 +23,7 @@
 package org.gms.net.server.channel.handlers;
 
 import org.gms.client.Client;
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.constants.id.NpcId;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
@@ -35,7 +35,7 @@ import org.gms.scripting.npc.NPCScriptManager;
 public class ClickGuideHandler extends AbstractPacketHandler {
     @Override
     public void handlePacket(InPacket p, Client c) {
-        if (c.getPlayer().getJob().equals(Job.NOBLESSE)) {
+        if (c.getPlayer().getJob().equals(JobEnum.NOBLESSE)) {
             NPCScriptManager.getInstance().start(c, NpcId.MIMO, null);
         } else {
             NPCScriptManager.getInstance().start(c, NpcId.LILIN, null);

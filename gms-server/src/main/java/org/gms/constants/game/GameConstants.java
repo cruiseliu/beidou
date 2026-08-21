@@ -1,7 +1,7 @@
 package org.gms.constants.game;
 
 import org.gms.client.Disease;
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.MapId;
 import org.gms.constants.skills.Aran;
@@ -314,7 +314,7 @@ public class GameConstants {
         String name = jobNames.get(jobid);
 
         if (name == null) {
-            Job job = Job.getById(jobid);
+            JobEnum job = JobEnum.getById(jobid);
 
             if (job != null) {
                 name = job.name().toLowerCase();
@@ -371,40 +371,40 @@ public class GameConstants {
         }
     }
 
-    public static byte getHallOfFameBranch(Job job, int mapid) {
+    public static byte getHallOfFameBranch(JobEnum job, int mapid) {
         if (!isHallOfFameMap(mapid)) {
             return (byte) (26 + 4 * (mapid / 100000000));   // custom, 400 pnpcs available per continent
         }
 
-        if (job.isA(Job.WARRIOR)) {
+        if (job.isA(JobEnum.WARRIOR)) {
             return 10;
-        } else if (job.isA(Job.MAGICIAN)) {
+        } else if (job.isA(JobEnum.MAGICIAN)) {
             return 11;
-        } else if (job.isA(Job.BOWMAN)) {
+        } else if (job.isA(JobEnum.BOWMAN)) {
             return 12;
-        } else if (job.isA(Job.THIEF)) {
+        } else if (job.isA(JobEnum.THIEF)) {
             return 13;
-        } else if (job.isA(Job.PIRATE)) {
+        } else if (job.isA(JobEnum.PIRATE)) {
             return 14;
-        } else if (job.isA(Job.DAWNWARRIOR1)) {
+        } else if (job.isA(JobEnum.DAWNWARRIOR1)) {
             return 15;
-        } else if (job.isA(Job.BLAZEWIZARD1)) {
+        } else if (job.isA(JobEnum.BLAZEWIZARD1)) {
             return 16;
-        } else if (job.isA(Job.WINDARCHER1)) {
+        } else if (job.isA(JobEnum.WINDARCHER1)) {
             return 17;
-        } else if (job.isA(Job.NIGHTWALKER1)) {
+        } else if (job.isA(JobEnum.NIGHTWALKER1)) {
             return 18;
-        } else if (job.isA(Job.THUNDERBREAKER1)) {
+        } else if (job.isA(JobEnum.THUNDERBREAKER1)) {
             return 19;
-        } else if (job.isA(Job.ARAN1)) {
+        } else if (job.isA(JobEnum.ARAN1)) {
             return 20;
-        } else if (job.isA(Job.EVAN1)) {
+        } else if (job.isA(JobEnum.EVAN1)) {
             return 21;
-        } else if (job.isA(Job.BEGINNER)) {
+        } else if (job.isA(JobEnum.BEGINNER)) {
             return 22;
-        } else if (job.isA(Job.NOBLESSE)) {
+        } else if (job.isA(JobEnum.NOBLESSE)) {
             return 23;
-        } else if (job.isA(Job.LEGEND)) {
+        } else if (job.isA(JobEnum.LEGEND)) {
             return 24;
         } else {
             return 25;
@@ -432,7 +432,7 @@ public class GameConstants {
         }
     }
 
-    public static int getHallOfFameMapid(Job job) {
+    public static int getHallOfFameMapid(JobEnum job) {
         int jobid = job.getId();
 
         if (isCygnus(jobid)) {
@@ -440,15 +440,15 @@ public class GameConstants {
         } else if (isAran(jobid)) {
             return MapId.PALACE_OF_THE_MASTER;
         } else {
-            if (job.isA(Job.WARRIOR)) {
+            if (job.isA(JobEnum.WARRIOR)) {
                 return MapId.HALL_OF_WARRIORS;
-            } else if (job.isA(Job.MAGICIAN)) {
+            } else if (job.isA(JobEnum.MAGICIAN)) {
                 return MapId.HALL_OF_MAGICIANS;
-            } else if (job.isA(Job.BOWMAN)) {
+            } else if (job.isA(JobEnum.BOWMAN)) {
                 return MapId.HALL_OF_BOWMEN;
-            } else if (job.isA(Job.THIEF)) {
+            } else if (job.isA(JobEnum.THIEF)) {
                 return MapId.HALL_OF_THIEVES;
-            } else if (job.isA(Job.PIRATE)) {
+            } else if (job.isA(JobEnum.PIRATE)) {
                 return MapId.NAUTILUS_TRAINING_ROOM;
             } else {
                 return MapId.KNIGHTS_CHAMBER_2;   // beginner explorers are allotted with the Cygnus, available map lul
@@ -456,7 +456,7 @@ public class GameConstants {
         }
     }
 
-    public static int getJobBranch(Job job) {
+    public static int getJobBranch(JobEnum job) {
         int jobid = job.getId();
 
         if (jobid % 1000 == 0) {
@@ -468,7 +468,7 @@ public class GameConstants {
         }
     }
 
-    public static int getJobMaxLevel(Job job) {
+    public static int getJobMaxLevel(JobEnum job) {
         int jobBranch = getJobBranch(job);
 
         switch (jobBranch) {
@@ -601,7 +601,7 @@ public class GameConstants {
         return Quest.getInstance(questid).getMedalRequirement() != -1;
     }
 
-    public static boolean hasSPTable(Job job) {
+    public static boolean hasSPTable(JobEnum job) {
         switch (job) {
             case EVAN:
             case EVAN1:

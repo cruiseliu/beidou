@@ -25,7 +25,7 @@ package org.gms.client.processor.stat;
 
 import org.gms.client.character.Character;
 import org.gms.client.Client;
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.client.Stat;
@@ -175,7 +175,7 @@ public class AssignAPProcessor {
                 //c.getPlayer().message("SDL: s" + eqpStr + " d" + eqpDex + " l" + eqpLuk + " BASE STATS --> STR: " + chr.getStr() + " DEX: " + chr.getDex() + " INT: " + chr.getInt() + " LUK: " + chr.getLuk());
                 //c.getPlayer().message("SUM EQUIP STATS -> STR: " + str + " DEX: " + dex + " LUK: " + luk + " INT: " + int_);
 
-                Job stance = c.getPlayer().getJobStyle(opt); // 根据选项获取玩家的职业类型
+                JobEnum stance = c.getPlayer().getJobStyle(opt); // 根据选项获取玩家的职业类型
                 int prStat = 0, scStat = 0, trStat = 0, temp, tempAp = remainingAp, CAP; // 初始化主属性、副属性、第三属性、临时变量和上限值
                 if (tempAp < 1) { // 检查临时AP是否小于1
                     return; // 如果不足则返回
@@ -531,8 +531,8 @@ public class AssignAPProcessor {
         return 0;
     }
 
-    private static Stat getQuaternaryStat(Job stance) {
-        if (stance != Job.MAGICIAN) {
+    private static Stat getQuaternaryStat(JobEnum stance) {
+        if (stance != JobEnum.MAGICIAN) {
             return Stat.INT;
         }
         return Stat.STR;
@@ -651,13 +651,13 @@ public class AssignAPProcessor {
                     }
                     int mp = player.getMaxMp();
                     int level = player.getLevel();
-                    Job job = player.getJob();
+                    JobEnum job = player.getJob();
                     boolean canWash = true;
-					if (job.isA(Job.SPEARMAN)) {
+					if (job.isA(JobEnum.SPEARMAN)) {
                         canWash = mp >= 4 * level + 156;
-                    } else if (job.isA(Job.FIGHTER) || job.isA(Job.ARAN1)) {
+                    } else if (job.isA(JobEnum.FIGHTER) || job.isA(JobEnum.ARAN1)) {
                         canWash = mp >= 4 * level + 56;
-                    } else if (job.isA(Job.THIEF) && job.getId() % 100 > 0) {
+                    } else if (job.isA(JobEnum.THIEF) && job.getId() % 100 > 0) {
                         canWash = mp >= level * 14 - 4;
                     } else {
                         canWash = mp >= level * 14 + 148;
@@ -780,7 +780,7 @@ public class AssignAPProcessor {
         reloadConfig();  // 重新加载最新配置参数
 
         //========== 基础参数初始化 ==========//
-        Job job = player.getJob();  // 获取当前职业
+        JobEnum job = player.getJob();  // 获取当前职业
         int MaxHP = 0;              // 最终HP增加值
 
         //========== 默认配置（适用于新手等未定义职业） ==========//
@@ -792,50 +792,50 @@ public class AssignAPProcessor {
 
         //========== 职业专属配置 ==========//
         // 战士/黎明战士（物理系职业）
-        if (job.isA(Job.WARRIOR) || job.isA(Job.DAWNWARRIOR1)) {
+        if (job.isA(JobEnum.WARRIOR) || job.isA(JobEnum.DAWNWARRIOR1)) {
             baseValue = 20;       // 标准模式下基础值
             resetValue = 20;      // 重置时增加值
             randomMin = 18;       // 随机范围18-22
             randomMax = 22;
-            skillId = job.isA(Job.DAWNWARRIOR1) ?
+            skillId = job.isA(JobEnum.DAWNWARRIOR1) ?
                     DawnWarrior.MAX_HP_INCREASE :
                     Warrior.IMPROVED_MAXHP;
         }
         // 战神（特殊战士职业）
-        else if (job.isA(Job.ARAN1)) {
+        else if (job.isA(JobEnum.ARAN1)) {
             baseValue = 28;       // 固定模式增加值
             resetValue = 20;      // 重置时增加值
             randomMin = 26;       // 随机范围26-30
             randomMax = 30;
         }
         // 魔法师/烈焰巫师（法系职业）
-        else if (job.isA(Job.MAGICIAN) || job.isA(Job.BLAZEWIZARD1)) {
+        else if (job.isA(JobEnum.MAGICIAN) || job.isA(JobEnum.BLAZEWIZARD1)) {
             baseValue = 6;
             resetValue = 6;
             randomMin = 5;
             randomMax = 9;
         }
         // 飞侠/暗夜行者（敏捷系职业）
-        else if (job.isA(Job.THIEF) || job.isA(Job.NIGHTWALKER1)) {
+        else if (job.isA(JobEnum.THIEF) || job.isA(JobEnum.NIGHTWALKER1)) {
             baseValue = 16;
             resetValue = 16;
             randomMin = 14;
             randomMax = 18;
         }
         // 弓箭手/风灵使者（远程职业）
-        else if (job.isA(Job.BOWMAN) || job.isA(Job.WINDARCHER1)) {
+        else if (job.isA(JobEnum.BOWMAN) || job.isA(JobEnum.WINDARCHER1)) {
             baseValue = 16;
             resetValue = 16;
             randomMin = 14;
             randomMax = 18;
         }
         // 海盗/冲锋队长（力量系职业）
-        else if (job.isA(Job.PIRATE) || job.isA(Job.THUNDERBREAKER1)) {
+        else if (job.isA(JobEnum.PIRATE) || job.isA(JobEnum.THUNDERBREAKER1)) {
             baseValue = 18;
             resetValue = 18;
             randomMin = 16;
             randomMax = 20;
-            skillId = job.isA(Job.PIRATE) ?
+            skillId = job.isA(JobEnum.PIRATE) ?
                     Brawler.IMPROVE_MAX_HP :
                     ThunderBreaker.IMPROVE_MAX_HP;
         }
@@ -884,7 +884,7 @@ public class AssignAPProcessor {
         reloadConfig();  // 重新加载最新配置参数
 
         //========== 基础参数初始化 ==========//
-        Job job = player.getJob();          // 获取当前职业
+        JobEnum job = player.getJob();          // 获取当前职业
         int playerInt = player.getInt();    // 缓存智力值（减少方法调用开销）
         int MaxMP = 0;                      // 最终MP增加值
 
@@ -898,7 +898,7 @@ public class AssignAPProcessor {
 
         //========== 职业专属配置 ==========//
         // 战士/黎明战士/战神（物理系职业）
-        if (job.isA(Job.WARRIOR) || job.isA(Job.DAWNWARRIOR1) || job.isA(Job.ARAN1)) {
+        if (job.isA(JobEnum.WARRIOR) || job.isA(JobEnum.DAWNWARRIOR1) || job.isA(JobEnum.ARAN1)) {
             baseValue = 3;       // 标准模式下+3
             resetValue = 2;      // 重置时+2
             randomMin = 2;       // 随机范围2-4
@@ -906,7 +906,7 @@ public class AssignAPProcessor {
             intFactor = 0.1f;    // 10%智力加成
         }
         // 魔法师/烈焰巫师（法系职业）
-        else if (job.isA(Job.MAGICIAN) || job.isA(Job.BLAZEWIZARD1)) {
+        else if (job.isA(JobEnum.MAGICIAN) || job.isA(JobEnum.BLAZEWIZARD1)) {
             baseValue = 18;      // 标准模式下+18
             resetValue = 18;     // 重置时保持+18
             randomMin = 12;      // 随机范围12-16
@@ -915,21 +915,21 @@ public class AssignAPProcessor {
             hasSkill = true;     // 需要检查技能加成
         }
         // 弓箭手/风灵使者（敏捷远程）
-        else if (job.isA(Job.BOWMAN) || job.isA(Job.WINDARCHER1)) {
+        else if (job.isA(JobEnum.BOWMAN) || job.isA(JobEnum.WINDARCHER1)) {
             baseValue = 10;      // 标准+10
             resetValue = 10;     // 重置+10
             randomMin = 6;       // 随机6-8
             randomMax = 8;
         }
         // 飞侠/暗夜行者（敏捷近战）
-        else if (job.isA(Job.THIEF) || job.isA(Job.NIGHTWALKER1)) {
+        else if (job.isA(JobEnum.THIEF) || job.isA(JobEnum.NIGHTWALKER1)) {
             baseValue = 10;      // 配置同弓箭手
             resetValue = 10;
             randomMin = 6;
             randomMax = 8;
         }
         // 海盗/冲锋队长（力量型）
-        else if (job.isA(Job.PIRATE) || job.isA(Job.THUNDERBREAKER1)) {
+        else if (job.isA(JobEnum.PIRATE) || job.isA(JobEnum.THUNDERBREAKER1)) {
             baseValue = 14;      // 标准+14
             resetValue = 14;     // 重置+14
             randomMin = 7;       // 随机7-9
@@ -940,7 +940,7 @@ public class AssignAPProcessor {
         /* 仅魔法师系职业在非重置时有技能加成 */
         if (!usedAPReset && hasSkill) {
             // 根据子职业选择正确的技能ID
-            int skillId = job.isA(Job.BLAZEWIZARD1) ?
+            int skillId = job.isA(JobEnum.BLAZEWIZARD1) ?
                     BlazeWizard.INCREASING_MAX_MP :
                     Magician.IMPROVED_MAX_MP_INCREASE;
 
@@ -970,18 +970,18 @@ public class AssignAPProcessor {
      * @param job 职业
      * @return HP减少量
      */
-    private static int takeHp(Job job) {
+    private static int takeHp(JobEnum job) {
         int MaxHP = 0;
 
-        if (job.isA(Job.WARRIOR) || job.isA(Job.DAWNWARRIOR1) || job.isA(Job.ARAN1)) {
+        if (job.isA(JobEnum.WARRIOR) || job.isA(JobEnum.DAWNWARRIOR1) || job.isA(JobEnum.ARAN1)) {
             MaxHP += 54;
-        } else if (job.isA(Job.MAGICIAN) || job.isA(Job.BLAZEWIZARD1)) {
+        } else if (job.isA(JobEnum.MAGICIAN) || job.isA(JobEnum.BLAZEWIZARD1)) {
             MaxHP += 10;
-        } else if (job.isA(Job.THIEF) || job.isA(Job.NIGHTWALKER1)) {
+        } else if (job.isA(JobEnum.THIEF) || job.isA(JobEnum.NIGHTWALKER1)) {
             MaxHP += 20;
-        } else if (job.isA(Job.BOWMAN) || job.isA(Job.WINDARCHER1)) {
+        } else if (job.isA(JobEnum.BOWMAN) || job.isA(JobEnum.WINDARCHER1)) {
             MaxHP += 20;
-        } else if (job.isA(Job.PIRATE) || job.isA(Job.THUNDERBREAKER1)) {
+        } else if (job.isA(JobEnum.PIRATE) || job.isA(JobEnum.THUNDERBREAKER1)) {
             MaxHP += 42;
         } else {
             MaxHP += 12;
@@ -995,18 +995,18 @@ public class AssignAPProcessor {
      * @param job 职业
      * @return MP减少量
      */
-    private static int takeMp(Job job) {
+    private static int takeMp(JobEnum job) {
         int MaxMP = 0;
 
-        if (job.isA(Job.WARRIOR) || job.isA(Job.DAWNWARRIOR1) || job.isA(Job.ARAN1)) {
+        if (job.isA(JobEnum.WARRIOR) || job.isA(JobEnum.DAWNWARRIOR1) || job.isA(JobEnum.ARAN1)) {
             MaxMP += 4;
-        } else if (job.isA(Job.MAGICIAN) || job.isA(Job.BLAZEWIZARD1)) {
+        } else if (job.isA(JobEnum.MAGICIAN) || job.isA(JobEnum.BLAZEWIZARD1)) {
             MaxMP += 31;
-        } else if (job.isA(Job.BOWMAN) || job.isA(Job.WINDARCHER1)) {
+        } else if (job.isA(JobEnum.BOWMAN) || job.isA(JobEnum.WINDARCHER1)) {
             MaxMP += 12;
-        } else if (job.isA(Job.THIEF) || job.isA(Job.NIGHTWALKER1)) {
+        } else if (job.isA(JobEnum.THIEF) || job.isA(JobEnum.NIGHTWALKER1)) {
             MaxMP += 12;
-        } else if (job.isA(Job.PIRATE) || job.isA(Job.THUNDERBREAKER1)) {
+        } else if (job.isA(JobEnum.PIRATE) || job.isA(JobEnum.THUNDERBREAKER1)) {
             MaxMP += 16;
         } else {
             MaxMP += 8;

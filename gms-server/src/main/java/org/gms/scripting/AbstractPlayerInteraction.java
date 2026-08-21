@@ -90,7 +90,7 @@ public class AbstractPlayerInteraction {
         return getPlayer().getJob().getId();
     }
 
-    public Job getJob() {
+    public JobEnum getJob() {
         return getPlayer().getJob();
     }
 

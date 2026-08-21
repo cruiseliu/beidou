@@ -1,6 +1,6 @@
 package org.gms.client.character;
 
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.config.GameConfig;
 import org.gms.dao.entity.CharactersDO;
 import org.gms.exception.NotEnabledException;
@@ -55,10 +55,10 @@ class CharacterRebirth {
     // ── 执行 ──
 
     void executeRebornAsId(int jobId) {
-        executeRebornAs(Job.getById(jobId));
+        executeRebornAs(JobEnum.getById(jobId));
     }
 
-    void executeRebornAs(Job job) {
+    void executeRebornAs(JobEnum job) {
         if (!GameConfig.getServerBoolean("use_rebirth_system")) {
             owner.yellowMessage(I18nUtil.getMessage("Character.USE_REBIRTH_SYSTEM")); //重生系统未启用
             throw new NotEnabledException();

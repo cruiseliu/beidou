@@ -60,9 +60,9 @@ public class FamilyEntry {
     // cached values for offline players
     private String charName;
     private int level;
-    private Job job;
+    private JobEnum job;
 
-    public FamilyEntry(Family family, int characterID, String charName, int level, Job job) {
+    public FamilyEntry(Family family, int characterID, String charName, int level, JobEnum job) {
         this.family = family;
         this.characterID = characterID;
         this.charName = charName;
@@ -248,7 +248,7 @@ public class FamilyEntry {
         }
     }
 
-    public Job getJob() {
+    public JobEnum getJob() {
         Character chr = character;
         if (chr != null) {
             return chr.getJob();

@@ -19,7 +19,7 @@
 */
 package org.gms.client.creator;
 
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.client.Skill;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.Item;
@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author RonanLana
  */
 public class CharacterFactoryRecipe {
-    private final Job job;
+    private final JobEnum job;
     private final int level;
     private final int map;
     private final int top;
@@ -52,7 +52,7 @@ public class CharacterFactoryRecipe {
     private final List<Pair<Item, InventoryType>> itemsWithType = new LinkedList<>();
     private final Map<InventoryType, AtomicInteger> runningTypePosition = new LinkedHashMap<>();
 
-    public CharacterFactoryRecipe(Job job, int level, int map, int top, int bottom, int shoes, int weapon) {
+    public CharacterFactoryRecipe(JobEnum job, int level, int map, int top, int bottom, int shoes, int weapon) {
         this.job = job;
         this.level = level;
         this.map = map;
@@ -61,13 +61,12 @@ public class CharacterFactoryRecipe {
         this.shoes = shoes;
         this.weapon = weapon;
 
-        if (!GameConfig.getServerBoolean("use_starting_ap_4")) {
-            if (GameConfig.getServerBoolean("use_auto_assign_starters_ap")) {
-                str = 12;
-                dex = 5;
-            } else {
-                ap = 9;
-            }
+        // 新版本模式起始属性：12/5/4/4（自动分配）或 9 AP 自分配（早期 GMS 4/4/4/4 模式已舍弃）
+        if (GameConfig.getServerBoolean("use_auto_assign_starters_ap")) {
+            str = 12;
+            dex = 5;
+        } else {
+            ap = 9;
         }
     }
 
@@ -125,7 +124,7 @@ public class CharacterFactoryRecipe {
         itemsWithType.add(new Pair<>(new Item(itemid, (short) p.getAndIncrement(), (short) quantity), itemType));
     }
 
-    public Job getJob() {
+    public JobEnum getJob() {
         return job;
     }
 

@@ -2,7 +2,6 @@ package org.gms.client.character;
 
 import org.gms.client.EffectType;
 import org.gms.client.Skill;
-import org.gms.constants.id.ItemId;
 import org.gms.net.server.Server;
 import org.gms.server.BuffEffectData;
 import org.gms.server.TimerManager;
@@ -13,7 +12,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.gms.client.SkillFactory;
-import org.gms.constants.skills.Bishop;
 import org.gms.constants.skills.Corsair;
 import org.gms.constants.skills.Crusader;
 import org.gms.constants.skills.DawnWarrior;

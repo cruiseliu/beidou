@@ -34,6 +34,8 @@ public class Skill {
     private int animationTime;
     private final int job;
     private boolean action;
+    /** 精通等级（wz "masterLevel" 字段；0 = 无独立精通，语义等于 max level） */
+    private int masterLevel;
 
     public Skill(int id) {
         this.id = id;
@@ -50,6 +52,18 @@ public class Skill {
 
     public int getMaxLevel() {
         return effects.size();
+    }
+
+    /**
+     * 精通等级。wz 显式声明则取该值（四转技能如 10）；缺省（0）语义 = max level。
+     * 该语义由技能数据表达，不做职业/版本推断。
+     */
+    public int getMasterLevel() {
+        return masterLevel > 0 ? masterLevel : getMaxLevel();
+    }
+
+    void setMasterLevel(int masterLevel) {
+        this.masterLevel = masterLevel;
     }
 
     public boolean isFourthJob() {

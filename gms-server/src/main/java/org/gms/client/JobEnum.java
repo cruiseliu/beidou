@@ -25,7 +25,7 @@ import lombok.Getter;
 import org.gms.util.I18nUtil;
 
 
-public enum Job {
+public enum JobEnum {
     BEGINNER(0, I18nUtil.getMessage("job.name.0")),
     WARRIOR(100, I18nUtil.getMessage("job.name.100")),
     FIGHTER(110, I18nUtil.getMessage("job.name.110")), CRUSADER(111, I18nUtil.getMessage("job.name.111")), HERO(112, I18nUtil.getMessage("job.name.112")),
@@ -72,7 +72,7 @@ public enum Job {
 
     final static int maxId = 22;    // maxId = (EVAN / 100);
 
-    Job(int id, String name) {
+    JobEnum(int id, String name) {
         this.id = id;
         this.name = name;
     }
@@ -82,8 +82,8 @@ public enum Job {
         return maxId;
     }
 
-    public static Job getById(int id) {
-        for (Job l : Job.values()) {
+    public static JobEnum getById(int id) {
+        for (JobEnum l : JobEnum.values()) {
             if (l.getId() == id) {
                 return l;
             }
@@ -91,7 +91,7 @@ public enum Job {
         return BEGINNER;
     }
 
-    public static Job getBy5ByteEncoding(int encoded) {
+    public static JobEnum getBy5ByteEncoding(int encoded) {
         return switch (encoded) {
             case 2 -> WARRIOR;
             case 4 -> MAGICIAN;
@@ -108,7 +108,7 @@ public enum Job {
         };
     }
 
-    public boolean isA(Job basejob) {  // thanks Steve (kaito1410) for pointing out an improvement here
+    public boolean isA(JobEnum basejob) {  // thanks Steve (kaito1410) for pointing out an improvement here
         int basebranch = basejob.getId() / 10;
         return (getId() / 10 == basebranch && getId() >= basejob.getId()) || (basebranch % 10 == 0 && getId() / 100 == basejob.getId() / 100);
     }
@@ -126,7 +126,7 @@ public enum Job {
         */
     }
 
-    public static Job getJobStyleInternal(int jobid, byte opt) {
+    public static JobEnum getJobStyleInternal(int jobid, byte opt) {
         int jobtype = jobid / 100;
 
         if (jobtype == WARRIOR.getId() / 100 || jobtype == DAWNWARRIOR1.getId() / 100 || jobtype == ARAN1.getId() / 100) {

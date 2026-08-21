@@ -1,6 +1,6 @@
 package org.gms.client.character;
 
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.model.json.CharacterSpData;
 import org.gms.util.Locks;
 
@@ -27,7 +27,7 @@ class CharacterSp {
 
     /** SP 数组下标：新手 0，非新手 1 */
     static int indexOf(int jobId) {
-        return Job.getById(jobId).isBeginnerJob() ? 0 : 1;
+        return JobEnum.getById(jobId).isBeginnerJob() ? 0 : 1;
     }
 
     int getRemainingSp(int jobId) {

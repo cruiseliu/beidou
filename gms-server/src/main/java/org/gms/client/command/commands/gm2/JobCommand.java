@@ -25,7 +25,7 @@ package org.gms.client.command.commands.gm2;
 
 import org.gms.client.character.Character;
 import org.gms.client.Client;
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.client.command.Command;
 import org.gms.util.I18nUtil;
 import org.gms.util.StringUtil;
@@ -45,7 +45,7 @@ public class JobCommand extends Command {
                 return;
             }
 
-            player.changeJob(Job.getById(jobid));
+            player.changeJob(JobEnum.getById(jobid));
             player.equipChanged();
         } else if (params.length == 2) {
             Character victim = c.getWorldServer().getPlayerStorage().getCharacterByName(params[0]);
@@ -59,7 +59,7 @@ public class JobCommand extends Command {
                     return;
                 }
 
-                victim.changeJob(Job.getById(jobid));
+                victim.changeJob(JobEnum.getById(jobid));
                 player.equipChanged();
             } else {
                 player.message(I18nUtil.getMessage("BombCommand.message3", params[0]));

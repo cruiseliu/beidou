@@ -3,14 +3,16 @@ package org.gms.client.character;
 import org.gms.client.Client;
 import org.gms.client.EffectType;
 import org.gms.client.Family;
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
+import org.gms.client.job.GainStats;
+import org.gms.client.job.JobDefinition;
+import org.gms.client.job.JobRegistry;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.client.Stat;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
 import org.gms.constants.skills.*;
-import org.gms.net.server.guild.Guild;
 import org.gms.net.server.world.PartyCharacter;
 import org.gms.server.TimerManager;
 import org.gms.server.maps.MapleMap;
@@ -34,7 +36,7 @@ class CharacterJob {
     private final Character owner;
 
     /** 当前职业 */
-    private Job job = Job.BEGINNER;
+    private JobEnum job = JobEnum.BEGINNER;
 
     CharacterJob(Character owner) {
         this.owner = owner;
@@ -42,11 +44,11 @@ class CharacterJob {
 
     // ── 查询 ──
 
-    Job getJob() {
+    JobEnum getJob() {
         return job;
     }
 
-    void setJob(Job job) {
+    void setJob(JobEnum job) {
         this.job = job;
     }
 
@@ -60,12 +62,12 @@ class CharacterJob {
     }
 
     /** 职业归属判定（委托 job.isA） */
-    boolean isA(Job job) {
+    boolean isA(JobEnum job) {
         return this.job.isA(job);
     }
 
     /** 职业相等判定（委托 job.equals） */
-    boolean equalsJob(Job job) {
+    boolean equalsJob(JobEnum job) {
         return this.job.equals(job);
     }
 
@@ -86,17 +88,17 @@ class CharacterJob {
         return (getId() == 0 || getId() == 1000 || getId() == 2000);
     }
 
-    Job getJobStyle(byte opt) {
-        return Job.getJobStyleInternal(this.getId(), opt);
+    JobEnum getJobStyle(byte opt) {
+        return JobEnum.getJobStyleInternal(this.getId(), opt);
     }
 
-    Job getJobStyle() {
+    JobEnum getJobStyle() {
         return getJobStyle((byte) ((owner.getStr() > owner.getDex()) ? 0x80 : 0x40));
     }
 
     // ── 转职 ──
 
-    synchronized void changeJob(Job newJob) {
+    synchronized void changeJob(JobEnum newJob) {
         if (newJob == null) {
             return;//the fuck you doing idiot!
         }
@@ -109,36 +111,21 @@ class CharacterJob {
             this.job = newJob;
         }
 
-        int spGain = 1;
-        if (GameConstants.hasSPTable(newJob)) {
-            spGain += 2;
-        } else {
-            if (newJob.getId() % 10 == 2) {
-                spGain += 2;
-            }
+        // 转职一次性授予（HP/MP/AP/SP 全在 advancementGainStats；对称于升级的 gainStats）
+        JobDefinition def = JobRegistry.of(newJob);
+        GainStats adv = def.advancementGainStats();
 
-            if (GameConfig.getServerBoolean("use_enforce_job_sp_range")) {
-                spGain = owner.getChangedJobSp(newJob);
-            }
+        int spGain = adv != null ? adv.sp() : 0;
+        if (GameConfig.getServerBoolean("use_enforce_job_sp_range")) {
+            spGain = owner.getChangedJobSp(newJob);
         }
 
         if (spGain > 0) {
             owner.gainSp(spGain, newJob.getId(), true);
         }
 
-        // thanks xinyifly for finding out missing AP awards (AP Reset can be used as a compass)
-        if (newJob.getId() % 100 >= 1) {
-            if (this.isCygnus()) {
-                owner.gainAp(7, true);
-            } else {
-                if (GameConfig.getServerBoolean("use_starting_ap_4") || newJob.getId() % 10 >= 1) {
-                    owner.gainAp(5, true);
-                }
-            }
-        } else {    // thanks Periwinks for noticing an AP shortage from lower levels
-            if (GameConfig.getServerBoolean("use_starting_ap_4") && newJob.getId() % 1000 >= 1) {
-                owner.gainAp(4, true);
-            }
+        if (adv != null && adv.ap() > 0) {
+            owner.gainAp(adv.ap(), true);
         }
 
         if (!owner.isGM()) {
@@ -148,22 +135,11 @@ class CharacterJob {
         }
 
         boolean fixedLevelUpHpMp = true;  // todo: [refactor] hard coded config
-        int addhp = 0, addmp = 0;
-        int job_ = getId() % 1000; // lame temp "fix"
-        if (job_ == 100) {                      // 1st warrior
-            addhp += CharacterStats.getHpMpGainFromRange(200, 250, fixedLevelUpHpMp);
-        } else if (job_ == 200) {               // 1st mage
-            addmp += CharacterStats.getHpMpGainFromRange(100, 150, fixedLevelUpHpMp);
-        } else if (job_ % 100 == 0) {           // 1st others
-            addhp += CharacterStats.getHpMpGainFromRange(100, 150, fixedLevelUpHpMp);
-            addmp += CharacterStats.getHpMpGainFromRange(25, 50, fixedLevelUpHpMp);
-        } else if (job_ > 0 && job_ < 200) {    // 2nd~4th warrior
-            addhp += CharacterStats.getHpMpGainFromRange(300, 350, fixedLevelUpHpMp);
-        } else if (job_ < 300) {                // 2nd~4th mage
-            addmp += CharacterStats.getHpMpGainFromRange(450, 500, fixedLevelUpHpMp);
-        } else {                  // 2nd~4th others
-            addhp += CharacterStats.getHpMpGainFromRange(300, 350, fixedLevelUpHpMp);
-            addmp += CharacterStats.getHpMpGainFromRange(150, 200, fixedLevelUpHpMp);
+        int newMaxHp = 0, newMaxMp = 0;
+        if (adv != null) {
+            // NEW = applyGrowth(OLD, growth, fixed)，直接取新值应用，不做增量换算
+            newMaxHp = CharacterStats.applyGrowth(owner.stats.maxHp, adv.maxHp(), fixedLevelUpHpMp);
+            newMaxMp = CharacterStats.applyGrowth(owner.stats.maxMp, adv.maxMp(), fixedLevelUpHpMp);
         }
 
         /*
@@ -180,10 +156,12 @@ class CharacterJob {
         }
         */
 
-        // effLock 已冗余：addMaxMPMaxHP/recalcLocalStats 只需 stats.wLock
+        // effLock 已冗余：applyUpdateSilently/recalcLocalStats 只需 stats.wLock
         owner.stats.wLock.lock();
         try {
-            owner.stats.addMaxMPMaxHP(addhp, addmp, true);
+            if (adv != null) {
+                owner.stats.applyUpdateSilently(new StatsUpdate().setMaxHp(newMaxHp).setMaxMp(newMaxMp));
+            }
             owner.recalcLocalStats();
 
             List<Pair<Stat, Integer>> statup = new ArrayList<>(7);
@@ -257,78 +235,32 @@ class CharacterJob {
     // ── 转职专属：mastery 授予 ──
 
     void setMasteries(int jobId) {
-        int[] skills = new int[]{0, 0, 0, 0};
-        if (jobId == 112) {
-            skills[0] = Hero.ACHILLES;
-            skills[1] = Hero.MONSTER_MAGNET;
-            skills[2] = Hero.BRANDISH;
-        } else if (jobId == 122) {
-            skills[0] = Paladin.ACHILLES;
-            skills[1] = Paladin.MONSTER_MAGNET;
-            skills[2] = Paladin.BLAST;
-        } else if (jobId == 132) {
-            skills[0] = DarkKnight.BEHOLDER;
-            skills[1] = DarkKnight.ACHILLES;
-            skills[2] = DarkKnight.MONSTER_MAGNET;
-        } else if (jobId == 212) {
-            skills[0] = FPArchMage.BIG_BANG;
-            skills[1] = FPArchMage.MANA_REFLECTION;
-            skills[2] = FPArchMage.PARALYZE;
-        } else if (jobId == 222) {
-            skills[0] = ILArchMage.BIG_BANG;
-            skills[1] = ILArchMage.MANA_REFLECTION;
-            skills[2] = ILArchMage.CHAIN_LIGHTNING;
-        } else if (jobId == 232) {
-            skills[0] = Bishop.BIG_BANG;
-            skills[1] = Bishop.MANA_REFLECTION;
-            skills[2] = Bishop.HOLY_SHIELD;
-        } else if (jobId == 312) {
-            skills[0] = Bowmaster.BOW_EXPERT;
-            skills[1] = Bowmaster.HAMSTRING;
-            skills[2] = Bowmaster.SHARP_EYES;
-        } else if (jobId == 322) {
-            skills[0] = Marksman.MARKSMAN_BOOST;
-            skills[1] = Marksman.BLIND;
-            skills[2] = Marksman.SHARP_EYES;
-        } else if (jobId == 412) {
-            skills[0] = NightLord.SHADOW_STARS;
-            skills[1] = NightLord.SHADOW_SHIFTER;
-            skills[2] = NightLord.VENOMOUS_STAR;
-        } else if (jobId == 422) {
-            skills[0] = Shadower.SHADOW_SHIFTER;
-            skills[1] = Shadower.VENOMOUS_STAB;
-            skills[2] = Shadower.BOOMERANG_STEP;
-        } else if (jobId == 512) {
-            skills[0] = Buccaneer.BARRAGE;
-            skills[1] = Buccaneer.ENERGY_ORB;
-            skills[2] = Buccaneer.SPEED_INFUSION;
-            skills[3] = Buccaneer.DRAGON_STRIKE;
-        } else if (jobId == 522) {
-            skills[0] = Corsair.ELEMENTAL_BOOST;
-            skills[1] = Corsair.BULLSEYE;
-            skills[2] = Corsair.WRATH_OF_THE_OCTOPI;
-            skills[3] = Corsair.RAPID_FIRE;
-        } else if (jobId == 2112) {
-            skills[0] = Aran.OVER_SWING;
-            skills[1] = Aran.HIGH_MASTERY;
-            skills[2] = Aran.FREEZE_STANDING;
-        } else if (jobId == 2217) {
-            skills[0] = Evan.MAPLE_WARRIOR;
-            skills[1] = Evan.ILLUSION;
-        } else if (jobId == 2218) {
-            skills[0] = Evan.BLESSING_OF_THE_ONYX;
-            skills[1] = Evan.BLAZE;
-        }
-        for (Integer skillId : skills) {
-            if (skillId != 0) {
-                Skill skill = SkillFactory.getSkill(skillId);
-                final int skilllevel = owner.getSkillLevel(skill);
-                if (skilllevel > 0) {
-                    continue;
-                }
-
-                owner.changeSkillLevel(skill, (byte) 0, 10, -1);
+        JobDefinition def = JobRegistry.of(JobEnum.getById(jobId));
+        for (Integer skillId : def.acquiredSkills()) {
+            Skill skill = SkillFactory.getSkill(skillId);
+            if (owner.getSkillLevel(skill) > 0) {
+                continue;
             }
+            owner.changeSkillLevel(skill, (byte) 0, skill.getMasterLevel(), -1);
         }
+    }
+
+    // ── 职业定义门面（JobDefinition 具体实现只在 CharacterJob 内部；其他组件只依赖这些简单类型） ──
+
+    int getMaxClassLevel() {
+        return JobRegistry.of(job).maxLevel();
+    }
+
+    int getMaxLevel() {
+        JobDefinition def = JobRegistry.of(job);
+        if (!GameConfig.getServerBoolean("use_enforce_job_level_range") || isGmJob()) {
+            return def.maxLevel();
+        }
+        return def.advancementHint();
+    }
+
+    /** 指定等级（升级后的新等级）对应的升级奖励；无区间返回 null */
+    GainStats gainStatsAtLevel(int level) {
+        return JobRegistry.of(job).gainStatsAtLevel(level);
     }
 }

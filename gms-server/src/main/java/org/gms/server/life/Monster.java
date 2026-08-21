@@ -25,7 +25,7 @@ import org.gms.client.EffectType;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.FamilyEntry;
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.client.status.MonsterStatus;
@@ -1244,7 +1244,7 @@ public class Monster extends AbstractLoadedLife {
             overtimeAction = new DamageTask(poisonDamage, from, status, 0);
             overtimeDelay = 1000;
         } else if (venom) {
-            if (from.getJob() == Job.NIGHTLORD || from.getJob() == Job.SHADOWER || from.getJob().isA(Job.NIGHTWALKER3)) {
+            if (from.getJob() == JobEnum.NIGHTLORD || from.getJob() == JobEnum.SHADOWER || from.getJob().isA(JobEnum.NIGHTWALKER3)) {
                 int poisonLevel, matk, jobid = from.getJob().getId();
                 int skillid = (jobid == 412 ? NightLord.VENOMOUS_STAR : (jobid == 422 ? Shadower.VENOMOUS_STAB : NightWalker.VENOM));
                 poisonLevel = from.getSkillLevel(SkillFactory.getSkill(skillid));

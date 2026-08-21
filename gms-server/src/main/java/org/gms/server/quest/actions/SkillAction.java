@@ -22,7 +22,7 @@
 package org.gms.server.quest.actions;
 
 import org.gms.client.character.Character;
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.provider.Data;
@@ -113,7 +113,7 @@ public class SkillAction extends AbstractQuestAction {
             return masterLevel;
         }
 
-        public boolean jobsContains(Job job) {
+        public boolean jobsContains(JobEnum job) {
             return jobs.contains(job.getId());
         }
 

@@ -23,7 +23,7 @@ package org.gms.server;
 
 import org.gms.client.character.Character;
 import org.gms.client.Client;
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.client.autoban.AutobanFactory;
@@ -345,7 +345,7 @@ public class ItemInformationProvider {
 
         // thanks GMChuck for detecting player sensitive data being cached into getSlotMax
         if (ItemConstants.isThrowingStar(itemId)) {
-            if (c.getPlayer().getJob().isA(Job.NIGHTWALKER1)) {
+            if (c.getPlayer().getJob().isA(JobEnum.NIGHTWALKER1)) {
                 ret += c.getPlayer().getSkillLevel(SkillFactory.getSkill(NightWalker.CLAW_MASTERY)) * 10;
             } else {
                 ret += c.getPlayer().getSkillLevel(SkillFactory.getSkill(Assassin.CLAW_MASTERY)) * 10;
@@ -1770,7 +1770,7 @@ public class ItemInformationProvider {
             return items;
         }
         Collection<Item> itemz = new LinkedList<>();
-        if (chr.getJob() == Job.SUPERGM || chr.getJob() == Job.GM) {
+        if (chr.getJob() == JobEnum.SUPERGM || chr.getJob() == JobEnum.GM) {
             for (Item item : items) {
                 Equip equip = (Equip) item;
                 equip.wear(true);
@@ -1792,7 +1792,7 @@ public class ItemInformationProvider {
             ex.printStackTrace();
          }*/
         int tdex = chr.getDex(), tstr = chr.getStr(), tint = chr.getInt(), tluk = chr.getLuk(), fame = chr.getFame();
-        if (chr.getJob() != Job.SUPERGM || chr.getJob() != Job.GM) {
+        if (chr.getJob() != JobEnum.SUPERGM || chr.getJob() != JobEnum.GM) {
             for (Item item : inv.list()) {
                 Equip equip = (Equip) item;
                 tdex += equip.getDex();
@@ -1858,7 +1858,7 @@ public class ItemInformationProvider {
             return false;
         }
 
-        if (chr.getJob() == Job.SUPERGM || chr.getJob() == Job.GM) {
+        if (chr.getJob() == JobEnum.SUPERGM || chr.getJob() == JobEnum.GM) {
             equip.wear(true);
             return true;
         }

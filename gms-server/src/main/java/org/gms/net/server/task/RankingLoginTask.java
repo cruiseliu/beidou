@@ -21,7 +21,7 @@
 */
 package org.gms.net.server.task;
 
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.config.GameConfig;
 import org.gms.net.server.Server;
 import org.gms.util.DatabaseConnection;
@@ -93,7 +93,7 @@ public class RankingLoginTask implements Runnable {
 
                 for (int j = 0; j < Server.getInstance().getWorldsSize(); j++) {
                     updateRanking(-1, j);    //overall ranking
-                    for (int i = 0; i <= Job.getMax(); i++) {
+                    for (int i = 0; i <= JobEnum.getMax(); i++) {
                         updateRanking(i, j);
                     }
                     con.commit();

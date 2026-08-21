@@ -23,7 +23,7 @@ package org.gms.net.server.channel.handlers;
 
 import org.gms.client.EffectType;
 import org.gms.client.character.Character;
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.client.autoban.AutobanFactory;
@@ -251,7 +251,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                         distanceToDetect += 200000;
                     }
 
-                    if (player.getJob().isA(Job.ARAN1)) {
+                    if (player.getJob().isA(JobEnum.ARAN1)) {
                         distanceToDetect += 200000; // Arans have extra range over normal warriors.
                     }
 
@@ -763,22 +763,22 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
 
             if (magic) {
                 // Since the skill is magic based, use the magic formula
-                if (chr.getJob() == Job.IL_ARCHMAGE || chr.getJob() == Job.IL_MAGE) {
+                if (chr.getJob() == JobEnum.IL_ARCHMAGE || chr.getJob() == JobEnum.IL_MAGE) {
                     int skillLvl = chr.getSkillLevel(ILMage.ELEMENT_AMPLIFICATION);
                     if (skillLvl > 0) {
                         calcDmgMax = calcDmgMax * SkillFactory.getSkill(ILMage.ELEMENT_AMPLIFICATION).getEffect(skillLvl).getY() / 100;
                     }
-                } else if (chr.getJob() == Job.FP_ARCHMAGE || chr.getJob() == Job.FP_MAGE) {
+                } else if (chr.getJob() == JobEnum.FP_ARCHMAGE || chr.getJob() == JobEnum.FP_MAGE) {
                     int skillLvl = chr.getSkillLevel(FPMage.ELEMENT_AMPLIFICATION);
                     if (skillLvl > 0) {
                         calcDmgMax = calcDmgMax * SkillFactory.getSkill(FPMage.ELEMENT_AMPLIFICATION).getEffect(skillLvl).getY() / 100;
                     }
-                } else if (chr.getJob() == Job.BLAZEWIZARD3 || chr.getJob() == Job.BLAZEWIZARD4) {
+                } else if (chr.getJob() == JobEnum.BLAZEWIZARD3 || chr.getJob() == JobEnum.BLAZEWIZARD4) {
                     int skillLvl = chr.getSkillLevel(BlazeWizard.ELEMENT_AMPLIFICATION);
                     if (skillLvl > 0) {
                         calcDmgMax = calcDmgMax * SkillFactory.getSkill(BlazeWizard.ELEMENT_AMPLIFICATION).getEffect(skillLvl).getY() / 100;
                     }
-                } else if (chr.getJob() == Job.EVAN7 || chr.getJob() == Job.EVAN8 || chr.getJob() == Job.EVAN9 || chr.getJob() == Job.EVAN10) {
+                } else if (chr.getJob() == JobEnum.EVAN7 || chr.getJob() == JobEnum.EVAN8 || chr.getJob() == JobEnum.EVAN9 || chr.getJob() == JobEnum.EVAN10) {
                     int skillLvl = chr.getSkillLevel(Evan.MAGIC_AMPLIFICATION);
                     if (skillLvl > 0) {
                         calcDmgMax = calcDmgMax * SkillFactory.getSkill(Evan.MAGIC_AMPLIFICATION).getEffect(skillLvl).getY() / 100;
@@ -861,7 +861,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
             calcDmgMax += 80000; // Aran Tutorial.
         }
 
-        boolean canCrit = chr.getJob().isA((Job.BOWMAN)) || chr.getJob().isA(Job.THIEF) || chr.getJob().isA(Job.NIGHTWALKER1) || chr.getJob().isA(Job.WINDARCHER1) || chr.getJob() == Job.ARAN3 || chr.getJob() == Job.ARAN4 || chr.getJob() == Job.MARAUDER || chr.getJob() == Job.BUCCANEER;
+        boolean canCrit = chr.getJob().isA((JobEnum.BOWMAN)) || chr.getJob().isA(JobEnum.THIEF) || chr.getJob().isA(JobEnum.NIGHTWALKER1) || chr.getJob().isA(JobEnum.WINDARCHER1) || chr.getJob() == JobEnum.ARAN3 || chr.getJob() == JobEnum.ARAN4 || chr.getJob() == JobEnum.MARAUDER || chr.getJob() == JobEnum.BUCCANEER;
 
         BuffEffectData sharpEyesEffect = chr.getBuffEffect(EffectType.SHARP_EYES);
         if (sharpEyesEffect != null) {

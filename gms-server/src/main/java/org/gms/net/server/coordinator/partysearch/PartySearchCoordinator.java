@@ -20,7 +20,7 @@
 package org.gms.net.server.coordinator.partysearch;
 
 import org.gms.client.character.Character;
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.MapId;
 import org.gms.net.server.coordinator.world.InviteCoordinator;
@@ -50,8 +50,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class PartySearchCoordinator {
 
-    private final Map<Job, PartySearchStorage> storage = new HashMap<>();
-    private final Map<Job, PartySearchEchelon> upcomers = new HashMap<>();
+    private final Map<JobEnum, PartySearchStorage> storage = new HashMap<>();
+    private final Map<JobEnum, PartySearchEchelon> upcomers = new HashMap<>();
 
     private final List<Character> leaderQueue = new LinkedList<>();
     private final Lock leaderQueueRLock;
@@ -65,10 +65,10 @@ public class PartySearchCoordinator {
     private int updateCount = 0;
 
     private static final Map<Integer, Set<Integer>> mapNeighbors = fetchNeighbouringMaps();
-    private static final Map<Integer, Job> jobTable = instantiateJobTable();
+    private static final Map<Integer, JobEnum> jobTable = instantiateJobTable();
 
     public PartySearchCoordinator() {
-        for (Job job : jobTable.values()) {
+        for (JobEnum job : jobTable.values()) {
             storage.put(job, new PartySearchStorage());
             upcomers.put(job, new PartySearchEchelon());
         }
@@ -117,33 +117,33 @@ public class PartySearchCoordinator {
         }
     }
 
-    private static Map<Integer, Job> instantiateJobTable() {
-        Map<Integer, Job> table = new HashMap<>();
+    private static Map<Integer, JobEnum> instantiateJobTable() {
+        Map<Integer, JobEnum> table = new HashMap<>();
 
         List<Pair<Integer, Integer>> jobSearchTypes = new LinkedList<Pair<Integer, Integer>>() {{
-            add(new Pair<>(Job.MAPLELEAF_BRIGADIER.getId(), 0));
+            add(new Pair<>(JobEnum.MAPLELEAF_BRIGADIER.getId(), 0));
             add(new Pair<>(0, 0));
-            add(new Pair<>(Job.ARAN1.getId(), 0));
+            add(new Pair<>(JobEnum.ARAN1.getId(), 0));
             add(new Pair<>(100, 3));
-            add(new Pair<>(Job.DAWNWARRIOR1.getId(), 0));
+            add(new Pair<>(JobEnum.DAWNWARRIOR1.getId(), 0));
             add(new Pair<>(200, 3));
-            add(new Pair<>(Job.BLAZEWIZARD1.getId(), 0));
+            add(new Pair<>(JobEnum.BLAZEWIZARD1.getId(), 0));
             add(new Pair<>(500, 2));
-            add(new Pair<>(Job.THUNDERBREAKER1.getId(), 0));
+            add(new Pair<>(JobEnum.THUNDERBREAKER1.getId(), 0));
             add(new Pair<>(400, 2));
-            add(new Pair<>(Job.NIGHTWALKER1.getId(), 0));
+            add(new Pair<>(JobEnum.NIGHTWALKER1.getId(), 0));
             add(new Pair<>(300, 2));
-            add(new Pair<>(Job.WINDARCHER1.getId(), 0));
-            add(new Pair<>(Job.EVAN1.getId(), 0));
+            add(new Pair<>(JobEnum.WINDARCHER1.getId(), 0));
+            add(new Pair<>(JobEnum.EVAN1.getId(), 0));
         }};
 
         int i = 0;
         for (Pair<Integer, Integer> p : jobSearchTypes) {
-            table.put(i, Job.getById(p.getLeft()));
+            table.put(i, JobEnum.getById(p.getLeft()));
             i++;
 
             for (int j = 1; j <= p.getRight(); j++) {
-                table.put(i, Job.getById(p.getLeft() + 10 * j));
+                table.put(i, JobEnum.getById(p.getLeft() + 10 * j));
                 i++;
             }
         }
@@ -154,18 +154,18 @@ public class PartySearchCoordinator {
     private class LeaderSearchMetadata {
         private final int minLevel;
         private final int maxLevel;
-        private final List<Job> searchedJobs;
+        private final List<JobEnum> searchedJobs;
 
         private int reentryCount;
 
-        private List<Job> decodeSearchedJobs(int jobsSelected) {
-            List<Job> searchedJobs = new LinkedList<>();
+        private List<JobEnum> decodeSearchedJobs(int jobsSelected) {
+            List<JobEnum> searchedJobs = new LinkedList<>();
 
             int topByte = (int) ((Math.log(jobsSelected) / Math.log(2)) + 1e-5);
 
             for (int i = 0; i <= topByte; i++) {
                 if (jobsSelected % 2 == 1) {
-                    Job job = jobTable.get(i);
+                    JobEnum job = jobTable.get(i);
                     if (job != null) {
                         searchedJobs.add(job);
                     }
@@ -194,7 +194,7 @@ public class PartySearchCoordinator {
     }
 
     public void detachPlayer(Character chr) {
-        Job psJob = getPartySearchJob(chr.getJob());
+        JobEnum psJob = getPartySearchJob(chr.getJob());
 
         if (!upcomers.get(psJob).detachPlayer(chr)) {
             storage.get(psJob).detachPlayer(chr);
@@ -202,24 +202,24 @@ public class PartySearchCoordinator {
     }
 
     public void updatePartySearchStorage() {
-        for (Entry<Job, PartySearchEchelon> psUpdate : upcomers.entrySet()) {
+        for (Entry<JobEnum, PartySearchEchelon> psUpdate : upcomers.entrySet()) {
             storage.get(psUpdate.getKey()).updateStorage(psUpdate.getValue().exportEchelon());
         }
     }
 
-    private static Job getPartySearchJob(Job job) {
+    private static JobEnum getPartySearchJob(JobEnum job) {
         if (job.getJobNiche() == 0) {
-            return Job.BEGINNER;
+            return JobEnum.BEGINNER;
         } else if (job.getId() < 600) { // explorers
-            return Job.getById((job.getId() / 10) * 10);
+            return JobEnum.getById((job.getId() / 10) * 10);
         } else if (job.getId() >= 1000) {
-            return Job.getById((job.getId() / 100) * 100);
+            return JobEnum.getById((job.getId() / 100) * 100);
         } else {
-            return Job.MAPLELEAF_BRIGADIER;
+            return JobEnum.MAPLELEAF_BRIGADIER;
         }
     }
 
-    private Character fetchPlayer(int callerCid, int callerMapid, Job job, int minLevel, int maxLevel) {
+    private Character fetchPlayer(int callerCid, int callerMapid, JobEnum job, int minLevel, int maxLevel) {
         return storage.get(getPartySearchJob(job)).callPlayer(callerCid, callerMapid, minLevel, maxLevel);
     }
 
@@ -279,7 +279,7 @@ public class PartySearchCoordinator {
 
             int leaderCid = leader.getId();
             int leaderMapid = leader.getMapId();
-            for (Job searchJob : settings.searchedJobs) {
+            for (JobEnum searchJob : settings.searchedJobs) {
                 Character chr = fetchPlayer(leaderCid, leaderMapid, searchJob, minLevel, maxLevel);
                 if (chr != null) {
                     return chr;

@@ -1,7 +1,7 @@
 package org.gms.client.creator;
 
 import org.gms.client.character.Character;
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.client.inventory.InventoryType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,8 +123,8 @@ public class MakeCharInfo {
         // Here we only verify the equipment if the character that's being created is of type 'Beginner'
         // This is because when the Maple Life A or Maple Life B items are used, the client does not send any data
         // regarding what equipment the character should be wearing (as it's all handled server-side)
-        Job characterJob = character.getJob();
-        if (characterJob == Job.BEGINNER || characterJob == Job.NOBLESSE || characterJob == Job.LEGEND) {
+        JobEnum characterJob = character.getJob();
+        if (characterJob == JobEnum.BEGINNER || characterJob == JobEnum.NOBLESSE || characterJob == JobEnum.LEGEND) {
             if (!verifyTopId(character.getInventory(InventoryType.EQUIPPED).getItem((short) -5).getItemId()))
                 return false;
             if (!verifyBottomId(character.getInventory(InventoryType.EQUIPPED).getItem((short) -6).getItemId()))

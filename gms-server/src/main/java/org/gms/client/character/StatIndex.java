@@ -7,7 +7,7 @@ import org.gms.client.Stat;
  * CharacterStats 的 base/local/equip 数组与 StatsUpdate.base 共用此下标；
  * KEYS 为下标 → 封包 Stat 位的映射，两者顺序一致，此处为唯一真相。
  */
-public final class BaseStat {
+public final class StatIndex {
     public static final int STR = 0;
     public static final int DEX = 1;
     public static final int INT = 2;
@@ -15,8 +15,12 @@ public final class BaseStat {
     public static final int BASE_STAT_COUNT = 4;
 
     /** 下标 → 封包 Stat 位 */
-    public static final Stat[] KEYS = {Stat.STR, Stat.DEX, Stat.INT, Stat.LUK};
+    public static final Stat[] KEYS = {
+        Stat.STR,
+        Stat.DEX,
+        Stat.INT,
+        Stat.LUK
+    };
 
-    private BaseStat() {
-    }
+    private StatIndex() { }
 }

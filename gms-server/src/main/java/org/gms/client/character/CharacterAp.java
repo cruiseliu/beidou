@@ -6,7 +6,7 @@ import org.gms.util.Locks;
 
 import java.util.Arrays;
 
-import static org.gms.client.character.BaseStat.*;
+import static org.gms.client.character.StatIndex.*;
 
 /**
  * AP（能力点）：数据 + 全部"仅与 AP 相关"和"将 AP 分配到属性"的逻辑。

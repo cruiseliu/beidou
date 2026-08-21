@@ -456,7 +456,7 @@ public class CharacterService {
             int worldId = Optional.ofNullable(cdo.getWorld()).orElse(0);
             String worldName = (worldId >= 0 && worldId < GameConstants.WORLD_NAMES.length)
                     ? GameConstants.WORLD_NAMES[worldId] : String.valueOf(worldId);
-            Job job = Job.getById(cdo.getJob());
+            JobEnum job = JobEnum.getById(cdo.getJob());
             return CharacterListItemDTO.builder()
                     .id(cdo.getId())
                     .name(cdo.getName())

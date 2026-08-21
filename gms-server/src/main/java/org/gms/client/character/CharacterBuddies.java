@@ -1,7 +1,6 @@
 package org.gms.client.character;
 
 import org.gms.client.BuddyList;
-import org.gms.client.BuddylistEntry;
 import org.gms.client.CharacterNameAndId;
 import org.gms.client.Client;
 import org.gms.util.PacketCreator;

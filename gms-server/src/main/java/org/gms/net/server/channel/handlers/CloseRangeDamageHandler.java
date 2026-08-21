@@ -24,7 +24,7 @@ package org.gms.net.server.channel.handlers;
 import org.gms.client.EffectType;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
-import org.gms.client.Job;
+import org.gms.client.JobEnum;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.config.GameConfig;
@@ -137,7 +137,7 @@ public final class CloseRangeDamageHandler extends AbstractDealDamageHandler {
                         chr.getMap().broadcastMessage(chr, PacketCreator.giveForeignBuff(chr.getId(), stat), false);
                     }
                 }
-            } else if (chr.getSkillLevel(chr.isCygnus() ? SkillFactory.getSkill(15100004) : SkillFactory.getSkill(5110001)) > 0 && (chr.getJob().isA(Job.MARAUDER) || chr.getJob().isA(Job.THUNDERBREAKER2))) {
+            } else if (chr.getSkillLevel(chr.isCygnus() ? SkillFactory.getSkill(15100004) : SkillFactory.getSkill(5110001)) > 0 && (chr.getJob().isA(JobEnum.MARAUDER) || chr.getJob().isA(JobEnum.THUNDERBREAKER2))) {
                 for (int i = 0; i < attack.numAttacked; i++) {
                     chr.handleEnergyChargeGain();
                 }
