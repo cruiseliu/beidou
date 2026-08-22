@@ -37,3 +37,5 @@ CLAUDE.local.md
 
 /gms-server/database
 /gms-server/target.*
+/gms-server/data/migrate*
+/gms-server/data/*old

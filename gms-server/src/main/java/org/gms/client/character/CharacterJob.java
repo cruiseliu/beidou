@@ -138,8 +138,8 @@ class CharacterJob {
         int newMaxHp = 0, newMaxMp = 0;
         if (adv != null) {
             // NEW = applyGrowth(OLD, growth, fixed)，直接取新值应用，不做增量换算
-            newMaxHp = CharacterStats.applyGrowth(owner.stats.maxHp, adv.maxHp(), fixedLevelUpHpMp);
-            newMaxMp = CharacterStats.applyGrowth(owner.stats.maxMp, adv.maxMp(), fixedLevelUpHpMp);
+            newMaxHp = CharacterStats.applyGrowth(owner.stats.attrs[StatIndex.MAX_HP], adv.maxHp(), fixedLevelUpHpMp);
+            newMaxMp = CharacterStats.applyGrowth(owner.stats.attrs[StatIndex.MAX_MP], adv.maxMp(), fixedLevelUpHpMp);
         }
 
         /*
@@ -167,8 +167,8 @@ class CharacterJob {
             List<Pair<Stat, Integer>> statup = new ArrayList<>(7);
             statup.add(new Pair<>(Stat.HP, owner.stats.hp));
             statup.add(new Pair<>(Stat.MP, owner.stats.mp));
-            statup.add(new Pair<>(Stat.MAXHP, owner.stats.clientMaxHp));
-            statup.add(new Pair<>(Stat.MAXMP, owner.stats.clientMaxMp));
+            statup.add(new Pair<>(Stat.MAXHP, owner.stats.getClientMaxHp()));
+            statup.add(new Pair<>(Stat.MAXMP, owner.stats.getClientMaxMp()));
             statup.add(new Pair<>(Stat.AVAILABLEAP, owner.ap.remainingAp));
             statup.add(new Pair<>(Stat.AVAILABLESP, owner.sp.remainingSp[CharacterSp.indexOf(getId())]));
             statup.add(new Pair<>(Stat.JOB, getId()));

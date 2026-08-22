@@ -67,7 +67,6 @@ public class AssignAPProcessor {
     /** 强制洗血蓝的点数只能加到血蓝，不能分配到其他属性 */
     private static boolean useEnforceHpmpSwap;
     /** 启用HeavenMS的血蓝更新机制，升级、分配属性、转职等按照比例更新血量和蓝量 */
-    private static boolean useFixedRatioHpmpUpdate;
     /** 获取HP和MP是否随机化，有职业系数加成 */
     private static boolean useRandomizeHpmpGain;
     /** 属性点最大值 */
@@ -78,7 +77,6 @@ public class AssignAPProcessor {
         useServerAutoAssigner = GameConfig.getServerBoolean("use_server_auto_assigner");
         useAutoAssignSecondaryCap = GameConfig.getServerBoolean("use_auto_assign_secondary_cap");
         useEnforceHpmpSwap = GameConfig.getServerBoolean("use_enforce_hpmp_swap");
-        useFixedRatioHpmpUpdate = GameConfig.getServerBoolean("use_fixed_ratio_hpmp_update");
         useRandomizeHpmpGain = GameConfig.getServerBoolean("use_randomize_hpmp_gain");
         maxAp = GameConfig.getServerInt("max_ap");
     }
@@ -632,9 +630,7 @@ public class AssignAPProcessor {
                     int curHp = player.getHp();
                     int hplose = -takeHp(player.getJob());
                     player.assignHP(hplose, -1);
-                    if (!useFixedRatioHpmpUpdate) {
-                        player.updateHp(Math.max(1, curHp + hplose));
-                    }
+                    player.updateHp(Math.max(1, curHp + hplose));
                 }
                 case 8192 -> { // MP
                     if (useEnforceHpmpSwap) {
@@ -670,9 +666,7 @@ public class AssignAPProcessor {
                     int curMp = player.getMp();
                     int mplose = -takeMp(job);
                     player.assignMP(mplose, -1);
-                    if (!useFixedRatioHpmpUpdate) {
-                        player.updateMp(Math.max(0, curMp + mplose));
-                    }
+                    player.updateMp(Math.max(0, curMp + mplose));
                 }
                 default -> {
                     c.sendPacket(PacketCreator.updatePlayerStats(PacketCreator.EMPTY_STATUPDATE, true, player));

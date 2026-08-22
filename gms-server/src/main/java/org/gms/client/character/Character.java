@@ -334,11 +334,11 @@ public class Character extends AbstractAnimatedMapObject {
     private static final InventoryService inventoryService = ServerManager.getApplicationContext().getBean(InventoryService.class);
 
     public int getClientMaxHp() {
-        return stats.clientMaxHp;
+        return stats.getClientMaxHp();
     }
 
     public int getClientMaxMp() {
-        return stats.clientMaxMp;
+        return stats.getClientMaxMp();
     }
 
     private Character() {
@@ -381,7 +381,7 @@ public class Character extends AbstractAnimatedMapObject {
     public int getMaxHp() {
         stats.rLock.lock();
         try {
-            return stats.maxHp;
+            return stats.attrs[StatIndex.MAX_HP];
         } finally {
             stats.rLock.unlock();
         }
@@ -390,22 +390,22 @@ public class Character extends AbstractAnimatedMapObject {
     public int getMaxMp() {
         stats.rLock.lock();
         try {
-            return stats.maxMp;
+            return stats.attrs[StatIndex.MAX_MP];
         } finally {
             stats.rLock.unlock();
         }
     }
 
     public int getCurrentMaxHp() {
-        return stats.localMaxHp;
+        return stats.localAttrs[StatIndex.MAX_HP];
     }
 
     public int getCurrentMaxMp() {
-        return stats.localMaxMp;
+        return stats.localAttrs[StatIndex.MAX_MP];
     }
 
     public boolean assignStrDexIntLuk(int deltaStr, int deltaDex, int deltaInt, int deltaLuk) {
-        Integer[] delta = new Integer[BASE_STAT_COUNT];
+        Integer[] delta = new Integer[STAT_COUNT];
         delta[STR] = deltaStr;
         delta[DEX] = deltaDex;
         delta[INT] = deltaInt;
@@ -416,7 +416,7 @@ public class Character extends AbstractAnimatedMapObject {
     /** 四维全部设为 x（管理命令用） */
     public void updateStrDexIntLuk(int x) {
         StatsUpdate u = new StatsUpdate();
-        for (int i = 0; i < BASE_STAT_COUNT; i++) {
+        for (int i = BASE_STAT_BEGIN; i < BASE_STAT_END; i++) {
             u.setAttr(i, x);
         }
         stats.applyUpdate(u);
@@ -979,7 +979,7 @@ public class Character extends AbstractAnimatedMapObject {
                 return;
             }
 
-            if (Character.this.getHp() < stats.localMaxHp) {
+            if (Character.this.getHp() < stats.localAttrs[StatIndex.MAX_HP]) {
                 if (healHP > 0) {
                     sendPacket(PacketCreator.showOwnRecovery(healHP));
                     getMap().broadcastMessage(Character.this, PacketCreator.showRecovery(id, healHP), false);
@@ -1182,11 +1182,11 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public int getTotalMagic() {
-        return stats.localmagic;
+        return stats.getMagicPower();
     }
 
     public int getTotalWatk() {
-        return stats.localwatk;
+        return stats.localAttrs[StatIndex.P_ATK];
     }
 
     public int getMaxClassLevel() {
@@ -1462,7 +1462,7 @@ public class Character extends AbstractAnimatedMapObject {
 
         ret.level.setLevel(this.getLevel());
         ret.setJob(this.getJob());
-        for (int i = 0; i < BASE_STAT_COUNT; i++) {
+        for (int i = BASE_STAT_BEGIN; i < BASE_STAT_END; i++) {
             ret.stats.attrs[i] = this.stats.getAttr(i);
         }
         ret.stats.hp = this.getHp();
@@ -1855,8 +1855,8 @@ public class Character extends AbstractAnimatedMapObject {
         stats.attrs[LUK] = recipe.getLuk();
         stats.setMaxHp(recipe.getMaxHp());
         stats.setMaxMp(recipe.getMaxMp());
-        stats.hp = stats.maxHp;
-        stats.mp = stats.maxMp;
+        stats.hp = stats.attrs[StatIndex.MAX_HP];
+        stats.mp = stats.attrs[StatIndex.MAX_MP];
         level.setLevel(recipe.getLevel());
         ap.remainingAp = recipe.getRemainingAp();
         sp.remainingSp[CharacterSp.indexOf(job.getId())] = recipe.getRemainingSp();
@@ -3041,7 +3041,7 @@ public class Character extends AbstractAnimatedMapObject {
     public void addMaxHP(int delta) { stats.addMaxHP(delta); }
     public void addMaxMP(int delta) { stats.addMaxMP(delta); }
     public void reapplyLocalStats() { stats.reapplyLocalStats(); }
-    public List<Pair<Stat, Integer>> recalcLocalStats() { return stats.recalcLocalStats(); }
+    public void recalcLocalStats() { stats.recalcLocalStats(); }
     public void hpChangeAction(int oldHp) { stats.hpChangeAction(oldHp); }
     public boolean applyHpMpChange(int hpCon, int hpchange, int mpchange) { return stats.applyHpMpChange(hpCon, hpchange, mpchange); }
 

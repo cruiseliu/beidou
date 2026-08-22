@@ -48,27 +48,22 @@ public class CharacterStats {
 
     CharacterStats(Character owner) {
         this.owner = owner;
+        attrs[StatIndex.P_ATK] = 0;   // 裸体物理攻击力恒 0（仅装备/buff 累加，localAttrs 从 attrs 起步）
+        attrs[StatIndex.M_ATK] = 0;   // 裸体魔法攻击力恒 0
+        localAttrs[StatIndex.MAX_HP] = 50;
+        localAttrs[StatIndex.MAX_MP] = 5;
     }
 
-    // ── 基础四维（下标见 BaseStat） ──
-    final int[] attrs = new int[StatIndex.BASE_STAT_COUNT];
+    // ── 基础属性（下标见 StatIndex：STR..LUK + MAX_HP + MAX_MP） ──
+    final int[] attrs = new int[StatIndex.STAT_COUNT];
 
     // ── HP / MP ──
-    int hp, mp;
-    int maxHp, maxMp;
-    int clientMaxHp, clientMaxMp;
-    float transientHp = Float.NEGATIVE_INFINITY;
-    float transientMp = Float.NEGATIVE_INFINITY;
+    int hp;
+    int mp;
 
-    // ── local 系列（派生四维，recalc 后有效；下标见 BaseStat） ──
-    final int[] localAttrs = new int[StatIndex.BASE_STAT_COUNT];
-    int localmagic, localwatk;
-    int localMaxHp = 50, localMaxMp = 5;
+    // ── local 系列（派生属性，recalc 后有效；下标见 StatIndex） ──
+    final int[] localAttrs = new int[StatIndex.STAT_COUNT];
 
-    // ── equip 系列（装备聚合中间四维，recalcEquipStats 的输出、local 计算的输入；下标见 BaseStat） ──
-    final int[] equipAttrs = new int[StatIndex.BASE_STAT_COUNT];
-    int equipmagic, equipwatk;
-    int equipmaxhp, equipmaxmp;
 
     // ── 操作方法（package-private，由 Character 在持锁状态下调用） ──
 
@@ -79,36 +74,35 @@ public class CharacterStats {
         }
     }
 
-    void setHp(int newHp) {
-        int clamped = Math.clamp(newHp, 0, localMaxHp);
-        if (hp != clamped) {
-            transientHp = Float.NEGATIVE_INFINITY;
-        }
-        hp = clamped;
+    private void setHp(int newHp) {
+        hp = Math.clamp(newHp, 0, localAttrs[StatIndex.MAX_HP]);
     }
 
-    void setMp(int newMp) {
-        int clamped = Math.clamp(newMp, 0, localMaxMp);
-        if (mp != clamped) {
-            transientMp = Float.NEGATIVE_INFINITY;
-        }
-        mp = clamped;
+    private void setMp(int newMp) {
+        mp = Math.clamp(newMp, 0, localAttrs[StatIndex.MAX_MP]);
     }
 
     void setMaxHp(int newMaxHp) {
-        if (maxHp < newMaxHp) {
-            transientHp = Float.NEGATIVE_INFINITY;
-        }
-        maxHp = newMaxHp;
-        clientMaxHp = Math.min(30000, newMaxHp);
+        attrs[StatIndex.MAX_HP] = newMaxHp;
     }
 
     void setMaxMp(int newMaxMp) {
-        if (maxMp < newMaxMp) {
-            transientMp = Float.NEGATIVE_INFINITY;
-        }
-        maxMp = newMaxMp;
-        clientMaxMp = Math.min(30000, newMaxMp);
+        attrs[StatIndex.MAX_MP] = newMaxMp;
+    }
+
+    /** 客户端可见最大 HP（封顶 30000，客户端上限） */
+    int getClientMaxHp() {
+        return Math.min(30000, attrs[StatIndex.MAX_HP]);
+    }
+
+    /** 客户端可见最大 MP（封顶 30000，客户端上限） */
+    int getClientMaxMp() {
+        return Math.min(30000, attrs[StatIndex.MAX_MP]);
+    }
+
+    /** 魔法攻击强度 = 魔法攻击力 + 智力（魔法侧两步合并成一步数值等价；与物理的"攻击力存储 + 强度现算"对称） */
+    int getMagicPower() {
+        return localAttrs[StatIndex.M_ATK] + localAttrs[StatIndex.INT];
     }
 
     // ── 工具函数 ──
@@ -122,84 +116,40 @@ public class CharacterStats {
         return (int) ((oldValue + gain) * growth.multiply());
     }
 
-    static int calcTransientRatio(float transientpoint) {
-        int ret = (int) transientpoint;
-        return !(ret <= 0 && transientpoint > 0.0f) ? ret : 1;
-    }
-
-    // ── HP/MP 比例计算（use_fixed_ratio_hpmp_update 启用时） ──
-
-    int calcHpRatioUpdate(int curpoint, int maxpoint, int diffpoint) {
-        int nextMax = Math.min(30000, maxpoint + diffpoint);
-        float temp = curpoint * nextMax;
-        int ret = (int) Math.ceil(temp / maxpoint);
-        transientHp = (maxpoint > nextMax) ? ((float) curpoint) / maxpoint : ((float) ret) / nextMax;
-        return ret;
-    }
-
-    int calcMpRatioUpdate(int curpoint, int maxpoint, int diffpoint) {
-        int nextMax = Math.min(30000, maxpoint + diffpoint);
-        float temp = curpoint * nextMax;
-        int ret = (int) Math.ceil(temp / maxpoint);
-        transientMp = (maxpoint > nextMax) ? ((float) curpoint) / maxpoint : ((float) ret) / nextMax;
-        return ret;
-    }
-
-    int calcHpFromTransient() {
-        return calcTransientRatio(transientHp * localMaxHp);
-    }
-
-    int calcMpFromTransient() {
-        return calcTransientRatio(transientMp * localMaxMp);
-    }
-
     // ── 装备属性聚合 ──
 
     /**
      * 将装备聚合值清零后累加指定装备列表的属性。
      * Character 负责传入 EQUIPPED 背包内容和管理 equipchanged 标志。
      */
-    void aggregateEquipStats(Iterable<org.gms.client.inventory.Equip> equips) {
-        equipmaxhp = 0;
-        equipmaxmp = 0;
-        for (int i = 0; i < StatIndex.BASE_STAT_COUNT; i++) {
-            equipAttrs[i] = 0;
+    /**
+     * 装备属性聚合（全量重算，返回 equip 层的 8 槽数组；调用方负责累加到 localAttrs）。
+     * todo: [refactor] move to equip component and cache result（equip 模块应是 CharacterInventory 的子模块，
+     *       类似 ActiveBuffs 与 CharacterBuffs 的关系；equipChanged 缓存重构到那里，当前不做缓存，性能损失可接受）
+     */
+    private int[] getEquipStats() {
+        int[] equip = new int[StatIndex.STAT_COUNT];
+        for (Item item : owner.getInventory(InventoryType.EQUIPPED)) {
+            org.gms.client.inventory.Equip eq = (org.gms.client.inventory.Equip) item;
+            equip[StatIndex.MAX_HP] += eq.getHp();
+            equip[StatIndex.MAX_MP] += eq.getMp();
+            equip[StatIndex.DEX] += eq.getDex();
+            equip[StatIndex.INT] += eq.getInt();
+            equip[StatIndex.STR] += eq.getStr();
+            equip[StatIndex.LUK] += eq.getLuk();
+            equip[StatIndex.M_ATK] += eq.getMatk();
+            equip[StatIndex.P_ATK] += eq.getWatk();
         }
-        equipmagic = 0;
-        equipwatk = 0;
-
-        for (var eq : equips) {
-            equipmaxhp += eq.getHp();
-            equipmaxmp += eq.getMp();
-            equipAttrs[StatIndex.DEX] += eq.getDex();
-            equipAttrs[StatIndex.INT] += eq.getInt();
-            equipAttrs[StatIndex.STR] += eq.getStr();
-            equipAttrs[StatIndex.LUK] += eq.getLuk();
-            equipmagic += eq.getMatk() + eq.getInt();
-            equipwatk += eq.getWatk();
-        }
-    }
-
-    /** 把 equip* 聚合值加到 local* 上（在 local* 已重置为基础值后调用）。 */
-    void applyEquipToLocal() {
-        localMaxHp += equipmaxhp;
-        localMaxMp += equipmaxmp;
-        for (int i = 0; i < StatIndex.BASE_STAT_COUNT; i++) {
-            localAttrs[i] += equipAttrs[i];
-        }
-        localmagic += equipmagic;
-        localwatk += equipwatk;
+        return equip;
     }
 
     /** reapplyLocalStats 的第一步：把 local* 重置为基础属性值。 */
-    void resetLocalToBase() {
-        localMaxHp = maxHp;
-        localMaxMp = maxMp;
-        for (int i = 0; i < StatIndex.BASE_STAT_COUNT; i++) {
+    private void resetLocalToBase() {
+        // localAttrs 是 recalc 的计算结果缓存：全部 8 槽以 attrs 为初始值开始累加
+        // （P_ATK/M_ATK 的裸体 0 由 attrs 初始化保证，此处不做 0 假设）
+        for (int i = 0; i < StatIndex.STAT_COUNT; i++) {
             localAttrs[i] = attrs[i];
         }
-        localmagic = localAttrs[StatIndex.INT];
-        localwatk = 0;
     }
 
     // ── 持久化数据转换（stats 域的映射；信封 CharacterData 的组装/应用在 Character.toData/applyData） ──
@@ -212,8 +162,8 @@ public class CharacterStats {
         d.luk = attrs[StatIndex.LUK];
         d.hp = hp;
         d.mp = mp;
-        d.maxHp = maxHp;
-        d.maxMp = maxMp;
+        d.maxHp = attrs[StatIndex.MAX_HP];
+        d.maxMp = attrs[StatIndex.MAX_MP];
         return d;
     }
 
@@ -224,10 +174,8 @@ public class CharacterStats {
         attrs[StatIndex.LUK] = d.luk;
         hp = d.hp;
         mp = d.mp;
-        maxHp = d.maxHp;
-        maxMp = d.maxMp;
-        clientMaxHp = Math.min(30000, maxHp);
-        clientMaxMp = Math.min(30000, maxMp);
+        attrs[StatIndex.MAX_HP] = d.maxHp;
+        attrs[StatIndex.MAX_MP] = d.maxMp;
     }
 
     // ══════════════════ HP/MP 变更与 local 重算（迁移自 Character） ══════════════════
@@ -240,7 +188,7 @@ public class CharacterStats {
         owner.hpChangeAction(oldHp);
     }
 
-    public int safeAddHP(int delta) {
+    int safeAddHP(int delta) {
         try (var ignored = Locks.acquire(wLock)) {
             if (hp + delta <= 0) {
                 delta = -hp + 1;
@@ -250,39 +198,39 @@ public class CharacterStats {
         }
     }
 
-    public void addHP(int delta) {
+    void addHP(int delta) {
         try (var ignored = Locks.acquire(wLock)) {
             applyUpdate(new StatsUpdate().setHp(hp + delta));
         }
     }
 
-    public void addMP(int delta) {
+    void addMP(int delta) {
         try (var ignored = Locks.acquire(wLock)) {
             applyUpdate(new StatsUpdate().setMp(mp + delta));
         }
     }
 
-    public void addMPHP(int hpDelta, int mpDelta) {
+    void addMPHP(int hpDelta, int mpDelta) {
         try (var ignored = Locks.acquire(wLock)) {
             applyUpdate(new StatsUpdate().setHp(hp + hpDelta).setMp(mp + mpDelta));
         }
     }
 
-    public void addMaxHP(int delta) {
+    void addMaxHP(int delta) {
         try (var ignored = Locks.acquire(wLock)) {
-            applyUpdate(new StatsUpdate().setMaxHp(maxHp + delta));
+            applyUpdate(new StatsUpdate().setMaxHp(attrs[StatIndex.MAX_HP] + delta));
         }
     }
 
-    public void addMaxMP(int delta) {
+    void addMaxMP(int delta) {
         try (var ignored = Locks.acquire(wLock)) {
-            applyUpdate(new StatsUpdate().setMaxMp(maxMp + delta));
+            applyUpdate(new StatsUpdate().setMaxMp(attrs[StatIndex.MAX_MP] + delta));
         }
     }
 
-    void enforceMaxHpMp() {
+    private void enforceMaxHpMp() {
         try (var ignored = Locks.acquire(wLock)) {
-            if (mp > localMaxMp || hp > localMaxHp) {
+            if (mp > localAttrs[StatIndex.MAX_MP] || hp > localAttrs[StatIndex.MAX_HP]) {
                 applyUpdate(new StatsUpdate().setHp(hp).setMp(mp));
             }
         }
@@ -310,7 +258,7 @@ public class CharacterStats {
                 if (u.maxHp != null) {
                     poolUpdate = true;
                     setMaxHp(Math.max(50, u.maxHp));
-                    statUpdates.put(Stat.MAXHP, clientMaxHp);
+                    statUpdates.put(Stat.MAXHP, getClientMaxHp());
                     statUpdates.put(Stat.HP, hp);
                 }
 
@@ -322,7 +270,7 @@ public class CharacterStats {
                 if (u.maxMp != null) {
                     poolUpdate = true;
                     setMaxMp(Math.max(5, u.maxMp));
-                    statUpdates.put(Stat.MAXMP, clientMaxMp);
+                    statUpdates.put(Stat.MAXMP, getClientMaxMp());
                     statUpdates.put(Stat.MP, mp);
                 }
 
@@ -333,7 +281,7 @@ public class CharacterStats {
             }
 
             boolean basePresent = false;
-            for (int i = 0; i < StatIndex.BASE_STAT_COUNT; i++) {
+            for (int i = StatIndex.BASE_STAT_BEGIN; i < StatIndex.BASE_STAT_END; i++) {
                 Integer v = u.attrs[i];
                 if (v == null) {
                     continue;
@@ -373,18 +321,15 @@ public class CharacterStats {
     /** HP/MP 池更新后的重算与钳制，返回需并入本次公告的属性修正 */
     private Map<Stat, Integer> onHpMpPoolUpdate() {
         Map<Stat, Integer> updates = new HashMap<>();
-        List<Pair<Stat, Integer>> hpmpupdate = recalcLocalStats();
-        for (Pair<Stat, Integer> p : hpmpupdate) {
-            updates.put(p.getLeft(), p.getRight());
-        }
+        recalcLocalStats();
 
-        if (hp > localMaxHp) {
-            setHp(localMaxHp);
+        if (hp > localAttrs[StatIndex.MAX_HP]) {
+            setHp(localAttrs[StatIndex.MAX_HP]);
             updates.put(Stat.HP, hp);
         }
 
-        if (mp > localMaxMp) {
-            setMp(localMaxMp);
+        if (mp > localAttrs[StatIndex.MAX_MP]) {
+            setMp(localAttrs[StatIndex.MAX_MP]);
             updates.put(Stat.MP, mp);
         }
         return updates;
@@ -392,47 +337,38 @@ public class CharacterStats {
 
     // ── local 重算（reapply/recalc/updateLocalStats） ──
 
-    private void recalcEquipStats() {
-        if (owner.inventory.isEquipChanged()) {
-            java.util.List<org.gms.client.inventory.Equip> equippedList = new java.util.ArrayList<>();
-            for (Item item : owner.getInventory(InventoryType.EQUIPPED)) {
-                equippedList.add((org.gms.client.inventory.Equip) item);
-            }
-            aggregateEquipStats(equippedList);
-            owner.inventory.setEquipChanged(false);
-        }
-        applyEquipToLocal();
-    }
-
-    public void reapplyLocalStats() {
+    void reapplyLocalStats() {
         try (var ignored = Locks.acquire(wLock)) {
             resetLocalToBase();
 
-            recalcEquipStats();
+            int[] equip = getEquipStats();
+            for (int i = 0; i < StatIndex.STAT_COUNT; i++) {
+                localAttrs[i] += equip[i];
+            }
 
-            localmagic = Math.min(localmagic, 2000);
+            localAttrs[StatIndex.M_ATK] = Math.min(localAttrs[StatIndex.M_ATK], 2000);
 
             Integer hbhp = owner.getBuffedValue(EffectType.HYPERBODYHP);
             if (hbhp != null) {
-                localMaxHp += (int) ((hbhp.doubleValue() / 100) * localMaxHp);
+                localAttrs[StatIndex.MAX_HP] += (int) ((hbhp.doubleValue() / 100) * localAttrs[StatIndex.MAX_HP]);
             }
             Integer hbmp = owner.getBuffedValue(EffectType.HYPERBODYMP);
             if (hbmp != null) {
-                localMaxMp += (int) ((hbmp.doubleValue() / 100) * localMaxMp);
+                localAttrs[StatIndex.MAX_MP] += (int) ((hbmp.doubleValue() / 100) * localAttrs[StatIndex.MAX_MP]);
             }
 
-            localMaxHp = Math.min(30000, localMaxHp);
-            localMaxMp = Math.min(30000, localMaxMp);
+            localAttrs[StatIndex.MAX_HP] = Math.min(30000, localAttrs[StatIndex.MAX_HP]);
+            localAttrs[StatIndex.MAX_MP] = Math.min(30000, localAttrs[StatIndex.MAX_MP]);
 
             BuffEffectData combo = owner.getBuffEffect(EffectType.ARAN_COMBO);
             if (combo != null) {
-                localwatk += combo.getX();
+                localAttrs[StatIndex.P_ATK] += combo.getX();
             }
 
             if (owner.getEnergyBar() == 15000) {
                 Skill energycharge = owner.isCygnus() ? SkillFactory.getSkill(ThunderBreaker.ENERGY_CHARGE) : SkillFactory.getSkill(Marauder.ENERGY_CHARGE);
                 BuffEffectData ceffect = energycharge.getEffect(owner.getSkillLevel(energycharge));
-                localwatk += ceffect.getWatk();
+                localAttrs[StatIndex.P_ATK] += ceffect.getWatk();
             }
 
             Integer mwarr = owner.getBuffedValue(EffectType.MAPLE_WARRIOR);
@@ -452,24 +388,24 @@ public class CharacterStats {
                 if (expert != null) {
                     int boostLevel = owner.getSkillLevel(expert);
                     if (boostLevel > 0) {
-                        localwatk += expert.getEffect(boostLevel).getX();
+                        localAttrs[StatIndex.P_ATK] += expert.getEffect(boostLevel).getX();
                     }
                 }
             }
 
             Integer watkbuff = owner.getBuffedValue(EffectType.WATK);
             if (watkbuff != null) {
-                localwatk += watkbuff;
+                localAttrs[StatIndex.P_ATK] += watkbuff;
             }
             Integer matkbuff = owner.getBuffedValue(EffectType.MATK);
             if (matkbuff != null) {
-                localmagic += matkbuff;
+                localAttrs[StatIndex.M_ATK] += matkbuff;
             }
 
             int blessing = owner.getSkillLevel(10000000 * owner.getJobType() + 12);
             if (blessing > 0) {
-                localwatk += blessing;
-                localmagic += blessing * 2;
+                localAttrs[StatIndex.P_ATK] += blessing;
+                localAttrs[StatIndex.M_ATK] += blessing * 2;
             }
 
             if (owner.getJob().isA(JobEnum.THIEF) || owner.getJob().isA(JobEnum.BOWMAN) || owner.getJob().isA(JobEnum.PIRATE) || owner.getJob().isA(JobEnum.NIGHTWALKER1) || owner.getJob().isA(JobEnum.WINDARCHER1)) {
@@ -495,7 +431,7 @@ public class CharacterStats {
                                     || (crossbow && ItemConstants.isArrowForCrossBow(item.getItemId()))) {
                                 if (item.getQuantity() > 0) {
                                     // Finally there!
-                                    localwatk += ii.getWatkForProjectile(item.getItemId());
+                                    localAttrs[StatIndex.P_ATK] += ii.getWatkForProjectile(item.getItemId());
                                     break;
                                 }
                             }
@@ -509,87 +445,25 @@ public class CharacterStats {
         }
     }
 
-    public List<Pair<Stat, Integer>> recalcLocalStats() {
+    void recalcLocalStats() {
         try (var ignored = Locks.acquire(wLock)) {
-            List<Pair<Stat, Integer>> hpmpupdate = new ArrayList<>(2);
-            int oldlocalmaxhp = localMaxHp;
-            int oldlocalmaxmp = localMaxMp;
-
             reapplyLocalStats();
-
-            if (GameConfig.getServerBoolean("use_fixed_ratio_hpmp_update")) {
-                if (localMaxHp != oldlocalmaxhp) {
-                    Pair<Stat, Integer> hpUpdate;
-
-                    if (transientHp == Float.NEGATIVE_INFINITY) {
-                        hpUpdate = calcHpRatioUpdate(localMaxHp, oldlocalmaxhp);
-                    } else {
-                        hpUpdate = calcHpRatioTransient();
-                    }
-
-                    hpmpupdate.add(hpUpdate);
-                }
-
-                if (localMaxMp != oldlocalmaxmp) {
-                    Pair<Stat, Integer> mpUpdate;
-
-                    if (transientMp == Float.NEGATIVE_INFINITY) {
-                        mpUpdate = calcMpRatioUpdate(localMaxMp, oldlocalmaxmp);
-                    } else {
-                        mpUpdate = calcMpRatioTransient();
-                    }
-
-                    hpmpupdate.add(mpUpdate);
-                }
-            }
-
-            return hpmpupdate;
         }
     }
 
     void updateLocalStats() {
         owner.party.lock.lock();
         try (var ignored = Locks.acquire(wLock)) {
-            int oldmaxhp = localMaxHp;
-            List<Pair<Stat, Integer>> hpmpupdate = recalcLocalStats();
+            int oldmaxhp = localAttrs[StatIndex.MAX_HP];
+            recalcLocalStats();
             enforceMaxHpMp();
 
-            if (!hpmpupdate.isEmpty()) {
-                owner.sendPacket(PacketCreator.updatePlayerStats(hpmpupdate, true, owner));
-            }
-
-            if (oldmaxhp != localMaxHp) {   // thanks Wh1SK3Y (Suwaidy) for pointing out a deadlock occuring related to party members HP
+            if (oldmaxhp != localAttrs[StatIndex.MAX_HP]) {   // thanks Wh1SK3Y (Suwaidy) for pointing out a deadlock occuring related to party members HP
                 owner.updatePartyMemberHP();
             }
         } finally {
             owner.party.lock.unlock();
         }
-    }
-
-    // ── HP/MP 比例计算编排 ──
-
-    private Pair<Stat, Integer> calcHpRatioUpdate(int newHp, int oldHp) {
-        int delta = newHp - oldHp;
-        hp = calcHpRatioUpdate(hp, oldHp, delta);
-        owner.hpChangeAction(Short.MIN_VALUE);
-        return new Pair<>(Stat.HP, hp);
-    }
-
-    private Pair<Stat, Integer> calcMpRatioUpdate(int newMp, int oldMp) {
-        int delta = newMp - oldMp;
-        mp = calcMpRatioUpdate(mp, oldMp, delta);
-        return new Pair<>(Stat.MP, mp);
-    }
-
-    private Pair<Stat, Integer> calcHpRatioTransient() {
-        hp = calcHpFromTransient();
-        owner.hpChangeAction(Short.MIN_VALUE);
-        return new Pair<>(Stat.HP, hp);
-    }
-
-    private Pair<Stat, Integer> calcMpRatioTransient() {
-        mp = calcMpFromTransient();
-        return new Pair<>(Stat.MP, mp);
     }
 
     // ══════════════════ HP/MP 变更编排（announce/hpChange/applyHpMpChange） ══════════════════

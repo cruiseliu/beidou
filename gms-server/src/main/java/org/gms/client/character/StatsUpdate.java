@@ -1,6 +1,6 @@
 package org.gms.client.character;
 
-import static org.gms.client.character.StatIndex.BASE_STAT_COUNT;
+import static org.gms.client.character.StatIndex.STAT_COUNT;
 
 /**
  * 属性更新参数对象：一次原子变更要写入的各属性目标值（绝对值），null = 不变更。
@@ -11,7 +11,7 @@ import static org.gms.client.character.StatIndex.BASE_STAT_COUNT;
  */
 public class StatsUpdate {
     Integer hp, mp, maxHp, maxMp;
-    final Integer[] attrs = new Integer[BASE_STAT_COUNT];
+    final Integer[] attrs = new Integer[STAT_COUNT];
     Integer ap;
 
     public StatsUpdate setHp(int hp) {

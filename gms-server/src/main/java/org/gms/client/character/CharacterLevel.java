@@ -257,10 +257,10 @@ class CharacterLevel {
         int addhp = 0, addmp = 0;
         if (gs != null) {
             // NEW = applyGrowth(OLD, growth, fixed)；增量供技能/INT 加成叠加
-            int newMaxHp = CharacterStats.applyGrowth(owner.stats.maxHp, gs.maxHp(), fixedLevelUpHpMp);
-            int newMaxMp = CharacterStats.applyGrowth(owner.stats.maxMp, gs.maxMp(), fixedLevelUpHpMp);
-            addhp = newMaxHp - owner.stats.maxHp;
-            addmp = newMaxMp - owner.stats.maxMp;
+            int newMaxHp = CharacterStats.applyGrowth(owner.stats.attrs[StatIndex.MAX_HP], gs.maxHp(), fixedLevelUpHpMp);
+            int newMaxMp = CharacterStats.applyGrowth(owner.stats.attrs[StatIndex.MAX_MP], gs.maxMp(), fixedLevelUpHpMp);
+            addhp = newMaxHp - owner.stats.attrs[StatIndex.MAX_HP];
+            addmp = newMaxMp - owner.stats.attrs[StatIndex.MAX_MP];
         }
         // 技能加成（Improving MaxHP/MaxMP）仍按原逻辑计算
         if (owner.job.isA(JobEnum.WARRIOR) || owner.job.isA(JobEnum.DAWNWARRIOR1)) {
@@ -293,7 +293,7 @@ class CharacterLevel {
             }
         }
 
-        owner.stats.applyUpdateSilently(new StatsUpdate().setMaxHp(owner.stats.maxHp + addhp).setMaxMp(owner.stats.maxMp + addmp));
+        owner.stats.applyUpdateSilently(new StatsUpdate().setMaxHp(owner.stats.attrs[StatIndex.MAX_HP] + addhp).setMaxMp(owner.stats.attrs[StatIndex.MAX_MP] + addmp));
 
         if (takeexp) {
             exp.addAndGet(-ExpTable.getExpNeededForLevel(level));
@@ -327,7 +327,7 @@ class CharacterLevel {
         owner.stats.wLock.lock();
         try {
             owner.stats.recalcLocalStats();
-            owner.changeHpMp(owner.stats.localMaxHp, owner.stats.localMaxMp, true);
+            owner.changeHpMp(owner.stats.localAttrs[StatIndex.MAX_HP], owner.stats.localAttrs[StatIndex.MAX_MP], true);
 
             List<Pair<Stat, Integer>> statup = new ArrayList<>(10);
             statup.add(new Pair<>(Stat.AVAILABLEAP, owner.ap.remainingAp));
@@ -336,8 +336,8 @@ class CharacterLevel {
             statup.add(new Pair<>(Stat.MP, owner.stats.mp));
             statup.add(new Pair<>(Stat.EXP, exp.get()));
             statup.add(new Pair<>(Stat.LEVEL, level));
-            statup.add(new Pair<>(Stat.MAXHP, owner.stats.clientMaxHp));
-            statup.add(new Pair<>(Stat.MAXMP, owner.stats.clientMaxMp));
+            statup.add(new Pair<>(Stat.MAXHP, owner.stats.getClientMaxHp()));
+            statup.add(new Pair<>(Stat.MAXMP, owner.stats.getClientMaxMp()));
             statup.add(new Pair<>(Stat.STR, owner.stats.attrs[STR]));
             statup.add(new Pair<>(Stat.DEX, owner.stats.attrs[DEX]));
 

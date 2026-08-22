@@ -188,12 +188,12 @@ class CharacterChair {
                 final int healHP = healHp;
                 final int healMP = healMp;
 
-                if (owner.getHp() < owner.stats.localMaxHp) {
+                if (owner.getHp() < owner.stats.localAttrs[StatIndex.MAX_HP]) {
                     byte recHP = (byte) (healHP / 10);
 
                     owner.sendPacket(PacketCreator.showOwnRecovery(recHP));
                     owner.getMap().broadcastMessage(owner, PacketCreator.showRecovery(owner.getId(), recHP), false);
-                } else if (owner.getMp() >= owner.stats.localMaxMp) {
+                } else if (owner.getMp() >= owner.stats.localAttrs[StatIndex.MAX_MP]) {
                     stopChairTask();    // optimizing schedule management when player is already with full pool.
                 }
 
@@ -208,7 +208,7 @@ class CharacterChair {
             if (healRate != -1) {
                 return;
             }
-            Pair<Integer, Pair<Integer, Integer>> p = getChairTaskIntervalRate(owner.stats.localMaxHp, owner.stats.localMaxMp);
+            Pair<Integer, Pair<Integer, Integer>> p = getChairTaskIntervalRate(owner.stats.localAttrs[StatIndex.MAX_HP], owner.stats.localAttrs[StatIndex.MAX_MP]);
             healRate = p.getLeft();
             healHp = p.getRight().getLeft();
             healMp = p.getRight().getRight();

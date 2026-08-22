@@ -38,7 +38,7 @@ public class CharacterAp {
     void changeRemainingAp(int x, boolean silent) {
         try (var ignored = Locks.acquire(owner.stats.wLock)) {
             StatsUpdate u = new StatsUpdate();
-            for (int i = 0; i < BASE_STAT_COUNT; i++) {
+            for (int i = BASE_STAT_BEGIN; i < BASE_STAT_END; i++) {
                 u.setAttr(i, owner.stats.attrs[i]);
             }
             u.setAp(x);
@@ -58,7 +58,7 @@ public class CharacterAp {
 
     /** 单维分配：assignAttr(STR, x) 等 */
     boolean assignAttr(int idx, int x) {
-        Integer[] delta = new Integer[BASE_STAT_COUNT];
+        Integer[] delta = new Integer[STAT_COUNT];
         delta[idx] = x;
         return assignAttrs(delta);
     }
@@ -67,8 +67,8 @@ public class CharacterAp {
     boolean assignAttrs(Integer[] delta) {
         try (var ignored = Locks.acquire(owner.stats.wLock)) {
             int apUsed = 0;
-            int[] newAttrs = Arrays.copyOf(owner.stats.attrs, BASE_STAT_COUNT);
-            for (int i = 0; i < BASE_STAT_COUNT; i++) {
+            int[] newAttrs = Arrays.copyOf(owner.stats.attrs, STAT_COUNT);
+            for (int i = BASE_STAT_BEGIN; i < BASE_STAT_END; i++) {
                 if (delta[i] != null) {
                     apUsed += delta[i];
                     newAttrs[i] += delta[i];
@@ -79,14 +79,14 @@ public class CharacterAp {
             }
 
             int maxAp = GameConfig.getServerInt("max_ap");
-            for (int i = 0; i < BASE_STAT_COUNT; i++) {
+            for (int i = BASE_STAT_BEGIN; i < BASE_STAT_END; i++) {
                 if (newAttrs[i] < 4 || newAttrs[i] > maxAp) {
                     return false;
                 }
             }
 
             StatsUpdate u = new StatsUpdate();
-            for (int i = 0; i < BASE_STAT_COUNT; i++) {
+            for (int i = BASE_STAT_BEGIN; i < BASE_STAT_END; i++) {
                 u.setAttr(i, newAttrs[i]);
             }
             u.setAp(remainingAp - apUsed);
@@ -97,14 +97,14 @@ public class CharacterAp {
 
     boolean assignHP(int deltaHP, int deltaAp) {
         try (var ignored = Locks.acquire(owner.stats.wLock)) {
-            if (!canSpendAp(deltaAp, owner.stats.maxHp >= 30000)) {
+            if (!canSpendAp(deltaAp, owner.stats.attrs[StatIndex.MAX_HP] >= 30000)) {
                 return false;
             }
 
             StatsUpdate u = new StatsUpdate()
-                    .setMaxHp(owner.stats.maxHp + deltaHP).setMaxMp(owner.stats.maxMp)
+                    .setMaxHp(owner.stats.attrs[StatIndex.MAX_HP] + deltaHP).setMaxMp(owner.stats.attrs[StatIndex.MAX_MP])
                     .setAp(remainingAp - deltaAp);
-            for (int i = 0; i < BASE_STAT_COUNT; i++) {
+            for (int i = BASE_STAT_BEGIN; i < BASE_STAT_END; i++) {
                 u.setAttr(i, owner.stats.attrs[i]);
             }
             owner.stats.applyUpdate(u);
@@ -115,14 +115,14 @@ public class CharacterAp {
 
     boolean assignMP(int deltaMP, int deltaAp) {
         try (var ignored = Locks.acquire(owner.stats.wLock)) {
-            if (!canSpendAp(deltaAp, owner.stats.maxMp >= 30000)) {
+            if (!canSpendAp(deltaAp, owner.stats.attrs[StatIndex.MAX_MP] >= 30000)) {
                 return false;
             }
 
             StatsUpdate u = new StatsUpdate()
-                    .setMaxHp(owner.stats.maxHp).setMaxMp(owner.stats.maxMp + deltaMP)
+                    .setMaxHp(owner.stats.attrs[StatIndex.MAX_HP]).setMaxMp(owner.stats.attrs[StatIndex.MAX_MP] + deltaMP)
                     .setAp(remainingAp - deltaAp);
-            for (int i = 0; i < BASE_STAT_COUNT; i++) {
+            for (int i = BASE_STAT_BEGIN; i < BASE_STAT_END; i++) {
                 u.setAttr(i, owner.stats.attrs[i]);
             }
             owner.stats.applyUpdate(u);

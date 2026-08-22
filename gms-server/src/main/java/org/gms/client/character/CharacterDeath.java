@@ -116,7 +116,7 @@ class CharacterDeath {
         owner.cancelAllBuffs(false);  // thanks Oblivium91 for finding out players still could revive in area and take damage before returning to town
 
         if (usedSafetyCharm) {  // thanks kvmba for noticing safety charm not providing 30% HP/MP
-            owner.addMPHP((int) Math.ceil(owner.stats.clientMaxHp * 0.3), (int) Math.ceil(owner.stats.clientMaxMp * 0.3));
+            owner.addMPHP((int) Math.ceil(owner.stats.getClientMaxHp() * 0.3), (int) Math.ceil(owner.stats.getClientMaxMp() * 0.3));
         } else {
             owner.updateHp(50);
         }
