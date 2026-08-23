@@ -264,6 +264,87 @@ class CharacterJob {
         return JobRegistry.of(job).gainStatsAtLevel(level);
     }
 
+    // ── 升级职业授予（levelUp 内所有职业强相关逻辑） ──
+
+    /**
+     * 升级授予（CharacterLevel.levelUp 调用，oldLevel = 升级前等级）：
+     * 按新等级查 JobDefinition levelUp 区间 → 新手自动分配 / maxHp·maxMp·AP·SP 授予 → 技能加成 → INT 加成。
+     */
+    void applyLevelUpRewards(int oldLevel) {
+        boolean fixed = true;  // todo: [refactor] hard coded config
+
+        // 新手自动分配（use_auto_assign_starters_ap：10 级以下新手升级自动分配 AP）
+        boolean isBeginner = owner.isBeginnerJob();
+        boolean autoAssignAp = GameConfig.getServerBoolean("use_auto_assign_starters_ap") && isBeginner && oldLevel < 11;
+        if (autoAssignAp) {
+            // effLock 已冗余：gainAp/assignStrDexIntLuk 只需 owner.stats.wLock
+            try (var ignored = Locks.acquire(owner.stats.wLock)) {
+                owner.gainAp(5, true);
+
+                int str = 0, dex = 0;
+                if (oldLevel < 6) {
+                    str += 5;
+                } else {
+                    str += 4;
+                    dex += 1;
+                }
+
+                owner.assignStrDexIntLuk(str, dex, 0, 0);
+            }
+        }
+
+        // 奖励按升级后的新等级（oldLevel+1）查——"N 级才能获得的属性"到达 N 级才生效
+        GainStats gs = gainStatsAtLevel(oldLevel + 1);
+        if (gs != null) {
+            owner.stats.update()
+                    .add(Stat.MAX_HP, rollGrowthGain(gs.maxHp(), fixed))
+                    .multiply(Stat.MAX_HP, gs.maxHp().multiply())
+                    .add(Stat.MAX_MP, rollGrowthGain(gs.maxMp(), fixed))
+                    .multiply(Stat.MAX_MP, gs.maxMp().multiply())
+                    .commitSilently();
+            if (!autoAssignAp && gs.ap() > 0) {
+                owner.gainAp(gs.ap(), true);
+            }
+            if (gs.sp() > 0) {
+                owner.gainSp(gs.sp(), job.getId(), true);
+            }
+        }
+
+        // 技能加成（Improving MaxHP/MaxMP，按职业系判断）与 INT 加成（非 JobDefinition 数据）
+        StatUpdateBuilder growthChanges = owner.stats.update();
+        Skill improvingMaxHP = null, improvingMaxMP = null;
+        int improvingMaxHPLevel = 0, improvingMaxMPLevel = 0;
+        if (job.isA(JobEnum.WARRIOR) || job.isA(JobEnum.DAWNWARRIOR1)) {
+            improvingMaxHP = owner.isCygnus() ? SkillFactory.getSkill(DawnWarrior.MAX_HP_INCREASE) : SkillFactory.getSkill(Warrior.IMPROVED_MAXHP);
+            if (job.isA(JobEnum.CRUSADER)) {
+                improvingMaxMP = SkillFactory.getSkill(1210000);
+            } else if (job.isA(JobEnum.DAWNWARRIOR2)) {
+                improvingMaxMP = SkillFactory.getSkill(11110000);
+            }
+            improvingMaxHPLevel = owner.getSkillLevel(improvingMaxHP);
+        } else if (job.isA(JobEnum.MAGICIAN) || job.isA(JobEnum.BLAZEWIZARD1)) {
+            improvingMaxMP = owner.isCygnus() ? SkillFactory.getSkill(BlazeWizard.INCREASING_MAX_MP) : SkillFactory.getSkill(Magician.IMPROVED_MAX_MP_INCREASE);
+            improvingMaxMPLevel = owner.getSkillLevel(improvingMaxMP);
+        } else if (job.isA(JobEnum.PIRATE) || job.isA(JobEnum.THUNDERBREAKER1)) {
+            improvingMaxHP = owner.isCygnus() ? SkillFactory.getSkill(ThunderBreaker.IMPROVE_MAX_HP) : SkillFactory.getSkill(Brawler.IMPROVE_MAX_HP);
+            improvingMaxHPLevel = owner.getSkillLevel(improvingMaxHP);
+        }
+        if (improvingMaxHPLevel > 0 && (job.isA(JobEnum.WARRIOR) || job.isA(JobEnum.PIRATE) || job.isA(JobEnum.DAWNWARRIOR1) || job.isA(JobEnum.THUNDERBREAKER1))) {
+            growthChanges.add(Stat.MAX_HP, improvingMaxHP.getEffect(improvingMaxHPLevel).getX());
+        }
+        if (improvingMaxMPLevel > 0 && (job.isA(JobEnum.MAGICIAN) || job.isA(JobEnum.CRUSADER) || job.isA(JobEnum.BLAZEWIZARD1))) {
+            growthChanges.add(Stat.MAX_MP, improvingMaxMP.getEffect(improvingMaxMPLevel).getX());
+        }
+
+        if (GameConfig.getServerBoolean("use_randomize_hpmp_gain")) {
+            int intBonus = owner.getJobStyle() == JobEnum.MAGICIAN
+                    ? owner.stats.getTotal(Stat.INT) / 20
+                    : owner.stats.getTotal(Stat.INT) / 10;
+            growthChanges.add(Stat.MAX_MP, intBonus);
+        }
+        growthChanges.commitSilently();
+    }
+
     // ── 成长工具（升级/转职"有加有乘"的加数部分；乘法由 Change.Multiply 在事务内完成） ──
 
     /** 成长加成量：fixed = 区间平均值，否则随机；NEW = (OLD + gain) * multiply 中的 gain */

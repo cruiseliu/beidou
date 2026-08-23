@@ -2,23 +2,16 @@ package org.gms.client.character;
 
 import org.gms.client.Disease;
 import org.gms.client.FamilyEntry;
-import org.gms.client.JobEnum;
-import org.gms.client.Skill;
 import org.gms.client.PacketStat;
-import org.gms.client.job.GainStats;
 
-import static org.gms.client.character.Stat.INT;
 import static org.gms.client.character.Stat.STR;
 import static org.gms.client.character.Stat.DEX;
-import static org.gms.client.character.Stat.LUK;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.ExpTable;
 import org.gms.util.Pair;
 import org.gms.constants.game.GameConstants;
 import org.gms.constants.net.ServerConstants;
 import org.gms.constants.id.ItemId;
-import org.gms.client.SkillFactory;
-import org.gms.constants.skills.*;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.server.ThreadManager;
 import org.gms.server.ExpLogger;
@@ -208,88 +201,10 @@ class CharacterLevel {
         return gachaExp.get();
     }
 
-    private void levelUpGainSp() {
-        // 升级 SP 完全由注册表 levelUp 区间驱动（新手 2~7 级 sp=1 等显式数据；不再隐式特判/推算）
-        GainStats gs = owner.job.gainStatsAtLevel(level);
-        if (gs == null) {
-            return;
-        }
-        int spGain = gs.sp();
-        if (spGain > 0) {
-            owner.gainSp(spGain, owner.job.getId(), true);
-        }
-    }
 
     public synchronized void levelUp(boolean takeexp) {
-        Skill improvingMaxHP = null;
-        Skill improvingMaxMP = null;
-        int improvingMaxHPLevel = 0;
-        int improvingMaxMPLevel = 0;
-
-        // 奖励按升级后的新等级（level+1）查——"N 级才能获得的属性"到达 N 级才生效，1 级角色没有 2 级的属性
-        GainStats gs = owner.job.gainStatsAtLevel(level + 1);
-
-        boolean isBeginner = owner.isBeginnerJob();
-        if (GameConfig.getServerBoolean("use_auto_assign_starters_ap") && isBeginner && level < 11) {
-        // effLock 已冗余：gainAp/assignStrDexIntLuk 只需 owner.stats.wLock
-            try (var ignored = Locks.acquire(owner.stats.wLock)) {
-                owner.gainAp(5, true);
-
-                int str = 0, dex = 0;
-                if (level < 6) {
-                    str += 5;
-                } else {
-                    str += 4;
-                    dex += 1;
-                }
-
-                owner.assignStrDexIntLuk(str, dex, 0, 0);
-            }
-        } else {
-            // 每级 AP 直接取注册表 levelUp 区间的最终值（不叠加基准）
-            owner.gainAp(gs != null ? gs.ap() : 0, true);
-        }
-
-        boolean fixedLevelUpHpMp = true;  // todo: [refactor] hard coded config
-        // 有加有乘成长：add(随机加成) + multiply(系数)，事务内读旧 maxHp 计算并触发 recalc
-        StatUpdateBuilder growthChanges = owner.stats.update();
-        if (gs != null) {
-            growthChanges.add(Stat.MAX_HP, CharacterJob.rollGrowthGain(gs.maxHp(), fixedLevelUpHpMp))
-                    .multiply(Stat.MAX_HP, gs.maxHp().multiply())
-                    .add(Stat.MAX_MP, CharacterJob.rollGrowthGain(gs.maxMp(), fixedLevelUpHpMp))
-                    .multiply(Stat.MAX_MP, gs.maxMp().multiply());
-        }
-        // 技能加成（Improving MaxHP/MaxMP）仍按原逻辑计算
-        if (owner.job.isA(JobEnum.WARRIOR) || owner.job.isA(JobEnum.DAWNWARRIOR1)) {
-            improvingMaxHP = owner.isCygnus() ? SkillFactory.getSkill(DawnWarrior.MAX_HP_INCREASE) : SkillFactory.getSkill(Warrior.IMPROVED_MAXHP);
-            if (owner.job.isA(JobEnum.CRUSADER)) {
-                improvingMaxMP = SkillFactory.getSkill(1210000);
-            } else if (owner.job.isA(JobEnum.DAWNWARRIOR2)) {
-                improvingMaxMP = SkillFactory.getSkill(11110000);
-            }
-            improvingMaxHPLevel = owner.getSkillLevel(improvingMaxHP);
-        } else if (owner.job.isA(JobEnum.MAGICIAN) || owner.job.isA(JobEnum.BLAZEWIZARD1)) {
-            improvingMaxMP = owner.isCygnus() ? SkillFactory.getSkill(BlazeWizard.INCREASING_MAX_MP) : SkillFactory.getSkill(Magician.IMPROVED_MAX_MP_INCREASE);
-            improvingMaxMPLevel = owner.getSkillLevel(improvingMaxMP);
-        } else if (owner.job.isA(JobEnum.PIRATE) || owner.job.isA(JobEnum.THUNDERBREAKER1)) {
-            improvingMaxHP = owner.isCygnus() ? SkillFactory.getSkill(ThunderBreaker.IMPROVE_MAX_HP) : SkillFactory.getSkill(Brawler.IMPROVE_MAX_HP);
-            improvingMaxHPLevel = owner.getSkillLevel(improvingMaxHP);
-        }
-        if (improvingMaxHPLevel > 0 && (owner.job.isA(JobEnum.WARRIOR) || owner.job.isA(JobEnum.PIRATE) || owner.job.isA(JobEnum.DAWNWARRIOR1) || owner.job.isA(JobEnum.THUNDERBREAKER1))) {
-            growthChanges.add(Stat.MAX_HP, improvingMaxHP.getEffect(improvingMaxHPLevel).getX());
-        }
-        if (improvingMaxMPLevel > 0 && (owner.job.isA(JobEnum.MAGICIAN) || owner.job.isA(JobEnum.CRUSADER) || owner.job.isA(JobEnum.BLAZEWIZARD1))) {
-            growthChanges.add(Stat.MAX_MP, improvingMaxMP.getEffect(improvingMaxMPLevel).getX());
-        }
-
-        if (GameConfig.getServerBoolean("use_randomize_hpmp_gain")) {
-            int intBonus = owner.getJobStyle() == JobEnum.MAGICIAN
-                    ? owner.stats.getTotal(INT) / 20
-                    : owner.stats.getTotal(INT) / 10;
-            growthChanges.add(Stat.MAX_MP, intBonus);
-        }
-
-        growthChanges.commitSilently();
+        // 职业强相关授予（新手自动分配 / maxHp·maxMp·AP·SP / 技能加成 / INT 加成）全在 CharacterJob
+        owner.job.applyLevelUpRewards(level);
 
         if (takeexp) {
             exp.addAndGet(-ExpTable.getExpNeededForLevel(level));
@@ -316,8 +231,6 @@ class CharacterLevel {
 
             level = maxClassLevel; //To prevent levels past the maximum
         }
-
-        levelUpGainSp();
 
         // effLock 已冗余：recalc/changeHpMp 只需 owner.stats.wLock
         try (var ignored = Locks.acquire(owner.stats.wLock)) {

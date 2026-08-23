@@ -41,8 +41,10 @@ import org.gms.constants.skills.Magician;
 import org.gms.constants.skills.ThunderBreaker;
 import org.gms.constants.skills.Warrior;
 import org.gms.net.packet.InPacket;
+import org.gms.scripting.JsModule;
 import org.gms.util.PacketCreator;
 import org.gms.util.Randomizer;
+import org.graalvm.polyglot.Value;
 
 import java.util.*;
 
@@ -120,11 +122,13 @@ public class AssignAPProcessor {
             inPacket.skip(8); // 跳过数据包的前8个字节
 
             if (useServerAutoAssigner) { // 检查是否使用服务器自动分配器
-                // --------- Ronan Lana's AUTOASSIGNER ---------
-                // 这个方法的优势在于能够智能分配AP点数以满足所有装备的属性需求
+                // --------- Ronan Lana's AUTOASSIGNER (JS 版) ---------
+                // 分配逻辑已移植到 scripts/server/ap_assigner/default.js，
+                // 通过 JsModule 以 ESM 方式加载调用；装备数据由 Java 侧收集后传入 ctx。
                 byte opt = inPacket.readByte(); // 读取数据包中的选项字节(对海盗职业的自动分配有用)
 
-                int str = 0, dex = 0, luk = 0, int_ = 0; // 初始化装备属性总和变量
+                // 装备属性收集（与 JS 端 ctx 字段一一对应）
+                int eqpStr = 0, eqpDex = 0, eqpLuk = 0, eqpInt = 0; // 初始化装备属性总和变量
                 List<Short> eqpStrList = new ArrayList<>(); // 创建装备STR值列表
                 List<Short> eqpDexList = new ArrayList<>(); // 创建装备DEX值列表
                 List<Short> eqpLukList = new ArrayList<>(); // 创建装备LUK值列表
@@ -137,286 +141,57 @@ public class AssignAPProcessor {
                     if (nEquip.getStr() > 0) { // 检查装备是否有STR加成
                         eqpStrList.add(nEquip.getStr()); // 将STR值添加到列表中
                     }
-                    str += nEquip.getStr(); // 累加STR总值
+                    eqpStr += nEquip.getStr(); // 累加STR总值
 
                     if (nEquip.getDex() > 0) { // 检查装备是否有DEX加成
                         eqpDexList.add(nEquip.getDex()); // 将DEX值添加到列表中
                     }
-                    dex += nEquip.getDex(); // 累加DEX总值
+                    eqpDex += nEquip.getDex(); // 累加DEX总值
 
                     if (nEquip.getLuk() > 0) { // 检查装备是否有LUK加成
                         eqpLukList.add(nEquip.getLuk()); // 将LUK值添加到列表中
                     }
-                    luk += nEquip.getLuk(); // 累加LUK总值
+                    eqpLuk += nEquip.getLuk(); // 累加LUK总值
 
                     //if(nEquip.getInt() > 0) eqpIntList.add(nEquip.getInt()); //not needed...
-                    int_ += nEquip.getInt(); // 累加INT总值
+                    eqpInt += nEquip.getInt(); // 累加INT总值
                 }
-
-                // 获取玩家当前基础属性值
-                statUpdate[0] = chr.getStr(); // 获取当前STR值
-                statUpdate[1] = chr.getDex(); // 获取当前DEX值
-                statUpdate[2] = chr.getLuk(); // 获取当前LUK值
-                statUpdate[3] = chr.getInt(); // 获取当前INT值
 
                 // 对装备属性列表进行降序排序
                 eqpStrList.sort(Collections.reverseOrder()); // STR降序排序
                 eqpDexList.sort(Collections.reverseOrder()); // DEX降序排序
                 eqpLukList.sort(Collections.reverseOrder()); // LUK降序排序
 
-                // 自动分配器会查看前两件装备的属性来计算最佳升级方案
-                int eqpStr = getNthHighestStat(eqpStrList, (short) 0) + getNthHighestStat(eqpStrList, (short) 1); // 计算前两高STR装备的总和
-                int eqpDex = getNthHighestStat(eqpDexList, (short) 0) + getNthHighestStat(eqpDexList, (short) 1); // 计算前两高DEX装备的总和
-                int eqpLuk = getNthHighestStat(eqpLukList, (short) 0) + getNthHighestStat(eqpLukList, (short) 1); // 计算前两高LUK装备的总和
-
-                //c.getPlayer().message("----------------------------------------");
-                //c.getPlayer().message("SDL: s" + eqpStr + " d" + eqpDex + " l" + eqpLuk + " BASE STATS --> STR: " + chr.getStr() + " DEX: " + chr.getDex() + " INT: " + chr.getInt() + " LUK: " + chr.getLuk());
-                //c.getPlayer().message("SUM EQUIP STATS -> STR: " + str + " DEX: " + dex + " LUK: " + luk + " INT: " + int_);
-
                 JobEnum stance = c.getPlayer().getJobStyle(opt); // 根据选项获取玩家的职业类型
-                int prStat = 0, scStat = 0, trStat = 0, temp, tempAp = remainingAp, CAP; // 初始化主属性、副属性、第三属性、临时变量和上限值
-                if (tempAp < 1) { // 检查临时AP是否小于1
-                    return; // 如果不足则返回
-                }
 
-                PacketStat primary, secondary, tertiary = PacketStat.LUK; // 声明主、副、第三属性枚举
-                switch (stance) { // 根据职业类型进行不同的处理
-                    case MAGICIAN -> { // 魔法师职业
-                        CAP = 165; // 设置副属性上限为165
-                        scStat = (chr.getLevel() + 3) - (chr.getLuk() + luk - eqpLuk); // 计算LUK需求
-                        if (scStat < 0) { // 检查计算结果是否为负
-                            scStat = 0; // 如果是则设为0
-                        }
-                        scStat = Math.min(scStat, tempAp); // 确保不超过可用AP
-                        if (tempAp > scStat) { // 如果还有剩余AP
-                            tempAp -= scStat; // 扣除已分配的AP
-                        } else {
-                            tempAp = 0; // 否则清空剩余AP
-                        }
-                        prStat = tempAp; // 将剩余AP全部分配给主属性
-                        int_ = prStat; // 主属性为INT
-                        luk = scStat; // 副属性为LUK
-                        str = 0; // STR不分配
-                        dex = 0; // DEX不分配
+                // 构造传给 JS 的上下文（字段与 default.js 的 ctx 一致）
+                Map<String, Object> ctx = new HashMap<>();
+                ctx.put("level", chr.getLevel());
+                ctx.put("str", chr.getStr());
+                ctx.put("dex", chr.getDex());
+                ctx.put("int", chr.getInt());
+                ctx.put("luk", chr.getLuk());
+                ctx.put("ap", remainingAp);
+                ctx.put("jobStyle", stance.name());
+                ctx.put("eqpStrList", eqpStrList);
+                ctx.put("eqpDexList", eqpDexList);
+                ctx.put("eqpLukList", eqpLukList);
+                ctx.put("eqpStr", eqpStr);
+                ctx.put("eqpDex", eqpDex);
+                ctx.put("eqpLuk", eqpLuk);
+                ctx.put("useSecondaryCap", useAutoAssignSecondaryCap);
+                ctx.put("maxAp", maxAp);
 
+                // 调用 JS 分配器：export default APAssigner = { default: assign, beginner: assign }
+                JsModule module = JsModule.importModule("server/ap_assigner/default.js");
+                Value assigner = (Value) module.getDefault();
+                Value result = assigner.getMember("default").execute(ctx);
 
-                        // 检查并处理副属性超过上限的情况
-                        if (useAutoAssignSecondaryCap && luk + chr.getLuk() > CAP) {
-                            temp = luk + chr.getLuk() - CAP; // 计算超出量
-                            scStat -= temp; // 减少副属性分配
-                            prStat += temp; // 将超出的部分加到主属性
-                        }
-                        primary = PacketStat.INT; // 设置主属性为智力
-                        secondary = PacketStat.LUK; // 设置副属性为运气
-                        tertiary = PacketStat.DEX; // 设置第三属性为敏捷
-                    }
-                    case BOWMAN -> { // 弓箭手职业
-                        CAP = 125; // 设置副属性上限为125
-                        scStat = (chr.getLevel() + 5) - (chr.getStr() + str - eqpStr); // 计算STR需求
-                        if (scStat < 0) { // 检查计算结果是否为负
-                            scStat = 0; // 如果是则设为0
-                        }
-                        scStat = Math.min(scStat, tempAp); // 确保不超过可用AP
-                        if (tempAp > scStat) { // 如果还有剩余AP
-                            tempAp -= scStat; // 扣除已分配的AP
-                        } else {
-                            tempAp = 0; // 否则清空剩余AP
-                        }
-                        prStat = tempAp; // 将剩余AP全部分配给主属性
-                        dex = prStat; // 主属性为DEX
-                        str = scStat; // 副属性为STR
-                        int_ = 0; // INT不分配
-                        luk = 0; // LUK不分配
-
-
-                        // 检查并处理副属性超过上限的情况
-                        if (useAutoAssignSecondaryCap && str + chr.getStr() > CAP) {
-                            temp = str + chr.getStr() - CAP; // 计算超出量
-                            scStat -= temp; // 减少副属性分配
-                            prStat += temp; // 将超出的部分加到主属性
-                        }
-                        primary = PacketStat.DEX; // 设置主属性为敏捷
-                        secondary = PacketStat.STR; // 设置副属性为力量
-                    } // 枪手职业
-                    case GUNSLINGER, CROSSBOWMAN -> { // 弩手职业
-                        CAP = 120; // 设置副属性上限为120
-                        scStat = chr.getLevel() - (chr.getStr() + str - eqpStr); // 计算STR需求
-                        if (scStat < 0) { // 检查计算结果是否为负
-                            scStat = 0; // 如果是则设为0
-                        }
-                        scStat = Math.min(scStat, tempAp); // 确保不超过可用AP
-                        if (tempAp > scStat) { // 如果还有剩余AP
-                            tempAp -= scStat; // 扣除已分配的AP
-                        } else {
-                            tempAp = 0; // 否则清空剩余AP
-                        }
-                        prStat = tempAp; // 将剩余AP全部分配给主属性
-                        dex = prStat; // 主属性为DEX
-                        str = scStat; // 副属性为STR
-                        int_ = 0; // INT不分配
-                        luk = 0; // LUK不分配
-
-
-                        // 检查并处理副属性超过上限的情况
-                        if (useAutoAssignSecondaryCap && str + chr.getStr() > CAP) {
-                            temp = str + chr.getStr() - CAP; // 计算超出量
-                            scStat -= temp; // 减少副属性分配
-                            prStat += temp; // 将超出的部分加到主属性
-                        }
-                        primary = PacketStat.DEX; // 设置主属性为敏捷
-                        secondary = PacketStat.STR; // 设置副属性为力量
-                    }
-                    case THIEF -> { // 盗贼职业
-                        CAP = 160; // 设置副属性上限为160
-                        scStat = 0; // 初始化副属性分配值
-                        if (chr.getDex() < 80) { // 检查DEX是否低于80
-                            scStat = (2 * chr.getLevel()) - (chr.getDex() + dex - eqpDex); // 计算DEX需求
-                            if (scStat < 0) { // 检查计算结果是否为负
-                                scStat = 0; // 如果是则设为0
-                            }
-
-                            scStat = Math.min(80 - chr.getDex(), scStat); // 确保不超过DEX上限差值
-                            scStat = Math.min(tempAp, scStat); // 确保不超过可用AP
-                            tempAp -= scStat; // 扣除已分配的AP
-                        }
-                        temp = (chr.getLevel() + 40) - Math.max(80, scStat + chr.getDex() + dex - eqpDex); // 计算额外DEX需求
-                        if (temp < 0) { // 检查计算结果是否为负
-                            temp = 0; // 如果是则设为0
-                        }
-                        temp = Math.min(tempAp, temp); // 确保不超过可用AP
-                        scStat += temp; // 增加副属性分配
-                        tempAp -= temp; // 扣除已分配的AP
-
-
-                        // 盗贼只有在达到基于等级的阈值时才会分配STR
-                        if (chr.getStr() >= Math.max(13, (int) (0.4 * chr.getLevel()))) { // 检查STR是否达到阈值
-                            if (chr.getStr() < 50) { // 检查STR是否低于50
-                                trStat = (chr.getLevel() - 10) - (chr.getStr() + str - eqpStr); // 计算STR需求
-                                if (trStat < 0) { // 检查计算结果是否为负
-                                    trStat = 0; // 如果是则设为0
-                                }
-
-                                trStat = Math.min(50 - chr.getStr(), trStat); // 确保不超过STR上限差值
-                                trStat = Math.min(tempAp, trStat); // 确保不超过可用AP
-                                tempAp -= trStat; // 扣除已分配的AP
-                            }
-
-                            temp = (20 + (chr.getLevel() / 2)) - Math.max(50, trStat + chr.getStr() + str - eqpStr); // 计算额外STR需求
-                            if (temp < 0) { // 检查计算结果是否为负
-                                temp = 0; // 如果是则设为0
-                            }
-                            temp = Math.min(tempAp, temp); // 确保不超过可用AP
-                            trStat += temp; // 增加第三属性分配
-                            tempAp -= temp; // 扣除已分配的AP
-                        }
-                        prStat = tempAp; // 将剩余AP全部分配给主属性
-                        luk = prStat; // 主属性为LUK
-                        dex = scStat; // 副属性为DEX
-                        str = trStat; // 第三属性为STR
-                        int_ = 0; // INT不分配
-
-
-                        // 检查并处理副属性超过上限的情况
-                        if (useAutoAssignSecondaryCap && dex + chr.getDex() > CAP) {
-                            temp = dex + chr.getDex() - CAP; // 计算超出量
-                            scStat -= temp; // 减少副属性分配
-                            prStat += temp; // 将超出的部分加到主属性
-                        }
-                        if (useAutoAssignSecondaryCap && str + chr.getStr() > CAP) {
-                            temp = str + chr.getStr() - CAP; // 计算超出量
-                            trStat -= temp; // 减少第三属性分配
-                            prStat += temp; // 将超出的部分加到主属性
-                        }
-                        primary = PacketStat.LUK; // 设置主属性为运气
-                        secondary = PacketStat.DEX; // 设置副属性为敏捷
-                        tertiary = PacketStat.STR; // 设置第三属性为力量
-                    } // 拳手职业
-                    default -> {    // 战士、新手等默认职业
-                        CAP = 300; // 设置副属性上限为300
-                        boolean highDex = false; // 标记是否高DEX
-                        if (chr.getLevel() < 40) { // 检查等级是否低于40
-                            if (chr.getDex() >= (2 * chr.getLevel()) + 2) { // 检查DEX是否达到阈值
-                                highDex = true; // 标记为高DEX
-                            }
-                        } else {
-                            if (chr.getDex() >= chr.getLevel() + 42) { // 检查DEX是否达到阈值
-                                highDex = true; // 标记为高DEX
-                            }
-                        }
-
-                        // 其他职业只有在达到基于等级的阈值时才会倾向于分配更多DEX
-                        if (!highDex) { // 如果不是高DEX
-                            scStat = 0; // 初始化副属性分配值
-                            if (chr.getDex() < 80) { // 检查DEX是否低于80
-                                scStat = (2 * chr.getLevel()) - (chr.getDex() + dex - eqpDex); // 计算DEX需求
-                                if (scStat < 0) { // 检查计算结果是否为负
-                                    scStat = 0; // 如果是则设为0
-                                }
-
-                                scStat = Math.min(80 - chr.getDex(), scStat); // 确保不超过DEX上限差值
-                                scStat = Math.min(tempAp, scStat); // 确保不超过可用AP
-                                tempAp -= scStat; // 扣除已分配的AP
-                            }
-
-                            temp = (chr.getLevel() + 40) - Math.max(80, scStat + chr.getDex() + dex - eqpDex); // 计算额外DEX需求
-                            if (temp < 0) { // 检查计算结果是否为负
-                                temp = 0; // 如果是则设为0
-                            }
-                            temp = Math.min(tempAp, temp); // 确保不超过可用AP
-                            scStat += temp; // 增加副属性分配
-                            tempAp -= temp; // 扣除已分配的AP
-                        } else { // 如果是高DEX
-                            scStat = 0; // 初始化副属性分配值
-                            if (chr.getDex() < 96) { // 检查DEX是否低于96
-                                scStat = (int) (2.4 * chr.getLevel()) - (chr.getDex() + dex - eqpDex); // 计算DEX需求
-                                if (scStat < 0) { // 检查计算结果是否为负
-                                    scStat = 0; // 如果是则设为0
-                                }
-
-                                scStat = Math.min(96 - chr.getDex(), scStat); // 确保不超过DEX上限差值
-                                scStat = Math.min(tempAp, scStat); // 确保不超过可用AP
-                                tempAp -= scStat; // 扣除已分配的AP
-                            }
-
-                            temp = 96 + (int) (1.2 * (chr.getLevel() - 40)) - Math.max(96, scStat + chr.getDex() + dex - eqpDex); // 计算额外DEX需求
-                            if (temp < 0) { // 检查计算结果是否为负
-                                temp = 0; // 如果是则设为0
-                            }
-                            temp = Math.min(tempAp, temp); // 确保不超过可用AP
-                            scStat += temp; // 增加副属性分配
-                            tempAp -= temp; // 扣除已分配的AP
-                        }
-                        prStat = tempAp; // 将剩余AP全部分配给主属性
-                        str = prStat; // 主属性为STR
-                        dex = scStat; // 副属性为DEX
-                        int_ = 0; // INT不分配
-                        luk = 0; // LUK不分配
-
-
-                        // 检查并处理副属性超过上限的情况
-                        if (useAutoAssignSecondaryCap && dex + chr.getDex() > CAP) {
-                            temp = dex + chr.getDex() - CAP; // 计算超出量
-                            scStat -= temp; // 减少副属性分配
-                            prStat += temp; // 将超出的部分加到主属性
-                        }
-                        primary = PacketStat.STR; // 设置主属性为力量
-                        secondary = PacketStat.DEX; // 设置副属性为敏捷
-                    }
-                }
-
-                // 实际执行属性分配
-                int extras = 0; // 初始化剩余AP变量
-                extras = gainStatByType(primary, statGain, prStat + extras, statUpdate); // 分配主属性
-                extras = gainStatByType(secondary, statGain, scStat + extras, statUpdate); // 分配副属性
-                extras = gainStatByType(tertiary, statGain, trStat + extras, statUpdate); // 分配第三属性
-
-                // 重新分配剩余的AP点数
-                if (extras > 0) {
-                    extras = gainStatByType(primary, statGain, extras, statUpdate); // 优先分配给主属性
-                    extras = gainStatByType(secondary, statGain, extras, statUpdate); // 其次分配给副属性
-                    extras = gainStatByType(tertiary, statGain, extras, statUpdate); // 最后分配给第三属性
-                    gainStatByType(getQuaternaryStat(stance), statGain, extras, statUpdate); // 如果还有剩余，分配给第四属性
-                }
+                // 解析 JS 返回的分配结果 { str, dex, int, luk }
+                statGain[0] = result.getMember("str").asInt(); // STR增益
+                statGain[1] = result.getMember("dex").asInt(); // DEX增益
+                statGain[3] = result.getMember("int").asInt(); // INT增益
+                statGain[2] = result.getMember("luk").asInt(); // LUK增益
 
                 // 更新玩家属性
                 chr.assignStrDexIntLuk(statGain[0], statGain[1], statGain[3], statGain[2]);
@@ -456,9 +231,6 @@ public class AssignAPProcessor {
         }
     }
 
-    private static int getNthHighestStat(List<Short> statList, short rank) {    // ranks from 0
-        return (statList.size() <= rank ? 0 : statList.get(rank));
-    }
     /**
      * 按属性类型增加属性点
      * 处理流程：
@@ -527,13 +299,6 @@ public class AssignAPProcessor {
             return newVal - maxAp;
         }
         return 0;
-    }
-
-    private static PacketStat getQuaternaryStat(JobEnum stance) {
-        if (stance != JobEnum.MAGICIAN) {
-            return PacketStat.INT;
-        }
-        return PacketStat.STR;
     }
     /**
      * 执行AP重置操作，将一种属性转换为另一种属性
