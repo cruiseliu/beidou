@@ -381,7 +381,7 @@ class CharacterInventory {
     void equipChanged() {
         owner.getMap().broadcastUpdateCharLookMessage(owner, owner);
         equipchanged = true;
-        owner.stats.updateLocalStats();
+        owner.stats.recalcAndSyncParty();
         if (owner.getMessenger() != null) {
             owner.getWorldServer().updateMessenger(owner.getMessenger(), owner.getName(), owner.getWorld(), owner.client.getChannel());
         }

@@ -426,7 +426,7 @@ public class CharacterService {
             accountStorage = world.getAccountStorage(charactersDO.getAccountid());
         }
         chr.setStorage(accountStorage);
-        chr.reapplyLocalStats();
+        chr.recalc();
         return chr;
     }
 

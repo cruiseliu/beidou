@@ -1,6 +1,7 @@
 package org.gms.client.character;
 
 import org.gms.net.server.world.Party;
+import org.gms.util.Locks;
 import org.gms.server.maps.Door;
 import org.gms.server.maps.DoorObject;
 
@@ -39,20 +40,14 @@ class CharacterMysticDoor {
     }
 
     Collection<Door> getDoors() {
-        owner.party.lock.lock();
-        try {
+        try (var ignored = Locks.acquire(owner.party.lock)) {
             return (owner.party.party != null ? Collections.unmodifiableCollection(owner.party.party.getDoors().values()) : (pdoor != null ? Collections.singleton(pdoor) : new LinkedHashSet<>()));
-        } finally {
-            owner.party.lock.unlock();
         }
     }
 
     Door getPlayerDoor() {
-        owner.party.lock.lock();
-        try {
+        try (var ignored = Locks.acquire(owner.party.lock)) {
             return pdoor;
-        } finally {
-            owner.party.lock.unlock();
         }
     }
 
@@ -84,12 +79,9 @@ class CharacterMysticDoor {
     }
 
     int fetchDoorSlot() {
-        owner.party.lock.lock();
-        try {
+        try (var ignored = Locks.acquire(owner.party.lock)) {
             doorSlot = (owner.party.party == null) ? 0 : owner.party.party.getPartyDoor(owner.getId());
             return doorSlot;
-        } finally {
-            owner.party.lock.unlock();
         }
     }
 
@@ -97,8 +89,7 @@ class CharacterMysticDoor {
 
     void applyPartyDoor(Door door, boolean partyUpdate) {
         Party chrParty;
-        owner.party.lock.lock();
-        try {
+        try (var ignored = Locks.acquire(owner.party.lock)) {
             if (!partyUpdate) {
                 pdoor = door;
             }
@@ -107,8 +98,6 @@ class CharacterMysticDoor {
             if (chrParty != null) {
                 chrParty.addDoor(owner.getId(), door);
             }
-        } finally {
-            owner.party.lock.unlock();
         }
 
         owner.party.silentPartyUpdateInternal(chrParty);
@@ -118,8 +107,7 @@ class CharacterMysticDoor {
         Door ret = null;
         Party chrParty;
 
-        owner.party.lock.lock();
-        try {
+        try (var ignored = Locks.acquire(owner.party.lock)) {
             chrParty = owner.getParty();
             if (chrParty != null) {
                 chrParty.removeDoor(owner.getId());
@@ -129,8 +117,6 @@ class CharacterMysticDoor {
                 ret = pdoor;
                 pdoor = null;
             }
-        } finally {
-            owner.party.lock.unlock();
         }
 
         owner.party.silentPartyUpdateInternal(chrParty);

@@ -1,6 +1,6 @@
 package org.gms.client.job;
 
-import org.gms.client.Stat;
+import org.gms.client.PacketStat;
 
 import java.util.List;
 
@@ -15,13 +15,13 @@ import java.util.List;
  * 短刀 → primary=[LUK], secondary=[DEX, STR]   （飞侠主 LUK，副 DEX+STR）
  * 剑   → primary=[STR], secondary=[DEX]
  */
-public record StatRule(List<Stat> primary, List<Stat> secondary) {
+public record StatRule(List<PacketStat> primary, List<PacketStat> secondary) {
 
-    public static final StatRule BOW = new StatRule(List.of(Stat.DEX), List.of(Stat.STR));
-    public static final StatRule THIEF_WEAPON = new StatRule(List.of(Stat.LUK), List.of(Stat.DEX, Stat.STR));
-    public static final StatRule MELEE = new StatRule(List.of(Stat.STR), List.of(Stat.DEX));
+    public static final StatRule BOW = new StatRule(List.of(PacketStat.DEX), List.of(PacketStat.STR));
+    public static final StatRule THIEF_WEAPON = new StatRule(List.of(PacketStat.LUK), List.of(PacketStat.DEX, PacketStat.STR));
+    public static final StatRule MELEE = new StatRule(List.of(PacketStat.STR), List.of(PacketStat.DEX));
 
-    public static StatRule of(Stat primary, Stat... secondary) {
+    public static StatRule of(PacketStat primary, PacketStat... secondary) {
         return new StatRule(List.of(primary), List.of(secondary));
     }
 }

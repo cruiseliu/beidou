@@ -28,7 +28,7 @@ import org.gms.client.Client;
 import org.gms.client.JobEnum;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
-import org.gms.client.Stat;
+import org.gms.client.PacketStat;
 import org.gms.client.autoban.AutobanFactory;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.InventoryType;
@@ -179,7 +179,7 @@ public class AssignAPProcessor {
                     return; // 如果不足则返回
                 }
 
-                Stat primary, secondary, tertiary = Stat.LUK; // 声明主、副、第三属性枚举
+                PacketStat primary, secondary, tertiary = PacketStat.LUK; // 声明主、副、第三属性枚举
                 switch (stance) { // 根据职业类型进行不同的处理
                     case MAGICIAN -> { // 魔法师职业
                         CAP = 165; // 设置副属性上限为165
@@ -206,9 +206,9 @@ public class AssignAPProcessor {
                             scStat -= temp; // 减少副属性分配
                             prStat += temp; // 将超出的部分加到主属性
                         }
-                        primary = Stat.INT; // 设置主属性为智力
-                        secondary = Stat.LUK; // 设置副属性为运气
-                        tertiary = Stat.DEX; // 设置第三属性为敏捷
+                        primary = PacketStat.INT; // 设置主属性为智力
+                        secondary = PacketStat.LUK; // 设置副属性为运气
+                        tertiary = PacketStat.DEX; // 设置第三属性为敏捷
                     }
                     case BOWMAN -> { // 弓箭手职业
                         CAP = 125; // 设置副属性上限为125
@@ -235,8 +235,8 @@ public class AssignAPProcessor {
                             scStat -= temp; // 减少副属性分配
                             prStat += temp; // 将超出的部分加到主属性
                         }
-                        primary = Stat.DEX; // 设置主属性为敏捷
-                        secondary = Stat.STR; // 设置副属性为力量
+                        primary = PacketStat.DEX; // 设置主属性为敏捷
+                        secondary = PacketStat.STR; // 设置副属性为力量
                     } // 枪手职业
                     case GUNSLINGER, CROSSBOWMAN -> { // 弩手职业
                         CAP = 120; // 设置副属性上限为120
@@ -263,8 +263,8 @@ public class AssignAPProcessor {
                             scStat -= temp; // 减少副属性分配
                             prStat += temp; // 将超出的部分加到主属性
                         }
-                        primary = Stat.DEX; // 设置主属性为敏捷
-                        secondary = Stat.STR; // 设置副属性为力量
+                        primary = PacketStat.DEX; // 设置主属性为敏捷
+                        secondary = PacketStat.STR; // 设置副属性为力量
                     }
                     case THIEF -> { // 盗贼职业
                         CAP = 160; // 设置副属性上限为160
@@ -327,9 +327,9 @@ public class AssignAPProcessor {
                             trStat -= temp; // 减少第三属性分配
                             prStat += temp; // 将超出的部分加到主属性
                         }
-                        primary = Stat.LUK; // 设置主属性为运气
-                        secondary = Stat.DEX; // 设置副属性为敏捷
-                        tertiary = Stat.STR; // 设置第三属性为力量
+                        primary = PacketStat.LUK; // 设置主属性为运气
+                        secondary = PacketStat.DEX; // 设置副属性为敏捷
+                        tertiary = PacketStat.STR; // 设置第三属性为力量
                     } // 拳手职业
                     default -> {    // 战士、新手等默认职业
                         CAP = 300; // 设置副属性上限为300
@@ -399,8 +399,8 @@ public class AssignAPProcessor {
                             scStat -= temp; // 减少副属性分配
                             prStat += temp; // 将超出的部分加到主属性
                         }
-                        primary = Stat.STR; // 设置主属性为力量
-                        secondary = Stat.DEX; // 设置副属性为敏捷
+                        primary = PacketStat.STR; // 设置主属性为力量
+                        secondary = PacketStat.DEX; // 设置副属性为敏捷
                     }
                 }
 
@@ -443,7 +443,7 @@ public class AssignAPProcessor {
                     if (tempVal < 0 || tempVal > remainingAp) { // 验证分配值是否合法
                         return; // 不合法则返回
                     }
-                    gainStatByType(Stat.getBy5ByteEncoding(type), statGain, tempVal, statUpdate); // 分配属性
+                    gainStatByType(PacketStat.getBy5ByteEncoding(type), statGain, tempVal, statUpdate); // 分配属性
                 }
 
                 // 更新玩家属性
@@ -473,7 +473,7 @@ public class AssignAPProcessor {
      * @param statUpdate 当前属性值数组
      * @return 未能分配的剩余点数
      */
-    private static int gainStatByType(Stat type, int[] statGain, int gain, int[] statUpdate) {
+    private static int gainStatByType(PacketStat type, int[] statGain, int gain, int[] statUpdate) {
         reloadConfig();
         if (gain <= 0) {
             return 0;
@@ -529,11 +529,11 @@ public class AssignAPProcessor {
         return 0;
     }
 
-    private static Stat getQuaternaryStat(JobEnum stance) {
+    private static PacketStat getQuaternaryStat(JobEnum stance) {
         if (stance != JobEnum.MAGICIAN) {
-            return Stat.INT;
+            return PacketStat.INT;
         }
-        return Stat.STR;
+        return PacketStat.STR;
     }
     /**
      * 执行AP重置操作，将一种属性转换为另一种属性

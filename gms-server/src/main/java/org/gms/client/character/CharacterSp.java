@@ -62,7 +62,7 @@ class CharacterSp {
             int applied = this.remainingSp[indexOf(jobId)];
             if (!silent) {
                 owner.stats.announceStatsUpdate(new java.util.HashMap<>(
-                        java.util.Map.of(org.gms.client.Stat.AVAILABLESP, applied)));
+                        java.util.Map.of(org.gms.client.PacketStat.AVAILABLESP, applied)));
             }
             return applied;
         }

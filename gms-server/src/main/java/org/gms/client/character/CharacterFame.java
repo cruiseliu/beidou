@@ -1,6 +1,6 @@
 package org.gms.client.character;
 
-import org.gms.client.Stat;
+import org.gms.client.PacketStat;
 import org.gms.util.DatabaseConnection;
 import org.gms.util.PacketCreator;
 import org.gms.util.Pair;
@@ -86,7 +86,7 @@ class CharacterFame {
         delta = fameRes.getRight();
         if (delta != 0) {
             int thisFame = fameRes.getLeft();
-            owner.updateSingleStat(Stat.FAME, thisFame);
+            owner.updateSingleStat(PacketStat.FAME, thisFame);
 
             if (fromPlayer != null) {
                 fromPlayer.sendPacket(PacketCreator.giveFameResponse(mode, owner.getName(), thisFame));

@@ -14,6 +14,7 @@ import org.gms.server.Trade;
 import org.gms.server.maps.MapleMap;
 import org.gms.server.maps.Portal;
 import org.gms.util.I18nUtil;
+import org.gms.util.Locks;
 import org.gms.util.Pair;
 import org.gms.util.PacketCreator;
 import org.slf4j.Logger;
@@ -323,15 +324,12 @@ class CharacterMap {
             map.addPlayer(owner);
             visitMap(map);
 
-            owner.party.lock.lock();
-            try {
+            try (var ignored = Locks.acquire(owner.party.lock)) {
                 if (owner.party.party != null) {
                     owner.party.mpc.setMapId(to.getId());
                     owner.sendPacket(PacketCreator.updateParty(owner.getClient().getChannel(), owner.party.party, PartyOperation.SILENT_UPDATE, null));
                     owner.party.updatePartyMemberHPInternal();
                 }
-            } finally {
-                owner.party.lock.unlock();
             }
             if (owner.getParty() != null) {
                 owner.getParty().setEnemy(k);

@@ -5,9 +5,9 @@ import org.gms.client.Disease;
 import org.gms.client.keybind.KeyBinding;
 import org.gms.client.processor.action.PetAutopotProcessor;
 import org.gms.client.JobEnum;
-import org.gms.client.job.GainStats;
-import org.gms.client.Stat;
+import org.gms.client.PacketStat;
 import org.gms.client.Skill;
+import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.Item;
@@ -23,7 +23,6 @@ import org.gms.server.ItemInformationProvider;
 import org.gms.util.Locks;
 import org.gms.util.PacketCreator;
 import org.gms.util.Pair;
-import org.gms.util.Randomizer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,10 +33,13 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * 角色属性数据 + 纯计算 + 属性读写锁（rLock/wLock）+ HP/MP 变更编排与 local 重算。
- * 持锁路径直读字段更快；无外层锁时的单维读取走 getAttr。
- * 字段 package-private，同包的 Character 直接访问，不提供 getter/setter。
- * HP/MP 变更与 recalc 族方法持有 owner 反向引用，经 owner 门面发包/联动。
+ * 角色属性数据：update transaction + volatile snapshot 模型。
+ * <p>
+ * 所有状态收敛到 {@link StatsSnapshot}base/local/hp/mp/ap），volatile 发布；
+ * 写路径持 wLock（单写者）经 {@link #updateInternal(boolean, Change...)} 事务重建快照（copy-on-write，未变数组按引用复用），
+ * 读路径无锁读 snapshot 引用——永远看到某个已完成事务的一致视图（与 ActiveBuffs 的 volatile effects 同思路）。
+ * <p>
+ * base/local 数组语义上不可改（caller guarantee：写路径新建数组，旧数组发布后不再修改）。
  */
 public class CharacterStats {
     private final Character owner;
@@ -46,443 +48,197 @@ public class CharacterStats {
     final Lock rLock = statLock.readLock();
     final Lock wLock = statLock.writeLock();
 
+    volatile StatsSnapshot snapshot = StatsSnapshot.initial();
+
     CharacterStats(Character owner) {
         this.owner = owner;
-        attrs[StatIndex.P_ATK] = 0;   // 裸体物理攻击力恒 0（仅装备/buff 累加，localAttrs 从 attrs 起步）
-        attrs[StatIndex.M_ATK] = 0;   // 裸体魔法攻击力恒 0
-        localAttrs[StatIndex.MAX_HP] = 50;
-        localAttrs[StatIndex.MAX_MP] = 5;
     }
 
-    // ── 基础属性（下标见 StatIndex：STR..LUK + MAX_HP + MAX_MP） ──
-    final int[] attrs = new int[StatIndex.STAT_COUNT];
+    // ── 读路径（无锁 volatile） ──
 
-    // ── HP / MP ──
-    int hp;
-    int mp;
+    int getBase(Stat stat) {
+        return snapshot.base()[stat.ordinal()];
+    }
 
-    // ── local 系列（派生属性，recalc 后有效；下标见 StatIndex） ──
-    final int[] localAttrs = new int[StatIndex.STAT_COUNT];
+    int getTotal(Stat stat) {
+        return snapshot.total()[stat.ordinal()];
+    }
 
+    int getHp() {
+        return snapshot.hp();
+    }
 
-    // ── 操作方法（package-private，由 Character 在持锁状态下调用） ──
+    int getMp() {
+        return snapshot.mp();
+    }
 
-    /** 带锁读取单维（无外层锁时使用；持锁路径直读 attrs 更快） */
-    int getAttr(int idx) {
-        try (var ignored = Locks.acquire(rLock)) {
-            return attrs[idx];
+    // ── 写事务（单写者：持 wLock 重建快照并 volatile 发布） ──
+
+    /**
+     * 属性更新语法糖入口：stats.update().set(STR, x).add(MAX_HP, y).commit()。
+     * builder 链在锁外构建（commit 才持 wLock），禁止先读后写（相对修改用 add 增量，见 StatUpdateBuilder）。
+     */
+    StatUpdateBuilder update() {
+        return new StatUpdateBuilder(this);
+    }
+
+    /**
+     * 重算 total stats（API 层面独立调用，非 Change 变更）：装备/buff 变化后触发，
+     * 直接计算并发布新快照（不进入 update 事务的变更折叠）。
+     */
+    void recalc() {
+        try (var ignored = Locks.acquire(wLock)) {
+            StatsSnapshot old = snapshot;
+            int[] newTotal = computeTotal(old.base());
+            int hp = Math.clamp(old.hp(), 0, newTotal[Stat.MAX_HP.ordinal()]);
+            int mp = Math.clamp(old.mp(), 0, newTotal[Stat.MAX_MP.ordinal()]);
+            snapshot = new StatsSnapshot(old.base(), newTotal, hp, mp, old.ap());
         }
     }
 
-    private void setHp(int newHp) {
-        hp = Math.clamp(newHp, 0, localAttrs[StatIndex.MAX_HP]);
-    }
-
-    private void setMp(int newMp) {
-        mp = Math.clamp(newMp, 0, localAttrs[StatIndex.MAX_MP]);
-    }
-
-    void setMaxHp(int newMaxHp) {
-        attrs[StatIndex.MAX_HP] = newMaxHp;
-    }
-
-    void setMaxMp(int newMaxMp) {
-        attrs[StatIndex.MAX_MP] = newMaxMp;
-    }
-
-    /** 客户端可见最大 HP（封顶 30000，客户端上限） */
-    int getClientMaxHp() {
-        return Math.min(30000, attrs[StatIndex.MAX_HP]);
-    }
-
-    /** 客户端可见最大 MP（封顶 30000，客户端上限） */
-    int getClientMaxMp() {
-        return Math.min(30000, attrs[StatIndex.MAX_MP]);
-    }
-
-    /** 魔法攻击强度 = 魔法攻击力 + 智力（魔法侧两步合并成一步数值等价；与物理的"攻击力存储 + 强度现算"对称） */
-    int getMagicPower() {
-        return localAttrs[StatIndex.M_ATK] + localAttrs[StatIndex.INT];
-    }
-
-    // ── 工具函数 ──
-
-    /**
-     * 成长计算：NEW = (OLD + rand(addMin, addMax)) * multiply（各维度自己的乘数）。
-     * fixed = true 时区间取平均值（不浮动）；false 时随机取区间内值。
-     */
-    static int applyGrowth(int oldValue, GainStats.Growth growth, boolean fixed) {
-        int gain = fixed ? (growth.addMin() + growth.addMax()) / 2 : Randomizer.rand(growth.addMin(), growth.addMax());
-        return (int) ((oldValue + gain) * growth.multiply());
-    }
-
-    // ── 装备属性聚合 ──
-
-    /**
-     * 将装备聚合值清零后累加指定装备列表的属性。
-     * Character 负责传入 EQUIPPED 背包内容和管理 equipchanged 标志。
-     */
-    /**
-     * 装备属性聚合（全量重算，返回 equip 层的 8 槽数组；调用方负责累加到 localAttrs）。
-     * todo: [refactor] move to equip component and cache result（equip 模块应是 CharacterInventory 的子模块，
-     *       类似 ActiveBuffs 与 CharacterBuffs 的关系；equipChanged 缓存重构到那里，当前不做缓存，性能损失可接受）
-     */
-    private int[] getEquipStats() {
-        int[] equip = new int[StatIndex.STAT_COUNT];
-        for (Item item : owner.getInventory(InventoryType.EQUIPPED)) {
-            org.gms.client.inventory.Equip eq = (org.gms.client.inventory.Equip) item;
-            equip[StatIndex.MAX_HP] += eq.getHp();
-            equip[StatIndex.MAX_MP] += eq.getMp();
-            equip[StatIndex.DEX] += eq.getDex();
-            equip[StatIndex.INT] += eq.getInt();
-            equip[StatIndex.STR] += eq.getStr();
-            equip[StatIndex.LUK] += eq.getLuk();
-            equip[StatIndex.M_ATK] += eq.getMatk();
-            equip[StatIndex.P_ATK] += eq.getWatk();
-        }
-        return equip;
-    }
-
-    /** reapplyLocalStats 的第一步：把 local* 重置为基础属性值。 */
-    private void resetLocalToBase() {
-        // localAttrs 是 recalc 的计算结果缓存：全部 8 槽以 attrs 为初始值开始累加
-        // （P_ATK/M_ATK 的裸体 0 由 attrs 初始化保证，此处不做 0 假设）
-        for (int i = 0; i < StatIndex.STAT_COUNT; i++) {
-            localAttrs[i] = attrs[i];
+    /** 重算 total stats 并在 maxHp 变化时同步队伍成员 HP（buff 变化/换装后的联动） */
+    void recalcAndSyncParty() {
+        try (var ignored = Locks.acquire(owner.party.lock, wLock)) {
+            int oldmaxhp = snapshot.total()[Stat.MAX_HP.ordinal()];
+            recalc();
+            if (oldmaxhp != snapshot.total()[Stat.MAX_HP.ordinal()]) {   // thanks Wh1SK3Y (Suwaidy) for pointing out a deadlock occuring related to party members HP
+                owner.updatePartyMemberHP();
+            }
         }
     }
 
-    // ── 持久化数据转换（stats 域的映射；信封 CharacterData 的组装/应用在 Character.toData/applyData） ──
-
-    CharacterStatsData toData() {
-        CharacterStatsData d = new CharacterStatsData();
-        d.str = attrs[StatIndex.STR];
-        d.dex = attrs[StatIndex.DEX];
-        d.int_ = attrs[StatIndex.INT];
-        d.luk = attrs[StatIndex.LUK];
-        d.hp = hp;
-        d.mp = mp;
-        d.maxHp = attrs[StatIndex.MAX_HP];
-        d.maxMp = attrs[StatIndex.MAX_MP];
-        return d;
-    }
-
-    void applyData(CharacterStatsData d) {
-        attrs[StatIndex.STR] = d.str;
-        attrs[StatIndex.DEX] = d.dex;
-        attrs[StatIndex.INT] = d.int_;
-        attrs[StatIndex.LUK] = d.luk;
-        hp = d.hp;
-        mp = d.mp;
-        attrs[StatIndex.MAX_HP] = d.maxHp;
-        attrs[StatIndex.MAX_MP] = d.maxMp;
-    }
-
-    // ══════════════════ HP/MP 变更与 local 重算（迁移自 Character） ══════════════════
-
-    // ── HP/MP 变更 ──
-
-    private void setHpInternal(int newHp) {
-        int oldHp = hp;
-        setHp(newHp);
-        owner.hpChangeAction(oldHp);
-    }
-
+    /** 受击扣血钳制（HP 不低于 1）：非纯一行式，保留；原子边界由 update()...commit() 显式表达 */
     int safeAddHP(int delta) {
         try (var ignored = Locks.acquire(wLock)) {
-            if (hp + delta <= 0) {
-                delta = -hp + 1;
+            if (snapshot.hp() + delta <= 0) {
+                delta = 1 - snapshot.hp();
             }
-            addHP(delta);
+            update().addHp(delta).commit();
             return delta;
         }
     }
 
-    void addHP(int delta) {
-        try (var ignored = Locks.acquire(wLock)) {
-            applyUpdate(new StatsUpdate().setHp(hp + delta));
-        }
-    }
+    // ── private methods ──
 
-    void addMP(int delta) {
+    /** 应用变更（silent 为必须参数：true 不发包、调用方自行公告/组装包），返回本次变更集 */
+    Map<PacketStat, Integer> updateInternal(boolean silent, Change... changes) {
+        Map<PacketStat, Integer> statUpdates;
         try (var ignored = Locks.acquire(wLock)) {
-            applyUpdate(new StatsUpdate().setMp(mp + delta));
-        }
-    }
-
-    void addMPHP(int hpDelta, int mpDelta) {
-        try (var ignored = Locks.acquire(wLock)) {
-            applyUpdate(new StatsUpdate().setHp(hp + hpDelta).setMp(mp + mpDelta));
-        }
-    }
-
-    void addMaxHP(int delta) {
-        try (var ignored = Locks.acquire(wLock)) {
-            applyUpdate(new StatsUpdate().setMaxHp(attrs[StatIndex.MAX_HP] + delta));
-        }
-    }
-
-    void addMaxMP(int delta) {
-        try (var ignored = Locks.acquire(wLock)) {
-            applyUpdate(new StatsUpdate().setMaxMp(attrs[StatIndex.MAX_MP] + delta));
-        }
-    }
-
-    private void enforceMaxHpMp() {
-        try (var ignored = Locks.acquire(wLock)) {
-            if (mp > localAttrs[StatIndex.MAX_MP] || hp > localAttrs[StatIndex.MAX_HP]) {
-                applyUpdate(new StatsUpdate().setHp(hp).setMp(mp));
+            StatsSnapshot old = snapshot;
+            snapshot = applyChanges(old, changes);
+            statUpdates = diffStats(old, snapshot);
+            if (old.hp() != snapshot.hp()) {
+                hpChangeAction(old.hp());
             }
         }
-    }
-
-    // ── 属性更新（发包/静默） ──
-
-    /** 应用属性更新（发包通知客户端），返回本次变更集 */
-    Map<Stat, Integer> applyUpdate(StatsUpdate u) {
-        Map<Stat, Integer> statUpdates = applyUpdateSilently(u);
-        if (!statUpdates.isEmpty()) {
+        if (!silent && !statUpdates.isEmpty()) {
             announceStatsUpdate(statUpdates);
         }
         return statUpdates;
     }
 
-    /** 应用属性更新并返回本次变更集（不发包） */
-    Map<Stat, Integer> applyUpdateSilently(StatsUpdate u) {
-        try (var ignored = Locks.acquire(wLock)) {
-            Map<Stat, Integer> statUpdates = new HashMap<>();
-            boolean poolUpdate = false;
-            boolean statUpdate = false;
+    /**
+     * 锁内纯函数：从旧快照按变更意图产出新快照。
+     * 惰性 copy-on-write——只新建实际变化的数组，未变的按引用复用；
+     * attrs 任何槽变化或显式 Recalc 都会触发 localAttrs 重算（hyperbody/maple warrior 等耦合使增量不可行）。
+     */
+    private StatsSnapshot applyChanges(StatsSnapshot old, Change[] changes) {
+        // 直接 clone（8 元素成本可忽略）：消除惰性 clone 标志样板，Set/Add/Multiply 统一经 setBase 写入
+        int[] clonedBase = old.base().clone();
+        boolean baseDirty = false;
+        int hp = old.hp();
+        int mp = old.mp();
+        int ap = old.ap();
 
-            if (u.hp != null || u.mp != null || u.maxHp != null || u.maxMp != null) {
-                if (u.maxHp != null) {
-                    poolUpdate = true;
-                    setMaxHp(Math.max(50, u.maxHp));
-                    statUpdates.put(Stat.MAXHP, getClientMaxHp());
-                    statUpdates.put(Stat.HP, hp);
+        for (Change c : changes) {
+            switch (c) {
+                case Change.Set(Change.Prop p, int value) -> {
+                    if (p.isAttrSlot()) {
+                        baseDirty |= setBase(clonedBase, p, value);
+                    } else if (p == Change.Prop.HP) {
+                        hp = value;
+                    } else if (p == Change.Prop.MP) {
+                        mp = value;
+                    } else if (p == Change.Prop.AP) {
+                        ap = value;
+                    }
                 }
-
-                if (u.hp != null) {
-                    setHpInternal(u.hp);
-                    statUpdates.put(Stat.HP, hp);
+                case Change.Add(Change.Prop p, int delta) -> {
+                    if (p.isAttrSlot()) {
+                        baseDirty |= setBase(clonedBase, p, clonedBase[p.slot.ordinal()] + delta);
+                    } else if (p == Change.Prop.HP) {
+                        hp += delta;
+                    } else if (p == Change.Prop.MP) {
+                        mp += delta;
+                    } else if (p == Change.Prop.AP) {
+                        ap += delta;
+                    }
                 }
-
-                if (u.maxMp != null) {
-                    poolUpdate = true;
-                    setMaxMp(Math.max(5, u.maxMp));
-                    statUpdates.put(Stat.MAXMP, getClientMaxMp());
-                    statUpdates.put(Stat.MP, mp);
-                }
-
-                if (u.mp != null) {
-                    setMp(u.mp);
-                    statUpdates.put(Stat.MP, mp);
-                }
-            }
-
-            boolean basePresent = false;
-            for (int i = StatIndex.BASE_STAT_BEGIN; i < StatIndex.BASE_STAT_END; i++) {
-                Integer v = u.attrs[i];
-                if (v == null) {
-                    continue;
-                }
-                basePresent = true;
-                if (v >= 4) {   // 四维下限：低于 4 的写入被跳过
-                    attrs[i] = v;
-                    statUpdates.put(StatIndex.KEYS[i], v);
+                case Change.Multiply(Change.Prop p, double multiplier) -> {
+                    // NEW = OLD * multiplier（int 截断）；Multiply 仅支持面板属性（HP/MP/AP 无槽位不可乘）
+                    assert p.isAttrSlot() : "Multiply 仅支持面板属性槽: " + p;
+                    baseDirty |= setBase(clonedBase, p, (int) (clonedBase[p.slot.ordinal()] * multiplier));
                 }
             }
-
-            boolean apPresent = u.ap != null && u.ap >= 0;
-            if (apPresent) {
-                owner.ap.remainingAp = u.ap;
-                statUpdates.put(Stat.AVAILABLEAP, owner.ap.remainingAp);
-            }
-
-            if (basePresent || apPresent) {
-                statUpdate = true;
-            }
-
-            if (!statUpdates.isEmpty()) {
-                if (poolUpdate) {
-                    statUpdates.putAll(onHpMpPoolUpdate());
-                }
-
-                if (statUpdate) {
-                    recalcLocalStats();
-                }
-            }
-            return statUpdates;
         }
+
+        // 事务收尾：面板属性变化 时重算 total；
+        // hp/mp 在所有变更算完后统一截断到（recalc 后的）total 上限——同 commit 内 maxHp 提高时 hp 随之放行。
+        int[] newTotal = baseDirty ? computeTotal(clonedBase) : this.snapshot.total();
+        hp = Math.clamp(hp, 0, newTotal[Stat.MAX_HP.ordinal()]);
+        mp = Math.clamp(mp, 0, newTotal[Stat.MAX_MP.ordinal()]);
+        ap = Math.max(0, ap);
+        return new StatsSnapshot(clonedBase, newTotal, hp, mp, ap);
     }
 
-    // ── HP/MP 池更新 ──
-
-    /** HP/MP 池更新后的重算与钳制，返回需并入本次公告的属性修正 */
-    private Map<Stat, Integer> onHpMpPoolUpdate() {
-        Map<Stat, Integer> updates = new HashMap<>();
-        recalcLocalStats();
-
-        if (hp > localAttrs[StatIndex.MAX_HP]) {
-            setHp(localAttrs[StatIndex.MAX_HP]);
-            updates.put(Stat.HP, hp);
+    /** 写 base 槽（含四维下限兜底与同值跳过），返回是否实际变化 */
+    private static boolean setBase(int[] clonedBase, Change.Prop p, int newValue) {
+        int idx = p.slot.ordinal();
+        if (Stat.SDIL_INDEX_BEGIN <= idx && idx < Stat.SDIL_INDEX_END) {
+            if (newValue < 4) {   // 四维下限兜底（原 applyUpdateSilently 语义）
+                return false;
+            }
         }
+        if (clonedBase[idx] == newValue) {
+            return false;   // 同值跳过，避免无谓 recalc
+        }
+        clonedBase[idx] = newValue;
+        return true;
+    }
 
-        if (mp > localAttrs[StatIndex.MAX_MP]) {
-            setMp(localAttrs[StatIndex.MAX_MP]);
-            updates.put(Stat.MP, mp);
+    /** 对比新旧快照产出客户端变更集（localAttrs 变化不经 packet，通过 maxHp/hp 等派生体现） */
+    private Map<PacketStat, Integer> diffStats(StatsSnapshot old, StatsSnapshot next) {
+        Map<PacketStat, Integer> updates = new HashMap<>();
+        for (int i = Stat.SDIL_INDEX_BEGIN; i < Stat.SDIL_INDEX_END; i++) {
+            if (old.base()[i] != next.base()[i]) {
+                updates.put(Stat.values()[i].packet(), next.base()[i]);
+            }
+        }
+        if (old.base()[Stat.MAX_HP.ordinal()] != next.base()[Stat.MAX_HP.ordinal()]) {
+            updates.put(PacketStat.MAXHP, getClientMaxHp());
+            updates.put(PacketStat.HP, next.hp());
+        }
+        if (old.base()[Stat.MAX_MP.ordinal()] != next.base()[Stat.MAX_MP.ordinal()]) {
+            updates.put(PacketStat.MAXMP, getClientMaxMp());
+            updates.put(PacketStat.MP, next.mp());
+        }
+        if (old.hp() != next.hp()) {
+            updates.put(PacketStat.HP, next.hp());
+        }
+        if (old.mp() != next.mp()) {
+            updates.put(PacketStat.MP, next.mp());
+        }
+        if (old.ap() != next.ap()) {
+            updates.put(PacketStat.AVAILABLEAP, next.ap());
         }
         return updates;
     }
 
-    // ── local 重算（reapply/recalc/updateLocalStats） ──
-
-    void reapplyLocalStats() {
-        try (var ignored = Locks.acquire(wLock)) {
-            resetLocalToBase();
-
-            int[] equip = getEquipStats();
-            for (int i = 0; i < StatIndex.STAT_COUNT; i++) {
-                localAttrs[i] += equip[i];
-            }
-
-            localAttrs[StatIndex.M_ATK] = Math.min(localAttrs[StatIndex.M_ATK], 2000);
-
-            Integer hbhp = owner.getBuffedValue(EffectType.HYPERBODYHP);
-            if (hbhp != null) {
-                localAttrs[StatIndex.MAX_HP] += (int) ((hbhp.doubleValue() / 100) * localAttrs[StatIndex.MAX_HP]);
-            }
-            Integer hbmp = owner.getBuffedValue(EffectType.HYPERBODYMP);
-            if (hbmp != null) {
-                localAttrs[StatIndex.MAX_MP] += (int) ((hbmp.doubleValue() / 100) * localAttrs[StatIndex.MAX_MP]);
-            }
-
-            localAttrs[StatIndex.MAX_HP] = Math.min(30000, localAttrs[StatIndex.MAX_HP]);
-            localAttrs[StatIndex.MAX_MP] = Math.min(30000, localAttrs[StatIndex.MAX_MP]);
-
-            BuffEffectData combo = owner.getBuffEffect(EffectType.ARAN_COMBO);
-            if (combo != null) {
-                localAttrs[StatIndex.P_ATK] += combo.getX();
-            }
-
-            if (owner.getEnergyBar() == 15000) {
-                Skill energycharge = owner.isCygnus() ? SkillFactory.getSkill(ThunderBreaker.ENERGY_CHARGE) : SkillFactory.getSkill(Marauder.ENERGY_CHARGE);
-                BuffEffectData ceffect = energycharge.getEffect(owner.getSkillLevel(energycharge));
-                localAttrs[StatIndex.P_ATK] += ceffect.getWatk();
-            }
-
-            Integer mwarr = owner.getBuffedValue(EffectType.MAPLE_WARRIOR);
-            if (mwarr != null) {
-                localAttrs[StatIndex.STR] += owner.getStr() * mwarr / 100;
-                localAttrs[StatIndex.DEX] += owner.getDex() * mwarr / 100;
-                localAttrs[StatIndex.INT] += owner.getInt() * mwarr / 100;
-                localAttrs[StatIndex.LUK] += owner.getLuk() * mwarr / 100;
-            }
-            if (owner.getJob().isA(JobEnum.BOWMAN)) {
-                Skill expert = null;
-                if (owner.getJob().isA(JobEnum.MARKSMAN)) {
-                    expert = SkillFactory.getSkill(3220004);
-                } else if (owner.getJob().isA(JobEnum.BOWMASTER)) {
-                    expert = SkillFactory.getSkill(3120005);
-                }
-                if (expert != null) {
-                    int boostLevel = owner.getSkillLevel(expert);
-                    if (boostLevel > 0) {
-                        localAttrs[StatIndex.P_ATK] += expert.getEffect(boostLevel).getX();
-                    }
-                }
-            }
-
-            Integer watkbuff = owner.getBuffedValue(EffectType.WATK);
-            if (watkbuff != null) {
-                localAttrs[StatIndex.P_ATK] += watkbuff;
-            }
-            Integer matkbuff = owner.getBuffedValue(EffectType.MATK);
-            if (matkbuff != null) {
-                localAttrs[StatIndex.M_ATK] += matkbuff;
-            }
-
-            int blessing = owner.getSkillLevel(10000000 * owner.getJobType() + 12);
-            if (blessing > 0) {
-                localAttrs[StatIndex.P_ATK] += blessing;
-                localAttrs[StatIndex.M_ATK] += blessing * 2;
-            }
-
-            if (owner.getJob().isA(JobEnum.THIEF) || owner.getJob().isA(JobEnum.BOWMAN) || owner.getJob().isA(JobEnum.PIRATE) || owner.getJob().isA(JobEnum.NIGHTWALKER1) || owner.getJob().isA(JobEnum.WINDARCHER1)) {
-                Item weapon_item = owner.getInventory(InventoryType.EQUIPPED).getItem((short) -11);
-                if (weapon_item != null) {
-                    ItemInformationProvider ii = ItemInformationProvider.getInstance();
-                    WeaponType weapon = ii.getWeaponType(weapon_item.getItemId());
-                    boolean bow = weapon == WeaponType.BOW;
-                    boolean crossbow = weapon == WeaponType.CROSSBOW;
-                    boolean claw = weapon == WeaponType.CLAW;
-                    boolean gun = weapon == WeaponType.GUN;
-                    if (bow || crossbow || claw || gun) {
-                        // Also calc stars into this.
-                        Inventory inv = owner.getInventory(InventoryType.USE);
-                        for (short i = 1; i <= inv.getSlotLimit(); i++) {
-                            Item item = inv.getItem(i);
-                            if (item == null) {
-                                continue;
-                            }
-                            if ((claw && ItemConstants.isThrowingStar(item.getItemId()))
-                                    || (gun && ItemConstants.isBullet(item.getItemId()))
-                                    || (bow && ItemConstants.isArrowForBow(item.getItemId()))
-                                    || (crossbow && ItemConstants.isArrowForCrossBow(item.getItemId()))) {
-                                if (item.getQuantity() > 0) {
-                                    // Finally there!
-                                    localAttrs[StatIndex.P_ATK] += ii.getWatkForProjectile(item.getItemId());
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-                // Add throwing stars to dmg.
-            }
-
-            owner.chair.invalidateHealStats();    // 装备/属性变化后椅子恢复参数需重算
-        }
-    }
-
-    void recalcLocalStats() {
-        try (var ignored = Locks.acquire(wLock)) {
-            reapplyLocalStats();
-        }
-    }
-
-    void updateLocalStats() {
-        owner.party.lock.lock();
-        try (var ignored = Locks.acquire(wLock)) {
-            int oldmaxhp = localAttrs[StatIndex.MAX_HP];
-            recalcLocalStats();
-            enforceMaxHpMp();
-
-            if (oldmaxhp != localAttrs[StatIndex.MAX_HP]) {   // thanks Wh1SK3Y (Suwaidy) for pointing out a deadlock occuring related to party members HP
-                owner.updatePartyMemberHP();
-            }
-        } finally {
-            owner.party.lock.unlock();
-        }
-    }
-
-    // ══════════════════ HP/MP 变更编排（announce/hpChange/applyHpMpChange） ══════════════════
-
-    /** 公告属性变更（发包通知客户端） */
-    void announceStatsUpdate(Map<Stat, Integer> statUpdates) {
-        List<Pair<Stat, Integer>> statup = new ArrayList<>(statUpdates.size());
-        for (Map.Entry<Stat, Integer> s : statUpdates.entrySet()) {
-            statup.add(new Pair<>(s.getKey(), s.getValue()));
-        }
-
-        owner.sendPacket(PacketCreator.updatePlayerStats(statup, true, owner));
-    }
-
     /** HP 变化联动：死亡判定 + 队伍 HP 同步 + 狂暴检查 */
-    void hpChangeAction(int oldHp) {
+    private void hpChangeAction(int oldHp) {
         boolean playerDied = false;
-        if (hp <= 0) {
-            if (oldHp > hp) {
+        if (snapshot.hp() <= 0) {
+            if (oldHp > snapshot.hp()) {
                 playerDied = true;
             }
         }
@@ -502,13 +258,202 @@ public class CharacterStats {
         }
     }
 
+    /**
+     * 装备属性聚合（全量重算，返回 equip 层的 8 槽数组；调用方负责累加到 localAttrs）。
+     * todo: [refactor] move to equip component and cache result（equip 模块应是 CharacterInventory 的子模块，
+     *       类似 ActiveBuffs 与 CharacterBuffs 的关系；equipChanged 缓存重构到那里，当前不做缓存，性能损失可接受）
+     */
+    private int[] getEquipStats() {
+        int[] equip = new int[Stat.count()];
+        for (Item item : owner.getInventory(InventoryType.EQUIPPED)) {
+            Equip eq = (Equip) item;
+            equip[Stat.MAX_HP.ordinal()] += eq.getHp();
+            equip[Stat.MAX_MP.ordinal()] += eq.getMp();
+            equip[Stat.DEX.ordinal()] += eq.getDex();
+            equip[Stat.INT.ordinal()] += eq.getInt();
+            equip[Stat.STR.ordinal()] += eq.getStr();
+            equip[Stat.LUK.ordinal()] += eq.getLuk();
+            equip[Stat.M_ATK.ordinal()] += eq.getMatk();
+            equip[Stat.P_ATK.ordinal()] += eq.getWatk();
+        }
+        return equip;
+    }
+
+    /** 纯函数重算 total stats：以 base stats 为初始值，叠加装备/buff/技能加成（recalc 主体） */
+    private int[] computeTotal(int[] base) {
+        int[] total = base.clone();
+
+        int[] equip = getEquipStats();
+        for (int i = 0; i < Stat.count(); i++) {
+            total[i] += equip[i];
+        }
+
+        total[Stat.M_ATK.ordinal()] = Math.min(total[Stat.M_ATK.ordinal()], 2000);
+
+        Integer hbhp = owner.getBuffedValue(EffectType.HYPERBODYHP);
+        if (hbhp != null) {
+            total[Stat.MAX_HP.ordinal()] += (int) ((hbhp.doubleValue() / 100) * total[Stat.MAX_HP.ordinal()]);
+        }
+        Integer hbmp = owner.getBuffedValue(EffectType.HYPERBODYMP);
+        if (hbmp != null) {
+            total[Stat.MAX_MP.ordinal()] += (int) ((hbmp.doubleValue() / 100) * total[Stat.MAX_MP.ordinal()]);
+        }
+
+        total[Stat.MAX_HP.ordinal()] = Math.min(30000, total[Stat.MAX_HP.ordinal()]);
+        total[Stat.MAX_MP.ordinal()] = Math.min(30000, total[Stat.MAX_MP.ordinal()]);
+
+        BuffEffectData combo = owner.getBuffEffect(EffectType.ARAN_COMBO);
+        if (combo != null) {
+            total[Stat.P_ATK.ordinal()] += combo.getX();
+        }
+
+        if (owner.getEnergyBar() == 15000) {
+            Skill energycharge = owner.isCygnus() ? SkillFactory.getSkill(ThunderBreaker.ENERGY_CHARGE) : SkillFactory.getSkill(Marauder.ENERGY_CHARGE);
+            BuffEffectData ceffect = energycharge.getEffect(owner.getSkillLevel(energycharge));
+            total[Stat.P_ATK.ordinal()] += ceffect.getWatk();
+        }
+
+        Integer mwarr = owner.getBuffedValue(EffectType.MAPLE_WARRIOR);
+        if (mwarr != null) {
+            total[Stat.STR.ordinal()] += owner.getStr() * mwarr / 100;
+            total[Stat.DEX.ordinal()] += owner.getDex() * mwarr / 100;
+            total[Stat.INT.ordinal()] += owner.getInt() * mwarr / 100;
+            total[Stat.LUK.ordinal()] += owner.getLuk() * mwarr / 100;
+        }
+        if (owner.getJob().isA(JobEnum.BOWMAN)) {
+            Skill expert = null;
+            if (owner.getJob().isA(JobEnum.MARKSMAN)) {
+                expert = SkillFactory.getSkill(3220004);
+            } else if (owner.getJob().isA(JobEnum.BOWMASTER)) {
+                expert = SkillFactory.getSkill(3120005);
+            }
+            if (expert != null) {
+                int boostLevel = owner.getSkillLevel(expert);
+                if (boostLevel > 0) {
+                    total[Stat.P_ATK.ordinal()] += expert.getEffect(boostLevel).getX();
+                }
+            }
+        }
+
+        Integer watkbuff = owner.getBuffedValue(EffectType.WATK);
+        if (watkbuff != null) {
+            total[Stat.P_ATK.ordinal()] += watkbuff;
+        }
+        Integer matkbuff = owner.getBuffedValue(EffectType.MATK);
+        if (matkbuff != null) {
+            total[Stat.M_ATK.ordinal()] += matkbuff;
+        }
+
+        int blessing = owner.getSkillLevel(10000000 * owner.getJobType() + 12);
+        if (blessing > 0) {
+            total[Stat.P_ATK.ordinal()] += blessing;
+            total[Stat.M_ATK.ordinal()] += blessing * 2;
+        }
+
+        if (owner.getJob().isA(JobEnum.THIEF) || owner.getJob().isA(JobEnum.BOWMAN) || owner.getJob().isA(JobEnum.PIRATE) || owner.getJob().isA(JobEnum.NIGHTWALKER1) || owner.getJob().isA(JobEnum.WINDARCHER1)) {
+            Item weapon_item = owner.getInventory(InventoryType.EQUIPPED).getItem((short) -11);
+            if (weapon_item != null) {
+                ItemInformationProvider ii = ItemInformationProvider.getInstance();
+                WeaponType weapon = ii.getWeaponType(weapon_item.getItemId());
+                boolean bow = weapon == WeaponType.BOW;
+                boolean crossbow = weapon == WeaponType.CROSSBOW;
+                boolean claw = weapon == WeaponType.CLAW;
+                boolean gun = weapon == WeaponType.GUN;
+                if (bow || crossbow || claw || gun) {
+                    Inventory inv = owner.getInventory(InventoryType.USE);
+                    for (short i = 1; i <= inv.getSlotLimit(); i++) {
+                        Item item = inv.getItem(i);
+                        if (item == null) {
+                            continue;
+                        }
+                        if ((claw && ItemConstants.isThrowingStar(item.getItemId()))
+                                || (gun && ItemConstants.isBullet(item.getItemId()))
+                                || (bow && ItemConstants.isArrowForBow(item.getItemId()))
+                                || (crossbow && ItemConstants.isArrowForCrossBow(item.getItemId()))) {
+                            if (item.getQuantity() > 0) {
+                                total[Stat.P_ATK.ordinal()] += ii.getWatkForProjectile(item.getItemId());
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        owner.chair.invalidateHealStats();    // 装备/属性变化后椅子恢复参数需重算
+        return total;
+    }
+
+    // ── 持久化数据转换（stats 域的映射；信封 CharacterData 的组装/应用在 Character.toData/applyData） ──
+
+    CharacterStatsData toData() {
+        StatsSnapshot s = snapshot;
+        CharacterStatsData d = new CharacterStatsData();
+        d.str = s.base()[Stat.STR.ordinal()];
+        d.dex = s.base()[Stat.DEX.ordinal()];
+        d.int_ = s.base()[Stat.INT.ordinal()];
+        d.luk = s.base()[Stat.LUK.ordinal()];
+        d.hp = s.hp();
+        d.mp = s.mp();
+        d.maxHp = s.base()[Stat.MAX_HP.ordinal()];
+        d.maxMp = s.base()[Stat.MAX_MP.ordinal()];
+        return d;
+    }
+
+    void applyData(CharacterStatsData d) {
+        try (var ignored = Locks.acquire(wLock)) {
+            int[] attrs = new int[Stat.count()];
+            attrs[Stat.STR.ordinal()] = d.str;
+            attrs[Stat.DEX.ordinal()] = d.dex;
+            attrs[Stat.INT.ordinal()] = d.int_;
+            attrs[Stat.LUK.ordinal()] = d.luk;
+            attrs[Stat.MAX_HP.ordinal()] = d.maxHp;
+            attrs[Stat.MAX_MP.ordinal()] = d.maxMp;
+            // P_ATK/M_ATK 裸体 0（仅装备/buff 累加，localAttrs 从 attrs 起步）
+            int[] local = new int[Stat.count()];
+            local[Stat.MAX_HP.ordinal()] = 50;   // recalc 前的初始上限
+            local[Stat.MAX_MP.ordinal()] = 5;
+            snapshot = new StatsSnapshot(attrs, local, d.hp, d.mp, snapshot.ap());
+        }
+    }
+
+    // ══════════════════ legacy APIs (to be refactored) ══════════════════
+
+    /** 客户端可见最大 HP（封顶 30000，客户端上限） */
+    int getClientMaxHp() {  // fixme: [refactor] move to packet
+        return Math.min(30000, snapshot.base()[Stat.MAX_HP.ordinal()]);
+    }
+
+    /** 客户端可见最大 MP（封顶 30000，客户端上限） */
+    int getClientMaxMp() {  // fixme: [refactor] move to packet
+        return Math.min(30000, snapshot.base()[Stat.MAX_MP.ordinal()]);
+    }
+
+    /** 魔法攻击强度 = 魔法攻击力 + 智力（魔法侧两步合并成一步数值等价；与物理的"攻击力存储 + 强度现算"对称） */
+    int getMagicPower() {  // fixme: [refactor] move outside
+        return snapshot.total()[Stat.M_ATK.ordinal()] + snapshot.total()[Stat.INT.ordinal()];
+    }
+
+    int getRemainingAp() {  // fixme: [refactor] move outside
+        return snapshot.ap();
+    }
+
+    /** 公告属性变更（发包通知客户端） */
+    void announceStatsUpdate(Map<PacketStat, Integer> statUpdates) {
+        List<Pair<PacketStat, Integer>> statup = new ArrayList<>(statUpdates.size());
+        for (Map.Entry<PacketStat, Integer> s : statUpdates.entrySet()) {
+            statup.add(new Pair<>(s.getKey(), s.getValue()));
+        }
+
+        owner.sendPacket(PacketCreator.updatePlayerStats(statup, true, owner));
+    }
+
     /** HP/MP 变更（含自动药水触发与 GM 保护），返回是否成功应用 */
-    public boolean applyHpMpChange(int hpCon, int hpchange, int mpchange) {
+    boolean applyHpMpChange(int hpCon, int hpchange, int mpchange) {
         boolean zombify = owner.hasDisease(Disease.ZOMBIFY);
 
-        // effLock 已冗余：块内仅 updateHpMp；zombify 检查在加锁前
         try (var ignored = Locks.acquire(wLock)) {
-            int nextHp = hp + hpchange, nextMp = mp + mpchange;
+            int nextHp = snapshot.hp() + hpchange, nextMp = snapshot.mp() + mpchange;
             boolean cannotApplyHp = hpchange != 0 && nextHp <= 0 && (!zombify || hpCon > 0);
             boolean cannotApplyMp = mpchange != 0 && nextMp < 0;
 
@@ -522,7 +467,7 @@ public class CharacterStats {
                 }
             }
 
-            applyUpdate(new StatsUpdate().setHp(nextHp).setMp(nextMp));
+            update().setHp(nextHp).setMp(nextMp).commit();
         }
 
         if (GameConfig.getServerBoolean("use_server_auto_pot") || GameConfig.getServerBoolean("use_compulsory_auto_pot")) {
@@ -568,4 +513,5 @@ public class CharacterStats {
 
         return true;
     }
+
 }

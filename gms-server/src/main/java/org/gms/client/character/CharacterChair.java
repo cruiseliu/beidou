@@ -26,7 +26,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  *
  * 锁说明：原 chair 用 AtomicInteger、chairRecoveryTask 用 chrLock、恢复参数在 CharacterStats 由
  * rLock/wLock 保护；重构收敛为本类自有的 lock（chair 状态 + 恢复任务 + 恢复参数同锁），
- * 与 chrLock 无交互；恢复参数原随 stats 重算周期重置（reapplyLocalStats），迁移后由本类持有。
+ * 与 chrLock 无交互；恢复参数原随 stats 重算周期重置（recalc），迁移后由本类持有。
  */
 class CharacterChair {
     private final Character owner;
@@ -188,12 +188,12 @@ class CharacterChair {
                 final int healHP = healHp;
                 final int healMP = healMp;
 
-                if (owner.getHp() < owner.stats.localAttrs[StatIndex.MAX_HP]) {
+                if (owner.getHp() < owner.stats.getTotal(Stat.MAX_HP)) {
                     byte recHP = (byte) (healHP / 10);
 
                     owner.sendPacket(PacketCreator.showOwnRecovery(recHP));
                     owner.getMap().broadcastMessage(owner, PacketCreator.showRecovery(owner.getId(), recHP), false);
-                } else if (owner.getMp() >= owner.stats.localAttrs[StatIndex.MAX_MP]) {
+                } else if (owner.getMp() >= owner.stats.getTotal(Stat.MAX_MP)) {
                     stopChairTask();    // optimizing schedule management when player is already with full pool.
                 }
 
@@ -208,14 +208,14 @@ class CharacterChair {
             if (healRate != -1) {
                 return;
             }
-            Pair<Integer, Pair<Integer, Integer>> p = getChairTaskIntervalRate(owner.stats.localAttrs[StatIndex.MAX_HP], owner.stats.localAttrs[StatIndex.MAX_MP]);
+            Pair<Integer, Pair<Integer, Integer>> p = getChairTaskIntervalRate(owner.stats.getTotal(Stat.MAX_HP), owner.stats.getTotal(Stat.MAX_MP));
             healRate = p.getLeft();
             healHp = p.getRight().getLeft();
             healMp = p.getRight().getRight();
         }
     }
 
-    /** 装备/属性变化后使恢复参数失效（Character.reapplyLocalStats 调用），下次 startChairTask 时重算 */
+    /** 装备/属性变化后使恢复参数失效（Character.recalc 调用），下次 startChairTask 时重算 */
     void invalidateHealStats() {
         try (var ignored = Locks.acquire(lock)) {
             healRate = -1;

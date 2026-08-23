@@ -268,7 +268,7 @@ class CharacterBuffs {
             }
         }
 
-        active.refreshLocalStats();   // 锁外刷新派生属性（updateLocalStats 锁序约束，见 ActiveBuffs.refreshLocalStats）
+        active.refreshLocalStats();   // 锁外刷新派生属性（recalcAndSyncParty 锁序约束，见 ActiveBuffs.refreshLocalStats）
 
         if (isMagicDoor && ret) {
             try (var ignored = Locks.acquire(owner.party.lock, lock)) {
@@ -317,7 +317,7 @@ class CharacterBuffs {
             active.applyReport(report);   // 应用+发布+伴随任务启动（仅对最终部署者，被压制者不启动）
         }
 
-        active.refreshLocalStats();   // 锁外刷新派生属性（原 owner.updateLocalStats，归属 L3）
+        active.refreshLocalStats();   // 锁外刷新派生属性（原 owner.recalcAndSyncParty，归属 L3）
     }
 
     void updateActiveEffects() {

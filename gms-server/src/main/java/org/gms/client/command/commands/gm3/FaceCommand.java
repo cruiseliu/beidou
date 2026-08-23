@@ -25,7 +25,7 @@ package org.gms.client.command.commands.gm3;
 
 import org.gms.client.character.Character;
 import org.gms.client.Client;
-import org.gms.client.Stat;
+import org.gms.client.PacketStat;
 import org.gms.client.command.Command;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.server.ItemInformationProvider;
@@ -54,7 +54,7 @@ public class FaceCommand extends Command {
                 }
 
                 player.setFace(itemId);
-                player.updateSingleStat(Stat.FACE, itemId);
+                player.updateSingleStat(PacketStat.FACE, itemId);
                 player.equipChanged();
             } else {
                 int itemId = Integer.parseInt(params[1]);
@@ -68,7 +68,7 @@ public class FaceCommand extends Command {
                 }
                 if (victim != null) {
                     victim.setFace(itemId);
-                    victim.updateSingleStat(Stat.FACE, itemId);
+                    victim.updateSingleStat(PacketStat.FACE, itemId);
                     victim.equipChanged();
                 } else {
                     player.message(I18nUtil.getMessage("BombCommand.message3", params[0]));

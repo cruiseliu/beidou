@@ -215,7 +215,7 @@ class CharacterParty {
     void receivePartyMemberHP() {
         // 不在此处包一层 lock:getPartyMembersOnSameMap 内部已持 lock 保护 party 引用。
         // 若再包一层,会在持 lock 的同时对同图队友逐个取 getHp()(对方 stats.rLock),
-        // 与 updateLocalStats(本角色 stats.wLock 后再 updatePartyMemberHP 取 lock)形成
+        // 与 recalcAndSyncParty(本角色 stats.wLock 后再 updatePartyMemberHP 取 lock)形成
         // 跨角色反向锁顺序,存在死锁窗口。
         for (Character partychar : this.getPartyMembersOnSameMap()) {
             owner.sendPacket(PacketCreator.updatePartyMemberHP(partychar.getId(), partychar.getHp(), partychar.getCurrentMaxHp()));

@@ -4,13 +4,13 @@ import org.gms.client.Disease;
 import org.gms.client.FamilyEntry;
 import org.gms.client.JobEnum;
 import org.gms.client.Skill;
-import org.gms.client.Stat;
+import org.gms.client.PacketStat;
 import org.gms.client.job.GainStats;
 
-import static org.gms.client.character.StatIndex.INT;
-import static org.gms.client.character.StatIndex.STR;
-import static org.gms.client.character.StatIndex.DEX;
-import static org.gms.client.character.StatIndex.LUK;
+import static org.gms.client.character.Stat.INT;
+import static org.gms.client.character.Stat.STR;
+import static org.gms.client.character.Stat.DEX;
+import static org.gms.client.character.Stat.LUK;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.ExpTable;
 import org.gms.util.Pair;
@@ -26,6 +26,7 @@ import org.gms.server.ExpLogger.ExpLogRecord;
 import org.gms.server.life.PlayerNPC;
 import org.gms.net.server.world.PartyCharacter;
 import org.gms.util.I18nUtil;
+import org.gms.util.Locks;
 import org.gms.util.PacketCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,11 +79,11 @@ class CharacterLevel {
             expgain = gachaExp.getAndSet(0);
         }
         gainExp(expgain, false, true);
-        owner.updateSingleStat(Stat.GACHAEXP, gachaExp.get());
+        owner.updateSingleStat(PacketStat.GACHAEXP, gachaExp.get());
     }
 
     public void addGachaExp(int gain) {
-        owner.updateSingleStat(Stat.GACHAEXP, gachaExp.addAndGet(gain));
+        owner.updateSingleStat(PacketStat.GACHAEXP, gachaExp.addAndGet(gain));
     }
 
     public void gainExp(int gain) {
@@ -135,7 +136,7 @@ class CharacterLevel {
                 total = Integer.MAX_VALUE - exp.get();
                 leftover = nextExp - Integer.MAX_VALUE;
             }
-            owner.updateSingleStat(Stat.EXP, exp.addAndGet((int) total));
+            owner.updateSingleStat(PacketStat.EXP, exp.addAndGet((int) total));
             totalExpGained += total;
             if (show) {
                 announceExpGain(gain, equip, party, inChat, white);
@@ -156,7 +157,7 @@ class CharacterLevel {
                 }
                 if (level == owner.getMaxLevel()) {
                     setExp(0);
-                    owner.updateSingleStat(Stat.EXP, 0);
+                    owner.updateSingleStat(PacketStat.EXP, 0);
                     break;
                 }
                 if (GameConfig.getServerBoolean("use_level_up_protect")) break;
@@ -231,8 +232,7 @@ class CharacterLevel {
         boolean isBeginner = owner.isBeginnerJob();
         if (GameConfig.getServerBoolean("use_auto_assign_starters_ap") && isBeginner && level < 11) {
         // effLock 已冗余：gainAp/assignStrDexIntLuk 只需 owner.stats.wLock
-            owner.stats.wLock.lock();
-            try {
+            try (var ignored = Locks.acquire(owner.stats.wLock)) {
                 owner.gainAp(5, true);
 
                 int str = 0, dex = 0;
@@ -244,9 +244,6 @@ class CharacterLevel {
                 }
 
                 owner.assignStrDexIntLuk(str, dex, 0, 0);
-            } finally {
-                owner.stats.wLock.unlock();
-
             }
         } else {
             // 每级 AP 直接取注册表 levelUp 区间的最终值（不叠加基准）
@@ -254,13 +251,13 @@ class CharacterLevel {
         }
 
         boolean fixedLevelUpHpMp = true;  // todo: [refactor] hard coded config
-        int addhp = 0, addmp = 0;
+        // 有加有乘成长：add(随机加成) + multiply(系数)，事务内读旧 maxHp 计算并触发 recalc
+        StatUpdateBuilder growthChanges = owner.stats.update();
         if (gs != null) {
-            // NEW = applyGrowth(OLD, growth, fixed)；增量供技能/INT 加成叠加
-            int newMaxHp = CharacterStats.applyGrowth(owner.stats.attrs[StatIndex.MAX_HP], gs.maxHp(), fixedLevelUpHpMp);
-            int newMaxMp = CharacterStats.applyGrowth(owner.stats.attrs[StatIndex.MAX_MP], gs.maxMp(), fixedLevelUpHpMp);
-            addhp = newMaxHp - owner.stats.attrs[StatIndex.MAX_HP];
-            addmp = newMaxMp - owner.stats.attrs[StatIndex.MAX_MP];
+            growthChanges.add(Stat.MAX_HP, CharacterJob.rollGrowthGain(gs.maxHp(), fixedLevelUpHpMp))
+                    .multiply(Stat.MAX_HP, gs.maxHp().multiply())
+                    .add(Stat.MAX_MP, CharacterJob.rollGrowthGain(gs.maxMp(), fixedLevelUpHpMp))
+                    .multiply(Stat.MAX_MP, gs.maxMp().multiply());
         }
         // 技能加成（Improving MaxHP/MaxMP）仍按原逻辑计算
         if (owner.job.isA(JobEnum.WARRIOR) || owner.job.isA(JobEnum.DAWNWARRIOR1)) {
@@ -279,21 +276,20 @@ class CharacterLevel {
             improvingMaxHPLevel = owner.getSkillLevel(improvingMaxHP);
         }
         if (improvingMaxHPLevel > 0 && (owner.job.isA(JobEnum.WARRIOR) || owner.job.isA(JobEnum.PIRATE) || owner.job.isA(JobEnum.DAWNWARRIOR1) || owner.job.isA(JobEnum.THUNDERBREAKER1))) {
-            addhp += improvingMaxHP.getEffect(improvingMaxHPLevel).getX();
+            growthChanges.add(Stat.MAX_HP, improvingMaxHP.getEffect(improvingMaxHPLevel).getX());
         }
         if (improvingMaxMPLevel > 0 && (owner.job.isA(JobEnum.MAGICIAN) || owner.job.isA(JobEnum.CRUSADER) || owner.job.isA(JobEnum.BLAZEWIZARD1))) {
-            addmp += improvingMaxMP.getEffect(improvingMaxMPLevel).getX();
+            growthChanges.add(Stat.MAX_MP, improvingMaxMP.getEffect(improvingMaxMPLevel).getX());
         }
 
         if (GameConfig.getServerBoolean("use_randomize_hpmp_gain")) {
-            if (owner.getJobStyle() == JobEnum.MAGICIAN) {
-                addmp += owner.stats.localAttrs[INT] / 20;
-            } else {
-                addmp += owner.stats.localAttrs[INT] / 10;
-            }
+            int intBonus = owner.getJobStyle() == JobEnum.MAGICIAN
+                    ? owner.stats.getTotal(INT) / 20
+                    : owner.stats.getTotal(INT) / 10;
+            growthChanges.add(Stat.MAX_MP, intBonus);
         }
 
-        owner.stats.applyUpdateSilently(new StatsUpdate().setMaxHp(owner.stats.attrs[StatIndex.MAX_HP] + addhp).setMaxMp(owner.stats.attrs[StatIndex.MAX_MP] + addmp));
+        growthChanges.commitSilently();
 
         if (takeexp) {
             exp.addAndGet(-ExpTable.getExpNeededForLevel(level));
@@ -323,28 +319,24 @@ class CharacterLevel {
 
         levelUpGainSp();
 
-        // effLock 已冗余：recalcLocalStats/changeHpMp 只需 owner.stats.wLock
-        owner.stats.wLock.lock();
-        try {
-            owner.stats.recalcLocalStats();
-            owner.changeHpMp(owner.stats.localAttrs[StatIndex.MAX_HP], owner.stats.localAttrs[StatIndex.MAX_MP], true);
+        // effLock 已冗余：recalc/changeHpMp 只需 owner.stats.wLock
+        try (var ignored = Locks.acquire(owner.stats.wLock)) {
+            owner.stats.recalc();
+            owner.changeHpMp(owner.stats.getTotal(Stat.MAX_HP), owner.stats.getTotal(Stat.MAX_MP), true);
 
-            List<Pair<Stat, Integer>> statup = new ArrayList<>(10);
-            statup.add(new Pair<>(Stat.AVAILABLEAP, owner.ap.remainingAp));
-            statup.add(new Pair<>(Stat.AVAILABLESP, owner.sp.remainingSp[CharacterSp.indexOf(owner.job.getId())]));
-            statup.add(new Pair<>(Stat.HP, owner.stats.hp));
-            statup.add(new Pair<>(Stat.MP, owner.stats.mp));
-            statup.add(new Pair<>(Stat.EXP, exp.get()));
-            statup.add(new Pair<>(Stat.LEVEL, level));
-            statup.add(new Pair<>(Stat.MAXHP, owner.stats.getClientMaxHp()));
-            statup.add(new Pair<>(Stat.MAXMP, owner.stats.getClientMaxMp()));
-            statup.add(new Pair<>(Stat.STR, owner.stats.attrs[STR]));
-            statup.add(new Pair<>(Stat.DEX, owner.stats.attrs[DEX]));
+            List<Pair<PacketStat, Integer>> statup = new ArrayList<>(10);
+            statup.add(new Pair<>(PacketStat.AVAILABLEAP, owner.stats.getRemainingAp()));
+            statup.add(new Pair<>(PacketStat.AVAILABLESP, owner.sp.remainingSp[CharacterSp.indexOf(owner.job.getId())]));
+            statup.add(new Pair<>(PacketStat.HP, owner.stats.getHp()));
+            statup.add(new Pair<>(PacketStat.MP, owner.stats.getMp()));
+            statup.add(new Pair<>(PacketStat.EXP, exp.get()));
+            statup.add(new Pair<>(PacketStat.LEVEL, level));
+            statup.add(new Pair<>(PacketStat.MAXHP, owner.stats.getClientMaxHp()));
+            statup.add(new Pair<>(PacketStat.MAXMP, owner.stats.getClientMaxMp()));
+            statup.add(new Pair<>(PacketStat.STR, owner.stats.getBase(STR)));
+            statup.add(new Pair<>(PacketStat.DEX, owner.stats.getBase(DEX)));
 
             owner.sendPacket(PacketCreator.updatePlayerStats(statup, true, owner));
-        } finally {
-            owner.stats.wLock.unlock();
-
         }
 
         owner.getMap().broadcastMessage(owner, PacketCreator.showForeignEffect(owner.getId(), 0), false);

@@ -40,7 +40,7 @@ import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.client.SkillMacro;
 import org.gms.client.SkinColor;
-import org.gms.client.Stat;
+import org.gms.client.PacketStat;
 import org.gms.client.autoban.AutobanManager;
 import org.gms.client.creator.CharacterFactoryRecipe;
 import org.gms.client.inventory.*;
@@ -108,7 +108,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 
-import static org.gms.client.character.StatIndex.*;
+import static org.gms.client.character.Stat.*;
 
 import static java.util.concurrent.TimeUnit.*;
 
@@ -352,74 +352,45 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public boolean isAlive() {
-        stats.rLock.lock();
-        try {
-            return stats.hp > 0;
-        } finally {
-            stats.rLock.unlock();
-        }
+        return stats.getHp() > 0;
     }
 
     public int getHp() {
-        stats.rLock.lock();
-        try {
-            return stats.hp;
-        } finally {
-            stats.rLock.unlock();
-        }
+        return stats.getHp();
     }
 
     public int getMp() {
-        stats.rLock.lock();
-        try {
-            return stats.mp;
-        } finally {
-            stats.rLock.unlock();
-        }
+        return stats.getMp();
     }
 
     public int getMaxHp() {
-        stats.rLock.lock();
-        try {
-            return stats.attrs[StatIndex.MAX_HP];
-        } finally {
-            stats.rLock.unlock();
-        }
+        return stats.getBase(Stat.MAX_HP);
     }
 
     public int getMaxMp() {
-        stats.rLock.lock();
-        try {
-            return stats.attrs[StatIndex.MAX_MP];
-        } finally {
-            stats.rLock.unlock();
-        }
+        return stats.getBase(Stat.MAX_MP);
     }
 
     public int getCurrentMaxHp() {
-        return stats.localAttrs[StatIndex.MAX_HP];
+        return stats.getTotal(Stat.MAX_HP);
     }
 
     public int getCurrentMaxMp() {
-        return stats.localAttrs[StatIndex.MAX_MP];
+        return stats.getTotal(Stat.MAX_MP);
     }
 
     public boolean assignStrDexIntLuk(int deltaStr, int deltaDex, int deltaInt, int deltaLuk) {
-        Integer[] delta = new Integer[STAT_COUNT];
-        delta[STR] = deltaStr;
-        delta[DEX] = deltaDex;
-        delta[INT] = deltaInt;
-        delta[LUK] = deltaLuk;
+        Integer[] delta = new Integer[Stat.count()];
+        delta[STR.ordinal()] = deltaStr;
+        delta[DEX.ordinal()] = deltaDex;
+        delta[INT.ordinal()] = deltaInt;
+        delta[LUK.ordinal()] = deltaLuk;
         return ap.assignAttrs(delta);
     }
 
     /** 四维全部设为 x（管理命令用） */
     public void updateStrDexIntLuk(int x) {
-        StatsUpdate u = new StatsUpdate();
-        for (int i = BASE_STAT_BEGIN; i < BASE_STAT_END; i++) {
-            u.setAttr(i, x);
-        }
-        stats.applyUpdate(u);
+        stats.update().set(STR, x).set(DEX, x).set(INT, x).set(LUK, x).commit();
     }
 
     private void setRemainingSp(int[] sps) {
@@ -434,14 +405,16 @@ public class Character extends AbstractAnimatedMapObject {
         Character ret = new Character();
         ret.client = c;
         ret.gm.setGMLevel(0);
-        ret.stats.hp = 50;
-        ret.stats.setMaxHp(50);
-        ret.stats.mp = 5;
-        ret.stats.setMaxMp(5);
-        ret.stats.attrs[STR] = 12;
-        ret.stats.attrs[DEX] = 5;
-        ret.stats.attrs[INT] = 4;
-        ret.stats.attrs[LUK] = 4;
+        ret.stats.update()
+                .set(MAX_HP, 50)
+                .set(MAX_MP, 5)
+                .setHp(50)
+                .setMp(5)
+                .set(STR, 12)
+                .set(DEX, 5)
+                .set(INT, 4)
+                .set(LUK, 4)
+                .commitSilently();
         ret.setMap((MapleMap) null);
         ret.setJob(JobEnum.BEGINNER);
         ret.level.setLevel(1);
@@ -570,14 +543,14 @@ public class Character extends AbstractAnimatedMapObject {
         }
 
         if (weapon == WeaponType.BOW || weapon == WeaponType.CROSSBOW || weapon == WeaponType.GUN) {
-            mainstat = stats.localAttrs[DEX];
-            secondarystat = stats.localAttrs[STR];
+            mainstat = stats.getTotal(DEX);
+            secondarystat = stats.getTotal(STR);
         } else if (weapon == WeaponType.CLAW || weapon == WeaponType.DAGGER_THIEVES) {
-            mainstat = stats.localAttrs[LUK];
-            secondarystat = stats.localAttrs[DEX] + stats.localAttrs[STR];
+            mainstat = stats.getTotal(LUK);
+            secondarystat = stats.getTotal(DEX) + stats.getTotal(STR);
         } else {
-            mainstat = stats.localAttrs[STR];
-            secondarystat = stats.localAttrs[DEX];
+            mainstat = stats.getTotal(STR);
+            secondarystat = stats.getTotal(DEX);
         }
         return (int) Math.ceil(((weapon.getMaxDamageMultiplier() * mainstat + secondarystat) / 100.0) * watk);
     }
@@ -595,7 +568,7 @@ public class Character extends AbstractAnimatedMapObject {
                 }
 
                 int attack = (int) Math.min(Math.floor((2D * getLevel() + 31) / 3), 31);
-                maxbasedamage = (int) Math.ceil((stats.localAttrs[STR] * weapMulti + stats.localAttrs[DEX]) * attack / 100.0);
+                maxbasedamage = (int) Math.ceil((stats.getTotal(STR) * weapMulti + stats.getTotal(DEX)) * attack / 100.0);
             } else {
                 maxbasedamage = 1;
             }
@@ -979,7 +952,7 @@ public class Character extends AbstractAnimatedMapObject {
                 return;
             }
 
-            if (Character.this.getHp() < stats.localAttrs[StatIndex.MAX_HP]) {
+            if (Character.this.getHp() < stats.getTotal(Stat.MAX_HP)) {
                 if (healHP > 0) {
                     sendPacket(PacketCreator.showOwnRecovery(healHP));
                     getMap().broadcastMessage(Character.this, PacketCreator.showRecovery(id, healHP), false);
@@ -1040,7 +1013,7 @@ public class Character extends AbstractAnimatedMapObject {
         gain = (int) (nextMeso - cur);
 
         if (gain != 0) {
-            updateSingleStat(Stat.MESO, (int) nextMeso, enableActions);
+            updateSingleStat(PacketStat.MESO, (int) nextMeso, enableActions);
             if (show) {
                 sendPacket(PacketCreator.getShowMesoGain(gain, inChat));
             }
@@ -1166,19 +1139,19 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public int getTotalStr() {
-        return stats.localAttrs[STR];
+        return stats.getTotal(STR);
     }
 
     public int getTotalDex() {
-        return stats.localAttrs[DEX];
+        return stats.getTotal(DEX);
     }
 
     public int getTotalInt() {
-        return stats.localAttrs[INT];
+        return stats.getTotal(INT);
     }
 
     public int getTotalLuk() {
-        return stats.localAttrs[LUK];
+        return stats.getTotal(LUK);
     }
 
     public int getTotalMagic() {
@@ -1186,7 +1159,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public int getTotalWatk() {
-        return stats.localAttrs[StatIndex.P_ATK];
+        return stats.getTotal(Stat.P_ATK);
     }
 
     public int getMaxClassLevel() {
@@ -1462,14 +1435,9 @@ public class Character extends AbstractAnimatedMapObject {
 
         ret.level.setLevel(this.getLevel());
         ret.setJob(this.getJob());
-        for (int i = BASE_STAT_BEGIN; i < BASE_STAT_END; i++) {
-            ret.stats.attrs[i] = this.stats.getAttr(i);
-        }
-        ret.stats.hp = this.getHp();
-        ret.stats.setMaxHp(this.getMaxHp());
-        ret.stats.mp = this.getMp();
-        ret.stats.setMaxMp(this.getMaxMp());
-        ret.ap.remainingAp = this.getRemainingAp();
+        // 快照不可变（caller guarantee：写路径 copy-on-write，旧快照发布后不再修改）——
+        // 直接复制引用即原子拿到一致视图；逐条 getXxx 复制会跨快照读到不一致
+        ret.stats.snapshot = this.stats.snapshot;
         ret.setRemainingSp(this.getRemainingSps());
         ret.level.setExp(this.getExp());
         ret.fame.setFame(this.getFame());
@@ -1765,9 +1733,8 @@ public class Character extends AbstractAnimatedMapObject {
         }
 
         // effLock 已冗余：reset 仅动 stats/ap + applyUpdateSilently
-        stats.wLock.lock();
-        try {
-            int tap = ap.remainingAp + stats.attrs[STR] + stats.attrs[DEX] + stats.attrs[INT] + stats.attrs[LUK], tsp = 1;
+        try (var ignored = Locks.acquire(stats.wLock)) {
+            int tap = ap.getRemainingAp() + stats.getBase(STR) + stats.getBase(DEX) + stats.getBase(INT) + stats.getBase(LUK), tsp = 1;
             int tstr = 4, tdex = 4, tint = 4, tluk = 4;
 
             switch (job.getId()) {
@@ -1803,16 +1770,18 @@ public class Character extends AbstractAnimatedMapObject {
 
             if (tap >= 0) {
                 // 属性与 SP 分两次静默应用，拼装变更集后一次性公告
-                Map<Stat, Integer> statUpdates = stats.applyUpdateSilently(new StatsUpdate()
-                        .setAttr(STR, tstr).setAttr(DEX, tdex).setAttr(INT, tint).setAttr(LUK, tluk).setAp(tap));
-                statUpdates.put(Stat.AVAILABLESP, sp.changeRemainingSp(tsp, job.getId(), true));
+                Map<PacketStat, Integer> statUpdates = stats.update()
+                        .set(STR, tstr)
+                        .set(DEX, tdex)
+                        .set(INT, tint)
+                        .set(LUK, tluk)
+                        .setAp(tap)
+                        .commitSilently();
+                statUpdates.put(PacketStat.AVAILABLESP, sp.changeRemainingSp(tsp, job.getId(), true));
                 stats.announceStatsUpdate(statUpdates);
             } else {
                 log.warn("Chr {} tried to have its stats reset without enough AP available", getName());
             }
-        } finally {
-            stats.wLock.unlock();
-
         }
     }
 
@@ -1849,16 +1818,18 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public final boolean insertNewChar(CharacterFactoryRecipe recipe) {
-        stats.attrs[STR] = recipe.getStr();
-        stats.attrs[DEX] = recipe.getDex();
-        stats.attrs[INT] = recipe.getInt();
-        stats.attrs[LUK] = recipe.getLuk();
-        stats.setMaxHp(recipe.getMaxHp());
-        stats.setMaxMp(recipe.getMaxMp());
-        stats.hp = stats.attrs[StatIndex.MAX_HP];
-        stats.mp = stats.attrs[StatIndex.MAX_MP];
+        stats.update()
+                .set(STR, recipe.getStr())
+                .set(DEX, recipe.getDex())
+                .set(INT, recipe.getInt())
+                .set(LUK, recipe.getLuk())
+                .set(MAX_HP, recipe.getMaxHp())
+                .set(MAX_MP, recipe.getMaxMp())
+                .setHp(recipe.getMaxHp())
+                .setMp(recipe.getMaxMp())
+                .setAp(recipe.getRemainingAp())
+                .commitSilently();
         level.setLevel(recipe.getLevel());
-        ap.remainingAp = recipe.getRemainingAp();
         sp.remainingSp[CharacterSp.indexOf(job.getId())] = recipe.getRemainingSp();
         setMapId(recipe.getMap());
         meso.set(recipe.getMeso());
@@ -2023,14 +1994,11 @@ public class Character extends AbstractAnimatedMapObject {
                     ps.setInt(1, level.getLevel());    // thanks CanIGetaPR for noticing an unnecessary "level" limitation when persisting DB data
                     ps.setInt(2, fame.getFame());
 
-                    stats.wLock.lock();   // effLock 已移除：仅序列化 stats + 读原子字段
-                    try {
+                    try (var ignored = Locks.acquire(stats.wLock)) {   // 仅序列化 stats + 读原子字段
                         statsJson = toData().serialize();
 
                         ps.setInt(3, Math.abs(level.getExp()));
                         ps.setInt(4, Math.abs(level.getGachaExp()));
-                    } finally {
-                        stats.wLock.unlock();
                     }
 
                     ps.setInt(5, gm.gmLevel());
@@ -2051,15 +2019,12 @@ public class Character extends AbstractAnimatedMapObject {
                         }
                     }
 
-                    party.lock.lock();
-                    try {
+                    try (var ignored = Locks.acquire(party.lock)) {
                         if (party.party != null) {
                             ps.setInt(13, party.party.getId());
                         } else {
                             ps.setInt(13, -1);
                         }
-                    } finally {
-                        party.lock.unlock();
                     }
 
                     ps.setInt(14, buddy.getBuddylist().getCapacity());
@@ -2453,11 +2418,11 @@ public class Character extends AbstractAnimatedMapObject {
         skillMacros[position] = updateMacro;
     }
 
-    public void updateSingleStat(Stat stat, int newval) {
+    public void updateSingleStat(PacketStat stat, int newval) {
         updateSingleStat(stat, newval, false);
     }
 
-    private void updateSingleStat(Stat stat, int newval, boolean itemReaction) {
+    private void updateSingleStat(PacketStat stat, int newval, boolean itemReaction) {
         sendPacket(PacketCreator.updatePlayerStats(Collections.singletonList(new Pair<>(stat, Integer.valueOf(newval))), itemReaction, this));
     }
 
@@ -3020,37 +2985,34 @@ public class Character extends AbstractAnimatedMapObject {
 
     // ── stats 门面 ──
 
-    public int getStr() { return stats.getAttr(STR); }
-    public int getDex() { return stats.getAttr(DEX); }
-    public int getInt() { return stats.getAttr(INT); }
-    public int getLuk() { return stats.getAttr(LUK); }
-    public void healHpMp() { stats.applyUpdate(new StatsUpdate().setHp(30000).setMp(30000)); }
-    public void updateHpMp(int x) { stats.applyUpdate(new StatsUpdate().setHp(x).setMp(x)); }
-    public void updateHpMp(int newhp, int newmp) { stats.applyUpdate(new StatsUpdate().setHp(newhp).setMp(newmp)); }
-    public void updateHp(int hp) { stats.applyUpdate(new StatsUpdate().setHp(hp)); }
-    public void updateMaxHp(int maxhp) { stats.applyUpdate(new StatsUpdate().setMaxHp(maxhp)); }
-    public void updateHpMaxHp(int hp, int maxhp) { stats.applyUpdate(new StatsUpdate().setHp(hp).setMaxHp(maxhp)); }
-    public void updateMp(int mp) { stats.applyUpdate(new StatsUpdate().setMp(mp)); }
-    public void updateMaxMp(int maxmp) { stats.applyUpdate(new StatsUpdate().setMaxMp(maxmp)); }
-    public void updateMpMaxMp(int mp, int maxmp) { stats.applyUpdate(new StatsUpdate().setMp(mp).setMaxMp(maxmp)); }
-    public void updateMaxHpMaxMp(int maxhp, int maxmp) { stats.applyUpdate(new StatsUpdate().setMaxHp(maxhp).setMaxMp(maxmp)); }
+    public int getStr() { return stats.getBase(STR); }
+    public int getDex() { return stats.getBase(DEX); }
+    public int getInt() { return stats.getBase(INT); }
+    public int getLuk() { return stats.getBase(LUK); }
+    public void healHpMp() { stats.update().setHp(30000).setMp(30000).commit(); }
+    public void updateHpMp(int x) { stats.update().setHp(x).setMp(x).commit(); }
+    public void updateHpMp(int newhp, int newmp) { stats.update().setHp(newhp).setMp(newmp).commit(); }
+    public void updateHp(int hp) { stats.update().setHp(hp).commit(); }
+    public void updateMaxHp(int maxhp) { stats.update().set(MAX_HP, maxhp).commit(); }
+    public void updateHpMaxHp(int hp, int maxhp) { stats.update().setHp(hp).set(MAX_HP, maxhp).commit(); }
+    public void updateMp(int mp) { stats.update().setMp(mp).commit(); }
+    public void updateMaxMp(int maxmp) { stats.update().set(MAX_MP, maxmp).commit(); }
+    public void updateMpMaxMp(int mp, int maxmp) { stats.update().setMp(mp).set(MAX_MP, maxmp).commit(); }
+    public void updateMaxHpMaxMp(int maxhp, int maxmp) { stats.update().set(MAX_HP, maxhp).set(MAX_MP, maxmp).commit(); }
     public int safeAddHP(int delta) { return stats.safeAddHP(delta); }
-    public void addHP(int delta) { stats.addHP(delta); }
-    public void addMP(int delta) { stats.addMP(delta); }
-    public void addMPHP(int hpDelta, int mpDelta) { stats.addMPHP(hpDelta, mpDelta); }
-    public void addMaxHP(int delta) { stats.addMaxHP(delta); }
-    public void addMaxMP(int delta) { stats.addMaxMP(delta); }
-    public void reapplyLocalStats() { stats.reapplyLocalStats(); }
-    public void recalcLocalStats() { stats.recalcLocalStats(); }
-    public void hpChangeAction(int oldHp) { stats.hpChangeAction(oldHp); }
+    public void addHP(int delta) { stats.update().addHp(delta).commit(); }
+    public void addMP(int delta) { stats.update().addMp(delta).commit(); }
+    public void addMPHP(int hpDelta, int mpDelta) { stats.update().addHp(hpDelta).addMp(mpDelta).commit(); }
+    public void addMaxHP(int delta) { stats.update().add(Stat.MAX_HP, delta).commit(); }
+    public void addMaxMP(int delta) { stats.update().add(Stat.MAX_MP, delta).commit(); }
+    public void recalc() { stats.recalc(); }
     public boolean applyHpMpChange(int hpCon, int hpchange, int mpchange) { return stats.applyHpMpChange(hpCon, hpchange, mpchange); }
 
     public void changeHpMp(int newhp, int newmp, boolean silent) {
-        StatsUpdate u = new StatsUpdate().setHp(newhp).setMp(newmp);
         if (silent) {
-            stats.applyUpdateSilently(u);
+            stats.update().setHp(newhp).setMp(newmp).commitSilently();
         } else {
-            stats.applyUpdate(u);
+            stats.update().setHp(newhp).setMp(newmp).commit();
         }
     }
 

@@ -9,7 +9,7 @@ import org.gms.client.job.JobDefinition;
 import org.gms.client.job.JobRegistry;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
-import org.gms.client.Stat;
+import org.gms.client.PacketStat;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
 import org.gms.constants.skills.*;
@@ -17,8 +17,10 @@ import org.gms.net.server.world.PartyCharacter;
 import org.gms.server.TimerManager;
 import org.gms.server.maps.MapleMap;
 import org.gms.util.I18nUtil;
+import org.gms.util.Locks;
 import org.gms.util.PacketCreator;
 import org.gms.util.Pair;
+import org.gms.util.Randomizer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -136,11 +138,8 @@ class CharacterJob {
 
         boolean fixedLevelUpHpMp = true;  // todo: [refactor] hard coded config
         int newMaxHp = 0, newMaxMp = 0;
-        if (adv != null) {
-            // NEW = applyGrowth(OLD, growth, fixed)，直接取新值应用，不做增量换算
-            newMaxHp = CharacterStats.applyGrowth(owner.stats.attrs[StatIndex.MAX_HP], adv.maxHp(), fixedLevelUpHpMp);
-            newMaxMp = CharacterStats.applyGrowth(owner.stats.attrs[StatIndex.MAX_MP], adv.maxMp(), fixedLevelUpHpMp);
-        }
+        // NEW = applyGrowth(OLD, growth, fixed)（有加有乘），直接经 Growth 事务取新值应用
+
 
         /*
         //aran perks?
@@ -156,26 +155,27 @@ class CharacterJob {
         }
         */
 
-        // effLock 已冗余：applyUpdateSilently/recalcLocalStats 只需 stats.wLock
-        owner.stats.wLock.lock();
-        try {
+        // effLock 已冗余：commitSilently/recalc 只需 stats.wLock
+        try (var ignored = Locks.acquire(owner.stats.wLock)) {
             if (adv != null) {
-                owner.stats.applyUpdateSilently(new StatsUpdate().setMaxHp(newMaxHp).setMaxMp(newMaxMp));
+                owner.stats.update()
+                        .add(Stat.MAX_HP, rollGrowthGain(adv.maxHp(), fixedLevelUpHpMp))
+                        .multiply(Stat.MAX_HP, adv.maxHp().multiply())
+                        .add(Stat.MAX_MP, rollGrowthGain(adv.maxMp(), fixedLevelUpHpMp))
+                        .multiply(Stat.MAX_MP, adv.maxMp().multiply())
+                        .commitSilently();
             }
-            owner.recalcLocalStats();
+            owner.recalc();
 
-            List<Pair<Stat, Integer>> statup = new ArrayList<>(7);
-            statup.add(new Pair<>(Stat.HP, owner.stats.hp));
-            statup.add(new Pair<>(Stat.MP, owner.stats.mp));
-            statup.add(new Pair<>(Stat.MAXHP, owner.stats.getClientMaxHp()));
-            statup.add(new Pair<>(Stat.MAXMP, owner.stats.getClientMaxMp()));
-            statup.add(new Pair<>(Stat.AVAILABLEAP, owner.ap.remainingAp));
-            statup.add(new Pair<>(Stat.AVAILABLESP, owner.sp.remainingSp[CharacterSp.indexOf(getId())]));
-            statup.add(new Pair<>(Stat.JOB, getId()));
+            List<Pair<PacketStat, Integer>> statup = new ArrayList<>(7);
+            statup.add(new Pair<>(PacketStat.HP, owner.stats.getHp()));
+            statup.add(new Pair<>(PacketStat.MP, owner.stats.getMp()));
+            statup.add(new Pair<>(PacketStat.MAXHP, owner.stats.getClientMaxHp()));
+            statup.add(new Pair<>(PacketStat.MAXMP, owner.stats.getClientMaxMp()));
+            statup.add(new Pair<>(PacketStat.AVAILABLEAP, owner.stats.getRemainingAp()));
+            statup.add(new Pair<>(PacketStat.AVAILABLESP, owner.sp.remainingSp[CharacterSp.indexOf(getId())]));
+            statup.add(new Pair<>(PacketStat.JOB, getId()));
             owner.sendPacket(PacketCreator.updatePlayerStats(statup, true, owner));
-        } finally {
-            owner.stats.wLock.unlock();
-
         }
 
         owner.setMPC(new PartyCharacter(owner));
@@ -262,5 +262,12 @@ class CharacterJob {
     /** 指定等级（升级后的新等级）对应的升级奖励；无区间返回 null */
     GainStats gainStatsAtLevel(int level) {
         return JobRegistry.of(job).gainStatsAtLevel(level);
+    }
+
+    // ── 成长工具（升级/转职"有加有乘"的加数部分；乘法由 Change.Multiply 在事务内完成） ──
+
+    /** 成长加成量：fixed = 区间平均值，否则随机；NEW = (OLD + gain) * multiply 中的 gain */
+    static int rollGrowthGain(GainStats.Growth growth, boolean fixed) {
+        return fixed ? (growth.addMin() + growth.addMax()) / 2 : Randomizer.rand(growth.addMin(), growth.addMax());
     }
 }
