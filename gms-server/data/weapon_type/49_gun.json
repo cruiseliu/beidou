@@ -1,5 +1,4 @@
 {
-    "typeId": 49,
     "actions": {
         "swing": 3.6,
         "stab": 3.6,
@@ -20,5 +19,7 @@
     "ammoIdRange": {
         "from": 2330000,
         "to": 2339999
-    }
+    },
+    "twoHanded": true,
+    "type": "GUN"
 }

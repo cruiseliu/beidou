@@ -45,8 +45,9 @@ import org.gms.client.autoban.AutobanManager;
 import org.gms.client.creator.CharacterFactoryRecipe;
 import org.gms.client.inventory.*;
 import org.gms.client.inventory.Equip.StatUpgrade;
-import org.gms.client.job.StatRule;
+import org.gms.client.job.WeaponRule;
 import org.gms.client.weaponType.WeaponTypeDefinition;
+import org.gms.client.weaponType.WeaponTypeEnum;
 import org.gms.client.weaponType.WeaponTypeRegistry;
 import org.gms.client.keybind.KeyBinding;
 import org.gms.client.keybind.QuickslotBinding;
@@ -540,22 +541,19 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public int calculateMaxBaseDamage(int watk, WeaponTypeDefinition weapon) {
-        // 主/副属性：职业覆盖优先（JobDefinition.weaponStatRules），否则武器类型默认 statRule
-        StatRule rule = getWeaponStatRule(weapon.typeId());
+        // 规则：职业覆盖优先（JobDefinition.weaponStatRules），否则武器类型默认；覆盖可含主/副属性 + 动作系数
+        WeaponRule rule = getWeaponRule(weapon.type());
         int mainstat = 0;
         int secondarystat = 0;
-        for (Stat attr : rule.primary()) {
+        for (Stat attr : rule.statRule().primary()) {
             mainstat += stats.getTotal(attr);
         }
-        for (Stat attr : rule.secondary()) {
+        for (Stat attr : rule.statRule().secondary()) {
             secondarystat += stats.getTotal(attr);
         }
-        // 最大基础伤害：取各攻击动作系数中的最大值
-        double weaponMult = Math.max(weapon.actions().swing(),
-                Math.max(weapon.actions().stab(), weapon.actions().shoot()));
-        // fixme: [weapon wiring] 盗贼用普通匕首（typeId=33）原走 DAGGER_THIEVES（系数3.6、LUK主/DEX+STR副），
-        //   现无职业覆盖时按 dagger 默认（系数4.0、STR主/DEX副），校验阈值/暴击判定线与原版不一致。
-        //   需在 data/job 盗贼职业 JSON 的 weaponStatRules 写 "33" 覆盖；若还要区分 3.6/4.0 系数则需扩展覆盖字段。
+        // 最大基础伤害：取各攻击动作系数中的最大值（覆盖优先，未覆盖维度已合并为武器默认）
+        double weaponMult = Math.max(rule.actions().swing(),
+                Math.max(rule.actions().stab(), rule.actions().shoot()));
         return (int) Math.ceil(((weaponMult * mainstat + secondarystat) / 100.0) * watk);
     }
 
@@ -2939,7 +2937,7 @@ public class Character extends AbstractAnimatedMapObject {
     public boolean isCygnus() { return job.isCygnus(); }
     public boolean isAran() { return job.isAran(); }
     public boolean isBeginnerJob() { return job.isBeginnerJob(); }
-    public StatRule getWeaponStatRule(int typeId) { return job.getWeaponStatRule(typeId); }
+    public WeaponRule getWeaponRule(WeaponTypeEnum type) { return job.getWeaponRule(type); }
 
     // ── map 门面 ──
 

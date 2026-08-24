@@ -30,6 +30,7 @@ import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.Item;
 import org.gms.client.weaponType.WeaponTypeDefinition;
+import org.gms.client.weaponType.WeaponTypeEnum;
 import org.gms.client.weaponType.WeaponTypeRegistry;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.config.GameConfig;
@@ -145,33 +146,28 @@ public final class RangedAttackHandler extends AbstractDealDamageHandler {
                     int id = item.getItemId();
                     slot = item.getPosition();
 
-                    boolean bow = ItemConstants.isArrowForBow(id);
-                    boolean cbow = ItemConstants.isArrowForCrossBow(id);
-
                     if (id == ItemId.BALANCED_FURY && (item.getQuantity() - bulletCount) <= 10) {   //平衡之怒低于10，则自动补充，如果设置数值过低时，会造成出拳平A
                         supplement = (short) -ItemInformationProvider.getInstance().getSlotMax(c,id);  //设定补充到限制的最高数值
                     }
 
                     if (item.getQuantity() >= bulletCount) { //Fixes the bug where you can't use your last arrow.
-                        if (weaponDef.usesAmmo(id) && weapon.getItemId() != ItemId.MAGICAL_MITTEN) {
-                            // 拳套：等级限制（月牙镖/平衡之怒 <70、水晶镖 <50），飞镖类型由 ammoIdRange 判断
-                            if ((weaponDef.typeId() == 47 && ((id == ItemId.HWABI_THROWING_STARS || id == ItemId.BALANCED_FURY) && chr.getLevel() < 70))
-                                    || (weaponDef.typeId() == 47 && id == ItemId.CRYSTAL_ILBI_THROWING_STARS && chr.getLevel() < 50)) {
+                        if (weaponDef.usesAmmo(id)) {
+                            // 拳套：等级限制（月牙镖/平衡之怒 <70、水晶镖 <50），飞镖类型由 ammoIdRange 判断；
+                            // MAGICAL_MITTEN 有独立 definition 且 ammoIdRange=null（不消耗弹药），不会走到这里
+                            if ((weaponDef.type() == WeaponTypeEnum.CLAW && ((id == ItemId.HWABI_THROWING_STARS || id == ItemId.BALANCED_FURY) && chr.getLevel() < 70))
+                                    || (weaponDef.type() == WeaponTypeEnum.CLAW && id == ItemId.CRYSTAL_ILBI_THROWING_STARS && chr.getLevel() < 50)) {
                                 // 等级不足，跳过
-                            } else if (weaponDef.typeId() == 49 && (id == ItemId.BLAZE_CAPSULE || id == ItemId.GLAZE_CAPSULE)) {
+                            } else if (weaponDef.type() == WeaponTypeEnum.GUN && (id == ItemId.BLAZE_CAPSULE || id == ItemId.GLAZE_CAPSULE)) {
                                 if (chr.getLevel() >= 70) {
                                     projectile = id;
                                     break;
                                 }
-                            } else if (weaponDef.typeId() == 49 && chr.getLevel() <= (id % 10) * 20 + 9) {
+                            } else if (weaponDef.type() == WeaponTypeEnum.GUN && chr.getLevel() <= (id % 10) * 20 + 9) {
                                 // 短枪子弹等级不足，跳过
                             } else {
                                 projectile = id;
                                 break;
                             }
-                        } else if (weapon.getItemId() == ItemId.MAGICAL_MITTEN && (bow || cbow)) {
-                            projectile = id;
-                            break;
                         }
                     }
                 }
@@ -196,7 +192,14 @@ public final class RangedAttackHandler extends AbstractDealDamageHandler {
                 }
             }
 
-            if (projectile != 0 || soulArrow || attack.skill == 11101004 || attack.skill == 15111007 || attack.skill == 14101006 || attack.skill == 4111004 || attack.skill == 13101005) {
+            // 弹药不足判定（默认充足 = false）：仅当武器消耗弹药（ammoIdRange != null）且背包无弹药，
+            // 且没有灵魂之箭等无弹药替代时才算不足。无弹药需求的远程武器（如 MAGICAL_MITTEN）恒充足。
+            boolean ammoShortage = weaponDef.ammoIdRange() != null && projectile == 0
+                    && !soulArrow
+                    && attack.skill != 11101004 && attack.skill != 15111007 && attack.skill != 14101006
+                    && attack.skill != 4111004 && attack.skill != 13101005;
+
+            if (!ammoShortage) {
                 int visProjectile = projectile; //visible projectile sent to players
                 if (ItemConstants.isThrowingStar(projectile)) {
                     Inventory cash = chr.getInventory(InventoryType.CASH);

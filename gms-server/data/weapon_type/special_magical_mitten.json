@@ -1,4 +1,9 @@
 {
+    "type": "CLAW",
+    "itemIdRange": {
+        "from": 1472063,
+        "to": 1472063
+    },
     "actions": {
         "swing": 3.6,
         "stab": 3.6,
@@ -13,14 +18,6 @@
             "DEX"
         ]
     },
-    "itemIdRange": {
-        "from": 1470000,
-        "to": 1479999
-    },
-    "ammoIdRange": {
-        "from": 2070000,
-        "to": 2079999
-    },
     "twoHanded": true,
-    "type": "CLAW"
+    "priority": 1
 }

@@ -1,5 +1,4 @@
 {
-    "typeId": 33,
     "actions": {
         "swing": 4.0,
         "stab": 4.0,
@@ -16,5 +15,7 @@
     "itemIdRange": {
         "from": 1330000,
         "to": 1339999
-    }
+    },
+    "twoHanded": false,
+    "type": "DAGGER"
 }

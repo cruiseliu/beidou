@@ -28,6 +28,7 @@ import org.gms.client.SkillFactory;
 import org.gms.client.autoban.AutobanFactory;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.Item;
+import org.gms.client.weaponType.WeaponTypeEnum;
 import org.gms.client.weaponType.WeaponTypeRegistry;
 import org.gms.client.status.MonsterStatusEffect;
 import org.gms.constants.skills.Outlaw;
@@ -144,7 +145,7 @@ public final class SummonDamageHandler extends AbstractDealDamageHandler {
                 maxBaseDmg = player.calculateMaxBaseDamage(watk, WeaponTypeRegistry.of(weapon_item.getItemId()));
             } else {
                 // 无武器：沿用单手剑系数（原 SWORD1H 行为）
-                maxBaseDmg = player.calculateMaxBaseDamage(watk, WeaponTypeRegistry.byTypeId(30));
+                maxBaseDmg = player.calculateMaxBaseDamage(watk, WeaponTypeRegistry.byType(WeaponTypeEnum.ONE_HANDED_SWORD));
             }
 
             float summonDmgMod = (maxBaseDmg >= 438) ? 0.054f : 0.077f;

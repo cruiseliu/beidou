@@ -8,6 +8,10 @@ import org.gms.client.job.GainStats;
 import org.gms.client.job.JobDefinition;
 import org.gms.client.job.JobRegistry;
 import org.gms.client.job.StatRule;
+import org.gms.client.job.WeaponRule;
+import org.gms.client.weaponType.WeaponTypeDefinition;
+import org.gms.client.weaponType.WeaponTypeDefinition.ActionRules;
+import org.gms.client.weaponType.WeaponTypeEnum;
 import org.gms.client.weaponType.WeaponTypeRegistry;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
@@ -39,44 +43,46 @@ import java.util.List;
 class CharacterJob {
     private final Character owner;
 
-    /** 当前职业 */
-    private JobEnum job = JobEnum.BEGINNER;
+    /** 当前职业（数据驱动定义；JobEnum 仅经 getJob()/setJob()/isA()/equalsJob() 等兼容 API 使用） */
+    private JobDefinition job = JobRegistry.of(JobEnum.BEGINNER);
 
     CharacterJob(Character owner) {
         this.owner = owner;
     }
 
-    // ── 查询 ──
+    // ── 查询（JobEnum 兼容 API） ──
 
+    /** 兼容 API：返回 JobEnum（供 isA/== 等旧式判断）；内部状态是 JobDefinition */
     JobEnum getJob() {
-        return job;
+        return JobEnum.getById(job.jobId());
     }
 
-    void setJob(JobEnum job) {
-        this.job = job;
+    /** 兼容 API：接收 JobEnum，转存为 JobDefinition */
+    void setJob(JobEnum newJob) {
+        this.job = JobRegistry.of(newJob);
     }
 
     int getJobType() {
         return getId() / 1000;
     }
 
-    /** 当前职业 id（委托 job.getId()） */
+    /** 当前职业 id（数据驱动） */
     int getId() {
-        return job.getId();
+        return job.jobId();
     }
 
-    /** 职业归属判定（委托 job.isA） */
-    boolean isA(JobEnum job) {
-        return this.job.isA(job);
+    /** 兼容 API：职业归属判定（委托 JobEnum.isA） */
+    boolean isA(JobEnum target) {
+        return JobEnum.getById(job.jobId()).isA(target);
     }
 
-    /** 职业相等判定（委托 job.equals） */
-    boolean equalsJob(JobEnum job) {
-        return this.job.equals(job);
+    /** 兼容 API：职业相等判定 */
+    boolean equalsJob(JobEnum target) {
+        return job.jobId() == target.getId();
     }
 
     boolean isGmJob() {
-        int jn = job.getJobNiche();
+        int jn = JobEnum.getById(job.jobId()).getJobNiche();
         return jn >= 8 && jn <= 9;
     }
 
@@ -101,15 +107,20 @@ class CharacterJob {
     }
 
     /**
-     * 当前职业对指定武器的 StatRule：职业覆盖优先（JobDefinition.weaponStatRules，key=typeId），
+     * 当前职业对指定武器的规则：职业覆盖优先（JobDefinition.weaponStatRules，key=武器类型枚举），
      * 无覆盖用武器类型定义默认（data/weapon_type/*.json）。
+     * 返回合并后的 WeaponRule：statRule 覆盖优先、actions 覆盖优先（覆盖缺失的维度回退武器默认）。
      */
-    StatRule getWeaponStatRule(int typeId) {
-        StatRule override = JobRegistry.of(job).weaponStatRules().get(typeId);
-        if (override != null) {
-            return override;
+    WeaponRule getWeaponRule(WeaponTypeEnum type) {
+        WeaponTypeDefinition def = WeaponTypeRegistry.byType(type);
+        WeaponRule override = job.weaponStatRules().get(type);
+        if (override == null) {
+            return WeaponRule.of(def.statRule(), def.actions());
         }
-        return WeaponTypeRegistry.byTypeId(typeId).statRule();
+        // 覆盖只写维度合并：statRule 覆盖或默认，actions 覆盖或默认
+        StatRule statRule = override.statRule() != null ? override.statRule() : def.statRule();
+        ActionRules actions = override.actions() != null ? override.actions() : def.actions();
+        return WeaponRule.of(statRule, actions);
     }
 
     // ── 转职 ──
@@ -119,16 +130,19 @@ class CharacterJob {
             return;//the fuck you doing idiot!
         }
 
+        // 兼容 API：接收 JobEnum，转存为 JobDefinition
+        JobDefinition newDef = JobRegistry.of(newJob);
+
         if (owner.party.canRecvPartySearchInvite && owner.getParty() == null) {
             owner.updatePartySearchAvailability(false);
-            this.job = newJob;
+            this.job = newDef;
             owner.updatePartySearchAvailability(true);
         } else {
-            this.job = newJob;
+            this.job = newDef;
         }
 
         // 转职一次性授予（HP/MP/AP/SP 全在 advancementGainStats；对称于升级的 gainStats）
-        JobDefinition def = JobRegistry.of(newJob);
+        JobDefinition def = newDef;
         GainStats adv = def.advancementGainStats();
 
         int spGain = adv != null ? adv.sp() : 0;
@@ -137,7 +151,7 @@ class CharacterJob {
         }
 
         if (spGain > 0) {
-            owner.gainSp(spGain, newJob.getId(), true);
+            owner.gainSp(spGain, def.jobId(), true);
         }
 
         if (adv != null && adv.ap() > 0) {
@@ -249,7 +263,7 @@ class CharacterJob {
     // ── 转职专属：mastery 授予 ──
 
     void setMasteries(int jobId) {
-        JobDefinition def = JobRegistry.of(JobEnum.getById(jobId));
+        JobDefinition def = JobRegistry.of(jobId);
         for (Integer skillId : def.acquiredSkills()) {
             Skill skill = SkillFactory.getSkill(skillId);
             if (owner.getSkillLevel(skill) > 0) {
@@ -262,20 +276,19 @@ class CharacterJob {
     // ── 职业定义门面（JobDefinition 具体实现只在 CharacterJob 内部；其他组件只依赖这些简单类型） ──
 
     int getMaxClassLevel() {
-        return JobRegistry.of(job).maxLevel();
+        return job.maxLevel();
     }
 
     int getMaxLevel() {
-        JobDefinition def = JobRegistry.of(job);
         if (!GameConfig.getServerBoolean("use_enforce_job_level_range") || isGmJob()) {
-            return def.maxLevel();
+            return job.maxLevel();
         }
-        return def.advancementHint();
+        return job.advancementHint();
     }
 
     /** 指定等级（升级后的新等级）对应的升级奖励；无区间返回 null */
     GainStats gainStatsAtLevel(int level) {
-        return JobRegistry.of(job).gainStatsAtLevel(level);
+        return job.gainStatsAtLevel(level);
     }
 
     // ── 升级职业授予（levelUp 内所有职业强相关逻辑） ──
@@ -320,38 +333,38 @@ class CharacterJob {
                 owner.gainAp(gs.ap(), true);
             }
             if (gs.sp() > 0) {
-                owner.gainSp(gs.sp(), job.getId(), true);
+                owner.gainSp(gs.sp(), job.jobId(), true);
             }
         }
 
-        // 技能加成（Improving MaxHP/MaxMP，按职业系判断）与 INT 加成（非 JobDefinition 数据）
+        // 技能加成（Improving MaxHP/MaxMP，按转职链 isA 判断）与 INT 加成（非 JobDefinition 数据）
         StatUpdateBuilder growthChanges = owner.stats.update();
         Skill improvingMaxHP = null, improvingMaxMP = null;
         int improvingMaxHPLevel = 0, improvingMaxMPLevel = 0;
-        if (job.isA(JobEnum.WARRIOR) || job.isA(JobEnum.DAWNWARRIOR1)) {
+        if (getJob().isA(JobEnum.WARRIOR) || getJob().isA(JobEnum.DAWNWARRIOR1)) {
             improvingMaxHP = owner.isCygnus() ? SkillFactory.getSkill(DawnWarrior.MAX_HP_INCREASE) : SkillFactory.getSkill(Warrior.IMPROVED_MAXHP);
-            if (job.isA(JobEnum.CRUSADER)) {
+            if (getJob().isA(JobEnum.CRUSADER)) {
                 improvingMaxMP = SkillFactory.getSkill(1210000);
-            } else if (job.isA(JobEnum.DAWNWARRIOR2)) {
+            } else if (getJob().isA(JobEnum.DAWNWARRIOR2)) {
                 improvingMaxMP = SkillFactory.getSkill(11110000);
             }
             improvingMaxHPLevel = owner.getSkillLevel(improvingMaxHP);
-        } else if (job.isA(JobEnum.MAGICIAN) || job.isA(JobEnum.BLAZEWIZARD1)) {
+        } else if (getJob().isA(JobEnum.MAGICIAN) || getJob().isA(JobEnum.BLAZEWIZARD1)) {
             improvingMaxMP = owner.isCygnus() ? SkillFactory.getSkill(BlazeWizard.INCREASING_MAX_MP) : SkillFactory.getSkill(Magician.IMPROVED_MAX_MP_INCREASE);
             improvingMaxMPLevel = owner.getSkillLevel(improvingMaxMP);
-        } else if (job.isA(JobEnum.PIRATE) || job.isA(JobEnum.THUNDERBREAKER1)) {
+        } else if (getJob().isA(JobEnum.PIRATE) || getJob().isA(JobEnum.THUNDERBREAKER1)) {
             improvingMaxHP = owner.isCygnus() ? SkillFactory.getSkill(ThunderBreaker.IMPROVE_MAX_HP) : SkillFactory.getSkill(Brawler.IMPROVE_MAX_HP);
             improvingMaxHPLevel = owner.getSkillLevel(improvingMaxHP);
         }
-        if (improvingMaxHPLevel > 0 && (job.isA(JobEnum.WARRIOR) || job.isA(JobEnum.PIRATE) || job.isA(JobEnum.DAWNWARRIOR1) || job.isA(JobEnum.THUNDERBREAKER1))) {
+        if (improvingMaxHPLevel > 0 && (getJob().isA(JobEnum.WARRIOR) || getJob().isA(JobEnum.PIRATE) || getJob().isA(JobEnum.DAWNWARRIOR1) || getJob().isA(JobEnum.THUNDERBREAKER1))) {
             growthChanges.add(Stat.MAX_HP, improvingMaxHP.getEffect(improvingMaxHPLevel).getX());
         }
-        if (improvingMaxMPLevel > 0 && (job.isA(JobEnum.MAGICIAN) || job.isA(JobEnum.CRUSADER) || job.isA(JobEnum.BLAZEWIZARD1))) {
+        if (improvingMaxMPLevel > 0 && (getJob().isA(JobEnum.MAGICIAN) || getJob().isA(JobEnum.CRUSADER) || getJob().isA(JobEnum.BLAZEWIZARD1))) {
             growthChanges.add(Stat.MAX_MP, improvingMaxMP.getEffect(improvingMaxMPLevel).getX());
         }
 
         if (GameConfig.getServerBoolean("use_randomize_hpmp_gain")) {
-            int intBonus = owner.getJobStyle() == JobEnum.MAGICIAN
+            int intBonus = getJobStyle() == JobEnum.MAGICIAN
                     ? owner.stats.getTotal(Stat.INT) / 20
                     : owner.stats.getTotal(Stat.INT) / 10;
             growthChanges.add(Stat.MAX_MP, intBonus);

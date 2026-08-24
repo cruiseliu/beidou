@@ -1,5 +1,4 @@
 {
-    "typeId": 30,
     "actions": {
         "swing": 4.0,
         "stab": 4.0,
@@ -16,5 +15,7 @@
     "itemIdRange": {
         "from": 1300000,
         "to": 1309999
-    }
+    },
+    "twoHanded": false,
+    "type": "ONE_HANDED_SWORD"
 }

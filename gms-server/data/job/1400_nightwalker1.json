@@ -106,7 +106,24 @@
     ],
     "apAutoAssignKey": "default",
     "forceAutoAssignAp": false,
-    "weaponStatRules": {},
+    "weaponStatRules": {
+        "DAGGER": {
+            "statRule": {
+                "primary": [
+                    "LUK"
+                ],
+                "secondary": [
+                    "DEX",
+                    "STR"
+                ]
+            },
+            "actions": {
+                "swing": 3.6,
+                "stab": 3.6,
+                "shoot": 0
+            }
+        }
+    },
     "modifiers": [],
     "listeners": []
 }

@@ -1,5 +1,4 @@
 {
-    "typeId": 31,
     "actions": {
         "swing": 4.4,
         "stab": 3.2,
@@ -16,5 +15,7 @@
     "itemIdRange": {
         "from": 1310000,
         "to": 1319999
-    }
+    },
+    "twoHanded": false,
+    "type": "ONE_HANDED_AXE"
 }

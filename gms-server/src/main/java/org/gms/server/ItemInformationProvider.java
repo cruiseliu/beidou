@@ -31,7 +31,7 @@ import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.Item;
-import org.gms.client.inventory.WeaponType;
+import org.gms.client.weaponType.WeaponTypeRegistry;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.inventory.EquipSlot;
@@ -612,15 +612,6 @@ public class ItemInformationProvider {
 
         scrollReqsCache.put(itemId, ret);
         return ret;
-    }
-
-    public WeaponType getWeaponType(int itemId) {
-        int cat = (itemId / 10000) % 100;
-        WeaponType[] type = {WeaponType.SWORD1H, WeaponType.GENERAL1H_SWING, WeaponType.GENERAL1H_SWING, WeaponType.DAGGER_OTHER, WeaponType.NOT_A_WEAPON, WeaponType.NOT_A_WEAPON, WeaponType.NOT_A_WEAPON, WeaponType.WAND, WeaponType.STAFF, WeaponType.NOT_A_WEAPON, WeaponType.SWORD2H, WeaponType.GENERAL2H_SWING, WeaponType.GENERAL2H_SWING, WeaponType.SPEAR_STAB, WeaponType.POLE_ARM_SWING, WeaponType.BOW, WeaponType.CROSSBOW, WeaponType.CLAW, WeaponType.KNUCKLE, WeaponType.GUN};
-        if (cat < 30 || cat > 49) {
-            return WeaponType.NOT_A_WEAPON;
-        }
-        return type[cat - 30];
     }
 
     private static double testYourLuck(double prop, int dices) {   // revamped testYourLuck author: David A.
@@ -1718,20 +1709,7 @@ public class ItemInformationProvider {
     }
 
     public final boolean isTwoHanded(int itemId) {
-        switch (getWeaponType(itemId)) {
-            case GENERAL2H_SWING:
-            case BOW:
-            case CLAW:
-            case CROSSBOW:
-            case POLE_ARM_SWING:
-            case SPEAR_STAB:
-            case SWORD2H:
-            case GUN:
-            case KNUCKLE:
-                return true;
-            default:
-                return false;
-        }
+        return WeaponTypeRegistry.of(itemId).twoHanded();
     }
 
     public boolean isCash(int itemId) {

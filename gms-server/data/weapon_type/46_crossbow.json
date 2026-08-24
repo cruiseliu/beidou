@@ -1,5 +1,4 @@
 {
-    "typeId": 46,
     "actions": {
         "swing": 3.6,
         "stab": 3.6,
@@ -20,5 +19,7 @@
     "ammoIdRange": {
         "from": 2061000,
         "to": 2061999
-    }
+    },
+    "twoHanded": true,
+    "type": "CROSSBOW"
 }

@@ -15,7 +15,7 @@ import java.util.List;
  *
  * 查询方式：
  * - {@link #of(int itemId)}：按物品 id 匹配（匹配 itemIdRange）
- * - {@link #byTypeId(int)}：按段号（typeId）直接取
+ * - {@link #byType(WeaponTypeEnum)}：按枚举直接取
  * 徒手（BARE_HAND）不在注册表内，保留现有特判。
  */
 public final class WeaponTypeRegistry {
@@ -47,31 +47,35 @@ public final class WeaponTypeRegistry {
                     continue;
                 }
                 DEFS.add(def);
-                log.info("加载武器定义 {} (typeId={})", file.getName(), def.typeId());
+                log.info("加载武器定义 {} ({})", file.getName(), def.type());
             } catch (IOException | RuntimeException e) {
                 log.error("加载武器定义失败: {}", file.getName(), e);
             }
         }
     }
 
-    /** 按物品 id 匹配武器类型；未登记抛异常（data/weapon_type 缺失该武器类型 JSON） */
+    /** 按物品 id 匹配武器类型（itemIdRange 重叠时返回 priority 最高者）；未登记抛异常 */
     public static WeaponTypeDefinition of(int itemId) {    // fixme: [refactor] use bi-search
+        WeaponTypeDefinition best = null;
         for (WeaponTypeDefinition def : DEFS) {
-            if (def.matches(itemId)) {
-                return def;
+            if (def.matches(itemId) && (best == null || def.priority() > best.priority())) {
+                best = def;
             }
         }
-        throw new IllegalStateException("未登记的武器类型 itemId=" + itemId + "（data/weapon_type 缺失该武器类型 JSON）");
+        if (best == null) {
+            throw new IllegalStateException("未登记的武器类型 itemId=" + itemId + "（data/weapon_type 缺失该武器类型 JSON）");
+        }
+        return best;
     }
 
-    /** 按段号取武器类型；未登记抛异常 */
-    public static WeaponTypeDefinition byTypeId(int typeId) {
+    /** 按枚举取武器类型；未登记抛异常 */
+    public static WeaponTypeDefinition byType(WeaponTypeEnum type) {
         for (WeaponTypeDefinition def : DEFS) {
-            if (def.typeId() == typeId) {
+            if (def.type() == type) {
                 return def;
             }
         }
-        throw new IllegalStateException("未登记的武器类型段号 typeId=" + typeId + "（data/weapon_type 缺失该武器类型 JSON）");
+        throw new IllegalStateException("未登记的武器类型 " + type + "（data/weapon_type 缺失该武器类型 JSON）");
     }
 
     /** 全部已加载定义（只读视图） */

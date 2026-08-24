@@ -1,5 +1,4 @@
 {
-    "typeId": 43,
     "actions": {
         "swing": 3.0,
         "stab": 5.0,
@@ -16,5 +15,7 @@
     "itemIdRange": {
         "from": 1430000,
         "to": 1439999
-    }
+    },
+    "twoHanded": true,
+    "type": "SPEAR"
 }

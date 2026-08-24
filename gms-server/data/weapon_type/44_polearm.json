@@ -1,5 +1,4 @@
 {
-    "typeId": 44,
     "actions": {
         "swing": 5.0,
         "stab": 3.0,
@@ -16,5 +15,7 @@
     "itemIdRange": {
         "from": 1440000,
         "to": 1449999
-    }
+    },
+    "twoHanded": true,
+    "type": "POLEARM"
 }

@@ -1,5 +1,4 @@
 {
-    "typeId": 45,
     "actions": {
         "swing": 3.4,
         "stab": 3.4,
@@ -20,5 +19,7 @@
     "ammoIdRange": {
         "from": 2060000,
         "to": 2060999
-    }
+    },
+    "twoHanded": true,
+    "type": "BOW"
 }

@@ -1,5 +1,4 @@
 {
-    "typeId": 42,
     "actions": {
         "swing": 4.8,
         "stab": 3.4,
@@ -16,5 +15,7 @@
     "itemIdRange": {
         "from": 1420000,
         "to": 1429999
-    }
+    },
+    "twoHanded": true,
+    "type": "TWO_HANDED_BLUNT_WEAPON"
 }

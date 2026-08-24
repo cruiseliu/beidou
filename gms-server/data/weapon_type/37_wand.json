@@ -1,5 +1,4 @@
 {
-    "typeId": 37,
     "actions": {
         "swing": 3.6,
         "stab": 3.6,
@@ -16,5 +15,7 @@
     "itemIdRange": {
         "from": 1370000,
         "to": 1379999
-    }
+    },
+    "twoHanded": false,
+    "type": "WAND"
 }
