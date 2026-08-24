@@ -18,6 +18,9 @@ import org.gms.config.GameConfig;
 import org.gms.constants.skills.Marauder;
 import org.gms.constants.skills.ThunderBreaker;
 import org.gms.model.json.CharacterStatsData;
+
+import org.gms.remote.RemoteUpdate;
+import org.gms.remote.StatsUpdate;
 import org.gms.server.BuffEffectData;
 import org.gms.server.ItemInformationProvider;
 import org.gms.util.Locks;
@@ -120,9 +123,9 @@ public class CharacterStats {
 
     // ── private methods ──
 
-    /** 应用变更（silent 为必须参数：true 不发包、调用方自行公告/组装包），返回本次变更集 */
-    Map<PacketStat, Integer> updateInternal(boolean silent, Change... changes) {
-        Map<PacketStat, Integer> statUpdates;
+    /** 应用变更并立即发包通知客户端（updateStats + 解锁 + commit 一个事务） */
+    void updateInternal(boolean silent, Change... changes) {
+        StatsUpdate statUpdates;
         try (var ignored = Locks.acquire(wLock)) {
             StatsSnapshot old = snapshot;
             snapshot = applyChanges(old, changes);
@@ -132,9 +135,24 @@ public class CharacterStats {
             }
         }
         if (!silent && !statUpdates.isEmpty()) {
-            announceStatsUpdate(statUpdates);
+            owner.remote().update().updateStats(statUpdates).unlockActions().commit();
         }
-        return statUpdates;
+    }
+
+    /** 应用变更并写入外部事务（调用方负责后续 updateSp 等与最终 commit） */
+    void updateInternal(RemoteUpdate tx, Change... changes) {
+        StatsUpdate statUpdates;
+        try (var ignored = Locks.acquire(wLock)) {
+            StatsSnapshot old = snapshot;
+            snapshot = applyChanges(old, changes);
+            statUpdates = diffStats(old, snapshot);
+            if (old.hp() != snapshot.hp()) {
+                hpChangeAction(old.hp());
+            }
+        }
+        if (!statUpdates.isEmpty()) {
+            tx.updateStats(statUpdates);
+        }
     }
 
     /**
@@ -207,29 +225,29 @@ public class CharacterStats {
     }
 
     /** 对比新旧快照产出客户端变更集（localAttrs 变化不经 packet，通过 maxHp/hp 等派生体现） */
-    private Map<PacketStat, Integer> diffStats(StatsSnapshot old, StatsSnapshot next) {
-        Map<PacketStat, Integer> updates = new HashMap<>();
+    private StatsUpdate diffStats(StatsSnapshot old, StatsSnapshot next) {
+        StatsUpdate updates = new StatsUpdate();
         for (int i = Stat.SDIL_INDEX_BEGIN; i < Stat.SDIL_INDEX_END; i++) {
             if (old.base()[i] != next.base()[i]) {
-                updates.put(Stat.values()[i].packet(), next.base()[i]);
+                updates.set(Stat.values()[i], next.base()[i]);
             }
         }
         if (old.base()[Stat.MAX_HP.ordinal()] != next.base()[Stat.MAX_HP.ordinal()]) {
-            updates.put(PacketStat.MAXHP, getClientMaxHp());
-            updates.put(PacketStat.HP, next.hp());
+            updates.set(Stat.MAX_HP, getClientMaxHp());
+            updates.hp(next.hp());
         }
         if (old.base()[Stat.MAX_MP.ordinal()] != next.base()[Stat.MAX_MP.ordinal()]) {
-            updates.put(PacketStat.MAXMP, getClientMaxMp());
-            updates.put(PacketStat.MP, next.mp());
+            updates.set(Stat.MAX_MP, getClientMaxMp());
+            updates.mp(next.mp());
         }
         if (old.hp() != next.hp()) {
-            updates.put(PacketStat.HP, next.hp());
+            updates.hp(next.hp());
         }
         if (old.mp() != next.mp()) {
-            updates.put(PacketStat.MP, next.mp());
+            updates.mp(next.mp());
         }
         if (old.ap() != next.ap()) {
-            updates.put(PacketStat.AVAILABLEAP, next.ap());
+            updates.ap(next.ap());
         }
         return updates;
     }
@@ -429,16 +447,6 @@ public class CharacterStats {
 
     int getRemainingAp() {  // fixme: [refactor] move outside
         return snapshot.ap();
-    }
-
-    /** 公告属性变更（发包通知客户端） */
-    void announceStatsUpdate(Map<PacketStat, Integer> statUpdates) {
-        List<Pair<PacketStat, Integer>> statup = new ArrayList<>(statUpdates.size());
-        for (Map.Entry<PacketStat, Integer> s : statUpdates.entrySet()) {
-            statup.add(new Pair<>(s.getKey(), s.getValue()));
-        }
-
-        owner.sendPacket(PacketCreator.updatePlayerStats(statup, true, owner));
     }
 
     /** HP/MP 变更（含自动药水触发与 GM 保护），返回是否成功应用 */

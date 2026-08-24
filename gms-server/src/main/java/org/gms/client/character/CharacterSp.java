@@ -2,6 +2,8 @@ package org.gms.client.character;
 
 import org.gms.client.JobEnum;
 import org.gms.model.json.CharacterSpData;
+import org.gms.remote.RemoteUpdate;
+import org.gms.remote.SpUpdate;
 import org.gms.util.Locks;
 
 import java.util.Arrays;
@@ -9,7 +11,7 @@ import java.util.Arrays;
 /**
  * SP（技能点）：数据 + 全部 SP 逻辑（查询/获得/变更/加载解析）。
  * 持有 owner 反向引用，SP 操作经 stats.wLock/rLock 保护（通过 Locks）。
- * SP 不与属性/AP 共用 StatsUpdate 管道（无逻辑关联），公告走 owner.announceStatsUpdate。
+ * SP 不与属性/AP 共用 StatsUpdate 管道（无逻辑关联），公告走 remote 隔离层 updateSp（技能域）。
  */
 class CharacterSp {
     private final Character owner;
@@ -54,17 +56,27 @@ class CharacterSp {
 
     /**
      * 应用指定职业的 SP 目标值（绝对值），返回应用后的值供调用方拼装公告。
-     * silent = true 时不发包（如 resetStats 需与属性变更合并为一次公告）。
+     * silent = true 时不发包（如升级/转职由 CharacterLevel/CharacterJob 自行组包）。
      */
     int changeRemainingSp(int remainingSp, int jobId, boolean silent) {
         try (var ignored = Locks.acquire(owner.stats.wLock)) {
             setRemainingSp(remainingSp, jobId);
             int applied = this.remainingSp[indexOf(jobId)];
             if (!silent) {
-                owner.stats.announceStatsUpdate(new java.util.HashMap<>(
-                        java.util.Map.of(org.gms.client.PacketStat.AVAILABLESP, applied)));
+                owner.remote().update()
+                        .updateSp(new SpUpdate(jobId, applied, this.remainingSp))
+                        .unlockActions()
+                        .commit();
             }
             return applied;
+        }
+    }
+
+    /** 应用并写入外部事务（stats 与 sp 分域各自 update，由开事务方最终 commit）。 */
+    void changeRemainingSp(int remainingSp, int jobId, RemoteUpdate tx) {
+        try (var ignored = Locks.acquire(owner.stats.wLock)) {
+            setRemainingSp(remainingSp, jobId);
+            tx.updateSp(new SpUpdate(jobId, this.remainingSp[indexOf(jobId)], this.remainingSp));
         }
     }
 

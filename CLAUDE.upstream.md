@@ -79,15 +79,12 @@ BeiDou-Server 是一个冒险岛（MapleStory v83，GMS 协议）私服服务端
 - **部署模型**：dev 下 `.env.development` 设 `VITE_API_BASE_URL='http://localhost:8686'`，前端 8787 直连后端，靠后端 `CorsConfig` 放行（`app.vue: http://localhost:8787`）。prod 下 `.env.production` 为空，`yarn build` 产出的 `dist/` 拷进 `gms-server/src/main/resources/static/`，由服务端 8686 同源托管（`ServerManager` 启动时检测 `static/index.html` 决定是否提示前端地址）。
 - 图片资源联网取自 maplestory.io（见 README）。
 
-## 编码规范（必须遵守）
+## 编码规范
 
 1. **import 规范**：生成代码时统一用 `import` 引入类型，**禁止**用「包名+类名」内联写法（如 `java.util.List<...>` 直接写在签名里）。**仅当存在两个同名类目冲突时**才允许用全限定名消歧，否则一律 import。
-2. **i18n 强制**：凡涉及日志打印、前端界面文本、异常信息等**面向人输出展示**的内容，必须走 i18n 资源文件（服务端 `I18nUtil`，前端 `vue-i18n` 的 `t()`），禁止偷懒硬编码字面量。后端日志用 `I18nUtil.getLogMessage(...)`，异常用 `BizExceptionEnum` + `I18nUtil.getExceptionMessage(...)`。
-3. Java 21、UTF-8。Lombok 全量使用（`@Data`/`@Builder`/`@AllArgsConstructor`/`@NoArgsConstructor`/`@Slf4j`）。
-4. JSON 用 fastjson2（`com.alibaba.fastjson2`）；HTTP 序列化用 Jackson。两者并存，按所在层选用。
-5. 日志框架 log4j2（spring-boot-starter-logging 已排除）。日志里不要拼字符串字面量做展示文案，见第 2 条。
-6. 遗留 OdinMS/Cosmic 代码改动时，匹配周边代码风格与注释密度，保留 AGPL 版权头。
-7. 提交信息：后端历史多为中文简述（如「修复雇佣商店重复实例与关闭竞态」「格式化代码」）或「合并拉取请求 #N」；前端 commitlint 强制 conventional（`feat:`/`fix:` 等）。
+2. Java 21、UTF-8。Lombok 全量使用（`@Data`/`@Builder`/`@AllArgsConstructor`/`@NoArgsConstructor`/`@Slf4j`）。
+3. JSON 用 fastjson2（`com.alibaba.fastjson2`）；HTTP 序列化用 Jackson。两者并存，按所在层选用。
+4. 日志框架 log4j2（spring-boot-starter-logging 已排除）。
 
 ## 非显而易见的实现细节
 

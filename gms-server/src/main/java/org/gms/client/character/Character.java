@@ -41,6 +41,10 @@ import org.gms.client.SkillFactory;
 import org.gms.client.SkillMacro;
 import org.gms.client.SkinColor;
 import org.gms.client.PacketStat;
+import org.gms.remote.RemoteClient;
+import org.gms.remote.RemoteUpdate;
+import org.gms.remote.SpUpdate;
+import org.gms.remote.StatsUpdate;
 import org.gms.client.autoban.AutobanManager;
 import org.gms.client.creator.CharacterFactoryRecipe;
 import org.gms.client.inventory.*;
@@ -1768,16 +1772,18 @@ public class Character extends AbstractAnimatedMapObject {
             tap -= tluk;
 
             if (tap >= 0) {
-                // 属性与 SP 分两次静默应用，拼装变更集后一次性公告
-                Map<PacketStat, Integer> statUpdates = stats.update()
-                        .set(STR, tstr)
-                        .set(DEX, tdex)
-                        .set(INT, tint)
-                        .set(LUK, tluk)
-                        .setAp(tap)
-                        .commitSilently();
-                statUpdates.put(PacketStat.AVAILABLESP, sp.changeRemainingSp(tsp, job.getId(), true));
-                stats.announceStatsUpdate(statUpdates);
+                // 一个语义事务（重置属性）：stats 与 sp 组件各自 update，Character 收口 commit
+                try (RemoteUpdate u = remote().update()) {
+                    stats.update()
+                            .set(STR, tstr)
+                            .set(DEX, tdex)
+                            .set(INT, tint)
+                            .set(LUK, tluk)
+                            .setAp(tap)
+                            .commitInto(u);
+                    sp.changeRemainingSp(tsp, job.getId(), u);
+                    u.unlockActions();
+                }
             } else {
                 log.warn("Chr {} tried to have its stats reset without enough AP available", getName());
             }
@@ -2429,6 +2435,11 @@ public class Character extends AbstractAnimatedMapObject {
         if (client != null) {
             client.sendPacket(packet);
         }
+    }
+
+    /** 版本无关的远端客户端门面（隔离层）；无连接时返回空实现，调用方无需判空。 */
+    public RemoteClient remote() {
+        return client != null ? client.getRemote() : RemoteClient.DISCONNECTED;
     }
 
     @Override

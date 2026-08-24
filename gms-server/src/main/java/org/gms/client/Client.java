@@ -44,6 +44,8 @@ import org.gms.net.server.coordinator.session.SessionCoordinator;
 import org.gms.net.server.coordinator.session.SessionCoordinator.AntiMulticlientResult;
 import org.gms.net.server.guild.Guild;
 import org.gms.client.character.Character;
+import org.gms.remote.RemoteClient;
+import org.gms.remote.v83.V83RemoteClient;
 import org.gms.net.server.guild.GuildCharacter;
 import org.gms.net.server.guild.GuildPackets;
 import org.gms.net.server.world.MessengerCharacter;
@@ -116,6 +118,7 @@ public class Client extends ChannelInboundHandlerAdapter {
     private volatile boolean inTransition;
 
     private io.netty.channel.Channel ioChannel;
+    private volatile RemoteClient remote;
     private Character player;
     private int channel = 1;
     private int accId = -4;
@@ -1493,6 +1496,23 @@ public class Client extends ChannelInboundHandlerAdapter {
         } finally {
             announcerLock.unlock();
         }
+    }
+
+    /** 版本无关的远端客户端门面（隔离层）。连接建立前/mock 客户端返回空实现。 */
+    public RemoteClient getRemote() {
+        if (ioChannel == null) {
+            return RemoteClient.DISCONNECTED;
+        }
+        RemoteClient r = remote;
+        if (r == null) {
+            synchronized (this) {
+                if (remote == null) {
+                    remote = new V83RemoteClient(this);
+                }
+                r = remote;
+            }
+        }
+        return r;
     }
 
     public void announceHint(String msg, int length) {

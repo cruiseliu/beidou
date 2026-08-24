@@ -1,10 +1,9 @@
 package org.gms.client.character;
 
-import org.gms.client.PacketStat;
+import org.gms.remote.RemoteUpdate;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 属性更新语法糖：{@code stats.update().set(STR, x).add(MAX_HP, y).setHp(hp).commit()}。
@@ -79,13 +78,18 @@ public final class StatUpdateBuilder {
 
     // ── 提交（silent 在此抉择） ──
 
-    /** 应用并发包通知客户端，返回本次变更集 */
-    public Map<PacketStat, Integer> commit() {
-        return stats.updateInternal(false, changes.toArray(new Change[0]));
+    /** 应用并发包通知客户端 */
+    public void commit() {
+        stats.updateInternal(false, changes.toArray(new Change[0]));
     }
 
-    /** 应用（不发包），返回本次变更集 */
-    public Map<PacketStat, Integer> commitSilently() {
-        return stats.updateInternal(true, changes.toArray(new Change[0]));
+    /** 应用（不发包，调用方自行公告/组装包） */
+    public void commitSilently() {
+        stats.updateInternal(true, changes.toArray(new Change[0]));
+    }
+
+    /** 应用并写入外部事务（stats 与 sp 等分域各自 update，由开事务方最终 commit） */
+    public void commitInto(RemoteUpdate tx) {
+        stats.updateInternal(tx, changes.toArray(new Change[0]));
     }
 }
