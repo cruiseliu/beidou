@@ -45,8 +45,9 @@
     "spChainShared": true,
     "acquiredSkills": [],
     "apAutoAssignKey": "default",
-    "forceAutoAssignAp": false,
     "weaponStatRules": {},
     "modifiers": [],
-    "listeners": []
+    "listeners": [],
+    "mpIntDivisor": 20,
+    "autoAssignAp": []
 }

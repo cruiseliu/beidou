@@ -1,0 +1,6 @@
+{
+    "skillId": 12000000,
+    "passive": {
+        "increaseMaxMpOnLevelUp": "x"
+    }
+}

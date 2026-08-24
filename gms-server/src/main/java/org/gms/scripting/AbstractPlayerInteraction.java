@@ -1172,29 +1172,8 @@ public class AbstractPlayerInteraction {
     }
 
     public boolean canGetFirstJob(int jobType) {
-        if (GameConfig.getServerBoolean("use_auto_assign_starters_ap")) {
-            return true;
-        }
-
-        Character chr = this.getPlayer();
-
-        switch (jobType) {
-            case 1:
-                return chr.getStr() >= 35;
-
-            case 2:
-                return chr.getInt() >= 20;
-
-            case 3:
-            case 4:
-                return chr.getDex() >= 25;
-
-            case 5:
-                return chr.getDex() >= 20;
-
-            default:
-                return true;
-        }
+        // 注：原 use_auto_assign_starters_ap 全局开关已废弃（恒 true）——属性门槛不再校验，恒可转职
+        return true;
     }
 
     public String getFirstJobStatRequirement(int jobType) {

@@ -66,8 +66,14 @@
         1002
     ],
     "apAutoAssignKey": "beginner",
-    "forceAutoAssignAp": true,
     "weaponStatRules": {},
     "modifiers": [],
-    "listeners": []
+    "listeners": [],
+    "mpIntDivisor": 10,
+    "autoAssignAp": [
+        {
+            "from": 1,
+            "to": 10
+        }
+    ]
 }

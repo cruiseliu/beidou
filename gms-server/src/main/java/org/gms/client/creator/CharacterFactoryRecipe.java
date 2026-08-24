@@ -23,7 +23,6 @@ import org.gms.client.JobEnum;
 import org.gms.client.Skill;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.Item;
-import org.gms.config.GameConfig;
 import org.gms.util.Pair;
 
 import java.util.LinkedHashMap;
@@ -61,13 +60,10 @@ public class CharacterFactoryRecipe {
         this.shoes = shoes;
         this.weapon = weapon;
 
-        // 新版本模式起始属性：12/5/4/4（自动分配）或 9 AP 自分配（早期 GMS 4/4/4/4 模式已舍弃）
-        if (GameConfig.getServerBoolean("use_auto_assign_starters_ap")) {
-            str = 12;
-            dex = 5;
-        } else {
-            ap = 9;
-        }
+        // 新版本模式起始属性：12/5/4/4（自动分配）；早期 GMS 4/4/4/4 + 9 AP 自分配模式已舍弃
+        // （原 use_auto_assign_starters_ap 全局开关已废弃，恒为开启态）
+        str = 12;
+        dex = 5;
     }
 
     public void setStr(int v) {

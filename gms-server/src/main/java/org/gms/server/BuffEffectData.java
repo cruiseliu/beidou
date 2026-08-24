@@ -1899,6 +1899,22 @@ public class BuffEffectData {
         return y;
     }
 
+    /**
+     * 按 wz effect 字段名取值（用于 SkillDefinition 声明的字段名，如 "x"/"y"/"mp"）。
+     * 未识别字段返回 0。
+     */
+    public int getValue(String fieldName) {
+        if (fieldName == null) {
+            return 0;
+        }
+        return switch (fieldName) {
+            case "x" -> x;
+            case "y" -> y;
+            case "mp" -> mp;
+            default -> 0;
+        };
+    }
+
     public int getDamage() {
         return damage;
     }

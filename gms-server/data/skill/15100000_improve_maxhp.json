@@ -1,0 +1,6 @@
+{
+    "skillId": 15100000,
+    "passive": {
+        "increaseMaxHpOnLevelUp": "x"
+    }
+}

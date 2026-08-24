@@ -1730,10 +1730,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public synchronized void resetStats() {
-        if (!GameConfig.getServerBoolean("use_auto_assign_starters_ap")) {
-            return;
-        }
-
+        // 注：原 use_auto_assign_starters_ap 全局开关已废弃（恒 true），此守卫不再需要
         // effLock 已冗余：reset 仅动 stats/ap + applyUpdateSilently
         try (var ignored = Locks.acquire(stats.wLock)) {
             int tap = ap.getRemainingAp() + stats.getBase(STR) + stats.getBase(DEX) + stats.getBase(INT) + stats.getBase(LUK), tsp = 1;

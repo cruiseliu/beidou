@@ -55,10 +55,15 @@ public record JobDefinition(
 
         // ── AP 分配器（脚本导出 map 的 key：export default { beginner: beginnerAutoAssign, ... }） ──
         String apAutoAssignKey,
-        boolean forceAutoAssignAp,
+
+        // ── 自动分配 AP（升级时自动把 AP 分掉；命中区间触发，分配方式由 apAutoAssignKey 对应脚本决定） ──
+        List<AutoAssignApRange> autoAssignAp,
 
         // ── 武器规则（按职业覆盖；默认在武器类型定义 data/weapon_type/*.json） ──
         Map<WeaponTypeEnum, WeaponRule> weaponStatRules,   // key = 武器类型枚举（如 DAGGER）；覆盖主/副属性 + 可选动作系数
+
+        // ── 升级 MP 授予（use_randomize_hpmp_gain 时：MAX_MP += totalInt / mpIntDivisor） ──
+        int mpIntDivisor,       // 升级按智力授予 MP 的除数；MAGICIAN 系 20，其他 10（JSON 显式写出）
 
         // ── 机制装配（modifier 链 + listener；JSON 中为名字，注册时解析成实例） ──
         List<String> modifiers,

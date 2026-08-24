@@ -41,10 +41,9 @@ import org.gms.constants.skills.Magician;
 import org.gms.constants.skills.ThunderBreaker;
 import org.gms.constants.skills.Warrior;
 import org.gms.net.packet.InPacket;
-import org.gms.scripting.JsModule;
+import org.gms.scripting.ApAssignerScript;
 import org.gms.util.PacketCreator;
 import org.gms.util.Randomizer;
-import org.graalvm.polyglot.Value;
 
 import java.util.*;
 
@@ -162,36 +161,15 @@ public class AssignAPProcessor {
                 eqpDexList.sort(Collections.reverseOrder()); // DEX降序排序
                 eqpLukList.sort(Collections.reverseOrder()); // LUK降序排序
 
-                JobEnum stance = c.getPlayer().getJobStyle(opt); // 根据选项获取玩家的职业类型
+                // 调用 JS 分配器（export default APAssigner = { default: assign, beginner: assign }）
+                int[] gain = ApAssignerScript.assign(chr, "default", chr.getLevel(), remainingAp,
+                        eqpStrList, eqpDexList, eqpLukList, eqpStr, eqpDex, eqpLuk);
 
-                // 构造传给 JS 的上下文（字段与 default.js 的 ctx 一致）
-                Map<String, Object> ctx = new HashMap<>();
-                ctx.put("level", chr.getLevel());
-                ctx.put("str", chr.getStr());
-                ctx.put("dex", chr.getDex());
-                ctx.put("int", chr.getInt());
-                ctx.put("luk", chr.getLuk());
-                ctx.put("ap", remainingAp);
-                ctx.put("jobStyle", stance.name());
-                ctx.put("eqpStrList", eqpStrList);
-                ctx.put("eqpDexList", eqpDexList);
-                ctx.put("eqpLukList", eqpLukList);
-                ctx.put("eqpStr", eqpStr);
-                ctx.put("eqpDex", eqpDex);
-                ctx.put("eqpLuk", eqpLuk);
-                ctx.put("useSecondaryCap", useAutoAssignSecondaryCap);
-                ctx.put("maxAp", maxAp);
-
-                // 调用 JS 分配器：export default APAssigner = { default: assign, beginner: assign }
-                JsModule module = JsModule.importModule("server/ap_assigner/default.js");
-                Value assigner = (Value) module.getDefault();
-                Value result = assigner.getMember("default").execute(ctx);
-
-                // 解析 JS 返回的分配结果 { str, dex, int, luk }
-                statGain[0] = result.getMember("str").asInt(); // STR增益
-                statGain[1] = result.getMember("dex").asInt(); // DEX增益
-                statGain[3] = result.getMember("int").asInt(); // INT增益
-                statGain[2] = result.getMember("luk").asInt(); // LUK增益
+                // 结果 {str, dex, int, luk} → statGain [STR, DEX, LUK, INT]
+                statGain[0] = gain[0]; // STR增益
+                statGain[1] = gain[1]; // DEX增益
+                statGain[3] = gain[2]; // INT增益
+                statGain[2] = gain[3]; // LUK增益
 
                 // 更新玩家属性
                 chr.assignStrDexIntLuk(statGain[0], statGain[1], statGain[3], statGain[2]);

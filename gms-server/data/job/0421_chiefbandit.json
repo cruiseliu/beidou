@@ -52,7 +52,6 @@
         4211006
     ],
     "apAutoAssignKey": "default",
-    "forceAutoAssignAp": false,
     "weaponStatRules": {
         "DAGGER": {
             "statRule": {
@@ -72,5 +71,7 @@
         }
     },
     "modifiers": [],
-    "listeners": []
+    "listeners": [],
+    "mpIntDivisor": 10,
+    "autoAssignAp": []
 }

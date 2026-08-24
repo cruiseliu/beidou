@@ -51,8 +51,9 @@
         2301005
     ],
     "apAutoAssignKey": "default",
-    "forceAutoAssignAp": false,
     "weaponStatRules": {},
     "modifiers": [],
-    "listeners": []
+    "listeners": [],
+    "mpIntDivisor": 20,
+    "autoAssignAp": []
 }
