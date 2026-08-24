@@ -1,6 +1,5 @@
 package org.gms.client.job;
 
-import org.gms.client.inventory.WeaponType;
 
 import java.util.List;
 import java.util.Map;
@@ -26,7 +25,7 @@ import java.util.Map;
  * - 转职分支（如海盗→拳手/枪手）是隐式机制，不建模；由 JobRegistry 逐条登记区分。
  * - master level 是技能自身数据（Skill 从 wz 读取，缺省语义 = max level），职业定义不存、不推断。
  * - acquiredSkills = 转职时"获得"的技能白名单（每职业约 10 个）；获得 = 可分配 SP 的隐藏态，与 level/master 正交。
- * - 武器规则：默认在 WeaponType（后续补 defaultStatRule），本职业 weaponStatRules 只写覆盖特例（按职业粒度，非 style）。
+ * - 武器规则：默认在武器类型定义（data/weapon_type/*.json），本职业 weaponStatRules 只写覆盖特例（key = 武器类型段号 typeId）。
  * - spChainShared = 本职业的 SP 是否与转职链【后续】职业（含自身）共用（Evan 跨阶段共用 = true）。
  *   分配时只允许：spChainShared=true 的职业把 SP 花在本职业及转职链后续职业上；
  *   永远不能花在转职链前驱上（否则玩家会转职前攒 SP 白嫖），也永远不能合法获得不在转职链上的职业 SP。
@@ -56,8 +55,8 @@ public record JobDefinition(
         String apAutoAssignKey,
         boolean forceAutoAssignAp,
 
-        // ── 武器规则（按职业覆盖；默认在 WeaponType） ──
-        Map<WeaponType, StatRule> weaponStatRules,
+        // ── 武器规则（按职业覆盖；默认在武器类型定义 data/weapon_type/*.json） ──
+        Map<Integer, StatRule> weaponStatRules,   // key = 武器类型段号 typeId（如 33=匕首）
 
         // ── 机制装配（modifier 链 + listener；JSON 中为名字，注册时解析成实例） ──
         List<String> modifiers,

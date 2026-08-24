@@ -45,6 +45,9 @@ import org.gms.client.autoban.AutobanManager;
 import org.gms.client.creator.CharacterFactoryRecipe;
 import org.gms.client.inventory.*;
 import org.gms.client.inventory.Equip.StatUpgrade;
+import org.gms.client.job.StatRule;
+import org.gms.client.weaponType.WeaponTypeDefinition;
+import org.gms.client.weaponType.WeaponTypeRegistry;
 import org.gms.client.keybind.KeyBinding;
 import org.gms.client.keybind.QuickslotBinding;
 import org.gms.config.GameConfig;
@@ -536,30 +539,31 @@ public class Character extends AbstractAnimatedMapObject {
         visibleMapObjects.add(mo);
     }
 
-    public int calculateMaxBaseDamage(int watk, WeaponType weapon) {
-        int mainstat, secondarystat;
-        if (job.isA(JobEnum.THIEF) && weapon == WeaponType.DAGGER_OTHER) {
-            weapon = WeaponType.DAGGER_THIEVES;
+    public int calculateMaxBaseDamage(int watk, WeaponTypeDefinition weapon) {
+        // 主/副属性：职业覆盖优先（JobDefinition.weaponStatRules），否则武器类型默认 statRule
+        StatRule rule = getWeaponStatRule(weapon.typeId());
+        int mainstat = 0;
+        int secondarystat = 0;
+        for (Stat attr : rule.primary()) {
+            mainstat += stats.getTotal(attr);
         }
-
-        if (weapon == WeaponType.BOW || weapon == WeaponType.CROSSBOW || weapon == WeaponType.GUN) {
-            mainstat = stats.getTotal(DEX);
-            secondarystat = stats.getTotal(STR);
-        } else if (weapon == WeaponType.CLAW || weapon == WeaponType.DAGGER_THIEVES) {
-            mainstat = stats.getTotal(LUK);
-            secondarystat = stats.getTotal(DEX) + stats.getTotal(STR);
-        } else {
-            mainstat = stats.getTotal(STR);
-            secondarystat = stats.getTotal(DEX);
+        for (Stat attr : rule.secondary()) {
+            secondarystat += stats.getTotal(attr);
         }
-        return (int) Math.ceil(((weapon.getMaxDamageMultiplier() * mainstat + secondarystat) / 100.0) * watk);
+        // 最大基础伤害：取各攻击动作系数中的最大值
+        double weaponMult = Math.max(weapon.actions().swing(),
+                Math.max(weapon.actions().stab(), weapon.actions().shoot()));
+        // fixme: [weapon wiring] 盗贼用普通匕首（typeId=33）原走 DAGGER_THIEVES（系数3.6、LUK主/DEX+STR副），
+        //   现无职业覆盖时按 dagger 默认（系数4.0、STR主/DEX副），校验阈值/暴击判定线与原版不一致。
+        //   需在 data/job 盗贼职业 JSON 的 weaponStatRules 写 "33" 覆盖；若还要区分 3.6/4.0 系数则需扩展覆盖字段。
+        return (int) Math.ceil(((weaponMult * mainstat + secondarystat) / 100.0) * watk);
     }
 
     public int calculateMaxBaseDamage(int watk) {
         int maxbasedamage;
         Item weapon_item = getInventory(InventoryType.EQUIPPED).getItem((short) -11);
         if (weapon_item != null) {
-            maxbasedamage = calculateMaxBaseDamage(watk, ItemInformationProvider.getInstance().getWeaponType(weapon_item.getItemId()));
+            maxbasedamage = calculateMaxBaseDamage(watk, WeaponTypeRegistry.of(weapon_item.getItemId()));
         } else {
             if (job.isA(JobEnum.PIRATE) || job.isA(JobEnum.THUNDERBREAKER1)) {
                 double weapMulti = 3;
@@ -2935,6 +2939,7 @@ public class Character extends AbstractAnimatedMapObject {
     public boolean isCygnus() { return job.isCygnus(); }
     public boolean isAran() { return job.isAran(); }
     public boolean isBeginnerJob() { return job.isBeginnerJob(); }
+    public StatRule getWeaponStatRule(int typeId) { return job.getWeaponStatRule(typeId); }
 
     // ── map 门面 ──
 

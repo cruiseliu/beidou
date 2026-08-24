@@ -7,6 +7,8 @@ import org.gms.client.JobEnum;
 import org.gms.client.job.GainStats;
 import org.gms.client.job.JobDefinition;
 import org.gms.client.job.JobRegistry;
+import org.gms.client.job.StatRule;
+import org.gms.client.weaponType.WeaponTypeRegistry;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.client.PacketStat;
@@ -96,6 +98,18 @@ class CharacterJob {
 
     JobEnum getJobStyle() {
         return getJobStyle((byte) ((owner.getStr() > owner.getDex()) ? 0x80 : 0x40));
+    }
+
+    /**
+     * 当前职业对指定武器的 StatRule：职业覆盖优先（JobDefinition.weaponStatRules，key=typeId），
+     * 无覆盖用武器类型定义默认（data/weapon_type/*.json）。
+     */
+    StatRule getWeaponStatRule(int typeId) {
+        StatRule override = JobRegistry.of(job).weaponStatRules().get(typeId);
+        if (override != null) {
+            return override;
+        }
+        return WeaponTypeRegistry.byTypeId(typeId).statRule();
     }
 
     // ── 转职 ──

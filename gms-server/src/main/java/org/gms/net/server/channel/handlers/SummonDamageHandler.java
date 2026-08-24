@@ -28,13 +28,12 @@ import org.gms.client.SkillFactory;
 import org.gms.client.autoban.AutobanFactory;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.Item;
-import org.gms.client.inventory.WeaponType;
+import org.gms.client.weaponType.WeaponTypeRegistry;
 import org.gms.client.status.MonsterStatusEffect;
 import org.gms.constants.skills.Outlaw;
 import org.gms.net.packet.InPacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.gms.server.ItemInformationProvider;
 import org.gms.server.BuffEffectData;
 import org.gms.server.life.Monster;
 import org.gms.server.life.MonsterInformationProvider;
@@ -142,9 +141,10 @@ public final class SummonDamageHandler extends AbstractDealDamageHandler {
 
             int maxBaseDmg;  // thanks Conrad, Atoot for detecting some summons legitimately hitting over the calculated limit
             if (weapon_item != null) {
-                maxBaseDmg = player.calculateMaxBaseDamage(watk, ItemInformationProvider.getInstance().getWeaponType(weapon_item.getItemId()));
+                maxBaseDmg = player.calculateMaxBaseDamage(watk, WeaponTypeRegistry.of(weapon_item.getItemId()));
             } else {
-                maxBaseDmg = player.calculateMaxBaseDamage(watk, WeaponType.SWORD1H);
+                // 无武器：沿用单手剑系数（原 SWORD1H 行为）
+                maxBaseDmg = player.calculateMaxBaseDamage(watk, WeaponTypeRegistry.byTypeId(30));
             }
 
             float summonDmgMod = (maxBaseDmg >= 438) ? 0.054f : 0.077f;

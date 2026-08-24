@@ -11,10 +11,10 @@ import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.Item;
-import org.gms.client.inventory.WeaponType;
+import org.gms.client.weaponType.WeaponTypeDefinition;
+import org.gms.client.weaponType.WeaponTypeRegistry;
 import org.gms.client.SkillFactory;
 import org.gms.config.GameConfig;
-import org.gms.constants.inventory.ItemConstants;
 import org.gms.constants.skills.Marauder;
 import org.gms.constants.skills.ThunderBreaker;
 import org.gms.model.json.CharacterStatsData;
@@ -353,23 +353,16 @@ public class CharacterStats {
         if (owner.getJob().isA(JobEnum.THIEF) || owner.getJob().isA(JobEnum.BOWMAN) || owner.getJob().isA(JobEnum.PIRATE) || owner.getJob().isA(JobEnum.NIGHTWALKER1) || owner.getJob().isA(JobEnum.WINDARCHER1)) {
             Item weapon_item = owner.getInventory(InventoryType.EQUIPPED).getItem((short) -11);
             if (weapon_item != null) {
-                ItemInformationProvider ii = ItemInformationProvider.getInstance();
-                WeaponType weapon = ii.getWeaponType(weapon_item.getItemId());
-                boolean bow = weapon == WeaponType.BOW;
-                boolean crossbow = weapon == WeaponType.CROSSBOW;
-                boolean claw = weapon == WeaponType.CLAW;
-                boolean gun = weapon == WeaponType.GUN;
-                if (bow || crossbow || claw || gun) {
+                WeaponTypeDefinition weapon = WeaponTypeRegistry.of(weapon_item.getItemId());
+                if (weapon.ammoIdRange() != null) {
+                    ItemInformationProvider ii = ItemInformationProvider.getInstance();
                     Inventory inv = owner.getInventory(InventoryType.USE);
                     for (short i = 1; i <= inv.getSlotLimit(); i++) {
                         Item item = inv.getItem(i);
                         if (item == null) {
                             continue;
                         }
-                        if ((claw && ItemConstants.isThrowingStar(item.getItemId()))
-                                || (gun && ItemConstants.isBullet(item.getItemId()))
-                                || (bow && ItemConstants.isArrowForBow(item.getItemId()))
-                                || (crossbow && ItemConstants.isArrowForCrossBow(item.getItemId()))) {
+                        if (weapon.usesAmmo(item.getItemId())) {
                             if (item.getQuantity() > 0) {
                                 total[Stat.P_ATK.ordinal()] += ii.getWatkForProjectile(item.getItemId());
                                 break;

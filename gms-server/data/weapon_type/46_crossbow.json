@@ -1,0 +1,24 @@
+{
+    "typeId": 46,
+    "actions": {
+        "swing": 3.6,
+        "stab": 3.6,
+        "shoot": 3.6
+    },
+    "statRule": {
+        "primary": [
+            "DEX"
+        ],
+        "secondary": [
+            "STR"
+        ]
+    },
+    "itemIdRange": {
+        "from": 1460000,
+        "to": 1469999
+    },
+    "ammoIdRange": {
+        "from": 2061000,
+        "to": 2061999
+    }
+}

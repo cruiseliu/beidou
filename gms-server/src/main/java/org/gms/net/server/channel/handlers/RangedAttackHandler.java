@@ -29,7 +29,8 @@ import org.gms.client.SkillFactory;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.Item;
-import org.gms.client.inventory.WeaponType;
+import org.gms.client.weaponType.WeaponTypeDefinition;
+import org.gms.client.weaponType.WeaponTypeRegistry;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.ItemId;
@@ -106,10 +107,7 @@ public final class RangedAttackHandler extends AbstractDealDamageHandler {
             }
         } else {
             Item weapon = chr.getInventory(InventoryType.EQUIPPED).getItem((short) -11);
-            WeaponType type = ItemInformationProvider.getInstance().getWeaponType(weapon.getItemId());
-            if (type == WeaponType.NOT_A_WEAPON) {
-                return;
-            }
+            WeaponTypeDefinition weaponDef = WeaponTypeRegistry.of(weapon.getItemId());
             short slot = -1;
             int projectile = 0;
             short bulletCount = 1;
@@ -155,24 +153,23 @@ public final class RangedAttackHandler extends AbstractDealDamageHandler {
                     }
 
                     if (item.getQuantity() >= bulletCount) { //Fixes the bug where you can't use your last arrow.
-                        if (type == WeaponType.CLAW && ItemConstants.isThrowingStar(id) && weapon.getItemId() != ItemId.MAGICAL_MITTEN) {
-                            //这段判断不知道干啥用的，里面又没有内容，看样子是判定 物品ID = 月牙镖 或 平衡之怒 且 等级小于70，或 月牙镖 且 等级小于50
-                            if (((id == ItemId.HWABI_THROWING_STARS || id == ItemId.BALANCED_FURY) && chr.getLevel() < 70) || (id == ItemId.CRYSTAL_ILBI_THROWING_STARS && chr.getLevel() < 50)) {
-                            } else {
-                                projectile = id;
-                                break;
-                            }
-                        } else if ((type == WeaponType.GUN && ItemConstants.isBullet(id))) {
-                            if (id == ItemId.BLAZE_CAPSULE || id == ItemId.GLAZE_CAPSULE) {
+                        if (weaponDef.usesAmmo(id) && weapon.getItemId() != ItemId.MAGICAL_MITTEN) {
+                            // 拳套：等级限制（月牙镖/平衡之怒 <70、水晶镖 <50），飞镖类型由 ammoIdRange 判断
+                            if ((weaponDef.typeId() == 47 && ((id == ItemId.HWABI_THROWING_STARS || id == ItemId.BALANCED_FURY) && chr.getLevel() < 70))
+                                    || (weaponDef.typeId() == 47 && id == ItemId.CRYSTAL_ILBI_THROWING_STARS && chr.getLevel() < 50)) {
+                                // 等级不足，跳过
+                            } else if (weaponDef.typeId() == 49 && (id == ItemId.BLAZE_CAPSULE || id == ItemId.GLAZE_CAPSULE)) {
                                 if (chr.getLevel() >= 70) {
                                     projectile = id;
                                     break;
                                 }
-                            } else if (chr.getLevel() > (id % 10) * 20 + 9) {
+                            } else if (weaponDef.typeId() == 49 && chr.getLevel() <= (id % 10) * 20 + 9) {
+                                // 短枪子弹等级不足，跳过
+                            } else {
                                 projectile = id;
                                 break;
                             }
-                        } else if ((type == WeaponType.BOW && bow) || (type == WeaponType.CROSSBOW && cbow) || (weapon.getItemId() == ItemId.MAGICAL_MITTEN && (bow || cbow))) {
+                        } else if (weapon.getItemId() == ItemId.MAGICAL_MITTEN && (bow || cbow)) {
                             projectile = id;
                             break;
                         }

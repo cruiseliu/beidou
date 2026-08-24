@@ -1,0 +1,20 @@
+{
+    "typeId": 33,
+    "actions": {
+        "swing": 4.0,
+        "stab": 4.0,
+        "shoot": 0
+    },
+    "statRule": {
+        "primary": [
+            "STR"
+        ],
+        "secondary": [
+            "DEX"
+        ]
+    },
+    "itemIdRange": {
+        "from": 1330000,
+        "to": 1339999
+    }
+}
