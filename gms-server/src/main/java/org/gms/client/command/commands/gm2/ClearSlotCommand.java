@@ -27,7 +27,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.constants.game.GameConstants;
 import org.gms.util.I18nUtil;
@@ -99,10 +99,10 @@ public class ClearSlotCommand extends Command {
     }
 
     private void removeSlot(Client c, InventoryType type, int slot) {
-        Item tempItem = c.getPlayer().getInventory(type).getItem((byte) slot);
+        ItemSlot tempItem = c.getPlayer().getInventory(type).getItem((byte) slot);
         if (tempItem == null) {
             return;
         }
-        InventoryManipulator.removeFromSlot(c, type, (byte) slot, tempItem.getQuantity(), false, false);
+        InventoryManipulator.removeFromSlot(c, type, (short) slot, (short) tempItem.getQuantity(), false, false);
     }
 }

@@ -28,7 +28,7 @@ import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.client.status.MonsterStatus;
 import org.gms.client.status.MonsterStatusEffect;
@@ -132,7 +132,7 @@ public final class TakeDamageHandler extends AbstractPacketHandler {
 
                                         for (byte b = 0; b < qty; b++) {
                                             pos.x = playerpos + ((d % 2 == 0) ? (25 * (d + 1) / 2) : -(25 * (d / 2)));
-                                            map.spawnItemDrop(chr, chr, new Item(loseItem.getId(), (short) 0, (short) 1), map.calcDropPos(pos, chr.getPosition()), true, true);
+                                            map.spawnItemDrop(chr, chr, new ItemSlot(loseItem.getId(), (short) 0, (short) 1), map.calcDropPos(pos, chr.getPosition()), true, true);
                                             d++;
                                         }
                                     }

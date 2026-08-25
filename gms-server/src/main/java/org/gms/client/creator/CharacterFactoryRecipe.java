@@ -22,7 +22,7 @@ package org.gms.client.creator;
 import org.gms.client.JobEnum;
 import org.gms.client.Skill;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.util.Pair;
 
 import java.util.LinkedHashMap;
@@ -48,7 +48,7 @@ public class CharacterFactoryRecipe {
     private int meso = 0;
     private final List<Pair<Skill, Integer>> skills = new LinkedList<>();
 
-    private final List<Pair<Item, InventoryType>> itemsWithType = new LinkedList<>();
+    private final List<Pair<ItemSlot, InventoryType>> itemsWithType = new LinkedList<>();
     private final Map<InventoryType, AtomicInteger> runningTypePosition = new LinkedHashMap<>();
 
     public CharacterFactoryRecipe(JobEnum job, int level, int map, int top, int bottom, int shoes, int weapon) {
@@ -106,7 +106,7 @@ public class CharacterFactoryRecipe {
         skills.add(new Pair<>(skill, level));
     }
 
-    public void addStartingEquipment(Item eqpItem) {
+    public void addStartingEquipment(ItemSlot eqpItem) {
         itemsWithType.add(new Pair<>(eqpItem, InventoryType.EQUIP));
     }
 
@@ -117,7 +117,7 @@ public class CharacterFactoryRecipe {
             runningTypePosition.put(itemType, p);
         }
 
-        itemsWithType.add(new Pair<>(new Item(itemid, (short) p.getAndIncrement(), (short) quantity), itemType));
+        itemsWithType.add(new Pair<>(new ItemSlot(itemid, (short) p.getAndIncrement(), (short) quantity), itemType));
     }
 
     public JobEnum getJob() {
@@ -188,7 +188,7 @@ public class CharacterFactoryRecipe {
         return skills;
     }
 
-    public List<Pair<Item, InventoryType>> getStartingItems() {
+    public List<Pair<ItemSlot, InventoryType>> getStartingItems() {
         return itemsWithType;
     }
 }

@@ -25,7 +25,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.Pet;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.constants.id.ItemId;
@@ -171,12 +171,12 @@ public class Shop {
 
     }
 
-    private static boolean canSell(Item item, short quantity) {
+    private static boolean canSell(ItemSlot item, short quantity) {
         if (item == null) { //Basic check
             return false;
         }
 
-        short iQuant = item.getQuantity();
+        short iQuant = (short) item.getQuantity();
         if (iQuant == 0xFFFF) {
             iQuant = 1;
         } else if (iQuant < 0) {
@@ -190,9 +190,9 @@ public class Shop {
         return true;
     }
 
-    private static short getSellingQuantity(Item item, short quantity) {
+    private static short getSellingQuantity(ItemSlot item, short quantity) {
         if (ItemConstants.isRechargeable(item.getItemId())) {
-            quantity = item.getQuantity();
+            quantity = (short) item.getQuantity();
             if (quantity == 0xFFFF) {
                 quantity = 1;
             }
@@ -209,7 +209,7 @@ public class Shop {
         }
 
         Inventory inventory = c.getPlayer().getInventory(type);
-        Item item = inventory.getItem(slot);
+        ItemSlot item = inventory.getItem(slot);
         inventory.lockInventory();
         try {
             if (canSell(item, quantity)) {
@@ -233,7 +233,7 @@ public class Shop {
     public void recharge(Client c, short slot) {
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
         Inventory inventory = c.getPlayer().getInventory(InventoryType.USE);
-        Item item = inventory.getItem(slot);
+        ItemSlot item = inventory.getItem(slot);
         if (item == null || !ItemConstants.isRechargeable(item.getItemId())) {
             return;
         }

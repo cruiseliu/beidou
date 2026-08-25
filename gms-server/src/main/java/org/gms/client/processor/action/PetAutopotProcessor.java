@@ -25,7 +25,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.config.GameConfig;
 import org.gms.manager.ServerManager;
@@ -47,8 +47,8 @@ public class PetAutopotProcessor {
         private short slot;
         private final int itemId;
 
-        private Item toUse;
-        private List<Item> toUseList;
+        private ItemSlot toUse;
+        private List<ItemSlot> toUseList;
 
         private boolean hasHpGain, hasMpGain;
         private int maxHp, maxMp, curHp, curMp;
@@ -61,11 +61,11 @@ public class PetAutopotProcessor {
 
             toUse = null;
             while (!toUseList.isEmpty()) {
-                Item it = toUseList.remove(0);
+                ItemSlot it = toUseList.remove(0);
 
                 if (it.getQuantity() > 0) {
                     toUse = it;
-                    slot = it.getPosition();
+                    slot = (short) it.getPosition();
 
                     return true;
                 }

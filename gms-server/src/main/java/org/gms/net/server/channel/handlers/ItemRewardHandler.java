@@ -23,7 +23,7 @@ package org.gms.net.server.channel.handlers;
 
 import org.gms.client.Client;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.net.AbstractPacketHandler;
@@ -47,7 +47,7 @@ public final class ItemRewardHandler extends AbstractPacketHandler {
         byte slot = (byte) p.readShort();
         int itemId = p.readInt(); // will load from xml I don't care.
 
-        Item it = c.getPlayer().getInventory(InventoryType.USE).getItem(slot);   // null check here thanks to Thora
+        ItemSlot it = c.getPlayer().getInventory(InventoryType.USE).getItem(slot);   // null check here thanks to Thora
         if (it == null || it.getItemId() != itemId || c.getPlayer().getInventory(InventoryType.USE).countById(itemId) < 1) {
             return;
         }
@@ -72,7 +72,7 @@ public final class ItemRewardHandler extends AbstractPacketHandler {
                 c.sendPacket(PacketCreator.getShowInventoryFull());
             } else {
                 if (ItemConstants.getInventoryType(selectedReward.itemid) == InventoryType.EQUIP) {
-                    final Item item = ii.getEquipById(selectedReward.itemid);
+                    final ItemSlot item = ii.getEquipById(selectedReward.itemid);
                     if (selectedReward.period != -1) {
                         // TODO is this a bug, meant to be 60 * 60 * 1000?
                         item.setExpiration(currentServerTime() + selectedReward.period * 60 * 60 * 10);

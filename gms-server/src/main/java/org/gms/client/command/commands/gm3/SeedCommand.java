@@ -26,7 +26,7 @@ package org.gms.client.command.commands.gm3;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.id.MapId;
 import org.gms.util.I18nUtil;
@@ -49,7 +49,7 @@ public class SeedCommand extends Command {
         int[] seed = {ItemId.PINK_PRIMROSE_SEED, ItemId.PURPLE_PRIMROSE_SEED, ItemId.GREEN_PRIMROSE_SEED,
                 ItemId.BLUE_PRIMROSE_SEED, ItemId.YELLOW_PRIMROSE_SEED, ItemId.BROWN_PRIMROSE_SEED};
         for (int i = 0; i < pos.length; i++) {
-            Item item = new Item(seed[i], (byte) 0, (short) 1);
+            ItemSlot item = new ItemSlot(seed[i], (byte) 0, (short) 1);
             player.getMap().spawnItemDrop(player, player, item, pos[i], false, true);
             try {
                 Thread.sleep(100);

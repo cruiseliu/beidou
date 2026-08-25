@@ -21,7 +21,7 @@ package org.gms.net.server.channel.handlers;
 
 import org.gms.client.character.Character;
 import org.gms.client.Client;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.model.pojo.NewYearCardRecord;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.inventory.ItemConstants;
@@ -152,7 +152,7 @@ public final class NewYearCardHandler extends AbstractPacketHandler {
             return 0x14;
         }
 
-        Item it = player.getInventory(ItemConstants.getInventoryType(itemid)).getItem(slot);
+        ItemSlot it = player.getInventory(ItemConstants.getInventoryType(itemid)).getItem(slot);
         return (it != null && it.getItemId() == itemid) ? 0 : 0x12;
     }
 }

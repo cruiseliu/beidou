@@ -27,7 +27,7 @@ import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.client.autoban.AutobanFactory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.weaponType.WeaponTypeEnum;
 import org.gms.client.weaponType.WeaponTypeRegistry;
 import org.gms.client.status.MonsterStatusEffect;
@@ -138,7 +138,7 @@ public final class SummonDamageHandler extends AbstractDealDamageHandler {
             maxDamage = player.calculateMaxBaseMagicDamage(matk) * (0.05 * summonEffect.getMatk());
         } else {
             int watk = Math.max(player.getTotalWatk(), 14);
-            Item weapon_item = player.getInventory(InventoryType.EQUIPPED).getItem((short) -11);
+            ItemSlot weapon_item = player.getInventory(InventoryType.EQUIPPED).getItem((short) -11);
 
             int maxBaseDmg;  // thanks Conrad, Atoot for detecting some summons legitimately hitting over the calculated limit
             if (weapon_item != null) {

@@ -24,7 +24,7 @@ import org.gms.client.Client;
 import org.gms.client.SkinColor;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.config.GameConfig;
 import org.gms.net.server.Server;
 import org.gms.util.I18nUtil;
@@ -66,25 +66,25 @@ public abstract class CharacterFactory {
         int top = recipe.getTop(), bottom = recipe.getBottom(), shoes = recipe.getShoes(), weapon = recipe.getWeapon();
 
         if (top > 0) {
-            Item eq_top = ii.getEquipById(top);
+            ItemSlot eq_top = ii.getEquipById(top);
             eq_top.setPosition((byte) -5);
             equipped.addItemFromDB(eq_top);
         }
 
         if (bottom > 0) {
-            Item eq_bottom = ii.getEquipById(bottom);
+            ItemSlot eq_bottom = ii.getEquipById(bottom);
             eq_bottom.setPosition((byte) -6);
             equipped.addItemFromDB(eq_bottom);
         }
 
         if (shoes > 0) {
-            Item eq_shoes = ii.getEquipById(shoes);
+            ItemSlot eq_shoes = ii.getEquipById(shoes);
             eq_shoes.setPosition((byte) -7);
             equipped.addItemFromDB(eq_shoes);
         }
 
         if (weapon > 0) {
-            Item eq_weapon = ii.getEquipById(weapon);
+            ItemSlot eq_weapon = ii.getEquipById(weapon);
             eq_weapon.setPosition((byte) -11);
             equipped.addItemFromDB(eq_weapon.copy());
         }

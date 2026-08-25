@@ -20,7 +20,7 @@
 package org.gms.net.server.channel.handlers;
 
 import org.gms.client.Client;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
 import org.gms.server.CashShop;
@@ -48,9 +48,9 @@ public class CashShopSurpriseHandler extends AbstractPacketHandler {
             return;
         }
 
-        Item usedCashShopSurprise = result.get().usedCashShopSurprise();
-        Item reward = result.get().reward();
-        c.sendPacket(PacketCreator.onCashGachaponOpenSuccess(c.getAccID(), usedCashShopSurprise.getCashId(),
+        ItemSlot usedCashShopSurprise = result.get().usedCashShopSurprise();
+        ItemSlot reward = result.get().reward();
+        c.sendPacket(PacketCreator.onCashGachaponOpenSuccess(c.getAccID(), usedCashShopSurprise.getCashInfo() != null ? usedCashShopSurprise.getCashInfo().getCashId() : 0,
                 usedCashShopSurprise.getQuantity(), reward, reward.getItemId(), reward.getQuantity(), true));
     }
 }

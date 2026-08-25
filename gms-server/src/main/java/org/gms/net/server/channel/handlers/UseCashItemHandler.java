@@ -35,7 +35,7 @@ import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Equip.ScrollResult;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ModifyInventory;
 import org.gms.client.inventory.Pet;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
@@ -106,7 +106,7 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
         int itemType = itemId / 10000;  //装备类型
 
         Inventory cashInv = player.getInventory(InventoryType.CASH);
-        Item toUse = cashInv.getItem(position);
+        ItemSlot toUse = cashInv.getItem(position);
         if (toUse == null || toUse.getItemId() != itemId) {
             toUse = cashInv.findById(itemId);
 
@@ -115,7 +115,7 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
                 return;
             }
 
-            position = toUse.getPosition();
+            position = (short) toUse.getPosition();
         }
 
         if (toUse.getQuantity() < 1) {
@@ -124,7 +124,7 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
         }
 
         String medal = "";
-        Item medalItem = player.getInventory(InventoryType.EQUIPPED).getItem((short) -49);
+        ItemSlot medalItem = player.getInventory(InventoryType.EQUIPPED).getItem((short) -49);
         if (medalItem != null) {
             medal = "<" + ii.getName(medalItem.getItemId()) + "> ";
         }
@@ -234,7 +234,7 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
             }
             remove(c, position, itemId);
         } else if (itemType == 506) {//操作道具的现金物品、取名、封印、孵化
-            Item eq = null;
+            ItemSlot eq = null;
             if (itemId == 5060000) { // Item tag.
                 int equipSlot = p.readShort();
                 if (equipSlot == 0) {
@@ -248,7 +248,7 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
                 if (eq == null) { //Check if the type is EQUIPMENT?
                     return;
                 }
-                short flag = eq.getFlag();
+                short flag = (short) eq.getFlag();
                 if (eq.getExpiration() > -1 && (eq.getFlag() & ItemConstants.LOCK) != ItemConstants.LOCK) {
                     return; //No perma items pls
                 }
@@ -275,7 +275,7 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
             } else if (itemId == 5060002) { // Incubator
                 byte inventory2 = (byte) p.readInt();
                 short slot2 = (short) p.readInt();
-                Item item2 = player.getInventory(InventoryType.getByType(inventory2)).getItem(slot2);
+                ItemSlot item2 = player.getInventory(InventoryType.getByType(inventory2)).getItem(slot2);
                 if (item2 == null) // hacking
                 {
                     return;
@@ -348,7 +348,7 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
                 case 6: //item megaphone
                     String msg = medal + player.getName() + " : " + p.readString();
                     whisper = p.readByte() == 1;
-                    Item item = null;
+                    ItemSlot item = null;
                     if (p.readByte() == 1) { //item
                         item = player.getInventory(InventoryType.getByType((byte) p.readInt())).getItem((short) p.readInt());
                         if (item == null) //hack
@@ -415,7 +415,7 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
             pet.setName(newName);
             pet.saveToDb();
 
-            Item item = player.getInventory(InventoryType.CASH).getItem(pet.getPosition());
+            ItemSlot item = player.getInventory(InventoryType.CASH).getItem((short) pet.getPosition());
             if (item != null) {
                 player.forceUpdateItem(item);
             }
@@ -585,7 +585,7 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
 
             short itemSlot = p.readShort(); // 读取装备所在的槽位
 
-            Item equip = player.getInventory(InventoryType.EQUIPPED).getItem(itemSlot);// 获取指定槽位的装备
+            ItemSlot equip = player.getInventory(InventoryType.EQUIPPED).getItem(itemSlot);// 获取指定槽位的装备
             ItemInformationProvider.ItemCashInfo itemHourglass = ii.getItemCashInfo(itemId);        // 获取魔法沙漏的增加时间和天数上限
 
             if (itemSlot >= 0 || equip == null || equip.getExpiration() <= 0) { //判断是否为身上的装备以及装备是否存在时限
@@ -620,7 +620,7 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
         } else if (itemType == 552) {
             InventoryType type = InventoryType.getByType((byte) p.readInt());
             short slot = (short) p.readInt();
-            Item item = player.getInventory(type).getItem(slot);
+            ItemSlot item = player.getInventory(type).getItem(slot);
             if (item == null || item.getQuantity() <= 0 || KarmaManipulator.hasKarmaFlag(item) || !ii.isKarmaAble(item.getItemId())) {
                 c.enableActions();
                 return;
@@ -636,37 +636,38 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
             p.readInt(); // 读取一个整数，但未使用
             int itemSlot = p.readInt(); // 读取装备所在的槽位
             p.readInt(); // 读取一个整数，但未使用
-            final Equip equip = (Equip) player.getInventory(InventoryType.EQUIP).getItem((short) itemSlot); // 获取指定槽位的装备
+            final ItemSlot equipSlotItem = player.getInventory(InventoryType.EQUIP).getItem((short) itemSlot); // 获取指定槽位的装备
+            final Equip equip = equipSlotItem.getEquipInfo();
             if (equip.getVicious() >= 2 || player.getInventory(InventoryType.CASH).findById(ItemId.VICIOUS_HAMMER) == null) {
                 c.enableActions(); // 发送启用操作的封包，修复金锤子失败后客户端假死。
                 return; // 如果装备的金锤子使用次数大于等于2或玩家没有金锤子，则返回
             }
             equip.setVicious(equip.getVicious() + 1); // 增加装备的金锤子已使用次数
-            equip.setUpgradeSlots(equip.getUpgradeSlots() + 1); // 增加装备的升级插槽数量
+            equip.setUpgradeSlots(equip.getEnhancementSlots() + 1); // 增加装备的升级插槽数量
             remove(c, position, itemId); // 移除指定位置的物品
             c.enableActions(); // 发送启用操作的封包
             c.sendPacket(PacketCreator.sendHammerData(equip.getVicious())); // 发送锤子数据封包
-            player.forceUpdateItem(equip); // 强制更新装备信息
+            player.forceUpdateItem(equipSlotItem); // 强制更新装备信息
         } else if (itemType == 561) { //VEGA'S SPELL
             if (p.readInt() != 1) {
                 return;
             }
 
             final byte eSlot = (byte) p.readInt();
-            final Item eitem = player.getInventory(InventoryType.EQUIP).getItem(eSlot);
+            final ItemSlot eitem = player.getInventory(InventoryType.EQUIP).getItem(eSlot);
 
             if (p.readInt() != 2) {
                 return;
             }
 
             final byte uSlot = (byte) p.readInt();
-            final Item uitem = player.getInventory(InventoryType.USE).getItem(uSlot);
+            final ItemSlot uitem = player.getInventory(InventoryType.USE).getItem(uSlot);
             if (eitem == null || uitem == null) {
                 return;
             }
 
-            Equip toScroll = (Equip) eitem;
-            if (toScroll.getUpgradeSlots() < 1) {
+            Equip toScroll = eitem.getEquipInfo();
+            if (toScroll.getEnhancementSlots() < 1) {
                 c.sendPacket(PacketCreator.getInventoryFull());
                 return;
             }
@@ -678,11 +679,12 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
 
             player.toggleBlockCashShop();
 
-            final int curlevel = toScroll.getLevel();
+            final int curlevel = toScroll.getEnhancementLevel();
             c.sendPacket(PacketCreator.sendVegaScroll(0x40));
 
-            final Equip scrolled = (Equip) ii.scrollEquipWithId(toScroll, uitem.getItemId(), false, itemId, player.isGM());
-            c.sendPacket(PacketCreator.sendVegaScroll(scrolled.getLevel() > curlevel ? 0x41 : 0x43));
+            final ItemSlot scrolledItem = ii.scrollEquipWithId(eitem, uitem.getItemId(), false, itemId, player.isGM());
+            final Equip scrolled = scrolledItem.getEquipInfo();
+            c.sendPacket(PacketCreator.sendVegaScroll(scrolled.getEnhancementLevel() > curlevel ? 0x41 : 0x43));
             //opcodes 0x42, 0x44: "this item cannot be used"; 0x39, 0x45: crashes
 
             InventoryManipulator.removeFromSlot(c, InventoryType.USE, uSlot, (short) 1, false);
@@ -697,11 +699,11 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
                 player.toggleBlockCashShop();
 
                 final List<ModifyInventory> mods = new ArrayList<>();
-                mods.add(new ModifyInventory(3, scrolled));
-                mods.add(new ModifyInventory(0, scrolled));
+                mods.add(new ModifyInventory(3, scrolledItem));
+                mods.add(new ModifyInventory(0, scrolledItem));
                 client.sendPacket(PacketCreator.modifyInventory(true, mods));
 
-                ScrollResult scrollResult = scrolled.getLevel() > curlevel ? ScrollResult.SUCCESS : ScrollResult.FAIL;
+                ScrollResult scrollResult = scrolled.getEnhancementLevel() > curlevel ? ScrollResult.SUCCESS : ScrollResult.FAIL;
                 player.getMap().broadcastMessage(PacketCreator.getScrollEffect(player.getId(), scrollResult, false, false));
                 if (eSlot < 0 && (scrollResult == ScrollResult.SUCCESS)) {
                     player.equipChanged();
@@ -720,11 +722,11 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
         Inventory cashInv = c.getPlayer().getInventory(InventoryType.CASH); // 获取玩家的现金库存
         cashInv.lockInventory(); // 锁定现金库存，防止并发修改
         try {
-            Item it = cashInv.getItem(position); // 获取指定位置的物品
+            ItemSlot it = cashInv.getItem(position); // 获取指定位置的物品
             if (it == null || it.getItemId() != itemid) { // 如果指定位置的物品为空或ID不匹配
                 it = cashInv.findById(itemid); // 通过物品ID查找物品
                 if (it != null) { // 如果找到物品
-                    position = it.getPosition(); // 更新位置为找到物品的位置
+                    position = (short) it.getPosition(); // 更新位置为找到物品的位置
                 }
             }
 

@@ -26,7 +26,7 @@ import org.gms.client.Client;
 import org.gms.client.Mount;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.constants.game.ExpTable;
 import org.gms.net.AbstractPacketHandler;
@@ -54,7 +54,7 @@ public final class UseMountFoodHandler extends AbstractPacketHandler {
 
                 useInv.lockInventory();
                 try {
-                    Item item = useInv.getItem(pos);
+                    ItemSlot item = useInv.getItem(pos);
                     if (item != null && item.getItemId() == itemid && mount != null) {
                         int curTiredness = mount.getTiredness();
                         int healedTiredness = Math.min(curTiredness, 30);

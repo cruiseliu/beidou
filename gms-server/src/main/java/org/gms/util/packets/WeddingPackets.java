@@ -7,7 +7,7 @@
 package org.gms.util.packets;
 
 import org.gms.client.character.Character;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.id.MapId;
 import org.gms.net.opcodes.SendOpcode;
@@ -380,7 +380,7 @@ public class WeddingPackets extends PacketCreator {
      * @param items
      * @return mplew
      */
-    public static Packet onWeddingGiftResult(byte mode, List<String> itemnames, List<Item> items) {
+    public static Packet onWeddingGiftResult(byte mode, List<String> itemnames, List<ItemSlot> items) {
         OutPacket p = OutPacket.create(SendOpcode.WEDDING_GIFT_RESULT);
         p.writeByte(mode);
         switch (mode) {
@@ -407,7 +407,7 @@ public class WeddingPackets extends PacketCreator {
                 }
                 p.writeLong(32);
                 p.writeByte(items.size());
-                for (Item item : items) {
+                for (ItemSlot item : items) {
                     addItemInfo(p, item, true);
                 }
                 break;

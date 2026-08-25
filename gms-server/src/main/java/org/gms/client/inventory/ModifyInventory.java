@@ -6,15 +6,15 @@ package org.gms.client.inventory;
 public class ModifyInventory {
 
     private final int mode;
-    private Item item;
+    private ItemSlot item;
     private short oldPos;
 
-    public ModifyInventory(final int mode, final Item item) {
+    public ModifyInventory(final int mode, final ItemSlot item) {
         this.mode = mode;
         this.item = item.copy();
     }
 
-    public ModifyInventory(final int mode, final Item item, final short oldPos) {
+    public ModifyInventory(final int mode, final ItemSlot item, final short oldPos) {
         this.mode = mode;
         this.item = item.copy();
         this.oldPos = oldPos;
@@ -29,7 +29,7 @@ public class ModifyInventory {
     }
 
     public final short getPosition() {
-        return item.getPosition();
+        return (short) item.getPosition();
     }
 
     public final short getOldPosition() {
@@ -37,10 +37,10 @@ public class ModifyInventory {
     }
 
     public final short getQuantity() {
-        return item.getQuantity();
+        return (short) item.getQuantity();
     }
 
-    public final Item getItem() {
+    public final ItemSlot getItem() {
         return item;
     }
 

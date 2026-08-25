@@ -24,7 +24,7 @@ package org.gms.server.quest.actions;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.util.I18nUtil;
@@ -164,9 +164,9 @@ public class ItemAction extends AbstractQuestAction {
 
     @Override
     public boolean check(Character chr, Integer extSelection) {
-        List<Pair<Item, InventoryType>> gainList = new LinkedList<>();
-        List<Pair<Item, InventoryType>> selectList = new LinkedList<>();
-        List<Pair<Item, InventoryType>> randomList = new LinkedList<>();
+        List<Pair<ItemSlot, InventoryType>> gainList = new LinkedList<>();
+        List<Pair<ItemSlot, InventoryType>> selectList = new LinkedList<>();
+        List<Pair<ItemSlot, InventoryType>> randomList = new LinkedList<>();
 
         List<Integer> allSlotUsed = new ArrayList(5);
         for (byte i = 0; i < 5; i++) {
@@ -180,7 +180,7 @@ public class ItemAction extends AbstractQuestAction {
 
             InventoryType type = ItemConstants.getInventoryType(item.getId());
             if (item.getProp() != null) {
-                Item toItem = new Item(item.getId(), (short) 0, (short) item.getCount());
+                ItemSlot toItem = new ItemSlot(item.getId(), (short) 0, (short) item.getCount());
 
                 if (item.getProp() < 0) {
                     selectList.add(new Pair<>(toItem, type));
@@ -190,7 +190,7 @@ public class ItemAction extends AbstractQuestAction {
 
             } else {
                 // Make sure they can hold the item.
-                Item toItem = new Item(item.getId(), (short) 0, (short) item.getCount());
+                ItemSlot toItem = new ItemSlot(item.getId(), (short) 0, (short) item.getCount());
                 gainList.add(new Pair<>(toItem, type));
 
                 if (item.getCount() < 0) {
@@ -222,7 +222,7 @@ public class ItemAction extends AbstractQuestAction {
                 rndUsed.add(allSlotUsed.get(i));
             }
 
-            for (Pair<Item, InventoryType> it : randomList) {
+            for (Pair<ItemSlot, InventoryType> it : randomList) {
                 int idx = it.getRight().getType() - 1;
 
                 result = InventoryManipulator.checkSpaceProgressively(c, it.getLeft().getItemId(), it.getLeft().getQuantity(), "", rndUsed.get(idx), false);
@@ -236,13 +236,13 @@ public class ItemAction extends AbstractQuestAction {
         }
 
         if (!selectList.isEmpty()) {
-            Pair<Item, InventoryType> selected = selectList.get(extSelection);
+            Pair<ItemSlot, InventoryType> selected = selectList.get(extSelection);
             gainList.add(selected);
         }
 
         if (!canHold(chr, gainList)) {
             List<Integer> gainItemids = new LinkedList<>();
-            for (Pair<Item, InventoryType> it : gainList) {
+            for (Pair<ItemSlot, InventoryType> it : gainList) {
                 gainItemids.add(it.getLeft().getItemId());
             }
 
@@ -263,14 +263,14 @@ public class ItemAction extends AbstractQuestAction {
         chr.dropMessage(1, I18nUtil.getMessage("ItemAction.Message1"));
     }
 
-    private boolean canHold(Character chr, List<Pair<Item, InventoryType>> gainList) {
+    private boolean canHold(Character chr, List<Pair<ItemSlot, InventoryType>> gainList) {
         List<Integer> toAddItemids = new LinkedList<>();
         List<Integer> toAddQuantity = new LinkedList<>();
         List<Integer> toRemoveItemids = new LinkedList<>();
         List<Integer> toRemoveQuantity = new LinkedList<>();
 
-        for (Pair<Item, InventoryType> item : gainList) {
-            Item it = item.getLeft();
+        for (Pair<ItemSlot, InventoryType> item : gainList) {
+            ItemSlot it = item.getLeft();
 
             if (it.getQuantity() > 0) {
                 toAddItemids.add(it.getItemId());

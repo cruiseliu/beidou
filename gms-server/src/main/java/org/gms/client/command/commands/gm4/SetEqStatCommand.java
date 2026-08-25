@@ -23,6 +23,8 @@
 */
 package org.gms.client.command.commands.gm4;
 
+import org.gms.client.inventory.ItemSlot;
+import org.gms.client.character.Stat;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
@@ -51,31 +53,32 @@ public class SetEqStatCommand extends Command {
 
         for (byte i = 1; i <= equip.getSlotLimit(); i++) {
             try {
-                Equip eq = (Equip) equip.getItem(i);
+                ItemSlot eqItem = equip.getItem(i);
+                Equip eq = eqItem.getEquipInfo();
                 if (eq == null) {
                     continue;
                 }
 
-                eq.setWdef(newStat);
-                eq.setAcc(newStat);
-                eq.setAvoid(newStat);
-                eq.setJump(newSpdJmp);
-                eq.setMatk(newStat);
-                eq.setMdef(newStat);
-                eq.setHp(newStat);
-                eq.setMp(newStat);
-                eq.setSpeed(newSpdJmp);
-                eq.setWatk(newStat);
-                eq.setDex(newStat);
-                eq.setInt(newStat);
-                eq.setStr(newStat);
-                eq.setLuk(newStat);
+                eq.setStat(Stat.P_DEF, newStat);
+                eq.setStat(Stat.ACCURACY, newStat);
+                eq.setStat(Stat.AVOIDABILITY, newStat);
+                eq.setStat(Stat.JUMP, newSpdJmp);
+                eq.setStat(Stat.M_ATK, newStat);
+                eq.setStat(Stat.M_DEF, newStat);
+                eq.setStat(Stat.MAX_HP, newStat);
+                eq.setStat(Stat.MAX_MP, newStat);
+                eq.setStat(Stat.SPEED, newSpdJmp);
+                eq.setStat(Stat.P_ATK, newStat);
+                eq.setStat(Stat.DEX, newStat);
+                eq.setStat(Stat.INT, newStat);
+                eq.setStat(Stat.STR, newStat);
+                eq.setStat(Stat.LUK, newStat);
 
-                short flag = eq.getFlag();
+                short flag = (short) eq.getFlag();
                 flag |= ItemConstants.UNTRADEABLE;
                 eq.setFlag(flag);
 
-                player.forceUpdateItem(eq);
+                player.forceUpdateItem(eqItem);
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -26,7 +26,7 @@ import org.gms.client.Client;
 import org.gms.client.Ring;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.client.processor.npc.DueyProcessor;
 import org.gms.constants.id.ItemId;
@@ -227,13 +227,13 @@ public final class RingActionHandler extends AbstractPacketHandler {
     private static void resetRingId(Character player) {
         int ringitemid = player.getMarriageRing().getItemId();
 
-        Item it = player.getInventory(InventoryType.EQUIP).findById(ringitemid);
+        ItemSlot it = player.getInventory(InventoryType.EQUIP).findById(ringitemid);
         if (it == null) {
             it = player.getInventory(InventoryType.EQUIPPED).findById(ringitemid);
         }
 
         if (it != null) {
-            Equip eqp = (Equip) it;
+            Equip eqp = it.getEquipInfo();
             eqp.setRingId(-1);
         }
     }
@@ -274,7 +274,7 @@ public final class RingActionHandler extends AbstractPacketHandler {
 
     public static void breakMarriageRing(Character chr, final int wItemId) {
         final InventoryType type = InventoryType.getByType((byte) (wItemId / 1000000));
-        final Item wItem = chr.getInventory(type).findById(wItemId);
+        final ItemSlot wItem = chr.getInventory(type).findById(wItemId);
         final boolean weddingToken = (wItem != null && type == InventoryType.ETC && wItemId / 10000 == 403);
         final boolean weddingRing = (wItem != null && wItemId / 10 == 111280);
 
@@ -297,18 +297,18 @@ public final class RingActionHandler extends AbstractPacketHandler {
         Pair<Integer, Integer> rings = Ring.createRing(marriageRingId, player, partner);
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
 
-        Item ringObj = ii.getEquipById(marriageRingId);
-        Equip ringEqp = (Equip) ringObj;
+        ItemSlot ringObj = ii.getEquipById(marriageRingId);
+        Equip ringEqp = ringObj.getEquipInfo();
         ringEqp.setRingId(rings.getLeft());
         player.setMarriageRing(Ring.loadFromDb(rings.getLeft()));
-        InventoryManipulator.addFromDrop(player.getClient(), ringEqp, false, -1);
+        InventoryManipulator.addFromDrop(player.getClient(), ringObj, false, -1);
         player.broadcastMarriageMessage();
 
         ringObj = ii.getEquipById(marriageRingId);
-        ringEqp = (Equip) ringObj;
+        ringEqp = ringObj.getEquipInfo();
         ringEqp.setRingId(rings.getRight());
         partner.setMarriageRing(Ring.loadFromDb(rings.getRight()));
-        InventoryManipulator.addFromDrop(partner.getClient(), ringEqp, false, -1);
+        InventoryManipulator.addFromDrop(partner.getClient(), ringObj, false, -1);
         partner.broadcastMarriageMessage();
         org.gms.server.quest.medal.OutstandingCitizenMedal.refreshEligibility(player);
         org.gms.server.quest.medal.OutstandingCitizenMedal.refreshEligibility(partner);
@@ -441,7 +441,7 @@ public final class RingActionHandler extends AbstractPacketHandler {
                                         noteService.sendNormal(dueyMessage, groom, name);
                                     }
 
-                                    Item weddingTicket = new Item(newItemId, (short) 0, (short) 1);
+                                    ItemSlot weddingTicket = new ItemSlot(newItemId, (short) 0, (short) 1);
                                     weddingTicket.setExpiration(expiration);
 
                                     DueyProcessor.dueyCreatePackage(weddingTicket, 0, groom, guest);
@@ -469,7 +469,7 @@ public final class RingActionHandler extends AbstractPacketHandler {
                 int invitationid = p.readInt();
 
                 if (invitationid == ItemId.RECEIVED_INVITATION_CHAPEL || invitationid == ItemId.RECEIVED_INVITATION_CATHEDRAL) {
-                    Item item = c.getPlayer().getInventory(InventoryType.ETC).getItem(slot);
+                    ItemSlot item = c.getPlayer().getInventory(InventoryType.ETC).getItem(slot);
                     if (item == null || item.getItemId() != invitationid) {
                         c.sendPacket(PacketCreator.enableActions());
                         return;

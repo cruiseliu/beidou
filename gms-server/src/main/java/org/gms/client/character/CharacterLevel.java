@@ -102,7 +102,7 @@ class CharacterLevel {
             party = Integer.MAX_VALUE;  // integer overflow, heh.
         }
 
-        int equip = (int) Math.min((long) (gain / 10) * owner.pendantExp, Integer.MAX_VALUE);
+        int equip = (int) Math.min((long) (gain / 10) * owner.inventory.getEquips().pendantExp(), Integer.MAX_VALUE);
 
         gainExpInternal(gain, equip, party, show, inChat, white);
     }

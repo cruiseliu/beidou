@@ -22,7 +22,7 @@ package org.gms.server.maps;
 
 import org.gms.client.character.Character;
 import org.gms.client.Client;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.util.PacketCreator;
 
 import java.awt.*;
@@ -33,7 +33,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class MapItem extends AbstractMapObject {
     protected Client ownerClient;
-    protected Item item;
+    protected ItemSlot item;
     protected MapObject dropper;
     protected int character_ownerid, party_ownerid, meso, questid = -1;
     protected byte type;
@@ -41,7 +41,7 @@ public class MapItem extends AbstractMapObject {
     protected long dropTime;
     private final Lock itemLock = new ReentrantLock();
 
-    public MapItem(Item item, Point position, MapObject dropper, Character owner, Client ownerClient, byte type, boolean playerDrop) {
+    public MapItem(ItemSlot item, Point position, MapObject dropper, Character owner, Client ownerClient, byte type, boolean playerDrop) {
         setPosition(position);
         this.item = item;
         this.dropper = dropper;
@@ -54,7 +54,7 @@ public class MapItem extends AbstractMapObject {
         this.playerDrop = playerDrop;
     }
 
-    public MapItem(Item item, Point position, MapObject dropper, Character owner, Client ownerClient, byte type, boolean playerDrop, int questid) {
+    public MapItem(ItemSlot item, Point position, MapObject dropper, Character owner, Client ownerClient, byte type, boolean playerDrop, int questid) {
         setPosition(position);
         this.item = item;
         this.dropper = dropper;
@@ -81,7 +81,7 @@ public class MapItem extends AbstractMapObject {
         this.playerDrop = playerDrop;
     }
 
-    public final Item getItem() {
+    public final ItemSlot getItem() {
         return item;
     }
 

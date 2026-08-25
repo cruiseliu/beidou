@@ -25,7 +25,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.client.inventory.manipulator.KarmaManipulator;
 import org.gms.net.packet.Packet;
@@ -223,7 +223,7 @@ public class PlayerShop extends AbstractMapObject {
         items.remove(slot);
     }
 
-    private static boolean canBuy(Client c, Item newItem) {
+    private static boolean canBuy(Client c, ItemSlot newItem) {
         return InventoryManipulator.checkSpace(c, newItem.getItemId(), newItem.getQuantity(), newItem.getOwner()) && InventoryManipulator.addFromDrop(c, newItem, false);
     }
 
@@ -232,7 +232,7 @@ public class PlayerShop extends AbstractMapObject {
             PlayerShopItem shopItem = items.get(slot);
             if (shopItem.isExist()) {
                 if (shopItem.getBundles() > 0) {
-                    Item iitem = shopItem.getItem().copy();
+                    ItemSlot iitem = shopItem.getItem().copy();
                     iitem.setQuantity((short) (shopItem.getItem().getQuantity() * shopItem.getBundles()));
 
                     if (!Inventory.checkSpot(chr, iitem)) {
@@ -271,7 +271,7 @@ public class PlayerShop extends AbstractMapObject {
                     return false;
                 }
 
-                Item newItem = pItem.getItem().copy();
+                ItemSlot newItem = pItem.getItem().copy();
 
                 newItem.setQuantity((short) ((pItem.getItem().getQuantity() * quantity)));
                 if (newItem.getInventoryType().equals(InventoryType.EQUIP) && newItem.getQuantity() > 1) {

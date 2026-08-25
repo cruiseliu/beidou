@@ -25,7 +25,7 @@ package org.gms.net.server.channel.handlers;
 
 import org.gms.client.character.Character;
 import org.gms.client.Client;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
@@ -195,7 +195,7 @@ public final class CouponCodeHandler extends AbstractPacketHandler {
                 if (type < 0) {
                     c.sendPacket(PacketCreator.showCashShopMessage((byte) parseCouponResult(type)));
                 } else {
-                    List<Item> cashItems = new LinkedList<>();
+                    List<ItemSlot> cashItems = new LinkedList<>();
                     List<Pair<Integer, Integer>> items = new LinkedList<>();
                     int nxCredit = 0;
                     int maplePoints = 0;
@@ -255,7 +255,7 @@ public final class CouponCodeHandler extends AbstractPacketHandler {
                                 }
 
                                 if (ItemInformationProvider.getInstance().isCash(item)) {
-                                    Item it = CashShop.generateCouponItem(item, qty);
+                                    ItemSlot it = CashShop.generateCouponItem(item, qty);
 
                                     cs.addToInventory(it);
                                     cashItems.add(it);
@@ -267,10 +267,10 @@ public final class CouponCodeHandler extends AbstractPacketHandler {
                         }
                     }
                     if (cashItems.size() > 255) {
-                        List<Item> oldList = cashItems;
-                        cashItems = Arrays.asList(new Item[255]);
+                        List<ItemSlot> oldList = cashItems;
+                        cashItems = Arrays.asList(new ItemSlot[255]);
                         int index = 0;
-                        for (Item item : oldList) {
+                        for (ItemSlot item : oldList) {
                             cashItems.set(index, item);
                             index++;
                         }

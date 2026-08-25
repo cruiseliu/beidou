@@ -19,25 +19,25 @@
 */
 package org.gms.client.inventory.manipulator;
 
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.constants.inventory.ItemConstants;
 
 /**
  * @author RonanLana
  */
 public class KarmaManipulator {
-    private static short getKarmaFlag(Item item) {
+    private static short getKarmaFlag(ItemSlot item) {
         return item.getItemType() == 1 ? ItemConstants.KARMA_EQP : ItemConstants.KARMA_USE;
     }
 
-    public static boolean hasKarmaFlag(Item item) {
+    public static boolean hasKarmaFlag(ItemSlot item) {
         short karmaFlag = getKarmaFlag(item);
         return (item.getFlag() & karmaFlag) == karmaFlag;
     }
 
-    public static void toggleKarmaFlagToUntradeable(Item item) {
+    public static void toggleKarmaFlagToUntradeable(ItemSlot item) {
         short karmaFlag = getKarmaFlag(item);
-        short flag = item.getFlag();
+        short flag = (short) item.getFlag();
 
         if ((flag & karmaFlag) == karmaFlag) {
             flag ^= karmaFlag;
@@ -47,9 +47,9 @@ public class KarmaManipulator {
         }
     }
 
-    public static void setKarmaFlag(Item item) {
+    public static void setKarmaFlag(ItemSlot item) {
         short karmaFlag = getKarmaFlag(item);
-        short flag = item.getFlag();
+        short flag = (short) item.getFlag();
 
         flag |= karmaFlag;
         flag &= (0xFFFFFFFF ^ ItemConstants.UNTRADEABLE);

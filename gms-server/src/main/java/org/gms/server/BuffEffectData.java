@@ -30,7 +30,7 @@ import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.client.status.MonsterStatus;
 import org.gms.client.status.MonsterStatusEffect;
@@ -1005,9 +1005,9 @@ public class BuffEffectData {
             Inventory use = applyto.getInventory(InventoryType.USE);
             use.lockInventory();
             try {
-                Item projectile = null;
+                ItemSlot projectile = null;
                 for (int i = 1; i <= use.getSlotLimit(); i++) { // impose order...
-                    Item item = use.getItem((short) i);
+                    ItemSlot item = use.getItem((short) i);
                     if (item != null) {
                         if (ItemConstants.isThrowingStar(item.getItemId()) && item.getQuantity() >= projectileConsume) {
                             projectile = item;
@@ -1018,7 +1018,7 @@ public class BuffEffectData {
                 if (projectile == null) {
                     return false;
                 } else {
-                    InventoryManipulator.removeFromSlot(applyto.getClient(), InventoryType.USE, projectile.getPosition(), projectileConsume, false, true);
+                    InventoryManipulator.removeFromSlot(applyto.getClient(), InventoryType.USE, (short) projectile.getPosition(), projectileConsume, false, true);
                 }
             } finally {
                 use.unlockInventory();
@@ -1076,7 +1076,7 @@ public class BuffEffectData {
                 door.getTarget().spawnDoor(door.getAreaDoor());
                 door.getTown().spawnDoor(door.getTownDoor());
             } else {
-                InventoryManipulator.addFromDrop(applyto.getClient(), new Item(ItemId.MAGIC_ROCK, (short) 0, (short) 1), false);
+                InventoryManipulator.addFromDrop(applyto.getClient(), new ItemSlot(ItemId.MAGIC_ROCK, (short) 0, (short) 1), false);
 
                 if (door.getOwnerId() == -3) {
                     applyto.dropMessage(5, "Mystic Door cannot be cast far from a spawn point. Nearest one is at " + door.getDoorStatus().getRight() + "pts " + door.getDoorStatus().getLeft());
@@ -1280,7 +1280,7 @@ public class BuffEffectData {
         Mount givemount = null;
         if (isMonsterRiding()) {
             int ridingMountId = 0;
-            Item mount = applyfrom.getInventory(InventoryType.EQUIPPED).getItem((short) -18);
+            ItemSlot mount = applyfrom.getInventory(InventoryType.EQUIPPED).getItem((short) -18);
             if (mount != null) {
                 ridingMountId = mount.getItemId();
             }

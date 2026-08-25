@@ -1,7 +1,7 @@
 package org.gms.server.minigame;
 
 import org.gms.client.Client;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.constants.id.ItemId;
 import org.gms.util.PacketCreator;
@@ -72,7 +72,7 @@ public class RockPaperScissor {
 
     public final void reward(final Client c) {
         if (win) {
-            InventoryManipulator.addFromDrop(c, new Item(ItemId.RPS_CERTIFICATE_BASE + round, (short) 0, (short) 1), true);
+            InventoryManipulator.addFromDrop(c, new ItemSlot(ItemId.RPS_CERTIFICATE_BASE + round, (short) 0, (short) 1), true);
         }
         c.getPlayer().setRPS(null);
     }

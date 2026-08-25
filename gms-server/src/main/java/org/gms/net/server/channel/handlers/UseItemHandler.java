@@ -25,7 +25,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.Disease;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.ItemId;
@@ -53,7 +53,7 @@ public final class UseItemHandler extends AbstractPacketHandler {
         p.readInt();
         short slot = p.readShort();
         int itemId = p.readInt();
-        Item toUse = chr.getInventory(InventoryType.USE).getItem(slot);
+        ItemSlot toUse = chr.getInventory(InventoryType.USE).getItem(slot);
         if (toUse != null && toUse.getQuantity() > 0 && toUse.getItemId() == itemId) {
             if (itemId == ItemId.ALL_CURE_POTION) {
                 chr.dispelDebuffs();

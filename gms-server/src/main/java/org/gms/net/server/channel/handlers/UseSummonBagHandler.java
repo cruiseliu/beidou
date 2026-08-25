@@ -23,7 +23,7 @@ package org.gms.net.server.channel.handlers;
 
 import org.gms.client.Client;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
@@ -47,7 +47,7 @@ public final class UseSummonBagHandler extends AbstractPacketHandler {
         p.readInt();
         short slot = p.readShort();
         int itemId = p.readInt();
-        Item toUse = c.getPlayer().getInventory(InventoryType.USE).getItem(slot);
+        ItemSlot toUse = c.getPlayer().getInventory(InventoryType.USE).getItem(slot);
         if (toUse != null && toUse.getQuantity() > 0 && toUse.getItemId() == itemId) {
             InventoryManipulator.removeFromSlot(c, InventoryType.USE, slot, (short) 1, false);
             int[][] toSpawn = ItemInformationProvider.getInstance().getSummonMobs(itemId);

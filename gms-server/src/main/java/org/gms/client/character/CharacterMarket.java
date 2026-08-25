@@ -1,6 +1,6 @@
 package org.gms.client.character;
 
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.client.processor.npc.FredrickProcessor;
 import org.gms.dao.entity.CharactersDO;
@@ -107,7 +107,7 @@ class CharacterMarket {
 
             for (PlayerShopItem mpsi : mps.getItems()) {
                 if (mpsi.getBundles() >= 2) {
-                    Item iItem = mpsi.getItem().copy();
+                    ItemSlot iItem = mpsi.getItem().copy();
                     iItem.setQuantity((short) (mpsi.getBundles() * iItem.getQuantity()));
                     InventoryManipulator.addFromDrop(owner.getClient(), iItem, false);
                 } else if (mpsi.isExist()) {

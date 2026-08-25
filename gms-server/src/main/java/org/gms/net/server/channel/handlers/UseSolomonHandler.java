@@ -25,7 +25,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
@@ -52,7 +52,7 @@ public final class UseSolomonHandler extends AbstractPacketHandler {
                 Inventory inv = chr.getInventory(InventoryType.USE);
                 inv.lockInventory();
                 try {
-                    Item slotItem = inv.getItem(slot);
+                    ItemSlot slotItem = inv.getItem(slot);
                     if (slotItem == null) {
                         return;
                     }

@@ -24,7 +24,7 @@ package org.gms.server;
 import org.gms.client.character.Character;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.client.inventory.manipulator.KarmaManipulator;
 import org.gms.config.GameConfig;
@@ -74,8 +74,8 @@ public class Trade {
     }
 
     private Trade partner = null;
-    private final List<Item> items = new ArrayList<>();
-    private List<Item> exchangeItems;
+    private final List<ItemSlot> items = new ArrayList<>();
+    private List<ItemSlot> exchangeItems;
     private int meso = 0;
     private int exchangeMeso;
     private final AtomicBoolean locked = new AtomicBoolean(false);
@@ -124,7 +124,7 @@ public class Trade {
         items.clear();
         meso = 0;
 
-        for (Item item : exchangeItems) {
+        for (ItemSlot item : exchangeItems) {
             KarmaManipulator.toggleKarmaFlagToUntradeable(item);
             InventoryManipulator.addFromDrop(chr.getClient(), item, show);
         }
@@ -159,7 +159,7 @@ public class Trade {
         // 但如果 completeTrade 检查失败，会先 unlock 再 cancelTrade，正常客户端不会走 else 分支
         boolean bothLocked = isLocked() && partner != null && partner.isLocked();
         if (!bothLocked) {
-            for (Item item : items) {
+            for (ItemSlot item : items) {
                 InventoryManipulator.addFromDrop(chr.getClient(), item, show);
             }
             if (meso > 0) {
@@ -214,12 +214,12 @@ public class Trade {
         }
     }
 
-    public boolean addItem(Item item) {
+    public boolean addItem(ItemSlot item) {
         synchronized (items) {
             if (items.size() > 9) {
                 return false;
             }
-            for (Item it : items) {
+            for (ItemSlot it : items) {
                 if (it.getPosition() == item.getPosition()) {
                     return false;
                 }
@@ -253,7 +253,7 @@ public class Trade {
         return chr;
     }
 
-    public List<Item> getItems() {
+    public List<ItemSlot> getItems() {
         return new LinkedList<>(items);
     }
 
@@ -266,8 +266,8 @@ public class Trade {
     }
 
     private boolean fitsInInventory() {
-        List<Pair<Item, InventoryType>> tradeItems = new LinkedList<>();
-        for (Item item : exchangeItems) {
+        List<Pair<ItemSlot, InventoryType>> tradeItems = new LinkedList<>();
+        for (ItemSlot item : exchangeItems) {
             tradeItems.add(new Pair<>(item, item.getInventoryType()));
         }
 
@@ -276,7 +276,7 @@ public class Trade {
 
     private boolean fitsUniquesInInventory() {
         List<Integer> exchangeItemids = new LinkedList<>();
-        for (Item item : exchangeItems) {
+        for (ItemSlot item : exchangeItems) {
             exchangeItemids.add(item.getItemId());
         }
 
@@ -606,10 +606,10 @@ public class Trade {
         }
     }
 
-    private static String getFormattedItemLogMessage(List<Item> items) {
+    private static String getFormattedItemLogMessage(List<ItemSlot> items) {
         StringJoiner sj = new StringJoiner(", ", "[", "]");
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
-        for (Item item : items) {
+        for (ItemSlot item : items) {
             String itemName = ii.getName(item.getItemId());
 //            sj.add(String.format("%dx %s (%d)", item.getQuantity(), itemName, item.getItemId()));
             sj.add(I18nUtil.getLogMessage("Trade.info.inviteTrade.logTrade.msg3" , item.getQuantity(), itemName, item.getItemId()) + "\n");

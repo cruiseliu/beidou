@@ -2,7 +2,7 @@ package org.gms.client.character;
 
 import org.gms.client.EffectType;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.MapId;
 import org.gms.constants.inventory.ItemConstants;
@@ -471,7 +471,7 @@ class CharacterMap {
      */
     void changeMapBanish(int mapid, String portal, String msg) {
         if (GameConfig.getServerBoolean("use_spikes_avoid_banish")) {
-            for (Item it : owner.getInventory(InventoryType.EQUIPPED).list()) {
+            for (ItemSlot it : owner.getInventory(InventoryType.EQUIPPED).list()) {
                 if ((it.getFlag() & ItemConstants.SPIKES) == ItemConstants.SPIKES) {
                     return;
                 }

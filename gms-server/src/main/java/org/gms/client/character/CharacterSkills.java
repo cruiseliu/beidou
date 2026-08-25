@@ -135,6 +135,7 @@ class CharacterSkills {
         cooldownTimer.schedule(skillId, startTime + length);
     }
 
+    // todo: [refactor] used by old login packet
     List<PlayerCoolDownValueHolder> getAllCooldowns() {
         List<PlayerCoolDownValueHolder> ret = new ArrayList<>();
 

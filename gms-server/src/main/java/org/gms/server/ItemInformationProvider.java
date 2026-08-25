@@ -21,6 +21,7 @@
  */
 package org.gms.server;
 
+import org.gms.client.character.Stat;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.JobEnum;
@@ -30,7 +31,7 @@ import org.gms.client.autoban.AutobanFactory;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.weaponType.WeaponTypeRegistry;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.ItemId;
@@ -622,8 +623,8 @@ public class ItemInformationProvider {
         return Math.random() >= testYourLuck(propPercent / 100.0, GameConfig.getServerInt("scroll_chance_rolls"));
     }
 
-    private static short getMaximumShortMaxIfOverflow(int value1, int value2) {
-        return (short) Math.min(Short.MAX_VALUE, Math.max(value1, value2));
+    private static int getMaximumShortMaxIfOverflow(int value1, int value2) {
+        return (int) Math.min(Short.MAX_VALUE, Math.max(value1, value2));
     }
 
     private static short getShortMaxIfOverflow(int value) {
@@ -639,104 +640,104 @@ public class ItemInformationProvider {
         //   stat: dex, luk, str, int, avoid, acc
 
         if (!option) {
-            if (nEquip.getStr() > 0) {
+            if (nEquip.getStat(Stat.STR) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setStr(getMaximumShortMaxIfOverflow(nEquip.getStr(), (nEquip.getStr() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.STR, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.STR), (nEquip.getStat(Stat.STR) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setStr(getMaximumShortMaxIfOverflow(0, (nEquip.getStr() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.STR, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.STR) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getDex() > 0) {
+            if (nEquip.getStat(Stat.DEX) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setDex(getMaximumShortMaxIfOverflow(nEquip.getDex(), (nEquip.getDex() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.DEX, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.DEX), (nEquip.getStat(Stat.DEX) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setDex(getMaximumShortMaxIfOverflow(0, (nEquip.getDex() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.DEX, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.DEX) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getInt() > 0) {
+            if (nEquip.getStat(Stat.INT) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setInt(getMaximumShortMaxIfOverflow(nEquip.getInt(), (nEquip.getInt() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.INT, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.INT), (nEquip.getStat(Stat.INT) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setInt(getMaximumShortMaxIfOverflow(0, (nEquip.getInt() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.INT, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.INT) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getLuk() > 0) {
+            if (nEquip.getStat(Stat.LUK) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setLuk(getMaximumShortMaxIfOverflow(nEquip.getLuk(), (nEquip.getLuk() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.LUK, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.LUK), (nEquip.getStat(Stat.LUK) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setLuk(getMaximumShortMaxIfOverflow(0, (nEquip.getLuk() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.LUK, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.LUK) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getAcc() > 0) {
+            if (nEquip.getStat(Stat.ACCURACY) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setAcc(getMaximumShortMaxIfOverflow(nEquip.getAcc(), (nEquip.getAcc() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.ACCURACY, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.ACCURACY), (nEquip.getStat(Stat.ACCURACY) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setAcc(getMaximumShortMaxIfOverflow(0, (nEquip.getAcc() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.ACCURACY, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.ACCURACY) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getAvoid() > 0) {
+            if (nEquip.getStat(Stat.AVOIDABILITY) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setAvoid(getMaximumShortMaxIfOverflow(nEquip.getAvoid(), (nEquip.getAvoid() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.AVOIDABILITY, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.AVOIDABILITY), (nEquip.getStat(Stat.AVOIDABILITY) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setAvoid(getMaximumShortMaxIfOverflow(0, (nEquip.getAvoid() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.AVOIDABILITY, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.AVOIDABILITY) + chscrollRandomizedStat(range))));
                 }
             }
         } else {
-            if (nEquip.getWatk() > 0) {
+            if (nEquip.getStat(Stat.P_ATK) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setWatk(getMaximumShortMaxIfOverflow(nEquip.getWatk(), (nEquip.getWatk() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.P_ATK, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.P_ATK), (nEquip.getStat(Stat.P_ATK) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setWatk(getMaximumShortMaxIfOverflow(0, (nEquip.getWatk() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.P_ATK, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.P_ATK) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getWdef() > 0) {
+            if (nEquip.getStat(Stat.P_DEF) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setWdef(getMaximumShortMaxIfOverflow(nEquip.getWdef(), (nEquip.getWdef() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.P_DEF, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.P_DEF), (nEquip.getStat(Stat.P_DEF) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setWdef(getMaximumShortMaxIfOverflow(0, (nEquip.getWdef() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.P_DEF, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.P_DEF) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getMatk() > 0) {
+            if (nEquip.getStat(Stat.M_ATK) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setMatk(getMaximumShortMaxIfOverflow(nEquip.getMatk(), (nEquip.getMatk() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.M_ATK, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.M_ATK), (nEquip.getStat(Stat.M_ATK) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setMatk(getMaximumShortMaxIfOverflow(0, (nEquip.getMatk() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.M_ATK, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.M_ATK) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getMdef() > 0) {
+            if (nEquip.getStat(Stat.M_DEF) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setMdef(getMaximumShortMaxIfOverflow(nEquip.getMdef(), (nEquip.getMdef() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.M_DEF, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.M_DEF), (nEquip.getStat(Stat.M_DEF) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setMdef(getMaximumShortMaxIfOverflow(0, (nEquip.getMdef() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.M_DEF, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.M_DEF) + chscrollRandomizedStat(range))));
                 }
             }
 
-            if (nEquip.getSpeed() > 0) {
+            if (nEquip.getStat(Stat.SPEED) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setSpeed(getMaximumShortMaxIfOverflow(nEquip.getSpeed(), (nEquip.getSpeed() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.SPEED, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.SPEED), (nEquip.getStat(Stat.SPEED) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setSpeed(getMaximumShortMaxIfOverflow(0, (nEquip.getSpeed() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.SPEED, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.SPEED) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getJump() > 0) {
+            if (nEquip.getStat(Stat.JUMP) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setJump(getMaximumShortMaxIfOverflow(nEquip.getJump(), (nEquip.getJump() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.JUMP, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.JUMP), (nEquip.getStat(Stat.JUMP) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setJump(getMaximumShortMaxIfOverflow(0, (nEquip.getJump() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.JUMP, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.JUMP) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getHp() > 0) {
+            if (nEquip.getStat(Stat.MAX_HP) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setHp(getMaximumShortMaxIfOverflow(nEquip.getHp(), (nEquip.getHp() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.MAX_HP, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.MAX_HP), (nEquip.getStat(Stat.MAX_HP) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setHp(getMaximumShortMaxIfOverflow(0, (nEquip.getHp() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.MAX_HP, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.MAX_HP) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getMp() > 0) {
+            if (nEquip.getStat(Stat.MAX_MP) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setMp(getMaximumShortMaxIfOverflow(nEquip.getMp(), (nEquip.getMp() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.MAX_MP, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.MAX_MP), (nEquip.getStat(Stat.MAX_MP) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setMp(getMaximumShortMaxIfOverflow(0, (nEquip.getMp() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.MAX_MP, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.MAX_MP) + chscrollRandomizedStat(range))));
                 }
             }
         }
@@ -745,23 +746,23 @@ public class ItemInformationProvider {
     private void scrollEquipWithChaos(Equip nEquip, int range) {
         if (GameConfig.getServerInt("chaos_scroll_stat_rate") > 0) {
             int temp;
-            short curStr, curDex, curInt, curLuk, curWatk, curWdef, curMatk, curMdef, curAcc, curAvoid, curSpeed, curJump, curHp, curMp;
+            int curStr, curDex, curInt, curLuk, curWatk, curWdef, curMatk, curMdef, curAcc, curAvoid, curSpeed, curJump, curHp, curMp;
 
             if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                curStr = nEquip.getStr();
-                curDex = nEquip.getDex();
-                curInt = nEquip.getInt();
-                curLuk = nEquip.getLuk();
-                curWatk = nEquip.getWatk();
-                curWdef = nEquip.getWdef();
-                curMatk = nEquip.getMatk();
-                curMdef = nEquip.getMdef();
-                curAcc = nEquip.getAcc();
-                curAvoid = nEquip.getAvoid();
-                curSpeed = nEquip.getSpeed();
-                curJump = nEquip.getJump();
-                curHp = nEquip.getHp();
-                curMp = nEquip.getMp();
+                curStr = nEquip.getStat(Stat.STR);
+                curDex = nEquip.getStat(Stat.DEX);
+                curInt = nEquip.getStat(Stat.INT);
+                curLuk = nEquip.getStat(Stat.LUK);
+                curWatk = nEquip.getStat(Stat.P_ATK);
+                curWdef = nEquip.getStat(Stat.P_DEF);
+                curMatk = nEquip.getStat(Stat.M_ATK);
+                curMdef = nEquip.getStat(Stat.M_DEF);
+                curAcc = nEquip.getStat(Stat.ACCURACY);
+                curAvoid = nEquip.getStat(Stat.AVOIDABILITY);
+                curSpeed = nEquip.getStat(Stat.SPEED);
+                curJump = nEquip.getStat(Stat.JUMP);
+                curHp = nEquip.getStat(Stat.MAX_HP);
+                curMp = nEquip.getStat(Stat.MAX_MP);
             } else {
                 curStr = Short.MIN_VALUE;
                 curDex = Short.MIN_VALUE;
@@ -780,258 +781,258 @@ public class ItemInformationProvider {
             }
 
             for (int i = 0; i < GameConfig.getServerInt("chaos_scroll_stat_rate"); i++) {
-                if (nEquip.getStr() > 0) {
+                if (nEquip.getStat(Stat.STR) > 0) {
                     if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
                         temp = curStr + chscrollRandomizedStat(range);
                     } else {
-                        temp = nEquip.getStr() + chscrollRandomizedStat(range);
+                        temp = nEquip.getStat(Stat.STR) + chscrollRandomizedStat(range);
                     }
 
                     curStr = getMaximumShortMaxIfOverflow(temp, curStr);
                 }
 
-                if (nEquip.getDex() > 0) {
+                if (nEquip.getStat(Stat.DEX) > 0) {
                     if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
                         temp = curDex + chscrollRandomizedStat(range);
                     } else {
-                        temp = nEquip.getDex() + chscrollRandomizedStat(range);
+                        temp = nEquip.getStat(Stat.DEX) + chscrollRandomizedStat(range);
                     }
 
                     curDex = getMaximumShortMaxIfOverflow(temp, curDex);
                 }
 
-                if (nEquip.getInt() > 0) {
+                if (nEquip.getStat(Stat.INT) > 0) {
                     if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
                         temp = curInt + chscrollRandomizedStat(range);
                     } else {
-                        temp = nEquip.getInt() + chscrollRandomizedStat(range);
+                        temp = nEquip.getStat(Stat.INT) + chscrollRandomizedStat(range);
                     }
 
                     curInt = getMaximumShortMaxIfOverflow(temp, curInt);
                 }
 
-                if (nEquip.getLuk() > 0) {
+                if (nEquip.getStat(Stat.LUK) > 0) {
                     if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
                         temp = curLuk + chscrollRandomizedStat(range);
                     } else {
-                        temp = nEquip.getLuk() + chscrollRandomizedStat(range);
+                        temp = nEquip.getStat(Stat.LUK) + chscrollRandomizedStat(range);
                     }
 
                     curLuk = getMaximumShortMaxIfOverflow(temp, curLuk);
                 }
 
-                if (nEquip.getWatk() > 0) {
+                if (nEquip.getStat(Stat.P_ATK) > 0) {
                     if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
                         temp = curWatk + chscrollRandomizedStat(range);
                     } else {
-                        temp = nEquip.getWatk() + chscrollRandomizedStat(range);
+                        temp = nEquip.getStat(Stat.P_ATK) + chscrollRandomizedStat(range);
                     }
 
                     curWatk = getMaximumShortMaxIfOverflow(temp, curWatk);
                 }
 
-                if (nEquip.getWdef() > 0) {
+                if (nEquip.getStat(Stat.P_DEF) > 0) {
                     if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
                         temp = curWdef + chscrollRandomizedStat(range);
                     } else {
-                        temp = nEquip.getWdef() + chscrollRandomizedStat(range);
+                        temp = nEquip.getStat(Stat.P_DEF) + chscrollRandomizedStat(range);
                     }
 
                     curWdef = getMaximumShortMaxIfOverflow(temp, curWdef);
                 }
 
-                if (nEquip.getMatk() > 0) {
+                if (nEquip.getStat(Stat.M_ATK) > 0) {
                     if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
                         temp = curMatk + chscrollRandomizedStat(range);
                     } else {
-                        temp = nEquip.getMatk() + chscrollRandomizedStat(range);
+                        temp = nEquip.getStat(Stat.M_ATK) + chscrollRandomizedStat(range);
                     }
 
                     curMatk = getMaximumShortMaxIfOverflow(temp, curMatk);
                 }
 
-                if (nEquip.getMdef() > 0) {
+                if (nEquip.getStat(Stat.M_DEF) > 0) {
                     if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
                         temp = curMdef + chscrollRandomizedStat(range);
                     } else {
-                        temp = nEquip.getMdef() + chscrollRandomizedStat(range);
+                        temp = nEquip.getStat(Stat.M_DEF) + chscrollRandomizedStat(range);
                     }
 
                     curMdef = getMaximumShortMaxIfOverflow(temp, curMdef);
                 }
 
-                if (nEquip.getAcc() > 0) {
+                if (nEquip.getStat(Stat.ACCURACY) > 0) {
                     if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
                         temp = curAcc + chscrollRandomizedStat(range);
                     } else {
-                        temp = nEquip.getAcc() + chscrollRandomizedStat(range);
+                        temp = nEquip.getStat(Stat.ACCURACY) + chscrollRandomizedStat(range);
                     }
 
                     curAcc = getMaximumShortMaxIfOverflow(temp, curAcc);
                 }
 
-                if (nEquip.getAvoid() > 0) {
+                if (nEquip.getStat(Stat.AVOIDABILITY) > 0) {
                     if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
                         temp = curAvoid + chscrollRandomizedStat(range);
                     } else {
-                        temp = nEquip.getAvoid() + chscrollRandomizedStat(range);
+                        temp = nEquip.getStat(Stat.AVOIDABILITY) + chscrollRandomizedStat(range);
                     }
 
                     curAvoid = getMaximumShortMaxIfOverflow(temp, curAvoid);
                 }
 
-                if (nEquip.getSpeed() > 0) {
+                if (nEquip.getStat(Stat.SPEED) > 0) {
                     if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
                         temp = curSpeed + chscrollRandomizedStat(range);
                     } else {
-                        temp = nEquip.getSpeed() + chscrollRandomizedStat(range);
+                        temp = nEquip.getStat(Stat.SPEED) + chscrollRandomizedStat(range);
                     }
 
                     curSpeed = getMaximumShortMaxIfOverflow(temp, curSpeed);
                 }
 
-                if (nEquip.getJump() > 0) {
+                if (nEquip.getStat(Stat.JUMP) > 0) {
                     if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
                         temp = curJump + chscrollRandomizedStat(range);
                     } else {
-                        temp = nEquip.getJump() + chscrollRandomizedStat(range);
+                        temp = nEquip.getStat(Stat.JUMP) + chscrollRandomizedStat(range);
                     }
 
                     curJump = getMaximumShortMaxIfOverflow(temp, curJump);
                 }
 
-                if (nEquip.getHp() > 0) {
+                if (nEquip.getStat(Stat.MAX_HP) > 0) {
                     if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
                         temp = curHp + chscrollRandomizedStat(range);
                     } else {
-                        temp = nEquip.getHp() + chscrollRandomizedStat(range);
+                        temp = nEquip.getStat(Stat.MAX_HP) + chscrollRandomizedStat(range);
                     }
 
                     curHp = getMaximumShortMaxIfOverflow(temp, curHp);
                 }
 
-                if (nEquip.getMp() > 0) {
+                if (nEquip.getStat(Stat.MAX_MP) > 0) {
                     if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
                         temp = curMp + chscrollRandomizedStat(range);
                     } else {
-                        temp = nEquip.getMp() + chscrollRandomizedStat(range);
+                        temp = nEquip.getStat(Stat.MAX_MP) + chscrollRandomizedStat(range);
                     }
 
                     curMp = getMaximumShortMaxIfOverflow(temp, curMp);
                 }
             }
 
-            nEquip.setStr((short) Math.max(0, curStr));
-            nEquip.setDex((short) Math.max(0, curDex));
-            nEquip.setInt((short) Math.max(0, curInt));
-            nEquip.setLuk((short) Math.max(0, curLuk));
-            nEquip.setWatk((short) Math.max(0, curWatk));
-            nEquip.setWdef((short) Math.max(0, curWdef));
-            nEquip.setMatk((short) Math.max(0, curMatk));
-            nEquip.setMdef((short) Math.max(0, curMdef));
-            nEquip.setAcc((short) Math.max(0, curAcc));
-            nEquip.setAvoid((short) Math.max(0, curAvoid));
-            nEquip.setSpeed((short) Math.max(0, curSpeed));
-            nEquip.setJump((short) Math.max(0, curJump));
-            nEquip.setHp((short) Math.max(0, curHp));
-            nEquip.setMp((short) Math.max(0, curMp));
+            nEquip.setStat(Stat.STR, (short) Math.max(0, curStr));
+            nEquip.setStat(Stat.DEX, (short) Math.max(0, curDex));
+            nEquip.setStat(Stat.INT, (short) Math.max(0, curInt));
+            nEquip.setStat(Stat.LUK, (short) Math.max(0, curLuk));
+            nEquip.setStat(Stat.P_ATK, (short) Math.max(0, curWatk));
+            nEquip.setStat(Stat.P_DEF, (short) Math.max(0, curWdef));
+            nEquip.setStat(Stat.M_ATK, (short) Math.max(0, curMatk));
+            nEquip.setStat(Stat.M_DEF, (short) Math.max(0, curMdef));
+            nEquip.setStat(Stat.ACCURACY, (short) Math.max(0, curAcc));
+            nEquip.setStat(Stat.AVOIDABILITY, (short) Math.max(0, curAvoid));
+            nEquip.setStat(Stat.SPEED, (short) Math.max(0, curSpeed));
+            nEquip.setStat(Stat.JUMP, (short) Math.max(0, curJump));
+            nEquip.setStat(Stat.MAX_HP, (short) Math.max(0, curHp));
+            nEquip.setStat(Stat.MAX_MP, (short) Math.max(0, curMp));
         } else {
-            if (nEquip.getStr() > 0) {
+            if (nEquip.getStat(Stat.STR) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setStr(getMaximumShortMaxIfOverflow(nEquip.getStr(), (nEquip.getStr() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.STR, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.STR), (nEquip.getStat(Stat.STR) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setStr(getMaximumShortMaxIfOverflow(0, (nEquip.getStr() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.STR, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.STR) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getDex() > 0) {
+            if (nEquip.getStat(Stat.DEX) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setDex(getMaximumShortMaxIfOverflow(nEquip.getDex(), (nEquip.getDex() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.DEX, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.DEX), (nEquip.getStat(Stat.DEX) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setDex(getMaximumShortMaxIfOverflow(0, (nEquip.getDex() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.DEX, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.DEX) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getInt() > 0) {
+            if (nEquip.getStat(Stat.INT) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setInt(getMaximumShortMaxIfOverflow(nEquip.getInt(), (nEquip.getInt() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.INT, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.INT), (nEquip.getStat(Stat.INT) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setInt(getMaximumShortMaxIfOverflow(0, (nEquip.getInt() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.INT, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.INT) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getLuk() > 0) {
+            if (nEquip.getStat(Stat.LUK) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setLuk(getMaximumShortMaxIfOverflow(nEquip.getLuk(), (nEquip.getLuk() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.LUK, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.LUK), (nEquip.getStat(Stat.LUK) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setLuk(getMaximumShortMaxIfOverflow(0, (nEquip.getLuk() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.LUK, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.LUK) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getWatk() > 0) {
+            if (nEquip.getStat(Stat.P_ATK) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setWatk(getMaximumShortMaxIfOverflow(nEquip.getWatk(), (nEquip.getWatk() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.P_ATK, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.P_ATK), (nEquip.getStat(Stat.P_ATK) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setWatk(getMaximumShortMaxIfOverflow(0, (nEquip.getWatk() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.P_ATK, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.P_ATK) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getWdef() > 0) {
+            if (nEquip.getStat(Stat.P_DEF) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setWdef(getMaximumShortMaxIfOverflow(nEquip.getWdef(), (nEquip.getWdef() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.P_DEF, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.P_DEF), (nEquip.getStat(Stat.P_DEF) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setWdef(getMaximumShortMaxIfOverflow(0, (nEquip.getWdef() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.P_DEF, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.P_DEF) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getMatk() > 0) {
+            if (nEquip.getStat(Stat.M_ATK) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setMatk(getMaximumShortMaxIfOverflow(nEquip.getMatk(), (nEquip.getMatk() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.M_ATK, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.M_ATK), (nEquip.getStat(Stat.M_ATK) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setMatk(getMaximumShortMaxIfOverflow(0, (nEquip.getMatk() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.M_ATK, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.M_ATK) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getMdef() > 0) {
+            if (nEquip.getStat(Stat.M_DEF) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setMdef(getMaximumShortMaxIfOverflow(nEquip.getMdef(), (nEquip.getMdef() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.M_DEF, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.M_DEF), (nEquip.getStat(Stat.M_DEF) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setMdef(getMaximumShortMaxIfOverflow(0, (nEquip.getMdef() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.M_DEF, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.M_DEF) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getAcc() > 0) {
+            if (nEquip.getStat(Stat.ACCURACY) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setAcc(getMaximumShortMaxIfOverflow(nEquip.getAcc(), (nEquip.getAcc() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.ACCURACY, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.ACCURACY), (nEquip.getStat(Stat.ACCURACY) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setAcc(getMaximumShortMaxIfOverflow(0, (nEquip.getAcc() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.ACCURACY, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.ACCURACY) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getAvoid() > 0) {
+            if (nEquip.getStat(Stat.AVOIDABILITY) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setAvoid(getMaximumShortMaxIfOverflow(nEquip.getAvoid(), (nEquip.getAvoid() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.AVOIDABILITY, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.AVOIDABILITY), (nEquip.getStat(Stat.AVOIDABILITY) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setAvoid(getMaximumShortMaxIfOverflow(0, (nEquip.getAvoid() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.AVOIDABILITY, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.AVOIDABILITY) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getSpeed() > 0) {
+            if (nEquip.getStat(Stat.SPEED) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setSpeed(getMaximumShortMaxIfOverflow(nEquip.getSpeed(), (nEquip.getSpeed() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.SPEED, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.SPEED), (nEquip.getStat(Stat.SPEED) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setSpeed(getMaximumShortMaxIfOverflow(0, (nEquip.getSpeed() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.SPEED, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.SPEED) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getJump() > 0) {
+            if (nEquip.getStat(Stat.JUMP) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setJump(getMaximumShortMaxIfOverflow(nEquip.getJump(), (nEquip.getJump() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.JUMP, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.JUMP), (nEquip.getStat(Stat.JUMP) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setJump(getMaximumShortMaxIfOverflow(0, (nEquip.getJump() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.JUMP, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.JUMP) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getHp() > 0) {
+            if (nEquip.getStat(Stat.MAX_HP) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setHp(getMaximumShortMaxIfOverflow(nEquip.getHp(), (nEquip.getHp() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.MAX_HP, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.MAX_HP), (nEquip.getStat(Stat.MAX_HP) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setHp(getMaximumShortMaxIfOverflow(0, (nEquip.getHp() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.MAX_HP, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.MAX_HP) + chscrollRandomizedStat(range))));
                 }
             }
-            if (nEquip.getMp() > 0) {
+            if (nEquip.getStat(Stat.MAX_MP) > 0) {
                 if (GameConfig.getServerBoolean("use_enhanced_chaos_scroll")) {
-                    nEquip.setMp(getMaximumShortMaxIfOverflow(nEquip.getMp(), (nEquip.getMp() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.MAX_MP, getMaximumShortMaxIfOverflow(nEquip.getStat(Stat.MAX_MP), (nEquip.getStat(Stat.MAX_MP) + chscrollRandomizedStat(range))));
                 } else {
-                    nEquip.setMp(getMaximumShortMaxIfOverflow(0, (nEquip.getMp() + chscrollRandomizedStat(range))));
+                    nEquip.setStat(Stat.MAX_MP, getMaximumShortMaxIfOverflow(0, (nEquip.getStat(Stat.MAX_MP) + chscrollRandomizedStat(range))));
                 }
             }
         }
@@ -1047,22 +1048,26 @@ public class ItemInformationProvider {
             return false;
         }
         int totalUpgradeCount = eqStats.get("tuc");
-        int freeUpgradeCount = equip.getUpgradeSlots();
+        int freeUpgradeCount = equip.getEnhancementSlots();
         int viciousCount = equip.getVicious();
-        int appliedScrollCount = equip.getLevel();
+        int appliedScrollCount = equip.getEnhancementLevel();
         return freeUpgradeCount + appliedScrollCount < totalUpgradeCount + viciousCount;
     }
 
-    public Item scrollEquipWithId(Item equip, int scrollId, boolean usingWhiteScroll, int vegaItemId, boolean isGM) {
+    public ItemSlot scrollEquipWithId(ItemSlot equip, int scrollId, boolean usingWhiteScroll, int vegaItemId, boolean isGM) {
         // 检查是否是游戏管理员且配置中启用了完美GM卷轴功能
         boolean assertGM = (isGM && GameConfig.getServerBoolean("use_perfect_gm_scroll"));
 
-        if (equip instanceof Equip nEquip) { // 检查装备是否为 Equip 类型
+        Equip nEquip = equip.getEquipInfo();
+        if (nEquip == null) {
+            return null;
+        }
+        { // 检查装备是否携带装备域信息
             // 获取卷轴的相关统计数据（如成功率、诅咒率等）
             Map<String, Integer> stats = this.getEquipStats(scrollId);
 
             // 检查装备是否有升级插槽或是否是清洁卷轴，或者当前玩家是GM
-            if (((nEquip.getUpgradeSlots() > 0 || ItemConstants.isCleanSlate(scrollId))) || assertGM) {
+            if (((nEquip.getEnhancementSlots() > 0 || ItemConstants.isCleanSlate(scrollId))) || assertGM) {
                 // 获取卷轴的成功概率
                 double prop = (double) stats.get("success");
 
@@ -1085,7 +1090,7 @@ public class ItemInformationProvider {
 
                 // 判断是否成功应用卷轴效果（根据成功率和GM状态）
                 if (assertGM || rollSuccessChance(prop)) {
-                    short flag = nEquip.getFlag(); // 获取装备的标志位
+                    short flag = (short) nEquip.getFlag(); // 获取装备的标志位
 
                     // 根据卷轴ID应用不同的效果
                     switch (scrollId) {
@@ -1102,7 +1107,7 @@ public class ItemInformationProvider {
                         case ItemId.CLEAN_SLATE_5:
                         case ItemId.CLEAN_SLATE_20:
                             if (canUseCleanSlate(nEquip)) {
-                                nEquip.setUpgradeSlots((byte) (nEquip.getUpgradeSlots() + 1)); // 增加升级插槽数量
+                                nEquip.setEnhancementSlots((byte) (nEquip.getEnhancementSlots() + 1)); // 增加升级插槽数量
                             }
                             break;
                         case ItemId.CHAOS_SCROll_60:
@@ -1119,14 +1124,14 @@ public class ItemInformationProvider {
                     // 如果不是清洁卷轴，则处理升级插槽和等级
                     if (!ItemConstants.isCleanSlate(scrollId)) {
                         if (!assertGM && !ItemConstants.isModifierScroll(scrollId)) {   // 处理修饰卷轴不消耗插槽的问题
-                            nEquip.setUpgradeSlots((byte) (nEquip.getUpgradeSlots() - 1)); // 减少一个升级插槽
+                            nEquip.setEnhancementSlots((byte) (nEquip.getEnhancementSlots() - 1)); // 减少一个升级插槽
                         }
-                        nEquip.setLevel((byte) (nEquip.getLevel() + 1)); // 提升装备等级
+                        nEquip.setEnhancementLevel((byte) (nEquip.getEnhancementLevel() + 1)); // 提升装备等级
                     }
                 } else {
                     // 卷轴使用失败的情况
                     if (!GameConfig.getServerBoolean("use_perfect_scrolling") && !usingWhiteScroll && !ItemConstants.isCleanSlate(scrollId) && !assertGM && !ItemConstants.isModifierScroll(scrollId)) {
-                        nEquip.setUpgradeSlots((byte) (nEquip.getUpgradeSlots() - 1)); // 减少一个升级插槽
+                        nEquip.setEnhancementSlots((byte) (nEquip.getEnhancementSlots() - 1)); // 减少一个升级插槽
                     }
                     if (Randomizer.nextInt(100) < stats.get("cursed")) {
                         return null; // 卷轴诅咒装备，返回 null 表示装备被摧毁
@@ -1141,46 +1146,46 @@ public class ItemInformationProvider {
         for (Entry<String, Integer> stat : stats.entrySet()) {
             switch (stat.getKey()) {
                 case "STR":
-                    nEquip.setStr(getShortMaxIfOverflow(nEquip.getStr() + stat.getValue().intValue()));
+                    nEquip.setStat(Stat.STR, getShortMaxIfOverflow(nEquip.getStat(Stat.STR) + stat.getValue().intValue()));
                     break;
                 case "DEX":
-                    nEquip.setDex(getShortMaxIfOverflow(nEquip.getDex() + stat.getValue().intValue()));
+                    nEquip.setStat(Stat.DEX, getShortMaxIfOverflow(nEquip.getStat(Stat.DEX) + stat.getValue().intValue()));
                     break;
                 case "INT":
-                    nEquip.setInt(getShortMaxIfOverflow(nEquip.getInt() + stat.getValue().intValue()));
+                    nEquip.setStat(Stat.INT, getShortMaxIfOverflow(nEquip.getStat(Stat.INT) + stat.getValue().intValue()));
                     break;
                 case "LUK":
-                    nEquip.setLuk(getShortMaxIfOverflow(nEquip.getLuk() + stat.getValue().intValue()));
+                    nEquip.setStat(Stat.LUK, getShortMaxIfOverflow(nEquip.getStat(Stat.LUK) + stat.getValue().intValue()));
                     break;
                 case "PAD":
-                    nEquip.setWatk(getShortMaxIfOverflow(nEquip.getWatk() + stat.getValue().intValue()));
+                    nEquip.setStat(Stat.P_ATK, getShortMaxIfOverflow(nEquip.getStat(Stat.P_ATK) + stat.getValue().intValue()));
                     break;
                 case "PDD":
-                    nEquip.setWdef(getShortMaxIfOverflow(nEquip.getWdef() + stat.getValue().intValue()));
+                    nEquip.setStat(Stat.P_DEF, getShortMaxIfOverflow(nEquip.getStat(Stat.P_DEF) + stat.getValue().intValue()));
                     break;
                 case "MAD":
-                    nEquip.setMatk(getShortMaxIfOverflow(nEquip.getMatk() + stat.getValue().intValue()));
+                    nEquip.setStat(Stat.M_ATK, getShortMaxIfOverflow(nEquip.getStat(Stat.M_ATK) + stat.getValue().intValue()));
                     break;
                 case "MDD":
-                    nEquip.setMdef(getShortMaxIfOverflow(nEquip.getMdef() + stat.getValue().intValue()));
+                    nEquip.setStat(Stat.M_DEF, getShortMaxIfOverflow(nEquip.getStat(Stat.M_DEF) + stat.getValue().intValue()));
                     break;
                 case "ACC":
-                    nEquip.setAcc(getShortMaxIfOverflow(nEquip.getAcc() + stat.getValue().intValue()));
+                    nEquip.setStat(Stat.ACCURACY, getShortMaxIfOverflow(nEquip.getStat(Stat.ACCURACY) + stat.getValue().intValue()));
                     break;
                 case "EVA":
-                    nEquip.setAvoid(getShortMaxIfOverflow(nEquip.getAvoid() + stat.getValue().intValue()));
+                    nEquip.setStat(Stat.AVOIDABILITY, getShortMaxIfOverflow(nEquip.getStat(Stat.AVOIDABILITY) + stat.getValue().intValue()));
                     break;
                 case "Speed":
-                    nEquip.setSpeed(getShortMaxIfOverflow(nEquip.getSpeed() + stat.getValue().intValue()));
+                    nEquip.setStat(Stat.SPEED, getShortMaxIfOverflow(nEquip.getStat(Stat.SPEED) + stat.getValue().intValue()));
                     break;
                 case "Jump":
-                    nEquip.setJump(getShortMaxIfOverflow(nEquip.getJump() + stat.getValue().intValue()));
+                    nEquip.setStat(Stat.JUMP, getShortMaxIfOverflow(nEquip.getStat(Stat.JUMP) + stat.getValue().intValue()));
                     break;
                 case "MHP":
-                    nEquip.setHp(getShortMaxIfOverflow(nEquip.getHp() + stat.getValue().intValue()));
+                    nEquip.setStat(Stat.MAX_HP, getShortMaxIfOverflow(nEquip.getStat(Stat.MAX_HP) + stat.getValue().intValue()));
                     break;
                 case "MMP":
-                    nEquip.setMp(getShortMaxIfOverflow(nEquip.getMp() + stat.getValue().intValue()));
+                    nEquip.setStat(Stat.MAX_MP, getShortMaxIfOverflow(nEquip.getStat(Stat.MAX_MP) + stat.getValue().intValue()));
                     break;
                 case "afterImage":
                     break;
@@ -1188,89 +1193,86 @@ public class ItemInformationProvider {
         }
     }
 
-    public Item getEquipById(int equipId) {
-        return getEquipById(equipId, -1);
-    }
-
-    private Item getEquipById(int equipId, int ringId) {
-        Equip nEquip;
-        nEquip = new Equip(equipId, (byte) 0, ringId);
-        nEquip.setQuantity((short) 1);
+    /** wz 模板装备（数据全量自 wz 填充，含 tuc→upgradeSlots）。
+     *  原私有重载的 ringId 参数是死的：被误当 upgradeSlots 传入后被 tuc 覆盖，戒指 id 由调用方 setRingId。 */
+    public ItemSlot getEquipById(int equipId) {
+        ItemSlot equipItem = ItemSlot.equipItem(equipId, (byte) 0);
+        Equip nEquip = equipItem.getEquipInfo();
         Map<String, Integer> stats = this.getEquipStats(equipId);
         if (stats != null) {
             for (Entry<String, Integer> stat : stats.entrySet()) {
                 if (stat.getKey().equals("STR")) {
-                    nEquip.setStr((short) stat.getValue().intValue());
+                    nEquip.setStat(Stat.STR, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("DEX")) {
-                    nEquip.setDex((short) stat.getValue().intValue());
+                    nEquip.setStat(Stat.DEX, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("INT")) {
-                    nEquip.setInt((short) stat.getValue().intValue());
+                    nEquip.setStat(Stat.INT, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("LUK")) {
-                    nEquip.setLuk((short) stat.getValue().intValue());
+                    nEquip.setStat(Stat.LUK, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("PAD")) {
-                    nEquip.setWatk((short) stat.getValue().intValue());
+                    nEquip.setStat(Stat.P_ATK, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("PDD")) {
-                    nEquip.setWdef((short) stat.getValue().intValue());
+                    nEquip.setStat(Stat.P_DEF, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("MAD")) {
-                    nEquip.setMatk((short) stat.getValue().intValue());
+                    nEquip.setStat(Stat.M_ATK, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("MDD")) {
-                    nEquip.setMdef((short) stat.getValue().intValue());
+                    nEquip.setStat(Stat.M_DEF, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("ACC")) {
-                    nEquip.setAcc((short) stat.getValue().intValue());
+                    nEquip.setStat(Stat.ACCURACY, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("EVA")) {
-                    nEquip.setAvoid((short) stat.getValue().intValue());
+                    nEquip.setStat(Stat.AVOIDABILITY, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("Speed")) {
-                    nEquip.setSpeed((short) stat.getValue().intValue());
+                    nEquip.setStat(Stat.SPEED, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("Jump")) {
-                    nEquip.setJump((short) stat.getValue().intValue());
+                    nEquip.setStat(Stat.JUMP, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("MHP")) {
-                    nEquip.setHp((short) stat.getValue().intValue());
+                    nEquip.setStat(Stat.MAX_HP, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("MMP")) {
-                    nEquip.setMp((short) stat.getValue().intValue());
+                    nEquip.setStat(Stat.MAX_MP, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("tuc")) {
-                    nEquip.setUpgradeSlots((byte) stat.getValue().intValue());
+                    nEquip.setEnhancementSlots((byte) stat.getValue().intValue());
                 } else if (isUntradeableRestricted(equipId)) {  // thanks Hyun & Thora for showing an issue with more than only "Untradeable" items being flagged as such here
-                    short flag = nEquip.getFlag();
+                    short flag = (short) nEquip.getFlag();
                     flag |= ItemConstants.UNTRADEABLE;
                     nEquip.setFlag(flag);
                 } else if (stats.get("fs") > 0) {
-                    short flag = nEquip.getFlag();
+                    short flag = (short) nEquip.getFlag();
                     flag |= ItemConstants.SPIKES;
                     nEquip.setFlag(flag);
                     equipCache.put(equipId, nEquip);
                 }
             }
         }
-        return nEquip.copy();
+        return equipItem.copy();
     }
 
-    private static short getRandStat(short defaultValue, int maxRange) {
+    private static int getRandStat(int defaultValue, int maxRange) {
         if (defaultValue == 0) {
             return 0;
         }
         int lMaxRange = (int) Math.min(Math.ceil(defaultValue * 0.1), maxRange);
-        return (short) ((defaultValue - lMaxRange) + Math.floor(Randomizer.nextDouble() * (lMaxRange * 2 + 1)));
+        return (int) ((defaultValue - lMaxRange) + Math.floor(Randomizer.nextDouble() * (lMaxRange * 2 + 1)));
     }
 
     public Equip randomizeStats(Equip equip) {
-        equip.setStr(getRandStat(equip.getStr(), 5));
-        equip.setDex(getRandStat(equip.getDex(), 5));
-        equip.setInt(getRandStat(equip.getInt(), 5));
-        equip.setLuk(getRandStat(equip.getLuk(), 5));
-        equip.setMatk(getRandStat(equip.getMatk(), 5));
-        equip.setWatk(getRandStat(equip.getWatk(), 5));
-        equip.setAcc(getRandStat(equip.getAcc(), 5));
-        equip.setAvoid(getRandStat(equip.getAvoid(), 5));
-        equip.setJump(getRandStat(equip.getJump(), 5));
-        equip.setSpeed(getRandStat(equip.getSpeed(), 5));
-        equip.setWdef(getRandStat(equip.getWdef(), 10));
-        equip.setMdef(getRandStat(equip.getMdef(), 10));
-        equip.setHp(getRandStat(equip.getHp(), 10));
-        equip.setMp(getRandStat(equip.getMp(), 10));
+        equip.setStat(Stat.STR, getRandStat(equip.getStat(Stat.STR), 5));
+        equip.setStat(Stat.DEX, getRandStat(equip.getStat(Stat.DEX), 5));
+        equip.setStat(Stat.INT, getRandStat(equip.getStat(Stat.INT), 5));
+        equip.setStat(Stat.LUK, getRandStat(equip.getStat(Stat.LUK), 5));
+        equip.setStat(Stat.M_ATK, getRandStat(equip.getStat(Stat.M_ATK), 5));
+        equip.setStat(Stat.P_ATK, getRandStat(equip.getStat(Stat.P_ATK), 5));
+        equip.setStat(Stat.ACCURACY, getRandStat(equip.getStat(Stat.ACCURACY), 5));
+        equip.setStat(Stat.AVOIDABILITY, getRandStat(equip.getStat(Stat.AVOIDABILITY), 5));
+        equip.setStat(Stat.JUMP, getRandStat(equip.getStat(Stat.JUMP), 5));
+        equip.setStat(Stat.SPEED, getRandStat(equip.getStat(Stat.SPEED), 5));
+        equip.setStat(Stat.P_DEF, getRandStat(equip.getStat(Stat.P_DEF), 10));
+        equip.setStat(Stat.M_DEF, getRandStat(equip.getStat(Stat.M_DEF), 10));
+        equip.setStat(Stat.MAX_HP, getRandStat(equip.getStat(Stat.MAX_HP), 10));
+        equip.setStat(Stat.MAX_MP, getRandStat(equip.getStat(Stat.MAX_MP), 10));
         return equip;
     }
 
-    private static short getRandUpgradedStat(short defaultValue, int maxRange) {
+    private static int getRandUpgradedStat(int defaultValue, int maxRange) {
         if (defaultValue == 0) {
             return 0;
         }
@@ -1279,19 +1281,19 @@ public class ItemInformationProvider {
     }
 
     public Equip randomizeUpgradeStats(Equip equip) {
-        equip.setStr(getRandUpgradedStat(equip.getStr(), 2));
-        equip.setDex(getRandUpgradedStat(equip.getDex(), 2));
-        equip.setInt(getRandUpgradedStat(equip.getInt(), 2));
-        equip.setLuk(getRandUpgradedStat(equip.getLuk(), 2));
-        equip.setMatk(getRandUpgradedStat(equip.getMatk(), 2));
-        equip.setWatk(getRandUpgradedStat(equip.getWatk(), 2));
-        equip.setAcc(getRandUpgradedStat(equip.getAcc(), 2));
-        equip.setAvoid(getRandUpgradedStat(equip.getAvoid(), 2));
-        equip.setJump(getRandUpgradedStat(equip.getJump(), 2));
-        equip.setWdef(getRandUpgradedStat(equip.getWdef(), 5));
-        equip.setMdef(getRandUpgradedStat(equip.getMdef(), 5));
-        equip.setHp(getRandUpgradedStat(equip.getHp(), 5));
-        equip.setMp(getRandUpgradedStat(equip.getMp(), 5));
+        equip.setStat(Stat.STR, getRandUpgradedStat(equip.getStat(Stat.STR), 2));
+        equip.setStat(Stat.DEX, getRandUpgradedStat(equip.getStat(Stat.DEX), 2));
+        equip.setStat(Stat.INT, getRandUpgradedStat(equip.getStat(Stat.INT), 2));
+        equip.setStat(Stat.LUK, getRandUpgradedStat(equip.getStat(Stat.LUK), 2));
+        equip.setStat(Stat.M_ATK, getRandUpgradedStat(equip.getStat(Stat.M_ATK), 2));
+        equip.setStat(Stat.P_ATK, getRandUpgradedStat(equip.getStat(Stat.P_ATK), 2));
+        equip.setStat(Stat.ACCURACY, getRandUpgradedStat(equip.getStat(Stat.ACCURACY), 2));
+        equip.setStat(Stat.AVOIDABILITY, getRandUpgradedStat(equip.getStat(Stat.AVOIDABILITY), 2));
+        equip.setStat(Stat.JUMP, getRandUpgradedStat(equip.getStat(Stat.JUMP), 2));
+        equip.setStat(Stat.P_DEF, getRandUpgradedStat(equip.getStat(Stat.P_DEF), 5));
+        equip.setStat(Stat.M_DEF, getRandUpgradedStat(equip.getStat(Stat.M_DEF), 5));
+        equip.setStat(Stat.MAX_HP, getRandUpgradedStat(equip.getStat(Stat.MAX_HP), 5));
+        equip.setStat(Stat.MAX_MP, getRandUpgradedStat(equip.getStat(Stat.MAX_MP), 5));
         return equip;
     }
 
@@ -1726,12 +1728,12 @@ public class ItemInformationProvider {
     }
 
     public boolean isUpgradeable(int itemId) {
-        Item it = this.getEquipById(itemId);
-        Equip eq = (Equip) it;
+        ItemSlot it = this.getEquipById(itemId);
+        Equip eq = it.getEquipInfo();
 
-        return (eq.getUpgradeSlots() > 0 || eq.getStr() > 0 || eq.getDex() > 0 || eq.getInt() > 0 || eq.getLuk() > 0 ||
-                eq.getWatk() > 0 || eq.getMatk() > 0 || eq.getWdef() > 0 || eq.getMdef() > 0 || eq.getAcc() > 0 ||
-                eq.getAvoid() > 0 || eq.getSpeed() > 0 || eq.getJump() > 0 || eq.getHp() > 0 || eq.getMp() > 0);
+        return (eq.getEnhancementSlots() > 0 || eq.getStat(Stat.STR) > 0 || eq.getStat(Stat.DEX) > 0 || eq.getStat(Stat.INT) > 0 || eq.getStat(Stat.LUK) > 0 ||
+                eq.getStat(Stat.P_ATK) > 0 || eq.getStat(Stat.M_ATK) > 0 || eq.getStat(Stat.P_DEF) > 0 || eq.getStat(Stat.M_DEF) > 0 || eq.getStat(Stat.ACCURACY) > 0 ||
+                eq.getStat(Stat.AVOIDABILITY) > 0 || eq.getStat(Stat.SPEED) > 0 || eq.getStat(Stat.JUMP) > 0 || eq.getStat(Stat.MAX_HP) > 0 || eq.getStat(Stat.MAX_MP) > 0);
     }
 
     public boolean isUnmerchable(int itemId) {
@@ -1742,16 +1744,14 @@ public class ItemInformationProvider {
         return GameConfig.getServerBoolean("use_enforce_unmerchable_pet") && ItemConstants.isPet(itemId);
     }
 
-    public Collection<Item> canWearEquipment(Character chr, Collection<Item> items) {
+    public Collection<ItemSlot> canWearEquipment(Character chr, Collection<ItemSlot> items) {
         Inventory inv = chr.getInventory(InventoryType.EQUIPPED);
         if (inv.checked()) {
             return items;
         }
-        Collection<Item> itemz = new LinkedList<>();
+        Collection<ItemSlot> itemz = new LinkedList<>();
         if (chr.getJob() == JobEnum.SUPERGM || chr.getJob() == JobEnum.GM) {
-            for (Item item : items) {
-                Equip equip = (Equip) item;
-                equip.wear(true);
+            for (ItemSlot item : items) {
                 itemz.add(item);
             }
             return itemz;
@@ -1771,16 +1771,16 @@ public class ItemInformationProvider {
          }*/
         int tdex = chr.getDex(), tstr = chr.getStr(), tint = chr.getInt(), tluk = chr.getLuk(), fame = chr.getFame();
         if (chr.getJob() != JobEnum.SUPERGM || chr.getJob() != JobEnum.GM) {
-            for (Item item : inv.list()) {
-                Equip equip = (Equip) item;
-                tdex += equip.getDex();
-                tstr += equip.getStr();
-                tluk += equip.getLuk();
-                tint += equip.getInt();
+            for (ItemSlot item : inv.list()) {
+                Equip equip = item.getEquipInfo();
+                tdex += equip.getStat(Stat.DEX);
+                tstr += equip.getStat(Stat.STR);
+                tluk += equip.getStat(Stat.LUK);
+                tint += equip.getStat(Stat.INT);
             }
         }
-        for (Item item : items) {
-            Equip equip = (Equip) item;
+        for (ItemSlot item : items) {
+            Equip equip = item.getEquipInfo();
             int reqLevel = getEquipLevelReq(equip.getItemId());
             if (highfivestamp) {
                 reqLevel -= 5;
@@ -1811,8 +1811,7 @@ public class ItemInformationProvider {
                     continue;
                 }
             }
-            equip.wear(true);
-            itemz.add(equip);
+            itemz.add(item);
         }
         inv.checked(true);
         return itemz;
@@ -1828,7 +1827,6 @@ public class ItemInformationProvider {
 
         String islot = getEquipmentSlot(id);
         if (!EquipSlot.getFromTextSlot(islot).isAllowed(dst, isCash(id))) {
-            equip.wear(false);
             String itemName = ItemInformationProvider.getInstance().getName(equip.getItemId());
             Server.getInstance().broadcastGMMessage(chr.getWorld(), PacketCreator.sendYellowTip("[Warning]: " + chr.getName() + " tried to equip " + itemName + " into slot " + dst + "."));
             AutobanFactory.PACKET_EDIT.alert(chr, chr.getName() + " tried to forcibly equip an item.");
@@ -1837,10 +1835,8 @@ public class ItemInformationProvider {
         }
 
         if (chr.getJob() == JobEnum.SUPERGM || chr.getJob() == JobEnum.GM) {
-            equip.wear(true);
             return true;
         }
-
 
         boolean highfivestamp = false;
         /* Removed check above for message ><
@@ -1881,10 +1877,8 @@ public class ItemInformationProvider {
         }
 
         if (i > 0) {
-            equip.wear(false);
             return false;
         }
-        equip.wear(true);
         return true;
     }
 

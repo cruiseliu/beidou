@@ -2,7 +2,7 @@ package org.gms.client.character;
 
 import org.gms.client.Client;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.Pet;
 import org.gms.client.inventory.PetDataFactory;
 import org.gms.constants.inventory.ItemConstants;
@@ -175,7 +175,7 @@ class CharacterPets {
         if (!ItemConstants.isValidPetIndex(petIndex)) {
             return 0;
         }
-        Item petEqp = owner.getInventory(InventoryType.EQUIPPED).getItem(ItemConstants.PET_EQUIP_SLOTS.get(petIndex).equip());
+        ItemSlot petEqp = owner.getInventory(InventoryType.EQUIPPED).getItem(ItemConstants.PET_EQUIP_SLOTS.get(petIndex).equip());
         return petEqp == null ? 0 : petEqp.getItemId();
     }
 
@@ -263,7 +263,7 @@ class CharacterPets {
         } else {
             pet.setFullness(newFullness);
             pet.saveToDb();
-            Item petz = owner.getInventory(InventoryType.CASH).getItem(pet.getPosition());
+            ItemSlot petz = owner.getInventory(InventoryType.CASH).getItem((short) pet.getPosition());
             if (petz != null) {
                 owner.forceUpdateItem(petz);
             }

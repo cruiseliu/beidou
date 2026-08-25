@@ -27,7 +27,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ItemFactory;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.net.server.Server;
@@ -64,10 +64,10 @@ public class FredrickProcessor {
         this.noteService = noteService;
     }
 
-    private static byte canRetrieveFromFredrick(Character chr, List<Pair<Item, InventoryType>> items) {
+    private static byte canRetrieveFromFredrick(Character chr, List<Pair<ItemSlot, InventoryType>> items) {
         if (!Inventory.checkSpotsAndOwnership(chr, items)) {
             List<Integer> itemids = new LinkedList<>();
-            for (Pair<Item, InventoryType> it : items) {
+            for (Pair<ItemSlot, InventoryType> it : items) {
                 itemids.add(it.getLeft().getItemId());
             }
 
@@ -289,7 +289,7 @@ public class FredrickProcessor {
                     return;
                 }
 
-                List<Pair<Item, InventoryType>> items;
+                List<Pair<ItemSlot, InventoryType>> items;
                 try {
                     items = ItemFactory.MERCHANT.loadItems(chr.getId(), false);
 
@@ -308,8 +308,8 @@ public class FredrickProcessor {
                             merchant.clearItems();
                         }
 
-                        for (Pair<Item, InventoryType> it : items) {
-                            Item item = it.getLeft();
+                        for (Pair<ItemSlot, InventoryType> it : items) {
+                            ItemSlot item = it.getLeft();
                             InventoryManipulator.addFromDrop(chr.getClient(), item, false);
                             String itemName = ItemInformationProvider.getInstance().getName(item.getItemId());
                             log.debug("Chr {} gained {}x {} ({})", chr.getName(), item.getQuantity(), itemName, item.getItemId());

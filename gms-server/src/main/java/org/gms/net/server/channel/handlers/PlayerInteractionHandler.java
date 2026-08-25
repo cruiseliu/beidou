@@ -26,7 +26,7 @@ import org.gms.client.Client;
 import org.gms.client.autoban.AutobanFactory;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.client.inventory.manipulator.KarmaManipulator;
 import org.gms.config.GameConfig;
@@ -507,7 +507,7 @@ public final class PlayerInteractionHandler extends AbstractPacketHandler {
                 ItemInformationProvider ii = ItemInformationProvider.getInstance();
                 InventoryType ivType = InventoryType.getByType(p.readByte());
                 short pos = p.readShort();
-                Item item = chr.getInventory(ivType).getItem(pos);
+                ItemSlot item = chr.getInventory(ivType).getItem(pos);
                 short quantity = p.readShort();
                 byte targetSlot = p.readByte();
 
@@ -556,23 +556,23 @@ public final class PlayerInteractionHandler extends AbstractPacketHandler {
                         Inventory inv = chr.getInventory(ivType);
                         inv.lockInventory();
                         try {
-                            Item checkItem = chr.getInventory(ivType).getItem(pos);
+                            ItemSlot checkItem = chr.getInventory(ivType).getItem(pos);
                             if (checkItem != item || checkItem.getPosition() != item.getPosition()) {
                                 c.sendPacket(PacketCreator.serverNotice(1, I18nUtil.getMessage("PlayerInteractionHandler.message2")));
                                 c.sendPacket(PacketCreator.enableActions());
                                 return;
                             }
 
-                            Item tradeItem = item.copy();
+                            ItemSlot tradeItem = item.copy();
                             if (ItemConstants.isRechargeable(item.getItemId())) {
-                                quantity = item.getQuantity();
+                                quantity = (short) item.getQuantity();
                             }
 
                             tradeItem.setQuantity(quantity);
                             tradeItem.setPosition(targetSlot);
 
                             if (trade.addItem(tradeItem)) {
-                                InventoryManipulator.removeFromSlot(c, ivType, item.getPosition(), quantity, true);
+                                InventoryManipulator.removeFromSlot(c, ivType, (short) item.getPosition(), quantity, true);
 
                                 trade.getChr().sendPacket(PacketCreator.getTradeItemAdd((byte) 0, tradeItem));
                                 if (trade.getPartner() != null) {
@@ -596,7 +596,7 @@ public final class PlayerInteractionHandler extends AbstractPacketHandler {
                 InventoryType ivType = InventoryType.getByType(p.readByte());
                 short slot = p.readShort();
                 short bundles = p.readShort();
-                Item ivItem = chr.getInventory(ivType).getItem(slot);
+                ItemSlot ivItem = chr.getInventory(ivType).getItem(slot);
 
                 if (ivItem == null || ivItem.isUntradeable()) {
                     c.sendPacket(PacketCreator.serverNotice(1, I18nUtil.getMessage("PlayerInteractionHandler.message7")));
@@ -632,7 +632,7 @@ public final class PlayerInteractionHandler extends AbstractPacketHandler {
                     return;
                 }
 
-                Item sellItem = ivItem.copy();
+                ItemSlot sellItem = ivItem.copy();
                 if (!ItemConstants.isRechargeable(ivItem.getItemId())) {
                     sellItem.setQuantity(perBundle);
                 }
@@ -644,7 +644,7 @@ public final class PlayerInteractionHandler extends AbstractPacketHandler {
                     Inventory inv = chr.getInventory(ivType);
                     inv.lockInventory();
                     try {
-                        Item checkItem = inv.getItem(slot);
+                        ItemSlot checkItem = inv.getItem(slot);
                         if (checkItem == null || checkItem.getItemId() != ivItem.getItemId() || checkItem.getQuantity() < (bundles * perBundle)) {
                             c.sendPacket(PacketCreator.serverNotice(1, I18nUtil.getMessage("PlayerInteractionHandler.message7")));
                             c.sendPacket(PacketCreator.enableActions());
@@ -657,7 +657,7 @@ public final class PlayerInteractionHandler extends AbstractPacketHandler {
                         }
 
                         if (ItemConstants.isRechargeable(ivItem.getItemId())) {
-                            InventoryManipulator.removeFromSlot(c, ivType, slot, ivItem.getQuantity(), true);
+                            InventoryManipulator.removeFromSlot(c, ivType, slot, (short) ivItem.getQuantity(), true);
                         } else {
                             InventoryManipulator.removeFromSlot(c, ivType, slot, (short) (bundles * perBundle), true);
                         }
@@ -675,7 +675,7 @@ public final class PlayerInteractionHandler extends AbstractPacketHandler {
                     Inventory inv = chr.getInventory(ivType);
                     inv.lockInventory();
                     try {
-                        Item checkItem = inv.getItem(slot);
+                        ItemSlot checkItem = inv.getItem(slot);
                         if (checkItem == null || checkItem.getItemId() != ivItem.getItemId() || checkItem.getQuantity() < (bundles * perBundle)) {
                             c.sendPacket(PacketCreator.serverNotice(1, I18nUtil.getMessage("PlayerInteractionHandler.message7")));
                             c.sendPacket(PacketCreator.enableActions());
@@ -688,7 +688,7 @@ public final class PlayerInteractionHandler extends AbstractPacketHandler {
                         }
 
                         if (ItemConstants.isRechargeable(ivItem.getItemId())) {
-                            InventoryManipulator.removeFromSlot(c, ivType, slot, ivItem.getQuantity(), true);
+                            InventoryManipulator.removeFromSlot(c, ivType, slot, (short) ivItem.getQuantity(), true);
                         } else {
                             InventoryManipulator.removeFromSlot(c, ivType, slot, (short) (bundles * perBundle), true);
                         }

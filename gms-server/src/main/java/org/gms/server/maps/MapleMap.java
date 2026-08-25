@@ -27,7 +27,7 @@ import org.gms.client.Client;
 import org.gms.client.autoban.AutobanFactory;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.Pet;
 import org.gms.client.status.MonsterStatus;
 import org.gms.client.status.MonsterStatusEffect;
@@ -662,7 +662,7 @@ public class MapleMap {
 
         Collections.shuffle(dropEntry);
 
-        Item idrop;
+        ItemSlot idrop;
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
 
         for (final MonsterDropEntry de : dropEntry) {
@@ -691,9 +691,11 @@ public class MapleMap {
                     }
                 } else {
                     if (ItemConstants.getInventoryType(de.itemId) == InventoryType.EQUIP) {
-                        idrop = ii.randomizeStats((Equip) ii.getEquipById(de.itemId));
+                        ItemSlot equipDrop = ii.getEquipById(de.itemId);
+                        ii.randomizeStats(equipDrop.getEquipInfo());
+                        idrop = equipDrop;
                     } else {
-                        idrop = new Item(de.itemId, (short) 0, (short) ((de.Maximum != 1 && de.Maximum > de.Minimum)? Randomizer.nextInt(de.Maximum - de.Minimum) + de.Minimum : de.Maximum));
+                        idrop = new ItemSlot(de.itemId, (short) 0, (short) ((de.Maximum != 1 && de.Maximum > de.Minimum)? Randomizer.nextInt(de.Maximum - de.Minimum) + de.Minimum : de.Maximum));
                     }
                     spawnDrop(idrop, calcDropPos(pos, mob.getPosition()), mob, chr, droptype, de.questid);
                 }
@@ -707,7 +709,7 @@ public class MapleMap {
     private byte dropGlobalItemsFromMonsterOnMap(List<MonsterGlobalDropEntry> globalEntry, Point pos, byte d, byte droptype, int mobpos, Character chr, Monster mob) {
         Collections.shuffle(globalEntry);
 
-        Item idrop;
+        ItemSlot idrop;
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
 
         for (final MonsterGlobalDropEntry de : globalEntry) {
@@ -719,9 +721,11 @@ public class MapleMap {
                 }
                 if (de.itemId != 0) {
                     if (ItemConstants.getInventoryType(de.itemId) == InventoryType.EQUIP) {
-                        idrop = ii.randomizeStats((Equip) ii.getEquipById(de.itemId));
+                        ItemSlot equipDrop = ii.getEquipById(de.itemId);
+                        ii.randomizeStats(equipDrop.getEquipInfo());
+                        idrop = equipDrop;
                     } else {
-                        idrop = new Item(de.itemId, (short) 0, (short) (de.Maximum != 1 ? Randomizer.nextInt(de.Maximum - de.Minimum) + de.Minimum : 1));
+                        idrop = new ItemSlot(de.itemId, (short) 0, (short) (de.Maximum != 1 ? Randomizer.nextInt(de.Maximum - de.Minimum) + de.Minimum : 1));
                     }
                     spawnDrop(idrop, calcDropPos(pos, mob.getPosition()), mob, chr, droptype, de.questid);
                     d++;
@@ -790,7 +794,7 @@ public class MapleMap {
         dropFromMonster(chr, mob, true);
     }
 
-    public void dropFromReactor(final Character chr, final Reactor reactor, Item drop, Point dropPos, short questid) {
+    public void dropFromReactor(final Character chr, final Reactor reactor, ItemSlot drop, Point dropPos, short questid) {
         spawnDrop(drop, this.calcDropPos(dropPos, reactor.getPosition()), reactor, chr, (byte) (chr.getParty() != null ? 1 : 0), questid);
     }
 
@@ -1140,7 +1144,7 @@ public class MapleMap {
         }
     }
 
-    private void spawnDrop(final Item idrop, final Point dropPos, final MapObject dropper, final Character chr, final byte droptype, final short questid) {
+    private void spawnDrop(final ItemSlot idrop, final Point dropPos, final MapObject dropper, final Character chr, final byte droptype, final short questid) {
         final MapItem mdrop = new MapItem(idrop, dropPos, dropper, chr, chr.getClient(), droptype, false, questid);
         mdrop.setDropTime(Server.getInstance().getCurrentTime());
         spawnAndAddRangedMapObject(mdrop, c -> {
@@ -1177,7 +1181,7 @@ public class MapleMap {
         instantiateItemDrop(mdrop);
     }
 
-    public final void disappearingItemDrop(final MapObject dropper, final Character owner, final Item item, final Point pos) {
+    public final void disappearingItemDrop(final MapObject dropper, final Character owner, final ItemSlot item, final Point pos) {
         final Point droppos = calcDropPos(pos, pos);
         final MapItem mdrop = new MapItem(item, droppos, dropper, owner, owner.getClient(), (byte) 1, false);
 
@@ -2176,11 +2180,11 @@ public class MapleMap {
         getWorldServer().registerTimedMapObject(expireKite, GameConfig.getServerLong("kite_expire_time"));
     }
 
-    public final void spawnItemDrop(final MapObject dropper, final Character owner, final Item item, Point pos, final boolean ffaDrop, final boolean playerDrop) {
+    public final void spawnItemDrop(final MapObject dropper, final Character owner, final ItemSlot item, Point pos, final boolean ffaDrop, final boolean playerDrop) {
         spawnItemDrop(dropper, owner, item, pos, (byte) (ffaDrop ? 2 : 0), playerDrop);
     }
 
-    public final void spawnItemDrop(final MapObject dropper, final Character owner, final Item item, Point pos, final byte dropType, final boolean playerDrop) {
+    public final void spawnItemDrop(final MapObject dropper, final Character owner, final ItemSlot item, Point pos, final byte dropType, final boolean playerDrop) {
         if (FieldLimit.DROP_LIMIT.check(this.getFieldLimit())) { // thanks Conrad for noticing some maps shouldn't have loots available
             this.disappearingItemDrop(dropper, owner, item, pos);
             return;
@@ -2237,13 +2241,15 @@ public class MapleMap {
             if (integer == 0) {
                 spawnMesoDrop(owner != null ? NumberTool.floatToInt(10 * owner.getMesoRate()) : 10, calcDropPos(dropPos, pos), dropper, owner, playerDrop, (byte) (ffaDrop ? 2 : 0));
             } else {
-                final Item drop;
+                final ItemSlot drop;
                 int randomedId = integer;
 
                 if (ItemConstants.getInventoryType(randomedId) != InventoryType.EQUIP) {
-                    drop = new Item(randomedId, (short) 0, (short) (rnd.nextInt(copies) + minCopies));
+                    drop = new ItemSlot(randomedId, (short) 0, (short) (rnd.nextInt(copies) + minCopies));
                 } else {
-                    drop = ii.randomizeStats((Equip) ii.getEquipById(randomedId));
+                    ItemSlot equipDrop = ii.getEquipById(randomedId);
+                    ii.randomizeStats(equipDrop.getEquipInfo());
+                    drop = equipDrop;
                 }
 
                 spawnItemDrop(dropper, owner, drop, calcDropPos(dropPos, pos), ffaDrop, playerDrop);
@@ -2259,7 +2265,7 @@ public class MapleMap {
     }
 
     private void activateItemReactors(final MapItem drop, final Client c) {
-        final Item item = drop.getItem();
+        final ItemSlot item = drop.getItem();
 
         for (final MapObject o : getReactors()) {
             final Reactor react = (Reactor) o;
@@ -2294,7 +2300,7 @@ public class MapleMap {
                 drop.lockItem();
                 try {
                     if (!drop.isPickedUp()) {
-                        final Item item = drop.getItem();
+                        final ItemSlot item = drop.getItem();
 
                         if (item != null && reactItem == item.getItemId() && reactQty == item.getQuantity()) {
                             if (reactArea.contains(drop.getPosition())) {

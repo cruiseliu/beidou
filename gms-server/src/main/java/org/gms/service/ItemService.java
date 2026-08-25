@@ -24,6 +24,6 @@ public class ItemService {
             throw new BizException(I18nUtil.getExceptionMessage("ONLY_SUPPORT_GIVE_EQUIP"));
         }
 
-        return (Equip) ItemInformationProvider.getInstance().getEquipById(itemId);
+        return ItemInformationProvider.getInstance().getEquipById(itemId).getEquipInfo();
     }
 }

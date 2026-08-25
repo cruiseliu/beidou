@@ -1,5 +1,7 @@
 package org.gms.service;
 
+import org.gms.client.character.Stat;
+
 import lombok.extern.slf4j.Slf4j;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
@@ -280,21 +282,7 @@ public class GiveService {
         Server.getInstance().getWorlds().forEach(world -> world.getPlayerStorage().getAllCharacters().forEach(chr -> {
             chr.gainEquip(
                     submitData.getId(),
-                    submitData.getStr(),
-                    submitData.getDex(),
-                    submitData.get_int(),
-                    submitData.getLuk(),
-                    submitData.getHp(),
-                    submitData.getMp(),
-                    submitData.getPAtk(),
-                    submitData.getMAtk(),
-                    submitData.getPDef(),
-                    submitData.getMDef(),
-                    submitData.getAcc(),
-                    submitData.getAvoid(),
-                    submitData.getHands(),
-                    submitData.getSpeed(),
-                    submitData.getJump(),
+                    assembleStats(submitData),
                     submitData.getUpgradeSlot(),
                     submitData.getExpire()
             );
@@ -336,21 +324,7 @@ public class GiveService {
         }
         chr.gainEquip(
                 submitData.getId(),
-                submitData.getStr(),
-                submitData.getDex(),
-                submitData.get_int(),
-                submitData.getLuk(),
-                submitData.getHp(),
-                submitData.getMp(),
-                submitData.getPAtk(),
-                submitData.getMAtk(),
-                submitData.getPDef(),
-                submitData.getMDef(),
-                submitData.getAcc(),
-                submitData.getAvoid(),
-                submitData.getHands(),
-                submitData.getSpeed(),
-                submitData.getJump(),
+                assembleStats(submitData),
                 submitData.getUpgradeSlot(),
                 submitData.getExpire()
         );
@@ -466,5 +440,27 @@ public class GiveService {
             quantity = Integer.MAX_VALUE - meso;
         }
         chr.gainMeso(quantity);
+    }
+
+    /** 发放装备的属性覆盖组装：DTO 可空字段 → Stat 序数组
+     *  （null = 保持装备默认，显式 0 = 设为 0——与旧版 Short 判空语义一致） */
+    private static Integer[] assembleStats(GiveResourceReqDTO d) {
+        Integer[] stats = new Integer[Stat.count()];
+        if (d.getStr() != null) stats[Stat.STR.ordinal()] = (int) d.getStr();
+        if (d.getDex() != null) stats[Stat.DEX.ordinal()] = (int) d.getDex();
+        if (d.get_int() != null) stats[Stat.INT.ordinal()] = (int) d.get_int();
+        if (d.getLuk() != null) stats[Stat.LUK.ordinal()] = (int) d.getLuk();
+        if (d.getHp() != null) stats[Stat.MAX_HP.ordinal()] = (int) d.getHp();
+        if (d.getMp() != null) stats[Stat.MAX_MP.ordinal()] = (int) d.getMp();
+        if (d.getPAtk() != null) stats[Stat.P_ATK.ordinal()] = (int) d.getPAtk();
+        if (d.getMAtk() != null) stats[Stat.M_ATK.ordinal()] = (int) d.getMAtk();
+        if (d.getPDef() != null) stats[Stat.P_DEF.ordinal()] = (int) d.getPDef();
+        if (d.getMDef() != null) stats[Stat.M_DEF.ordinal()] = (int) d.getMDef();
+        if (d.getAcc() != null) stats[Stat.ACCURACY.ordinal()] = (int) d.getAcc();
+        if (d.getAvoid() != null) stats[Stat.AVOIDABILITY.ordinal()] = (int) d.getAvoid();
+        if (d.getHands() != null) stats[Stat.HANDS.ordinal()] = (int) d.getHands();
+        if (d.getSpeed() != null) stats[Stat.SPEED.ordinal()] = (int) d.getSpeed();
+        if (d.getJump() != null) stats[Stat.JUMP.ordinal()] = (int) d.getJump();
+        return stats;
     }
 }

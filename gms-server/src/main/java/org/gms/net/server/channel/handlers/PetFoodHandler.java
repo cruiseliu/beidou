@@ -26,7 +26,7 @@ import org.gms.client.Client;
 import org.gms.client.autoban.AutobanManager;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.Pet;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.net.AbstractPacketHandler;
@@ -76,7 +76,7 @@ public final class PetFoodHandler extends AbstractPacketHandler {
                 Inventory useInv = chr.getInventory(InventoryType.USE);
                 useInv.lockInventory();
                 try {
-                    Item use = useInv.getItem(pos);
+                    ItemSlot use = useInv.getItem(pos);
                     if (use == null || (itemId / 10000) != 212 || use.getItemId() != itemId || use.getQuantity() < 1) {
                         return;
                     }

@@ -11,7 +11,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.Pet;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.inventory.ItemConstants;
@@ -120,8 +120,8 @@ public class ModifiedCashItemDO implements Serializable, Cloneable {
         return onSale != null && onSale == 1;
     }
 
-    public Item toItem() {
-        Item item;
+    public ItemSlot toItem() {
+        ItemSlot item;
 
         int petid = -1;
         if (ItemConstants.isPet(itemId)) {
@@ -131,7 +131,7 @@ public class ModifiedCashItemDO implements Serializable, Cloneable {
         if (ItemConstants.getInventoryType(itemId).equals(InventoryType.EQUIP)) {
             item = ItemInformationProvider.getInstance().getEquipById(itemId);
         } else {
-            item = new Item(itemId, (byte) 0, count, petid);
+            item = new ItemSlot(itemId, (byte) 0, count, petid);
         }
 
         if (period == 1) {
@@ -157,7 +157,7 @@ public class ModifiedCashItemDO implements Serializable, Cloneable {
             item.setExpiration(Server.getInstance().getCurrentTime() + DAYS.toMillis(period));
         }
 
-        item.setSN(sn);
+        item.getCashInfo().setSN(sn);
         return item;
     }
 

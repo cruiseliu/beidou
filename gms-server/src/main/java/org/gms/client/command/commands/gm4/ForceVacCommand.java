@@ -67,7 +67,7 @@ public class ForceVacCommand extends Command {
                     if (petId == -1) {
                         continue;
                     }
-                    InventoryManipulator.addById(c, mapItem.getItem().getItemId(), mapItem.getItem().getQuantity(), null, petId);
+                    InventoryManipulator.addById(c, mapItem.getItem().getItemId(), (short) mapItem.getItem().getQuantity(), null, petId);
                 } else if (InventoryManipulator.addFromDrop(c, mapItem.getItem(), true)) {
                     if (mapItem.getItemId() == ItemId.NX_CARD_100) {
                         player.updateAriantScore();

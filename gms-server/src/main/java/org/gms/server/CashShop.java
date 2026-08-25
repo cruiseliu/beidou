@@ -25,7 +25,7 @@ import lombok.Getter;
 import net.jcip.annotations.GuardedBy;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ItemFactory;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.ItemId;
@@ -78,7 +78,7 @@ public class CashShop {
     private int nxPrepaid;
     private boolean opened;
     private ItemFactory factory;
-    private final List<Item> inventory = new ArrayList<>();
+    private final List<ItemSlot> inventory = new ArrayList<>();
     private final List<Integer> wishList = new ArrayList<>();
     private int notes = 0;
     private final Lock lock = new ReentrantLock();
@@ -111,7 +111,7 @@ public class CashShop {
         this.nxPrepaid = Optional.ofNullable(accountsDO.getNxPrepaid()).orElse(0);
 
         try {
-            for (Pair<Item, InventoryType> item : factory.loadItems(accountId, false)) {
+            for (Pair<ItemSlot, InventoryType> item : factory.loadItems(accountId, false)) {
                 inventory.add(item.getLeft());
             }
             trimToSafeInventoryLimit();
@@ -257,8 +257,8 @@ public class CashShop {
             return items.get(sn);
         }
 
-        public static List<Item> getPackage(int itemId) {
-            List<Item> cashPackage = new ArrayList<>();
+        public static List<ItemSlot> getPackage(int itemId) {
+            List<ItemSlot> cashPackage = new ArrayList<>();
 
             for (int sn : packages.get(itemId)) {
                 cashPackage.add(getItem(sn).toItem());
@@ -273,7 +273,7 @@ public class CashShop {
 
     }
 
-    public record CashShopSurpriseResult(Item usedCashShopSurprise, Item reward) {
+    public record CashShopSurpriseResult(ItemSlot usedCashShopSurprise, ItemSlot reward) {
     }
 
     public int getCash(int type) {
@@ -309,7 +309,7 @@ public class CashShop {
         opened = b;
     }
 
-    public List<Item> getInventory() {
+    public List<ItemSlot> getInventory() {
         lock.lock();
         try {
             return Collections.unmodifiableList(inventory);
@@ -318,18 +318,18 @@ public class CashShop {
         }
     }
 
-    public Item findByCashId(int cashId) {
+    public ItemSlot findByCashId(int cashId) {
         boolean isRing;
         Equip equip = null;
-        for (Item item : getInventory()) {
+        for (ItemSlot item : getInventory()) {
             if (item.getInventoryType().equals(InventoryType.EQUIP)) {
-                equip = (Equip) item;
+                equip = item.getEquipInfo();
                 isRing = equip.getRingId() > -1;
             } else {
                 isRing = false;
             }
 
-            if ((item.getPetId() > -1 ? item.getPetId() : isRing ? equip.getRingId() : item.getCashId()) == cashId) {
+            if ((item.getPetId() > -1 ? item.getPetId() : isRing ? equip.getRingId() : item.getCashInfo() != null ? item.getCashInfo().getCashId() : 0) == cashId) {
                 return item;
             }
         }
@@ -337,7 +337,7 @@ public class CashShop {
         return null;
     }
 
-    public boolean addToInventory(Item item) {
+    public boolean addToInventory(ItemSlot item) {
         lock.lock();
         try {
             if (inventory.size() >= MAX_CASH_INVENTORY_SAFE) {
@@ -372,7 +372,7 @@ public class CashShop {
         }
     }
 
-    public void removeFromInventory(Item item) {
+    public void removeFromInventory(ItemSlot item) {
         lock.lock();
         try {
             inventory.remove(item);
@@ -411,8 +411,8 @@ public class CashShop {
         }
     }
 
-    public List<Pair<Item, String>> loadGifts() {
-        List<Pair<Item, String>> gifts = new ArrayList<>();
+    public List<Pair<ItemSlot, String>> loadGifts() {
+        List<Pair<ItemSlot, String>> gifts = new ArrayList<>();
 
         try (Connection con = DatabaseConnection.getConnection()) {
 
@@ -422,9 +422,9 @@ public class CashShop {
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
                         ModifiedCashItemDO cItem = CashItemFactory.getItem(rs.getInt("sn"));
-                        Item item = cItem.toItem();
+                        ItemSlot item = cItem.toItem();
                         Equip equip = null;
-                        item.setGiftFrom(rs.getString("from"));
+                        item.getCashInfo().setGiftFrom(rs.getString("from"));
                         int itemsToStore = 1;
                         if (CashItemFactory.isPackage(cItem.getItemId())) {
                             itemsToStore = CashItemFactory.getPackage(cItem.getItemId()).size();
@@ -434,20 +434,20 @@ public class CashShop {
                         }
                         notes++;
                         if (item.getInventoryType().equals(InventoryType.EQUIP)) {
-                            equip = (Equip) item;
+                            equip = item.getEquipInfo();
                             equip.setRingId(rs.getInt("ringid"));
-                            gifts.add(new Pair<>(equip, rs.getString("message")));
+                            gifts.add(new Pair<>(item, rs.getString("message")));
                         } else {
                             gifts.add(new Pair<>(item, rs.getString("message")));
                         }
 
                         if (CashItemFactory.isPackage(cItem.getItemId())) { //Packages never contains a ring
-                            for (Item packageItem : CashItemFactory.getPackage(cItem.getItemId())) {
-                                packageItem.setGiftFrom(rs.getString("from"));
+                            for (ItemSlot packageItem : CashItemFactory.getPackage(cItem.getItemId())) {
+                                packageItem.getCashInfo().setGiftFrom(rs.getString("from"));
                                 addToInventory(packageItem);
                             }
                         } else {
-                            addToInventory(equip == null ? item : equip);
+                            addToInventory(item);
                         }
                     }
                 }
@@ -481,10 +481,10 @@ public class CashShop {
             ps.executeUpdate();
         }
 
-        List<Pair<Item, InventoryType>> itemsWithType = new ArrayList<>();
+        List<Pair<ItemSlot, InventoryType>> itemsWithType = new ArrayList<>();
 
-        List<Item> inv = getInventory();
-        for (Item item : inv) {
+        List<ItemSlot> inv = getInventory();
+        for (ItemSlot item : inv) {
             itemsWithType.add(new Pair<>(item, item.getInventoryType()));
         }
 
@@ -509,13 +509,13 @@ public class CashShop {
     public Optional<CashShopSurpriseResult> openCashShopSurprise(long cashId) {
         lock.lock();
         try {
-            Optional<Item> maybeCashShopSurprise = getItemByCashId(cashId);
+            Optional<ItemSlot> maybeCashShopSurprise = getItemByCashId(cashId);
             if (maybeCashShopSurprise.isEmpty() ||
                     maybeCashShopSurprise.get().getItemId() != ItemId.CASH_SHOP_SURPRISE) {
                 return Optional.empty();
             }
 
-            Item cashShopSurprise = maybeCashShopSurprise.get();
+            ItemSlot cashShopSurprise = maybeCashShopSurprise.get();
             if (cashShopSurprise.getQuantity() <= 0) {
                 return Optional.empty();
             }
@@ -535,7 +535,7 @@ public class CashShop {
                 removeFromInventory(cashShopSurprise);
             }
 
-            Item itemReward = cashItemReward.get().toItem();
+            ItemSlot itemReward = cashItemReward.get().toItem();
             addToInventory(itemReward);
 
             return Optional.of(new CashShopSurpriseResult(cashShopSurprise, itemReward));
@@ -545,9 +545,9 @@ public class CashShop {
     }
 
     @GuardedBy("lock")
-    private Optional<Item> getItemByCashId(long cashId) {
+    private Optional<ItemSlot> getItemByCashId(long cashId) {
         return inventory.stream()
-                .filter(item -> item.getCashId() == cashId)
+                .filter(item -> item.getCashInfo() != null && item.getCashInfo().getCashId() == cashId)
                 .findAny();
     }
 
@@ -572,7 +572,7 @@ public class CashShop {
         }
     }
 
-    public static Item generateCouponItem(int itemId, short quantity) {
+    public static ItemSlot generateCouponItem(int itemId, short quantity) {
         return ModifiedCashItemDO.builder()
                 .sn(77777777)
                 .itemId(itemId)

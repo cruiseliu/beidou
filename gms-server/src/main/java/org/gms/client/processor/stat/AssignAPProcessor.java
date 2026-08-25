@@ -23,6 +23,7 @@
 */
 package org.gms.client.processor.stat;
 
+import org.gms.client.character.Stat;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.JobEnum;
@@ -32,7 +33,7 @@ import org.gms.client.PacketStat;
 import org.gms.client.autoban.AutobanFactory;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.config.GameConfig;
 import org.gms.constants.skills.BlazeWizard;
 import org.gms.constants.skills.Brawler;
@@ -106,7 +107,7 @@ public class AssignAPProcessor {
             return; // 如果不足1点AP则直接返回
         }
 
-        Collection<Item> equippedC = chr.getInventory(InventoryType.EQUIPPED).list(); // 获取玩家当前装备的物品列表
+        Collection<ItemSlot> equippedC = chr.getInventory(InventoryType.EQUIPPED).list(); // 获取玩家当前装备的物品列表
 
         c.lockClient(); // 锁定客户端，防止并发操作
         try {
@@ -135,25 +136,25 @@ public class AssignAPProcessor {
                 Equip nEquip; // 声明装备对象变量
 
                 // 遍历所有已装备的物品，收集属性信息
-                for (Item item : equippedC) {
-                    nEquip = (Equip) item; // 将物品转换为装备对象
-                    if (nEquip.getStr() > 0) { // 检查装备是否有STR加成
-                        eqpStrList.add(nEquip.getStr()); // 将STR值添加到列表中
+                for (ItemSlot item : equippedC) {
+                    nEquip = item.getEquipInfo(); // 将物品转换为装备对象
+                    if (nEquip.getStat(Stat.STR) > 0) { // 检查装备是否有STR加成
+                        eqpStrList.add((short) nEquip.getStat(Stat.STR)); // 将STR值添加到列表中
                     }
-                    eqpStr += nEquip.getStr(); // 累加STR总值
+                    eqpStr += nEquip.getStat(Stat.STR); // 累加STR总值
 
-                    if (nEquip.getDex() > 0) { // 检查装备是否有DEX加成
-                        eqpDexList.add(nEquip.getDex()); // 将DEX值添加到列表中
+                    if (nEquip.getStat(Stat.DEX) > 0) { // 检查装备是否有DEX加成
+                        eqpDexList.add((short) nEquip.getStat(Stat.DEX)); // 将DEX值添加到列表中
                     }
-                    eqpDex += nEquip.getDex(); // 累加DEX总值
+                    eqpDex += nEquip.getStat(Stat.DEX); // 累加DEX总值
 
-                    if (nEquip.getLuk() > 0) { // 检查装备是否有LUK加成
-                        eqpLukList.add(nEquip.getLuk()); // 将LUK值添加到列表中
+                    if (nEquip.getStat(Stat.LUK) > 0) { // 检查装备是否有LUK加成
+                        eqpLukList.add((short) nEquip.getStat(Stat.LUK)); // 将LUK值添加到列表中
                     }
-                    eqpLuk += nEquip.getLuk(); // 累加LUK总值
+                    eqpLuk += nEquip.getStat(Stat.LUK); // 累加LUK总值
 
                     //if(nEquip.getInt() > 0) eqpIntList.add(nEquip.getInt()); //not needed...
-                    eqpInt += nEquip.getInt(); // 累加INT总值
+                    eqpInt += nEquip.getStat(Stat.INT); // 累加INT总值
                 }
 
                 // 对装备属性列表进行降序排序

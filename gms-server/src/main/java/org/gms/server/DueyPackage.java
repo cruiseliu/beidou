@@ -21,7 +21,7 @@
 */
 package org.gms.server;
 
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 
 import java.sql.Timestamp;
 import java.util.Calendar;
@@ -30,14 +30,14 @@ import static java.util.concurrent.TimeUnit.DAYS;
 
 public class DueyPackage {
     private String sender = null;
-    private Item item = null;
+    private ItemSlot item = null;
     private int mesos = 0;
     private String message = null;
     private Calendar timestamp;
     private int packageId = 0;
     private Integer receiverId;
 
-    public DueyPackage(int pId, Item item) {
+    public DueyPackage(int pId, ItemSlot item) {
         this.item = item;
         packageId = pId;
     }
@@ -54,7 +54,7 @@ public class DueyPackage {
         sender = name;
     }
 
-    public Item getItem() {
+    public ItemSlot getItem() {
         return item;
     }
 

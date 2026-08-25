@@ -23,7 +23,7 @@ package org.gms.net.server.channel.handlers;
 
 import org.gms.client.Client;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.constants.id.ItemId;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
@@ -32,7 +32,7 @@ import org.gms.util.PacketCreator;
 public final class UseItemEffectHandler extends AbstractPacketHandler {
     @Override
     public final void handlePacket(InPacket p, Client c) {
-        Item toUse;
+        ItemSlot toUse;
         int itemId = p.readInt();
         if (itemId == ItemId.BUMMER_EFFECT || itemId == ItemId.GOLDEN_CHICKEN_EFFECT) {
             toUse = c.getPlayer().getInventory(InventoryType.ETC).findById(itemId);

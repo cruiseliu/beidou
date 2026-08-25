@@ -27,7 +27,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.Pet;
 import org.gms.config.GameConfig;
 import org.gms.constants.inventory.ItemConstants;
@@ -75,12 +75,12 @@ public class ItemDropCommand extends Command {
                 long expiration = System.currentTimeMillis() + DAYS.toMillis(days);
                 int petid = Pet.createPet(itemId);
 
-                Item toDrop = new Item(itemId, (short) 0, quantity, petid);
+                ItemSlot toDrop = new ItemSlot(itemId, (short) 0, quantity, petid);
                 toDrop.setExpiration(expiration);
 
                 toDrop.setOwner("");
                 if (player.gmLevel() < 3) {
-                    short f = toDrop.getFlag();
+                    short f = (short) toDrop.getFlag();
                     f |= ItemConstants.ACCOUNT_SHARING;
                     f |= ItemConstants.UNTRADEABLE;
                     f |= ItemConstants.SANDBOX;
@@ -98,16 +98,16 @@ public class ItemDropCommand extends Command {
             }
         }
 
-        Item toDrop;
+        ItemSlot toDrop;
         if (ItemConstants.getInventoryType(itemId) == InventoryType.EQUIP) {
             toDrop = ii.getEquipById(itemId);
         } else {
-            toDrop = new Item(itemId, (short) 0, quantity);
+            toDrop = new ItemSlot(itemId, (short) 0, quantity);
         }
 
         toDrop.setOwner(player.getName());
         if (player.gmLevel() < 3) {
-            short f = toDrop.getFlag();
+            short f = (short) toDrop.getFlag();
             f |= ItemConstants.ACCOUNT_SHARING;
             f |= ItemConstants.UNTRADEABLE;
             f |= ItemConstants.SANDBOX;

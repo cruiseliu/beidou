@@ -21,7 +21,7 @@ package org.gms.server.loot;
 
 import org.gms.client.character.Character;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +36,7 @@ public class LootInventory {
     public LootInventory(Character from) {
         for (InventoryType values : InventoryType.values()) {
 
-            for (Item it : from.getInventory(values).list()) {
+            for (ItemSlot it : from.getInventory(values).list()) {
                 Integer itemQty = items.get(it.getItemId());
 
                 if (itemQty == null) {

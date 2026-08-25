@@ -27,7 +27,7 @@ import org.gms.client.Client;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ModifyInventory;
 import org.gms.client.inventory.Pet;
 import org.gms.model.pojo.NewYearCardRecord;
@@ -87,14 +87,14 @@ public class InventoryManipulator {
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
         if (!type.equals(InventoryType.EQUIP)) {
             short slotMax = ii.getSlotMax(c, itemId);
-            List<Item> existing = inv.listById(itemId);
+            List<ItemSlot> existing = inv.listById(itemId);
             if (!ItemConstants.isRechargeable(itemId) && petid == -1) {
                 if (existing.size() > 0) { // first update all existing slots to slotMax
-                    Iterator<Item> i = existing.iterator();
+                    Iterator<ItemSlot> i = existing.iterator();
                     while (quantity > 0) {
                         if (i.hasNext()) {
-                            Item eItem = i.next();
-                            short oldQ = eItem.getQuantity();
+                            ItemSlot eItem = i.next();
+                            short oldQ = (short) eItem.getQuantity();
                             if (oldQ < slotMax && ((eItem.getOwner().equals(owner) || owner == null) && eItem.getFlag() == flag)) {
                                 short newQ = (short) Math.min(oldQ + quantity, slotMax);
                                 quantity -= (newQ - oldQ);
@@ -112,7 +112,7 @@ public class InventoryManipulator {
                     short newQ = (short) Math.min(quantity, slotMax);
                     if (newQ != 0) {
                         quantity -= newQ;
-                        Item nItem = new Item(itemId, (short) 0, newQ, petid);
+                        ItemSlot nItem = new ItemSlot(itemId, (short) 0, newQ, petid);
                         nItem.setFlag(flag);
                         nItem.setExpiration(expiration);
                         short newSlot = inv.addItem(nItem);
@@ -134,7 +134,7 @@ public class InventoryManipulator {
                     }
                 }
             } else {
-                Item nItem = new Item(itemId, (short) 0, quantity, petid);
+                ItemSlot nItem = new ItemSlot(itemId, (short) 0, quantity, petid);
                 nItem.setFlag(flag);
                 nItem.setExpiration(expiration);
                 short newSlot = inv.addItem(nItem);
@@ -149,7 +149,7 @@ public class InventoryManipulator {
                 }
             }
         } else if (quantity == 1) {
-            Item nEquip = ii.getEquipById(itemId);
+            ItemSlot nEquip = ii.getEquipById(itemId);
             nEquip.setFlag(flag);
             nEquip.setExpiration(expiration);
             if (owner != null) {
@@ -171,15 +171,15 @@ public class InventoryManipulator {
         return true;
     }
 
-    public static boolean addFromDrop(Client c, Item item) {
+    public static boolean addFromDrop(Client c, ItemSlot item) {
         return addFromDrop(c, item, true);
     }
 
-    public static boolean addFromDrop(Client c, Item item, boolean show) {
+    public static boolean addFromDrop(Client c, ItemSlot item, boolean show) {
         return addFromDrop(c, item, show, item.getPetId());
     }
 
-    public static boolean addFromDrop(Client c, Item item, boolean show, int petId) {
+    public static boolean addFromDrop(Client c, ItemSlot item, boolean show, int petId) {
         Character chr = c.getPlayer();
         InventoryType type = item.getInventoryType();
 
@@ -192,7 +192,7 @@ public class InventoryManipulator {
         }
     }
 
-    private static boolean addFromDropInternal(Client c, Character chr, InventoryType type, Inventory inv, Item item, boolean show, int petId) {
+    private static boolean addFromDropInternal(Client c, Character chr, InventoryType type, Inventory inv, ItemSlot item, boolean show, int petId) {
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
         int itemid = item.getItemId();
         if (ii.isPickupRestricted(itemid) && chr.haveItemWithId(itemid, true)) {
@@ -200,18 +200,18 @@ public class InventoryManipulator {
             c.sendPacket(PacketCreator.showItemUnavailable());
             return false;
         }
-        short quantity = item.getQuantity();
+        short quantity = (short) item.getQuantity();
 
         if (!type.equals(InventoryType.EQUIP)) {
             short slotMax = ii.getSlotMax(c, itemid);
-            List<Item> existing = inv.listById(itemid);
+            List<ItemSlot> existing = inv.listById(itemid);
             if (!ItemConstants.isRechargeable(itemid) && petId == -1) {
                 if (existing.size() > 0) { // first update all existing slots to slotMax
-                    Iterator<Item> i = existing.iterator();
+                    Iterator<ItemSlot> i = existing.iterator();
                     while (quantity > 0) {
                         if (i.hasNext()) {
-                            Item eItem = i.next();
-                            short oldQ = eItem.getQuantity();
+                            ItemSlot eItem = i.next();
+                            short oldQ = (short) eItem.getQuantity();
                             if (oldQ < slotMax && item.getFlag() == eItem.getFlag() && item.getOwner().equals(eItem.getOwner())) {
                                 short newQ = (short) Math.min(oldQ + quantity, slotMax);
                                 quantity -= (newQ - oldQ);
@@ -227,7 +227,7 @@ public class InventoryManipulator {
                 while (quantity > 0) {
                     short newQ = (short) Math.min(quantity, slotMax);
                     quantity -= newQ;
-                    Item nItem = new Item(itemid, (short) 0, newQ, petId);
+                    ItemSlot nItem = new ItemSlot(itemid, (short) 0, newQ, petId);
                     nItem.setExpiration(item.getExpiration());
                     nItem.setOwner(item.getOwner());
                     nItem.setFlag(item.getFlag());
@@ -246,7 +246,7 @@ public class InventoryManipulator {
                     }
                 }
             } else {
-                Item nItem = new Item(itemid, (short) 0, quantity, petId);
+                ItemSlot nItem = new ItemSlot(itemid, (short) 0, quantity, petId);
                 nItem.setExpiration(item.getExpiration());
                 nItem.setFlag(item.getFlag());
 
@@ -283,7 +283,7 @@ public class InventoryManipulator {
             return false;
         }
         if (show) {
-            c.sendPacket(PacketCreator.getShowItemGain(itemid, item.getQuantity()));
+            c.sendPacket(PacketCreator.getShowItemGain(itemid, (short) item.getQuantity()));
         }
         return true;
     }
@@ -308,7 +308,7 @@ public class InventoryManipulator {
 
         if (!type.equals(InventoryType.EQUIP)) {
             short slotMax = ii.getSlotMax(c, itemid);
-            List<Item> existing = inv.listById(itemid);
+            List<ItemSlot> existing = inv.listById(itemid);
 
             final int numSlotsNeeded;
             if (ItemConstants.isRechargeable(itemid)) {
@@ -316,8 +316,8 @@ public class InventoryManipulator {
             } else {
                 if (existing.size() > 0) // first update all existing slots to slotMax
                 {
-                    for (Item eItem : existing) {
-                        short oldQ = eItem.getQuantity();
+                    for (ItemSlot eItem : existing) {
+                        short oldQ = (short) eItem.getQuantity();
                         if (oldQ < slotMax && owner.equals(eItem.getOwner())) {
                             short newQ = (short) Math.min(oldQ + quantity, slotMax);
                             quantity -= (newQ - oldQ);
@@ -368,12 +368,12 @@ public class InventoryManipulator {
             if (ItemConstants.isRechargeable(itemid)) {
                 numSlotsNeeded = 1;
             } else {
-                List<Item> existing = inv.listById(itemid);
+                List<ItemSlot> existing = inv.listById(itemid);
 
                 if (existing.size() > 0) // first update all existing slots to slotMax
                 {
-                    for (Item eItem : existing) {
-                        short oldQ = eItem.getQuantity();
+                    for (ItemSlot eItem : existing) {
+                        short oldQ = (short) eItem.getQuantity();
                         if (oldQ < slotMax && owner.equals(eItem.getOwner())) {
                             short newQ = (short) Math.min(oldQ + quantity, slotMax);
                             quantity -= (newQ - oldQ);
@@ -410,13 +410,13 @@ public class InventoryManipulator {
     public static void removeFromSlot(Client c, InventoryType type, short slot, short quantity, boolean fromDrop, boolean consume) {
         Character chr = c.getPlayer();
         Inventory inv = chr.getInventory(type);
-        Item item = inv.getItem(slot);
+        ItemSlot item = inv.getItem(slot);
         boolean allowZero = consume && ItemConstants.isRechargeable(item.getItemId());
 
         if (type == InventoryType.EQUIPPED) {
             inv.lockInventory();
             try {
-                chr.unequippedItem((Equip) item);
+                chr.unequippedItem(item.getEquipInfo());
                 inv.removeItem(slot, quantity, allowZero);
             } finally {
                 inv.unlockInventory();
@@ -447,7 +447,7 @@ public class InventoryManipulator {
         }
     }
 
-    private static void announceModifyInventory(Client c, Item item, boolean fromDrop, boolean allowZero) {
+    private static void announceModifyInventory(Client c, ItemSlot item, boolean fromDrop, boolean allowZero) {
         if (item.getQuantity() == 0 && !allowZero) {
             c.sendPacket(PacketCreator.modifyInventory(fromDrop, Collections.singletonList(new ModifyInventory(3, item))));
         } else {
@@ -461,16 +461,16 @@ public class InventoryManipulator {
         int slotLimit = type == InventoryType.EQUIPPED ? 128 : inv.getSlotLimit();
 
         for (short i = 0; i <= slotLimit; i++) {
-            Item item = inv.getItem((short) (type == InventoryType.EQUIPPED ? -i : i));
+            ItemSlot item = inv.getItem((short) (type == InventoryType.EQUIPPED ? -i : i));
             if (item != null) {
-                if (item.getItemId() == itemId || item.getCashId() == itemId) {
+                if (item.getItemId() == itemId || (item.getCashInfo() != null && item.getCashInfo().getCashId() == itemId)) {
                     if (removeQuantity <= item.getQuantity()) {
-                        removeFromSlot(c, type, item.getPosition(), (short) removeQuantity, fromDrop, consume);
+                        removeFromSlot(c, type, (short) item.getPosition(), (short) removeQuantity, fromDrop, consume);
                         removeQuantity = 0;
                         break;
                     } else {
                         removeQuantity -= item.getQuantity();
-                        removeFromSlot(c, type, item.getPosition(), item.getQuantity(), fromDrop, consume);
+                        removeFromSlot(c, type, (short) item.getPosition(), (short) item.getQuantity(), fromDrop, consume);
                     }
                 }
             }
@@ -480,7 +480,7 @@ public class InventoryManipulator {
         }
     }
 
-    private static boolean isSameOwner(Item source, Item target) {
+    private static boolean isSameOwner(ItemSlot source, ItemSlot target) {
         return source.getOwner().equals(target.getOwner());
     }
 
@@ -494,16 +494,16 @@ public class InventoryManipulator {
             return;
         }
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
-        Item source = inv.getItem(src);
-        Item initialTarget = inv.getItem(dst);
+        ItemSlot source = inv.getItem(src);
+        ItemSlot initialTarget = inv.getItem(dst);
         if (source == null) {
             return;
         }
         short olddstQ = -1;
         if (initialTarget != null) {
-            olddstQ = initialTarget.getQuantity();
+            olddstQ = (short) initialTarget.getQuantity();
         }
-        short oldsrcQ = source.getQuantity();
+        short oldsrcQ = (short) source.getQuantity();
         short slotMax = ii.getSlotMax(c, source.getItemId());
         inv.move(src, dst, slotMax);
         final List<ModifyInventory> mods = new ArrayList<>();
@@ -536,7 +536,8 @@ public class InventoryManipulator {
         Inventory eqpInv = chr.getInventory(InventoryType.EQUIP);
         Inventory eqpdInv = chr.getInventory(InventoryType.EQUIPPED);
 
-        Equip source = (Equip) eqpInv.getItem(src);
+        ItemSlot sourceItem = eqpInv.getItem(src);
+        Equip source = sourceItem.getEquipInfo();
         int itemGender = ItemId.getGender(source.getItemId());
         //控制台参数为true时进行校验判断
         if(GameConfig.getServerBoolean("use_equipment_gender_limit") && itemGender != 2 && itemGender != chr.getGender()) {  //判断装备是否要求角色性别
@@ -561,7 +562,7 @@ public class InventoryManipulator {
         boolean itemChanged = false;
 
         if (ii.isUntradeableOnEquip(source.getItemId())) {
-            short flag = source.getFlag();      // thanks BHB for noticing flags missing after equipping these      //感谢BHB在安装这些设备后发现旗帜丢失
+            short flag = (short) source.getFlag();      // thanks BHB for noticing flags missing after equipping these      //感谢BHB在安装这些设备后发现旗帜丢失
             flag |= ItemConstants.UNTRADEABLE;
             source.setFlag(flag);
 
@@ -569,7 +570,7 @@ public class InventoryManipulator {
         }
         switch (dst) {
         case -6: // unequip the overall
-            Item top = eqpdInv.getItem((short) -5);
+            ItemSlot top = eqpdInv.getItem((short) -5);
             if (top != null && ItemConstants.isOverall(top.getItemId())) {
                 if (eqpInv.isFull()) {
                     c.sendPacket(PacketCreator.getInventoryFull());
@@ -580,7 +581,7 @@ public class InventoryManipulator {
             }
             break;
         case -5:
-            final Item bottom = eqpdInv.getItem((short) -6);
+            final ItemSlot bottom = eqpdInv.getItem((short) -6);
             if (bottom != null && ItemConstants.isOverall(source.getItemId())) {
                 if (eqpInv.isFull()) {
                     c.sendPacket(PacketCreator.getInventoryFull());
@@ -591,7 +592,7 @@ public class InventoryManipulator {
             }
             break;
         case -10: // check if weapon is two-handed
-            Item weapon = eqpdInv.getItem((short) -11);
+            ItemSlot weapon = eqpdInv.getItem((short) -11);
             if (weapon != null && ii.isTwoHanded(weapon.getItemId())) {
                 if (eqpInv.isFull()) {
                     c.sendPacket(PacketCreator.getInventoryFull());
@@ -602,7 +603,7 @@ public class InventoryManipulator {
             }
             break;
         case -11:
-            Item shield = eqpdInv.getItem((short) -10);
+            ItemSlot shield = eqpdInv.getItem((short) -10);
             if (shield != null && ii.isTwoHanded(source.getItemId())) {
                 if (eqpInv.isFull()) {
                     c.sendPacket(PacketCreator.getInventoryFull());
@@ -620,13 +621,15 @@ public class InventoryManipulator {
         }
 
         //1112413, 1112414, 1112405 (Lilin's Ring)
-        source = (Equip) eqpInv.getItem(src);
+        source = sourceItem.getEquipInfo();
         eqpInv.removeSlot(src);
 
+        ItemSlot targetItem;
         Equip target;
         eqpdInv.lockInventory();
         try {
-            target = (Equip) eqpdInv.getItem(dst);
+            targetItem = eqpdInv.getItem(dst);
+            target = targetItem == null ? null : targetItem.getEquipInfo();
             if (target != null) {
                 chr.unequippedItem(target);
                 eqpdInv.removeSlot(dst);
@@ -637,11 +640,11 @@ public class InventoryManipulator {
 
         final List<ModifyInventory> mods = new ArrayList<>();
         if (itemChanged) {
-            mods.add(new ModifyInventory(3, source));
-            mods.add(new ModifyInventory(0, source.copy()));//to prevent crashes
+            mods.add(new ModifyInventory(3, sourceItem));
+            mods.add(new ModifyInventory(0, sourceItem.copy()));//to prevent crashes
         }
 
-        source.setPosition(dst);
+        sourceItem.setPosition(dst);
 
         eqpdInv.lockInventory();
         try {
@@ -649,14 +652,14 @@ public class InventoryManipulator {
                 chr.getRingById(source.getRingId()).equip();
             }
             chr.equippedItem(source);
-            eqpdInv.addItemFromDB(source);
+            eqpdInv.addItemFromDB(sourceItem);
         } finally {
             eqpdInv.unlockInventory();
         }
 
-        if (target != null) {
-            target.setPosition(src);
-            eqpInv.addItemFromDB(target);
+        if (targetItem != null) {
+            targetItem.setPosition(src);
+            eqpInv.addItemFromDB(targetItem);
         }
         if (chr.getBuffedValue(EffectType.BOOSTER) != null && ItemConstants.isWeapon(source.getItemId())) {
             chr.cancelBuffStats(EffectType.BOOSTER);
@@ -670,7 +673,7 @@ public class InventoryManipulator {
             }
         }
 
-        mods.add(new ModifyInventory(2, source, src));
+        mods.add(new ModifyInventory(2, sourceItem, src));
         c.sendPacket(PacketCreator.modifyInventory(true, mods));
         chr.equipChanged();
     }
@@ -680,8 +683,10 @@ public class InventoryManipulator {
         Inventory eqpInv = chr.getInventory(InventoryType.EQUIP);
         Inventory eqpdInv = chr.getInventory(InventoryType.EQUIPPED);
 
-        Equip source = (Equip) eqpdInv.getItem(src);
-        Equip target = (Equip) eqpInv.getItem(dst);
+        ItemSlot sourceItem = eqpdInv.getItem(src);
+        Equip source = sourceItem.getEquipInfo();
+        ItemSlot targetItem = eqpInv.getItem(dst);
+        Equip target = targetItem == null ? null : targetItem.getEquipInfo();
         if (dst < 0) {
             return;
         }
@@ -707,11 +712,11 @@ public class InventoryManipulator {
         if (target != null) {
             eqpInv.removeSlot(dst);
         }
-        source.setPosition(dst);
-        eqpInv.addItemFromDB(source);
-        if (target != null) {
-            target.setPosition(src);
-            eqpdInv.addItemFromDB(target);
+        sourceItem.setPosition(dst);
+        eqpInv.addItemFromDB(sourceItem);
+        if (targetItem != null) {
+            targetItem.setPosition(src);
+            eqpdInv.addItemFromDB(targetItem);
         }
 
         int petIndex = ItemConstants.PETS_NAME_TAG.indexOf(src);
@@ -722,11 +727,11 @@ public class InventoryManipulator {
             }
         }
         
-        c.sendPacket(PacketCreator.modifyInventory(true, Collections.singletonList(new ModifyInventory(2, source, src))));
+        c.sendPacket(PacketCreator.modifyInventory(true, Collections.singletonList(new ModifyInventory(2, sourceItem, src))));
         chr.equipChanged();
     }
 
-    private static boolean isDisappearingItemDrop(Item it) {
+    private static boolean isDisappearingItemDrop(ItemSlot it) {
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
         if (ii.isDropRestricted(it.getItemId())) {
             return true;
@@ -750,7 +755,7 @@ public class InventoryManipulator {
 
         Character chr = c.getPlayer();
         Inventory inv = chr.getInventory(type);
-        Item source = inv.getItem(src);
+        ItemSlot source = inv.getItem(src);
 
         if (chr.isGM() && chr.gmLevel() < GameConfig.getServerInt("minimum_gm_level_to_drop")) {
             chr.message("You cannot drop items at your GM level.");
@@ -779,7 +784,7 @@ public class InventoryManipulator {
 
         Point dropPos = new Point(chr.getPosition());
         if (quantity < source.getQuantity() && !ItemConstants.isRechargeable(itemId)) {
-            Item target = source.copy();
+            ItemSlot target = source.copy();
             target.setQuantity(quantity);
             source.setQuantity((short) (source.getQuantity() - quantity));
             c.sendPacket(PacketCreator.modifyInventory(true, Collections.singletonList(new ModifyInventory(1, source))));
@@ -803,7 +808,7 @@ public class InventoryManipulator {
             if (type == InventoryType.EQUIPPED) {
                 inv.lockInventory();
                 try {
-                    chr.unequippedItem((Equip) source);
+                    chr.unequippedItem(source.getEquipInfo());
                     inv.removeSlot(src);
                 } finally {
                     inv.unlockInventory();
@@ -847,11 +852,11 @@ public class InventoryManipulator {
         }
     }
 
-    private static boolean isDroppedItemRestricted(Item it) {
+    private static boolean isDroppedItemRestricted(ItemSlot it) {
         return GameConfig.getServerBoolean("use_erase_untradeable_drop") && it.isUntradeable();
     }
 
-    public static boolean isSandboxItem(Item it) {
+    public static boolean isSandboxItem(ItemSlot it) {
         return (it.getFlag() & ItemConstants.SANDBOX) == ItemConstants.SANDBOX;
     }
 }

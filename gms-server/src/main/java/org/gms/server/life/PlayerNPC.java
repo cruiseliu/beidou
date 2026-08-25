@@ -345,7 +345,7 @@ public class PlayerNPC extends AbstractMapObject {
         List<PlayernpcsEquipDO> playerNpcEquipDOS = chr.getInventory(InventoryType.EQUIPPED).list().stream()
                 .map(equip -> PlayernpcsEquipDO.builder()
                         .equipid(equip.getItemId())
-                        .equippos(equip.getPosition())
+                        .equippos((short) equip.getPosition())
                         .build())
                 .toList();
         return npcService.createPlayerNPC(playerNpcDO, playerNpcEquipDOS);

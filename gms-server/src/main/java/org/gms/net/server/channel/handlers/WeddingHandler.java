@@ -11,7 +11,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.client.inventory.manipulator.KarmaManipulator;
 import org.gms.config.GameConfig;
@@ -61,10 +61,10 @@ public final class WeddingHandler extends AbstractPacketHandler {
                                         InventoryType type = ItemConstants.getInventoryType(itemid);
                                         Inventory chrInv = chr.getInventory(type);
 
-                                        Item newItem = null;
+                                        ItemSlot newItem = null;
                                         chrInv.lockInventory();
                                         try {
-                                            Item item = chrInv.getItem((byte) slot);
+                                            ItemSlot item = chrInv.getItem((byte) slot);
                                             if (item != null) {
                                                 if (!item.isUntradeable()) {
                                                     if (itemid == item.getItemId() && quantity <= item.getQuantity()) {
@@ -114,7 +114,7 @@ public final class WeddingHandler extends AbstractPacketHandler {
                     if (marriage != null) {
                         Boolean groomWishlist = marriage.isMarriageGroom(chr);
                         if (groomWishlist != null) {
-                            Item item = marriage.getGiftItem(c, groomWishlist, itemPos);
+                            ItemSlot item = marriage.getGiftItem(c, groomWishlist, itemPos);
                             if (item != null) {
                                 if (Inventory.checkSpot(chr, item)) {
                                     marriage.removeGiftItem(groomWishlist, item);
@@ -133,9 +133,9 @@ public final class WeddingHandler extends AbstractPacketHandler {
                             }
                         }
                     } else {
-                        List<Item> items = c.getAbstractPlayerInteraction().getUnclaimedMarriageGifts();
+                        List<ItemSlot> items = c.getAbstractPlayerInteraction().getUnclaimedMarriageGifts();
                         try {
-                            Item item = items.get(itemPos);
+                            ItemSlot item = items.get(itemPos);
                             if (Inventory.checkSpot(chr, item)) {
                                 items.remove(itemPos);
                                 Marriage.saveGiftItemsToDb(c, items, chr.getId());

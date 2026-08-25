@@ -2,6 +2,7 @@ package org.gms.service;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.gms.client.character.Stat;
 import org.gms.client.inventory.Equip;
 import org.gms.constants.api.InformationType;
 import org.gms.exception.BizException;
@@ -39,22 +40,22 @@ public class CommonService {
         }
         Equip equip = itemService.getEquipmentInfoByItemId(submitData.getId());
         EquipmentInfoRtnDTO rtn = new EquipmentInfoRtnDTO();
-        rtn.setStr(equip.getStr());
-        rtn.setDex(equip.getDex());
-        rtn.set_int(equip.getInt());
-        rtn.setLuk(equip.getLuk());
-        rtn.setHp(equip.getHp());
-        rtn.setMp(equip.getMp());
-        rtn.setPAtk(equip.getWatk());
-        rtn.setMAtk(equip.getMatk());
-        rtn.setPDef(equip.getWdef());
-        rtn.setMDef(equip.getMdef());
-        rtn.setAcc(equip.getAcc());
-        rtn.setAvoid(equip.getAvoid());
-        rtn.setHands(equip.getHands());
-        rtn.setSpeed(equip.getSpeed());
-        rtn.setJump(equip.getJump());
-        rtn.setUpgradeSlot(equip.getUpgradeSlots());
+        rtn.setStr((short) equip.getStat(Stat.STR));
+        rtn.setDex((short) equip.getStat(Stat.DEX));
+        rtn.set_int((short) equip.getStat(Stat.INT));
+        rtn.setLuk((short) equip.getStat(Stat.LUK));
+        rtn.setHp((short) equip.getStat(Stat.MAX_HP));
+        rtn.setMp((short) equip.getStat(Stat.MAX_MP));
+        rtn.setPAtk((short) equip.getStat(Stat.P_ATK));
+        rtn.setMAtk((short) equip.getStat(Stat.M_ATK));
+        rtn.setPDef((short) equip.getStat(Stat.P_DEF));
+        rtn.setMDef((short) equip.getStat(Stat.M_DEF));
+        rtn.setAcc((short) equip.getStat(Stat.ACCURACY));
+        rtn.setAvoid((short) equip.getStat(Stat.AVOIDABILITY));
+        rtn.setHands((short) equip.getStat(Stat.HANDS));
+        rtn.setSpeed((short) equip.getStat(Stat.SPEED));
+        rtn.setJump((short) equip.getStat(Stat.JUMP));
+        rtn.setUpgradeSlot((byte) equip.getEnhancementSlots());
         rtn.setExpire(equip.getExpiration());
         return rtn;
     }

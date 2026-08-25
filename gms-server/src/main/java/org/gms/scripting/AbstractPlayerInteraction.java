@@ -274,19 +274,19 @@ public class AbstractPlayerInteraction {
     private boolean canHoldAll(List<Integer> itemids, List<Integer> quantity, boolean isInteger) {
         int size = Math.min(itemids.size(), quantity.size());
 
-        List<Pair<Item, InventoryType>> addedItems = new LinkedList<>();
+        List<Pair<ItemSlot, InventoryType>> addedItems = new LinkedList<>();
         for (int i = 0; i < size; i++) {
-            Item it = new Item(itemids.get(i), (short) 0, quantity.get(i).shortValue());
+            ItemSlot it = new ItemSlot(itemids.get(i), (short) 0, quantity.get(i).shortValue());
             addedItems.add(new Pair<>(it, ItemConstants.getInventoryType(itemids.get(i))));
         }
 
         return Inventory.checkSpots(c.getPlayer(), addedItems);
     }
 
-    private List<Pair<Item, InventoryType>> prepareProofInventoryItems(List<Pair<Integer, Integer>> items) {
-        List<Pair<Item, InventoryType>> addedItems = new LinkedList<>();
+    private List<Pair<ItemSlot, InventoryType>> prepareProofInventoryItems(List<Pair<Integer, Integer>> items) {
+        List<Pair<ItemSlot, InventoryType>> addedItems = new LinkedList<>();
         for (Pair<Integer, Integer> p : items) {
-            Item it = new Item(p.getLeft(), (short) 0, p.getRight().shortValue());
+            ItemSlot it = new ItemSlot(p.getLeft(), (short) 0, p.getRight().shortValue());
             addedItems.add(new Pair<>(it, InventoryType.CANHOLD));
         }
 
@@ -329,7 +329,7 @@ public class AbstractPlayerInteraction {
                         InventoryManipulator.removeById(c, InventoryType.CANHOLD, p.getLeft(), p.getRight(), false, false);
                     }
 
-                    List<Pair<Item, InventoryType>> addItems = prepareProofInventoryItems(toAdd);
+                    List<Pair<ItemSlot, InventoryType>> addItems = prepareProofInventoryItems(toAdd);
 
                     boolean canHold = Inventory.checkSpots(c.getPlayer(), addItems, true);
                     if (!canHold) {
@@ -526,7 +526,7 @@ public class AbstractPlayerInteraction {
         }
     }
 
-    public Item evolvePet(byte slot, int afterId) {
+    public ItemSlot evolvePet(byte slot, int afterId) {
         Pet evolved = null;
         Pet target;
 
@@ -539,7 +539,7 @@ public class AbstractPlayerInteraction {
             return (null);
         }
 
-        Item tmp = gainItem(afterId, (short) 1, false, true, period, target);
+        ItemSlot tmp = gainItem(afterId, (short) 1, false, true, period, target);
             
             /*
             evolved = Pet.loadFromDb(tmp.getItemId(), tmp.getPosition(), tmp.getPetId());
@@ -562,7 +562,7 @@ public class AbstractPlayerInteraction {
             chr.getClient().getWorldServer().registerPetHunger(chr, chr.getPetIndex(evolved));
             */
 
-        InventoryManipulator.removeFromSlot(c, InventoryType.CASH, target.getPosition(), (short) 1, false);
+        InventoryManipulator.removeFromSlot(c, InventoryType.CASH, (short) target.getPosition(), (short) 1, false);
 
         return evolved;
     }
@@ -583,16 +583,16 @@ public class AbstractPlayerInteraction {
         gainItem(id, (short) 1, false, true);
     }
 
-    public Item gainItem(int id, short quantity, boolean randomStats, boolean showMessage) {
+    public ItemSlot gainItem(int id, short quantity, boolean randomStats, boolean showMessage) {
         return gainItem(id, quantity, randomStats, showMessage, -1);
     }
 
-    public Item gainItem(int id, short quantity, boolean randomStats, boolean showMessage, long expires) {
+    public ItemSlot gainItem(int id, short quantity, boolean randomStats, boolean showMessage, long expires) {
         return gainItem(id, quantity, randomStats, showMessage, expires, null);
     }
 
-    public Item gainItem(int id, short quantity, boolean randomStats, boolean showMessage, long expires, Pet from) {
-        Item item = null;
+    public ItemSlot gainItem(int id, short quantity, boolean randomStats, boolean showMessage, long expires, Pet from) {
+        ItemSlot item = null;
         Pet evolved;
         int petId = -1;
 
@@ -627,21 +627,21 @@ public class AbstractPlayerInteraction {
                 item = ii.getEquipById(id);
 
                 if (item != null) {
-                    Equip it = (Equip) item;
-                    if (ItemConstants.isAccessory(item.getItemId()) && it.getUpgradeSlots() <= 0) {
+                    Equip it = item.getEquipInfo();
+                    if (ItemConstants.isAccessory(item.getItemId()) && it.getEnhancementSlots() <= 0) {
                         it.setUpgradeSlots(3);
                     }
 
                     if (GameConfig.getServerBoolean("use_enhanced_crafting") && c.getPlayer().isUseCS()) {
-                        Equip eqp = (Equip) item;
+                        Equip eqp = item.getEquipInfo();
                         if (!(c.getPlayer().isGM() && GameConfig.getServerBoolean("use_perfect_gm_scroll"))) {
-                            eqp.setUpgradeSlots((byte) (eqp.getUpgradeSlots() + 1));
+                            eqp.setEnhancementSlots((byte) (eqp.getEnhancementSlots() + 1));
                         }
                         item = ItemInformationProvider.getInstance().scrollEquipWithId(item, ItemId.CHAOS_SCROll_60, true, ItemId.CHAOS_SCROll_60, c.getPlayer().isGM());
                     }
                 }
             } else {
-                item = new Item(id, (short) 0, quantity, petId);
+                item = new ItemSlot(id, (short) 0, quantity, petId);
             }
 
             if (expires >= 0) {
@@ -654,7 +654,8 @@ public class AbstractPlayerInteraction {
             }
             if (ItemConstants.getInventoryType(id) == InventoryType.EQUIP) {
                 if (randomStats) {
-                    InventoryManipulator.addFromDrop(c, ii.randomizeStats((Equip) item), false, petId);
+                    ii.randomizeStats(item.getEquipInfo());
+                    InventoryManipulator.addFromDrop(c, item, false, petId);
                 } else {
                     InventoryManipulator.addFromDrop(c, item, false, petId);
                 }
@@ -897,16 +898,16 @@ public class AbstractPlayerInteraction {
 
     public void removeAllByInventory(int invType) {
         Inventory inv = getInventory(invType);
-        for (Item item : new ArrayList<>(inv.list())) {
-            InventoryManipulator.removeFromSlot(c, inv.getType(), item.getPosition(), item.getQuantity(), false);
+        for (ItemSlot item : new ArrayList<>(inv.list())) {
+            InventoryManipulator.removeFromSlot(c, inv.getType(), (short) item.getPosition(), (short) item.getQuantity(), false);
         }
     }
 
     public void removeAllByInventorySlot(int invType, short slot) {
         Inventory inv = getInventory(invType);
-        Item item = inv.getItem(slot);
+        ItemSlot item = inv.getItem(slot);
         if (item != null) {
-            InventoryManipulator.removeFromSlot(c, inv.getType(), item.getPosition(), item.getQuantity(), false);
+            InventoryManipulator.removeFromSlot(c, inv.getType(), (short) item.getPosition(), (short) item.getQuantity(), false);
         }
     }
 
@@ -968,16 +969,16 @@ public class AbstractPlayerInteraction {
     }
 
     public void removeEquipFromSlot(short slot) {
-        Item tempItem = c.getPlayer().getInventory(InventoryType.EQUIPPED).getItem(slot);
-        InventoryManipulator.removeFromSlot(c, InventoryType.EQUIPPED, slot, tempItem.getQuantity(), false, false);
+        ItemSlot tempItem = c.getPlayer().getInventory(InventoryType.EQUIPPED).getItem(slot);
+        InventoryManipulator.removeFromSlot(c, InventoryType.EQUIPPED, slot, (short) tempItem.getQuantity(), false, false);
     }
 
     public void gainAndEquip(int itemid, short slot) {
-        final Item old = c.getPlayer().getInventory(InventoryType.EQUIPPED).getItem(slot);
+        final ItemSlot old = c.getPlayer().getInventory(InventoryType.EQUIPPED).getItem(slot);
         if (old != null) {
-            InventoryManipulator.removeFromSlot(c, InventoryType.EQUIPPED, slot, old.getQuantity(), false, false);
+            InventoryManipulator.removeFromSlot(c, InventoryType.EQUIPPED, slot, (short) old.getQuantity(), false, false);
         }
-        final Item newItem = ItemInformationProvider.getInstance().getEquipById(itemid);
+        final ItemSlot newItem = ItemInformationProvider.getInstance().getEquipById(itemid);
         newItem.setPosition(slot);
         c.getPlayer().getInventory(InventoryType.EQUIPPED).addItemFromDB(newItem);
         c.sendPacket(PacketCreator.modifyInventory(false, Collections.singletonList(new ModifyInventory(0, newItem))));
@@ -1150,7 +1151,7 @@ public class AbstractPlayerInteraction {
         List<Pet> list = new LinkedList<>();
 
         long curTime = System.currentTimeMillis();
-        for (Item it : getPlayer().getInventory(InventoryType.CASH).list()) {
+        for (ItemSlot it : getPlayer().getInventory(InventoryType.CASH).list()) {
             if (ItemConstants.isPet(it.getItemId()) && it.getExpiration() < curTime) {
                 Pet pet = it.getPet();
                 if (pet != null) {
@@ -1162,7 +1163,7 @@ public class AbstractPlayerInteraction {
         return list;
     }
 
-    public List<Item> getUnclaimedMarriageGifts() {
+    public List<ItemSlot> getUnclaimedMarriageGifts() {
         return Marriage.loadGiftItemsFromDb(this.getClient(), this.getPlayer().getId());
     }
 
@@ -1310,12 +1311,6 @@ public class AbstractPlayerInteraction {
                 extendName, extendValue);
     }
 
-    public void gainEquip(Equip equip) {
-        if (!InventoryManipulator.checkSpace(getClient(), equip.getItemId(), 1, equip.getOwner())) {
-            message(I18nUtil.getMessage("AbstractPlayerInteraction.gainEquip.message2", InventoryType.EQUIP.getName()));
-        }
-        InventoryManipulator.addFromDrop(getClient(), equip, false);
-    }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
     /***

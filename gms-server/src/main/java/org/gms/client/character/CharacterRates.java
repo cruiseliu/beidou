@@ -3,7 +3,7 @@ package org.gms.client.character;
 import org.gms.client.EffectType;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
 import org.gms.constants.inventory.ItemConstants;
@@ -201,7 +201,7 @@ class CharacterRates {
     public void setCouponRates() {
         List<Integer> couponEffects;
 
-        Collection<Item> cashItems = owner.getInventory(InventoryType.CASH).list();
+        Collection<ItemSlot> cashItems = owner.getInventory(InventoryType.CASH).list();
         try (var ignored = Locks.acquire(owner.chrLock)) {
             setActiveCoupons(cashItems);
             couponEffects = activateCouponsEffects();
@@ -323,14 +323,14 @@ class CharacterRates {
         return toCommitEffect;
     }
 
-    private void setActiveCoupons(Collection<Item> cashItems) {
+    private void setActiveCoupons(Collection<ItemSlot> cashItems) {
         activeCoupons.clear();
         activeCouponRates.clear();
 
         Map<Integer, Integer> coupons = Server.getInstance().getCouponRates();
         List<Integer> active = Server.getInstance().getActiveCoupons();
 
-        for (Item it : cashItems) {
+        for (ItemSlot it : cashItems) {
             if (ItemConstants.isRateCoupon(it.getItemId()) && active.contains(it.getItemId())) {
                 Integer count = activeCoupons.get(it.getItemId());
 

@@ -2,7 +2,7 @@ package org.gms.net.server.channel.handlers;
 
 import org.gms.client.Client;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.constants.game.GameConstants;
 import org.gms.net.AbstractPacketHandler;
@@ -21,7 +21,7 @@ public final class UseTreasureChestHandler extends AbstractPacketHandler {
         final short slot = p.readShort();
         final int itemid = p.readInt();
 
-        final Item toUse = c.getPlayer().getInventory(InventoryType.ETC).getItem((byte) slot);
+        final ItemSlot toUse = c.getPlayer().getInventory(InventoryType.ETC).getItem((byte) slot);
         if (toUse == null || toUse.getQuantity() <= 0 || toUse.getItemId() != itemid) {
             c.sendPacket(PacketCreator.enableActions());
             return;

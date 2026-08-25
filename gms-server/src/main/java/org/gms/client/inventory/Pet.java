@@ -42,7 +42,7 @@ import java.util.List;
 /**
  * @author Matze
  */
-public class Pet extends Item {
+public class Pet extends ItemSlot {
     private String name;
     private int uniqueid;
     private int tameness = 0;
@@ -238,7 +238,7 @@ public class Pet extends Item {
         owner.getMap().broadcastMessage(PacketCreator.petFoodResponse(owner.getId(), slot, enjoyed, owner.hasPetChatballoon(slot)));
         saveToDb();
 
-        Item petz = owner.getInventory(InventoryType.CASH).getItem(getPosition());
+        ItemSlot petz = owner.getInventory(InventoryType.CASH).getItem((short) getPosition());
         if (petz != null) {
             owner.forceUpdateItem(petz);
         }
@@ -300,7 +300,7 @@ public class Pet extends Item {
         this.petAttribute |= flag.getValue();
         saveToDb();
 
-        Item petz = owner.getInventory(InventoryType.CASH).getItem(getPosition());
+        ItemSlot petz = owner.getInventory(InventoryType.CASH).getItem((short) getPosition());
         if (petz != null) {
             owner.forceUpdateItem(petz);
         }
@@ -310,7 +310,7 @@ public class Pet extends Item {
         this.petAttribute &= 0xFFFFFFFF ^ flag.getValue();
         saveToDb();
 
-        Item petz = owner.getInventory(InventoryType.CASH).getItem(getPosition());
+        ItemSlot petz = owner.getInventory(InventoryType.CASH).getItem((short) getPosition());
         if (petz != null) {
             owner.forceUpdateItem(petz);
         }

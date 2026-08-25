@@ -27,7 +27,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.SkillFactory;
 import org.gms.client.command.CommandsExecutor;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ItemFactory;
 import org.gms.config.GameConfig;
 import org.gms.dao.entity.CharactersDO;
@@ -1337,11 +1337,11 @@ public class Server {
         List<Character> chars = new LinkedList<>();
         int curWorld = 0;
         try {
-            List<Pair<Item, Integer>> accEquips = ItemFactory.loadEquippedItems(accId, true, true);
-            Map<Integer, List<Item>> accPlayerEquips = new HashMap<>();
+            List<Pair<ItemSlot, Integer>> accEquips = ItemFactory.loadEquippedItems(accId, true, true);
+            Map<Integer, List<ItemSlot>> accPlayerEquips = new HashMap<>();
 
-            for (Pair<Item, Integer> ae : accEquips) {
-                List<Item> playerEquips = accPlayerEquips.get(ae.getRight());
+            for (Pair<ItemSlot, Integer> ae : accEquips) {
+                List<ItemSlot> playerEquips = accPlayerEquips.get(ae.getRight());
                 if (playerEquips == null) {
                     playerEquips = new LinkedList<>();
                     accPlayerEquips.put(ae.getRight(), playerEquips);

@@ -46,9 +46,9 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * @author Matze, Ronan
  */
-public class Inventory implements Iterable<Item> {
+public class Inventory implements Iterable<ItemSlot> {
     private static final Logger log = LoggerFactory.getLogger(Inventory.class);
-    protected final Map<Short, Item> inventory;
+    protected final Map<Short, ItemSlot> inventory;
     protected final InventoryType type;
     protected final Lock lock = new ReentrantLock(true);
 
@@ -85,9 +85,9 @@ public class Inventory implements Iterable<Item> {
         try {
             if (newLimit < slotLimit) {
                 List<Short> toRemove = new LinkedList<>();
-                for (Item it : list()) {
+                for (ItemSlot it : list()) {
                     if (it.getPosition() > newLimit) {
-                        toRemove.add(it.getPosition());
+                        toRemove.add((short) it.getPosition());
                     }
                 }
 
@@ -102,7 +102,7 @@ public class Inventory implements Iterable<Item> {
         }
     }
 
-    public Collection<Item> list() {
+    public Collection<ItemSlot> list() {
         lock.lock();
         try {
             return new ArrayList<>(inventory.values());
@@ -111,8 +111,8 @@ public class Inventory implements Iterable<Item> {
         }
     }
 
-    public Item findById(int itemId) {
-        for (Item item : list()) {
+    public ItemSlot findById(int itemId) {
+        for (ItemSlot item : list()) {
             if (item.getItemId() == itemId) {
                 return item;
             }
@@ -120,9 +120,9 @@ public class Inventory implements Iterable<Item> {
         return null;
     }
 
-    public Item findByName(String name) {
+    public ItemSlot findByName(String name) {
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
-        for (Item item : list()) {
+        for (ItemSlot item : list()) {
             String itemName = ii.getName(item.getItemId());
             if (itemName == null) {
                 log.error("[CRITICAL] Item {} has no name", item.getItemId());
@@ -138,7 +138,7 @@ public class Inventory implements Iterable<Item> {
 
     public int countById(int itemId) {
         int qty = 0;
-        for (Item item : list()) {
+        for (ItemSlot item : list()) {
             if (item.getItemId() == itemId) {
                 qty += item.getQuantity();
             }
@@ -148,7 +148,7 @@ public class Inventory implements Iterable<Item> {
 
     public int countNotOwnedById(int itemId) {
         int qty = 0;
-        for (Item item : list()) {
+        for (ItemSlot item : list()) {
             if (item.getItemId() == itemId && item.getOwner().equals("")) {
                 qty += item.getQuantity();
             }
@@ -157,11 +157,11 @@ public class Inventory implements Iterable<Item> {
     }
 
     public int freeSlotCountById(int itemId, int required) {
-        List<Item> itemList = listById(itemId);
+        List<ItemSlot> itemList = listById(itemId);
         int openSlot = 0;
 
         if (!ItemConstants.isRechargeable(itemId)) {
-            for (Item item : itemList) {
+            for (ItemSlot item : itemList) {
                 required -= item.getQuantity();
 
                 if (required >= 0) {
@@ -174,7 +174,7 @@ public class Inventory implements Iterable<Item> {
                 }
             }
         } else {
-            for (Item item : itemList) {
+            for (ItemSlot item : itemList) {
                 required -= 1;
 
                 if (required >= 0) {
@@ -191,9 +191,9 @@ public class Inventory implements Iterable<Item> {
         return -1;
     }
 
-    public List<Item> listById(int itemId) {
-        List<Item> ret = new ArrayList<>();
-        for (Item item : list()) {
+    public List<ItemSlot> listById(int itemId) {
+        List<ItemSlot> ret = new ArrayList<>();
+        for (ItemSlot item : list()) {
             if (item.getItemId() == itemId) {
                 ret.add(item);
             }
@@ -206,9 +206,9 @@ public class Inventory implements Iterable<Item> {
         return ret;
     }
 
-    public List<Item> linkedListById(int itemId) {
-        List<Item> ret = new LinkedList<>();
-        for (Item item : list()) {
+    public List<ItemSlot> linkedListById(int itemId) {
+        List<ItemSlot> ret = new LinkedList<>();
+        for (ItemSlot item : list()) {
             if (item.getItemId() == itemId) {
                 ret.add(item);
             }
@@ -221,7 +221,7 @@ public class Inventory implements Iterable<Item> {
         return ret;
     }
 
-    public short addItem(Item item) {
+    public short addItem(ItemSlot item) {
         short slotId = addSlot(item);
         if (slotId == -1) {
             return -1;
@@ -230,22 +230,22 @@ public class Inventory implements Iterable<Item> {
         return slotId;
     }
 
-    public void addItemFromDB(Item item) {
+    public void addItemFromDB(ItemSlot item) {
         if (item.getPosition() < 0 && !type.equals(InventoryType.EQUIPPED)) {
             return;
         }
-        addSlotFromDB(item.getPosition(), item);
+        addSlotFromDB((short) item.getPosition(), item);
     }
 
-    private static boolean isSameOwner(Item source, Item target) {
+    private static boolean isSameOwner(ItemSlot source, ItemSlot target) {
         return source.getOwner().equals(target.getOwner());
     }
 
     public void move(short sSlot, short dSlot, short slotMax) {
         lock.lock();
         try {
-            Item source = inventory.get(sSlot);
-            Item target = inventory.get(dSlot);
+            ItemSlot source = inventory.get(sSlot);
+            ItemSlot target = inventory.get(dSlot);
             if (source == null) {
                 return;
             }
@@ -272,17 +272,17 @@ public class Inventory implements Iterable<Item> {
         }
     }
 
-    private void swap(Item source, Item target) {
-        inventory.remove(source.getPosition());
-        inventory.remove(target.getPosition());
-        short swapPos = source.getPosition();
+    private void swap(ItemSlot source, ItemSlot target) {
+        inventory.remove((short) source.getPosition());
+        inventory.remove((short) target.getPosition());
+        short swapPos = (short) source.getPosition();
         source.setPosition(target.getPosition());
         target.setPosition(swapPos);
-        inventory.put(source.getPosition(), source);
-        inventory.put(target.getPosition(), target);
+        inventory.put((short) source.getPosition(), source);
+        inventory.put((short) target.getPosition(), target);
     }
 
-    public Item getItem(short slot) {
+    public ItemSlot getItem(short slot) {
         lock.lock();
         try {
             return inventory.get(slot);
@@ -296,7 +296,7 @@ public class Inventory implements Iterable<Item> {
     }
 
     public void removeItem(short slot, short quantity, boolean allowZero) {
-        Item item = getItem(slot);
+        ItemSlot item = getItem(slot);
         if (item == null) {// TODO is it ok not to throw an exception here?
             return;
         }
@@ -309,7 +309,7 @@ public class Inventory implements Iterable<Item> {
         }
     }
 
-    protected short addSlot(Item item) {
+    protected short addSlot(ItemSlot item) {
         if (item == null) {
             return -1;
         }
@@ -335,7 +335,7 @@ public class Inventory implements Iterable<Item> {
         return slotId;
     }
 
-    protected void addSlotFromDB(short slot, Item item) {
+    protected void addSlotFromDB(short slot, ItemSlot item) {
         lock.lock();
         try {
             inventory.put(slot, item);
@@ -349,7 +349,7 @@ public class Inventory implements Iterable<Item> {
     }
 
     public void removeSlot(short slot) {
-        Item item;
+        ItemSlot item;
         lock.lock();
         try {
             item = inventory.remove(slot);
@@ -428,11 +428,11 @@ public class Inventory implements Iterable<Item> {
         }
     }
 
-    private static boolean checkItemRestricted(List<Pair<Item, InventoryType>> items) {
+    private static boolean checkItemRestricted(List<Pair<ItemSlot, InventoryType>> items) {
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
 
         // thanks Shavit for noticing set creation that would be only effective in rare situations
-        for (Pair<Item, InventoryType> p : items) {
+        for (Pair<ItemSlot, InventoryType> p : items) {
             int itemid = p.getLeft().getItemId();
             if (ii.isPickupRestricted(itemid) && p.getLeft().getQuantity() > 1) {
                 return false;
@@ -442,24 +442,24 @@ public class Inventory implements Iterable<Item> {
         return true;
     }
 
-    public static boolean checkSpot(Character chr, Item item) {    // thanks Vcoc for noticing pshops not checking item stacks when taking item back
+    public static boolean checkSpot(Character chr, ItemSlot item) {    // thanks Vcoc for noticing pshops not checking item stacks when taking item back
         return checkSpot(chr, Collections.singletonList(item));
     }
 
-    public static boolean checkSpot(Character chr, List<Item> items) {
-        List<Pair<Item, InventoryType>> listItems = new LinkedList<>();
-        for (Item item : items) {
+    public static boolean checkSpot(Character chr, List<ItemSlot> items) {
+        List<Pair<ItemSlot, InventoryType>> listItems = new LinkedList<>();
+        for (ItemSlot item : items) {
             listItems.add(new Pair<>(item, item.getInventoryType()));
         }
 
         return checkSpotsAndOwnership(chr, listItems);
     }
 
-    public static boolean checkSpots(Character chr, List<Pair<Item, InventoryType>> items) {
+    public static boolean checkSpots(Character chr, List<Pair<ItemSlot, InventoryType>> items) {
         return checkSpots(chr, items, false);
     }
 
-    public static boolean checkSpots(Character chr, List<Pair<Item, InventoryType>> items, boolean useProofInv) {
+    public static boolean checkSpots(Character chr, List<Pair<ItemSlot, InventoryType>> items, boolean useProofInv) {
         int invTypesSize = InventoryType.values().length;
         List<Integer> zeroedList = new ArrayList<>(invTypesSize);
         for (byte i = 0; i < invTypesSize; i++) {
@@ -469,7 +469,7 @@ public class Inventory implements Iterable<Item> {
         return checkSpots(chr, items, zeroedList, useProofInv);
     }
 
-    public static boolean checkSpots(Character chr, List<Pair<Item, InventoryType>> items, List<Integer> typesSlotsUsed, boolean useProofInv) {
+    public static boolean checkSpots(Character chr, List<Pair<ItemSlot, InventoryType>> items, List<Integer> typesSlotsUsed, boolean useProofInv) {
         // assumption: no "UNDEFINED" or "EQUIPPED" items shall be tested here, all counts are >= 0.
 
         if (!checkItemRestricted(items)) {
@@ -479,7 +479,7 @@ public class Inventory implements Iterable<Item> {
         Map<Integer, List<Integer>> rcvItems = new LinkedHashMap<>();
         Map<Integer, Byte> rcvTypes = new LinkedHashMap<>();
 
-        for (Pair<Item, InventoryType> item : items) {
+        for (Pair<ItemSlot, InventoryType> item : items) {
             Integer itemId = item.left.getItemId();
             List<Integer> qty = rcvItems.get(itemId);
 
@@ -536,11 +536,11 @@ public class Inventory implements Iterable<Item> {
         return (itemId.longValue() << 32L) + fnvHash32(owner);
     }
 
-    public static boolean checkSpotsAndOwnership(Character chr, List<Pair<Item, InventoryType>> items) {
+    public static boolean checkSpotsAndOwnership(Character chr, List<Pair<ItemSlot, InventoryType>> items) {
         return checkSpotsAndOwnership(chr, items, false);
     }
 
-    public static boolean checkSpotsAndOwnership(Character chr, List<Pair<Item, InventoryType>> items, boolean useProofInv) {
+    public static boolean checkSpotsAndOwnership(Character chr, List<Pair<ItemSlot, InventoryType>> items, boolean useProofInv) {
         List<Integer> zeroedList = new ArrayList<>(5);
         for (byte i = 0; i < 5; i++) {
             zeroedList.add(0);
@@ -549,7 +549,7 @@ public class Inventory implements Iterable<Item> {
         return checkSpotsAndOwnership(chr, items, zeroedList, useProofInv);
     }
 
-    public static boolean checkSpotsAndOwnership(Character chr, List<Pair<Item, InventoryType>> items, List<Integer> typesSlotsUsed, boolean useProofInv) {
+    public static boolean checkSpotsAndOwnership(Character chr, List<Pair<ItemSlot, InventoryType>> items, List<Integer> typesSlotsUsed, boolean useProofInv) {
         //assumption: no "UNDEFINED" or "EQUIPPED" items shall be tested here, all counts are >= 0 and item list to be checked is a legal one.
 
         if (!checkItemRestricted(items)) {
@@ -560,7 +560,7 @@ public class Inventory implements Iterable<Item> {
         Map<Long, Byte> rcvTypes = new LinkedHashMap<>();
         Map<Long, String> rcvOwners = new LinkedHashMap<>();
 
-        for (Pair<Item, InventoryType> item : items) {
+        for (Pair<ItemSlot, InventoryType> item : items) {
             Long itemHash = hashKey(item.left.getItemId(), item.left.getOwner());
             List<Integer> qty = rcvItems.get(itemHash);
 
@@ -610,19 +610,19 @@ public class Inventory implements Iterable<Item> {
     }
 
     @Override
-    public Iterator<Item> iterator() {
+    public Iterator<ItemSlot> iterator() {
         return Collections.unmodifiableCollection(list()).iterator();
     }
 
-    public Item findByCashId(int cashId) {
+    public ItemSlot findByCashId(int cashId) {
         boolean isRing = false;
         Equip equip = null;
-        for (Item item : list()) {
+        for (ItemSlot item : list()) {
             if (item.getInventoryType().equals(InventoryType.EQUIP)) {
-                equip = (Equip) item;
+                equip = item.getEquipInfo();
                 isRing = equip.getRingId() > -1;
             }
-            if ((item.getPetId() > -1 ? item.getPetId() : isRing ? equip.getRingId() : item.getCashId()) == cashId) {
+            if ((item.getPetId() > -1 ? item.getPetId() : isRing ? equip.getRingId() : item.getCashInfo() != null ? item.getCashInfo().getCashId() : 0) == cashId) {
                 return item;
             }
         }

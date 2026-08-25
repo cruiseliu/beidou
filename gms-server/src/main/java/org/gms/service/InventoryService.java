@@ -4,6 +4,7 @@ import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.row.Row;
 import lombok.AllArgsConstructor;
+import org.gms.client.character.Stat;
 import org.gms.client.character.Character;
 import org.gms.client.inventory.*;
 import org.gms.dao.entity.CharactersDO;
@@ -218,42 +219,42 @@ public class InventoryService {
                     .characterId(character.getId())
                     .itemId(item.getItemId())
                     .inventoryType(type.getType())
-                    .position(item.getPosition())
-                    .quantity(item.getQuantity())
+                    .position((short) item.getPosition())
+                    .quantity((short) item.getQuantity())
                     .owner(item.getOwner())
                     .petId(item.getPetId())
-                    .flag(item.getFlag())
+                    .flag((short) item.getFlag())
                     .expiration(item.getExpiration())
-                    .giftFrom(item.getGiftFrom())
+                    .giftFrom(item.getCashInfo() != null ? item.getCashInfo().getGiftFrom() : "")
                     .online(true)
                     .itemName(ii.getName(item.getItemId()))
                     .build();
             if (type.isEquip()) {
-                Equip equip = (Equip) item;
+                Equip equip = item.getEquipInfo();
                 rtnDTO.setEquipment(true);
                 rtnDTO.setInventoryEquipment(InventoryEquipRtnDTO.builder()
                         .id(-1L)
                         .inventoryItemId(-1L)
-                        .upgradeSlots(equip.getUpgradeSlots())
-                        .level(equip.getLevel())
-                        .attStr(equip.getStr())
-                        .attDex(equip.getDex())
-                        .attInt(equip.getInt())
-                        .attLuk(equip.getLuk())
-                        .hp(equip.getHp())
-                        .mp(equip.getMp())
-                        .pAtk(equip.getWatk())
-                        .mAtk(equip.getMatk())
-                        .pDef(equip.getWdef())
-                        .mDef(equip.getMdef())
-                        .acc(equip.getAcc())
-                        .avoid(equip.getAvoid())
-                        .hands(equip.getHands())
-                        .speed(equip.getSpeed())
-                        .jump(equip.getJump())
+                        .upgradeSlots((byte) equip.getEnhancementSlots())
+                        .level((byte) equip.getEnhancementLevel())
+                        .attStr((short) equip.getStat(Stat.STR))
+                        .attDex((short) equip.getStat(Stat.DEX))
+                        .attInt((short) equip.getStat(Stat.INT))
+                        .attLuk((short) equip.getStat(Stat.LUK))
+                        .hp((short) equip.getStat(Stat.MAX_HP))
+                        .mp((short) equip.getStat(Stat.MAX_MP))
+                        .pAtk((short) equip.getStat(Stat.P_ATK))
+                        .mAtk((short) equip.getStat(Stat.M_ATK))
+                        .pDef((short) equip.getStat(Stat.P_DEF))
+                        .mDef((short) equip.getStat(Stat.M_DEF))
+                        .acc((short) equip.getStat(Stat.ACCURACY))
+                        .avoid((short) equip.getStat(Stat.AVOIDABILITY))
+                        .hands((short) equip.getStat(Stat.HANDS))
+                        .speed((short) equip.getStat(Stat.SPEED))
+                        .jump((short) equip.getStat(Stat.JUMP))
                         .locked(0)
-                        .vicious(equip.getVicious())
-                        .itemLevel(equip.getItemLevel())
+                        .vicious((short) equip.getVicious())
+                        .itemLevel((byte) equip.getItemLevel())
                         .itemExp(equip.getItemExp())
                         .ringId(equip.getRingId())
                         .build());
@@ -282,31 +283,31 @@ public class InventoryService {
     private void updateOnline(InventorySearchRtnDTO data, Character character) {
         InventoryType type = InventoryType.getByType(data.getInventoryType());
         Inventory inventory = character.getInventory(type);
-        Item item = getModifyItemOnline(data, inventory);
+        ItemSlot item = getModifyItemOnline(data, inventory);
 
         // 仅以下值可修改
         if (data.getQuantity() != null && !type.isEquip()) item.setQuantity(data.getQuantity());
         if (data.getExpiration() != null) item.setExpiration(data.getExpiration());
         InventoryEquipRtnDTO equipment = data.getInventoryEquipment();
         if (type.isEquip() && equipment != null) {
-            Equip equip = (Equip) item;
-            if (equipment.getUpgradeSlots() != null) equip.setUpgradeSlots(equipment.getUpgradeSlots());
-            if (equipment.getLevel() != null) equip.setLevel(equipment.getLevel());
-            if (equipment.getAttStr() != null) equip.setStr(equipment.getAttStr());
-            if (equipment.getAttDex() != null) equip.setDex(equipment.getAttDex());
-            if (equipment.getAttInt() != null) equip.setInt(equipment.getAttInt());
-            if (equipment.getAttLuk() != null) equip.setLuk(equipment.getAttLuk());
-            if (equipment.getHp() != null) equip.setHp(equipment.getHp());
-            if (equipment.getMp() != null) equip.setMp(equipment.getMp());
-            if (equipment.getPAtk() != null) equip.setWatk(equipment.getPAtk());
-            if (equipment.getMAtk() != null) equip.setMatk(equipment.getMAtk());
-            if (equipment.getPDef() != null) equip.setWdef(equipment.getPDef());
-            if (equipment.getMDef() != null) equip.setMdef(equipment.getMDef());
-            if (equipment.getAcc() != null) equip.setAcc(equipment.getAcc());
-            if (equipment.getAvoid() != null) equip.setAvoid(equipment.getAvoid());
-            if (equipment.getHands() != null) equip.setHands(equipment.getHands());
-            if (equipment.getSpeed() != null) equip.setSpeed(equipment.getSpeed());
-            if (equipment.getJump() != null) equip.setJump(equipment.getJump());
+            Equip equip = item.getEquipInfo();
+            if (equipment.getUpgradeSlots() != null) equip.setEnhancementSlots(equipment.getUpgradeSlots());
+            if (equipment.getLevel() != null) equip.setEnhancementLevel(equipment.getLevel());
+            if (equipment.getAttStr() != null) equip.setStat(Stat.STR, equipment.getAttStr());
+            if (equipment.getAttDex() != null) equip.setStat(Stat.DEX, equipment.getAttDex());
+            if (equipment.getAttInt() != null) equip.setStat(Stat.INT, equipment.getAttInt());
+            if (equipment.getAttLuk() != null) equip.setStat(Stat.LUK, equipment.getAttLuk());
+            if (equipment.getHp() != null) equip.setStat(Stat.MAX_HP, equipment.getHp());
+            if (equipment.getMp() != null) equip.setStat(Stat.MAX_MP, equipment.getMp());
+            if (equipment.getPAtk() != null) equip.setStat(Stat.P_ATK, equipment.getPAtk());
+            if (equipment.getMAtk() != null) equip.setStat(Stat.M_ATK, equipment.getMAtk());
+            if (equipment.getPDef() != null) equip.setStat(Stat.P_DEF, equipment.getPDef());
+            if (equipment.getMDef() != null) equip.setStat(Stat.M_DEF, equipment.getMDef());
+            if (equipment.getAcc() != null) equip.setStat(Stat.ACCURACY, equipment.getAcc());
+            if (equipment.getAvoid() != null) equip.setStat(Stat.AVOIDABILITY, equipment.getAvoid());
+            if (equipment.getHands() != null) equip.setStat(Stat.HANDS, equipment.getHands());
+            if (equipment.getSpeed() != null) equip.setStat(Stat.SPEED, equipment.getSpeed());
+            if (equipment.getJump() != null) equip.setStat(Stat.JUMP, equipment.getJump());
             if (equipment.getVicious() != null) equip.setVicious(equipment.getVicious());
         }
         character.sendPacket(PacketCreator.modifyInventory(true, Arrays.asList(new ModifyInventory(3, item), new ModifyInventory(0, item))));
@@ -364,10 +365,10 @@ public class InventoryService {
         if (isOnlineNow) {
             InventoryType type = InventoryType.getByType(data.getInventoryType());
             Inventory inventory = character.getInventory(type);
-            Item item = getModifyItemOnline(data, inventory);
+            ItemSlot item = getModifyItemOnline(data, inventory);
 
             //删除相对应的物品
-            inventory.removeSlot(item.getPosition());
+            inventory.removeSlot((short) item.getPosition());
             character.sendPacket(PacketCreator.modifyInventory(true, Collections.singletonList(new ModifyInventory(3, item))));
         } else {
             InventoryitemsDO inventoryitemsDO = getModifyItemOffline(data);
@@ -437,8 +438,8 @@ public class InventoryService {
         RequireUtil.requireNotNull(inventoryType, I18nUtil.getExceptionMessage("UNKNOWN_PARAMETER_VALUE", "inventoryType", data.getInventoryType()));
     }
 
-    private Item getModifyItemOnline(InventorySearchRtnDTO data, Inventory inventory) {
-        Item item = inventory.getItem(data.getPosition());
+    private ItemSlot getModifyItemOnline(InventorySearchRtnDTO data, Inventory inventory) {
+        ItemSlot item = inventory.getItem(data.getPosition());
         RequireUtil.requireNotNull(item, I18nUtil.getExceptionMessage("InventoryService.updateInventory.exception2"));
         if (!Objects.equals(data.getItemId(), item.getItemId())) {
             throw new BizException(I18nUtil.getExceptionMessage("InventoryService.updateInventory.exception2"));

@@ -21,7 +21,7 @@ package org.gms.server;
 
 import org.gms.client.Client;
 import org.gms.client.inventory.Equip;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.config.GameConfig;
 import org.gms.constants.inventory.ItemConstants;
 
@@ -32,15 +32,15 @@ import java.util.*;
  */
 public class StorageInventory {
     private final Client c;
-    private Map<Short, Item> inventory = new LinkedHashMap<>();
+    private Map<Short, ItemSlot> inventory = new LinkedHashMap<>();
     private final byte slotLimit;
 
-    public StorageInventory(Client c, List<Item> toSort) {
+    public StorageInventory(Client c, List<ItemSlot> toSort) {
         this.inventory = new LinkedHashMap<>();
         this.slotLimit = (byte) toSort.size();
         this.c = c;
 
-        for (Item item : toSort) {
+        for (ItemSlot item : toSort) {
             this.addItem(item);
         }
     }
@@ -49,11 +49,11 @@ public class StorageInventory {
         return slotLimit;
     }
 
-    private Collection<Item> list() {
+    private Collection<ItemSlot> list() {
         return Collections.unmodifiableCollection(inventory.values());
     }
 
-    private short addItem(Item item) {
+    private short addItem(ItemSlot item) {
         short slotId = getNextFreeSlot();
         if (slotId < 0 || item == null) {
             return -1;
@@ -63,18 +63,18 @@ public class StorageInventory {
         return slotId;
     }
 
-    private static boolean isEquipOrCash(Item item) {
+    private static boolean isEquipOrCash(ItemSlot item) {
         int type = item.getItemId() / 1000000;
         return type == 1 || type == 5;
     }
 
-    private static boolean isSameOwner(Item source, Item target) {
+    private static boolean isSameOwner(ItemSlot source, ItemSlot target) {
         return source.getOwner().equals(target.getOwner());
     }
 
     private void move(short sSlot, short dSlot, short slotMax) {
-        Item source = inventory.get(sSlot);
-        Item target = inventory.get(dSlot);
+        ItemSlot source = inventory.get(sSlot);
+        ItemSlot target = inventory.get(dSlot);
         if (source == null) {
             return;
         }
@@ -106,7 +106,7 @@ public class StorageInventory {
             return;
         }
 
-        Item source = this.getItem(src);
+        ItemSlot source = this.getItem(src);
         if (source == null) {
             return;
         }
@@ -114,21 +114,21 @@ public class StorageInventory {
         this.move(src, dst, slotMax);
     }
 
-    private void swap(Item source, Item target) {
-        inventory.remove(source.getPosition());
-        inventory.remove(target.getPosition());
-        short swapPos = source.getPosition();
+    private void swap(ItemSlot source, ItemSlot target) {
+        inventory.remove((short) source.getPosition());
+        inventory.remove((short) target.getPosition());
+        short swapPos = (short) source.getPosition();
         source.setPosition(target.getPosition());
         target.setPosition(swapPos);
-        inventory.put(source.getPosition(), source);
-        inventory.put(target.getPosition(), target);
+        inventory.put((short) source.getPosition(), source);
+        inventory.put((short) target.getPosition(), target);
     }
 
-    private Item getItem(short slot) {
+    private ItemSlot getItem(short slot) {
         return inventory.get(slot);
     }
 
-    private void addSlot(short slot, Item item) {
+    private void addSlot(short slot, ItemSlot item) {
         inventory.put(slot, item);
     }
 
@@ -155,7 +155,7 @@ public class StorageInventory {
 
     public void mergeItems() {
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
-        Item srcItem, dstItem;
+        ItemSlot srcItem, dstItem;
 
         for (short dst = 1; dst <= this.getSlotLimit(); dst++) {
             dstItem = this.getItem(dst);
@@ -204,18 +204,18 @@ public class StorageInventory {
         }
     }
 
-    public List<Item> sortItems() {
-        ArrayList<Item> itemarray = new ArrayList<>();
+    public List<ItemSlot> sortItems() {
+        ArrayList<ItemSlot> itemarray = new ArrayList<>();
 
         for (short i = 1; i <= this.getSlotLimit(); i++) {
-            Item item = this.getItem(i);
+            ItemSlot item = this.getItem(i);
             if (item != null) {
                 itemarray.add(item.copy());
             }
         }
 
-        for (Item item : itemarray) {
-            this.removeSlot(item.getPosition());
+        for (ItemSlot item : itemarray) {
+            this.removeSlot((short) item.getPosition());
         }
 
         int invTypeCriteria = 1;
@@ -233,8 +233,8 @@ class PairedQuicksort {
     private final ArrayList<Integer> intersect;
     ItemInformationProvider ii = ItemInformationProvider.getInstance();
 
-    private void PartitionByItemId(int Esq, int Dir, ArrayList<Item> A) {
-        Item x, w;
+    private void PartitionByItemId(int Esq, int Dir, ArrayList<ItemSlot> A) {
+        ItemSlot x, w;
 
         i = Esq;
         j = Dir;
@@ -259,8 +259,8 @@ class PairedQuicksort {
         } while (i <= j);
     }
 
-    private void PartitionByName(int Esq, int Dir, ArrayList<Item> A) {
-        Item x, w;
+    private void PartitionByName(int Esq, int Dir, ArrayList<ItemSlot> A) {
+        ItemSlot x, w;
 
         i = Esq;
         j = Dir;
@@ -285,8 +285,8 @@ class PairedQuicksort {
         } while (i <= j);
     }
 
-    private void PartitionByQuantity(int Esq, int Dir, ArrayList<Item> A) {
-        Item x, w;
+    private void PartitionByQuantity(int Esq, int Dir, ArrayList<ItemSlot> A) {
+        ItemSlot x, w;
 
         i = Esq;
         j = Dir;
@@ -311,29 +311,29 @@ class PairedQuicksort {
         } while (i <= j);
     }
 
-    private void PartitionByLevel(int Esq, int Dir, ArrayList<Item> A) {
+    private void PartitionByLevel(int Esq, int Dir, ArrayList<ItemSlot> A) {
         Equip x, w, eqpI, eqpJ;
 
         i = Esq;
         j = Dir;
 
-        x = (Equip) (A.get((i + j) / 2));
+        x = A.get((i + j) / 2).getEquipInfo();
 
         do {
-            eqpI = (Equip) A.get(i);
-            eqpJ = (Equip) A.get(j);
+            eqpI = A.get(i).getEquipInfo();
+            eqpJ = A.get(j).getEquipInfo();
 
-            while (x.getLevel() > eqpI.getLevel()) {
+            while (x.getEnhancementLevel() > eqpI.getEnhancementLevel()) {
                 i++;
             }
-            while (x.getLevel() < eqpJ.getLevel()) {
+            while (x.getEnhancementLevel() < eqpJ.getEnhancementLevel()) {
                 j--;
             }
 
             if (i <= j) {
-                w = (Equip) A.get(i);
+                ItemSlot wi = A.get(i);
                 A.set(i, A.get(j));
-                A.set(j, w);
+                A.set(j, wi);
 
                 i++;
                 j--;
@@ -341,7 +341,7 @@ class PairedQuicksort {
         } while (i <= j);
     }
 
-    void MapleQuicksort(int Esq, int Dir, ArrayList<Item> A, int sort) {
+    void MapleQuicksort(int Esq, int Dir, ArrayList<ItemSlot> A, int sort) {
         switch (sort) {
             case 3:
                 PartitionByLevel(Esq, Dir, A);
@@ -368,7 +368,7 @@ class PairedQuicksort {
         }
     }
 
-    public PairedQuicksort(ArrayList<Item> A, int primarySort, int secondarySort) {
+    public PairedQuicksort(ArrayList<ItemSlot> A, int primarySort, int secondarySort) {
         intersect = new ArrayList<>();
 
         if (A.size() > 0) {

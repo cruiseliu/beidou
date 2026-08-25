@@ -37,9 +37,9 @@ public class InventoryProof extends Inventory {
             inventory.clear();
             this.setSlotLimit(inv.getSlotLimit());
 
-            for (Item it : inv.list()) {
-                Item item = new Item(it.getItemId(), it.getPosition(), it.getQuantity());
-                inventory.put(item.getPosition(), item);
+            for (ItemSlot it : inv.list()) {
+                ItemSlot item = new ItemSlot(it.getItemId(), it.getPosition(), it.getQuantity());
+                inventory.put((short) item.getPosition(), item);
             }
         } finally {
             lock.unlock();
@@ -57,7 +57,7 @@ public class InventoryProof extends Inventory {
     }
 
     @Override
-    protected short addSlot(Item item) {
+    protected short addSlot(ItemSlot item) {
         if (item == null) {
             return -1;
         }
@@ -77,7 +77,7 @@ public class InventoryProof extends Inventory {
     }
 
     @Override
-    protected void addSlotFromDB(short slot, Item item) {
+    protected void addSlotFromDB(short slot, ItemSlot item) {
         lock.lock();
         try {
             inventory.put(slot, item);

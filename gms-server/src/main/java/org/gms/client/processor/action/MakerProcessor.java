@@ -23,7 +23,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
@@ -76,7 +76,7 @@ public class MakerProcessor {
                     p.readInt(); // 1... probably inventory type
                     pos = p.readInt();
 
-                    Item it = c.getPlayer().getInventory(InventoryType.EQUIP).getItem((short) pos);
+                    ItemSlot it = c.getPlayer().getInventory(InventoryType.EQUIP).getItem((short) pos);
                     if (it != null && it.getItemId() == toCreate) {
                         toDisassemble = toCreate;
 
@@ -373,21 +373,21 @@ public class MakerProcessor {
             return false;
         }
 
-        Item item = ii.getEquipById(itemid);
+        ItemSlot item = ii.getEquipById(itemid);
         if (item == null) {
             return false;
         }
 
-        Equip eqp = (Equip) item;
-        if (ItemConstants.isAccessory(item.getItemId()) && eqp.getUpgradeSlots() <= 0) {
+        Equip eqp = item.getEquipInfo();
+        if (ItemConstants.isAccessory(item.getItemId()) && eqp.getEnhancementSlots() <= 0) {
             eqp.setUpgradeSlots(3);
         }
 
         if (GameConfig.getServerBoolean("use_enhanced_crafting")) {
             if (!(c.getPlayer().isGM() && GameConfig.getServerBoolean("use_perfect_gm_scroll"))) {
-                eqp.setUpgradeSlots((byte) (eqp.getUpgradeSlots() + 1));
+                eqp.setEnhancementSlots((byte) (eqp.getEnhancementSlots() + 1));
             }
-            item = ItemInformationProvider.getInstance().scrollEquipWithId(eqp, ItemId.CHAOS_SCROll_60, true, ItemId.CHAOS_SCROll_60, c.getPlayer().isGM());
+            item = ItemInformationProvider.getInstance().scrollEquipWithId(item, ItemId.CHAOS_SCROll_60, true, ItemId.CHAOS_SCROll_60, c.getPlayer().isGM());
         }
 
         if (!reagentids.isEmpty()) {

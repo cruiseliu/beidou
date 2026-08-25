@@ -19,6 +19,11 @@ final class UpdateSkillsOp implements V83Op {
     private final List<SkillUpdate> updates = new ArrayList<>();
 
     void merge(SkillUpdate update) {
+        // 非 4 转（jobId % 10 != 2）技能获得等级 0（已获得未分配 SP）时静默——
+        // 客户端不需要更新通知（快照 addSkillInfo 会带上），建角/转职时机发出反而崩溃
+        if (update.level() == 0 && (update.skillId() / 10000 % 10) != 2) {
+            return;
+        }
         updates.add(update);
     }
 

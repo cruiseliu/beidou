@@ -55,7 +55,7 @@ public class HairCommand extends Command {
 
                 player.setHair(itemId);
                 player.updateSingleStat(PacketStat.HAIR, itemId);
-                player.equipChanged();
+                player.appearanceChanged();
             } else {
                 int itemId = Integer.parseInt(params[1]);
                 if (!ItemConstants.isHair(itemId) || ItemInformationProvider.getInstance().getName(itemId) == null) {
@@ -70,7 +70,7 @@ public class HairCommand extends Command {
                 if (victim != null) {
                     victim.setHair(itemId);
                     victim.updateSingleStat(PacketStat.HAIR, itemId);
-                    victim.equipChanged();
+                    victim.appearanceChanged();
                 } else {
                     player.message(I18nUtil.getMessage("BombCommand.message3", params[0]));
                 }

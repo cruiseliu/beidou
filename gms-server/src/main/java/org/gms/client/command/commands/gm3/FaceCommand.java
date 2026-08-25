@@ -55,7 +55,7 @@ public class FaceCommand extends Command {
 
                 player.setFace(itemId);
                 player.updateSingleStat(PacketStat.FACE, itemId);
-                player.equipChanged();
+                player.appearanceChanged();
             } else {
                 int itemId = Integer.parseInt(params[1]);
                 if (!ItemConstants.isFace(itemId) || ItemInformationProvider.getInstance().getName(itemId) == null) {
@@ -69,7 +69,7 @@ public class FaceCommand extends Command {
                 if (victim != null) {
                     victim.setFace(itemId);
                     victim.updateSingleStat(PacketStat.FACE, itemId);
-                    victim.equipChanged();
+                    victim.appearanceChanged();
                 } else {
                     player.message(I18nUtil.getMessage("BombCommand.message3", params[0]));
                 }

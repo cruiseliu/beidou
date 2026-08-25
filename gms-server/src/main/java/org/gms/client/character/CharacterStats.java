@@ -9,7 +9,7 @@ import org.gms.client.Skill;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.weaponType.WeaponTypeDefinition;
 import org.gms.client.weaponType.WeaponTypeRegistry;
 import org.gms.client.SkillFactory;
@@ -271,24 +271,11 @@ public class CharacterStats {
     }
 
     /**
-     * 装备属性聚合（全量重算，返回 equip 层的 8 槽数组；调用方负责累加到 localAttrs）。
-     * todo: [refactor] move to equip component and cache result（equip 模块应是 CharacterInventory 的子模块，
-     *       类似 ActiveBuffs 与 CharacterBuffs 的关系；equipChanged 缓存重构到那里，当前不做缓存，性能损失可接受）
+     * 装备属性聚合已移至装备域子模块 CharacterEquips.aggregateStatTotals（共享段循环聚合）。
+     * todo: [refactor] 结果缓存（equipChanged 标志驱动，在 CharacterEquips 内做），当前全量重算，性能损失可接受。
      */
     private int[] getEquipStats() {
-        int[] equip = new int[Stat.count()];
-        for (Item item : owner.getInventory(InventoryType.EQUIPPED)) {
-            Equip eq = (Equip) item;
-            equip[Stat.MAX_HP.ordinal()] += eq.getHp();
-            equip[Stat.MAX_MP.ordinal()] += eq.getMp();
-            equip[Stat.DEX.ordinal()] += eq.getDex();
-            equip[Stat.INT.ordinal()] += eq.getInt();
-            equip[Stat.STR.ordinal()] += eq.getStr();
-            equip[Stat.LUK.ordinal()] += eq.getLuk();
-            equip[Stat.M_ATK.ordinal()] += eq.getMatk();
-            equip[Stat.P_ATK.ordinal()] += eq.getWatk();
-        }
-        return equip;
+        return owner.inventory.getEquips().aggregateStatTotals();
     }
 
     /** 纯函数重算 total stats：以 base stats 为初始值，叠加装备/buff/技能加成（recalc 主体） */
@@ -363,14 +350,14 @@ public class CharacterStats {
         }
 
         if (owner.getJob().isA(JobEnum.THIEF) || owner.getJob().isA(JobEnum.BOWMAN) || owner.getJob().isA(JobEnum.PIRATE) || owner.getJob().isA(JobEnum.NIGHTWALKER1) || owner.getJob().isA(JobEnum.WINDARCHER1)) {
-            Item weapon_item = owner.getInventory(InventoryType.EQUIPPED).getItem((short) -11);
+            ItemSlot weapon_item = owner.getInventory(InventoryType.EQUIPPED).getItem((short) -11);
             if (weapon_item != null) {
                 WeaponTypeDefinition weapon = WeaponTypeRegistry.of(weapon_item.getItemId());
                 if (weapon.ammoIdRange() != null) {
                     ItemInformationProvider ii = ItemInformationProvider.getInstance();
                     Inventory inv = owner.getInventory(InventoryType.USE);
                     for (short i = 1; i <= inv.getSlotLimit(); i++) {
-                        Item item = inv.getItem(i);
+                        ItemSlot item = inv.getItem(i);
                         if (item == null) {
                             continue;
                         }
@@ -480,9 +467,9 @@ public class CharacterStats {
                 if (autoHpPot != null) {
                     int autoHpItemId = autoHpPot.getAction();
                     if (((float) owner.getHp()) / owner.getCurrentMaxHp() <= autoHpAlert) {
-                        Item autoHpItem = owner.getInventory(InventoryType.USE).findById(autoHpItemId);
+                        ItemSlot autoHpItem = owner.getInventory(InventoryType.USE).findById(autoHpItemId);
                         if (autoHpItem != null) {
-                            PetAutopotProcessor.runAutopotAction(owner.client, autoHpItem.getPosition(), autoHpItemId);
+                            PetAutopotProcessor.runAutopotAction(owner.client, (short) autoHpItem.getPosition(), autoHpItemId);
                         }
                     }
                 }
@@ -493,9 +480,9 @@ public class CharacterStats {
                 if (autoMpPot != null) {
                     int autoMpItemId = autoMpPot.getAction();
                     if (((float) owner.getMp()) / owner.getCurrentMaxMp() <= autoMpAlert) {
-                        Item autoMpItem = owner.getInventory(InventoryType.USE).findById(autoMpItemId);
+                        ItemSlot autoMpItem = owner.getInventory(InventoryType.USE).findById(autoMpItemId);
                         if (autoMpItem != null) {
-                            PetAutopotProcessor.runAutopotAction(owner.client, autoMpItem.getPosition(), autoMpItemId);
+                            PetAutopotProcessor.runAutopotAction(owner.client, (short) autoMpItem.getPosition(), autoMpItemId);
                         }
                     }
                 }

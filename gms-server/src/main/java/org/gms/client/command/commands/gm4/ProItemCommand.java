@@ -23,12 +23,13 @@
 */
 package org.gms.client.command.commands.gm4;
 
+import org.gms.client.character.Stat;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.server.ItemInformationProvider;
@@ -60,10 +61,10 @@ public class ProItemCommand extends Command {
 
         InventoryType type = ItemConstants.getInventoryType(itemid);
         if (type.equals(InventoryType.EQUIP)) {
-            Item it = ii.getEquipById(itemid);
+            ItemSlot it = ii.getEquipById(itemid);
             it.setOwner(player.getName());
 
-            hardsetItemStats((Equip) it, stat, spdjmp);
+            hardsetItemStats(it.getEquipInfo(), stat, spdjmp);
             InventoryManipulator.addFromDrop(c, it);
         } else {
             player.dropMessage(6, I18nUtil.getMessage("ProItemCommand.message4"));
@@ -71,22 +72,22 @@ public class ProItemCommand extends Command {
     }
 
     private static void hardsetItemStats(Equip equip, short stat, short spdjmp) {
-        equip.setStr(stat);
-        equip.setDex(stat);
-        equip.setInt(stat);
-        equip.setLuk(stat);
-        equip.setMatk(stat);
-        equip.setWatk(stat);
-        equip.setAcc(stat);
-        equip.setAvoid(stat);
-        equip.setJump(spdjmp);
-        equip.setSpeed(spdjmp);
-        equip.setWdef(stat);
-        equip.setMdef(stat);
-        equip.setHp(stat);
-        equip.setMp(stat);
+        equip.setStat(Stat.STR, stat);
+        equip.setStat(Stat.DEX, stat);
+        equip.setStat(Stat.INT, stat);
+        equip.setStat(Stat.LUK, stat);
+        equip.setStat(Stat.M_ATK, stat);
+        equip.setStat(Stat.P_ATK, stat);
+        equip.setStat(Stat.ACCURACY, stat);
+        equip.setStat(Stat.AVOIDABILITY, stat);
+        equip.setStat(Stat.JUMP, spdjmp);
+        equip.setStat(Stat.SPEED, spdjmp);
+        equip.setStat(Stat.P_DEF, stat);
+        equip.setStat(Stat.M_DEF, stat);
+        equip.setStat(Stat.MAX_HP, stat);
+        equip.setStat(Stat.MAX_MP, stat);
 
-        short flag = equip.getFlag();
+        short flag = (short) equip.getFlag();
         flag |= ItemConstants.UNTRADEABLE;
         equip.setFlag(flag);
     }

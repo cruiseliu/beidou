@@ -26,7 +26,7 @@ package org.gms.client.command.commands.gm5;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.constants.id.NpcId;
 import org.gms.net.server.Server;
 import org.gms.server.ItemInformationProvider;

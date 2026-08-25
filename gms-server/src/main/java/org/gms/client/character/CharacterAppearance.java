@@ -13,7 +13,7 @@ import org.gms.util.PacketCreator;
  * 边界：只承载外观美容语义——发型/脸型/肤色与表情广播。
  * 依赖经 owner 门面调用（getMap/...）。
  */
-class CharacterSalon {
+class CharacterAppearance {
     private final Character owner;
 
     /** 发型 */
@@ -25,7 +25,7 @@ class CharacterSalon {
     /** 肤色 */
     private SkinColor skinColor = SkinColor.NORMAL;
 
-    CharacterSalon(Character owner) {
+    CharacterAppearance(Character owner) {
         this.owner = owner;
     }
 

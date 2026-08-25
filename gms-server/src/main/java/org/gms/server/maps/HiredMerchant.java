@@ -25,7 +25,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ItemFactory;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.client.inventory.manipulator.KarmaManipulator;
@@ -248,7 +248,7 @@ public class HiredMerchant extends AbstractMapObject {
             PlayerShopItem shopItem = items.get(slot);
             if (shopItem.isExist()) {
                 if (shopItem.getBundles() > 0) {
-                    Item iitem = shopItem.getItem().copy();
+                    ItemSlot iitem = shopItem.getItem().copy();
                     iitem.setQuantity((short) (shopItem.getItem().getQuantity() * shopItem.getBundles()));
 
                     if (!Inventory.checkSpot(chr, iitem)) {
@@ -270,7 +270,7 @@ public class HiredMerchant extends AbstractMapObject {
         }
     }
 
-    private static boolean canBuy(Client c, Item newItem) {    // thanks xiaokelvin (Conrad) for noticing a leaked test code here
+    private static boolean canBuy(Client c, ItemSlot newItem) {    // thanks xiaokelvin (Conrad) for noticing a leaked test code here
         return InventoryManipulator.checkSpace(c, newItem.getItemId(), newItem.getQuantity(), newItem.getOwner()) && InventoryManipulator.addFromDrop(c, newItem, false);
     }
 
@@ -301,7 +301,7 @@ public class HiredMerchant extends AbstractMapObject {
                 return;
             }
 
-            Item newItem = pItem.getItem().copy();
+            ItemSlot newItem = pItem.getItem().copy();
 
             newItem.setQuantity((short) ((pItem.getItem().getQuantity() * quantity)));
             if (newItem.getInventoryType().equals(InventoryType.EQUIP) && newItem.getQuantity() > 1) {
@@ -318,7 +318,7 @@ public class HiredMerchant extends AbstractMapObject {
                     price -= Trade.getFee(price);  // thanks BHB for pointing out trade fees not applying here
 
                     synchronized (sold) {
-                        sold.add(new SoldItem(c.getPlayer().getName(), pItem.getItem().getItemId(), newItem.getQuantity(), price));
+                        sold.add(new SoldItem(c.getPlayer().getName(), pItem.getItem().getItemId(), (short)newItem.getQuantity(), price));
                     }
 
                     pItem.setBundles((short) (pItem.getBundles() - quantity));
@@ -373,7 +373,7 @@ public class HiredMerchant extends AbstractMapObject {
         }
     }
 
-    private void announceItemSold(Item item, int mesos, int inStore) {
+    private void announceItemSold(ItemSlot item, int mesos, int inStore) {
         String qtyStr = (item.getQuantity() > 1) ? " x " + item.getQuantity() : "";
 
         Character player = Server.getInstance().getWorld(world).getPlayerStorage().getCharacterById(ownerId);
@@ -484,7 +484,7 @@ public class HiredMerchant extends AbstractMapObject {
                         if (mpsi.getItem().getInventoryType().equals(InventoryType.EQUIP)) {
                             InventoryManipulator.addFromDrop(c, mpsi.getItem(), false);
                         } else {
-                            InventoryManipulator.addById(c, mpsi.getItem().getItemId(), (short) (mpsi.getBundles() * mpsi.getItem().getQuantity()), mpsi.getItem().getOwner(), -1, mpsi.getItem().getFlag(), mpsi.getItem().getExpiration());
+                            InventoryManipulator.addById(c, mpsi.getItem().getItemId(), (short) (mpsi.getBundles() * mpsi.getItem().getQuantity()), mpsi.getItem().getOwner(), -1, (short) mpsi.getItem().getFlag(), mpsi.getItem().getExpiration());
                         }
                     }
                 }
@@ -705,11 +705,11 @@ public class HiredMerchant extends AbstractMapObject {
     }
 
     public void saveItems(boolean shutdown) throws SQLException {
-        List<Pair<Item, InventoryType>> itemsWithType = new ArrayList<>();
+        List<Pair<ItemSlot, InventoryType>> itemsWithType = new ArrayList<>();
         List<Short> bundles = new ArrayList<>();
 
         for (PlayerShopItem pItems : getItems()) {
-            Item newItem = pItems.getItem();
+            ItemSlot newItem = pItems.getItem();
             short newBundle = pItems.getBundles();
 
             if (shutdown) { //is "shutdown" really necessary?
@@ -731,9 +731,9 @@ public class HiredMerchant extends AbstractMapObject {
     }
 
     private static boolean check(Character chr, List<PlayerShopItem> items) {
-        List<Pair<Item, InventoryType>> li = new ArrayList<>();
+        List<Pair<ItemSlot, InventoryType>> li = new ArrayList<>();
         for (PlayerShopItem item : items) {
-            Item it = item.getItem().copy();
+            ItemSlot it = item.getItem().copy();
             it.setQuantity((short) (it.getQuantity() * item.getBundles()));
 
             li.add(new Pair<>(it, it.getInventoryType()));

@@ -25,7 +25,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.scripting.AbstractPlayerInteraction;
 import org.gms.server.ItemInformationProvider;
@@ -175,12 +175,14 @@ public class ReactorActionManager extends AbstractPlayerInteraction {
                     int mesoDrop = NumberTool.doubleToInt(displayDrop * c.getWorldServer().getMesoRate());
                     reactor.getMap().spawnMesoDrop(mesoDrop, reactor.getMap().calcDropPos(dropPos, reactor.getPosition()), reactor, c.getPlayer(), false, (byte) 2);
                 } else {
-                    Item drop;
+                    ItemSlot drop;
 
                     if (ItemConstants.getInventoryType(d.itemId) != InventoryType.EQUIP) {
-                        drop = new Item(d.itemId, (short) 0, (short) 1);
+                        drop = new ItemSlot(d.itemId, (short) 0, (short) 1);
                     } else {
-                        drop = ii.randomizeStats((Equip) ii.getEquipById(d.itemId));
+                        ItemSlot equipDrop = ii.getEquipById(d.itemId);
+                        ii.randomizeStats(equipDrop.getEquipInfo());
+                        drop = equipDrop;
                     }
 
                     reactor.getMap().dropFromReactor(getPlayer(), reactor, drop, dropPos, (short) d.questid);
@@ -206,13 +208,15 @@ public class ReactorActionManager extends AbstractPlayerInteraction {
                     int mesoDrop = NumberTool.doubleToInt(displayDrop * worldMesoRate);
                     r.getMap().spawnMesoDrop(mesoDrop, r.getMap().calcDropPos(dropPos, r.getPosition()), r, chr, false, (byte) 2);
                 } else {
-                    Item drop;
+                    ItemSlot drop;
 
                     if (ItemConstants.getInventoryType(d.itemId) != InventoryType.EQUIP) {
-                        drop = new Item(d.itemId, (short) 0, (short) 1);
+                        drop = new ItemSlot(d.itemId, (short) 0, (short) 1);
                     } else {
                         ItemInformationProvider ii = ItemInformationProvider.getInstance();
-                        drop = ii.randomizeStats((Equip) ii.getEquipById(d.itemId));
+                        ItemSlot equipDrop = ii.getEquipById(d.itemId);
+                        ii.randomizeStats(equipDrop.getEquipInfo());
+                        drop = equipDrop;
                     }
 
                     r.getMap().dropFromReactor(getPlayer(), r, drop, dropPos, (short) d.questid);

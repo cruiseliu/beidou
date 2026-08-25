@@ -25,7 +25,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.config.GameConfig;
 import org.gms.net.AbstractPacketHandler;
@@ -60,7 +60,7 @@ public final class InventoryMergeHandler extends AbstractPacketHandler {
             //------------------- RonanLana's SLOT MERGER -----------------
 
             ItemInformationProvider ii = ItemInformationProvider.getInstance();
-            Item srcItem, dstItem;
+            ItemSlot srcItem, dstItem;
 
             for (short dst = 1; dst <= inventory.getSlotLimit(); dst++) {
                 dstItem = inventory.getItem(dst);

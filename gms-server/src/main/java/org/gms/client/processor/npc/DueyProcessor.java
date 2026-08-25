@@ -28,7 +28,7 @@ import org.gms.client.Client;
 import org.gms.client.autoban.AutobanFactory;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ItemFactory;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.client.inventory.manipulator.KarmaManipulator;
@@ -152,7 +152,7 @@ public class DueyProcessor {
         try {
             int packageId = rs.getInt("PackageId");
 
-            List<Pair<Item, InventoryType>> dueyItems = ItemFactory.DUEY.loadItems(packageId, false);
+            List<Pair<ItemSlot, InventoryType>> dueyItems = ItemFactory.DUEY.loadItems(packageId, false);
             DueyPackage dueypack;
 
             if (!dueyItems.isEmpty()) {     // in a duey package there's only one item
@@ -232,8 +232,8 @@ public class DueyProcessor {
         return -1;
     }
 
-    private static boolean insertPackageItem(int packageId, Item item) {
-        Pair<Item, InventoryType> dueyItem = new Pair<>(item, InventoryType.getByType(item.getItemType()));
+    private static boolean insertPackageItem(int packageId, ItemSlot item) {
+        Pair<ItemSlot, InventoryType> dueyItem = new Pair<>(item, InventoryType.getByType((byte) item.getItemType()));
         try (Connection con = DatabaseConnection.getConnection()) {
             ItemFactory.DUEY.saveItems(Collections.singletonList(dueyItem), packageId, con);
             return true;
@@ -251,7 +251,7 @@ public class DueyProcessor {
             InventoryType invType = InventoryType.getByType(invTypeId);
             Inventory inv = c.getPlayer().getInventory(invType);
 
-            Item item;
+            ItemSlot item;
             inv.lockInventory();
             try {
                 item = inv.getItem(itemPos);
@@ -261,7 +261,7 @@ public class DueyProcessor {
                     }
 
                     if (ItemConstants.isRechargeable(item.getItemId())) {
-                        InventoryManipulator.removeFromSlot(c, invType, itemPos, item.getQuantity(), true);
+                        InventoryManipulator.removeFromSlot(c, invType, itemPos, (short) item.getQuantity(), true);
                     } else {
                         InventoryManipulator.removeFromSlot(c, invType, itemPos, amount, true, false);
                     }
@@ -431,7 +431,7 @@ public class DueyProcessor {
                 return;
             }
 
-            Item dpItem = dp.getItem();
+            ItemSlot dpItem = dp.getItem();
             if (dpItem != null) {
                 if (!c.getPlayer().canHoldMeso(dp.getMesos())) {
                     c.sendPacket(PacketCreator.sendDueyMSG(Actions.TOCLIENT_RECV_UNKNOWN_ERROR.getCode()));
@@ -481,7 +481,7 @@ public class DueyProcessor {
         }
     }
 
-    public static void dueyCreatePackage(Item item, int mesos, String sender, int recipientCid) {
+    public static void dueyCreatePackage(ItemSlot item, int mesos, String sender, int recipientCid) {
         int packageId = createPackage(mesos, null, sender, recipientCid, false);
         if (packageId != -1) {
             insertPackageItem(packageId, item);

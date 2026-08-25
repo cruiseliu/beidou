@@ -33,7 +33,7 @@ import org.gms.client.SkillFactory;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.Pet;
 import org.gms.client.keybind.KeyBinding;
 import org.gms.config.GameConfig;
@@ -348,8 +348,8 @@ public final class PlayerLoggedinHandler extends AbstractPacketHandler {
             Inventory eqpInv = player.getInventory(InventoryType.EQUIPPED);
             eqpInv.lockInventory();
             try {
-                for (Item it : eqpInv.list()) {
-                    player.equippedItem((Equip) it);
+                for (ItemSlot it : eqpInv.list()) {
+                    player.equippedItem(it.getEquipInfo());
                 }
             } finally {
                 eqpInv.unlockInventory();

@@ -26,7 +26,7 @@ import org.gms.client.Client;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ModifyInventory;
 import org.gms.config.GameConfig;
 import org.gms.net.AbstractPacketHandler;
@@ -49,8 +49,8 @@ class PairedQuicksort {
     private final ArrayList<Integer> intersect;
     ItemInformationProvider ii = ItemInformationProvider.getInstance();
 
-    private void PartitionByItemId(int Esq, int Dir, ArrayList<Item> A) {
-        Item x, w;
+    private void PartitionByItemId(int Esq, int Dir, ArrayList<ItemSlot> A) {
+        ItemSlot x, w;
 
         i = Esq;
         j = Dir;
@@ -75,12 +75,12 @@ class PairedQuicksort {
         } while (i <= j);
     }
 
-    private int getWatkForProjectile(Item item) {
+    private int getWatkForProjectile(ItemSlot item) {
         return ii.getWatkForProjectile(item.getItemId());
     }
 
-    private void PartitionByProjectileAtk(int Esq, int Dir, ArrayList<Item> A) {
-        Item x, w;
+    private void PartitionByProjectileAtk(int Esq, int Dir, ArrayList<ItemSlot> A) {
+        ItemSlot x, w;
 
         i = Esq;
         j = Dir;
@@ -106,8 +106,8 @@ class PairedQuicksort {
         } while (i <= j);
     }
 
-    private void PartitionByName(int Esq, int Dir, ArrayList<Item> A) {
-        Item x, w;
+    private void PartitionByName(int Esq, int Dir, ArrayList<ItemSlot> A) {
+        ItemSlot x, w;
 
         i = Esq;
         j = Dir;
@@ -132,8 +132,8 @@ class PairedQuicksort {
         } while (i <= j);
     }
 
-    private void PartitionByQuantity(int Esq, int Dir, ArrayList<Item> A) {
-        Item x, w;
+    private void PartitionByQuantity(int Esq, int Dir, ArrayList<ItemSlot> A) {
+        ItemSlot x, w;
 
         i = Esq;
         j = Dir;
@@ -158,27 +158,27 @@ class PairedQuicksort {
         } while (i <= j);
     }
 
-    private void PartitionByLevel(int Esq, int Dir, ArrayList<Item> A) {
+    private void PartitionByLevel(int Esq, int Dir, ArrayList<ItemSlot> A) {
         Equip x, w;
 
         i = Esq;
         j = Dir;
 
-        x = (Equip) (A.get((i + j) / 2));
+        x = A.get((i + j) / 2).getEquipInfo();
 
         do {
 
-            while (x.getLevel() > ((Equip) A.get(i)).getLevel()) {
+            while (x.getEnhancementLevel() > (A.get(i).getEquipInfo()).getEnhancementLevel()) {
                 i++;
             }
-            while (x.getLevel() < ((Equip) A.get(j)).getLevel()) {
+            while (x.getEnhancementLevel() < (A.get(j).getEquipInfo()).getEnhancementLevel()) {
                 j--;
             }
 
             if (i <= j) {
-                w = (Equip) A.get(i);
+                ItemSlot wi = A.get(i);
                 A.set(i, A.get(j));
-                A.set(j, w);
+                A.set(j, wi);
 
                 i++;
                 j--;
@@ -186,7 +186,7 @@ class PairedQuicksort {
         } while (i <= j);
     }
 
-    void MapleQuicksort(int Esq, int Dir, ArrayList<Item> A, int sort) {
+    void MapleQuicksort(int Esq, int Dir, ArrayList<ItemSlot> A, int sort) {
         switch (sort) {
             case 3:
                 PartitionByLevel(Esq, Dir, A);
@@ -213,11 +213,11 @@ class PairedQuicksort {
         }
     }
 
-    private static int getItemSubtype(Item it) {
+    private static int getItemSubtype(ItemSlot it) {
         return it.getItemId() / 10000;
     }
 
-    private int[] BinarySearchElement(ArrayList<Item> A, int rangeId) {
+    private int[] BinarySearchElement(ArrayList<ItemSlot> A, int rangeId) {
         int st = 0, en = A.size() - 1;
 
         int mid = -1, idx = -1;
@@ -253,13 +253,13 @@ class PairedQuicksort {
         return new int[]{st, en};
     }
 
-    public void reverseSortSublist(ArrayList<Item> A, int[] range) {
+    public void reverseSortSublist(ArrayList<ItemSlot> A, int[] range) {
         if (range != null) {
             PartitionByProjectileAtk(range[0], range[1], A);
         }
     }
 
-    public PairedQuicksort(ArrayList<Item> A, int primarySort, int secondarySort) {
+    public PairedQuicksort(ArrayList<ItemSlot> A, int primarySort, int secondarySort) {
         intersect = new ArrayList<>();
 
         if (A.size() > 0) {
@@ -306,21 +306,21 @@ public final class InventorySortHandler extends AbstractPacketHandler {
             return;
         }
 
-        ArrayList<Item> itemarray = new ArrayList<>();
+        ArrayList<ItemSlot> itemarray = new ArrayList<>();
         List<ModifyInventory> mods = new ArrayList<>();
 
         Inventory inventory = chr.getInventory(InventoryType.getByType(invType));
         inventory.lockInventory();
         try {
             for (short i = 1; i <= inventory.getSlotLimit(); i++) {
-                Item item = inventory.getItem(i);
+                ItemSlot item = inventory.getItem(i);
                 if (item != null) {
                     itemarray.add(item.copy());
                 }
             }
 
-            for (Item item : itemarray) {
-                inventory.removeSlot(item.getPosition());
+            for (ItemSlot item : itemarray) {
+                inventory.removeSlot((short) item.getPosition());
                 mods.add(new ModifyInventory(3, item));
             }
 
@@ -328,7 +328,7 @@ public final class InventorySortHandler extends AbstractPacketHandler {
             int sortCriteria = GameConfig.getServerBoolean("use_item_sort_by_name") ? 2 : 0;
             PairedQuicksort pq = new PairedQuicksort(itemarray, sortCriteria, invTypeCriteria);
 
-            for (Item item : itemarray) {
+            for (ItemSlot item : itemarray) {
                 inventory.addItem(item);
                 mods.add(new ModifyInventory(0, item.copy()));//to prevent crashes
             }

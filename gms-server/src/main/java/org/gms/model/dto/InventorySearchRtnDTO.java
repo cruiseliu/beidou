@@ -5,8 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.gms.client.character.Stat;
 import org.gms.client.inventory.Equip;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 
 import java.util.Optional;
 
@@ -84,38 +85,41 @@ public class InventorySearchRtnDTO {
      */
     private String itemName;
 
-    public Item toItem() {
-        Item item;
+    public ItemSlot toItem() {
+        ItemSlot item;
         if (isEquipment()) {
-            Equip equip = new Equip(getItemId(), getPosition());
-            equip.setUpgradeSlots(Optional.ofNullable(getInventoryEquipment().getUpgradeSlots()).orElse((byte) 0));
-            equip.setLevel(Optional.ofNullable(getInventoryEquipment().getLevel()).orElse((byte) 0));
-            equip.setStr(Optional.ofNullable(getInventoryEquipment().getAttStr()).orElse((short) 0));
-            equip.setDex(Optional.ofNullable(getInventoryEquipment().getAttDex()).orElse((short) 0));
-            equip.setInt(Optional.ofNullable(getInventoryEquipment().getAttInt()).orElse((short) 0));
-            equip.setLuk(Optional.ofNullable(getInventoryEquipment().getAttLuk()).orElse((short) 0));
-            equip.setHp(Optional.ofNullable(getInventoryEquipment().getHp()).orElse((short) 0));
-            equip.setMp(Optional.ofNullable(getInventoryEquipment().getMp()).orElse((short) 0));
-            equip.setWatk(Optional.ofNullable(getInventoryEquipment().getPAtk()).orElse((short) 0));
-            equip.setMatk(Optional.ofNullable(getInventoryEquipment().getMAtk()).orElse((short) 0));
-            equip.setWdef(Optional.ofNullable(getInventoryEquipment().getPDef()).orElse((short) 0));
-            equip.setMdef(Optional.ofNullable(getInventoryEquipment().getMDef()).orElse((short) 0));
-            equip.setAcc(Optional.ofNullable(getInventoryEquipment().getAcc()).orElse((short) 0));
-            equip.setAvoid(Optional.ofNullable(getInventoryEquipment().getAvoid()).orElse((short) 0));
-            equip.setHands(Optional.ofNullable(getInventoryEquipment().getHands()).orElse((short) 0));
-            equip.setSpeed(Optional.ofNullable(getInventoryEquipment().getSpeed()).orElse((short) 0));
-            equip.setJump(Optional.ofNullable(getInventoryEquipment().getJump()).orElse((short) 0));
+            ItemSlot equipSlot = ItemSlot.equipItem(getItemId(), getPosition());
+            Equip equip = equipSlot.getEquipInfo();
+            equip.setEnhancementSlots(Optional.ofNullable(getInventoryEquipment().getUpgradeSlots()).orElse((byte) 0));
+            equip.setEnhancementLevel(Optional.ofNullable(getInventoryEquipment().getLevel()).orElse((byte) 0));
+            equip.setStat(Stat.STR, Optional.ofNullable(getInventoryEquipment().getAttStr()).orElse((short) 0));
+            equip.setStat(Stat.DEX, Optional.ofNullable(getInventoryEquipment().getAttDex()).orElse((short) 0));
+            equip.setStat(Stat.INT, Optional.ofNullable(getInventoryEquipment().getAttInt()).orElse((short) 0));
+            equip.setStat(Stat.LUK, Optional.ofNullable(getInventoryEquipment().getAttLuk()).orElse((short) 0));
+            equip.setStat(Stat.MAX_HP, Optional.ofNullable(getInventoryEquipment().getHp()).orElse((short) 0));
+            equip.setStat(Stat.MAX_MP, Optional.ofNullable(getInventoryEquipment().getMp()).orElse((short) 0));
+            equip.setStat(Stat.P_ATK, Optional.ofNullable(getInventoryEquipment().getPAtk()).orElse((short) 0));
+            equip.setStat(Stat.M_ATK, Optional.ofNullable(getInventoryEquipment().getMAtk()).orElse((short) 0));
+            equip.setStat(Stat.P_DEF, Optional.ofNullable(getInventoryEquipment().getPDef()).orElse((short) 0));
+            equip.setStat(Stat.M_DEF, Optional.ofNullable(getInventoryEquipment().getMDef()).orElse((short) 0));
+            equip.setStat(Stat.ACCURACY, Optional.ofNullable(getInventoryEquipment().getAcc()).orElse((short) 0));
+            equip.setStat(Stat.AVOIDABILITY, Optional.ofNullable(getInventoryEquipment().getAvoid()).orElse((short) 0));
+            equip.setStat(Stat.HANDS, Optional.ofNullable(getInventoryEquipment().getHands()).orElse((short) 0));
+            equip.setStat(Stat.SPEED, Optional.ofNullable(getInventoryEquipment().getSpeed()).orElse((short) 0));
+            equip.setStat(Stat.JUMP, Optional.ofNullable(getInventoryEquipment().getJump()).orElse((short) 0));
             equip.setVicious(Optional.ofNullable(getInventoryEquipment().getVicious()).orElse((short) 0));
             equip.setItemLevel(Optional.ofNullable(getInventoryEquipment().getItemLevel()).orElse((byte) 0));
             equip.setItemExp(Optional.ofNullable(getInventoryEquipment().getItemExp()).orElse(0));
             equip.setRingId(Optional.ofNullable(getInventoryEquipment().getRingId()).orElse(0));
-            item = equip;
+            item = equipSlot;
         } else {
-            item = new Item(getItemId(), getPosition(), getQuantity(), getPetId());
+            item = new ItemSlot(getItemId(), getPosition(), getQuantity(), getPetId());
         }
         item.setOwner(getOwner());
         item.setExpiration(getExpiration());
-        item.setGiftFrom(getGiftFrom());
+        if (getGiftFrom() != null && !getGiftFrom().isEmpty() && item.getCashInfo() != null) {
+            item.getCashInfo().setGiftFrom(getGiftFrom());
+        }
         item.setFlag(getFlag());
         return item;
     }

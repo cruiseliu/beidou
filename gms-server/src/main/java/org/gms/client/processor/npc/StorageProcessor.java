@@ -26,7 +26,7 @@ import org.gms.client.Client;
 import org.gms.client.autoban.AutobanFactory;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.client.inventory.manipulator.KarmaManipulator;
 import org.gms.config.GameConfig;
@@ -74,7 +74,7 @@ public class StorageProcessor {
                     }
 
                     slot = storage.getSlot(InventoryType.getByType(type), slot);
-                    Item item = storage.getItem(slot);
+                    ItemSlot item = storage.getItem(slot);
 
                     if (hasGMRestrictions(chr)) {
                         chr.dropMessage(1, gmBlockedStorageMessage);
@@ -150,7 +150,7 @@ public class StorageProcessor {
                     if (chr.getMeso() < storeFee) {
                         c.sendPacket(PacketCreator.getStorageError((byte) 0x0B));
                     } else {
-                        Item item;
+                        ItemSlot item;
 
                         inv.lockInventory(); // thanks imbee for pointing a dupe within storage
                         try {
@@ -163,7 +163,7 @@ public class StorageProcessor {
                                 }
 
                                 if (ItemConstants.isRechargeable(itemId)) {
-                                    quantity = item.getQuantity();
+                                    quantity = (short) item.getQuantity();
                                 }
 
                                 InventoryManipulator.removeFromSlot(c, invType, slot, quantity, false);

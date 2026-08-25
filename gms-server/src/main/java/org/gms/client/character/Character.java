@@ -45,7 +45,6 @@ import org.gms.remote.RemoteClient;
 import org.gms.client.autoban.AutobanManager;
 import org.gms.client.creator.CharacterFactoryRecipe;
 import org.gms.client.inventory.*;
-import org.gms.client.inventory.Equip.StatUpgrade;
 import org.gms.client.job.WeaponRule;
 import org.gms.client.weaponType.WeaponTypeDefinition;
 import org.gms.client.weaponType.WeaponTypeEnum;
@@ -151,7 +150,7 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterKeyBinding keybinding = new CharacterKeyBinding(this);
     final CharacterStorage storage = new CharacterStorage();
     final CharacterSpecialSkills specialSkills = new CharacterSpecialSkills(this);
-    final CharacterSalon salon = new CharacterSalon(this);
+    final CharacterAppearance appearance = new CharacterAppearance(this);
     final CharacterBuddies buddy = new CharacterBuddies(this);
 
     @Getter
@@ -300,7 +299,6 @@ public class Character extends AbstractAnimatedMapObject {
     private final Map<Short, String> area_info = new LinkedHashMap<>();
     private boolean blockCashShop = false;
     boolean allowExpGain = true;    // 包内可见：CharacterInventory.increaseEquipExp 读取
-    byte pendantExp = 0;    // 包内可见：CharacterInventory 精灵吊坠逻辑读写
     private final List<Integer> trockmaps = new ArrayList<>();
     private final List<Integer> viptrockmaps = new ArrayList<>();
     @Getter
@@ -556,7 +554,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     public int calculateMaxBaseDamage(int watk) {
         int maxbasedamage;
-        Item weapon_item = getInventory(InventoryType.EQUIPPED).getItem((short) -11);
+        ItemSlot weapon_item = getInventory(InventoryType.EQUIPPED).getItem((short) -11);
         if (weapon_item != null) {
             maxbasedamage = calculateMaxBaseDamage(watk, WeaponTypeRegistry.of(weapon_item.getItemId()));
         } else {
@@ -636,7 +634,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     public String getMedalText() {
         String medal = "";
-        final Item medalItem = getInventory(InventoryType.EQUIPPED).getItem((short) -49);
+        final ItemSlot medalItem = getInventory(InventoryType.EQUIPPED).getItem((short) -49);
         if (medalItem != null) {
             medal = "<" + ItemInformationProvider.getInstance().getName(medalItem.getItemId()) + "> ";
         }
@@ -1373,7 +1371,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     // getHpMpGainFromRange 和 getBasicLevelUpHpMp 已迁移到 CharacterStats
 
-    public static Character loadCharacterEntryFromDB(ResultSet rs, List<Item> equipped) {
+    public static Character loadCharacterEntryFromDB(ResultSet rs, List<ItemSlot> equipped) {
         Character ret = new Character();
 
         try {
@@ -1381,9 +1379,9 @@ public class Character extends AbstractAnimatedMapObject {
             ret.id = rs.getInt("id");
             ret.name = rs.getString("name");
             ret.gender = rs.getInt("gender");
-            ret.salon.setSkinColor(SkinColor.getById(rs.getInt("skincolor")));
-            ret.salon.setFace(rs.getInt("face"));
-            ret.salon.setHair(rs.getInt("hair"));
+            ret.appearance.setSkinColor(SkinColor.getById(rs.getInt("skincolor")));
+            ret.appearance.setFace(rs.getInt("face"));
+            ret.appearance.setHair(rs.getInt("hair"));
 
             // skipping pets, probably unneeded here
 
@@ -1404,7 +1402,7 @@ public class Character extends AbstractAnimatedMapObject {
 
             if (equipped != null) {  // players can have no equipped items at all, ofc
                 Inventory inv = ret.inventory.getInventory(InventoryType.EQUIPPED);
-                for (Item item : equipped) {
+                for (ItemSlot item : equipped) {
                     inv.addItemFromDB(item);
                 }
             }
@@ -1422,9 +1420,9 @@ public class Character extends AbstractAnimatedMapObject {
         ret.id = this.getId();
         ret.name = this.getName();
         ret.gender = this.getGender();
-        ret.salon.setSkinColor(this.getSkinColor());
-        ret.salon.setFace(this.getFace());
-        ret.salon.setHair(this.getHair());
+        ret.appearance.setSkinColor(this.getSkinColor());
+        ret.appearance.setFace(this.getFace());
+        ret.appearance.setHair(this.getHair());
 
         // skipping pets, probably unneeded here
 
@@ -1476,7 +1474,7 @@ public class Character extends AbstractAnimatedMapObject {
         chr.setMeso(charactersDO.getMeso());
         chr.setMerchantMeso(charactersDO.getMerchantmesos());
         chr.gm.setGMLevel(charactersDO.getGm());
-        chr.salon.setSkinColor(SkinColor.getById(charactersDO.getSkincolor()));
+        chr.appearance.setSkinColor(SkinColor.getById(charactersDO.getSkincolor()));
         chr.setGender(charactersDO.getGender());
         // job 仅从 character_json 恢复（applyData），character 表 job 列为冗余双写
         chr.setFinishedDojoTutorial(charactersDO.getFinishedDojoTutorial() == 1);
@@ -1487,8 +1485,8 @@ public class Character extends AbstractAnimatedMapObject {
         chr.miniGame.setMatchcardwins(charactersDO.getMatchcardwins());
         chr.miniGame.setMatchcardlosses(charactersDO.getMatchcardlosses());
         chr.miniGame.setMatchcardties(charactersDO.getMatchcardties());
-        chr.salon.setHair(charactersDO.getHair());
-        chr.salon.setFace(charactersDO.getFace());
+        chr.appearance.setHair(charactersDO.getHair());
+        chr.appearance.setFace(charactersDO.getFace());
         chr.setAccountId(charactersDO.getAccountid());
         // mapId 仅从 character_json 恢复（applyData），character 表 map 列为冗余双写
         chr.setInitialSpawnPoint(charactersDO.getSpawnpoint());
@@ -1524,7 +1522,7 @@ public class Character extends AbstractAnimatedMapObject {
                     .build());
             for (InventorySearchRtnDTO searchRtnDTO : searchRtnDTOList) {
                 sandboxCheck |= searchRtnDTO.getFlag();
-                Item item = searchRtnDTO.toItem();
+                ItemSlot item = searchRtnDTO.toItem();
                 chr.getInventory(inventoryType).addItemFromDB(item);
                 if (item.getPetId() > -1) {
                     Pet pet = item.getPet();
@@ -1836,8 +1834,8 @@ public class Character extends AbstractAnimatedMapObject {
             this.changeSkillLevel(skill.getId(), skEntry.getRight().byteValue(), skill.getMaxLevel(), -1);
         }
 
-        List<Pair<Item, InventoryType>> itemsWithType = recipe.getStartingItems();
-        for (Pair<Item, InventoryType> itEntry : itemsWithType) {
+        List<Pair<ItemSlot, InventoryType>> itemsWithType = recipe.getStartingItems();
+        for (Pair<ItemSlot, InventoryType> itEntry : itemsWithType) {
             this.getInventory(itEntry.getRight()).addItem(itEntry.getLeft());
         }
 
@@ -1851,11 +1849,11 @@ public class Character extends AbstractAnimatedMapObject {
                 // Character info
                 try (PreparedStatement ps = con.prepareStatement("INSERT INTO characters (gm, skincolor, gender, job, hair, face, meso, spawnpoint, accountid, name, world, level) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
                     ps.setInt(1, gm.gmLevel());
-                    ps.setInt(2, salon.getSkinColor().getId());
+                    ps.setInt(2, appearance.getSkinColor().getId());
                     ps.setInt(3, gender);
                     ps.setInt(4, job.getId());
-                    ps.setInt(5, salon.getHair());
-                    ps.setInt(6, salon.getFace());
+                    ps.setInt(5, appearance.getHair());
+                    ps.setInt(6, appearance.getFace());
                     ps.setInt(7, Math.abs(meso.get()));
                     ps.setInt(8, 0);
                     ps.setInt(9, accountId);
@@ -1928,7 +1926,7 @@ public class Character extends AbstractAnimatedMapObject {
 
                 itemsWithType = new ArrayList<>();
                 for (Inventory iv : inventory.getInventories()) {
-                    for (Item item : iv.list()) {
+                    for (ItemSlot item : iv.list()) {
                         itemsWithType.add(new Pair<>(item, iv.getType()));
                     }
                 }
@@ -1998,11 +1996,11 @@ public class Character extends AbstractAnimatedMapObject {
                     }
 
                     ps.setInt(5, gm.gmLevel());
-                    ps.setInt(6, salon.getSkinColor().getId());
+                    ps.setInt(6, appearance.getSkinColor().getId());
                     ps.setInt(7, gender);
                     ps.setInt(8, job.getId());
-                    ps.setInt(9, salon.getHair());
-                    ps.setInt(10, salon.getFace());
+                    ps.setInt(9, appearance.getHair());
+                    ps.setInt(10, appearance.getFace());
                     ps.setInt(11, meso.get());
                     if (getMap() == null || getMap().getId() == MapId.CRIMSONWOOD_VALLEY_1 || getMap().getId() == MapId.CRIMSONWOOD_VALLEY_2) {  // reset to first spawnpoint on those maps
                         ps.setInt(12, 0);
@@ -2129,9 +2127,9 @@ public class Character extends AbstractAnimatedMapObject {
                     psMacro.executeBatch();
                 }
 
-                List<Pair<Item, InventoryType>> itemsWithType = new ArrayList<>();
+                List<Pair<ItemSlot, InventoryType>> itemsWithType = new ArrayList<>();
                 for (Inventory iv : inventory.getInventories()) {
-                    for (Item item : iv.list()) {
+                    for (ItemSlot item : iv.list()) {
                         itemsWithType.add(new Pair<>(item, iv.getType()));
                     }
                 }
@@ -2354,7 +2352,7 @@ public class Character extends AbstractAnimatedMapObject {
             nextWarningTime = curTime + MINUTES.toMillis(1); // show underlevel info again after 1 minute
 
             String medal = "";
-            Item medalItem = mapOwner.getInventory(InventoryType.EQUIPPED).getItem((short) -49);
+            ItemSlot medalItem = mapOwner.getInventory(InventoryType.EQUIPPED).getItem((short) -49);
             if (medalItem != null) {
                 medal = "<" + ItemInformationProvider.getInstance().getName(medalItem.getItemId()) + "> ";
             }
@@ -2657,7 +2655,7 @@ public class Character extends AbstractAnimatedMapObject {
         }
         extraRecoveryTask = null;
 
-        inventory.clearPendantOfSpirit();
+        inventory.getEquips().clearPendantOfSpirit();
 
         clearCpqTimer();
 
@@ -3235,7 +3233,7 @@ public class Character extends AbstractAnimatedMapObject {
     public boolean canHoldUniques(List<Integer> itemids) { return inventory.canHoldUniques(itemids); }
     public boolean canHoldMeso(int gain) { return inventory.canHoldMeso(gain); }
     public boolean haveItemWithId(int itemid, boolean checkEquipped) { return inventory.haveItemWithId(itemid, checkEquipped); }
-    public boolean haveItemEquipped(int itemid) { return inventory.haveItemEquipped(itemid); }
+    public boolean haveItemEquipped(int itemid) { return inventory.getEquips().haveItemEquipped(itemid); }
     public boolean haveWeddingRing() { return inventory.haveWeddingRing(); }
     public int getItemQuantity(int itemid, boolean checkEquipped) { return inventory.getItemQuantity(itemid, checkEquipped); }
     public int getCleanItemQuantity(int itemid, boolean checkEquipped) { return inventory.getCleanItemQuantity(itemid, checkEquipped); }
@@ -3251,23 +3249,34 @@ public class Character extends AbstractAnimatedMapObject {
     public void setSlot(int slotid) { inventory.setSlot(slotid); }
     public void setCS(boolean cs) { inventory.setCS(cs); }
     public boolean isUseCS() { return inventory.isUseCS(); }
-    public void equipChanged() { inventory.equipChanged(); }
+    public void equipChanged() { inventory.getEquips().equipChanged(); }
+
+    /** 外观变更（发型/脸型/肤色/转职等，装备未动）：广播外观 + messenger 刷新；不触发属性重算 */
+    public void appearanceChanged() {
+        getMap().broadcastUpdateCharLookMessage(this, this);
+        if (getMessenger() != null) {
+            getWorldServer().updateMessenger(getMessenger(), getName(), getWorld(), client.getChannel());
+        }
+    }
+
+    /** 属性源变更后的面板重算（含队伍 HP 同步） */
+    public void recalcStats() {
+        stats.recalcAndSyncParty();
+    }
     public void cancelExpirationTask() { inventory.cancelExpirationTask(); }
     public void expirationTask() { inventory.expirationTask(); }
-    public void forceUpdateItem(Item item) { inventory.forceUpdateItem(item); }
+    public void forceUpdateItem(ItemSlot item) { inventory.forceUpdateItem(item); }
     public void setHasSandboxItem() { inventory.setHasSandboxItem(); }
     public void removeSandboxItems() { inventory.removeSandboxItems(); }
     public int sellAllItemsFromName(byte invTypeId, String name) { return inventory.sellAllItemsFromName(invTypeId, name); }
     public int sellAllItemsFromPosition(ItemInformationProvider ii, InventoryType type, short pos) { return inventory.sellAllItemsFromPosition(ii, type, pos); }
     public final void pickupItem(MapObject ob) { inventory.pickupItem(ob); }
     public final void pickupItem(MapObject ob, int petIndex) { inventory.pickupItem(ob, petIndex); }
-    public boolean mergeAllItemsFromName(String name) { return inventory.mergeAllItemsFromName(name); }
-    public void mergeAllItemsFromPosition(Map<StatUpgrade, Float> statUps, short pos) { inventory.mergeAllItemsFromPosition(statUps, pos); }
-    public void increaseEquipExp(int expGain) { inventory.increaseEquipExp(expGain); }
-    public void showAllEquipFeatures() { inventory.showAllEquipFeatures(); }
-    public void gainEquip(int itemId, Short attStr, Short attDex, Short attInt, Short attLuk, Short attHp, Short attMp, Short pAtk, Short mAtk, Short pDef, Short mDef, Short acc, Short avoid, Short hands, Short speed, Short jump, Byte upgradeSlot, Long expireTime) { inventory.gainEquip(itemId, attStr, attDex, attInt, attLuk, attHp, attMp, pAtk, mAtk, pDef, mDef, acc, avoid, hands, speed, jump, upgradeSlot, expireTime); }
-    public void equippedItem(Equip equip) { inventory.equippedItem(equip); }
-    public void unequippedItem(Equip equip) { inventory.unequippedItem(equip); }
+    public void increaseEquipExp(int expGain) { inventory.getEquips().increaseEquipExp(expGain); }
+    public void showAllEquipFeatures() { inventory.getEquips().showAllEquipFeatures(); }
+    public void gainEquip(int itemId, Integer[] stats, Byte upgradeSlot, Long expireTime) { inventory.getEquips().gainEquip(itemId, stats, upgradeSlot, expireTime); }
+    public void equippedItem(Equip equip) { inventory.getEquips().equippedItem(equip); }
+    public void unequippedItem(Equip equip) { inventory.getEquips().unequippedItem(equip); }
 
     // ── family 门面 ──
 
@@ -3412,13 +3421,13 @@ public class Character extends AbstractAnimatedMapObject {
 
     // ── salon 门面 ──
 
-    public int getHair() { return salon.getHair(); }
-    public void setHair(int hair) { salon.setHair(hair); }
-    public int getFace() { return salon.getFace(); }
-    public void setFace(int face) { salon.setFace(face); }
-    public SkinColor getSkinColor() { return salon.getSkinColor(); }
-    public void setSkinColor(SkinColor skinColor) { salon.setSkinColor(skinColor); }
-    public void changeFaceExpression(int emote) { salon.changeFaceExpression(emote); }
+    public int getHair() { return appearance.getHair(); }
+    public void setHair(int hair) { appearance.setHair(hair); }
+    public int getFace() { return appearance.getFace(); }
+    public void setFace(int face) { appearance.setFace(face); }
+    public SkinColor getSkinColor() { return appearance.getSkinColor(); }
+    public void setSkinColor(SkinColor skinColor) { appearance.setSkinColor(skinColor); }
+    public void changeFaceExpression(int emote) { appearance.changeFaceExpression(emote); }
 
     // ── buddy 门面 ──
 

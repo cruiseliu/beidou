@@ -21,6 +21,7 @@
 package org.gms.util;
 
 import com.mybatisflex.annotation.Column;
+import org.gms.client.character.Stat;
 import org.gms.client.BuddylistEntry;
 import org.gms.client.EffectType;
 import org.gms.client.character.Character;
@@ -39,7 +40,7 @@ import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Equip.ScrollResult;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ItemFactory;
 import org.gms.client.inventory.ModifyInventory;
 import org.gms.client.inventory.Pet;
@@ -290,10 +291,10 @@ public class PacketCreator {
 
     private static void addCharEquips(final OutPacket p, Character chr) {
         Inventory equip = chr.getInventory(InventoryType.EQUIPPED);
-        Collection<Item> ii = ItemInformationProvider.getInstance().canWearEquipment(chr, equip.list());
+        Collection<ItemSlot> ii = ItemInformationProvider.getInstance().canWearEquipment(chr, equip.list());
         Map<Short, Integer> myEquip = new LinkedHashMap<>();
         Map<Short, Integer> maskedEquip = new LinkedHashMap<>();
-        for (Item item : ii) {
+        for (ItemSlot item : ii) {
             short pos = (short) (item.getPosition() * -1);  //修复其他角色无法看到现金勋章
             if (pos < 100 && myEquip.get(pos) == null) {
                 myEquip.put(pos, item.getItemId());
@@ -317,7 +318,7 @@ public class PacketCreator {
             p.writeInt(entry.getValue());
         }
         p.writeByte(0xFF);
-        Item cWeapon = equip.getItem((short) -111);
+        ItemSlot cWeapon = equip.getItem((short) -111);
         p.writeInt(cWeapon != null ? cWeapon.getItemId() : 0);
         for (int i = 0; i < 3; i++) {
             if (chr.getPet(i) != null) {
@@ -384,20 +385,20 @@ public class PacketCreator {
         p.writeLong(getTime(time)); // offset expiration time issue found thanks to Thora
     }
 
-    private static void addItemInfo(OutPacket p, Item item) {
+    private static void addItemInfo(OutPacket p, ItemSlot item) {
         addItemInfo(p, item, false);
     }
 
-    protected static void addItemInfo(final OutPacket p, Item item, boolean zeroPosition) {
+    protected static void addItemInfo(final OutPacket p, ItemSlot item, boolean zeroPosition) {
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
         boolean isCash = ii.isCash(item.getItemId());
         boolean isPet = item.getPetId() > -1;
         boolean isRing = false;
         Equip equip = null;
-        short pos = item.getPosition();
-        byte itemType = item.getItemType();
+        short pos = (short) item.getPosition();
+        byte itemType = (byte) item.getItemType();
         if (itemType == 1) {
-            equip = (Equip) item;
+            equip = item.getEquipInfo();
             isRing = equip.getRingId() > -1;
         }
         if (!zeroPosition) {
@@ -414,7 +415,7 @@ public class PacketCreator {
         p.writeInt(item.getItemId());
         p.writeBool(isCash);
         if (isCash) {
-            p.writeLong(isPet ? item.getPetId() : isRing ? equip.getRingId() : item.getCashId());
+            p.writeLong(isPet ? item.getPetId() : isRing ? equip.getRingId() : item.getCashInfo() != null ? item.getCashInfo().getCashId() : 0);
         }
         addExpirationTime(p, item.getExpiration());
         if (isPet) {
@@ -441,23 +442,23 @@ public class PacketCreator {
             }
             return;
         }
-        p.writeByte(equip.getUpgradeSlots()); // upgrade slots
-        p.writeByte(equip.getLevel()); // level
-        p.writeShort(equip.getStr()); // str
-        p.writeShort(equip.getDex()); // dex
-        p.writeShort(equip.getInt()); // int
-        p.writeShort(equip.getLuk()); // luk
-        p.writeShort(equip.getHp()); // hp
-        p.writeShort(equip.getMp()); // mp
-        p.writeShort(equip.getWatk()); // watk
-        p.writeShort(equip.getMatk()); // matk
-        p.writeShort(equip.getWdef()); // wdef
-        p.writeShort(equip.getMdef()); // mdef
-        p.writeShort(equip.getAcc()); // accuracy
-        p.writeShort(equip.getAvoid()); // avoid
-        p.writeShort(equip.getHands()); // hands
-        p.writeShort(equip.getSpeed()); // speed
-        p.writeShort(equip.getJump()); // jump
+        p.writeByte(equip.getEnhancementSlots()); // upgrade slots
+        p.writeByte(equip.getEnhancementLevel()); // level
+        p.writeShort(equip.getStat(Stat.STR)); // str
+        p.writeShort(equip.getStat(Stat.DEX)); // dex
+        p.writeShort(equip.getStat(Stat.INT)); // int
+        p.writeShort(equip.getStat(Stat.LUK)); // luk
+        p.writeShort(equip.getStat(Stat.MAX_HP)); // hp
+        p.writeShort(equip.getStat(Stat.MAX_MP)); // mp
+        p.writeShort(equip.getStat(Stat.P_ATK)); // watk
+        p.writeShort(equip.getStat(Stat.M_ATK)); // matk
+        p.writeShort(equip.getStat(Stat.P_DEF)); // wdef
+        p.writeShort(equip.getStat(Stat.M_DEF)); // mdef
+        p.writeShort(equip.getStat(Stat.ACCURACY)); // accuracy
+        p.writeShort(equip.getStat(Stat.AVOIDABILITY)); // avoid
+        p.writeShort(equip.getStat(Stat.HANDS)); // hands
+        p.writeShort(equip.getStat(Stat.SPEED)); // speed
+        p.writeShort(equip.getStat(Stat.JUMP)); // jump
         p.writeString(equip.getOwner()); // owner name
         p.writeShort(equip.getFlag()); //Item Flags
 
@@ -488,41 +489,41 @@ public class PacketCreator {
         }
         p.writeLong(getTime(-2));
         Inventory iv = chr.getInventory(InventoryType.EQUIPPED);
-        Collection<Item> equippedC = iv.list();
-        List<Item> equipped = new ArrayList<>(equippedC.size());
-        List<Item> equippedCash = new ArrayList<>(equippedC.size());
-        for (Item item : equippedC) {
+        Collection<ItemSlot> equippedC = iv.list();
+        List<ItemSlot> equipped = new ArrayList<>(equippedC.size());
+        List<ItemSlot> equippedCash = new ArrayList<>(equippedC.size());
+        for (ItemSlot item : equippedC) {
             if (item.getPosition() <= -100) {
                 equippedCash.add(item);
             } else {
                 equipped.add(item);
             }
         }
-        for (Item item : equipped) {    // equipped doesn't actually need sorting, thanks Pllsz
+        for (ItemSlot item : equipped) {    // equipped doesn't actually need sorting, thanks Pllsz
             addItemInfo(p, item);
         }
         p.writeShort(0); // start of equip cash
-        for (Item item : equippedCash) {
+        for (ItemSlot item : equippedCash) {
             addItemInfo(p, item);
         }
         p.writeShort(0); // start of equip inventory
-        for (Item item : chr.getInventory(InventoryType.EQUIP).list()) {
+        for (ItemSlot item : chr.getInventory(InventoryType.EQUIP).list()) {
             addItemInfo(p, item);
         }
         p.writeInt(0);
-        for (Item item : chr.getInventory(InventoryType.USE).list()) {
+        for (ItemSlot item : chr.getInventory(InventoryType.USE).list()) {
             addItemInfo(p, item);
         }
         p.writeByte(0);
-        for (Item item : chr.getInventory(InventoryType.SETUP).list()) {
+        for (ItemSlot item : chr.getInventory(InventoryType.SETUP).list()) {
             addItemInfo(p, item);
         }
         p.writeByte(0);
-        for (Item item : chr.getInventory(InventoryType.ETC).list()) {
+        for (ItemSlot item : chr.getInventory(InventoryType.ETC).list()) {
             addItemInfo(p, item);
         }
         p.writeByte(0);
-        for (Item item : chr.getInventory(InventoryType.CASH).list()) {
+        for (ItemSlot item : chr.getInventory(InventoryType.CASH).list()) {
             addItemInfo(p, item);
         }
     }
@@ -1330,7 +1331,7 @@ public class PacketCreator {
      * @param player
      * @return
      */
-    public static Packet gachaponMessage(Item item, String town, Character player) {
+    public static Packet gachaponMessage(ItemSlot item, String town, Character player) {
         final OutPacket p = OutPacket.create(SendOpcode.SERVERMESSAGE);
         p.writeByte(0x0B);
         p.writeString(player.getName() + " : 获得了");
@@ -2756,7 +2757,7 @@ public class PacketCreator {
         }
         p.writeByte(0); //end of pets
 
-        Item mount;     //mounts can potentially crash the client if the player's level is not properly checked
+        ItemSlot mount;     //mounts can potentially crash the client if the player's level is not properly checked
         if (chr.getMapleMount() != null && (mount = chr.getInventory(InventoryType.EQUIPPED).getItem((short) -18)) != null && ItemInformationProvider.getInstance().getEquipLevelReq(mount.getItemId()) <= chr.getLevel()) {
             Mount mmount = chr.getMapleMount();
             p.writeByte(mmount.getId()); //mount
@@ -2777,7 +2778,7 @@ public class PacketCreator {
         p.writeInt(book.getSpecialCard());
         p.writeInt(book.getTotalCards());
         p.writeInt(chr.getMonsterBookCover() > 0 ? ItemInformationProvider.getInstance().getCardMobId(chr.getMonsterBookCover()) : 0);
-        Item medal = chr.getInventory(InventoryType.EQUIPPED).getItem((short) -49);
+        ItemSlot medal = chr.getInventory(InventoryType.EQUIPPED).getItem((short) -49);
         if (medal != null) {
             p.writeInt(medal.getItemId());
         } else {
@@ -3203,7 +3204,7 @@ public class PacketCreator {
         return p;
     }
 
-    public static Packet getTradeItemAdd(byte number, Item item) {
+    public static Packet getTradeItemAdd(byte number, ItemSlot item) {
         final OutPacket p = OutPacket.create(SendOpcode.PLAYER_INTERACTION);
         p.writeByte(PlayerInteractionHandler.Action.SET_ITEMS.getCode());
         p.writeByte(number);
@@ -3579,7 +3580,7 @@ public class PacketCreator {
         return p;
     }
 
-    public static Packet getStorage(int npcId, byte slots, Collection<Item> items, int meso) {
+    public static Packet getStorage(int npcId, byte slots, Collection<ItemSlot> items, int meso) {
         final OutPacket p = OutPacket.create(SendOpcode.STORAGE);
         p.writeByte(0x16);
         p.writeInt(npcId);
@@ -3590,7 +3591,7 @@ public class PacketCreator {
         p.writeInt(meso);
         p.writeShort(0);
         p.writeByte((byte) items.size());
-        for (Item item : items) {
+        for (ItemSlot item : items) {
             addItemInfo(p, item, true);
         }
         p.writeShort(0);
@@ -3620,7 +3621,7 @@ public class PacketCreator {
         return p;
     }
 
-    public static Packet storeStorage(byte slots, InventoryType type, Collection<Item> items) {
+    public static Packet storeStorage(byte slots, InventoryType type, Collection<ItemSlot> items) {
         final OutPacket p = OutPacket.create(SendOpcode.STORAGE);
         p.writeByte(0xD);
         p.writeByte(slots);
@@ -3628,13 +3629,13 @@ public class PacketCreator {
         p.writeShort(0);
         p.writeInt(0);
         p.writeByte(items.size());
-        for (Item item : items) {
+        for (ItemSlot item : items) {
             addItemInfo(p, item, true);
         }
         return p;
     }
 
-    public static Packet takeOutStorage(byte slots, InventoryType type, Collection<Item> items) {
+    public static Packet takeOutStorage(byte slots, InventoryType type, Collection<ItemSlot> items) {
         final OutPacket p = OutPacket.create(SendOpcode.STORAGE);
         p.writeByte(0x9);
         p.writeByte(slots);
@@ -3642,20 +3643,20 @@ public class PacketCreator {
         p.writeShort(0);
         p.writeInt(0);
         p.writeByte(items.size());
-        for (Item item : items) {
+        for (ItemSlot item : items) {
             addItemInfo(p, item, true);
         }
         return p;
     }
 
-    public static Packet arrangeStorage(byte slots, Collection<Item> items) {
+    public static Packet arrangeStorage(byte slots, Collection<ItemSlot> items) {
         OutPacket p = OutPacket.create(SendOpcode.STORAGE);
         p.writeByte(0xF);
         p.writeByte(slots);
         p.writeByte(124);
         p.skip(10);
         p.writeByte(items.size());
-        for (Item item : items) {
+        for (ItemSlot item : items) {
             addItemInfo(p, item, true);
         }
         p.writeByte(0);
@@ -5012,10 +5013,10 @@ public class PacketCreator {
         p.writeInt(chr.getMerchantNetMeso());
         p.writeByte(0);
         try {
-            List<Pair<Item, InventoryType>> items = ItemFactory.MERCHANT.loadItems(chr.getId(), false);
+            List<Pair<ItemSlot, InventoryType>> items = ItemFactory.MERCHANT.loadItems(chr.getId(), false);
             p.writeByte(items.size());
 
-            for (Pair<Item, InventoryType> item : items) {
+            for (Pair<ItemSlot, InventoryType> item : items) {
                 addItemInfo(p, item.getLeft(), true);
             }
         } catch (SQLException e) {
@@ -5551,7 +5552,7 @@ public class PacketCreator {
         return p;
     }
 
-    public static Packet showWorldTransferSuccess(Item item, int accountId) {
+    public static Packet showWorldTransferSuccess(ItemSlot item, int accountId) {
         final OutPacket p = OutPacket.create(SendOpcode.CASHSHOP_OPERATION);
         p.writeByte(0xA0);
         addCashItemInformation(p, item, accountId);
@@ -5586,7 +5587,7 @@ public class PacketCreator {
         return p;
     }
 
-    public static Packet showNameChangeSuccess(Item item, int accountId) {
+    public static Packet showNameChangeSuccess(ItemSlot item, int accountId) {
         final OutPacket p = OutPacket.create(SendOpcode.CASHSHOP_OPERATION);
         p.writeByte(0x9E);
         addCashItemInformation(p, item, accountId);
@@ -5703,11 +5704,11 @@ public class PacketCreator {
         return p;
     }
 
-    public static Packet showCouponRedeemedItems(int accountId, int maplePoints, int mesos, List<Item> cashItems, List<Pair<Integer, Integer>> items) {
+    public static Packet showCouponRedeemedItems(int accountId, int maplePoints, int mesos, List<ItemSlot> cashItems, List<Pair<Integer, Integer>> items) {
         final OutPacket p = OutPacket.create(SendOpcode.CASHSHOP_OPERATION);
         p.writeByte(0x59);
         p.writeByte((byte) cashItems.size());
-        for (Item item : cashItems) {
+        for (ItemSlot item : cashItems) {
             addCashItemInformation(p, item, accountId);
         }
         p.writeInt(maplePoints);
@@ -6138,7 +6139,7 @@ public class PacketCreator {
         return p;
     }
 
-    public static Packet itemMegaphone(String msg, boolean whisper, int channel, Item item) {
+    public static Packet itemMegaphone(String msg, boolean whisper, int channel, ItemSlot item) {
         final OutPacket p = OutPacket.create(SendOpcode.SERVERMESSAGE);
         p.writeByte(8);
         p.writeString(msg);
@@ -6481,13 +6482,13 @@ public class PacketCreator {
         return p;
     }
 
-    public static Packet showBoughtCashPackage(List<Item> cashPackage, int accountId) {
+    public static Packet showBoughtCashPackage(List<ItemSlot> cashPackage, int accountId) {
         final OutPacket p = OutPacket.create(SendOpcode.CASHSHOP_OPERATION);
 
         p.writeByte(0x89);
         p.writeByte(cashPackage.size());
 
-        for (Item item : cashPackage) {
+        for (ItemSlot item : cashPackage) {
             addCashItemInformation(p, item, accountId);
         }
 
@@ -6514,7 +6515,7 @@ public class PacketCreator {
         return p;
     }
 
-    public static Packet onCashGachaponOpenSuccess(int accountid, long boxCashId, int remainingBoxes, Item reward,
+    public static Packet onCashGachaponOpenSuccess(int accountid, long boxCashId, int remainingBoxes, ItemSlot reward,
                                                    int rewardItemId, int rewardQuantity, boolean bJackpot) {
         OutPacket p = OutPacket.create(SendOpcode.CASHSHOP_CASH_ITEM_GACHAPON_RESULT);
         p.writeByte(0xE5);   // subopcode thanks to Ubaware
@@ -6954,29 +6955,29 @@ public class PacketCreator {
         return p;
     }
 
-    public static void addCashItemInformation(OutPacket p, Item item, int accountId) {
+    public static void addCashItemInformation(OutPacket p, ItemSlot item, int accountId) {
         addCashItemInformation(p, item, accountId, null);
     }
 
-    public static void addCashItemInformation(OutPacket p, Item item, int accountId, String giftMessage) {
+    public static void addCashItemInformation(OutPacket p, ItemSlot item, int accountId, String giftMessage) {
         boolean isGift = giftMessage != null;
         boolean isRing = false;
         Equip equip = null;
         if (item.getInventoryType().equals(InventoryType.EQUIP)) {
-            equip = (Equip) item;
+            equip = item.getEquipInfo();
             isRing = equip.getRingId() > -1;
         }
-        p.writeLong(item.getPetId() > -1 ? item.getPetId() : isRing ? equip.getRingId() : item.getCashId());
+        p.writeLong(item.getPetId() > -1 ? item.getPetId() : isRing ? equip.getRingId() : item.getCashInfo() != null ? item.getCashInfo().getCashId() : 0);
         if (!isGift) {
             p.writeInt(accountId);
             p.writeInt(0);
         }
         p.writeInt(item.getItemId());
         if (!isGift) {
-            p.writeInt(item.getSN());
+            p.writeInt(item.getCashInfo() != null ? item.getCashInfo().getSN() : 0);
             p.writeShort(item.getQuantity());
         }
-        p.writeFixedString(StringUtil.getRightPaddedStr(item.getGiftFrom(), '\0', 13));
+        p.writeFixedString(StringUtil.getRightPaddedStr(item.getCashInfo() != null ? item.getCashInfo().getGiftFrom() : "", '\0', 13));
         if (isGift) {
             p.writeFixedString(giftMessage, 73);
             return;
@@ -7005,7 +7006,7 @@ public class PacketCreator {
         return p;
     }
 
-    public static Packet showBoughtCashItem(Item item, int accountId) {
+    public static Packet showBoughtCashItem(ItemSlot item, int accountId) {
         final OutPacket p = OutPacket.create(SendOpcode.CASHSHOP_OPERATION);
 
         p.writeByte(0x57);
@@ -7014,7 +7015,7 @@ public class PacketCreator {
         return p;
     }
 
-    public static Packet showBoughtCashRing(Item ring, String recipient, int accountId) {
+    public static Packet showBoughtCashRing(ItemSlot ring, String recipient, int accountId) {
         final OutPacket p = OutPacket.create(SendOpcode.CASHSHOP_OPERATION);
         p.writeByte(0x87);
         addCashItemInformation(p, ring, accountId);
@@ -7085,14 +7086,14 @@ public class PacketCreator {
 
     public static Packet showCashInventory(Client c) {
         final OutPacket p = OutPacket.create(SendOpcode.CASHSHOP_OPERATION);
-        List<Item> inventory = c.getPlayer().getCashShop().getInventory();
+        List<ItemSlot> inventory = c.getPlayer().getCashShop().getInventory();
         int itemCount = Math.min(inventory.size(), CashShop.MAX_CASH_INVENTORY_SAFE);
 
         p.writeByte(0x4B);
         p.writeShort(itemCount);
 
         for (int i = 0; i < itemCount; i++) {
-            Item item = inventory.get(i);
+            ItemSlot item = inventory.get(i);
             addCashItemInformation(p, item, c.getAccID());
         }
 
@@ -7102,13 +7103,13 @@ public class PacketCreator {
         return p;
     }
 
-    public static Packet showGifts(List<Pair<Item, String>> gifts) {
+    public static Packet showGifts(List<Pair<ItemSlot, String>> gifts) {
         final OutPacket p = OutPacket.create(SendOpcode.CASHSHOP_OPERATION);
 
         p.writeByte(0x4D);
         p.writeShort(gifts.size());
 
-        for (Pair<Item, String> gift : gifts) {
+        for (Pair<ItemSlot, String> gift : gifts) {
             addCashItemInformation(p, gift.getLeft(), 0, gift.getRight());
         }
 
@@ -7155,7 +7156,7 @@ public class PacketCreator {
         return p;
     }
 
-    public static Packet takeFromCashInventory(Item item) {
+    public static Packet takeFromCashInventory(ItemSlot item) {
         final OutPacket p = OutPacket.create(SendOpcode.CASHSHOP_OPERATION);
 
         p.writeByte(0x68);
@@ -7165,22 +7166,22 @@ public class PacketCreator {
         return p;
     }
 
-    public static Packet deleteCashItem(Item item) {
+    public static Packet deleteCashItem(ItemSlot item) {
         final OutPacket p = OutPacket.create(SendOpcode.CASHSHOP_OPERATION);
         p.writeByte(0x6C);
-        p.writeLong(item.getCashId());
+        p.writeLong(item.getCashInfo() != null ? item.getCashInfo().getCashId() : 0);
         return p;
     }
 
-    public static Packet refundCashItem(Item item, int maplePoints) {
+    public static Packet refundCashItem(ItemSlot item, int maplePoints) {
         final OutPacket p = OutPacket.create(SendOpcode.CASHSHOP_OPERATION);
         p.writeByte(0x85);
-        p.writeLong(item.getCashId());
+        p.writeLong(item.getCashInfo() != null ? item.getCashInfo().getCashId() : 0);
         p.writeInt(maplePoints);
         return p;
     }
 
-    public static Packet putIntoCashInventory(Item item, int accountId) {
+    public static Packet putIntoCashInventory(ItemSlot item, int accountId) {
         final OutPacket p = OutPacket.create(SendOpcode.CASHSHOP_OPERATION);
 
         p.writeByte(0x6A);

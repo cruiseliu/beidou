@@ -24,7 +24,7 @@ import org.gms.client.JobEnum;
 import org.gms.client.creator.CharacterFactory;
 import org.gms.client.creator.CharacterFactoryRecipe;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.id.MapId;
 import org.gms.server.ItemInformationProvider;
@@ -65,7 +65,7 @@ public class ThiefCreator extends CharacterFactory {
     }
 
     private static void giveEquipment(CharacterFactoryRecipe recipe, ItemInformationProvider ii, int equipid) {
-        Item nEquip = ii.getEquipById(equipid);
+        ItemSlot nEquip = ii.getEquipById(equipid);
         recipe.addStartingEquipment(nEquip);
     }
 

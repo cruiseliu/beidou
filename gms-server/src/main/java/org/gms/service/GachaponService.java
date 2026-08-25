@@ -4,7 +4,7 @@ import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.gms.client.character.Character;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.dao.entity.GachaponRewardDO;
 import org.gms.dao.entity.GachaponRewardPoolDO;
 import org.gms.dao.mapper.GachaponRewardMapper;
@@ -259,7 +259,7 @@ public class GachaponService {
 
         int random = Randomizer.nextInt(poolRewards.size());
         GachaponRewardDO reward = poolRewards.get(random);
-        Item itemGained = player.getAbstractPlayerInteraction().gainItem(reward.getItemId(), reward.getQuantity(), true, true);
+        ItemSlot itemGained = player.getAbstractPlayerInteraction().gainItem(reward.getItemId(), reward.getQuantity(), true, true);
         // 修复背包满导致的空指针
         if (itemGained == null) {
             return;

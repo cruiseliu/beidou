@@ -20,7 +20,7 @@ package org.gms.server;
 
 import org.gms.client.Client;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ItemFactory;
 import org.gms.constants.game.GameConstants;
 import org.slf4j.Logger;
@@ -59,8 +59,8 @@ public class Storage {
     private int currentNpcid;
     private int meso;
     private byte slots;
-    private final Map<InventoryType, List<Item>> typeItems = new HashMap<>();
-    private List<Item> items = new LinkedList<>();
+    private final Map<InventoryType, List<ItemSlot>> typeItems = new HashMap<>();
+    private List<ItemSlot> items = new LinkedList<>();
     private final Lock lock = new ReentrantLock(true);
 
     private Storage(int id, byte slots, int meso) {
@@ -90,7 +90,7 @@ public class Storage {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     ret = new Storage(rs.getInt("storageid"), (byte) rs.getInt("slots"), rs.getInt("meso"));
-                    for (Pair<Item, InventoryType> item : ItemFactory.STORAGE.loadItems(ret.id, false)) {
+                    for (Pair<ItemSlot, InventoryType> item : ItemFactory.STORAGE.loadItems(ret.id, false)) {
                         ret.items.add(item.getLeft());
                     }
                 } else {
@@ -137,10 +137,10 @@ public class Storage {
                 ps.setInt(3, id);
                 ps.executeUpdate();
             }
-            List<Pair<Item, InventoryType>> itemsWithType = new ArrayList<>();
+            List<Pair<ItemSlot, InventoryType>> itemsWithType = new ArrayList<>();
 
-            List<Item> list = getItems();
-            for (Item item : list) {
+            List<ItemSlot> list = getItems();
+            for (ItemSlot item : list) {
                 itemsWithType.add(new Pair<>(item, item.getInventoryType()));
             }
 
@@ -150,7 +150,7 @@ public class Storage {
         }
     }
 
-    public Item getItem(byte slot) {
+    public ItemSlot getItem(byte slot) {
         lock.lock();
         try {
             return items.get(slot);
@@ -159,7 +159,7 @@ public class Storage {
         }
     }
 
-    public boolean takeOut(Item item) {
+    public boolean takeOut(ItemSlot item) {
         lock.lock();
         try {
             boolean ret = items.remove(item);
@@ -173,7 +173,7 @@ public class Storage {
         }
     }
 
-    public boolean store(Item item) {
+    public boolean store(ItemSlot item) {
         lock.lock();
         try {
             if (isFull()) { // thanks Optimist for noticing unrestricted amount of insertions here
@@ -191,7 +191,7 @@ public class Storage {
         }
     }
 
-    public List<Item> getItems() {
+    public List<ItemSlot> getItems() {
         lock.lock();
         try {
             return Collections.unmodifiableList(items);
@@ -200,11 +200,11 @@ public class Storage {
         }
     }
 
-    private List<Item> filterItems(InventoryType type) {
-        List<Item> storageItems = getItems();
-        List<Item> ret = new LinkedList<>();
+    private List<ItemSlot> filterItems(InventoryType type) {
+        List<ItemSlot> storageItems = getItems();
+        List<ItemSlot> ret = new LinkedList<>();
 
-        for (Item item : storageItems) {
+        for (ItemSlot item : storageItems) {
             if (item.getInventoryType() == type) {
                 ret.add(item);
             }
@@ -216,8 +216,8 @@ public class Storage {
         lock.lock();
         try {
             byte ret = 0;
-            List<Item> storageItems = getItems();
-            for (Item item : storageItems) {
+            List<ItemSlot> storageItems = getItems();
+            for (ItemSlot item : storageItems) {
                 if (item == typeItems.get(type).get(slot)) {
                     return ret;
                 }
@@ -247,7 +247,7 @@ public class Storage {
                 return 1;
             });
 
-            List<Item> storageItems = getItems();
+            List<ItemSlot> storageItems = getItems();
             for (InventoryType type : InventoryType.values()) {
                 typeItems.put(type, new ArrayList<>(storageItems));
             }

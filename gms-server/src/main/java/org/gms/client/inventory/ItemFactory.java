@@ -20,6 +20,7 @@
  */
 package org.gms.client.inventory;
 
+import org.gms.client.character.Stat;
 import org.gms.util.DatabaseConnection;
 import org.gms.util.Pair;
 
@@ -76,7 +77,7 @@ public enum ItemFactory {
      * @return 物品信息
      * @throws SQLException 查询异常
      */
-    public List<Pair<Item, InventoryType>> loadItems(int id, boolean login) throws SQLException {
+    public List<Pair<ItemSlot, InventoryType>> loadItems(int id, boolean login) throws SQLException {
         if (value != 6) {
             return loadItemsCommon(id, login);
         } else {
@@ -84,11 +85,11 @@ public enum ItemFactory {
         }
     }
 
-    public void saveItems(List<Pair<Item, InventoryType>> items, int id, Connection con) throws SQLException {
+    public void saveItems(List<Pair<ItemSlot, InventoryType>> items, int id, Connection con) throws SQLException {
         saveItems(items, null, id, con);
     }
 
-    public void saveItems(List<Pair<Item, InventoryType>> items, List<Short> bundlesList, int id, Connection con) throws SQLException {
+    public void saveItems(List<Pair<ItemSlot, InventoryType>> items, List<Short> bundlesList, int id, Connection con) throws SQLException {
         // thanks Arufonsu, MedicOP, BHB for pointing a "synchronized" bottleneck here
 
         if (value != 6) {
@@ -98,40 +99,40 @@ public enum ItemFactory {
         }
     }
 
-    private static Equip loadEquipFromResultSet(ResultSet rs) throws SQLException {
-        Equip equip = new Equip(rs.getInt("itemid"), (short) rs.getInt("position"));
+    private static ItemSlot loadEquipFromResultSet(ResultSet rs) throws SQLException {
+        ItemSlot equipSlot = ItemSlot.equipItem(rs.getInt("itemid"), (short) rs.getInt("position"));
+        Equip equip = equipSlot.getEquipInfo();
         equip.setOwner(rs.getString("owner"));
-        equip.setQuantity((short) rs.getInt("quantity"));
-        equip.setAcc((short) rs.getInt("acc"));
-        equip.setAvoid((short) rs.getInt("avoid"));
-        equip.setDex((short) rs.getInt("dex"));
-        equip.setHands((short) rs.getInt("hands"));
-        equip.setHp((short) rs.getInt("hp"));
-        equip.setInt((short) rs.getInt("int"));
-        equip.setJump((short) rs.getInt("jump"));
+        equip.setStat(Stat.ACCURACY, (short) rs.getInt("acc"));
+        equip.setStat(Stat.AVOIDABILITY, (short) rs.getInt("avoid"));
+        equip.setStat(Stat.DEX, (short) rs.getInt("dex"));
+        equip.setStat(Stat.HANDS, (short) rs.getInt("hands"));
+        equip.setStat(Stat.MAX_HP, (short) rs.getInt("hp"));
+        equip.setStat(Stat.INT, (short) rs.getInt("int"));
+        equip.setStat(Stat.JUMP, (short) rs.getInt("jump"));
         equip.setVicious((short) rs.getInt("vicious"));
         equip.setFlag((short) rs.getInt("flag"));
-        equip.setLuk((short) rs.getInt("luk"));
-        equip.setMatk((short) rs.getInt("matk"));
-        equip.setMdef((short) rs.getInt("mdef"));
-        equip.setMp((short) rs.getInt("mp"));
-        equip.setSpeed((short) rs.getInt("speed"));
-        equip.setStr((short) rs.getInt("str"));
-        equip.setWatk((short) rs.getInt("watk"));
-        equip.setWdef((short) rs.getInt("wdef"));
-        equip.setUpgradeSlots((byte) rs.getInt("upgradeslots"));
-        equip.setLevel(rs.getByte("level"));
+        equip.setStat(Stat.LUK, (short) rs.getInt("luk"));
+        equip.setStat(Stat.M_ATK, (short) rs.getInt("matk"));
+        equip.setStat(Stat.M_DEF, (short) rs.getInt("mdef"));
+        equip.setStat(Stat.MAX_MP, (short) rs.getInt("mp"));
+        equip.setStat(Stat.SPEED, (short) rs.getInt("speed"));
+        equip.setStat(Stat.STR, (short) rs.getInt("str"));
+        equip.setStat(Stat.P_ATK, (short) rs.getInt("watk"));
+        equip.setStat(Stat.P_DEF, (short) rs.getInt("wdef"));
+        equip.setEnhancementSlots((byte) rs.getInt("upgradeslots"));
+        equip.setEnhancementLevel(rs.getByte("level"));
         equip.setItemExp(rs.getInt("itemexp"));
         equip.setItemLevel(rs.getByte("itemlevel"));
         equip.setExpiration(rs.getLong("expiration"));
-        equip.setGiftFrom(rs.getString("giftFrom"));
+        if (equip.getCashInfo() != null) equip.getCashInfo().setGiftFrom(rs.getString("giftFrom"));
         equip.setRingId(rs.getInt("ringid"));
 
-        return equip;
+        return equipSlot;
     }
 
-    public static List<Pair<Item, Integer>> loadEquippedItems(int id, boolean isAccount, boolean login) throws SQLException {
-        List<Pair<Item, Integer>> items = new ArrayList<>();
+    public static List<Pair<ItemSlot, Integer>> loadEquippedItems(int id, boolean isAccount, boolean login) throws SQLException {
+        List<Pair<ItemSlot, Integer>> items = new ArrayList<>();
 
         StringBuilder query = new StringBuilder();
         query.append("SELECT * FROM ");
@@ -160,8 +161,8 @@ public enum ItemFactory {
         return items;
     }
 
-    private List<Pair<Item, InventoryType>> loadItemsCommon(int id, boolean login) throws SQLException {
-        List<Pair<Item, InventoryType>> items = new ArrayList<>();
+    private List<Pair<ItemSlot, InventoryType>> loadItemsCommon(int id, boolean login) throws SQLException {
+        List<Pair<ItemSlot, InventoryType>> items = new ArrayList<>();
 
         try (Connection con = DatabaseConnection.getConnection()) {
             StringBuilder query = new StringBuilder();
@@ -188,10 +189,10 @@ public enum ItemFactory {
                                 petid = -1;
                             }
 
-                            Item item = new Item(rs.getInt("itemid"), (byte) rs.getInt("position"), (short) rs.getInt("quantity"), petid);
+                            ItemSlot item = new ItemSlot(rs.getInt("itemid"), (byte) rs.getInt("position"), (short) rs.getInt("quantity"), petid);
                             item.setOwner(rs.getString("owner"));
                             item.setExpiration(rs.getLong("expiration"));
-                            item.setGiftFrom(rs.getString("giftFrom"));
+                            if (item.getCashInfo() != null) item.getCashInfo().setGiftFrom(rs.getString("giftFrom"));
                             item.setFlag((short) rs.getInt("flag"));
                             items.add(new Pair<>(item, mit));
                         }
@@ -202,7 +203,7 @@ public enum ItemFactory {
         return items;
     }
 
-    private void saveItemsCommon(List<Pair<Item, InventoryType>> items, int id, Connection con) throws SQLException {
+    private void saveItemsCommon(List<Pair<ItemSlot, InventoryType>> items, int id, Connection con) throws SQLException {
         Lock lock = locks[id % lockCount];
         lock.lock();
         try {
@@ -232,8 +233,8 @@ public enum ItemFactory {
 
                 try (PreparedStatement psItem = con.prepareStatement("INSERT INTO `inventoryitems` VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
                     if (!items.isEmpty()) {
-                        for (Pair<Item, InventoryType> pair : items) {
-                            Item item = pair.getLeft();
+                        for (Pair<ItemSlot, InventoryType> pair : items) {
+                            ItemSlot item = pair.getLeft();
                             InventoryType mit = pair.getRight();
                             psItem.setInt(1, value);
                             psItem.setString(2, account ? null : String.valueOf(id));
@@ -246,7 +247,7 @@ public enum ItemFactory {
                             psItem.setInt(9, item.getPetId());      // thanks Daddy Egg for alerting a case of unique petid constraint breach getting raised
                             psItem.setInt(10, item.getFlag());
                             psItem.setLong(11, item.getExpiration());
-                            psItem.setString(12, item.getGiftFrom());
+                            psItem.setString(12, item.getCashInfo() != null ? item.getCashInfo().getGiftFrom() : "");
                             psItem.executeUpdate();
 
                             if (mit.equals(InventoryType.EQUIP) || mit.equals(InventoryType.EQUIPPED)) {
@@ -259,24 +260,24 @@ public enum ItemFactory {
                                         psEquip.setInt(1, rs.getInt(1));
                                     }
 
-                                    Equip equip = (Equip) item;
-                                    psEquip.setInt(2, equip.getUpgradeSlots());
-                                    psEquip.setInt(3, equip.getLevel());
-                                    psEquip.setInt(4, equip.getStr());
-                                    psEquip.setInt(5, equip.getDex());
-                                    psEquip.setInt(6, equip.getInt());
-                                    psEquip.setInt(7, equip.getLuk());
-                                    psEquip.setInt(8, equip.getHp());
-                                    psEquip.setInt(9, equip.getMp());
-                                    psEquip.setInt(10, equip.getWatk());
-                                    psEquip.setInt(11, equip.getMatk());
-                                    psEquip.setInt(12, equip.getWdef());
-                                    psEquip.setInt(13, equip.getMdef());
-                                    psEquip.setInt(14, equip.getAcc());
-                                    psEquip.setInt(15, equip.getAvoid());
-                                    psEquip.setInt(16, equip.getHands());
-                                    psEquip.setInt(17, equip.getSpeed());
-                                    psEquip.setInt(18, equip.getJump());
+                                    Equip equip = item.getEquipInfo();
+                                    psEquip.setInt(2, equip.getEnhancementSlots());
+                                    psEquip.setInt(3, equip.getEnhancementLevel());
+                                    psEquip.setInt(4, equip.getStat(Stat.STR));
+                                    psEquip.setInt(5, equip.getStat(Stat.DEX));
+                                    psEquip.setInt(6, equip.getStat(Stat.INT));
+                                    psEquip.setInt(7, equip.getStat(Stat.LUK));
+                                    psEquip.setInt(8, equip.getStat(Stat.MAX_HP));
+                                    psEquip.setInt(9, equip.getStat(Stat.MAX_MP));
+                                    psEquip.setInt(10, equip.getStat(Stat.P_ATK));
+                                    psEquip.setInt(11, equip.getStat(Stat.M_ATK));
+                                    psEquip.setInt(12, equip.getStat(Stat.P_DEF));
+                                    psEquip.setInt(13, equip.getStat(Stat.M_DEF));
+                                    psEquip.setInt(14, equip.getStat(Stat.ACCURACY));
+                                    psEquip.setInt(15, equip.getStat(Stat.AVOIDABILITY));
+                                    psEquip.setInt(16, equip.getStat(Stat.HANDS));
+                                    psEquip.setInt(17, equip.getStat(Stat.SPEED));
+                                    psEquip.setInt(18, equip.getStat(Stat.JUMP));
                                     psEquip.setInt(19, 0);
                                     psEquip.setInt(20, equip.getVicious());
                                     psEquip.setInt(21, equip.getItemLevel());
@@ -314,8 +315,8 @@ public enum ItemFactory {
         }
     }
 
-    private List<Pair<Item, InventoryType>> loadItemsMerchant(int id, boolean login) throws SQLException {
-        List<Pair<Item, InventoryType>> items = new ArrayList<>();
+    private List<Pair<ItemSlot, InventoryType>> loadItemsMerchant(int id, boolean login) throws SQLException {
+        List<Pair<ItemSlot, InventoryType>> items = new ArrayList<>();
 
         try (Connection con = DatabaseConnection.getConnection()) {
             StringBuilder query = new StringBuilder();
@@ -354,10 +355,10 @@ public enum ItemFactory {
                                     petid = -1;
                                 }
 
-                                Item item = new Item(rs.getInt("itemid"), (byte) rs.getInt("position"), (short) (bundles * rs.getInt("quantity")), petid);
+                                ItemSlot item = new ItemSlot(rs.getInt("itemid"), (byte) rs.getInt("position"), (short) (bundles * rs.getInt("quantity")), petid);
                                 item.setOwner(rs.getString("owner"));
                                 item.setExpiration(rs.getLong("expiration"));
-                                item.setGiftFrom(rs.getString("giftFrom"));
+                                if (item.getCashInfo() != null) item.getCashInfo().setGiftFrom(rs.getString("giftFrom"));
                                 item.setFlag((short) rs.getInt("flag"));
                                 items.add(new Pair<>(item, mit));
                             }
@@ -369,7 +370,7 @@ public enum ItemFactory {
         return items;
     }
 
-    private void saveItemsMerchant(List<Pair<Item, InventoryType>> items, List<Short> bundlesList, int id, Connection con) throws SQLException {
+    private void saveItemsMerchant(List<Pair<ItemSlot, InventoryType>> items, List<Short> bundlesList, int id, Connection con) throws SQLException {
         Lock lock = locks[id % lockCount];
         lock.lock();
         try {
@@ -403,8 +404,8 @@ public enum ItemFactory {
                 }
 
                 int i = 0;
-                for (Pair<Item, InventoryType> pair : items) {
-                    final Item item = pair.getLeft();
+                for (Pair<ItemSlot, InventoryType> pair : items) {
+                    final ItemSlot item = pair.getLeft();
                     final Short bundles = bundlesList.get(i);
                     final InventoryType mit = pair.getRight();
                     i++;
@@ -423,7 +424,7 @@ public enum ItemFactory {
                         ps.setInt(9, item.getPetId());
                         ps.setInt(10, item.getFlag());
                         ps.setLong(11, item.getExpiration());
-                        ps.setString(12, item.getGiftFrom());
+                        ps.setString(12, item.getCashInfo() != null ? item.getCashInfo().getGiftFrom() : "");
                         ps.executeUpdate();
 
                         try (ResultSet rs = ps.getGeneratedKeys()) {
@@ -448,24 +449,24 @@ public enum ItemFactory {
                         try (PreparedStatement ps = con.prepareStatement("INSERT INTO `inventoryequipment` VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
                             ps.setInt(1, genKey);
 
-                            Equip equip = (Equip) item;
-                            ps.setInt(2, equip.getUpgradeSlots());
-                            ps.setInt(3, equip.getLevel());
-                            ps.setInt(4, equip.getStr());
-                            ps.setInt(5, equip.getDex());
-                            ps.setInt(6, equip.getInt());
-                            ps.setInt(7, equip.getLuk());
-                            ps.setInt(8, equip.getHp());
-                            ps.setInt(9, equip.getMp());
-                            ps.setInt(10, equip.getWatk());
-                            ps.setInt(11, equip.getMatk());
-                            ps.setInt(12, equip.getWdef());
-                            ps.setInt(13, equip.getMdef());
-                            ps.setInt(14, equip.getAcc());
-                            ps.setInt(15, equip.getAvoid());
-                            ps.setInt(16, equip.getHands());
-                            ps.setInt(17, equip.getSpeed());
-                            ps.setInt(18, equip.getJump());
+                            Equip equip = item.getEquipInfo();
+                            ps.setInt(2, equip.getEnhancementSlots());
+                            ps.setInt(3, equip.getEnhancementLevel());
+                            ps.setInt(4, equip.getStat(Stat.STR));
+                            ps.setInt(5, equip.getStat(Stat.DEX));
+                            ps.setInt(6, equip.getStat(Stat.INT));
+                            ps.setInt(7, equip.getStat(Stat.LUK));
+                            ps.setInt(8, equip.getStat(Stat.MAX_HP));
+                            ps.setInt(9, equip.getStat(Stat.MAX_MP));
+                            ps.setInt(10, equip.getStat(Stat.P_ATK));
+                            ps.setInt(11, equip.getStat(Stat.M_ATK));
+                            ps.setInt(12, equip.getStat(Stat.P_DEF));
+                            ps.setInt(13, equip.getStat(Stat.M_DEF));
+                            ps.setInt(14, equip.getStat(Stat.ACCURACY));
+                            ps.setInt(15, equip.getStat(Stat.AVOIDABILITY));
+                            ps.setInt(16, equip.getStat(Stat.HANDS));
+                            ps.setInt(17, equip.getStat(Stat.SPEED));
+                            ps.setInt(18, equip.getStat(Stat.JUMP));
                             ps.setInt(19, 0);
                             ps.setInt(20, equip.getVicious());
                             ps.setInt(21, equip.getItemLevel());

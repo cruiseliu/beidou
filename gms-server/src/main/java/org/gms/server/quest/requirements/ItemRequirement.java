@@ -23,7 +23,7 @@ package org.gms.server.quest.requirements;
 
 import org.gms.client.character.Character;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.provider.Data;
 import org.gms.provider.DataTool;
@@ -69,13 +69,13 @@ public class ItemRequirement extends AbstractQuestRequirement {
             if (iType.equals(InventoryType.UNDEFINED)) {
                 return false;
             }
-            for (Item item : chr.getInventory(iType).listById(itemId)) {
+            for (ItemSlot item : chr.getInventory(iType).listById(itemId)) {
                 count += item.getQuantity();
             }
             //Weird stuff, nexon made some quests only available when wearing gm clothes. This enables us to accept it ><
             if (iType.equals(InventoryType.EQUIP) && !ItemConstants.isMedal(itemId)) {
                 if (chr.isGM()) {
-                    for (Item item : chr.getInventory(InventoryType.EQUIPPED).listById(itemId)) {
+                    for (ItemSlot item : chr.getInventory(InventoryType.EQUIPPED).listById(itemId)) {
                         count += item.getQuantity();
                     }
                 } else {

@@ -21,7 +21,7 @@
 */
 package org.gms.server;
 
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -32,14 +32,14 @@ import java.util.Calendar;
  */
 public class MTSItemInfo {
     private final int price;
-    private final Item item;
+    private final ItemSlot item;
     private final String seller;
     private final int id;
     private final int year;
     private final int month;
     private int day = 1;
 
-    public MTSItemInfo(Item item, int price, int id, int cid, String seller, String date) {
+    public MTSItemInfo(ItemSlot item, int price, int id, int cid, String seller, String date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate sellEnd = LocalDate.parse(date, formatter);
 
@@ -52,7 +52,7 @@ public class MTSItemInfo {
         this.day = sellEnd.getDayOfMonth();
     }
 
-    public Item getItem() {
+    public ItemSlot getItem() {
         return item;
     }
 

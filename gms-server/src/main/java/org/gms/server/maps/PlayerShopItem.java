@@ -21,18 +21,18 @@
 */
 package org.gms.server.maps;
 
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 
 /**
  * @author Matze
  */
 public class PlayerShopItem {
-    private final Item item;
+    private final ItemSlot item;
     private short bundles;
     private final int price;
     private boolean doesExist;
 
-    public PlayerShopItem(Item item, short bundles, int price) {
+    public PlayerShopItem(ItemSlot item, short bundles, int price) {
         this.item = item;
         this.bundles = bundles;
         this.price = price;
@@ -47,7 +47,7 @@ public class PlayerShopItem {
         return doesExist;
     }
 
-    public Item getItem() {
+    public ItemSlot getItem() {
         return item;
     }
 

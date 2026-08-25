@@ -28,7 +28,7 @@ import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.weaponType.WeaponTypeDefinition;
 import org.gms.client.weaponType.WeaponTypeEnum;
 import org.gms.client.weaponType.WeaponTypeRegistry;
@@ -107,7 +107,7 @@ public final class RangedAttackHandler extends AbstractDealDamageHandler {
                 applyAttack(attack, chr, 4);
             }
         } else {
-            Item weapon = chr.getInventory(InventoryType.EQUIPPED).getItem((short) -11);
+            ItemSlot weapon = chr.getInventory(InventoryType.EQUIPPED).getItem((short) -11);
             WeaponTypeDefinition weaponDef = WeaponTypeRegistry.of(weapon.getItemId());
             short slot = -1;
             int projectile = 0;
@@ -141,10 +141,10 @@ public final class RangedAttackHandler extends AbstractDealDamageHandler {
             }
             Inventory inv = chr.getInventory(InventoryType.USE);
             for (short i = 1; i <= inv.getSlotLimit(); i++) {
-                Item item = inv.getItem(i);
+                ItemSlot item = inv.getItem(i);
                 if (item != null) {
                     int id = item.getItemId();
-                    slot = item.getPosition();
+                    slot = (short) item.getPosition();
 
                     if (id == ItemId.BALANCED_FURY && (item.getQuantity() - bulletCount) <= 10) {   //平衡之怒低于10，则自动补充，如果设置数值过低时，会造成出拳平A
                         supplement = (short) -ItemInformationProvider.getInstance().getSlotMax(c,id);  //设定补充到限制的最高数值
@@ -204,7 +204,7 @@ public final class RangedAttackHandler extends AbstractDealDamageHandler {
                 if (ItemConstants.isThrowingStar(projectile)) {
                     Inventory cash = chr.getInventory(InventoryType.CASH);
                     for (int i = 1; i <= cash.getSlotLimit(); i++) { // impose order...
-                        Item item = cash.getItem((short) i);
+                        ItemSlot item = cash.getItem((short) i);
                         if (item != null) {
                             if (item.getItemId() / 1000 == 5021) {
                                 visProjectile = item.getItemId();

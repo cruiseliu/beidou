@@ -22,6 +22,13 @@ public sealed interface Change permits Change.Set, Change.Add, Change.Multiply {
         MAX_MP(Stat.MAX_MP),
         P_ATK(Stat.P_ATK),
         M_ATK(Stat.M_ATK),
+        P_DEF(Stat.P_DEF),
+        M_DEF(Stat.M_DEF),
+        ACCURACY(Stat.ACCURACY),
+        AVOIDABILITY(Stat.AVOIDABILITY),
+        SPEED(Stat.SPEED),
+        JUMP(Stat.JUMP),
+        HANDS(Stat.HANDS),
         HP(null),
         MP(null),
         AP(null);

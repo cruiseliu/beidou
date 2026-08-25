@@ -24,7 +24,7 @@ package org.gms.scripting.npc;
 import lombok.Getter;
 import org.gms.client.character.Character;
 import org.gms.client.*;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ItemFactory;
 import org.gms.client.inventory.Pet;
 import org.gms.config.GameConfig;
@@ -329,19 +329,19 @@ public class NPCConversationManager extends AbstractPlayerInteraction {
     public void setHair(int hair) {
         getPlayer().setHair(hair);
         getPlayer().updateSingleStat(PacketStat.HAIR, hair);
-        getPlayer().equipChanged();
+        getPlayer().appearanceChanged();
     }
 
     public void setFace(int face) {
         getPlayer().setFace(face);
         getPlayer().updateSingleStat(PacketStat.FACE, face);
-        getPlayer().equipChanged();
+        getPlayer().appearanceChanged();
     }
 
     public void setSkin(int color) {
         getPlayer().setSkinColor(SkinColor.getById(color));
         getPlayer().updateSingleStat(PacketStat.SKIN, color);
-        getPlayer().equipChanged();
+        getPlayer().appearanceChanged();
     }
 
     public int itemQuantity(int itemid) {
@@ -1118,7 +1118,7 @@ public class NPCConversationManager extends AbstractPlayerInteraction {
         }
     }
 
-    public void sendMarriageGifts(List<Item> gifts) {
+    public void sendMarriageGifts(List<ItemSlot> gifts) {
         this.getPlayer().sendPacket(WeddingPackets.onWeddingGiftResult((byte) 0xA, Collections.singletonList(""), gifts));
     }
 

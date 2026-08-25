@@ -27,7 +27,7 @@ import org.gms.client.Ring;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.ItemId;
@@ -120,7 +120,7 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                             return;
                         }
 
-                        Item item = cItem.toItem();
+                        ItemSlot item = cItem.toItem();
                         if (!ensureCashInventoryCapacity(c, cs, 1)) {
                             return;
                         }
@@ -128,12 +128,12 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                         cs.addToInventory(item);
                         c.sendPacket(PacketCreator.showBoughtCashItem(item, c.getAccID()));
                     } else { // Package
-                        List<Item> cashPackage = CashItemFactory.getPackage(cItem.getItemId());
+                        List<ItemSlot> cashPackage = CashItemFactory.getPackage(cItem.getItemId());
                         if (!ensureCashInventoryCapacity(c, cs, cashPackage.size())) {
                             return;
                         }
                         cs.gainCash(useNX, cItem, chr.getWorld());
-                        for (Item item : cashPackage) {
+                        for (ItemSlot item : cashPackage) {
                             cs.addToInventory(item);
                         }
                         c.sendPacket(PacketCreator.showBoughtCashPackage(cashPackage, c.getAccID()));
@@ -298,7 +298,7 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                         return;
                     }
                 } else if (action == 0x0D) { // Take from Cash Inventory
-                    Item item = cs.findByCashId(p.readInt());
+                    ItemSlot item = cs.findByCashId(p.readInt());
                     if (item == null) {
                         c.enableCSActions();
                         return;
@@ -307,7 +307,8 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                         cs.removeFromInventory(item);
                         c.sendPacket(PacketCreator.takeFromCashInventory(item));
 
-                        if (item instanceof Equip equip) {
+                        if (item.getEquipInfo() != null) {
+                            Equip equip = item.getEquipInfo();
                             if (equip.getRingId() >= 0) {
                                 Ring ring = Ring.loadFromDb(equip.getRingId());
                                 chr.addPlayerRing(ring);
@@ -325,7 +326,7 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                     }
 
                     Inventory mi = chr.getInventory(InventoryType.getByType(invType));
-                    Item item = mi.findByCashId(cashId);
+                    ItemSlot item = mi.findByCashId(cashId);
                     if (item == null) {
                         c.enableCSActions();
                         return;
@@ -342,7 +343,7 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                         return;
                     }
                     cs.addToInventory(item);
-                    mi.removeSlot(item.getPosition());
+                    mi.removeSlot((short) item.getPosition());
                     c.sendPacket(PacketCreator.putIntoCashInventory(item, c.getAccID()));
                 } else if (action == 0x1D) { //crush ring (action 28)
                     int birthday = p.readInt();
@@ -366,13 +367,15 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                             if (!ensureCashInventoryCapacity(c, cs, 1)) {
                                 return;
                             }
-                            if (itemRing.toItem() instanceof Equip eqp) {
+                            ItemSlot boughtItem = itemRing.toItem();
+                            Equip eqp = boughtItem.getEquipInfo();
+                            if (eqp != null) {
                                 Pair<Integer, Integer> rings = Ring.createRing(itemRing.getItemId(), chr, partner);
                                 eqp.setRingId(rings.getLeft());
-                                cs.addToInventory(eqp);
-                                c.sendPacket(PacketCreator.showBoughtCashItem(eqp, c.getAccID()));
+                                cs.addToInventory(boughtItem);
+                                c.sendPacket(PacketCreator.showBoughtCashItem(boughtItem, c.getAccID()));
                                 cs.gainCash(toCharge, itemRing, chr.getWorld());
-                                cs.gift(partner.getId(), chr.getName(), text, eqp.getSN(), rings.getRight());
+                                cs.gift(partner.getId(), chr.getName(), text, eqp.getCashInfo() != null ? eqp.getCashInfo().getSN() : 0, rings.getRight());
                                 chr.getCrushRings().add(Ring.loadFromDb(rings.getLeft()));
                                 noteService.sendWithFame(text, chr.getName(), partner.getName());
                                 noteService.show(partner);
@@ -428,13 +431,15 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                             if (!ensureCashInventoryCapacity(c, cs, 1)) {
                                 return;
                             }
-                            if (itemRing.toItem() instanceof Equip eqp) {
+                            ItemSlot boughtRingItem = itemRing.toItem();
+                            Equip eqp = boughtRingItem.getEquipInfo();
+                            if (eqp != null) {
                                 Pair<Integer, Integer> rings = Ring.createRing(itemRing.getItemId(), chr, partner);
                                 eqp.setRingId(rings.getLeft());
-                                cs.addToInventory(eqp);
-                                c.sendPacket(PacketCreator.showBoughtCashRing(eqp, partner.getName(), c.getAccID()));
+                                cs.addToInventory(boughtRingItem);
+                                c.sendPacket(PacketCreator.showBoughtCashRing(boughtRingItem, partner.getName(), c.getAccID()));
                                 cs.gainCash(payment, -itemRing.getPrice());
-                                cs.gift(partner.getId(), chr.getName(), text, eqp.getSN(), rings.getRight());
+                                cs.gift(partner.getId(), chr.getName(), text, eqp.getCashInfo() != null ? eqp.getCashInfo().getSN() : 0, rings.getRight());
                                 chr.getFriendshipRings().add(Ring.loadFromDb(rings.getLeft()));
                                 noteService.sendWithFame(text, chr.getName(), partner.getName());
                                 noteService.show(partner);
@@ -468,7 +473,7 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                             return;
                         }
                         if (chr.registerNameChange(newName)) { //success
-                            Item item = cItem.toItem();
+                            ItemSlot item = cItem.toItem();
                             c.sendPacket(PacketCreator.showNameChangeSuccess(item, c.getAccID()));
                             cs.gainCash(4, cItem, chr.getWorld());
                             cs.addToInventory(item);
@@ -500,7 +505,7 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                         } else if (!ensureCashInventoryCapacity(c, cs, 1)) {
                             return;
                         } else if (chr.registerWorldTransfer(newWorldSelection)) {
-                            Item item = cItem.toItem();
+                            ItemSlot item = cItem.toItem();
                             c.sendPacket(PacketCreator.showWorldTransferSuccess(item, c.getAccID()));
                             cs.gainCash(4, cItem, chr.getWorld());
                             cs.addToInventory(item);

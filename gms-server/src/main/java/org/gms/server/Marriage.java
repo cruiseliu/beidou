@@ -23,7 +23,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ItemFactory;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.scripting.event.EventInstanceManager;
@@ -60,25 +60,25 @@ public class Marriage extends EventInstanceManager {
     }
 
     public void initializeGiftItems() {
-        List<Item> groomGifts = new ArrayList<>();
+        List<ItemSlot> groomGifts = new ArrayList<>();
         this.setObjectProperty("groomGiftlist", groomGifts);
 
-        List<Item> brideGifts = new ArrayList<>();
+        List<ItemSlot> brideGifts = new ArrayList<>();
         this.setObjectProperty("brideGiftlist", brideGifts);
     }
 
-    public List<Item> getGiftItems(Client c, boolean groom) {
-        List<Item> gifts = getGiftItemsList(groom);
+    public List<ItemSlot> getGiftItems(Client c, boolean groom) {
+        List<ItemSlot> gifts = getGiftItemsList(groom);
         synchronized (gifts) {
             return new LinkedList<>(gifts);
         }
     }
 
-    private List<Item> getGiftItemsList(boolean groom) {
-        return (List<Item>) this.getObjectProperty(groom ? "groomGiftlist" : "brideGiftlist");
+    private List<ItemSlot> getGiftItemsList(boolean groom) {
+        return (List<ItemSlot>) this.getObjectProperty(groom ? "groomGiftlist" : "brideGiftlist");
     }
 
-    public Item getGiftItem(Client c, boolean groom, int idx) {
+    public ItemSlot getGiftItem(Client c, boolean groom, int idx) {
         try {
             return getGiftItems(c, groom).get(idx);
         } catch (IndexOutOfBoundsException e) {
@@ -86,15 +86,15 @@ public class Marriage extends EventInstanceManager {
         }
     }
 
-    public void addGiftItem(boolean groom, Item item) {
-        List<Item> gifts = getGiftItemsList(groom);
+    public void addGiftItem(boolean groom, ItemSlot item) {
+        List<ItemSlot> gifts = getGiftItemsList(groom);
         synchronized (gifts) {
             gifts.add(item);
         }
     }
 
-    public void removeGiftItem(boolean groom, Item item) {
-        List<Item> gifts = getGiftItemsList(groom);
+    public void removeGiftItem(boolean groom, ItemSlot item) {
+        List<ItemSlot> gifts = getGiftItemsList(groom);
         synchronized (gifts) {
             gifts.remove(item);
         }
@@ -116,7 +116,7 @@ public class Marriage extends EventInstanceManager {
     }
 
     public static boolean claimGiftItems(Client c, Character chr) {
-        List<Item> gifts = loadGiftItemsFromDb(c, chr.getId());
+        List<ItemSlot> gifts = loadGiftItemsFromDb(c, chr.getId());
         if (Inventory.checkSpot(chr, gifts)) {
             try (Connection con = DatabaseConnection.getConnection()) {
                 ItemFactory.MARRIAGE_GIFTS.saveItems(new LinkedList<>(), chr.getId(), con);
@@ -124,7 +124,7 @@ public class Marriage extends EventInstanceManager {
                 sqle.printStackTrace();
             }
 
-            for (Item item : gifts) {
+            for (ItemSlot item : gifts) {
                 InventoryManipulator.addFromDrop(chr.getClient(), item, false);
             }
 
@@ -134,11 +134,11 @@ public class Marriage extends EventInstanceManager {
         return false;
     }
 
-    public static List<Item> loadGiftItemsFromDb(Client c, int cid) {
-        List<Item> items = new LinkedList<>();
+    public static List<ItemSlot> loadGiftItemsFromDb(Client c, int cid) {
+        List<ItemSlot> items = new LinkedList<>();
 
         try {
-            for (Pair<Item, InventoryType> it : ItemFactory.MARRIAGE_GIFTS.loadItems(cid, false)) {
+            for (Pair<ItemSlot, InventoryType> it : ItemFactory.MARRIAGE_GIFTS.loadItems(cid, false)) {
                 items.add(it.getLeft());
             }
         } catch (SQLException sqle) {
@@ -152,9 +152,9 @@ public class Marriage extends EventInstanceManager {
         Marriage.saveGiftItemsToDb(c, getGiftItems(c, groom), cid);
     }
 
-    public static void saveGiftItemsToDb(Client c, List<Item> giftItems, int cid) {
-        List<Pair<Item, InventoryType>> items = new LinkedList<>();
-        for (Item it : giftItems) {
+    public static void saveGiftItemsToDb(Client c, List<ItemSlot> giftItems, int cid) {
+        List<Pair<ItemSlot, InventoryType>> items = new LinkedList<>();
+        for (ItemSlot it : giftItems) {
             items.add(new Pair<>(it, it.getInventoryType()));
         }
 
