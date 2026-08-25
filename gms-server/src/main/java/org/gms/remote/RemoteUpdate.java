@@ -14,6 +14,12 @@ public interface RemoteUpdate extends AutoCloseable {
 
     RemoteUpdate unlockActions();
 
+    RemoteUpdate updateSkill(SkillUpdate update);
+
+    RemoteUpdate removeSkill(int skillId);
+
+    RemoteUpdate clearSkillCooldown(int skillId);
+
     /** 立即发送域内积攒的通知（等价 close）。 */
     void commit();
 
@@ -40,6 +46,21 @@ public interface RemoteUpdate extends AutoCloseable {
 
         @Override
         public RemoteUpdate unlockActions() {
+            return this;
+        }
+
+        @Override
+        public RemoteUpdate updateSkill(SkillUpdate update) {
+            return this;
+        }
+
+        @Override
+        public RemoteUpdate removeSkill(int skillId) {
+            return this;
+        }
+
+        @Override
+        public RemoteUpdate clearSkillCooldown(int skillId) {
             return this;
         }
 

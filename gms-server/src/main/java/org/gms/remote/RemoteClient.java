@@ -28,6 +28,15 @@ public interface RemoteClient {
     /** 解除客户端动作锁（v83 中并入 STAT_CHANGED 首字节；无其他内容时=空更新包）。 */
     void unlockActions();
 
+    /** 技能等级/master/到期通知（skill 域）。无打开的合并域时立即发送。 */
+    void updateSkill(SkillUpdate update);
+
+    /** 移除已获得技能的通知（客户端侧删除）。 */
+    void removeSkill(int skillId);
+
+    /** 清除技能冷却显示（到期/重置）。 */
+    void clearSkillCooldown(int skillId);
+
     /** 无连接/已断开时的空实现——对齐 Character.sendPacket 对 client==null 的静默容忍。 */
     RemoteClient DISCONNECTED = new RemoteClient() {
         @Override
@@ -49,6 +58,18 @@ public interface RemoteClient {
 
         @Override
         public void unlockActions() {
+        }
+
+        @Override
+        public void updateSkill(SkillUpdate update) {
+        }
+
+        @Override
+        public void removeSkill(int skillId) {
+        }
+
+        @Override
+        public void clearSkillCooldown(int skillId) {
         }
     };
 }

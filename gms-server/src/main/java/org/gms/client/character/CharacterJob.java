@@ -207,7 +207,7 @@ class CharacterJob {
         if (family != null) {
             family.broadcast(PacketCreator.jobMessage(1, getId(), owner.getName()), owner.getId());
         }
-        setMasteries(this.getId());
+        acquireAdvancementSkills(this.getId());
         owner.guild.guildUpdate();
 
         broadcastChangeJob();
@@ -246,16 +246,18 @@ class CharacterJob {
         }, 777);
     }
 
-    // ── 转职专属：mastery 授予 ──
+    // ── 转职专属：自动获得职业技能 ──
 
-    void setMasteries(int jobId) {
+    /** 转职自动获得 acquiredSkills 白名单中的技能（等级 0 = 已获得未分配 SP）。
+     *  幂等：已获得的（含等级 0）跳过。 */
+    void acquireAdvancementSkills(int jobId) {
         JobDefinition def = JobRegistry.of(jobId);
         for (Integer skillId : def.acquiredSkills()) {
             Skill skill = SkillFactory.getSkill(skillId);
-            if (owner.getSkillLevel(skill) > 0) {
+            if (owner.hasSkill(skill)) {
                 continue;
             }
-            owner.changeSkillLevel(skill, (byte) 0, skill.getMasterLevel(), -1);
+            owner.changeSkillLevel(skill, 0, skill.getMasterLevel(), -1);
         }
     }
 
@@ -306,8 +308,9 @@ class CharacterJob {
         // increaseMaxHpOnLevelUp / increaseMaxMpOnLevelUp（wz effect 字段名），
         // 不再按职业特判挑技能——学到对应被动即生效。INT 加成（非 JobDefinition 数据）
         StatUpdateBuilder statUpdates = owner.stats.update();
-        for (Map.Entry<Skill, SkillEntry> e : owner.getSkills().entrySet()) {
-            SkillDefinition skillDef = SkillRegistry.of(e.getKey().getId());
+        for (Map.Entry<Integer, SkillEntry> e : owner.getSkills().entrySet()) {
+            Skill skill = e.getValue().skill;
+            SkillDefinition skillDef = SkillRegistry.of(e.getKey());
             if (skillDef == null || skillDef.passive() == null) {
                 continue;
             }
@@ -315,7 +318,7 @@ class CharacterJob {
             if (level <= 0) {
                 continue;
             }
-            BuffEffectData effect = e.getKey().getEffect(level);
+            BuffEffectData effect = skill.getEffect(level);
             SkillDefinition.Passive passive = skillDef.passive();
             if (passive.increaseMaxHpOnLevelUp() != null) {
                 statUpdates.add(Stat.MAX_HP, effect.getValue(passive.increaseMaxHpOnLevelUp()));

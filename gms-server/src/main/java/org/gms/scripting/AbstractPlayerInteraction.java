@@ -955,7 +955,7 @@ public class AbstractPlayerInteraction {
 
     public void teachSkill(int skillid, byte level, byte masterLevel, long expiration, boolean force) {
         Skill skill = SkillFactory.getSkill(skillid);
-        SkillEntry skillEntry = getPlayer().getSkills().get(skill);
+        SkillEntry skillEntry = getPlayer().getSkills().get(skillid);
         if (skillEntry != null) {
             if (!force && level > -1) {
                 getPlayer().changeSkillLevel(skill, (byte) Math.max(skillEntry.skillLevel, level), Math.max(skillEntry.masterLevel, masterLevel), expiration == -1 ? -1 : Math.max(skillEntry.expiration, expiration));

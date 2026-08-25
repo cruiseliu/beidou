@@ -1250,7 +1250,7 @@ public class Character extends AbstractAnimatedMapObject {
         return m;
     }
 
-    public Map<Skill, SkillEntry> getEditableSkills() {
+    public Map<Integer, SkillEntry> getEditableSkills() {
         return skills.entries;
     }
 
@@ -1333,9 +1333,9 @@ public class Character extends AbstractAnimatedMapObject {
         int jobId = job.getId();
         int spUsed = 0;
 
-        for (Entry<Skill, SkillEntry> s : this.getSkills().entrySet()) {
-            Skill skill = s.getKey();
-            if (GameConstants.isInJobTree(skill.getId(), jobId) && !skill.isBeginnerSkill()) {
+        for (Entry<Integer, SkillEntry> s : this.getSkills().entrySet()) {
+            Skill skill = s.getValue().skill;
+            if (GameConstants.isInJobTree(s.getKey(), jobId) && !skill.isBeginnerSkill()) {
                 spUsed += s.getValue().skillLevel;
             }
         }
@@ -1827,6 +1827,9 @@ public class Character extends AbstractAnimatedMapObject {
         setMapId(recipe.getMap());
         meso.set(recipe.getMeso());
 
+        // 建角自动获得初始职业（新手）的 acquiredSkills（等级 0）；
+        // recipe 的 startingSkills（老兵角色卡带等级）随后覆盖，先获得后设级顺序无关（幂等跳过）
+        job.acquireAdvancementSkills(job.getId());
         List<Pair<Skill, Integer>> startingSkills = recipe.getStartingSkillLevel();
         for (Pair<Skill, Integer> skEntry : startingSkills) {
             Skill skill = skEntry.getLeft();
@@ -3044,12 +3047,14 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void addCooldown(int skillId, long startTime, long length) { skills.addCooldown(skillId, startTime, length); }
     public void changeSkillLevel(Skill skill, int newLevel, int newMasterlevel, long expiration) { skills.changeSkillLevel(skill, newLevel, newMasterlevel, expiration); }
+    public void removeSkill(Skill skill) { skills.removeSkill(skill); }
+    public boolean hasSkill(Skill skill) { return skills.hasSkill(skill); }
     public void stopSkillTimers() { skills.stopTimers(); }
     public void startSkillTimers() { skills.startTimers(); }
     public List<PlayerCoolDownValueHolder> getAllCooldowns() { return skills.getAllCooldowns(); }
     public int getMasterLevel(int skill) { return skills.getMasterLevel(skill); }
     public int getMasterLevel(Skill skill) { return skills.getMasterLevel(skill); }
-    public Map<Skill, SkillEntry> getSkills() { return skills.getSkillsView(); }
+    public Map<Integer, SkillEntry> getSkills() { return skills.getSkillsView(); }
     public int getSkillLevel(int skill) { return skills.getSkillLevel(skill); }
     public int getSkillLevel(Skill skill) { return skills.getSkillLevel(skill); }
     public long getSkillExpiration(int skill) { return skills.getSkillExpiration(skill); }

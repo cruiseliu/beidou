@@ -54,11 +54,9 @@ public class MaxSkillCommand extends Command {
         }
 
         if (player.getJob().isA(JobEnum.ARAN1) || player.getJob().isA(JobEnum.LEGEND)) {
-            Skill skill = SkillFactory.getSkill(5001005);
-            player.changeSkillLevel(skill, (byte) -1, -1, -1);
+            player.removeSkill(SkillFactory.getSkill(5001005));
         } else {
-            Skill skill = SkillFactory.getSkill(21001001);
-            player.changeSkillLevel(skill, (byte) -1, -1, -1);
+            player.removeSkill(SkillFactory.getSkill(21001001));
         }
 
         player.yellowMessage(I18nUtil.getMessage("MaxSkillCommand.message2"));

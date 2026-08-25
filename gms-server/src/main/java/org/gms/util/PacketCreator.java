@@ -529,23 +529,23 @@ public class PacketCreator {
 
     private static void addSkillInfo(OutPacket p, Character chr) {
         p.writeByte(0); // start of skills
-        Map<Skill, SkillEntry> skills = chr.getSkills();
+        Map<Integer, SkillEntry> skills = chr.getSkills();
         int skillsSize = skills.size();
         // We don't want to include any hidden skill in this, so subtract them from the size list and ignore them.
-        for (Entry<Skill, SkillEntry> skill : skills.entrySet()) {
-            if (GameConstants.isHiddenSkills(skill.getKey().getId())) {
+        for (Entry<Integer, SkillEntry> skill : skills.entrySet()) {
+            if (GameConstants.isHiddenSkills(skill.getKey())) {
                 skillsSize--;
             }
         }
         p.writeShort(skillsSize);
-        for (Entry<Skill, SkillEntry> skill : skills.entrySet()) {
-            if (GameConstants.isHiddenSkills(skill.getKey().getId())) {
+        for (Entry<Integer, SkillEntry> skill : skills.entrySet()) {
+            if (GameConstants.isHiddenSkills(skill.getKey())) {
                 continue;
             }
-            p.writeInt(skill.getKey().getId());
+            p.writeInt(skill.getKey());
             p.writeInt(skill.getValue().skillLevel);
             addExpirationTime(p, skill.getValue().expiration);
-            if (skill.getKey().isFourthJob()) {
+            if (skill.getValue().skill.isFourthJob()) {
                 p.writeInt(skill.getValue().masterLevel);
             }
         }
