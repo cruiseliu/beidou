@@ -264,7 +264,7 @@ class ActiveBuffs {
                 owner.beholderBuffSchedule.cancel(false);
             }
             Skill bHealing = SkillFactory.getSkill(DarkKnight.AURA_OF_BEHOLDER);
-            int bHealingLvl = owner.getSkillLevel(bHealing);
+            int bHealingLvl = owner.getSkillLevel(DarkKnight.AURA_OF_BEHOLDER);
             if (bHealingLvl > 0) {
                 final BuffEffectData healEffect = bHealing.getEffect(bHealingLvl);
                 int healInterval = (int) SECONDS.toMillis(healEffect.getX());
@@ -280,8 +280,8 @@ class ActiveBuffs {
                 }, healInterval, healInterval);
             }
             Skill bBuff = SkillFactory.getSkill(DarkKnight.HEX_OF_BEHOLDER);
-            if (owner.getSkillLevel(bBuff) > 0) {
-                final BuffEffectData buffEffect = bBuff.getEffect(owner.getSkillLevel(bBuff));
+            if (owner.getSkillLevel(DarkKnight.HEX_OF_BEHOLDER) > 0) {
+                final BuffEffectData buffEffect = bBuff.getEffect(owner.getSkillLevel(DarkKnight.HEX_OF_BEHOLDER));
                 int buffInterval = (int) SECONDS.toMillis(buffEffect.getX());
                 owner.beholderBuffSchedule = TimerManager.getInstance().register(() -> {
                     if (owner.awayFromWorld.get()) {

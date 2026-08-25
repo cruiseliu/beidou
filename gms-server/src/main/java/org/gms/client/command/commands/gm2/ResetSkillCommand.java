@@ -45,7 +45,7 @@ public class ResetSkillCommand extends Command {
         for (Data skill_ : DataProviderFactory.getDataProvider(WZFiles.STRING).getData("Skill.img").getChildren()) {
             try {
                 Skill skill = SkillFactory.getSkill(Integer.parseInt(skill_.getName()));
-                player.changeSkillLevel(skill, (byte) 0, skill.getMaxLevel(), -1);
+                player.changeSkillLevel((Integer.parseInt(skill_.getName())), (byte) 0, skill.getMaxLevel(), -1);
             } catch (NumberFormatException nfe) {
                 nfe.printStackTrace();
                 break;
@@ -54,9 +54,9 @@ public class ResetSkillCommand extends Command {
         }
 
         if (player.getJob().isA(JobEnum.ARAN1) || player.getJob().isA(JobEnum.LEGEND)) {
-            player.removeSkill(SkillFactory.getSkill(5001005));
+            player.removeSkill(5001005);
         } else {
-            player.removeSkill(SkillFactory.getSkill(21001001));
+            player.removeSkill(21001001);
         }
 
         player.yellowMessage(I18nUtil.getMessage("ResetSkillCommand.message2"));

@@ -71,7 +71,7 @@ public final class MagicDamageHandler extends AbstractDealDamageHandler {
         chr.getMap().broadcastMessage(chr, packet, false, true);
         BuffEffectData effect = attack.getAttackEffect(chr, null);
         Skill skill = SkillFactory.getSkill(attack.skill);
-        BuffEffectData effect_ = skill.getEffect(chr.getSkillLevel(skill));
+        BuffEffectData effect_ = skill.getEffect(chr.getSkillLevel(attack.skill));
         if (effect_.getCooldown() > 0) {
             if (chr.skillIsCooling(attack.skill)) {
                 return;
@@ -81,9 +81,11 @@ public final class MagicDamageHandler extends AbstractDealDamageHandler {
             }
         }
         applyAttack(attack, chr, effect.getAttackCount());
-        Skill eaterSkill = SkillFactory.getSkill((chr.getJob().getId() - (chr.getJob().getId() % 10)) * 10000);// MP Eater, works with right job
-        int eaterLevel = chr.getSkillLevel(eaterSkill);
+        // MP Eater：占位公式 (jobId - jobId%10)*10000 对多数职业算出的 id 在 wz 不存在（SkillFactory 返回 null）
+        int eaterSkillId = (chr.getJob().getId() - (chr.getJob().getId() % 10)) * 10000;
+        int eaterLevel = chr.getSkillLevel(eaterSkillId);
         if (eaterLevel > 0) {
+            Skill eaterSkill = SkillFactory.getSkill(eaterSkillId);
             for (Integer singleDamage : attack.allDamage.keySet()) {
                 eaterSkill.getEffect(eaterLevel).applyPassive(chr, chr.getMap().getMapObject(singleDamage), 0);
             }

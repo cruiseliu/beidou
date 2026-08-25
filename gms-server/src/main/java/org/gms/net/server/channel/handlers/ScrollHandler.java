@@ -67,7 +67,7 @@ public final class ScrollHandler extends AbstractPacketHandler {
                 Character chr = c.getPlayer(); // 获取当前玩家
                 Equip toScroll = (Equip) chr.getInventory(InventoryType.EQUIPPED).getItem(equipSlot); // 获取要升级的装备
                 Skill LegendarySpirit = SkillFactory.getSkill(1003); // 获取传奇精神技能
-                if (chr.getSkillLevel(LegendarySpirit) > 0 && equipSlot >= 0) {
+                if (chr.getSkillLevel(LegendarySpirit.getId()) > 0 && equipSlot >= 0) {
                     legendarySpirit = true;
                     toScroll = (Equip) chr.getInventory(InventoryType.EQUIP).getItem(equipSlot);
                 }

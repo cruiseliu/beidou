@@ -66,7 +66,7 @@ public final class SpecialMoveHandler extends AbstractPacketHandler {
         Point pos = null;
         int __skillLevel = p.readByte();
         Skill skill = SkillFactory.getSkill(skillid);
-        int skillLevel = chr.getSkillLevel(skill);
+        int skillLevel = chr.getSkillLevel(skillid);
         if (skillid % 10000000 == 1010 || skillid % 10000000 == 1011) {
             if (chr.getDojoEnergy() < 10000) { // PE hacking or maybe just lagging
                 return;
@@ -118,7 +118,7 @@ public final class SpecialMoveHandler extends AbstractPacketHandler {
             return;
         } else if (skillid == Brawler.MP_RECOVERY) {// MP Recovery
             Skill s = SkillFactory.getSkill(skillid);
-            BuffEffectData ef = s.getEffect(chr.getSkillLevel(s));
+            BuffEffectData ef = s.getEffect(chr.getSkillLevel(skillid));
 
             int lose = chr.safeAddHP(-1 * (chr.getCurrentMaxHp() / ef.getX()));
             // 修复生命分流技能精度丢失，导致MP不加的问题

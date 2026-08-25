@@ -1236,7 +1236,7 @@ public class Monster extends AbstractLoadedLife {
 
         int animationTime;
         if (poison) {
-            int poisonLevel = from.getSkillLevel(status.getSkill());
+            int poisonLevel = from.getSkillLevel(status.getSkill().getId());
             int poisonDamage = Math.min(Short.MAX_VALUE, (int) (getMaxHp() / (70.0 - poisonLevel) + 0.999));
             status.setValue(MonsterStatus.POISON, poisonDamage);
             animationTime = broadcastStatusEffect(status);
@@ -1247,7 +1247,7 @@ public class Monster extends AbstractLoadedLife {
             if (from.getJob() == JobEnum.NIGHTLORD || from.getJob() == JobEnum.SHADOWER || from.getJob().isA(JobEnum.NIGHTWALKER3)) {
                 int poisonLevel, matk, jobid = from.getJob().getId();
                 int skillid = (jobid == 412 ? NightLord.VENOMOUS_STAR : (jobid == 422 ? Shadower.VENOMOUS_STAB : NightWalker.VENOM));
-                poisonLevel = from.getSkillLevel(SkillFactory.getSkill(skillid));
+                poisonLevel = from.getSkillLevel(skillid);
                 if (poisonLevel <= 0) {
                     return false;
                 }
@@ -1284,7 +1284,7 @@ public class Monster extends AbstractLoadedLife {
             */
         } else if (status.getSkill().getId() == 4121004 || status.getSkill().getId() == 4221004) { // Ninja Ambush
             final Skill skill = SkillFactory.getSkill(status.getSkill().getId());
-            final byte level = (byte) from.getSkillLevel(skill);
+            final byte level = (byte) from.getSkillLevel(status.getSkill().getId());
             final int damage = (int) ((from.getStr() + from.getLuk()) * ((3.7 * skill.getEffect(level).getDamage()) / 100));
 
             status.setValue(MonsterStatus.NINJA_AMBUSH, damage);

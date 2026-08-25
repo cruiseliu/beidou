@@ -100,11 +100,11 @@ public final class CloseRangeDamageHandler extends AbstractDealDamageHandler {
                 Skill combo = SkillFactory.getSkill(oid);
                 Skill advcombo = SkillFactory.getSkill(advcomboid);
                 BuffEffectData ceffect;
-                int advComboSkillLevel = chr.getSkillLevel(advcombo);
+                int advComboSkillLevel = chr.getSkillLevel(advcomboid);
                 if (advComboSkillLevel > 0) {
                     ceffect = advcombo.getEffect(advComboSkillLevel);
                 } else {
-                    int comboLv = chr.getSkillLevel(combo);
+                    int comboLv = chr.getSkillLevel(oid);
                     if (comboLv <= 0 || chr.isGM()) {
                         comboLv = SkillFactory.getSkill(oid).getMaxLevel();
                     }
@@ -137,7 +137,7 @@ public final class CloseRangeDamageHandler extends AbstractDealDamageHandler {
                         chr.getMap().broadcastMessage(chr, PacketCreator.giveForeignBuff(chr.getId(), stat), false);
                     }
                 }
-            } else if (chr.getSkillLevel(chr.isCygnus() ? SkillFactory.getSkill(15100004) : SkillFactory.getSkill(5110001)) > 0 && (chr.getJob().isA(JobEnum.MARAUDER) || chr.getJob().isA(JobEnum.THUNDERBREAKER2))) {
+            } else if (chr.getSkillLevel(chr.isCygnus() ? 15100004 : 5110001) > 0 && (chr.getJob().isA(JobEnum.MARAUDER) || chr.getJob().isA(JobEnum.THUNDERBREAKER2))) {
                 for (int i = 0; i < attack.numAttacked; i++) {
                     chr.handleEnergyChargeGain();
                 }
@@ -154,7 +154,7 @@ public final class CloseRangeDamageHandler extends AbstractDealDamageHandler {
         }
         if (attack.numAttacked > 0 && attack.skill == 1211002) {
             boolean advcharge_prob = false;
-            int advcharge_level = chr.getSkillLevel(SkillFactory.getSkill(1220010));
+            int advcharge_level = chr.getSkillLevel(1220010);
             if (advcharge_level > 0) {
                 advcharge_prob = SkillFactory.getSkill(1220010).getEffect(advcharge_level).makeChanceResult();
             }
@@ -178,7 +178,7 @@ public final class CloseRangeDamageHandler extends AbstractDealDamageHandler {
             c.sendPacket(PacketCreator.serverNotice(5, I18nUtil.getMessage("Dojo.secretSkill.energyReset")));
         } else if (attack.skill > 0) {
             Skill skill = SkillFactory.getSkill(attack.skill);
-            int skillLevel = pyramidSkill ? 1 : chr.getSkillLevel(skill);
+            int skillLevel = pyramidSkill ? 1 : chr.getSkillLevel(attack.skill);
             BuffEffectData effect_ = skill.getEffect(skillLevel);
             if (effect_.getCooldown() > 0) {
                 if (chr.skillIsCooling(attack.skill)) {
@@ -189,10 +189,10 @@ public final class CloseRangeDamageHandler extends AbstractDealDamageHandler {
                 }
             }
         }
-        if ((chr.getSkillLevel(SkillFactory.getSkill(NightWalker.VANISH)) > 0 || chr.getSkillLevel(SkillFactory.getSkill(Rogue.DARK_SIGHT)) > 0) && chr.getBuffedValue(EffectType.DARKSIGHT) != null) {// && chr.getBuffSource(BuffStat.DARKSIGHT) != 9101004
+        if ((chr.getSkillLevel(NightWalker.VANISH) > 0 || chr.getSkillLevel(Rogue.DARK_SIGHT) > 0) && chr.getBuffedValue(EffectType.DARKSIGHT) != null) {// && chr.getBuffSource(BuffStat.DARKSIGHT) != 9101004
             chr.cancelEffectFromBuffStat(EffectType.DARKSIGHT);
             chr.cancelBuffStats(EffectType.DARKSIGHT);
-        } else if (chr.getSkillLevel(SkillFactory.getSkill(WindArcher.WIND_WALK)) > 0 && chr.getBuffedValue(EffectType.WIND_WALK) != null) {
+        } else if (chr.getSkillLevel(WindArcher.WIND_WALK) > 0 && chr.getBuffedValue(EffectType.WIND_WALK) != null) {
             chr.cancelEffectFromBuffStat(EffectType.WIND_WALK);
             chr.cancelBuffStats(EffectType.WIND_WALK);
         }

@@ -81,10 +81,10 @@ public class SkillAction extends AbstractQuestAction {
 
             boolean shouldLearn = skill.jobsContains(chr.getJob()) || skillObject.isBeginnerSkill();
 
-            byte skillLevel = (byte) Math.max(skill.getLevel(), chr.getSkillLevel(skillObject));
-            int masterLevel = Math.max(skill.getMasterLevel(), chr.getMasterLevel(skillObject));
+            byte skillLevel = (byte) Math.max(skill.getLevel(), chr.getSkillLevel(skill.getId()));
+            int masterLevel = Math.max(skill.getMasterLevel(), chr.getMasterLevel(skill.getId()));
             if (shouldLearn) {
-                chr.changeSkillLevel(skillObject, skillLevel, masterLevel, -1);
+                chr.changeSkillLevel(skill.getId(), skillLevel, masterLevel, -1);
             }
 
         }

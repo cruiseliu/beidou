@@ -739,7 +739,7 @@ public class Character extends AbstractAnimatedMapObject {
         final Character chr = this;
         if (job.equalsJob(JobEnum.DARKKNIGHT)) {
             Skill BerserkX = SkillFactory.getSkill(DarkKnight.BERSERK);
-            final int skilllevel = getSkillLevel(BerserkX);
+            final int skilllevel = getSkillLevel(DarkKnight.BERSERK);
             if (skilllevel > 0) {
                 berserk = chr.getHp() * 100 / chr.getCurrentMaxHp() < BerserkX.getEffect(skilllevel).getX();
                 berserkSchedule = TimerManager.getInstance().register(() -> {
@@ -1833,7 +1833,7 @@ public class Character extends AbstractAnimatedMapObject {
         List<Pair<Skill, Integer>> startingSkills = recipe.getStartingSkillLevel();
         for (Pair<Skill, Integer> skEntry : startingSkills) {
             Skill skill = skEntry.getLeft();
-            this.changeSkillLevel(skill, skEntry.getRight().byteValue(), skill.getMaxLevel(), -1);
+            this.changeSkillLevel(skill.getId(), skEntry.getRight().byteValue(), skill.getMaxLevel(), -1);
         }
 
         List<Pair<Item, InventoryType>> itemsWithType = recipe.getStartingItems();
@@ -3046,19 +3046,16 @@ public class Character extends AbstractAnimatedMapObject {
     // ── skills 门面 ──
 
     public void addCooldown(int skillId, long startTime, long length) { skills.addCooldown(skillId, startTime, length); }
-    public void changeSkillLevel(Skill skill, int newLevel, int newMasterlevel, long expiration) { skills.changeSkillLevel(skill, newLevel, newMasterlevel, expiration); }
-    public void removeSkill(Skill skill) { skills.removeSkill(skill); }
-    public boolean hasSkill(Skill skill) { return skills.hasSkill(skill); }
+    public void changeSkillLevel(int skillId, int newLevel, int newMasterlevel, long expiration) { skills.changeSkillLevel(skillId, newLevel, newMasterlevel, expiration); }
+    public void removeSkill(int skillId) { skills.removeSkill(skillId); }
+    public boolean hasSkill(int skillId) { return skills.hasSkill(skillId); }
     public void stopSkillTimers() { skills.stopTimers(); }
     public void startSkillTimers() { skills.startTimers(); }
     public List<PlayerCoolDownValueHolder> getAllCooldowns() { return skills.getAllCooldowns(); }
-    public int getMasterLevel(int skill) { return skills.getMasterLevel(skill); }
-    public int getMasterLevel(Skill skill) { return skills.getMasterLevel(skill); }
+    public int getMasterLevel(int skillId) { return skills.getMasterLevel(skillId); }
     public Map<Integer, SkillEntry> getSkills() { return skills.getSkillsView(); }
-    public int getSkillLevel(int skill) { return skills.getSkillLevel(skill); }
-    public int getSkillLevel(Skill skill) { return skills.getSkillLevel(skill); }
-    public long getSkillExpiration(int skill) { return skills.getSkillExpiration(skill); }
-    public long getSkillExpiration(Skill skill) { return skills.getSkillExpiration(skill); }
+    public int getSkillLevel(int skillId) { return skills.getSkillLevel(skillId); }
+    public long getSkillExpiration(int skillId) { return skills.getSkillExpiration(skillId); }
     public void removeAllCooldownsExcept(int id, boolean packet) { skills.removeAllCooldownsExcept(id, packet); }
     public void removeCooldown(int skillId) { skills.removeCooldown(skillId); }
     public boolean skillIsCooling(int skillId) { return skills.skillIsCooling(skillId); }

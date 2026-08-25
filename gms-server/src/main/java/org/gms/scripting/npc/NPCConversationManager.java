@@ -430,7 +430,7 @@ public class NPCConversationManager extends AbstractPlayerInteraction {
         for (Data skill_ : DataProviderFactory.getDataProvider(WZFiles.STRING).getData("Skill.img").getChildren()) {
             try {
                 Skill skill = SkillFactory.getSkill(Integer.parseInt(skill_.getName()));
-                getPlayer().changeSkillLevel(skill, (byte) 0, skill.getMaxLevel(), -1);
+                getPlayer().changeSkillLevel(Integer.parseInt(skill_.getName()), (byte) 0, skill.getMaxLevel(), -1);
             } catch (NumberFormatException nfe) {
                 nfe.printStackTrace();
                 break;

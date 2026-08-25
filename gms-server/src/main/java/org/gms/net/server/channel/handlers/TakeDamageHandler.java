@@ -165,13 +165,13 @@ public final class TakeDamageHandler extends AbstractPacketHandler {
                     short charY = p.readShort();
                     if (guardingData > 1 && attacker != null && !attacker.isBoss()) {
                         Skill skillObj = null;
-                        if (chr.getSkillLevel(SkillFactory.getSkill(1220006)) > 0) {
+                        if (chr.getSkillLevel(1220006) > 0) {
                             skillObj = SkillFactory.getSkill(1220006);
-                        } else if (chr.getSkillLevel(SkillFactory.getSkill(1120005)) > 0) {
+                        } else if (chr.getSkillLevel(1120005) > 0) {
                             skillObj = SkillFactory.getSkill(1120005);
                         }
                         if (skillObj != null) {
-                            BuffEffectData skillEffect = skillObj.getEffect(chr.getSkillLevel(skillObj));
+                            BuffEffectData skillEffect = skillObj.getEffect(chr.getSkillLevel(skillObj.getId()));
                             if (skillEffect != null) {
                                 attacker.applyStatus(chr, new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.STUN, 1), skillObj, null, false), false, skillEffect.getDuration(), false);
                             } else {
@@ -203,8 +203,8 @@ public final class TakeDamageHandler extends AbstractPacketHandler {
                     if (jobid == 212 || jobid == 222 || jobid == 232) {
                         int id = jobid * 10000 + 1002;
                         Skill manaReflectSkill = SkillFactory.getSkill(id);
-                        if (chr.isBuffFrom(EffectType.MANA_REFLECTION, manaReflectSkill) && chr.getSkillLevel(manaReflectSkill) > 0 && manaReflectSkill.getEffect(chr.getSkillLevel(manaReflectSkill)).makeChanceResult()) {
-                            int bouncedamage = (damage * manaReflectSkill.getEffect(chr.getSkillLevel(manaReflectSkill)).getX() / 100);
+                        if (chr.isBuffFrom(EffectType.MANA_REFLECTION, manaReflectSkill) && chr.getSkillLevel(id) > 0 && manaReflectSkill.getEffect(chr.getSkillLevel(id)).makeChanceResult()) {
+                            int bouncedamage = (damage * manaReflectSkill.getEffect(chr.getSkillLevel(id)).getX() / 100);
                             if (bouncedamage > attacker.getMaxHp() / 5) {
                                 bouncedamage = attacker.getMaxHp() / 5;
                             }
@@ -267,14 +267,14 @@ public final class TakeDamageHandler extends AbstractPacketHandler {
                 int jobid = chr.getJob().getId();
                 if (jobid < 200 && jobid % 10 == 2) {
                     achilles1 = SkillFactory.getSkill(jobid * 10000 + (jobid == 112 ? 4 : 5));
-                    achilles = chr.getSkillLevel(achilles1);
+                    achilles = chr.getSkillLevel(achilles1.getId());
                 }
                 if (achilles != 0 && achilles1 != null) {
                     damage *= (achilles1.getEffect(achilles).getX() / 1000.0);
                 }
 
                 Skill highDef = SkillFactory.getSkill(Aran.HIGH_DEFENSE);
-                int hdLevel = chr.getSkillLevel(highDef);
+                int hdLevel = chr.getSkillLevel(Aran.HIGH_DEFENSE);
                 if (highDef != null && hdLevel > 0) {
                     damage *= (highDef.getEffect(hdLevel).getX() / 1000.0);
                 }

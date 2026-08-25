@@ -27,7 +27,7 @@ class CharacterSkills {
 
     /** skillId → SkillEntry（entry 持有 Skill 实例），加载/持久化路径包内直访 */
     final Map<Integer, SkillEntry> entries = new LinkedHashMap<>();
-    final Map<Integer, CooldownValueHolder> coolDowns = new LinkedHashMap<>();
+    final Map<Integer, CooldownStatus> cooldowns = new LinkedHashMap<>();
 
     /** CD 到期定时器（id=skillId，timestamp=到期时刻），替代原 1.5s 周期扫描 */
     private final TimeoutHelper cooldownTimer = new TimeoutHelper();
@@ -37,77 +37,67 @@ class CharacterSkills {
     CharacterSkills(Character owner) {
         this.owner = owner;
         cooldownTimer.setListener((skillId, timestamp) -> {
+            // fixme: [refactor] send packet in remove methods (it's outside because of battleship hack)
             removeCooldown(skillId);
             owner.remote().clearSkillCooldown(skillId);
         });
-        skillExpireTimer.setListener((skillId, timestamp) ->
-                removeSkill(SkillFactory.getSkill(skillId)));
+        skillExpireTimer.setListener((skillId, timestamp) -> {
+            removeSkill(skillId);
+        });
     }
 
     Map<Integer, SkillEntry> getSkillsView() {
         return Collections.unmodifiableMap(entries);
     }
 
-    private SkillEntry entry(int skillId) {
-        return entries.get(skillId);
-    }
-
     int getSkillLevel(int skillId) {
-        SkillEntry ret = entry(skillId);
+        SkillEntry ret = entries.get(skillId);
         return ret == null ? 0 : ret.skillLevel;
     }
 
-    int getSkillLevel(Skill skill) {
-        return skill == null ? 0 : getSkillLevel(skill.getId());
-    }
-
     long getSkillExpiration(int skillId) {
-        SkillEntry ret = entry(skillId);
+        SkillEntry ret = entries.get(skillId);
         return ret == null ? SkillEntry.PERMANENT : ret.expiration;
     }
 
-    long getSkillExpiration(Skill skill) {
-        return skill == null ? SkillEntry.PERMANENT : getSkillExpiration(skill.getId());
-    }
-
     int getMasterLevel(int skillId) {
-        SkillEntry ret = entry(skillId);
+        SkillEntry ret = entries.get(skillId);
         return ret == null ? 0 : ret.masterLevel;
     }
 
-    int getMasterLevel(Skill skill) {
-        return skill == null ? 0 : getMasterLevel(skill.getId());
-    }
-
     /** 是否已获得该技能（含等级 0 = 已获得未分配 SP；entries 即"已获得技能集"） */
-    boolean hasSkill(Skill skill) {
-        return skill != null && entries.containsKey(skill.getId());
+    boolean hasSkill(int skillId) {
+        return entries.containsKey(skillId);
     }
 
     /**
-     * 变更已获得技能的等级/master/到期。newLevel &ge; 0：等级 0 = 已获得但尚未分配 SP。
-     * 不承担删除语义（到期清除/GM 重置走 {@link #removeSkill}）。
+     * 变更已获得技能的等级/master/到期（skillId 内部解析为 Skill）。newLevel &ge; 0：
+     * 等级 0 = 已获得但尚未分配 SP。不承担删除语义（到期清除/GM 重置走 {@link #removeSkill}）。
      */
-    void changeSkillLevel(Skill skill, int newLevel, int newMasterlevel, long expiration) {
+    void changeSkillLevel(int skillId, int newLevel, int newMasterlevel, long expiration) {
         if (newLevel < 0) {
-            throw new IllegalArgumentException("删除技能须走 removeSkill: " + skill.getId());
+            throw new IllegalArgumentException("删除技能须走 removeSkill: " + skillId);
         }
-        entries.put(skill.getId(), new SkillEntry(skill, newLevel, newMasterlevel, expiration));
+        Skill skill = SkillFactory.getSkill(skillId);
+        if (skill == null) {
+            throw new IllegalArgumentException("未登记的技能 id: " + skillId);
+        }
+        entries.put(skillId, new SkillEntry(skill, newLevel, newMasterlevel, expiration));
         if (expiration != SkillEntry.PERMANENT) {
-            skillExpireTimer.schedule(skill.getId(), expiration);
+            skillExpireTimer.schedule(skillId, expiration);
         } else {
-            skillExpireTimer.cancel(skill.getId());
+            skillExpireTimer.cancel(skillId);
         }
-        if (!GameConstants.isHiddenSkills(skill.getId())) {
-            owner.remote().updateSkill(new SkillUpdate(skill.getId(), newLevel, newMasterlevel, expiration));
+        if (!GameConstants.isHiddenSkills(skillId)) {
+            owner.remote().updateSkill(new SkillUpdate(skillId, newLevel, newMasterlevel, expiration));
         }
     }
 
     /** 移除已获得的技能（技能到期自动清除 / GM 重置非本职业技能）。 */
-    void removeSkill(Skill skill) {
-        entries.remove(skill.getId());
-        skillExpireTimer.cancel(skill.getId());
-        owner.remote().removeSkill(skill.getId());
+    void removeSkill(int skillId) {
+        entries.remove(skillId);
+        skillExpireTimer.cancel(skillId);
+        owner.remote().removeSkill(skillId);
     }
 
     void startTimers() {
@@ -115,17 +105,17 @@ class CharacterSkills {
         skillExpireTimer.start();
         // 登录补排：加载期入库时定时器未激活、schedule 被 TimeoutHelper 丢弃，
         // 此处统一补排；已过期的由 scheduleOrTrigger 立即触发清除
-        List<CooldownValueHolder> cds;
+        List<CooldownStatus> cds;
         List<Map.Entry<Integer, SkillEntry>> expiring = new ArrayList<>();
         try (var ignored = Locks.acquire(owner.chrLock)) {
-            cds = new ArrayList<>(coolDowns.values());
+            cds = new ArrayList<>(cooldowns.values());
             for (Map.Entry<Integer, SkillEntry> e : entries.entrySet()) {
                 if (e.getValue().expiration != SkillEntry.PERMANENT) {
                     expiring.add(Map.entry(e.getKey(), e.getValue()));
                 }
             }
         }
-        for (CooldownValueHolder cd : cds) {
+        for (CooldownStatus cd : cds) {
             cooldownTimer.scheduleOrTrigger(cd.skillId, cd.startTime + cd.length);
         }
         for (Map.Entry<Integer, SkillEntry> e : expiring) {
@@ -140,7 +130,7 @@ class CharacterSkills {
 
     void addCooldown(int skillId, long startTime, long length) {
         try (var ignored = Locks.acquire(owner.chrLock)) {
-            coolDowns.put(skillId, new CooldownValueHolder(skillId, startTime, length));
+            cooldowns.put(skillId, new CooldownStatus(skillId, startTime, length));
         }
         cooldownTimer.schedule(skillId, startTime + length);
     }
@@ -149,7 +139,7 @@ class CharacterSkills {
         List<PlayerCoolDownValueHolder> ret = new ArrayList<>();
 
         try (var ignored = Locks.acquire(owner.chrLock)) {
-            for (CooldownValueHolder mcdvh : coolDowns.values()) {
+            for (CooldownStatus mcdvh : cooldowns.values()) {
                 ret.add(new PlayerCoolDownValueHolder(mcdvh.skillId, mcdvh.startTime, mcdvh.length));
             }
         }
@@ -159,23 +149,23 @@ class CharacterSkills {
 
     boolean skillIsCooling(int skillId) {
         try (var ignored = Locks.acquire(owner.chrLock)) {
-            return coolDowns.containsKey(Integer.valueOf(skillId));
+            return cooldowns.containsKey(Integer.valueOf(skillId));
         }
     }
 
     void removeCooldown(int skillId) {
         cooldownTimer.cancel(skillId);
         try (var ignored = Locks.acquire(owner.chrLock)) {
-            coolDowns.remove(skillId);
+            cooldowns.remove(skillId);
         }
     }
 
     void removeAllCooldownsExcept(int id, boolean packet) {
         try (var ignored = Locks.acquire(owner.chrLock)) {
-            ArrayList<CooldownValueHolder> list = new ArrayList<>(coolDowns.values());
-            for (CooldownValueHolder mcvh : list) {
+            ArrayList<CooldownStatus> list = new ArrayList<>(cooldowns.values());
+            for (CooldownStatus mcvh : list) {
                 if (mcvh.skillId != id) {
-                    coolDowns.remove(mcvh.skillId);
+                    cooldowns.remove(mcvh.skillId);
                     cooldownTimer.cancel(mcvh.skillId);
                     if (packet) {
                         owner.remote().clearSkillCooldown(mcvh.skillId);
@@ -196,7 +186,7 @@ class CharacterSkills {
             sd.expiration = e.getValue().expiration == SkillEntry.PERMANENT ? null : e.getValue().expiration;
             d.entries.put(e.getKey(), sd);
         }
-        for (CooldownValueHolder cd : coolDowns.values()) {
+        for (CooldownStatus cd : cooldowns.values()) {
             CharacterSkillsData.CooldownData cdd = new CharacterSkillsData.CooldownData();
             cdd.startTime = cd.startTime;
             cdd.length = cd.length;
@@ -221,7 +211,7 @@ class CharacterSkills {
         }
         // 反序列化只恢复状态、不调度：定时器尚未激活，schedule 会被 TimeoutHelper 丢弃（死代码）；
         // 真正的初次调度由 startTimers 的补排（scheduleOrTrigger）在激活时点统一完成。
-        coolDowns.clear();
+        cooldowns.clear();
         long timeNow = Server.getInstance().getCurrentTime();
         try (var ignored = Locks.acquire(owner.chrLock)) {
             for (Map.Entry<Integer, CharacterSkillsData.CooldownData> e : d.cooldowns.entrySet()) {
@@ -230,20 +220,21 @@ class CharacterSkills {
                 long length = e.getValue().length;
                 if (skillId == 5221999) {   // 战船冷却槽复用为血量标记
                     owner.specialSkills.battleshipHp = (int) length;
-                    coolDowns.put(skillId, new CooldownValueHolder(skillId, 0, length));
+                    cooldowns.put(skillId, new CooldownStatus(skillId, 0, length));
                 } else {
                     int remaining = (int) ((length + startTime) - timeNow);
-                    coolDowns.put(skillId, new CooldownValueHolder(skillId, timeNow, remaining));
+                    cooldowns.put(skillId, new CooldownStatus(skillId, timeNow, remaining));
                 }
             }
         }
     }
 
-    public static class CooldownValueHolder {
+    public static class CooldownStatus {
         public int skillId;
-        public long startTime, length;
+        public long startTime;
+        public long length;
 
-        public CooldownValueHolder(int skillId, long startTime, long length) {
+        public CooldownStatus(int skillId, long startTime, long length) {
             this.skillId = skillId;
             this.startTime = startTime;
             this.length = length;

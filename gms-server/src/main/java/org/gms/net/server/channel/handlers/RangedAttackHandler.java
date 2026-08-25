@@ -232,7 +232,7 @@ public final class RangedAttackHandler extends AbstractDealDamageHandler {
 
                 if (attack.skill != 0) {
                     Skill skill = SkillFactory.getSkill(attack.skill);
-                    BuffEffectData effect_ = skill.getEffect(chr.getSkillLevel(skill));
+                    BuffEffectData effect_ = skill.getEffect(chr.getSkillLevel(attack.skill));
                     if (effect_.getCooldown() > 0) {
                         if (chr.skillIsCooling(attack.skill)) {
                             return;
@@ -243,10 +243,10 @@ public final class RangedAttackHandler extends AbstractDealDamageHandler {
                     }
                 }
 
-                if (chr.getSkillLevel(SkillFactory.getSkill(NightWalker.VANISH)) > 0 && chr.getBuffedValue(EffectType.DARKSIGHT) != null && attack.numAttacked > 0 && chr.getBuffSource(EffectType.DARKSIGHT) != 9101004) {
+                if (chr.getSkillLevel(NightWalker.VANISH) > 0 && chr.getBuffedValue(EffectType.DARKSIGHT) != null && attack.numAttacked > 0 && chr.getBuffSource(EffectType.DARKSIGHT) != 9101004) {
                     chr.cancelEffectFromBuffStat(EffectType.DARKSIGHT);
                     chr.cancelBuffStats(EffectType.DARKSIGHT);
-                } else if (chr.getSkillLevel(SkillFactory.getSkill(WindArcher.WIND_WALK)) > 0 && chr.getBuffedValue(EffectType.WIND_WALK) != null && attack.numAttacked > 0) {
+                } else if (chr.getSkillLevel(WindArcher.WIND_WALK) > 0 && chr.getBuffedValue(EffectType.WIND_WALK) != null && attack.numAttacked > 0) {
                     chr.cancelEffectFromBuffStat(EffectType.WIND_WALK);
                     chr.cancelBuffStats(EffectType.WIND_WALK);
                 }

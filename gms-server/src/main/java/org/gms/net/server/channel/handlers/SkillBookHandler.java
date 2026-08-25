@@ -68,7 +68,7 @@ public final class SkillBookHandler extends AbstractPacketHandler {
                 Skill skill2 = SkillFactory.getSkill(skilldata.get("skillid"));
                 if (skilldata.get("skillid") == 0) {
                     canuse = false;
-                } else if ((player.getSkillLevel(skill2) >= skilldata.get("reqSkillLevel") || skilldata.get("reqSkillLevel") == 0) && player.getMasterLevel(skill2) < skilldata.get("masterLevel")) {
+                } else if ((player.getSkillLevel(skill2.getId()) >= skilldata.get("reqSkillLevel") || skilldata.get("reqSkillLevel") == 0) && player.getMasterLevel(skill2.getId()) < skilldata.get("masterLevel")) {
                     inv.lockInventory();
                     try {
                         Item used = inv.getItem(slot);
@@ -84,7 +84,7 @@ public final class SkillBookHandler extends AbstractPacketHandler {
                     canuse = true;
                     if (ItemInformationProvider.rollSuccessChance(skilldata.get("success"))) {
                         success = true;
-                        player.changeSkillLevel(skill2, player.getSkillLevel(skill2), Math.max(skilldata.get("masterLevel"), player.getMasterLevel(skill2)), -1);
+                        player.changeSkillLevel(skill2.getId(), player.getSkillLevel(skill2.getId()), Math.max(skilldata.get("masterLevel"), player.getMasterLevel(skill2.getId())), -1);
                     } else {
                         success = false;
                         //player.dropMessage("The skill book lights up, but the skill winds up as if nothing happened.");

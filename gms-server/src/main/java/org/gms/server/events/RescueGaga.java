@@ -48,11 +48,11 @@ public class RescueGaga extends Events {
 
         long expiration = (System.currentTimeMillis() + DAYS.toMillis(20));
         if (completed < 20) {
-            chr.changeSkillLevel(SkillFactory.getSkill(skillid), (byte) 1, 1, expiration);
-            chr.changeSkillLevel(SkillFactory.getSkill(skillid + 1), (byte) 1, 1, expiration);
-            chr.changeSkillLevel(SkillFactory.getSkill(skillid + 2), (byte) 1, 1, expiration);
+            chr.changeSkillLevel(skillid, (byte) 1, 1, expiration);
+            chr.changeSkillLevel(skillid + 1, (byte) 1, 1, expiration);
+            chr.changeSkillLevel(skillid + 2, (byte) 1, 1, expiration);
         } else {
-            chr.changeSkillLevel(SkillFactory.getSkill(skillid), (byte) 2, 2, chr.getSkillExpiration(skillid));
+            chr.changeSkillLevel(skillid, (byte) 2, 2, chr.getSkillExpiration(skillid));
         }
     }
 

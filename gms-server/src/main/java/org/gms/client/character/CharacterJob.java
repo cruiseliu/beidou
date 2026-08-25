@@ -254,10 +254,10 @@ class CharacterJob {
         JobDefinition def = JobRegistry.of(jobId);
         for (Integer skillId : def.acquiredSkills()) {
             Skill skill = SkillFactory.getSkill(skillId);
-            if (owner.hasSkill(skill)) {
+            if (owner.hasSkill(skillId)) {
                 continue;
             }
-            owner.changeSkillLevel(skill, 0, skill.getMasterLevel(), -1);
+            owner.changeSkillLevel(skillId, 0, skill.getMasterLevel(), -1);
         }
     }
 

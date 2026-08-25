@@ -582,7 +582,7 @@ public class AssignAPProcessor {
         if (!usedAPReset) {
             if(skillId != null) {
                 Skill hpSkill = SkillFactory.getSkill(skillId);
-                int skillLevel = player.getSkillLevel(hpSkill);
+                int skillLevel = player.getSkillLevel(skillId);
 
                 if (skillLevel > 0) {
                     // 添加技能效果的Y值（HP增加量）
@@ -682,7 +682,7 @@ public class AssignAPProcessor {
                     Magician.IMPROVED_MAX_MP_INCREASE;
 
             Skill mpSkill = SkillFactory.getSkill(skillId);
-            int skillLevel = player.getSkillLevel(mpSkill);
+            int skillLevel = player.getSkillLevel(skillId);
 
             if (skillLevel > 0) {
                 // 添加技能效果的Y值（MP增加量）

@@ -78,8 +78,7 @@ public final class HealOvertimeHandler extends AbstractPacketHandler {
     }
 
     private static int applyImprovedMpRecovery(Character chr, int healMP) {
-        Skill improvedRecovery = SkillFactory.getSkill(Magician.IMPROVED_MP_RECOVERY);
-        int skillLevel = chr.getSkillLevel(improvedRecovery);
+        int skillLevel = chr.getSkillLevel(Magician.IMPROVED_MP_RECOVERY);
         if (skillLevel <= 0) {
             return healMP;
         }

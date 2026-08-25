@@ -84,7 +84,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                 mySkill = SkillFactory.getSkill(skill);
             }
 
-            int skillLevel = chr.getSkillLevel(mySkill);
+            int skillLevel = chr.getSkillLevel(mySkill.getId());
             if (skillLevel == 0 && GameConstants.isPqSkillMap(chr.getMapId()) && GameConstants.isPqSkill(mySkill.getId())) {
                 skillLevel = 1;
             }
@@ -340,7 +340,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                     monster.aggroMonsterDamage(player, totDamageToOneMonster);
                     if (player.getBuffedValue(EffectType.PICKPOCKET) != null && (attack.skill == 0 || attack.skill == Rogue.DOUBLE_STAB || attack.skill == Bandit.SAVAGE_BLOW || attack.skill == ChiefBandit.ASSAULTER || attack.skill == ChiefBandit.BAND_OF_THIEVES || attack.skill == Shadower.ASSASSINATE || attack.skill == Shadower.TAUNT || attack.skill == Shadower.BOOMERANG_STEP)) {
                         Skill pickpocket = SkillFactory.getSkill(ChiefBandit.PICKPOCKET);
-                        int picklv = (player.isGM()) ? pickpocket.getMaxLevel() : player.getSkillLevel(pickpocket);
+                        int picklv = (player.isGM()) ? pickpocket.getMaxLevel() : player.getSkillLevel(ChiefBandit.PICKPOCKET);
                         if (picklv > 0) {
                             int delay = 0;
                             final int maxmeso = player.getBuffedValue(EffectType.PICKPOCKET);
@@ -361,11 +361,11 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                             }
                         }
                     } else if (attack.skill == Marauder.ENERGY_DRAIN || attack.skill == ThunderBreaker.ENERGY_DRAIN || attack.skill == NightWalker.VAMPIRE || attack.skill == Assassin.DRAIN) {
-                        player.addHP(Math.min(monster.getMaxHp(), Math.min((int) ((double) totDamage * (double) SkillFactory.getSkill(attack.skill).getEffect(player.getSkillLevel(SkillFactory.getSkill(attack.skill))).getX() / 100.0), player.getCurrentMaxHp() / 2)));
+                        player.addHP(Math.min(monster.getMaxHp(), Math.min((int) ((double) totDamage * (double) SkillFactory.getSkill(attack.skill).getEffect(player.getSkillLevel(attack.skill)).getX() / 100.0), player.getCurrentMaxHp() / 2)));
                     } else if (attack.skill == Bandit.STEAL) {
                         Skill steal = SkillFactory.getSkill(Bandit.STEAL);
                         if (monster.getStolen().size() < 1) { // One steal per mob <3
-                            if (steal.getEffect(player.getSkillLevel(steal)).makeChanceResult()) {
+                            if (steal.getEffect(player.getSkillLevel(Bandit.STEAL)).makeChanceResult()) {
                                 monster.addStolen(0);
 
                                 MonsterInformationProvider mi = MonsterInformationProvider.getInstance();
@@ -387,10 +387,10 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                             }
                         }
                     } else if (attack.skill == FPArchMage.FIRE_DEMON) {
-                        long duration = SECONDS.toMillis(SkillFactory.getSkill(FPArchMage.FIRE_DEMON).getEffect(player.getSkillLevel(SkillFactory.getSkill(FPArchMage.FIRE_DEMON))).getDuration());
+                        long duration = SECONDS.toMillis(SkillFactory.getSkill(FPArchMage.FIRE_DEMON).getEffect(player.getSkillLevel(FPArchMage.FIRE_DEMON)).getDuration());
                         monster.setTempEffectiveness(Element.ICE, ElementalEffectiveness.WEAK, duration);
                     } else if (attack.skill == ILArchMage.ICE_DEMON) {
-                        long duration = SECONDS.toMillis(SkillFactory.getSkill(ILArchMage.ICE_DEMON).getEffect(player.getSkillLevel(SkillFactory.getSkill(ILArchMage.ICE_DEMON))).getDuration());
+                        long duration = SECONDS.toMillis(SkillFactory.getSkill(ILArchMage.ICE_DEMON).getEffect(player.getSkillLevel(ILArchMage.ICE_DEMON)).getDuration());
                         monster.setTempEffectiveness(Element.FIRE, ElementalEffectiveness.WEAK, duration);
                     } else if (attack.skill == Outlaw.HOMING_BEACON || attack.skill == Corsair.BULLSEYE) {
                         BuffEffectData beacon = SkillFactory.getSkill(attack.skill).getEffect(player.getSkillLevel(attack.skill));
@@ -398,8 +398,8 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                     } else if (attack.skill == Outlaw.FLAME_THROWER) {
                         if (!monster.isBoss()) {
                             Skill type = SkillFactory.getSkill(Outlaw.FLAME_THROWER);
-                            if (player.getSkillLevel(type) > 0) {
-                                BuffEffectData DoT = type.getEffect(player.getSkillLevel(type));
+                            if (player.getSkillLevel(Outlaw.FLAME_THROWER) > 0) {
+                                BuffEffectData DoT = type.getEffect(player.getSkillLevel(Outlaw.FLAME_THROWER));
                                 MonsterStatusEffect monsterStatusEffect = new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.POISON, 1), type, null, false);
                                 monster.applyStatus(player, monsterStatusEffect, true, DoT.getDuration(), false);
                             }
@@ -410,33 +410,33 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                         if (player.getBuffedValue(EffectType.WK_CHARGE) != null) {
                             Skill snowCharge = SkillFactory.getSkill(Aran.SNOW_CHARGE);
                             if (totDamageToOneMonster > 0) {
-                                MonsterStatusEffect monsterStatusEffect = new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.SPEED, snowCharge.getEffect(player.getSkillLevel(snowCharge)).getX()), snowCharge, null, false);
-                                long duration = SECONDS.toMillis(snowCharge.getEffect(player.getSkillLevel(snowCharge)).getY());
+                                MonsterStatusEffect monsterStatusEffect = new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.SPEED, snowCharge.getEffect(player.getSkillLevel(Aran.SNOW_CHARGE)).getX()), snowCharge, null, false);
+                                long duration = SECONDS.toMillis(snowCharge.getEffect(player.getSkillLevel(Aran.SNOW_CHARGE)).getY());
                                 monster.applyStatus(player, monsterStatusEffect, false, duration);
                             }
                         }
                     }
                     if (player.getBuffedValue(EffectType.HAMSTRING) != null) {
                         Skill hamstring = SkillFactory.getSkill(Bowmaster.HAMSTRING);
-                        if (hamstring.getEffect(player.getSkillLevel(hamstring)).makeChanceResult()) {
-                            MonsterStatusEffect monsterStatusEffect = new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.SPEED, hamstring.getEffect(player.getSkillLevel(hamstring)).getX()), hamstring, null, false);
-                            long duration = SECONDS.toMillis(hamstring.getEffect(player.getSkillLevel(hamstring)).getY());
+                        if (hamstring.getEffect(player.getSkillLevel(Bowmaster.HAMSTRING)).makeChanceResult()) {
+                            MonsterStatusEffect monsterStatusEffect = new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.SPEED, hamstring.getEffect(player.getSkillLevel(Bowmaster.HAMSTRING)).getX()), hamstring, null, false);
+                            long duration = SECONDS.toMillis(hamstring.getEffect(player.getSkillLevel(Bowmaster.HAMSTRING)).getY());
                             monster.applyStatus(player, monsterStatusEffect, false, duration);
                         }
                     }
                     if (player.getBuffedValue(EffectType.SLOW) != null) {
                         Skill slow = SkillFactory.getSkill(Evan.SLOW);
-                        if (slow.getEffect(player.getSkillLevel(slow)).makeChanceResult()) {
-                            MonsterStatusEffect monsterStatusEffect = new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.SPEED, slow.getEffect(player.getSkillLevel(slow)).getX()), slow, null, false);
-                            long duration = MINUTES.toMillis(slow.getEffect(player.getSkillLevel(slow)).getY());
+                        if (slow.getEffect(player.getSkillLevel(Evan.SLOW)).makeChanceResult()) {
+                            MonsterStatusEffect monsterStatusEffect = new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.SPEED, slow.getEffect(player.getSkillLevel(Evan.SLOW)).getX()), slow, null, false);
+                            long duration = MINUTES.toMillis(slow.getEffect(player.getSkillLevel(Evan.SLOW)).getY());
                             monster.applyStatus(player, monsterStatusEffect, false, duration);
                         }
                     }
                     if (player.getBuffedValue(EffectType.BLIND) != null) {
                         Skill blind = SkillFactory.getSkill(Marksman.BLIND);
-                        if (blind.getEffect(player.getSkillLevel(blind)).makeChanceResult()) {
-                            MonsterStatusEffect monsterStatusEffect = new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.ACC, blind.getEffect(player.getSkillLevel(blind)).getX()), blind, null, false);
-                            long duration = SECONDS.toMillis(blind.getEffect(player.getSkillLevel(blind)).getY());
+                        if (blind.getEffect(player.getSkillLevel(Marksman.BLIND)).makeChanceResult()) {
+                            MonsterStatusEffect monsterStatusEffect = new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.ACC, blind.getEffect(player.getSkillLevel(Marksman.BLIND)).getX()), blind, null, false);
+                            long duration = SECONDS.toMillis(blind.getEffect(player.getSkillLevel(Marksman.BLIND)).getY());
                             monster.applyStatus(player, monsterStatusEffect, false, duration);
                         }
                     }
@@ -446,7 +446,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                             if (player.isBuffFrom(EffectType.WK_CHARGE, chargeSkill)) {
                                 if (totDamageToOneMonster > 0) {
                                     if (charge == WhiteKnight.BW_ICE_CHARGE || charge == WhiteKnight.SWORD_ICE_CHARGE) {
-                                        monster.setTempEffectiveness(Element.ICE, ElementalEffectiveness.WEAK, chargeSkill.getEffect(player.getSkillLevel(chargeSkill)).getY() * 1000);
+                                        monster.setTempEffectiveness(Element.ICE, ElementalEffectiveness.WEAK, chargeSkill.getEffect(player.getSkillLevel(charge)).getY() * 1000);
                                         // 修复冰技能不冰怪的问题，关键是冰和火都没有对应的异常状态，对应的异常只有冻结。如果这里把ICE改了，那火怎么办？所以，还是先注释掉。
 //                                        MonsterStatusEffect monsterStatusEffect = new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.FREEZE, chargeSkill.getEffect(player.getSkillLevel(chargeSkill)).getX()), chargeSkill, null, false);
 //                                        long duration = SECONDS.toMillis(chargeSkill.getEffect(player.getSkillLevel(chargeSkill)).getY());
@@ -454,7 +454,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                                         break;
                                     }
                                     if (charge == WhiteKnight.BW_FIRE_CHARGE || charge == WhiteKnight.SWORD_FIRE_CHARGE) {
-                                        monster.setTempEffectiveness(Element.FIRE, ElementalEffectiveness.WEAK, chargeSkill.getEffect(player.getSkillLevel(chargeSkill)).getY() * 1000);
+                                        monster.setTempEffectiveness(Element.FIRE, ElementalEffectiveness.WEAK, chargeSkill.getEffect(player.getSkillLevel(charge)).getY() * 1000);
                                         break;
                                     }
                                 }
@@ -465,7 +465,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                                 Skill chargeSkill = SkillFactory.getSkill(charge);
                                 if (player.isBuffFrom(EffectType.WK_CHARGE, chargeSkill)) {
                                     if (totDamageToOneMonster > 0) {
-                                        monster.setTempEffectiveness(Element.HOLY, ElementalEffectiveness.WEAK, chargeSkill.getEffect(player.getSkillLevel(chargeSkill)).getY() * 1000);
+                                        monster.setTempEffectiveness(Element.HOLY, ElementalEffectiveness.WEAK, chargeSkill.getEffect(player.getSkillLevel(charge)).getY() * 1000);
                                         break;
                                     }
                                 }
@@ -475,12 +475,13 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                         Skill skill;
                         if (player.getBuffedValue(EffectType.COMBO_DRAIN) != null) {
                             skill = SkillFactory.getSkill(21100005);
-                            player.addHP(((totDamage * skill.getEffect(player.getSkillLevel(skill)).getX()) / 100));
+                            player.addHP(((totDamage * skill.getEffect(player.getSkillLevel(21100005)).getX()) / 100));
                         }
                     } else if (job == 412 || job == 422 || job == 1411) {
                         Skill type = SkillFactory.getSkill(player.getJob().getId() == 412 ? 4120005 : (player.getJob().getId() == 1411 ? 14110004 : 4220005));
-                        if (player.getSkillLevel(type) > 0) {
-                            BuffEffectData venomEffect = type.getEffect(player.getSkillLevel(type));
+                        int venomSkillId = player.getJob().getId() == 412 ? 4120005 : (player.getJob().getId() == 1411 ? 14110004 : 4220005);
+                        if (player.getSkillLevel(venomSkillId) > 0) {
+                            BuffEffectData venomEffect = type.getEffect(player.getSkillLevel(venomSkillId));
                             for (int i = 0; i < attackCount; i++) {
                                 if (venomEffect.makeChanceResult()) {
                                     if (monster.getVenomMulti() < 3) {
@@ -500,7 +501,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                                 mortalBlow = SkillFactory.getSkill(Sniper.MORTAL_BLOW);
                             }
 
-                            int skillLevel = player.getSkillLevel(mortalBlow);
+                            int skillLevel = player.getSkillLevel(mortalBlow.getId());
                             if (skillLevel > 0) {
                                 BuffEffectData mortal = mortalBlow.getEffect(skillLevel);
                                 if (monster.getHp() <= (monster.getStats().getHp() * mortal.getX()) / 100) {
@@ -557,14 +558,14 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                         if (!monster.isBoss()) {
                             damageMonsterWithSkill(player, map, monster, monster.getHp() - 1, attack.skill, 1777);
                         } else {
-                            int HHDmg = (player.calculateMaxBaseDamage(player.getTotalWatk()) * (SkillFactory.getSkill(Paladin.HEAVENS_HAMMER).getEffect(player.getSkillLevel(SkillFactory.getSkill(Paladin.HEAVENS_HAMMER))).getDamage() / 100));
+                            int HHDmg = (player.calculateMaxBaseDamage(player.getTotalWatk()) * (SkillFactory.getSkill(Paladin.HEAVENS_HAMMER).getEffect(player.getSkillLevel(Paladin.HEAVENS_HAMMER)).getDamage() / 100));
                             damageMonsterWithSkill(player, map, monster, (int) (Math.floor(Math.random() * (HHDmg / 5) + HHDmg * .8)), attack.skill, 1777);
                         }
                     } else if (attack.skill == Aran.COMBO_TEMPEST) {
                         if (!monster.isBoss()) {
                             damageMonsterWithSkill(player, map, monster, monster.getHp(), attack.skill, 0);
                         } else {
-                            int TmpDmg = (player.calculateMaxBaseDamage(player.getTotalWatk()) * (SkillFactory.getSkill(Aran.COMBO_TEMPEST).getEffect(player.getSkillLevel(SkillFactory.getSkill(Aran.COMBO_TEMPEST))).getDamage() / 100));
+                            int TmpDmg = (player.calculateMaxBaseDamage(player.getTotalWatk()) * (SkillFactory.getSkill(Aran.COMBO_TEMPEST).getEffect(player.getSkillLevel(Aran.COMBO_TEMPEST)).getDamage() / 100));
                             damageMonsterWithSkill(player, map, monster, (int) (Math.floor(Math.random() * (TmpDmg / 5) + TmpDmg * .8)), attack.skill, 0);
                         }
                     } else {
@@ -939,7 +940,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                     }
                 } else if (ret.skill == Hermit.SHADOW_WEB) {
                     if (monster != null) {
-                        calcDmgMax = monster.getHp() / (50 - chr.getSkillLevel(skill));
+                        calcDmgMax = monster.getHp() / (50 - chr.getSkillLevel(ret.skill));
                     }
                 } else if (ret.skill == Hermit.SHADOW_MESO) {
                     if (monster != null) {

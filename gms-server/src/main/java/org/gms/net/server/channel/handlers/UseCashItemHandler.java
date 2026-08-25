@@ -187,11 +187,11 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
                 int SPFrom = p.readInt();
                 Skill skillSPTo = SkillFactory.getSkill(SPTo);
                 Skill skillSPFrom = SkillFactory.getSkill(SPFrom);
-                byte curLevel = (byte) player.getSkillLevel(skillSPTo);
-                byte curLevelSPFrom = (byte) player.getSkillLevel(skillSPFrom);
+                byte curLevel = (byte) player.getSkillLevel(SPTo);
+                byte curLevelSPFrom = (byte) player.getSkillLevel(SPFrom);
                 if ((curLevel < skillSPTo.getMaxLevel()) && curLevelSPFrom > 0) {
-                    player.changeSkillLevel(skillSPFrom, (byte) (curLevelSPFrom - 1), player.getMasterLevel(skillSPFrom), -1);
-                    player.changeSkillLevel(skillSPTo, (byte) (curLevel + 1), player.getMasterLevel(skillSPTo), -1);
+                    player.changeSkillLevel(SPFrom, (byte) (curLevelSPFrom - 1), player.getMasterLevel(SPFrom), -1);
+                    player.changeSkillLevel(SPTo, (byte) (curLevel + 1), player.getMasterLevel(SPTo), -1);
 
                     // update macros, thanks to Arnah
                     if ((curLevelSPFrom - 1) == 0) {

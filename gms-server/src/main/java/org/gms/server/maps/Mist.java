@@ -140,7 +140,7 @@ public class Mist extends AbstractMapObject {
 
     public final Packet makeSpawnData() {
         if (owner != null) {
-            return PacketCreator.spawnMist(getObjectId(), owner.getId(), getSourceSkill().getId(), owner.getSkillLevel(SkillFactory.getSkill(source.getSourceId())), this);
+            return PacketCreator.spawnMist(getObjectId(), owner.getId(), getSourceSkill().getId(), owner.getSkillLevel(source.getSourceId()), this);
         }
         return PacketCreator.spawnMobMist(getObjectId(), mob.getId(), skill.getId(), this);
     }

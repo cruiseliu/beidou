@@ -5,7 +5,6 @@ import org.gms.client.Disease;
 import org.gms.client.keybind.KeyBinding;
 import org.gms.client.processor.action.PetAutopotProcessor;
 import org.gms.client.JobEnum;
-import org.gms.client.PacketStat;
 import org.gms.client.Skill;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Inventory;
@@ -25,12 +24,7 @@ import org.gms.server.BuffEffectData;
 import org.gms.server.ItemInformationProvider;
 import org.gms.util.Locks;
 import org.gms.util.PacketCreator;
-import org.gms.util.Pair;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -327,7 +321,7 @@ public class CharacterStats {
 
         if (owner.getEnergyBar() == 15000) {
             Skill energycharge = owner.isCygnus() ? SkillFactory.getSkill(ThunderBreaker.ENERGY_CHARGE) : SkillFactory.getSkill(Marauder.ENERGY_CHARGE);
-            BuffEffectData ceffect = energycharge.getEffect(owner.getSkillLevel(energycharge));
+            BuffEffectData ceffect = energycharge.getEffect(owner.getSkillLevel(energycharge.getId()));
             total[Stat.P_ATK.ordinal()] += ceffect.getWatk();
         }
 
@@ -346,7 +340,7 @@ public class CharacterStats {
                 expert = SkillFactory.getSkill(3120005);
             }
             if (expert != null) {
-                int boostLevel = owner.getSkillLevel(expert);
+                int boostLevel = owner.getSkillLevel(expert.getId());
                 if (boostLevel > 0) {
                     total[Stat.P_ATK.ordinal()] += expert.getEffect(boostLevel).getX();
                 }

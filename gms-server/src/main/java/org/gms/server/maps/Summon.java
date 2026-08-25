@@ -41,7 +41,7 @@ public class Summon extends AbstractAnimatedMapObject {
     public Summon(Character owner, int skill, Point pos, SummonMovementType movementType) {
         this.owner = owner;
         this.skill = skill;
-        this.skillLevel = (byte) owner.getSkillLevel(SkillFactory.getSkill(skill));
+        this.skillLevel = (byte) owner.getSkillLevel(skill);
         if (skillLevel == 0) {
             throw new RuntimeException();
         }

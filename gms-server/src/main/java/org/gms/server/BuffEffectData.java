@@ -1456,7 +1456,7 @@ public class BuffEffectData {
                 boolean isEvan = applyfrom.getJob().isA(JobEnum.EVAN7);
                 if (isAFpMage || isCygnus || isEvan || applyfrom.getJob().isA(JobEnum.IL_MAGE)) {
                     Skill amp = isAFpMage ? SkillFactory.getSkill(FPMage.ELEMENT_AMPLIFICATION) : (isCygnus ? SkillFactory.getSkill(BlazeWizard.ELEMENT_AMPLIFICATION) : (isEvan ? SkillFactory.getSkill(Evan.MAGIC_AMPLIFICATION) : SkillFactory.getSkill(ILMage.ELEMENT_AMPLIFICATION)));
-                    int ampLevel = applyfrom.getSkillLevel(amp);
+                    int ampLevel = applyfrom.getSkillLevel(amp.getId());
                     if (ampLevel > 0) {
                         mod = amp.getEffect(ampLevel).getX() / 100.0;
                     }
@@ -1491,7 +1491,7 @@ public class BuffEffectData {
         if (chr.isCygnus()) {
             id = NightWalker.ALCHEMIST;
         }
-        int alchemistLevel = chr.getSkillLevel(SkillFactory.getSkill(id));
+        int alchemistLevel = chr.getSkillLevel(id);
         return alchemistLevel == 0 ? null : SkillFactory.getSkill(id).getEffect(alchemistLevel);
     }
 

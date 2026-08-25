@@ -346,12 +346,12 @@ public class ItemInformationProvider {
         // thanks GMChuck for detecting player sensitive data being cached into getSlotMax
         if (ItemConstants.isThrowingStar(itemId)) {
             if (c.getPlayer().getJob().isA(JobEnum.NIGHTWALKER1)) {
-                ret += c.getPlayer().getSkillLevel(SkillFactory.getSkill(NightWalker.CLAW_MASTERY)) * 10;
+                ret += c.getPlayer().getSkillLevel(NightWalker.CLAW_MASTERY) * 10;
             } else {
-                ret += c.getPlayer().getSkillLevel(SkillFactory.getSkill(Assassin.CLAW_MASTERY)) * 10;
+                ret += c.getPlayer().getSkillLevel(Assassin.CLAW_MASTERY) * 10;
             }
         } else if (ItemConstants.isBullet(itemId)) {
-            ret += c.getPlayer().getSkillLevel(SkillFactory.getSkill(Gunslinger.GUN_MASTERY)) * 10;
+            ret += c.getPlayer().getSkillLevel(Gunslinger.GUN_MASTERY) * 10;
         }
 
         return ret;
@@ -2229,7 +2229,7 @@ public class ItemInformationProvider {
         }
 
         Skill skill2 = SkillFactory.getSkill(skilldata.get("skillid"));
-        return (skilldata.get("skillid") != 0 && ((player.getSkillLevel(skill2) >= skilldata.get("reqSkillLevel") || skilldata.get("reqSkillLevel") == 0) && player.getMasterLevel(skill2) < skilldata.get("masterLevel")));
+        return (skilldata.get("skillid") != 0 && ((player.getSkillLevel(skill2.getId()) >= skilldata.get("reqSkillLevel") || skilldata.get("reqSkillLevel") == 0) && player.getMasterLevel(skill2.getId()) < skilldata.get("masterLevel")));
     }
 
     public List<Integer> usableMasteryBooks(Character player) {

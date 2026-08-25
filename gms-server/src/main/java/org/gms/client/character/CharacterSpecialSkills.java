@@ -70,7 +70,7 @@ class CharacterSpecialSkills {
         this.battleshipHp -= decrease;
         if (battleshipHp <= 0) {
             Skill battleship = SkillFactory.getSkill(Corsair.BATTLE_SHIP);
-            int cooldown = battleship.getEffect(owner.getSkillLevel(battleship)).getCooldown();
+            int cooldown = battleship.getEffect(owner.getSkillLevel(Corsair.BATTLE_SHIP)).getCooldown();
             owner.sendPacket(PacketCreator.skillCooldown(Corsair.BATTLE_SHIP, cooldown));
             owner.addCooldown(Corsair.BATTLE_SHIP, Server.getInstance().getCurrentTime(), SECONDS.toMillis(cooldown));
             owner.removeCooldown(5221999);
@@ -83,7 +83,7 @@ class CharacterSpecialSkills {
 
     void resetBattleshipHp() {
         int bshipLevel = Math.max(owner.getLevel() - 120, 0);  // thanks alex12 for noticing battleship HP issues for low-level players
-        this.battleshipHp = 400 * owner.getSkillLevel(SkillFactory.getSkill(Corsair.BATTLE_SHIP)) + (bshipLevel * 200);
+        this.battleshipHp = 400 * owner.getSkillLevel(Corsair.BATTLE_SHIP) + (bshipLevel * 200);
     }
 
     // ── 能量充能 ──
@@ -91,7 +91,7 @@ class CharacterSpecialSkills {
     void handleEnergyChargeGain() { // to get here energychargelevel has to be > 0
         Skill energycharge = owner.isCygnus() ? SkillFactory.getSkill(ThunderBreaker.ENERGY_CHARGE) : SkillFactory.getSkill(Marauder.ENERGY_CHARGE);
         BuffEffectData ceffect;
-        ceffect = energycharge.getEffect(owner.getSkillLevel(energycharge));
+        ceffect = energycharge.getEffect(owner.getSkillLevel(energycharge.getId()));
         TimerManager tMan = TimerManager.getInstance();
         if (energyBar < 10000) {
             energyBar += 102;
@@ -126,7 +126,7 @@ class CharacterSpecialSkills {
         Skill combo = SkillFactory.getSkill(skillid);
         List<Pair<EffectType, Integer>> stat = Collections.singletonList(new Pair<>(EffectType.COMBO, 1));
         owner.setBuffedValue(EffectType.COMBO, 1);
-        owner.sendPacket(PacketCreator.giveBuff(skillid, combo.getEffect(owner.getSkillLevel(combo)).getDuration() + (int) ((owner.getBuffedStarttime(EffectType.COMBO) - System.currentTimeMillis())), stat));
+        owner.sendPacket(PacketCreator.giveBuff(skillid, combo.getEffect(owner.getSkillLevel(skillid)).getDuration() + (int) ((owner.getBuffedStarttime(EffectType.COMBO) - System.currentTimeMillis())), stat));
         owner.getMap().broadcastMessage(owner, PacketCreator.giveForeignBuff(owner.getId(), stat), false);
     }
 }
