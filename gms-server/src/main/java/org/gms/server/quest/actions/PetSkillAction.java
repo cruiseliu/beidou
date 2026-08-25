@@ -21,6 +21,7 @@
  */
 package org.gms.server.quest.actions;
 
+import org.gms.client.inventory.ItemSlot;
 import org.gms.client.character.Character;
 import org.gms.client.QuestStatus;
 import org.gms.constants.inventory.ItemConstants;
@@ -59,6 +60,7 @@ public class PetSkillAction extends AbstractQuestAction {
 
     @Override
     public void run(Character chr, Integer extSelection) {
-        chr.getPet(0).setFlag((byte) ItemConstants.getFlagByInt(flag));
+        ItemSlot petItem = chr.findPetItemSlot(chr.getPet(0).getUniqueId());
+        petItem.setFlag((byte) ItemConstants.getFlagByInt(flag));
     }
 } 

@@ -408,7 +408,7 @@ public class WeddingPackets extends PacketCreator {
                 p.writeLong(32);
                 p.writeByte(items.size());
                 for (ItemSlot item : items) {
-                    addItemInfo(p, item, true);
+                    addItemInfo(p, item, true, null);
                 }
                 break;
             }

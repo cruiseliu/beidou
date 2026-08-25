@@ -44,7 +44,7 @@ public class SpawnPetProcessor {
         if (c.tryacquireClient()) {
             try {
                 Character chr = c.getPlayer();
-                Pet pet = chr.getInventory(InventoryType.CASH).getItem(slot).getPet();
+                Pet pet = chr.getPetById(chr.getInventory(InventoryType.CASH).getItem(slot).getPetId());
                 if (pet == null) {
                     return;
                 }

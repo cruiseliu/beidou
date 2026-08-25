@@ -4,12 +4,8 @@
 		       Matthias Butz <matze@odinms.de>
 		       Jan Christian Meyer <vimes@odinms.de>
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as
-    published by the Free Software Foundation version 3 as published by
-    the Free Software Foundation. You may not use, modify or distribute
-    this program under any other version of the GNU Affero General Public
-    License.
+    This program is free software under the GNU Affero General Public License
+    version 3 as published by the Free Software Foundation, see LICENSE for details.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -40,11 +36,17 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- * @author Matze
+ * 宠物：与物品解耦的独立对象，由角色（CharacterPets）全权管理生命周期。
+ * 与宿主物品只靠 petid 关联、互不存引用：
+ * - 宠物需要宿主物品时经 owner 遍历 CASH 背包按 petid 匹配（findPetItemSlot）；
+ * - 物品需要宠物时经 CharacterPets 的 petid→Pet 映射查询。
+ * itemId 是 wz 数据 key（宠物命令/饥饿/可食饲料判定），自持于此。
  */
-public class Pet extends ItemSlot {
+public class Pet {
+    private final Character owner;
+    private final int itemId;
+    private final int uniqueid;
     private String name;
-    private int uniqueid;
     private int tameness = 0;
     private byte level = 1;
     private int fullness = 100;
@@ -68,14 +70,15 @@ public class Pet extends ItemSlot {
         }
     }
 
-    private Pet(int id, short position, int uniqueid) {
-        super(id, position, (short) 1);
+    Pet(Character owner, int itemId, int uniqueid) {
+        this.owner = owner;
+        this.itemId = itemId;
         this.uniqueid = uniqueid;
         this.pos = new Point(0, 0);
     }
 
-    public static Pet loadFromDb(int itemid, short position, int petid) {
-        Pet ret = new Pet(itemid, position, petid);
+    public static Pet loadFromDb(Character owner, int itemid, int petid) {
+        Pet ret = new Pet(owner, itemid, petid);
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement("SELECT name, level, closeness, fullness, summoned, flag FROM pets WHERE petid = ?")) { // Get the pet details...
             ps.setInt(1, petid);
@@ -161,6 +164,14 @@ public class Pet extends ItemSlot {
         }
     }
 
+    public Character getOwner() {
+        return owner;
+    }
+
+    public int getItemId() {
+        return itemId;
+    }
+
     public String getName() {
         return name;
     }
@@ -174,7 +185,7 @@ public class Pet extends ItemSlot {
     }
 
     public void setUniqueId(int id) {
-        this.uniqueid = id;
+        throw new UnsupportedOperationException("petid 不可变（唯一标识，与宿主物品的关联键）");
     }
 
     public int getTameness() {
@@ -238,7 +249,7 @@ public class Pet extends ItemSlot {
         owner.getMap().broadcastMessage(PacketCreator.petFoodResponse(owner.getId(), slot, enjoyed, owner.hasPetChatballoon(slot)));
         saveToDb();
 
-        ItemSlot petz = owner.getInventory(InventoryType.CASH).getItem((short) getPosition());
+        ItemSlot petz = owner.findPetItemSlot(uniqueid);
         if (petz != null) {
             owner.forceUpdateItem(petz);
         }
@@ -300,7 +311,7 @@ public class Pet extends ItemSlot {
         this.petAttribute |= flag.getValue();
         saveToDb();
 
-        ItemSlot petz = owner.getInventory(InventoryType.CASH).getItem((short) getPosition());
+        ItemSlot petz = owner.findPetItemSlot(uniqueid);
         if (petz != null) {
             owner.forceUpdateItem(petz);
         }
@@ -310,14 +321,14 @@ public class Pet extends ItemSlot {
         this.petAttribute &= 0xFFFFFFFF ^ flag.getValue();
         saveToDb();
 
-        ItemSlot petz = owner.getInventory(InventoryType.CASH).getItem((short) getPosition());
+        ItemSlot petz = owner.findPetItemSlot(uniqueid);
         if (petz != null) {
             owner.forceUpdateItem(petz);
         }
     }
 
     public Pair<Integer, Boolean> canConsume(int itemId) {
-        return ItemInformationProvider.getInstance().canPetConsume(this.getItemId(), itemId);
+        return ItemInformationProvider.getInstance().canPetConsume(this.itemId, itemId);
     }
 
     public void updatePosition(List<LifeMovementFragment> movement) {

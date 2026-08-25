@@ -1524,15 +1524,6 @@ public class Character extends AbstractAnimatedMapObject {
                 sandboxCheck |= searchRtnDTO.getFlag();
                 ItemSlot item = searchRtnDTO.toItem();
                 chr.getInventory(inventoryType).addItemFromDB(item);
-                if (item.getPetId() > -1) {
-                    Pet pet = item.getPet();
-                    if (pet != null && pet.isSummoned()) {
-                        chr.addPet(pet);
-                        // 登录时对已召唤宠物统一走同一套过滤配置加载逻辑，避免后续入口行为不一致。
-                        chr.loadPetExcludedItems(item.getPetId());
-                    }
-                    continue;
-                }
                 if (searchRtnDTO.isEquipment() && searchRtnDTO.getInventoryEquipment().getRingId() > -1) {
                     Ring ring = Ring.loadFromDb(searchRtnDTO.getInventoryEquipment().getRingId());
                     if (ring == null) {
@@ -1545,6 +1536,8 @@ public class Character extends AbstractAnimatedMapObject {
                 }
             }
         }
+        // 背包就绪后批量加载全量宠物并恢复召唤槽（原 Item 构造触发加载，解耦后改由角色统一负责）
+        chr.pets.loadPetsFromInventories();
         chr.commitExcludedItems();
         if ((sandboxCheck & ItemConstants.SANDBOX) == ItemConstants.SANDBOX) {
             chr.setHasSandboxItem();
@@ -2863,6 +2856,19 @@ public class Character extends AbstractAnimatedMapObject {
     // ── pets 门面 ──
 
     public void addPet(Pet pet) { pets.addPet(pet); }
+    public Pet getPetById(int petid) { return pets.getPetById(petid); }
+    public void registerPet(Pet pet) { pets.registerPet(pet); }
+    public void unregisterPet(int petid) { pets.unregisterPet(petid); }
+
+    /** 按 petid 在 CASH 背包查找宿主物品（宠物→物品方向；未找到返回 null） */
+    public ItemSlot findPetItemSlot(int petid) {
+        for (ItemSlot item : getInventory(InventoryType.CASH).list()) {
+            if (item.getPetId() == petid) {
+                return item;
+            }
+        }
+        return null;
+    }
     public void resetExcluded(int petId) { pets.resetExcluded(petId); }
     public void addExcluded(int petId, int x) { pets.addExcluded(petId, x); }
     public void loadPetExcludedItems(int petId) { pets.loadPetExcludedItems(petId); }

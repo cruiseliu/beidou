@@ -47,8 +47,11 @@ class CharacterPets {
 
     private final Character owner;
 
-    /** 三个宠物槽位 */
+    /** 三个召唤槽位（沿用旧名 pets） */
     private final Pet[] pets = new Pet[3];
+
+    /** 全量宠物：petid → Pet（角色负责管理；与物品只靠 petid 关联，互不存引用） */
+    private final Map<Integer, Pet> allPets = new LinkedHashMap<>();
 
     /** 宠物模块锁：串行化槽位/过滤配置/拾取上下文 */
     private final Lock lock = new ReentrantLock(true);
@@ -65,6 +68,65 @@ class CharacterPets {
 
     CharacterPets(Character owner) {
         this.owner = owner;
+    }
+
+    // ── 全量管理 ──
+
+    /** 宠物登记（创建/加载时调用） */
+    void registerPet(Pet pet) {
+        try (var ignored = Locks.acquire(lock)) {
+            allPets.put(pet.getUniqueId(), pet);
+        }
+    }
+
+    /** 按 petid 查询全量宠物（物品→宠物方向；未登记返回 null） */
+    Pet getPetById(int petid) {
+        try (var ignored = Locks.acquire(lock)) {
+            return allPets.get(petid);
+        }
+    }
+
+    /** 宠物注销（物品删除时调用；同步移出召唤槽） */
+    void unregisterPet(int petid) {
+        try (var ignored = Locks.acquire(lock)) {
+            allPets.remove(petid);
+            for (int i = 0; i < 3; i++) {
+                if (pets[i] != null && pets[i].getUniqueId() == petid) {
+                    pets[i] = null;
+                }
+            }
+        }
+    }
+
+    /**
+     * 登录加载：背包就绪后收集全部 petid，从 pets 表批量载入并恢复召唤槽
+     * （pets 表无角色列，归属即背包持有；孤儿行不加载——与旧 Item 构造触发加载的语义一致）。
+     */
+    void loadPetsFromInventories() {
+        List<Pet> summoned = new ArrayList<>();
+        for (ItemSlot item : owner.getInventory(InventoryType.CASH).list()) {
+            int petid = item.getPetId();
+            if (petid < 0) {
+                continue;
+            }
+            Pet pet = getPetById(petid);
+            if (pet == null) {
+                pet = Pet.loadFromDb(owner, item.getItemId(), petid);
+                if (pet != null) {
+                    registerPet(pet);
+                }
+            }
+            if (pet != null && pet.isSummoned()) {
+                summoned.add(pet);
+            }
+        }
+        for (Pet pet : summoned) {
+            if (getNoPets() >= 3) {
+                break;
+            }
+            addPet(pet);
+            owner.loadPetExcludedItems(pet.getUniqueId());
+        }
     }
 
     // ── 槽位管理 ──
@@ -263,7 +325,7 @@ class CharacterPets {
         } else {
             pet.setFullness(newFullness);
             pet.saveToDb();
-            ItemSlot petz = owner.getInventory(InventoryType.CASH).getItem((short) pet.getPosition());
+            ItemSlot petz = owner.findPetItemSlot(pet.getUniqueId());
             if (petz != null) {
                 owner.forceUpdateItem(petz);
             }
@@ -435,13 +497,9 @@ class CharacterPets {
 
     /** 角色保存主事务内调用：用传入连接保存全部宠物（消除第二写者，见 Pet.saveToDb(Connection)） */
     void saveToDb(Connection con) {
-        List<Pet> petList = new LinkedList<>();
+        List<Pet> petList;
         try (var ignored = Locks.acquire(lock)) {
-            for (int i = 0; i < 3; i++) {
-                if (pets[i] != null) {
-                    petList.add(pets[i]);
-                }
-            }
+            petList = new LinkedList<>(allPets.values());
         }
 
         for (Pet pet : petList) {

@@ -137,13 +137,20 @@ public class InventoryManipulator {
                 ItemSlot nItem = new ItemSlot(itemId, (short) 0, quantity, petid);
                 nItem.setFlag(flag);
                 nItem.setExpiration(expiration);
+                Pet newPet = null;
+                if (petid > -1) {   // 新宠物登记（createPet 后物品入包；Pet 对象由角色统一管理）
+                    newPet = Pet.loadFromDb(chr, itemId, petid);
+                    if (newPet != null) {
+                        chr.registerPet(newPet);
+                    }
+                }
                 short newSlot = inv.addItem(nItem);
                 if (newSlot == -1) {
                     c.sendPacket(PacketCreator.getInventoryFull());
                     c.sendPacket(PacketCreator.getShowInventoryFull());
                     return false;
                 }
-                c.sendPacket(PacketCreator.modifyInventory(true, Collections.singletonList(new ModifyInventory(0, nItem))));
+                c.sendPacket(PacketCreator.modifyInventory(true, Collections.singletonList(new ModifyInventory(0, nItem).withPet(newPet))));
                 if (InventoryManipulator.isSandboxItem(nItem)) {
                     chr.setHasSandboxItem();
                 }

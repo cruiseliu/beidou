@@ -66,9 +66,6 @@ public class ItemSlot implements Comparable<ItemSlot> {
 
     public void setPosition(int position) {
         this.position = position;
-        if (item.pet != null) {
-            item.pet.setPosition(position);
-        }
     }
 
     public void setQuantity(int quantity) {
@@ -135,10 +132,6 @@ public class ItemSlot implements Comparable<ItemSlot> {
 
     public Equip getEquipInfo() {
         return item.getEquipInfo();
-    }
-
-    public Pet getPet() {
-        return item.getPet();
     }
 
     /** 依赖 KarmaManipulator（其 API 收 ItemSlot），暂留门面层；随其签名迁移进 Item */

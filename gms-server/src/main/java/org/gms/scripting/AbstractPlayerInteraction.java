@@ -527,7 +527,6 @@ public class AbstractPlayerInteraction {
     }
 
     public ItemSlot evolvePet(byte slot, int afterId) {
-        Pet evolved = null;
         Pet target;
 
         long period = DAYS.toMillis(90);    //refreshes expiration date: 90 days
@@ -562,9 +561,12 @@ public class AbstractPlayerInteraction {
             chr.getClient().getWorldServer().registerPetHunger(chr, chr.getPetIndex(evolved));
             */
 
-        InventoryManipulator.removeFromSlot(c, InventoryType.CASH, (short) target.getPosition(), (short) 1, false);
+        ItemSlot targetItem = getPlayer().findPetItemSlot(target.getUniqueId());
+        if (targetItem != null) {
+            InventoryManipulator.removeFromSlot(c, InventoryType.CASH, (short) targetItem.getPosition(), (short) 1, false);
+        }
 
-        return evolved;
+        return null;
     }
 
     public void gainItem(int id, short quantity) {
@@ -601,7 +603,7 @@ public class AbstractPlayerInteraction {
                 petId = Pet.createPet(id);
 
                 if (from != null) {
-                    evolved = Pet.loadFromDb(id, (short) 0, petId);
+                    evolved = Pet.loadFromDb(getPlayer(), id, petId);
 
                     Point pos = getPlayer().getPosition();
                     pos.y -= 12;
@@ -614,7 +616,11 @@ public class AbstractPlayerInteraction {
                     evolved.setTameness(from.getTameness());
                     evolved.setFullness(from.getFullness());
                     evolved.setLevel(from.getLevel());
-                    evolved.setExpiration(System.currentTimeMillis() + expires);
+                    // 到期属于宿主物品属性：繁殖出的宠物找宿主物品设置（当前必在包内未注册，直接查背包）
+                    ItemSlot evolvedItem = getPlayer().findPetItemSlot(petId);
+                    if (evolvedItem != null) {
+                        evolvedItem.setExpiration(System.currentTimeMillis() + expires);
+                    }
                     evolved.saveToDb();
                 }
 
@@ -1153,7 +1159,7 @@ public class AbstractPlayerInteraction {
         long curTime = System.currentTimeMillis();
         for (ItemSlot it : getPlayer().getInventory(InventoryType.CASH).list()) {
             if (ItemConstants.isPet(it.getItemId()) && it.getExpiration() < curTime) {
-                Pet pet = it.getPet();
+                Pet pet = getPlayer().getPetById(it.getPetId());
                 if (pet != null) {
                     list.add(pet);
                 }

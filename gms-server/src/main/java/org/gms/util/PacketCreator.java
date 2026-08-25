@@ -385,11 +385,11 @@ public class PacketCreator {
         p.writeLong(getTime(time)); // offset expiration time issue found thanks to Thora
     }
 
-    private static void addItemInfo(OutPacket p, ItemSlot item) {
-        addItemInfo(p, item, false);
+    private static void addItemInfo(OutPacket p, ItemSlot item, Pet pet) {
+        addItemInfo(p, item, false, pet);
     }
 
-    protected static void addItemInfo(final OutPacket p, ItemSlot item, boolean zeroPosition) {
+    protected static void addItemInfo(final OutPacket p, ItemSlot item, boolean zeroPosition, Pet pet) {
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
         boolean isCash = ii.isCash(item.getItemId());
         boolean isPet = item.getPetId() > -1;
@@ -419,7 +419,6 @@ public class PacketCreator {
         }
         addExpirationTime(p, item.getExpiration());
         if (isPet) {
-            Pet pet = item.getPet();
             p.writeFixedString(StringUtil.getRightPaddedStr(pet.getName(), '\0', 13));
             p.writeByte(pet.getLevel());
             p.writeShort(pet.getTameness());
@@ -500,31 +499,31 @@ public class PacketCreator {
             }
         }
         for (ItemSlot item : equipped) {    // equipped doesn't actually need sorting, thanks Pllsz
-            addItemInfo(p, item);
+            addItemInfo(p, item, null);
         }
         p.writeShort(0); // start of equip cash
         for (ItemSlot item : equippedCash) {
-            addItemInfo(p, item);
+            addItemInfo(p, item, null);
         }
         p.writeShort(0); // start of equip inventory
         for (ItemSlot item : chr.getInventory(InventoryType.EQUIP).list()) {
-            addItemInfo(p, item);
+            addItemInfo(p, item, null);
         }
         p.writeInt(0);
         for (ItemSlot item : chr.getInventory(InventoryType.USE).list()) {
-            addItemInfo(p, item);
+            addItemInfo(p, item, null);
         }
         p.writeByte(0);
         for (ItemSlot item : chr.getInventory(InventoryType.SETUP).list()) {
-            addItemInfo(p, item);
+            addItemInfo(p, item, null);
         }
         p.writeByte(0);
         for (ItemSlot item : chr.getInventory(InventoryType.ETC).list()) {
-            addItemInfo(p, item);
+            addItemInfo(p, item, null);
         }
         p.writeByte(0);
         for (ItemSlot item : chr.getInventory(InventoryType.CASH).list()) {
-            addItemInfo(p, item);
+            addItemInfo(p, item, item.getPetId() > -1 ? chr.getPetById(item.getPetId()) : null);
         }
     }
 
@@ -1337,7 +1336,7 @@ public class PacketCreator {
         p.writeString(player.getName() + " : 获得了");
         p.writeInt(0); //random?
         p.writeString(town);
-        addItemInfo(p, item, true);
+        addItemInfo(p, item, true, null);
         return p;
     }
 
@@ -2465,7 +2464,7 @@ public class PacketCreator {
             p.writeShort(mod.getMode() == 2 ? mod.getOldPosition() : mod.getPosition());
             switch (mod.getMode()) {
                 case 0: {//add item
-                    addItemInfo(p, mod.getItem(), true);
+                    addItemInfo(p, mod.getItem(), true, mod.getPet());
                     break;
                 }
                 case 1: {//update quantity
@@ -3209,7 +3208,7 @@ public class PacketCreator {
         p.writeByte(PlayerInteractionHandler.Action.SET_ITEMS.getCode());
         p.writeByte(number);
         p.writeByte(item.getPosition());
-        addItemInfo(p, item, true);
+        addItemInfo(p, item, true, null);
         return p;
     }
 
@@ -3221,7 +3220,7 @@ public class PacketCreator {
             p.writeShort(item.getBundles());
             p.writeShort(item.getItem().getQuantity());
             p.writeInt(item.getPrice());
-            addItemInfo(p, item.getItem(), true);
+            addItemInfo(p, item.getItem(), true, null);
         }
         return p;
     }
@@ -3282,7 +3281,7 @@ public class PacketCreator {
             p.writeShort(item.getBundles());
             p.writeShort(item.getItem().getQuantity());
             p.writeInt(item.getPrice());
-            addItemInfo(p, item.getItem(), true);
+            addItemInfo(p, item.getItem(), true, null);
         }
         return p;
     }
@@ -3592,7 +3591,7 @@ public class PacketCreator {
         p.writeShort(0);
         p.writeByte((byte) items.size());
         for (ItemSlot item : items) {
-            addItemInfo(p, item, true);
+            addItemInfo(p, item, true, null);
         }
         p.writeShort(0);
         p.writeByte(0);
@@ -3630,7 +3629,7 @@ public class PacketCreator {
         p.writeInt(0);
         p.writeByte(items.size());
         for (ItemSlot item : items) {
-            addItemInfo(p, item, true);
+            addItemInfo(p, item, true, null);
         }
         return p;
     }
@@ -3644,7 +3643,7 @@ public class PacketCreator {
         p.writeInt(0);
         p.writeByte(items.size());
         for (ItemSlot item : items) {
-            addItemInfo(p, item, true);
+            addItemInfo(p, item, true, null);
         }
         return p;
     }
@@ -3657,7 +3656,7 @@ public class PacketCreator {
         p.skip(10);
         p.writeByte(items.size());
         for (ItemSlot item : items) {
-            addItemInfo(p, item, true);
+            addItemInfo(p, item, true, null);
         }
         p.writeByte(0);
         return p;
@@ -5017,7 +5016,7 @@ public class PacketCreator {
             p.writeByte(items.size());
 
             for (Pair<ItemSlot, InventoryType> item : items) {
-                addItemInfo(p, item.getLeft(), true);
+                addItemInfo(p, item.getLeft(), true, null);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -5125,7 +5124,7 @@ public class PacketCreator {
 
             p.writeByte(itemType);
             if (itemType == InventoryType.EQUIP.getType()) {
-                addItemInfo(p, item.getItem(), true);
+                addItemInfo(p, item.getItem(), true, null);
             }
         }
         return p;
@@ -5218,7 +5217,7 @@ public class PacketCreator {
                 p.writeShort(item.getBundles());
                 p.writeShort(item.getItem().getQuantity());
                 p.writeInt(item.getPrice());
-                addItemInfo(p, item.getItem(), true);
+                addItemInfo(p, item.getItem(), true, null);
             }
         }
         return p;
@@ -5233,7 +5232,7 @@ public class PacketCreator {
             p.writeShort(item.getBundles());
             p.writeShort(item.getItem().getQuantity());
             p.writeInt(item.getPrice());
-            addItemInfo(p, item.getItem(), true);
+            addItemInfo(p, item.getItem(), true, null);
         }
         return p;
     }
@@ -5467,7 +5466,7 @@ public class PacketCreator {
         p.writeByte(1);
         p.writeByte(1);
         for (MTSItemInfo item : items) {
-            addItemInfo(p, item.getItem(), true);
+            addItemInfo(p, item.getItem(), true, null);
             p.writeInt(item.getID()); //id
             p.writeInt(item.getTaxes()); //this + below = price
             p.writeInt(item.getPrice()); //price
@@ -5662,7 +5661,7 @@ public class PacketCreator {
         p.writeInt(items.size());
         if (!items.isEmpty()) {
             for (MTSItemInfo item : items) {
-                addItemInfo(p, item.getItem(), true);
+                addItemInfo(p, item.getItem(), true, null);
                 p.writeInt(item.getID()); //id
                 p.writeInt(item.getTaxes()); //this + below = price
                 p.writeInt(item.getPrice()); //price
@@ -5686,7 +5685,7 @@ public class PacketCreator {
         p.writeInt(items.size());
         if (!items.isEmpty()) {
             for (MTSItemInfo item : items) {
-                addItemInfo(p, item.getItem(), true);
+                addItemInfo(p, item.getItem(), true, null);
                 p.writeInt(item.getID()); //id
                 p.writeInt(item.getTaxes()); //taxes
                 p.writeInt(item.getPrice()); //price
@@ -6149,7 +6148,7 @@ public class PacketCreator {
             p.writeByte(0);
         } else {
             p.writeByte(item.getPosition());
-            addItemInfo(p, item, true);
+            addItemInfo(p, item, true, null);
         }
         return p;
     }
@@ -6584,7 +6583,7 @@ public class PacketCreator {
                 p.writeByte(0);
                 if (dp.getItem() != null) {
                     p.writeByte(1);
-                    addItemInfo(p, dp.getItem(), true);
+                    addItemInfo(p, dp.getItem(), true, null);
                 } else {
                     p.writeByte(0);
                 }
@@ -7161,7 +7160,7 @@ public class PacketCreator {
 
         p.writeByte(0x68);
         p.writeShort(item.getPosition());
-        addItemInfo(p, item, true);
+        addItemInfo(p, item, true, null);
 
         return p;
     }

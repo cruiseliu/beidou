@@ -20,7 +20,6 @@ public class Item implements Comparable<Item> {
     /** 装备域信息（属性数组/成长等级等）；构造时按背包类型定性——非装备物品恒为 null */
     Equip equipInfo;   // 包内可见：ItemSlot.copy 深拷贝接线
     private int petid = -1;
-    Pet pet = null;   // 包内可见：ItemSlot.setPosition 联动宠物位置
     String owner = "";   // 包内可见：ItemSlot.copy
     int flag;   // 包内可见：ItemSlot.copy
     long expiration = -1;   // 包内可见：ItemSlot.copy
@@ -28,12 +27,6 @@ public class Item implements Comparable<Item> {
     Item(ItemSlot slot, int id, int position, int petid) {
         this.id = id;
         this.slot = slot;
-        if (petid > -1) {   // issue with null "pet" having petid > -1 found thanks to MedicOP
-            this.pet = Pet.loadFromDb(id, (short) position, petid);
-            if (this.pet == null) {
-                petid = -1;
-            }
-        }
         this.petid = petid;
         this.flag = 0;
         this.cashInfo = ii.isCash(id) ? new CashItemInfo() : null;
@@ -107,10 +100,6 @@ public class Item implements Comparable<Item> {
     /** 装备域信息；非装备物品为 null */
     public Equip getEquipInfo() {
         return equipInfo;
-    }
-
-    public Pet getPet() {
-        return pet;
     }
 
     @Override

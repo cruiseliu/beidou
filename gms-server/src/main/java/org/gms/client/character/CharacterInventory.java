@@ -274,7 +274,7 @@ class CharacterInventory {
                                     deletedCoupon = true;
                                 }
                             } else {
-                                Pet pet = item.getPet();   // thanks Lame for noticing pets not getting despawned after expiration time
+                                Pet pet = owner.getPetById(item.getPetId());   // thanks Lame for noticing pets not getting despawned after expiration time
                                 if (pet != null) {
                                     owner.unEquipPet(pet, true);
                                 }
@@ -283,6 +283,7 @@ class CharacterInventory {
                                     if (item.getPetId() > -1) {
                                         // 宠物道具真正过期销毁时，同时清理 pets/petignores，避免数据库残留孤儿数据。
                                         Pet.deleteFromDb(owner, item.getPetId());
+                                        owner.unregisterPet(item.getPetId());
                                     }
                                     owner.sendPacket(PacketCreator.itemExpired(item.getItemId()));
                                     toberemove.add(item);
@@ -329,8 +330,9 @@ class CharacterInventory {
 
     void forceUpdateItem(ItemSlot item) {
         final List<ModifyInventory> mods = new ArrayList<>();
-        mods.add(new ModifyInventory(3, item));
-        mods.add(new ModifyInventory(0, item));
+        Pet pet = item.getPetId() > -1 ? owner.getPetById(item.getPetId()) : null;
+        mods.add(new ModifyInventory(3, item).withPet(pet));
+        mods.add(new ModifyInventory(0, item).withPet(pet));
         owner.sendPacket(PacketCreator.modifyInventory(true, mods));
     }
 
