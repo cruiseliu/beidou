@@ -40,7 +40,7 @@ public class LevelProCommand extends Command {
             player.yellowMessage(I18nUtil.getMessage("LevelProCommand.message2"));
             return;
         }
-        while (player.getLevel() < Math.min(player.getMaxClassLevel(), Integer.parseInt(params[0]))) {
+        while (player.getLevel() < Math.min(player.getMaxLevel(), Integer.parseInt(params[0]))) {
             player.levelUp(false);
         }
     }

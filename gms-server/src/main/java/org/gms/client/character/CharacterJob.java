@@ -1,5 +1,7 @@
 package org.gms.client.character;
 
+import org.gms.remote.BasicUpdate;
+
 import org.gms.client.Client;
 import org.gms.client.EffectType;
 import org.gms.client.Family;
@@ -19,22 +21,17 @@ import org.gms.client.skill.SkillRegistry;
 import org.gms.client.weaponType.WeaponTypeRegistry;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
-import org.gms.client.PacketStat;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
-import org.gms.constants.skills.*;
 import org.gms.net.server.world.PartyCharacter;
 import org.gms.model.pojo.SkillEntry;
 import org.gms.server.BuffEffectData;
 import org.gms.server.TimerManager;
 import org.gms.server.maps.MapleMap;
 import org.gms.util.I18nUtil;
-import org.gms.util.Locks;
 import org.gms.util.PacketCreator;
-import org.gms.util.Pair;
 import org.gms.util.Randomizer;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -51,10 +48,15 @@ class CharacterJob {
     private final Character owner;
 
     /** 当前职业（数据驱动定义；JobEnum 仅经 getJob()/setJob()/isA()/equalsJob() 等兼容 API 使用） */
-    private JobDefinition job = JobRegistry.of(JobEnum.BEGINNER);
+    private JobDefinition job = JobRegistry.of(0);  // todo: [refactor] null?
 
     CharacterJob(Character owner) {
         this.owner = owner;
+    }
+
+    /** 当前职业定义（包内组件用：sp 兼容链等） */
+    JobDefinition def() {
+        return job;
     }
 
     // ── 查询（JobEnum 兼容 API） ──
@@ -150,67 +152,44 @@ class CharacterJob {
 
         // 转职一次性授予（HP/MP/AP/SP 全在 advancementGainStats；对称于升级的 gainStats）
         JobDefinition def = newDef;
-        GainStats adv = def.advancementGainStats();
+        GainStats gain = def.advancementGainStats();
 
-        int spGain = adv != null ? adv.sp() : 0;
-        if (GameConfig.getServerBoolean("use_enforce_job_sp_range")) {
+        int spGain = gain != null ? gain.sp() : 0;  // todo: [refactor] move null check to loading
+        if (GameConfig.getServerBoolean("use_enforce_job_sp_range")) {  // todo: [refactor] store exceeded sp
             spGain = owner.getChangedJobSp(newJob);
         }
 
-        if (spGain > 0) {
-            owner.gainSp(spGain, def.jobId(), true);
-        }
-
-        if (adv != null && adv.ap() > 0) {
-            owner.gainAp(adv.ap(), true);
-        }
-
-        if (!owner.isGM()) {
-            for (byte i = 1; i < 5; i++) {
-                owner.gainSlots(i, 4, true);
+        // 一个语义域（转职）：SP/AP/成长各自正常公告，域收口合并为净 diff 包
+        try (var _u = owner.remote().update()) {
+            if (spGain > 0) {
+                owner.gainSp(spGain, def.jobId(), false);
             }
-        }
 
-        boolean fixedLevelUpHpMp = true;  // todo: [refactor] hard coded config
-        int newMaxHp = 0, newMaxMp = 0;
-        // NEW = applyGrowth(OLD, growth, fixed)（有加有乘），直接经 Growth 事务取新值应用
+            if (gain != null && gain.ap() > 0) {
+                owner.gainAp(gain.ap(), false);
+            }
 
+            if (!owner.isGM()) {
+                for (byte i = 1; i < 5; i++) {
+                    owner.gainSlots(i, 4, true);
+                }
+            }
 
-        /*
-        //aran perks?
-        int newJobId = newJob.getId();
-        if(newJobId == 2100) {          // become aran1
-            addhp += 275;
-            addmp += 15;
-        } else if(newJobId == 2110) {   // become aran2
-            addmp += 275;
-        } else if(newJobId == 2111) {   // become aran3
-            addhp += 275;
-            addmp += 275;
-        }
-        */
+            boolean fixedLevelUpHpMp = true;  // todo: [refactor] hard coded config
 
-        // effLock 已冗余：commitSilently/recalc 只需 stats.wLock
-        try (var ignored = Locks.acquire(owner.stats.wLock)) {
-            if (adv != null) {
+            // fixme: [refactor] check Aran's max hp/mp
+
+            if (gain != null) {
                 owner.stats.update()
-                        .add(Stat.MAX_HP, rollGrowthGain(adv.maxHp(), fixedLevelUpHpMp))
-                        .multiply(Stat.MAX_HP, adv.maxHp().multiply())
-                        .add(Stat.MAX_MP, rollGrowthGain(adv.maxMp(), fixedLevelUpHpMp))
-                        .multiply(Stat.MAX_MP, adv.maxMp().multiply())
-                        .commitSilently();
+                        .add(Stat.MAX_HP, rollGrowthGain(gain.maxHp(), fixedLevelUpHpMp))
+                        .multiply(Stat.MAX_HP, gain.maxHp().multiply())
+                        .add(Stat.MAX_MP, rollGrowthGain(gain.maxMp(), fixedLevelUpHpMp))
+                        .multiply(Stat.MAX_MP, gain.maxMp().multiply())
+                        .commit();
             }
-            owner.recalc();
 
-            List<Pair<PacketStat, Integer>> statup = new ArrayList<>(7);
-            statup.add(new Pair<>(PacketStat.HP, owner.stats.getHp()));
-            statup.add(new Pair<>(PacketStat.MP, owner.stats.getMp()));
-            statup.add(new Pair<>(PacketStat.MAXHP, owner.stats.getClientMaxHp()));
-            statup.add(new Pair<>(PacketStat.MAXMP, owner.stats.getClientMaxMp()));
-            statup.add(new Pair<>(PacketStat.AVAILABLEAP, owner.stats.getRemainingAp()));
-            statup.add(new Pair<>(PacketStat.AVAILABLESP, owner.sp.remainingSp[CharacterSp.indexOf(getId())]));
-            statup.add(new Pair<>(PacketStat.JOB, getId()));
-            owner.sendPacket(PacketCreator.updatePlayerStats(statup, true, owner));
+            owner.remote().updateBasic(new BasicUpdate().jobId(getId()));
+            owner.remote().unlockActions();
         }
 
         owner.setMPC(new PartyCharacter(owner));
@@ -282,20 +261,11 @@ class CharacterJob {
 
     // ── 职业定义门面（JobDefinition 具体实现只在 CharacterJob 内部；其他组件只依赖这些简单类型） ──
 
-    int getMaxClassLevel() {
-        return job.maxLevel();
-    }
-
     int getMaxLevel() {
         if (!GameConfig.getServerBoolean("use_enforce_job_level_range") || isGmJob()) {
             return job.maxLevel();
         }
         return job.advancementHint();
-    }
-
-    /** 指定等级（升级后的新等级）对应的升级奖励；无区间返回 null */
-    GainStats gainStatsAtLevel(int level) {
-        return job.gainStatsAtLevel(level);
     }
 
     // ── 升级职业授予（levelUp 内所有职业强相关逻辑） ──
@@ -304,40 +274,41 @@ class CharacterJob {
      * 升级授予（CharacterLevel.levelUp 调用，oldLevel = 升级前等级）：
      * 按新等级查 JobDefinition levelUp 区间 → 新手自动分配 / maxHp·maxMp·AP·SP 授予 → 技能加成 → INT 加成。
      */
-    void applyLevelUpRewards(int oldLevel) {
+    /** 升级授予（newLevel = 升级后的当前等级；所有涉及 level 的查询均以当前等级为参数） */
+    void applyLevelUpRewards(int newLevel) {
         boolean fixed = true;  // todo: [refactor] hard coded config
 
-        // 奖励按升级后的新等级（oldLevel+1）查——"N 级才能获得的属性"到达 N 级才生效
-        GainStats gs = gainStatsAtLevel(oldLevel + 1);
+        // 奖励按升级后的新等级查——"N 级才能获得的属性"到达 N 级才生效
+        GainStats gs = job.gainStatsAtLevel(newLevel);
         if (gs != null) {
             owner.stats.update()
                     .add(Stat.MAX_HP, rollGrowthGain(gs.maxHp(), fixed))
                     .multiply(Stat.MAX_HP, gs.maxHp().multiply())
                     .add(Stat.MAX_MP, rollGrowthGain(gs.maxMp(), fixed))
                     .multiply(Stat.MAX_MP, gs.maxMp().multiply())
-                    .commitSilently();
+                    .commit();
             if (gs.ap() > 0) {
-                owner.gainAp(gs.ap(), true);
+                owner.gainAp(gs.ap(), false);
             }
             if (gs.sp() > 0) {
-                owner.gainSp(gs.sp(), job.jobId(), true);
+                owner.gainSp(gs.sp(), job.jobId(), false);
             }
         }
 
-        // 自动分配 AP：命中 autoAssignAp 区间（按升级前等级 oldLevel 判定）时，
-        // 按 apAutoAssignKey 对应脚本把当前剩余 AP 分配掉（分配方式由脚本决定；
-        // 脚本按升级后等级 oldLevel+1 计算属性需求——与升级奖励按新等级查一致）
-        if (matchesAutoAssignAp(oldLevel)) {
-            autoAssignApByScript(oldLevel + 1);
+        // 自动分配 AP：命中 autoAssignAp 区间（按当前等级判定）时，
+        // 按 apAutoAssignKey 对应脚本把当前剩余 AP 分配掉（分配方式由脚本决定，
+        // 脚本同样按当前等级计算属性需求）——与升级奖励按当前等级查一致
+        if (matchesAutoAssignAp(newLevel)) {
+            autoAssignApByScript(newLevel);
         }
 
         // 技能被动加成（Improving MaxHP/MaxMP）：遍历已学技能查 SkillDefinition 的
         // increaseMaxHpOnLevelUp / increaseMaxMpOnLevelUp（wz effect 字段名），
         // 不再按职业特判挑技能——学到对应被动即生效。INT 加成（非 JobDefinition 数据）
-        StatUpdateBuilder growthChanges = owner.stats.update();
+        StatUpdateBuilder statUpdates = owner.stats.update();
         for (Map.Entry<Skill, SkillEntry> e : owner.getSkills().entrySet()) {
-            SkillDefinition def = SkillRegistry.of(e.getKey().getId());
-            if (def == null || def.passive() == null) {
+            SkillDefinition skillDef = SkillRegistry.of(e.getKey().getId());
+            if (skillDef == null || skillDef.passive() == null) {
                 continue;
             }
             int level = e.getValue().skillLevel;
@@ -345,21 +316,21 @@ class CharacterJob {
                 continue;
             }
             BuffEffectData effect = e.getKey().getEffect(level);
-            SkillDefinition.Passive passive = def.passive();
+            SkillDefinition.Passive passive = skillDef.passive();
             if (passive.increaseMaxHpOnLevelUp() != null) {
-                growthChanges.add(Stat.MAX_HP, effect.getValue(passive.increaseMaxHpOnLevelUp()));
+                statUpdates.add(Stat.MAX_HP, effect.getValue(passive.increaseMaxHpOnLevelUp()));
             }
             if (passive.increaseMaxMpOnLevelUp() != null) {
-                growthChanges.add(Stat.MAX_MP, effect.getValue(passive.increaseMaxMpOnLevelUp()));
+                statUpdates.add(Stat.MAX_MP, effect.getValue(passive.increaseMaxMpOnLevelUp()));
             }
         }
 
         if (GameConfig.getServerBoolean("use_randomize_hpmp_gain")) {
             // 升级按智力授予 MP：除数由职业定义决定（MAGICIAN 系 20，其他 10）
             int intBonus = owner.stats.getTotal(Stat.INT) / job.mpIntDivisor();
-            growthChanges.add(Stat.MAX_MP, intBonus);
+            statUpdates.add(Stat.MAX_MP, intBonus);
         }
-        growthChanges.commitSilently();
+        statUpdates.commit();
     }
 
     // ── 成长工具（升级/转职"有加有乘"的加数部分；乘法由 Change.Multiply 在事务内完成） ──
@@ -371,10 +342,11 @@ class CharacterJob {
 
     // ── 自动分配 AP（等级区间 + apAutoAssignKey 脚本） ──
 
-    /** 升级前等级 oldLevel 是否命中本职业 autoAssignAp 区间 */
-    private boolean matchesAutoAssignAp(int oldLevel) {
+    /** 当前等级是否命中本职业 autoAssignAp 区间（from exclusive / to inclusive，
+     *  新手 {from:1,to:10} = 升到 2~10 级时分配、11 级起不再分配） */
+    private boolean matchesAutoAssignAp(int level) {
         for (AutoAssignApRange range : job.autoAssignAp()) {
-            if (range.matches(oldLevel)) {
+            if (range.matches(level)) {
                 return true;
             }
         }
@@ -385,7 +357,7 @@ class CharacterJob {
      * 按 apAutoAssignKey 调用对应脚本把当前剩余 AP 分配掉。
      * 升级场景无装备加成需求，装备相关参数传空/0。
      *
-     * @param newLevel 升级后等级（脚本按此计算属性需求；升级自动分配传 oldLevel+1）
+     * @param newLevel 当前等级（脚本按此计算属性需求）
      */
     private void autoAssignApByScript(int newLevel) {
         int[] gain = ApAssignerScript.assign(owner, job.apAutoAssignKey(), newLevel,

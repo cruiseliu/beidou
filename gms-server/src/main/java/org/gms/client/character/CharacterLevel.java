@@ -1,14 +1,13 @@
 package org.gms.client.character;
 
+import org.gms.remote.BasicUpdate;
+
 import org.gms.client.Disease;
 import org.gms.client.FamilyEntry;
 import org.gms.client.PacketStat;
 
-import static org.gms.client.character.Stat.STR;
-import static org.gms.client.character.Stat.DEX;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.ExpTable;
-import org.gms.util.Pair;
 import org.gms.constants.game.GameConstants;
 import org.gms.constants.net.ServerConstants;
 import org.gms.constants.id.ItemId;
@@ -25,8 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -201,56 +198,51 @@ class CharacterLevel {
         return gachaExp.get();
     }
 
-
     public synchronized void levelUp(boolean takeexp) {
-        // 职业强相关授予（新手自动分配 / maxHp·maxMp·AP·SP / 技能加成 / INT 加成）全在 CharacterJob
-        owner.job.applyLevelUpRewards(level);
+        // 一个语义域（升级）：全程变更（授予/自动分配/满血满蓝/等级/经验）的公告自动合并为
+        // 一个净 diff 包，未变化字段不出现——替代旧的全量 statup 拼装
+        try (var _u = owner.remote().update()) {
+            // 职业强相关授予（新手自动分配 / maxHp·maxMp·AP·SP / 技能加成 / INT 加成）全在 CharacterJob
+            owner.job.applyLevelUpRewards(level + 1);
 
-        if (takeexp) {
-            exp.addAndGet(-ExpTable.getExpNeededForLevel(level));
-            if (exp.get() < 0) {
-                exp.set(0);
-            }
-        }
-
-        level++;
-        if (level >= owner.getMaxClassLevel()) {
-            exp.set(0);
-
-            int maxClassLevel = owner.getMaxClassLevel();
-            if (level == maxClassLevel) {
-                if (!owner.isGM()) {
-                    if (GameConfig.getServerBoolean("playernpc_auto_deploy")) {
-                        ThreadManager.getInstance().newTask(() -> PlayerNPC.spawnPlayerNPC(GameConstants.getHallOfFameMapid(owner.getJob()), owner));
-                    }
-
-                    final String names = (owner.getMedalText() + owner.getName());
-                    owner.getWorldServer().broadcastPacket(PacketCreator.serverNotice(6, String.format(ServerConstants.LEVEL_200, names, maxClassLevel, names)));
+            if (takeexp) {
+                exp.addAndGet(-ExpTable.getExpNeededForLevel(level));
+                if (exp.get() < 0) {
+                    exp.set(0);
                 }
             }
 
-            level = maxClassLevel; //To prevent levels past the maximum
-        }
+            level++;
+            if (level >= owner.getMaxLevel()) {
+                exp.set(0);
 
-        // effLock 已冗余：recalc/changeHpMp 只需 owner.stats.wLock
-        try (var ignored = Locks.acquire(owner.stats.wLock)) {
-            owner.stats.recalc();
-            owner.changeHpMp(owner.stats.getTotal(Stat.MAX_HP), owner.stats.getTotal(Stat.MAX_MP), true);
+                int maxClassLevel = owner.getMaxLevel();
+                if (level == maxClassLevel) {
+                    if (!owner.isGM()) {
+                        if (GameConfig.getServerBoolean("playernpc_auto_deploy")) {
+                            ThreadManager.getInstance().newTask(() -> PlayerNPC.spawnPlayerNPC(GameConstants.getHallOfFameMapid(owner.getJob()), owner));
+                        }
 
-            List<Pair<PacketStat, Integer>> statup = new ArrayList<>(10);
-            statup.add(new Pair<>(PacketStat.AVAILABLEAP, owner.stats.getRemainingAp()));
-            statup.add(new Pair<>(PacketStat.AVAILABLESP, owner.sp.remainingSp[CharacterSp.indexOf(owner.job.getId())]));
-            statup.add(new Pair<>(PacketStat.HP, owner.stats.getHp()));
-            statup.add(new Pair<>(PacketStat.MP, owner.stats.getMp()));
-            statup.add(new Pair<>(PacketStat.EXP, exp.get()));
-            statup.add(new Pair<>(PacketStat.LEVEL, level));
-            statup.add(new Pair<>(PacketStat.MAXHP, owner.stats.getClientMaxHp()));
-            statup.add(new Pair<>(PacketStat.MAXMP, owner.stats.getClientMaxMp()));
-            statup.add(new Pair<>(PacketStat.STR, owner.stats.getBase(STR)));
-            statup.add(new Pair<>(PacketStat.DEX, owner.stats.getBase(DEX)));
+                        final String names = (owner.getMedalText() + owner.getName());
+                        owner.getWorldServer().broadcastPacket(PacketCreator.serverNotice(6, String.format(ServerConstants.LEVEL_200, names, maxClassLevel, names)));
+                    }
+                }
 
-            owner.sendPacket(PacketCreator.updatePlayerStats(statup, true, owner));
-        }
+                level = maxClassLevel; //To prevent levels past the maximum
+            }
+
+            // effLock 已冗余：recalc/hpMp 只需 owner.stats.wLock
+            try (var _l = Locks.acquire(owner.stats.wLock)) {
+                // fixme: [refactor] add heal hp/mp
+                owner.stats.recalc();
+                owner.stats.update()
+                        .setHp(owner.stats.getTotal(Stat.MAX_HP))
+                        .setMp(owner.stats.getTotal(Stat.MAX_MP))
+                        .commit();
+            }
+            owner.remote().updateBasic(new BasicUpdate().level(level).exp(exp.get()));
+            owner.remote().unlockActions();
+        }   // try-with-resources close = 统一发送
 
         owner.getMap().broadcastMessage(owner, PacketCreator.showForeignEffect(owner.getId(), 0), false);
         owner.setMPC(new PartyCharacter(owner));

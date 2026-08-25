@@ -1,11 +1,23 @@
 package org.gms.remote;
 
+import java.util.Collections;
+import java.util.Map;
+import java.util.TreeMap;
+
 /**
- * updateSp 操作的语义载荷：SP（技能点，归技能域，不属 stats）的新状态。
+ * updateSp 操作的语义载荷：SP（技能点，归技能域，不属 stats）按职业分桶的原始事实。
  *
- * <p>自包含原则：SP 语义上按职业分桶持有（见 CharacterSp），载荷携带 jobId、
- * 当前职业桶的显示值与全部分桶值，由版本编码器决定写单个 short 还是分桶变长块
- * （v83 SP 表职业，如龙神）。数组为只读传递，编码后不可再修改。
+ * <p>自包含原则：载荷携带 jobId（当前职业）与全部分桶值，不携带任何显示值——
+ * "客户端显示多少"（新手桶单显/非新手池求和、SP 表职业分桶块）是版本编码器的私事。
+ * 构造时防御性拷贝为 TreeMap（jobId 升序），访问器只读。
  */
-public record SpUpdate(int jobId, int visibleSp, int[] spByBucket) {
+public record SpUpdate(int jobId, Map<Integer, Integer> spByJob) {
+    public SpUpdate {
+        spByJob = new TreeMap<>(spByJob);
+    }
+
+    @Override
+    public Map<Integer, Integer> spByJob() {
+        return Collections.unmodifiableMap(spByJob);
+    }
 }

@@ -66,14 +66,14 @@ public class AssignSPProcessor {
             }
 
             Character player = c.getPlayer();
-            int remainingSp = player.getRemainingSp(skillid / 10000);
 
             // 新手 SP 已显式化：升级时按 JobDefinition.levelUp 区间发放到新手槽（新手 2~7 级每级 1 点，
             // 与旧公式 min(level-1, 6) 数值等价），分配时直接读存储并扣减，不再用公式推算。
+            // 扣减优先级（CharacterSp.spendSpForSkill）：技能职业桶 → jobId 升序首个 compatible 桶 → 当前职业桶。
             Skill skill = SkillFactory.getSkill(skillid);
             int curLevel = player.getSkillLevel(skill);
-            if ((remainingSp > 0 && curLevel + 1 <= (skill.isFourthJob() ? player.getMasterLevel(skill) : skill.getMaxLevel()))) {
-                player.gainSp(-1, skillid / 10000, false);
+            if (curLevel + 1 <= (skill.isFourthJob() ? player.getMasterLevel(skill) : skill.getMaxLevel())
+                    && player.spendSpForSkill(skillid)) {
                 if (skill.getId() == Aran.FULL_SWING) {
                     player.changeSkillLevel(skill, (byte) (curLevel + 1), player.getMasterLevel(skill), player.getSkillExpiration(skill));
                     player.changeSkillLevel(SkillFactory.getSkill(Aran.HIDDEN_FULL_DOUBLE), player.getSkillLevel(skill), player.getMasterLevel(skill), player.getSkillExpiration(skill));

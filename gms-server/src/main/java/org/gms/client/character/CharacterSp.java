@@ -1,56 +1,106 @@
 package org.gms.client.character;
 
 import org.gms.client.JobEnum;
+import org.gms.client.job.JobRegistry;
 import org.gms.model.json.CharacterSpData;
-import org.gms.remote.RemoteUpdate;
 import org.gms.remote.SpUpdate;
 import org.gms.util.Locks;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
- * SP（技能点）：数据 + 全部 SP 逻辑（查询/获得/变更/加载解析）。
+ * SP（技能点）：数据 + 全部 SP 逻辑（查询/获得/分配扣减/加载解析）。
  * 持有 owner 反向引用，SP 操作经 stats.wLock/rLock 保护（通过 Locks）。
  * SP 不与属性/AP 共用 StatsUpdate 管道（无逻辑关联），公告走 remote 隔离层 updateSp（技能域）。
+ *
+ * <p>存储为 jobId → 剩余 SP 的分桶 Map（新手槽 jobId=0 与职业技能点槽分立）；
+ * 分配优先级见 {@link #spendSpForSkill}。发包显示值：当前职业为新手时发新手槽值
+ * （客户端本地计算显示），否则发非新手槽之和——与旧版（下标 0/1 双槽）字节一致。
  */
 class CharacterSp {
+    private static final Logger log = LoggerFactory.getLogger(CharacterSp.class);
+
     private final Character owner;
 
-    /**
-     * 每职业槽位的剩余 SP。旧实现是长度 10 的技能书数组，面向未实际支持的龙神(Evan)，
-     * 现改为长度 2：下标 0 = 新手，1 = 其他职业（新手亦可由等级隐式推算，不依赖存储）。
-     * 后续改为动态长度（= 转职次数），待职业系统重构后实施。
-     */
-    int[] remainingSp = new int[2];
+    /** jobId → 剩余 SP（TreeMap：分配回溯按 jobId 升序遍历） */
+    private final TreeMap<Integer, Integer> remainingSp = new TreeMap<>();
 
     CharacterSp(Character owner) {
         this.owner = owner;
     }
 
-    /** SP 数组下标：新手 0，非新手 1 */
-    static int indexOf(int jobId) {
-        return JobEnum.getById(jobId).isBeginnerJob() ? 0 : 1;
+    private static boolean isBeginnerJob(int jobId) {
+        JobEnum job = JobEnum.getById(jobId);
+        return job != null && job.isBeginnerJob();
     }
 
     int getRemainingSp(int jobId) {
-        try (var ignored = Locks.acquire(owner.stats.rLock)) {
-            return remainingSp[indexOf(jobId)];
+        try (var _l = Locks.acquire(owner.stats.rLock)) {
+            return remainingSp.getOrDefault(jobId, 0);
         }
     }
 
-    int[] getRemainingSps() {
-        try (var ignored = Locks.acquire(owner.stats.rLock)) {
-            return Arrays.copyOf(remainingSp, remainingSp.length);
+    /**
+     * 客户端显示值（新手职业=新手桶单值，非新手=非新手桶之和）。
+     * 迁移期仅供旧路径拼包使用（CharacterLevel/CharacterJob 手拼 statup、
+     * getCharInfo 快照、DEBUG_RES）；显示值概念的正确居所在 v83 编码器
+     * （V83RemoteClient.visibleSp），这些调用方随旧路径迁移后本方法删除。
+     */
+    int getClientVisibleSp() {
+        try (var _l = Locks.acquire(owner.stats.rLock)) {
+            int cur = owner.job.def().jobId();
+            if (isBeginnerJob(cur)) {
+                return remainingSp.getOrDefault(cur, 0);
+            }
+            int sum = 0;
+            for (Map.Entry<Integer, Integer> e : remainingSp.entrySet()) {
+                if (!isBeginnerJob(e.getKey())) {
+                    sum += e.getValue();
+                }
+            }
+            return sum;
         }
     }
 
     void setRemainingSp(int remainingSp, int jobId) {
-        this.remainingSp[indexOf(jobId)] = remainingSp;
+        this.remainingSp.put(jobId, remainingSp);
     }
 
-    void setRemainingSp(int[] sps) {
-        try (var ignored = Locks.acquire(owner.stats.wLock)) {
-            System.arraycopy(sps, 0, remainingSp, 0, Math.min(sps.length, remainingSp.length));
+    /** 整体载入（角色复制/加载） */
+    void setAllSp(Map<Integer, Integer> sps) {
+        try (var _l = Locks.acquire(owner.stats.wLock)) {
+            remainingSp.clear();
+            if (sps != null) {
+                remainingSp.putAll(sps);
+            }
+        }
+    }
+
+    Map<Integer, Integer> snapshotSp() {
+        try (var _l = Locks.acquire(owner.stats.rLock)) {
+            return new TreeMap<>(remainingSp);
+        }
+    }
+
+    private void announceSpLocked() {
+        owner.remote().update()
+                .updateSp(new SpUpdate(owner.job.def().jobId(), remainingSp))
+                .unlockActions()
+                .commit();
+    }
+
+    /** 全部桶（jobId 升序的值数组；v83 SP 表职业分桶块用，Evan 未实现语义待定） */
+    int[] getSpBuckets() {
+        try (var _l = Locks.acquire(owner.stats.rLock)) {
+            int[] arr = new int[remainingSp.size()];
+            int i = 0;
+            for (int v : remainingSp.values()) {
+                arr[i++] = v;
+            }
+            return arr;
         }
     }
 
@@ -59,31 +109,56 @@ class CharacterSp {
      * silent = true 时不发包（如升级/转职由 CharacterLevel/CharacterJob 自行组包）。
      */
     int changeRemainingSp(int remainingSp, int jobId, boolean silent) {
-        try (var ignored = Locks.acquire(owner.stats.wLock)) {
+        try (var _l = Locks.acquire(owner.stats.wLock)) {
             setRemainingSp(remainingSp, jobId);
-            int applied = this.remainingSp[indexOf(jobId)];
             if (!silent) {
-                owner.remote().update()
-                        .updateSp(new SpUpdate(jobId, applied, this.remainingSp))
-                        .unlockActions()
-                        .commit();
+                announceSpLocked();
             }
-            return applied;
-        }
-    }
-
-    /** 应用并写入外部事务（stats 与 sp 分域各自 update，由开事务方最终 commit）。 */
-    void changeRemainingSp(int remainingSp, int jobId, RemoteUpdate tx) {
-        try (var ignored = Locks.acquire(owner.stats.wLock)) {
-            setRemainingSp(remainingSp, jobId);
-            tx.updateSp(new SpUpdate(jobId, this.remainingSp[indexOf(jobId)], this.remainingSp));
+            return this.remainingSp.getOrDefault(jobId, 0);
         }
     }
 
     void gainSp(int deltaSp, int jobId, boolean silent) {
-        try (var ignored = Locks.acquire(owner.stats.wLock)) {
-            int idx = indexOf(jobId);
-            changeRemainingSp(Math.max(0, remainingSp[idx] + deltaSp), jobId, silent);
+        try (var _l = Locks.acquire(owner.stats.wLock)) {
+            changeRemainingSp(Math.max(0, remainingSp.getOrDefault(jobId, 0) + deltaSp), jobId, silent);
+        }
+    }
+
+    /**
+     * 分配技能时的 SP 扣减（成功则扣 1 点并发包，返回 true；无可用 SP 返回 false）。
+     * 优先级：
+     * 1. 技能所属职业（skillId / 10000）的桶；
+     * 2. 不足时按 jobId 升序遍历有 SP 的桶，取第一个 spCompatibleWith(技能职业) 的桶；
+     * 3. 无 compatible 桶时使用当前职业桶并记 warning（新手槽永远不 compatible，
+     *    会被第 3 步以当前职业=新手身份消耗——保持旧版新手技能可用）。
+     */
+    boolean spendSpForSkill(int skillId) {
+        int skillJobId = skillId / 10000;
+        try (var _l = Locks.acquire(owner.stats.wLock)) {
+            Integer donor = null;
+            if (remainingSp.getOrDefault(skillJobId, 0) > 0) {
+                donor = skillJobId;
+            } else {
+                for (Map.Entry<Integer, Integer> e : remainingSp.entrySet()) {
+                    if (e.getValue() > 0 && JobRegistry.of(e.getKey()).spCompatibleWith(skillJobId)) {
+                        donor = e.getKey();
+                        break;
+                    }
+                }
+            }
+            int curJobId = owner.job.def().jobId();
+            if (donor == null) {
+                if (remainingSp.getOrDefault(curJobId, 0) > 0) {
+                    donor = curJobId;
+                    log.warn("Chr {} 花费 SP 于职业 {} 技能 {}：无 compatible SP 桶，回退消耗当前职业 {} 的 SP",
+                            owner.getName(), skillJobId, skillId, curJobId);
+                } else {
+                    return false;
+                }
+            }
+            remainingSp.put(donor, remainingSp.get(donor) - 1);
+            announceSpLocked();
+            return true;
         }
     }
 
@@ -91,20 +166,11 @@ class CharacterSp {
 
     CharacterSpData toData() {
         CharacterSpData d = new CharacterSpData();
-        d.remainingSp = remainingSp.clone();
+        d.remainingSp = snapshotSp();
         return d;
     }
 
     void applyData(CharacterSpData d) {
-        System.arraycopy(d.remainingSp, 0, remainingSp, 0, Math.min(d.remainingSp.length, remainingSp.length));
-    }
-
-    /** 解析持久化的 "0,0" 职业槽位串并整体载入；旧格式多余的槽位丢弃 */
-    void loadCharSkillPoints(String[] skillPoints) {
-        int[] sps = new int[skillPoints.length];
-        for (int i = 0; i < skillPoints.length; i++) {
-            sps[i] = Integer.parseInt(skillPoints[i]);
-        }
-        setRemainingSp(sps);
+        setAllSp(d.remainingSp);
     }
 }

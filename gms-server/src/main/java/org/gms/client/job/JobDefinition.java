@@ -81,4 +81,25 @@ public record JobDefinition(
         }
         return null;
     }
+
+    /**
+     * 本职业的 SP 能否分配给技能所属职业（skillJobId = skillId / 10000）。
+     * 链表式沿 previousJobId 回溯：本职业即匹配 → true；回溯可及且自身继续共用者匹配 → true；
+     * 回溯终点（spChainShared=false 或 previousJobId=-1 的职业）匹配 → false。
+     * 例：祭司.spCompatibleWith(魔法师)=true、spCompatibleWith(新手)=false；
+     * 魔法师.spCompatibleWith(新手)=false（不能向前回溯到不共用的新手槽）。
+     */
+    public boolean spCompatibleWith(int skillJobId) {
+        if (jobId == skillJobId) {
+            return true;
+        }
+        JobDefinition cur = this;
+        while (cur.spChainShared && cur.previousJobId != -1) {
+            cur = JobRegistry.of(cur.previousJobId);
+            if (cur.jobId == skillJobId) {
+                return cur.spChainShared;   // 终点（不与后续共用者）不算 compatible
+            }
+        }
+        return false;
+    }
 }

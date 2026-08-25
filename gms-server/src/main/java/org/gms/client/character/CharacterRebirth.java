@@ -63,7 +63,7 @@ class CharacterRebirth {
             owner.yellowMessage(I18nUtil.getMessage("Character.USE_REBIRTH_SYSTEM")); //重生系统未启用
             throw new NotEnabledException();
         }
-        if (owner.getLevel() != owner.getMaxClassLevel()) {
+        if (owner.getLevel() != owner.getMaxLevel()) {
             return;
         }
         addReborns();

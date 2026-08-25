@@ -354,7 +354,7 @@ public class NPCConversationManager extends AbstractPlayerInteraction {
 
     public boolean canSpawnPlayerNpc(int mapid) {
         Character chr = getPlayer();
-        return !GameConfig.getServerBoolean("playernpc_auto_deploy") && chr.getLevel() >= chr.getMaxClassLevel() && !chr.isGM() && PlayerNPC.canSpawnPlayerNpc(chr.getName(), mapid);
+        return !GameConfig.getServerBoolean("playernpc_auto_deploy") && chr.getLevel() >= chr.getMaxLevel() && !chr.isGM() && PlayerNPC.canSpawnPlayerNpc(chr.getName(), mapid);
     }
 
     public PlayerNPC getPlayerNPCByScriptid(int scriptId) {

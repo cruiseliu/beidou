@@ -42,9 +42,6 @@ import org.gms.client.SkillMacro;
 import org.gms.client.SkinColor;
 import org.gms.client.PacketStat;
 import org.gms.remote.RemoteClient;
-import org.gms.remote.RemoteUpdate;
-import org.gms.remote.SpUpdate;
-import org.gms.remote.StatsUpdate;
 import org.gms.client.autoban.AutobanManager;
 import org.gms.client.creator.CharacterFactoryRecipe;
 import org.gms.client.inventory.*;
@@ -396,13 +393,10 @@ public class Character extends AbstractAnimatedMapObject {
         return ap.assignAttrs(delta);
     }
 
+
     /** 四维全部设为 x（管理命令用） */
     public void updateStrDexIntLuk(int x) {
         stats.update().set(STR, x).set(DEX, x).set(INT, x).set(LUK, x).commit();
-    }
-
-    private void setRemainingSp(int[] sps) {
-        sp.setRemainingSp(sps);
     }
 
     private void updateRemainingSp(int remainingSp, int jobId) {
@@ -556,8 +550,7 @@ public class Character extends AbstractAnimatedMapObject {
             secondarystat += stats.getTotal(attr);
         }
         // 最大基础伤害：取各攻击动作系数中的最大值（覆盖优先，未覆盖维度已合并为武器默认）
-        double weaponMult = Math.max(rule.actions().swing(),
-                Math.max(rule.actions().stab(), rule.actions().shoot()));
+        double weaponMult = Math.max(Math.max(rule.actions().swing(), rule.actions().stab()), rule.actions().shoot());
         return (int) Math.ceil(((weaponMult * mainstat + secondarystat) / 100.0) * watk);
     }
 
@@ -630,7 +623,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void newClient(Client c) {
         this.loggedIn = true;
-        c.setAccountName(this.client.getAccountName());//No null's for accountName
+        c.setAccountName(this.client.getAccountName());  // No null's for accountName
         this.setClient(c);
         setMap(c.getChannelServer().getMapFactory().getMap(getMapId()));
         Portal portal = getMap().findClosestPlayerSpawnpoint(getPosition());
@@ -1145,19 +1138,19 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public int getTotalStr() {
-        return stats.getTotal(STR);
+        return stats.getTotal(Stat.STR);
     }
 
     public int getTotalDex() {
-        return stats.getTotal(DEX);
+        return stats.getTotal(Stat.DEX);
     }
 
     public int getTotalInt() {
-        return stats.getTotal(INT);
+        return stats.getTotal(Stat.INT);
     }
 
     public int getTotalLuk() {
-        return stats.getTotal(LUK);
+        return stats.getTotal(Stat.LUK);
     }
 
     public int getTotalMagic() {
@@ -1166,10 +1159,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     public int getTotalWatk() {
         return stats.getTotal(Stat.P_ATK);
-    }
-
-    public int getMaxClassLevel() {
-        return job.getMaxClassLevel();
     }
 
     public int getMaxLevel() {
@@ -1444,7 +1433,7 @@ public class Character extends AbstractAnimatedMapObject {
         // 快照不可变（caller guarantee：写路径 copy-on-write，旧快照发布后不再修改）——
         // 直接复制引用即原子拿到一致视图；逐条 getXxx 复制会跨快照读到不一致
         ret.stats.snapshot = this.stats.snapshot;
-        ret.setRemainingSp(this.getRemainingSps());
+        ret.sp.setAllSp(sp.snapshotSp());
         ret.level.setExp(this.getExp());
         ret.fame.setFame(this.getFame());
         ret.level.setGachaExp(this.getGachaExp());
@@ -1464,7 +1453,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public int getRemainingSp() {
-        return getRemainingSp(job.getId()); //default
+        return sp.getClientVisibleSp(); //default（客户端显示值语义）
     }
 
     public void updateRemainingSp(int remainingSp) {
@@ -1736,7 +1725,7 @@ public class Character extends AbstractAnimatedMapObject {
     public synchronized void resetStats() {
         // 注：原 use_auto_assign_starters_ap 全局开关已废弃（恒 true），此守卫不再需要
         // effLock 已冗余：reset 仅动 stats/ap + applyUpdateSilently
-        try (var ignored = Locks.acquire(stats.wLock)) {
+        try (var _l = Locks.acquire(stats.wLock)) {
             int tap = ap.getRemainingAp() + stats.getBase(STR) + stats.getBase(DEX) + stats.getBase(INT) + stats.getBase(LUK), tsp = 1;
             int tstr = 4, tdex = 4, tint = 4, tluk = 4;
 
@@ -1772,17 +1761,16 @@ public class Character extends AbstractAnimatedMapObject {
             tap -= tluk;
 
             if (tap >= 0) {
-                // 一个语义事务（重置属性）：stats 与 sp 组件各自 update，Character 收口 commit
-                try (RemoteUpdate u = remote().update()) {
+                // 一个语义域（重置属性）：stats 与 sp 各自正常公告，域收口合并为一个包
+                try (var _u = remote().update()) {
                     stats.update()
                             .set(STR, tstr)
                             .set(DEX, tdex)
                             .set(INT, tint)
                             .set(LUK, tluk)
                             .setAp(tap)
-                            .commitInto(u);
-                    sp.changeRemainingSp(tsp, job.getId(), u);
-                    u.unlockActions();
+                            .commit();
+                    sp.changeRemainingSp(tsp, job.getId(), false);
                 }
             } else {
                 log.warn("Chr {} tried to have its stats reset without enough AP available", getName());
@@ -1835,7 +1823,7 @@ public class Character extends AbstractAnimatedMapObject {
                 .setAp(recipe.getRemainingAp())
                 .commitSilently();
         level.setLevel(recipe.getLevel());
-        sp.remainingSp[CharacterSp.indexOf(job.getId())] = recipe.getRemainingSp();
+        sp.setRemainingSp(recipe.getRemainingSp(), job.getId());
         setMapId(recipe.getMap());
         meso.set(recipe.getMeso());
 
@@ -2338,13 +2326,6 @@ public class Character extends AbstractAnimatedMapObject {
         this.finishedDojoTutorial = true;
     }
 
-    // ── 属性变更钩子：原 CharacterListener 的实现合并至此 ──
-
-    /** HP/MP 池更新后的重算与钳制，返回需并入本次公告的属性修正 */
-
-    // calcHpRatioUpdate / calcMpRatioUpdate / calcTransientRatio / calcHpRatioTransient / calcMpRatioTransient
-    // 计算部分已迁移到 CharacterStats，以下是使用这些计算的编排方法
-
     private long getDojoTimeLeft() {
         return client.getChannelServer().getDojoFinishTime(getMap().getId()) - Server.getInstance().getCurrentTime();
     }
@@ -2438,7 +2419,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     /** 版本无关的远端客户端门面（隔离层）；无连接时返回空实现，调用方无需判空。 */
-    public RemoteClient remote() {
+    RemoteClient remote() {
         return client != null ? client.getRemote() : RemoteClient.DISCONNECTED;
     }
 
@@ -2990,9 +2971,10 @@ public class Character extends AbstractAnimatedMapObject {
     // ── sp 门面 ──
 
     public int getRemainingSp(int jobId) { return sp.getRemainingSp(jobId); }
-    public int[] getRemainingSps() { return sp.getRemainingSps(); }
+    public int[] getRemainingSps() { return sp.getSpBuckets(); }
     public void setRemainingSp(int remainingSp, int jobId) { sp.setRemainingSp(remainingSp, jobId); }
     public void gainSp(int deltaSp, int jobId, boolean silent) { sp.gainSp(deltaSp, jobId, silent); }
+    public boolean spendSpForSkill(int skillId) { return sp.spendSpForSkill(skillId); }
 
     // ── stats 门面 ──
 

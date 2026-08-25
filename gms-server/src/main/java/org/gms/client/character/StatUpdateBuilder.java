@@ -1,7 +1,5 @@
 package org.gms.client.character;
 
-import org.gms.remote.RemoteUpdate;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -88,8 +86,4 @@ public final class StatUpdateBuilder {
         stats.updateInternal(true, changes.toArray(new Change[0]));
     }
 
-    /** 应用并写入外部事务（stats 与 sp 等分域各自 update，由开事务方最终 commit） */
-    public void commitInto(RemoteUpdate tx) {
-        stats.updateInternal(tx, changes.toArray(new Change[0]));
-    }
 }

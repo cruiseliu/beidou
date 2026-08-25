@@ -19,7 +19,7 @@ import static org.gms.client.character.Stat.*;
 public class CharacterAp {
     private final Character owner;
 
-    int hpMpApUsed;
+    int hpMpApUsed;  // fixme: [refactor] atomicity broken
 
     CharacterAp(Character owner) {
         this.owner = owner;
