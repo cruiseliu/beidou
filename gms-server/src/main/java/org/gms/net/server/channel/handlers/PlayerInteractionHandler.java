@@ -24,7 +24,7 @@ package org.gms.net.server.channel.handlers;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.autoban.AutobanFactory;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
@@ -553,7 +553,7 @@ public final class PlayerInteractionHandler extends AbstractPacketHandler {
                             }
                         }
 
-                        Inventory inv = chr.getInventory(ivType);
+                        InventoryTab inv = chr.getInventory(ivType);
                         inv.lockInventory();
                         try {
                             ItemSlot checkItem = chr.getInventory(ivType).getItem(pos);
@@ -641,7 +641,7 @@ public final class PlayerInteractionHandler extends AbstractPacketHandler {
                 PlayerShop shop = chr.getPlayerShop();
                 HiredMerchant merchant = chr.getHiredMerchant();
                 if (shop != null && shop.isOwner(chr)) {
-                    Inventory inv = chr.getInventory(ivType);
+                    InventoryTab inv = chr.getInventory(ivType);
                     inv.lockInventory();
                     try {
                         ItemSlot checkItem = inv.getItem(slot);
@@ -672,7 +672,7 @@ public final class PlayerInteractionHandler extends AbstractPacketHandler {
                         return;
                     }
 
-                    Inventory inv = chr.getInventory(ivType);
+                    InventoryTab inv = chr.getInventory(ivType);
                     inv.lockInventory();
                     try {
                         ItemSlot checkItem = inv.getItem(slot);

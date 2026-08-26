@@ -25,7 +25,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
@@ -56,7 +56,7 @@ public final class SkillBookHandler extends AbstractPacketHandler {
         Character player = c.getPlayer();
         if (c.tryacquireClient()) {
             try {
-                Inventory inv = c.getPlayer().getInventory(InventoryType.USE);
+                InventoryTab inv = c.getPlayer().getInventory(InventoryType.USE);
                 ItemSlot toUse = inv.getItem(slot);
                 if (toUse == null || toUse.getItemId() != itemId) {
                     return;

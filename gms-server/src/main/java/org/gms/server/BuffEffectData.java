@@ -28,7 +28,7 @@ import org.gms.client.JobEnum;
 import org.gms.client.Mount;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
@@ -1002,7 +1002,7 @@ public class BuffEffectData {
         if (isShadowClaw()) {
             short projectileConsume = this.getBulletConsume();  // noticed by shavit
 
-            Inventory use = applyto.getInventory(InventoryType.USE);
+            InventoryTab use = applyto.getInventory(InventoryType.USE);
             use.lockInventory();
             try {
                 ItemSlot projectile = null;

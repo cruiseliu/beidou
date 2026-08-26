@@ -33,7 +33,7 @@ import org.gms.client.creator.veteran.ThiefCreator;
 import org.gms.client.creator.veteran.WarriorCreator;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Equip.ScrollResult;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ModifyInventory;
@@ -105,7 +105,7 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
         int itemId = p.readInt();
         int itemType = itemId / 10000;  //装备类型
 
-        Inventory cashInv = player.getInventory(InventoryType.CASH);
+        InventoryTab cashInv = player.getInventory(InventoryType.CASH);
         ItemSlot toUse = cashInv.getItem(position);
         if (toUse == null || toUse.getItemId() != itemId) {
             toUse = cashInv.findById(itemId);
@@ -719,7 +719,7 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
     }
 
     private static void remove(Client c, short position, int itemid) {
-        Inventory cashInv = c.getPlayer().getInventory(InventoryType.CASH); // 获取玩家的现金库存
+        InventoryTab cashInv = c.getPlayer().getInventory(InventoryType.CASH); // 获取玩家的现金库存
         cashInv.lockInventory(); // 锁定现金库存，防止并发修改
         try {
             ItemSlot it = cashInv.getItem(position); // 获取指定位置的物品

@@ -24,7 +24,7 @@ package org.gms.net.server.channel.handlers;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.Mount;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
@@ -46,7 +46,7 @@ public final class UseMountFoodHandler extends AbstractPacketHandler {
 
         Character chr = c.getPlayer();
         Mount mount = chr.getMapleMount();
-        Inventory useInv = chr.getInventory(InventoryType.USE);
+        InventoryTab useInv = chr.getInventory(InventoryType.USE);
 
         if (c.tryacquireClient()) {
             try {

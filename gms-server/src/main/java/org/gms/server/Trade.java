@@ -22,7 +22,7 @@
 package org.gms.server;
 
 import org.gms.client.character.Character;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
@@ -271,7 +271,7 @@ public class Trade {
             tradeItems.add(new Pair<>(item, item.getInventoryType()));
         }
 
-        return Inventory.checkSpotsAndOwnership(chr, tradeItems);
+        return InventoryTab.checkSpotsAndOwnership(chr, tradeItems);
     }
 
     private boolean fitsUniquesInInventory() {

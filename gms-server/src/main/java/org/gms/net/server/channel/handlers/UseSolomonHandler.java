@@ -23,7 +23,7 @@ package org.gms.net.server.channel.handlers;
 
 import org.gms.client.character.Character;
 import org.gms.client.Client;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
@@ -49,7 +49,7 @@ public final class UseSolomonHandler extends AbstractPacketHandler {
         if (c.tryacquireClient()) {
             try {
                 Character chr = c.getPlayer();
-                Inventory inv = chr.getInventory(InventoryType.USE);
+                InventoryTab inv = chr.getInventory(InventoryType.USE);
                 inv.lockInventory();
                 try {
                     ItemSlot slotItem = inv.getItem(slot);

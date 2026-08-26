@@ -29,7 +29,7 @@ import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.client.autoban.AutobanFactory;
 import org.gms.client.inventory.Equip;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.weaponType.WeaponTypeRegistry;
@@ -1745,7 +1745,7 @@ public class ItemInformationProvider {
     }
 
     public Collection<ItemSlot> canWearEquipment(Character chr, Collection<ItemSlot> items) {
-        Inventory inv = chr.getInventory(InventoryType.EQUIPPED);
+        InventoryTab inv = chr.getInventory(InventoryType.EQUIPPED);
         if (inv.checked()) {
             return items;
         }

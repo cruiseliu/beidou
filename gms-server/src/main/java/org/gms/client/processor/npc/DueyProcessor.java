@@ -26,7 +26,7 @@ package org.gms.client.processor.npc;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.autoban.AutobanFactory;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ItemFactory;
@@ -249,7 +249,7 @@ public class DueyProcessor {
             ItemInformationProvider ii = ItemInformationProvider.getInstance();
 
             InventoryType invType = InventoryType.getByType(invTypeId);
-            Inventory inv = c.getPlayer().getInventory(invType);
+            InventoryTab inv = c.getPlayer().getInventory(invType);
 
             ItemSlot item;
             inv.lockInventory();

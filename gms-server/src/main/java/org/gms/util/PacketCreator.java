@@ -38,7 +38,7 @@ import org.gms.client.SkillMacro;
 import org.gms.client.PacketStat;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Equip.ScrollResult;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ItemFactory;
@@ -290,7 +290,7 @@ public class PacketCreator {
     }
 
     private static void addCharEquips(final OutPacket p, Character chr) {
-        Inventory equip = chr.getInventory(InventoryType.EQUIPPED);
+        InventoryTab equip = chr.getInventory(InventoryType.EQUIPPED);
         Collection<ItemSlot> ii = ItemInformationProvider.getInstance().canWearEquipment(chr, equip.list());
         Map<Short, Integer> myEquip = new LinkedHashMap<>();
         Map<Short, Integer> maskedEquip = new LinkedHashMap<>();
@@ -484,10 +484,10 @@ public class PacketCreator {
 
     private static void addInventoryInfo(OutPacket p, Character chr) {
         for (byte i = 1; i <= 5; i++) {
-            p.writeByte(chr.getInventory(InventoryType.getByType(i)).getSlotLimit());
+            p.writeByte((byte) chr.getInventory(InventoryType.getByType(i)).getSlotLimit());
         }
         p.writeLong(getTime(-2));
-        Inventory iv = chr.getInventory(InventoryType.EQUIPPED);
+        InventoryTab iv = chr.getInventory(InventoryType.EQUIPPED);
         Collection<ItemSlot> equippedC = iv.list();
         List<ItemSlot> equipped = new ArrayList<>(equippedC.size());
         List<ItemSlot> equippedCash = new ArrayList<>(equippedC.size());

@@ -21,7 +21,7 @@ package org.gms.server;
 
 import org.gms.client.character.Character;
 import org.gms.client.Client;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ItemFactory;
@@ -117,7 +117,7 @@ public class Marriage extends EventInstanceManager {
 
     public static boolean claimGiftItems(Client c, Character chr) {
         List<ItemSlot> gifts = loadGiftItemsFromDb(c, chr.getId());
-        if (Inventory.checkSpot(chr, gifts)) {
+        if (InventoryTab.checkSpot(chr, gifts)) {
             try (Connection con = DatabaseConnection.getConnection()) {
                 ItemFactory.MARRIAGE_GIFTS.saveItems(new LinkedList<>(), chr.getId(), con);
             } catch (SQLException sqle) {

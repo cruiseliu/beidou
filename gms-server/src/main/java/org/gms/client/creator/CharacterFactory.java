@@ -22,7 +22,7 @@ package org.gms.client.creator;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.SkinColor;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.config.GameConfig;
@@ -60,7 +60,7 @@ public abstract class CharacterFactory {
         newCharacter.setJob(recipe.getJob());
         newCharacter.setMapId(recipe.getMap());
 
-        Inventory equipped = newCharacter.getInventory(InventoryType.EQUIPPED);
+        InventoryTab equipped = newCharacter.getInventory(InventoryType.EQUIPPED);
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
 
         int top = recipe.getTop(), bottom = recipe.getBottom(), shoes = recipe.getShoes(), weapon = recipe.getWeapon();

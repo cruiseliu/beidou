@@ -25,7 +25,7 @@ import org.gms.client.EffectType;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.inventory.Equip;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ModifyInventory;
@@ -74,7 +74,7 @@ public class InventoryManipulator {
         Character chr = c.getPlayer();
         InventoryType type = ItemConstants.getInventoryType(itemId);
 
-        Inventory inv = chr.getInventory(type);
+        InventoryTab inv = chr.getInventory(type);
         inv.lockInventory();
         try {
             return addByIdInternal(c, chr, type, inv, itemId, quantity, owner, petid, flag, expiration);
@@ -83,7 +83,7 @@ public class InventoryManipulator {
         }
     }
 
-    private static boolean addByIdInternal(Client c, Character chr, InventoryType type, Inventory inv, int itemId, short quantity, String owner, int petid, short flag, long expiration) {
+    private static boolean addByIdInternal(Client c, Character chr, InventoryType type, InventoryTab inv, int itemId, short quantity, String owner, int petid, short flag, long expiration) {
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
         if (!type.equals(InventoryType.EQUIP)) {
             short slotMax = ii.getSlotMax(c, itemId);
@@ -115,7 +115,7 @@ public class InventoryManipulator {
                         ItemSlot nItem = new ItemSlot(itemId, (short) 0, newQ, petid);
                         nItem.setFlag(flag);
                         nItem.setExpiration(expiration);
-                        short newSlot = inv.addItem(nItem);
+                        int newSlot = inv.addItem(nItem);
                         if (newSlot == -1) {
                             c.sendPacket(PacketCreator.getInventoryFull());
                             c.sendPacket(PacketCreator.getShowInventoryFull());
@@ -144,7 +144,7 @@ public class InventoryManipulator {
                         chr.registerPet(newPet);
                     }
                 }
-                short newSlot = inv.addItem(nItem);
+                int newSlot = inv.addItem(nItem);
                 if (newSlot == -1) {
                     c.sendPacket(PacketCreator.getInventoryFull());
                     c.sendPacket(PacketCreator.getShowInventoryFull());
@@ -162,7 +162,7 @@ public class InventoryManipulator {
             if (owner != null) {
                 nEquip.setOwner(owner);
             }
-            short newSlot = inv.addItem(nEquip);
+            int newSlot = inv.addItem(nEquip);
             if (newSlot == -1) {
                 c.sendPacket(PacketCreator.getInventoryFull());
                 c.sendPacket(PacketCreator.getShowInventoryFull());
@@ -190,7 +190,7 @@ public class InventoryManipulator {
         Character chr = c.getPlayer();
         InventoryType type = item.getInventoryType();
 
-        Inventory inv = chr.getInventory(type);
+        InventoryTab inv = chr.getInventory(type);
         inv.lockInventory();
         try {
             return addFromDropInternal(c, chr, type, inv, item, show, petId);
@@ -199,7 +199,7 @@ public class InventoryManipulator {
         }
     }
 
-    private static boolean addFromDropInternal(Client c, Character chr, InventoryType type, Inventory inv, ItemSlot item, boolean show, int petId) {
+    private static boolean addFromDropInternal(Client c, Character chr, InventoryType type, InventoryTab inv, ItemSlot item, boolean show, int petId) {
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
         int itemid = item.getItemId();
         if (ii.isPickupRestricted(itemid) && chr.haveItemWithId(itemid, true)) {
@@ -238,11 +238,11 @@ public class InventoryManipulator {
                     nItem.setExpiration(item.getExpiration());
                     nItem.setOwner(item.getOwner());
                     nItem.setFlag(item.getFlag());
-                    short newSlot = inv.addItem(nItem);
+                    int newSlot = inv.addItem(nItem);
                     if (newSlot == -1) {
                         c.sendPacket(PacketCreator.getInventoryFull());
                         c.sendPacket(PacketCreator.getShowInventoryFull());
-                        item.setQuantity((short) (quantity + newQ));
+                        item.setQuantity(quantity + newQ);
                         return false;
                     }
                     nItem.setPosition(newSlot);
@@ -257,7 +257,7 @@ public class InventoryManipulator {
                 nItem.setExpiration(item.getExpiration());
                 nItem.setFlag(item.getFlag());
 
-                short newSlot = inv.addItem(nItem);
+                int newSlot = inv.addItem(nItem);
                 if (newSlot == -1) {
                     c.sendPacket(PacketCreator.getInventoryFull());
                     c.sendPacket(PacketCreator.getShowInventoryFull());
@@ -272,7 +272,7 @@ public class InventoryManipulator {
                 c.sendPacket(PacketCreator.enableActions());
             }
         } else if (quantity == 1) {
-            short newSlot = inv.addItem(item);
+            int newSlot = inv.addItem(item);
             if (newSlot == -1) {
                 c.sendPacket(PacketCreator.getInventoryFull());
                 c.sendPacket(PacketCreator.getShowInventoryFull());
@@ -295,7 +295,7 @@ public class InventoryManipulator {
         return true;
     }
 
-    private static boolean haveItemWithId(Inventory inv, int itemid) {
+    private static boolean haveItemWithId(InventoryTab inv, int itemid) {
         return inv.findById(itemid) != null;
     }
 
@@ -303,7 +303,7 @@ public class InventoryManipulator {
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
         InventoryType type = ItemConstants.getInventoryType(itemid);
         Character chr = c.getPlayer();
-        Inventory inv = chr.getInventory(type);
+        InventoryTab inv = chr.getInventory(type);
 
         if (ii.isPickupRestricted(itemid)) {
             if (haveItemWithId(inv, itemid)) {
@@ -358,7 +358,7 @@ public class InventoryManipulator {
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
         InventoryType type = !useProofInv ? ItemConstants.getInventoryType(itemid) : InventoryType.CANHOLD;
         Character chr = c.getPlayer();
-        Inventory inv = chr.getInventory(type);
+        InventoryTab inv = chr.getInventory(type);
 
         if (ii.isPickupRestricted(itemid)) {
             if (haveItemWithId(inv, itemid)) {
@@ -416,7 +416,7 @@ public class InventoryManipulator {
 
     public static void removeFromSlot(Client c, InventoryType type, short slot, short quantity, boolean fromDrop, boolean consume) {
         Character chr = c.getPlayer();
-        Inventory inv = chr.getInventory(type);
+        InventoryTab inv = chr.getInventory(type);
         ItemSlot item = inv.getItem(slot);
         boolean allowZero = consume && ItemConstants.isRechargeable(item.getItemId());
 
@@ -464,7 +464,7 @@ public class InventoryManipulator {
 
     public static void removeById(Client c, InventoryType type, int itemId, int quantity, boolean fromDrop, boolean consume) {
         int removeQuantity = quantity;
-        Inventory inv = c.getPlayer().getInventory(type);
+        InventoryTab inv = c.getPlayer().getInventory(type);
         int slotLimit = type == InventoryType.EQUIPPED ? 128 : inv.getSlotLimit();
 
         for (short i = 0; i <= slotLimit; i++) {
@@ -492,7 +492,7 @@ public class InventoryManipulator {
     }
 
     public static void move(Client c, InventoryType type, short src, short dst) {
-        Inventory inv = c.getPlayer().getInventory(type);
+        InventoryTab inv = c.getPlayer().getInventory(type);
 
         if (src < 0 || dst < 0) {
             return;
@@ -540,8 +540,8 @@ public class InventoryManipulator {
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
 
         Character chr = c.getPlayer();
-        Inventory eqpInv = chr.getInventory(InventoryType.EQUIP);
-        Inventory eqpdInv = chr.getInventory(InventoryType.EQUIPPED);
+        InventoryTab eqpInv = chr.getInventory(InventoryType.EQUIP);
+        InventoryTab eqpdInv = chr.getInventory(InventoryType.EQUIPPED);
 
         ItemSlot sourceItem = eqpInv.getItem(src);
         Equip source = sourceItem.getEquipInfo();
@@ -584,7 +584,7 @@ public class InventoryManipulator {
                     c.sendPacket(PacketCreator.getShowInventoryFull());
                     return;
                 }
-                unequip(c, (byte) -5, eqpInv.getNextFreeSlot());
+                unequip(c, (byte) -5, (short) eqpInv.getNextFreeSlot());
             }
             break;
         case -5:
@@ -595,7 +595,7 @@ public class InventoryManipulator {
                     c.sendPacket(PacketCreator.getShowInventoryFull());
                     return;
                 }
-                unequip(c, (byte) -6, eqpInv.getNextFreeSlot());
+                unequip(c, (byte) -6, (short) eqpInv.getNextFreeSlot());
             }
             break;
         case -10: // check if weapon is two-handed
@@ -606,7 +606,7 @@ public class InventoryManipulator {
                     c.sendPacket(PacketCreator.getShowInventoryFull());
                     return;
                 }
-                unequip(c, (byte) -11, eqpInv.getNextFreeSlot());
+                unequip(c, (byte) -11, (short) eqpInv.getNextFreeSlot());
             }
             break;
         case -11:
@@ -617,7 +617,7 @@ public class InventoryManipulator {
                     c.sendPacket(PacketCreator.getShowInventoryFull());
                     return;
                 }
-                unequip(c, (byte) -10, eqpInv.getNextFreeSlot());
+                unequip(c, (byte) -10, (short) eqpInv.getNextFreeSlot());
             }
             break;
         case -18:
@@ -687,8 +687,8 @@ public class InventoryManipulator {
 
     public static void unequip(Client c, short src, short dst) {
         Character chr = c.getPlayer();
-        Inventory eqpInv = chr.getInventory(InventoryType.EQUIP);
-        Inventory eqpdInv = chr.getInventory(InventoryType.EQUIPPED);
+        InventoryTab eqpInv = chr.getInventory(InventoryType.EQUIP);
+        InventoryTab eqpdInv = chr.getInventory(InventoryType.EQUIPPED);
 
         ItemSlot sourceItem = eqpdInv.getItem(src);
         Equip source = sourceItem.getEquipInfo();
@@ -761,7 +761,7 @@ public class InventoryManipulator {
         }
 
         Character chr = c.getPlayer();
-        Inventory inv = chr.getInventory(type);
+        InventoryTab inv = chr.getInventory(type);
         ItemSlot source = inv.getItem(src);
 
         if (chr.isGM() && chr.gmLevel() < GameConfig.getServerInt("minimum_gm_level_to_drop")) {

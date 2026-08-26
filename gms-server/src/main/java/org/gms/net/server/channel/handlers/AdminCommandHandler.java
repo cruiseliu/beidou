@@ -23,7 +23,7 @@ package org.gms.net.server.channel.handlers;
 
 import org.gms.client.character.Character;
 import org.gms.client.Client;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.net.AbstractPacketHandler;
@@ -65,7 +65,7 @@ public final class AdminCommandHandler extends AbstractPacketHandler {
                 break;
             case 0x01: { // /d (inv)
                 byte type = p.readByte();
-                Inventory in = c.getPlayer().getInventory(InventoryType.getByType(type));
+                InventoryTab in = c.getPlayer().getInventory(InventoryType.getByType(type));
                 for (short i = 1; i <= in.getSlotLimit(); i++) { //TODO What is the point of this loop?
                     if (in.getItem(i) != null) {
                         InventoryManipulator.removeFromSlot(c, InventoryType.getByType(type), i, (short) in.getItem(i).getQuantity(), false);

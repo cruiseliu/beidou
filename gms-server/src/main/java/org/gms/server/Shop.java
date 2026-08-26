@@ -23,7 +23,7 @@ package org.gms.server;
 
 import org.gms.client.character.Character;
 import org.gms.client.Client;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.Pet;
@@ -98,7 +98,7 @@ public class Shop {
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
         InventoryType type = ItemConstants.getInventoryType(itemId);
         Character chr = c.getPlayer();
-        Inventory inv = chr.getInventory(type);
+        InventoryTab inv = chr.getInventory(type);
         inv.lockInventory();
         try {
             if (item.getPrice() > 0) {
@@ -208,7 +208,7 @@ public class Shop {
             return;
         }
 
-        Inventory inventory = c.getPlayer().getInventory(type);
+        InventoryTab inventory = c.getPlayer().getInventory(type);
         ItemSlot item = inventory.getItem(slot);
         inventory.lockInventory();
         try {
@@ -232,7 +232,7 @@ public class Shop {
 
     public void recharge(Client c, short slot) {
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
-        Inventory inventory = c.getPlayer().getInventory(InventoryType.USE);
+        InventoryTab inventory = c.getPlayer().getInventory(InventoryType.USE);
         ItemSlot item = inventory.getItem(slot);
         if (item == null || !ItemConstants.isRechargeable(item.getItemId())) {
             return;

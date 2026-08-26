@@ -16,6 +16,7 @@ package org.gms.client.inventory;
 
 import org.gms.client.inventory.manipulator.KarmaManipulator;
 import org.gms.constants.inventory.ItemConstants;
+import org.gms.model.json.ItemData;
 import org.gms.server.ItemInformationProvider;
 
 /**
@@ -24,26 +25,45 @@ import org.gms.server.ItemInformationProvider;
  * 新代码经 {@link #getItem()} 直达本体，门面随迁移逐步退役。
  */
 public class ItemSlot implements Comparable<ItemSlot> {
-
-    private final Item item;
-    private int position;
-    private int quantity;
+    final Item item;
+    int position;
+    int quantity;
 
     /** 装备物品工厂：创建槽位并携带装备域信息（成长槽等装备数据由数据源显式设置） */
     public static ItemSlot equipItem(int id, int position) {
         return new ItemSlot(id, position, 1);
     }
 
+    public static ItemSlot fromStack(ItemStack stack, int position) {
+        if (stack.item == null) {
+            return new ItemSlot(stack.itemId, position, stack.quantity);
+        } else {
+            return new ItemSlot(stack.item, position, stack.quantity);
+        }
+    }
+
+    private ItemSlot(Item item, int position, int quantity) {
+        this.item = item;
+        this.position = position;
+        this.quantity = quantity;
+    }
+
     public ItemSlot(int id, int position, int quantity) {
-        this.item = new Item(this, id, position, -1);
+        this.item = new Item(id, position, -1);
         this.position = position;
         this.quantity = quantity;
     }
 
     public ItemSlot(int id, int position, int quantity, int petid) {
-        this.item = new Item(this, id, position, petid);
+        this.item = new Item(id, position, petid);
         this.position = position;
         this.quantity = quantity;
+    }
+
+    public ItemStack takeAtMost(int n) {
+        ItemStack ret = new ItemStack(item, Math.min(n, quantity));
+        quantity -= ret.quantity;
+        return ret;
     }
 
     /** 物品本体出口（新代码用；门面方法逐步迁移后以此为准） */
@@ -147,5 +167,40 @@ public class ItemSlot implements Comparable<ItemSlot> {
     @Override
     public String toString() {
         return "Item: " + item.getItemId() + " quantity: " + quantity;
+    }
+
+    public ItemData toData() {
+        ItemData d = new ItemData();
+        d.itemId = item.id;
+        d.position = position;
+        d.quantity = quantity;
+        d.flag = item.flag == 0 ? null : item.flag;
+        d.owner = item.owner.isEmpty() ? null : item.owner;
+        d.expiration = item.expiration == -1 ? null : item.expiration;
+        d.petId = item.petId == -1 ? null : item.petId;
+        if (item.equipInfo != null) {
+            d.equip = item.equipInfo.toData();
+        }
+        return d;
+    }
+
+    public void applyData(ItemData d) {
+        position = d.position;
+        quantity = d.quantity;
+        if (d.flag != null) {
+            item.flag = d.flag;
+        }
+        if (d.owner != null) {
+            item.owner = d.owner;
+        }
+        if (d.expiration != null) {
+            item.expiration = d.expiration;
+        }
+        if (d.petId != null) {
+            item.petId = d.petId;
+        }
+        if (d.equip != null) {
+            item.equipInfo.applyData(d.equip);
+        }
     }
 }

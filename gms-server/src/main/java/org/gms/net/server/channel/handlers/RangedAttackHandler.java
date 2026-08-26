@@ -26,7 +26,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.weaponType.WeaponTypeDefinition;
@@ -139,7 +139,7 @@ public final class RangedAttackHandler extends AbstractDealDamageHandler {
             if (hasShadowPartner) {
                 bulletCount *= 2;
             }
-            Inventory inv = chr.getInventory(InventoryType.USE);
+            InventoryTab inv = chr.getInventory(InventoryType.USE);
             for (short i = 1; i <= inv.getSlotLimit(); i++) {
                 ItemSlot item = inv.getItem(i);
                 if (item != null) {
@@ -202,7 +202,7 @@ public final class RangedAttackHandler extends AbstractDealDamageHandler {
             if (!ammoShortage) {
                 int visProjectile = projectile; //visible projectile sent to players
                 if (ItemConstants.isThrowingStar(projectile)) {
-                    Inventory cash = chr.getInventory(InventoryType.CASH);
+                    InventoryTab cash = chr.getInventory(InventoryType.CASH);
                     for (int i = 1; i <= cash.getSlotLimit(); i++) { // impose order...
                         ItemSlot item = cash.getItem((short) i);
                         if (item != null) {

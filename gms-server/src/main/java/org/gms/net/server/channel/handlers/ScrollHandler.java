@@ -27,7 +27,7 @@ import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Equip.ScrollResult;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ModifyInventory;
@@ -76,7 +76,7 @@ public final class ScrollHandler extends AbstractPacketHandler {
 
                 byte oldLevel = (byte) toScroll.getEnhancementLevel(); // 记录装备的原始等级
                 byte oldSlots = (byte) toScroll.getEnhancementSlots(); // 记录装备的原始升级插槽数量
-                Inventory useInventory = chr.getInventory(InventoryType.USE); // 获取玩家的使用栏库存
+                InventoryTab useInventory = chr.getInventory(InventoryType.USE); // 获取玩家的使用栏库存
                 ItemSlot scroll = useInventory.getItem(scrollSlot); // 获取使用的卷轴
                 ItemSlot wscroll = null;
 
@@ -142,7 +142,7 @@ public final class ScrollHandler extends AbstractPacketHandler {
                     if (!ItemId.isWeddingRing(toScroll.getItemId())) {
                         mods.add(new ModifyInventory(3, toScrollItem)); // 标记装备被移除
                         if (equipSlot < 0) {
-                            Inventory inv = chr.getInventory(InventoryType.EQUIPPED);
+                            InventoryTab inv = chr.getInventory(InventoryType.EQUIPPED);
 
                             inv.lockInventory();
                             try {
@@ -152,7 +152,7 @@ public final class ScrollHandler extends AbstractPacketHandler {
                                 inv.unlockInventory();
                             }
                         } else {
-                            Inventory inv = chr.getInventory(InventoryType.EQUIP);
+                            InventoryTab inv = chr.getInventory(InventoryType.EQUIP);
 
                             inv.lockInventory();
                             try {

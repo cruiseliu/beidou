@@ -24,7 +24,7 @@ package org.gms.net.server.channel.handlers;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.inventory.Equip;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ModifyInventory;
@@ -309,7 +309,7 @@ public final class InventorySortHandler extends AbstractPacketHandler {
         ArrayList<ItemSlot> itemarray = new ArrayList<>();
         List<ModifyInventory> mods = new ArrayList<>();
 
-        Inventory inventory = chr.getInventory(InventoryType.getByType(invType));
+        InventoryTab inventory = chr.getInventory(InventoryType.getByType(invType));
         inventory.lockInventory();
         try {
             for (short i = 1; i <= inventory.getSlotLimit(); i++) {

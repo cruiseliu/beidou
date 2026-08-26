@@ -1,7 +1,7 @@
 package org.gms.client.character;
 
 import org.gms.client.inventory.Equip;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
@@ -32,9 +32,9 @@ class CharacterEquips {
     private ScheduledFuture<?> pendantOfSpirit = null;
 
     /** 已穿戴背包引用（CharacterInventory 构造时传入——Character 的字段初始化顺序不保证先于本类） */
-    private final Inventory equipped;
+    private final InventoryTab equipped;
 
-    CharacterEquips(Character owner, Inventory equipped) {
+    CharacterEquips(Character owner, InventoryTab equipped) {
         this.owner = owner;
         this.equipped = equipped;
     }
@@ -99,7 +99,7 @@ class CharacterEquips {
                     continue;
                 }
 
-                nEquip.gainItemExp(owner.client, expGain);
+                nEquip.gainItemExp(owner.client, expGain, item);
             }
         }
     }

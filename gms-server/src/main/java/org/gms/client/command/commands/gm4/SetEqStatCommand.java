@@ -29,7 +29,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
 import org.gms.client.inventory.Equip;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.util.I18nUtil;
@@ -49,7 +49,7 @@ public class SetEqStatCommand extends Command {
 
         short newStat = (short) Math.max(0, Integer.parseInt(params[0]));
         short newSpdJmp = params.length >= 2 ? (short) Integer.parseInt(params[1]) : 0;
-        Inventory equip = player.getInventory(InventoryType.EQUIP);
+        InventoryTab equip = player.getInventory(InventoryType.EQUIP);
 
         for (byte i = 1; i <= equip.getSlotLimit(); i++) {
             try {

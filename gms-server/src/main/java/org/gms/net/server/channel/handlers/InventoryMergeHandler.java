@@ -23,7 +23,7 @@ package org.gms.net.server.channel.handlers;
 
 import org.gms.client.character.Character;
 import org.gms.client.Client;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
@@ -54,7 +54,7 @@ public final class InventoryMergeHandler extends AbstractPacketHandler {
         }
 
         InventoryType inventoryType = InventoryType.getByType(invType);
-        Inventory inventory = c.getPlayer().getInventory(inventoryType);
+        InventoryTab inventory = c.getPlayer().getInventory(inventoryType);
         inventory.lockInventory();
         try {
             //------------------- RonanLana's SLOT MERGER -----------------
@@ -91,7 +91,7 @@ public final class InventoryMergeHandler extends AbstractPacketHandler {
             boolean sorted = false;
 
             while (!sorted) {
-                short freeSlot = inventory.getNextFreeSlot();
+                short freeSlot = (short) inventory.getNextFreeSlot();
 
                 if (freeSlot != -1) {
                     short itemSlot = -1;

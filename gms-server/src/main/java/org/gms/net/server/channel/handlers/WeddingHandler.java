@@ -9,7 +9,7 @@ package org.gms.net.server.channel.handlers;
 
 import org.gms.client.character.Character;
 import org.gms.client.Client;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
@@ -59,7 +59,7 @@ public final class WeddingHandler extends AbstractPacketHandler {
                                     Character spouse = marriage.getPlayerById(cid);
                                     if (spouse != null) {
                                         InventoryType type = ItemConstants.getInventoryType(itemid);
-                                        Inventory chrInv = chr.getInventory(type);
+                                        InventoryTab chrInv = chr.getInventory(type);
 
                                         ItemSlot newItem = null;
                                         chrInv.lockInventory();
@@ -116,7 +116,7 @@ public final class WeddingHandler extends AbstractPacketHandler {
                         if (groomWishlist != null) {
                             ItemSlot item = marriage.getGiftItem(c, groomWishlist, itemPos);
                             if (item != null) {
-                                if (Inventory.checkSpot(chr, item)) {
+                                if (InventoryTab.checkSpot(chr, item)) {
                                     marriage.removeGiftItem(groomWishlist, item);
                                     marriage.saveGiftItemsToDb(c, groomWishlist, chr.getId());
 
@@ -136,7 +136,7 @@ public final class WeddingHandler extends AbstractPacketHandler {
                         List<ItemSlot> items = c.getAbstractPlayerInteraction().getUnclaimedMarriageGifts();
                         try {
                             ItemSlot item = items.get(itemPos);
-                            if (Inventory.checkSpot(chr, item)) {
+                            if (InventoryTab.checkSpot(chr, item)) {
                                 items.remove(itemPos);
                                 Marriage.saveGiftItemsToDb(c, items, chr.getId());
 

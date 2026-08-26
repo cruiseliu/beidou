@@ -3,7 +3,7 @@ package org.gms.net.server.channel.handlers;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.QuestStatus;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.net.AbstractPacketHandler;
@@ -46,7 +46,7 @@ public class RaiseIncExpHandler extends AbstractPacketHandler {
                 }
 
                 int consId;
-                Inventory inv = chr.getInventory(InventoryType.getByType(inventorytype));
+                InventoryTab inv = chr.getInventory(InventoryType.getByType(inventorytype));
                 inv.lockInventory();
                 try {
                     consId = inv.getItem(slot).getItemId();

@@ -1401,7 +1401,7 @@ public class Character extends AbstractAnimatedMapObject {
             ret.jobRankMove = rs.getInt("jobRankMove");
 
             if (equipped != null) {  // players can have no equipped items at all, ofc
-                Inventory inv = ret.inventory.getInventory(InventoryType.EQUIPPED);
+                InventoryTab inv = ret.inventory.getInventory(InventoryType.EQUIPPED);
                 for (ItemSlot item : equipped) {
                     inv.addItemFromDB(item);
                 }
@@ -1438,7 +1438,7 @@ public class Character extends AbstractAnimatedMapObject {
         ret.setMapId(this.getMapId());
         ret.initialSpawnPoint = this.getInitialSpawnPoint();
 
-        ret.inventory.inventories[InventoryType.EQUIPPED.ordinal()] = this.getInventory(InventoryType.EQUIPPED);
+        ret.inventory.inventorySet.tabs[InventoryType.EQUIPPED.ordinal()] = this.getInventory(InventoryType.EQUIPPED);
 
         ret.gm.setGMLevel(this.gmLevel());
         ret.world = this.getWorld();
@@ -1514,26 +1514,23 @@ public class Character extends AbstractAnimatedMapObject {
         chr.getInventory(InventoryType.USE).setSlotLimit(charactersDO.getUseslots());
         chr.getInventory(InventoryType.SETUP).setSlotLimit(charactersDO.getSetupslots());
         chr.getInventory(InventoryType.ETC).setSlotLimit(charactersDO.getEtcslots());
+        // 背包物品随 character_json 的 inventory 域恢复（loadDataFromJson → applyData），不再读背包表；
+        // 戒指注册与沙盒标志从恢复后的已穿戴物品收集
         short sandboxCheck = 0x0;
-        for (InventoryType inventoryType : InventoryType.values()) {
-            List<InventorySearchRtnDTO> searchRtnDTOList = inventoryService.getInventoryList(InventorySearchReqDTO.builder()
-                    .characterId(charactersDO.getId())
-                    .inventoryType(inventoryType.getType())
-                    .build());
-            for (InventorySearchRtnDTO searchRtnDTO : searchRtnDTOList) {
-                sandboxCheck |= searchRtnDTO.getFlag();
-                ItemSlot item = searchRtnDTO.toItem();
-                chr.getInventory(inventoryType).addItemFromDB(item);
-                if (searchRtnDTO.isEquipment() && searchRtnDTO.getInventoryEquipment().getRingId() > -1) {
-                    Ring ring = Ring.loadFromDb(searchRtnDTO.getInventoryEquipment().getRingId());
-                    if (ring == null) {
-                        continue;
-                    }
-                    if (InventoryType.EQUIPPED.equals(inventoryType)) {
-                        ring.equip();
-                    }
+        for (ItemSlot item : chr.getInventory(InventoryType.EQUIPPED).list()) {
+            sandboxCheck |= item.getFlag();
+            Equip equipInfo = item.getEquipInfo();
+            if (equipInfo != null && equipInfo.getRingId() > -1) {
+                Ring ring = Ring.loadFromDb(equipInfo.getRingId());
+                if (ring != null) {
+                    ring.equip();
                     chr.addPlayerRing(ring);
                 }
+            }
+        }
+        for (InventoryType inventoryType : InventoryType.values()) {
+            for (ItemSlot item : chr.getInventory(inventoryType).list()) {
+                sandboxCheck |= item.getFlag();
             }
         }
         // 背包就绪后批量加载全量宠物并恢复召唤槽（原 Item 构造触发加载，解耦后改由角色统一负责）
@@ -1628,6 +1625,7 @@ public class Character extends AbstractAnimatedMapObject {
         data.sp = sp.toData();
         data.debuffs = debuffs.toData();
         data.antiCheat = antiCheat.toData();
+        data.inventory = inventory.toData();
         data.jobId = job.getId();
         data.mapId = getMapId();
         data.timestamp = Server.getInstance().getCurrentTime();
@@ -1641,6 +1639,9 @@ public class Character extends AbstractAnimatedMapObject {
         sp.applyData(data.sp);
         debuffs.applyData(data.debuffs, data.timestamp);
         antiCheat.applyData(data.antiCheat);
+        if (data.inventory != null) {
+            inventory.applyData(data.inventory);
+        }
         job.setJob(JobEnum.getById(data.jobId));
         map.setMapId(data.mapId);
     }
@@ -1917,15 +1918,7 @@ public class Character extends AbstractAnimatedMapObject {
                     }
                 }
 
-                itemsWithType = new ArrayList<>();
-                for (Inventory iv : inventory.getInventories()) {
-                    for (ItemSlot item : iv.list()) {
-                        itemsWithType.add(new Pair<>(item, iv.getType()));
-                    }
-                }
-
-                ItemFactory.INVENTORY.saveItems(itemsWithType, id, con);
-
+                // 物品随 character_json 信封保存（inventory 域），不再写背包表
                 con.commit();
                 return true;
             } catch (Exception e) {
@@ -2120,15 +2113,7 @@ public class Character extends AbstractAnimatedMapObject {
                     psMacro.executeBatch();
                 }
 
-                List<Pair<ItemSlot, InventoryType>> itemsWithType = new ArrayList<>();
-                for (Inventory iv : inventory.getInventories()) {
-                    for (ItemSlot item : iv.list()) {
-                        itemsWithType.add(new Pair<>(item, iv.getType()));
-                    }
-                }
-
-                // Items
-                ItemFactory.INVENTORY.saveItems(itemsWithType, id, con);
+                // 物品随 character_json 信封保存（inventory 域），不再写背包表
 
                 // Saved locations
                 deleteWhereCharacterId(con, "DELETE FROM savedlocations WHERE characterid = ?");
@@ -3232,7 +3217,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     // ── inventory 门面 ──
 
-    public Inventory getInventory(InventoryType type) { return inventory.getInventory(type); }
+    public InventoryTab getInventory(InventoryType type) { return inventory.getInventory(type); }
     public int countItem(int itemid) { return inventory.countItem(itemid); }
     public boolean canHold(int itemid) { return inventory.canHold(itemid); }
     public boolean canHold(int itemid, int quantity) { return inventory.canHold(itemid, quantity); }
@@ -3242,12 +3227,10 @@ public class Character extends AbstractAnimatedMapObject {
     public boolean haveItemEquipped(int itemid) { return inventory.getEquips().haveItemEquipped(itemid); }
     public boolean haveWeddingRing() { return inventory.haveWeddingRing(); }
     public int getItemQuantity(int itemid, boolean checkEquipped) { return inventory.getItemQuantity(itemid, checkEquipped); }
-    public int getCleanItemQuantity(int itemid, boolean checkEquipped) { return inventory.getCleanItemQuantity(itemid, checkEquipped); }
-    public boolean haveItem(int itemid) { return inventory.haveItem(itemid); }
-    public boolean haveCleanItem(int itemid) { return inventory.haveCleanItem(itemid); }
-    public boolean hasEmptySlot(int itemId) { return inventory.hasEmptySlot(itemId); }
+        public boolean haveItem(int itemid) { return inventory.haveItem(itemid); }
+        public boolean hasEmptySlot(int itemId) { return inventory.hasEmptySlot(itemId); }
     public boolean hasEmptySlot(byte invType) { return inventory.hasEmptySlot(invType); }
-    public byte getSlots(int type) { return inventory.getSlots(type); }
+    public byte getSlots(int type) { return (byte) inventory.getSlots(type); }
     public boolean canGainSlots(int type, int slots) { return inventory.canGainSlots(type, slots); }
     public boolean gainSlots(int type, int slots) { return inventory.gainSlots(type, slots); }
     public boolean gainSlots(int type, int slots, boolean update) { return inventory.gainSlots(type, slots, update); }
@@ -3274,8 +3257,7 @@ public class Character extends AbstractAnimatedMapObject {
     public void forceUpdateItem(ItemSlot item) { inventory.forceUpdateItem(item); }
     public void setHasSandboxItem() { inventory.setHasSandboxItem(); }
     public void removeSandboxItems() { inventory.removeSandboxItems(); }
-    public int sellAllItemsFromName(byte invTypeId, String name) { return inventory.sellAllItemsFromName(invTypeId, name); }
-    public int sellAllItemsFromPosition(ItemInformationProvider ii, InventoryType type, short pos) { return inventory.sellAllItemsFromPosition(ii, type, pos); }
+    public int sellAllItemsFromPosition(ItemInformationProvider ii, InventoryType type, int pos) { return inventory.sellAllItemsFromPosition(ii, type, pos); }
     public final void pickupItem(MapObject ob) { inventory.pickupItem(ob); }
     public final void pickupItem(MapObject ob, int petIndex) { inventory.pickupItem(ob, petIndex); }
     public void increaseEquipExp(int expGain) { inventory.getEquips().increaseEquipExp(expGain); }

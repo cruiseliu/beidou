@@ -31,7 +31,7 @@ import org.gms.client.FamilyEntry;
 import org.gms.client.Mount;
 import org.gms.client.SkillFactory;
 import org.gms.client.inventory.Equip;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.Pet;
@@ -345,7 +345,7 @@ public final class PlayerLoggedinHandler extends AbstractPacketHandler {
                 player.updatePartyMemberHP();
             }
 
-            Inventory eqpInv = player.getInventory(InventoryType.EQUIPPED);
+            InventoryTab eqpInv = player.getInventory(InventoryType.EQUIPPED);
             eqpInv.lockInventory();
             try {
                 for (ItemSlot it : eqpInv.list()) {

@@ -21,6 +21,7 @@
  */
 package org.gms.client.inventory;
 
+import org.gms.model.json.EquipmentData;
 import org.gms.client.Client;
 import org.gms.client.character.Stat;
 import org.gms.config.GameConfig;
@@ -47,6 +48,7 @@ import java.util.List;
  */
 public class Equip {
     private static final Logger log = LoggerFactory.getLogger(Equip.class);
+    private static final ItemInformationProvider ii = ItemInformationProvider.getInstance();
 
     public enum ScrollResult {
 
@@ -76,54 +78,47 @@ public class Equip {
     private int itemLevel;
     private int itemExp;
 
-    private int ringid = -1;
+    private int ringId = -1;
 
-    private static ItemInformationProvider ii = ItemInformationProvider.getInstance();
-
-    private final Item owner;
+    private final Item item;
 
     /** 包内构造：经 Item 构造器定性创建（外部创建装备物品走 Equip.create 工厂） */
     Equip(Item owner, int itemId) {
-        this.owner = owner;
+        this.item = owner;
         this.itemExp = 0;
         this.itemLevel = 1;
 
         this.officialCanLevelUp = (ii.getEquipLevel(itemId, false) > 1);
     }
 
-    /** 所属物品（公共状态的宿主） */
-    public Item getItem() {
-        return owner;
-    }
-
     // ── 物品公共状态委托（owner 为宿主；保留原签名供内外部调用）──
 
     public int getItemId() {
-        return owner.getItemId();
+        return item.getItemId();
     }
 
     public String getOwner() {
-        return owner.getOwner();
+        return item.getOwner();
     }
 
     public void setOwner(String ownerName) {
-        owner.setOwner(ownerName);
+        item.setOwner(ownerName);
     }
 
     public long getExpiration() {
-        return owner.getExpiration();
+        return item.getExpiration();
     }
 
     public void setExpiration(long expire) {
-        owner.setExpiration(expire);
+        item.setExpiration(expire);
     }
 
     public CashItemInfo getCashInfo() {
-        return owner.getCashInfo();
+        return item.getCashInfo();
     }
 
     public boolean isCashItem() {
-        return owner.isCashItem();
+        return item.isCashItem();
     }
 
     /** 属性数组访问（下标 = Stat.ordinal()；唯一属性读写入口） */
@@ -149,7 +144,7 @@ public class Equip {
     }
 
     public int getFlag() {
-        return owner.getFlag();
+        return item.getFlag();
     }
 
     public int getEnhancementSlots() {
@@ -161,7 +156,7 @@ public class Equip {
     }
 
     public void setFlag(int flag) {
-        owner.setFlag(flag);
+        item.setFlag(flag);
     }
 
     public void setVicious(int vicious) {
@@ -337,7 +332,7 @@ public class Equip {
         return false;
     }
 
-    private void gainLevel(Client c) {
+    private void gainLevel(Client c, ItemSlot slot) {  // fixme: [refactor] rewire slot param
         List<Pair<Stat, Integer>> stats = new LinkedList<>(); // 初始化属性升级列表
 
         if (officialCanLevelUp) {// wz 成长表装备：升级属性从 wz 表读取
@@ -372,7 +367,7 @@ public class Equip {
         // 发送装备升级的效果包
         c.sendPacket(PacketCreator.showEquipmentLevelUp());
         c.getPlayer().getMap().broadcastPacket(c.getPlayer(), PacketCreator.showForeignEffect(c.getPlayer().getId(), 15));
-        c.getPlayer().forceUpdateItem(owner.getSlot()); // 强制更新装备状态
+        c.getPlayer().forceUpdateItem(slot); // 强制更新装备状态
     }
 
     public int getItemExp() {
@@ -401,7 +396,7 @@ public class Equip {
      * @param c 客户端对象
      * @param gain 获得的经验值
      */
-    public synchronized void gainItemExp(Client c, int gain) {
+    public synchronized void gainItemExp(Client c, int gain, ItemSlot slot) {  // fixme: [refactor] rewire slot param
         if (!ii.isUpgradeable(this.getItemId())) {// 检查装备是否可升级
             return;
         }
@@ -432,7 +427,7 @@ public class Equip {
         if (itemExp >= expNeeded) {// 判断是否需要升级
             while (itemExp >= expNeeded) {
                 itemExp -= expNeeded;
-                gainLevel(c); // 升级装备
+                gainLevel(c, slot); // 升级装备
 
                 if (itemLevel >= equipMaxLevel || !GameConfig.getServerBoolean("use_equipment_level_up_continuous")) {// 如果达到最大等级或者不允许连续升级，重置经验值并退出循环
                     itemExp = 0;
@@ -443,7 +438,7 @@ public class Equip {
             }
         }
 
-        c.getPlayer().forceUpdateItem(owner.getSlot());// 通知客户端更新装备状态
+        c.getPlayer().forceUpdateItem(slot);// 通知客户端更新装备状态
     }
 
     private boolean reachedMaxLevel() {
@@ -480,11 +475,45 @@ public class Equip {
         this.enhancementSlots = i;
     }
 
+    // ── 持久化数据转换（装备域；信封组装在 ItemSlot.toData） ──
+
+    public EquipmentData toData() {
+        EquipmentData d = new EquipmentData();
+        d.enhancementSlots = enhancementSlots == 0 ? null : enhancementSlots;
+        d.enhancementLevel = enhancementLevel == 0 ? null : enhancementLevel;
+        d.itemLevel = itemLevel == 0 ? null : itemLevel;
+        d.itemExp = itemExp == 0 ? null : itemExp;
+        d.vicious = vicious == 0 ? null : vicious;
+        d.ringId = ringId == -1 ? null : ringId;
+        for (Stat st : Stat.values()) {
+            int v = stats[st.ordinal()];
+            if (v != 0) {
+                d.stat(st, v);
+            }
+        }
+        return d;
+    }
+
+    public void applyData(EquipmentData d) {
+        if (d.enhancementSlots != null) enhancementSlots = d.enhancementSlots;
+        if (d.enhancementLevel != null) enhancementLevel = d.enhancementLevel;
+        if (d.itemLevel != null) itemLevel = d.itemLevel;
+        if (d.itemExp != null) itemExp = d.itemExp;
+        if (d.vicious != null) vicious = d.vicious;
+        if (d.ringId != null) ringId = d.ringId;
+        for (Stat st : Stat.values()) {
+            Integer v = d.stat(st);
+            if (v != null) {
+                stats[st.ordinal()] = v;
+            }
+        }
+    }
+
     public int getRingId() {
-        return ringid;
+        return ringId;
     }
 
     public void setRingId(int id) {
-        this.ringid = id;
+        this.ringId = id;
     }
 }

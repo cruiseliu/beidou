@@ -23,7 +23,7 @@ package org.gms.client.processor.action;
 
 import org.gms.client.character.Character;
 import org.gms.client.Client;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
@@ -56,7 +56,7 @@ public class PetAutopotProcessor {
 
         private boolean cursorOnNextAvailablePot(Character chr) {
             if (toUseList == null) {
-                toUseList = chr.getInventory(InventoryType.USE).linkedListById(itemId);
+                toUseList = new java.util.LinkedList<>(chr.getInventory(InventoryType.USE).listById(itemId));
             }
 
             toUse = null;
@@ -98,7 +98,7 @@ public class PetAutopotProcessor {
             curHp = chr.getHp();
             curMp = chr.getMp();
 
-            Inventory useInv = chr.getInventory(InventoryType.USE);
+            InventoryTab useInv = chr.getInventory(InventoryType.USE);
             useInv.lockInventory();
             try {
                 // 吃满就不要吃了，放到锁内判断，避免已排队的数据跳过限制

@@ -23,7 +23,7 @@ package org.gms.server.maps;
 
 import org.gms.client.character.Character;
 import org.gms.client.Client;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ItemFactory;
@@ -251,7 +251,7 @@ public class HiredMerchant extends AbstractMapObject {
                     ItemSlot iitem = shopItem.getItem().copy();
                     iitem.setQuantity((short) (shopItem.getItem().getQuantity() * shopItem.getBundles()));
 
-                    if (!Inventory.checkSpot(chr, iitem)) {
+                    if (!InventoryTab.checkSpot(chr, iitem)) {
                         chr.sendPacket(PacketCreator.serverNotice(1, "Have a slot available on your inventory to claim back the item."));
                         chr.sendPacket(PacketCreator.enableActions());
                         return;
@@ -739,7 +739,7 @@ public class HiredMerchant extends AbstractMapObject {
             li.add(new Pair<>(it, it.getInventoryType()));
         }
 
-        return Inventory.checkSpotsAndOwnership(chr, li);
+        return InventoryTab.checkSpotsAndOwnership(chr, li);
     }
 
     public int getChannel() {

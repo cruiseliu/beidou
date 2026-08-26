@@ -210,7 +210,7 @@ public class InventoryService {
     }
 
     private List<InventorySearchRtnDTO> buildByOnline(Character character, InventoryType type) {
-        Inventory inventory = character.getInventory(type);
+        InventoryTab inventory = character.getInventory(type);
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
         return inventory.list().stream().map(item -> {
             InventorySearchRtnDTO rtnDTO = InventorySearchRtnDTO.builder()
@@ -282,7 +282,7 @@ public class InventoryService {
 
     private void updateOnline(InventorySearchRtnDTO data, Character character) {
         InventoryType type = InventoryType.getByType(data.getInventoryType());
-        Inventory inventory = character.getInventory(type);
+        InventoryTab inventory = character.getInventory(type);
         ItemSlot item = getModifyItemOnline(data, inventory);
 
         // 仅以下值可修改
@@ -364,7 +364,7 @@ public class InventoryService {
         }
         if (isOnlineNow) {
             InventoryType type = InventoryType.getByType(data.getInventoryType());
-            Inventory inventory = character.getInventory(type);
+            InventoryTab inventory = character.getInventory(type);
             ItemSlot item = getModifyItemOnline(data, inventory);
 
             //删除相对应的物品
@@ -438,7 +438,7 @@ public class InventoryService {
         RequireUtil.requireNotNull(inventoryType, I18nUtil.getExceptionMessage("UNKNOWN_PARAMETER_VALUE", "inventoryType", data.getInventoryType()));
     }
 
-    private ItemSlot getModifyItemOnline(InventorySearchRtnDTO data, Inventory inventory) {
+    private ItemSlot getModifyItemOnline(InventorySearchRtnDTO data, InventoryTab inventory) {
         ItemSlot item = inventory.getItem(data.getPosition());
         RequireUtil.requireNotNull(item, I18nUtil.getExceptionMessage("InventoryService.updateInventory.exception2"));
         if (!Objects.equals(data.getItemId(), item.getItemId())) {

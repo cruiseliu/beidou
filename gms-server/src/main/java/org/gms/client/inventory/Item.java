@@ -9,25 +9,25 @@ import org.gms.server.ItemInformationProvider;
  * 装备域组件的宿主接线）；ItemSlot 保留全部旧方法作为重构期兼容门面。
  */
 public class Item implements Comparable<Item> {
-
     private static final ItemInformationProvider ii = ItemInformationProvider.getInstance();
 
-    private final int id;
-    /** 宿主槽位（构造时接线；装备域 asItem/forceUpdateItem 等槽位语境经此返回） */
-    private final ItemSlot slot;
-    /** 点券物品会话信息（cashId/sn/giftFrom）；构造时按 isCash 定性——非现金物品恒为 null */
-    private final CashItemInfo cashInfo;
-    /** 装备域信息（属性数组/成长等级等）；构造时按背包类型定性——非装备物品恒为 null */
-    Equip equipInfo;   // 包内可见：ItemSlot.copy 深拷贝接线
-    private int petid = -1;
-    String owner = "";   // 包内可见：ItemSlot.copy
-    int flag;   // 包内可见：ItemSlot.copy
-    long expiration = -1;   // 包内可见：ItemSlot.copy
+    final int id;
 
-    Item(ItemSlot slot, int id, int position, int petid) {
+    int flag;
+    String owner = "";
+    long expiration = -1;
+
+    /** 点券物品会话信息（cashId/sn/giftFrom）；构造时按 isCash 定性——非现金物品恒为 null */
+    final CashItemInfo cashInfo;
+
+    /** 装备域信息（属性数组/成长等级等）；构造时按背包类型定性——非装备物品恒为 null */
+    Equip equipInfo;
+
+    int petId = -1;
+
+    Item(int id, int position, int petid) {
         this.id = id;
-        this.slot = slot;
-        this.petid = petid;
+        this.petId = petid;
         this.flag = 0;
         this.cashInfo = ii.isCash(id) ? new CashItemInfo() : null;
         this.equipInfo = getInventoryType() == InventoryType.EQUIP ? new Equip(this, id) : null;
@@ -37,10 +37,30 @@ public class Item implements Comparable<Item> {
         return id;
     }
 
-    /** 宿主槽位 */
-    public ItemSlot getSlot() {
-        return slot;
-    }
+    // ── 持久化数据转换（inventory 域；槽位 position/quantity 经宿主 slot 读写，信封组装在 Character.toData） ──
+
+    // public ItemData toData() {
+    //     ItemData d = new ItemData();
+    //     d.itemId = id;
+    //     d.flag = flag == 0 ? null : flag;
+    //     d.owner = owner.isEmpty() ? null : owner;
+    //     d.expiration = expiration == -1 ? null : expiration;
+    //     d.petId = petId == -1 ? null : petId;
+    //     if (equipInfo != null) {
+    //         d.equip = equipInfo.toData();
+    //     }
+    //     return d;
+    // }
+
+    // public void applyData(ItemData d) {
+    //     if (d.flag != null) flag = d.flag;
+    //     if (d.owner != null) owner = d.owner;
+    //     if (d.expiration != null) expiration = d.expiration;
+    //     if (d.petId != null) petId = d.petId;
+    //     if (d.equip != null && equipInfo != null) {
+    //         equipInfo.applyData(d.equip);
+    //     }
+    // }
 
     public InventoryType getInventoryType() {
         return ItemConstants.getInventoryType(id);
@@ -50,7 +70,7 @@ public class Item implements Comparable<Item> {
         if (equipInfo != null) {
             return 1;
         }
-        if (petid > -1) {
+        if (petId > -1) {
             return 3;
         }
         return 2;
@@ -65,7 +85,7 @@ public class Item implements Comparable<Item> {
     }
 
     public int getPetId() {
-        return petid;
+        return petId;
     }
 
     public int getFlag() {

@@ -1,7 +1,11 @@
 package org.gms.client.character;
 
+import java.util.Map;
+import java.util.LinkedHashMap;
+import org.gms.model.json.ItemData;
 import org.gms.client.Client;
 import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryProof;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
@@ -46,8 +50,8 @@ import java.util.concurrent.ScheduledFuture;
 class CharacterInventory {
     private final Character owner;
 
-    /** 各类型背包（下标 = InventoryType.ordinal()） */
-    Inventory[] inventories;
+    /** 背包集合（持有全部 InventoryTab；重构期直接暴露内部数组） */
+    Inventory inventorySet;
 
     private int slots = 0;
     /** 装备域子模块（穿戴编排/装备经验/精灵吊坠/已装备查询） */
@@ -62,17 +66,8 @@ class CharacterInventory {
     CharacterInventory(Character owner) {
         this.owner = owner;
         useCS = false;
-        inventories = new Inventory[InventoryType.values().length];
-
-        for (InventoryType type : InventoryType.values()) {
-            byte b = 24;
-            if (type == InventoryType.CASH) {
-                b = 96;
-            }
-            inventories[type.ordinal()] = new Inventory(owner, type, b);
-        }
-        inventories[InventoryType.CANHOLD.ordinal()] = new InventoryProof(owner);
-        this.equips = new CharacterEquips(owner, inventories[InventoryType.EQUIPPED.ordinal()]);
+        inventorySet = new Inventory(owner);
+        this.equips = new CharacterEquips(owner, inventorySet.tabs[InventoryType.EQUIPPED.ordinal()]);
     }
 
     /** 装备域子模块（对齐 CharacterBuffs.getActive() 的暴露方式） */
@@ -80,31 +75,61 @@ class CharacterInventory {
         return equips;
     }
 
+    // ── 持久化数据转换（inventory 域；信封组装在 Character.toData） ──
+
+    Map<String, List<ItemData>> toData() {
+        Map<String, List<ItemData>> data = new LinkedHashMap<>();
+        for (InventoryType type : InventoryType.values()) {
+            if (type == InventoryType.CANHOLD) {   // 证明背包瞬态，不序列化
+                continue;
+            }
+            List<ItemData> items = new ArrayList<>();
+            for (ItemSlot item : inventorySet.tabs[type.ordinal()].list()) {
+                items.add(item.toData());
+            }
+            data.put(type.name(), items);
+        }
+        return data;
+    }
+
+    void applyData(Map<String, List<ItemData>> data) {
+        for (InventoryType type : InventoryType.values()) {
+            List<ItemData> items = data.get(type.name());
+            if (items == null) {
+                continue;
+            }
+            InventoryTab inv = inventorySet.tabs[type.ordinal()];
+            for (ItemData d : items) {
+                ItemSlot item = new ItemSlot(d.itemId, (short) d.position, (short) d.quantity, d.petId == null ? -1 : d.petId);
+                item.applyData(d);
+                inv.addItemFromDB(item);
+            }
+        }
+    }
+
     // ── 查询 ──
 
-    Inventory getInventory(InventoryType type) {
-        return inventories[type.ordinal()];
+    InventoryTab getInventory(InventoryType type) {
+        return inventorySet.tabs[type.ordinal()];
     }
 
     /** 全部背包（saveCharToDB 遍历用；包内可见） */
-    Inventory[] getInventories() {
-        return inventories;
+    InventoryTab[] getInventories() {
+        return inventorySet.tabs;
+    }
+
+    /** 背包集合 */
+    Inventory getInventorySet() {
+        return inventorySet;
     }
 
     /** 释放全部背包（Character.empty 调用，防内存泄漏） */
     void disposeAll() {
-        if (inventories != null) {
-            for (Inventory inv : inventories) {
-                if (inv != null) {
-                    inv.dispose();
-                }
-            }
-        }
-        inventories = null;
+        inventorySet.disposeAll();
     }
 
     int countItem(int itemid) {
-        return inventories[ItemConstants.getInventoryType(itemid).ordinal()].countById(itemid);
+        return inventorySet.tabs[ItemConstants.getInventoryType(itemid).ordinal()].countById(itemid);
     }
 
     boolean canHold(int itemid) {
@@ -132,8 +157,8 @@ class CharacterInventory {
     }
 
     boolean haveItemWithId(int itemid, boolean checkEquipped) {
-        return (inventories[ItemConstants.getInventoryType(itemid).ordinal()].findById(itemid) != null)
-                || (checkEquipped && inventories[InventoryType.EQUIPPED.ordinal()].findById(itemid) != null);
+        return (inventorySet.tabs[ItemConstants.getInventoryType(itemid).ordinal()].findById(itemid) != null)
+                || (checkEquipped && inventorySet.tabs[InventoryType.EQUIPPED.ordinal()].findById(itemid) != null);
     }
 
     boolean haveWeddingRing() {
@@ -149,30 +174,18 @@ class CharacterInventory {
     }
 
     int getItemQuantity(int itemid, boolean checkEquipped) {
-        int count = inventories[ItemConstants.getInventoryType(itemid).ordinal()].countById(itemid);
+        int count = inventorySet.tabs[ItemConstants.getInventoryType(itemid).ordinal()].countById(itemid);
         if (checkEquipped) {
-            count += inventories[InventoryType.EQUIPPED.ordinal()].countById(itemid);
+            count += inventorySet.tabs[InventoryType.EQUIPPED.ordinal()].countById(itemid);
         }
         return count;
     }
 
-    int getCleanItemQuantity(int itemid, boolean checkEquipped) {
-        int count = inventories[ItemConstants.getInventoryType(itemid).ordinal()].countNotOwnedById(itemid);
-        if (checkEquipped) {
-            count += inventories[InventoryType.EQUIPPED.ordinal()].countNotOwnedById(itemid);
-        }
-        return count;
-    }
-
-    boolean haveItem(int itemid) {
+        boolean haveItem(int itemid) {
         return getItemQuantity(itemid, ItemConstants.isEquipment(itemid)) > 0;
     }
 
-    boolean haveCleanItem(int itemid) {
-        return getCleanItemQuantity(itemid, ItemConstants.isEquipment(itemid)) > 0;
-    }
-
-    boolean hasEmptySlot(int itemId) {
+        boolean hasEmptySlot(int itemId) {
         return getInventory(ItemConstants.getInventoryType(itemId)).getNextFreeSlot() > -1;
     }
 
@@ -180,12 +193,12 @@ class CharacterInventory {
         return getInventory(InventoryType.getByType(invType)).getNextFreeSlot() > -1;
     }
 
-    byte getSlots(int type) {
-        return type == InventoryType.CASH.getType() ? 96 : inventories[type].getSlotLimit();
+    int getSlots(int type) {
+        return type == InventoryType.CASH.getType() ? 96 : inventorySet.tabs[type].getSlotLimit();
     }
 
     boolean canGainSlots(int type, int slots) {
-        slots += inventories[type].getSlotLimit();
+        slots += inventorySet.tabs[type].getSlotLimit();
         return slots <= 96;
     }
 
@@ -225,17 +238,17 @@ class CharacterInventory {
     }
 
     private int gainSlotsInternal(int type, int slots) {
-        inventories[type].lockInventory();
+        inventorySet.tabs[type].lockInventory();
         try {
             if (canGainSlots(type, slots)) {
-                int newLimit = inventories[type].getSlotLimit() + slots;
-                inventories[type].setSlotLimit(newLimit);
+                int newLimit = inventorySet.tabs[type].getSlotLimit() + slots;
+                inventorySet.tabs[type].setSlotLimit(newLimit);
                 return newLimit;
             } else {
                 return -1;
             }
         } finally {
-            inventories[type].unlockInventory();
+            inventorySet.tabs[type].unlockInventory();
         }
     }
 
@@ -256,7 +269,7 @@ class CharacterInventory {
                 long expiration, currenttime = System.currentTimeMillis();
 
                 List<ItemSlot> toberemove = new ArrayList<>();
-                for (Inventory inv : inventories) {
+                for (InventoryTab inv : inventorySet.tabs) {
                     for (ItemSlot item : inv.list()) {
                         expiration = item.getExpiration();
 
@@ -347,7 +360,7 @@ class CharacterInventory {
 
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
         for (InventoryType invType : InventoryType.values()) {
-            Inventory inv = this.getInventory(invType);
+            InventoryTab inv = this.getInventory(invType);
 
             inv.lockInventory();
             try {
@@ -367,36 +380,17 @@ class CharacterInventory {
 
     // ── 出售 ──
 
-    int sellAllItemsFromName(byte invTypeId, String name) {
-        //player decides from which inventory items should be sold.
-        InventoryType type = InventoryType.getByType(invTypeId);
-
-        Inventory inv = getInventory(type);
-        inv.lockInventory();
-        try {
-            ItemSlot it = inv.findByName(name);
-            if (it == null) {
-                return (-1);
-            }
-
-            ItemInformationProvider ii = ItemInformationProvider.getInstance();
-            return (sellAllItemsFromPosition(ii, type, (short) it.getPosition()));
-        } finally {
-            inv.unlockInventory();
-        }
-    }
-
-    int sellAllItemsFromPosition(ItemInformationProvider ii, InventoryType type, short pos) {
+    int sellAllItemsFromPosition(ItemInformationProvider ii, InventoryType type, int pos) {
         int mesoGain = 0;
 
-        Inventory inv = getInventory(type);
+        InventoryTab inv = getInventory(type);
         inv.lockInventory();
         try {
-            for (short i = pos; i <= inv.getSlotLimit(); i++) {
+            for (int i = pos; i <= inv.getSlotLimit(); i++) {
                 if (inv.getItem(i) == null) {
                     continue;
                 }
-                mesoGain += standaloneSell(owner.getClient(), ii, type, i, (short) inv.getItem(i).getQuantity());
+                mesoGain += standaloneSell(owner.getClient(), ii, type, i, inv.getItem(i).getQuantity());
             }
         } finally {
             inv.unlockInventory();
@@ -405,12 +399,12 @@ class CharacterInventory {
         return (mesoGain);
     }
 
-    private int standaloneSell(Client c, ItemInformationProvider ii, InventoryType type, short slot, short quantity) {
+    private int standaloneSell(Client c, ItemInformationProvider ii, InventoryType type, int slot, int quantity) {
         if (quantity == 0) {
             quantity = 1;
         }
 
-        Inventory inv = getInventory(type);
+        InventoryTab inv = getInventory(type);
         inv.lockInventory();
         try {
             ItemSlot item = inv.getItem(slot);
@@ -420,7 +414,7 @@ class CharacterInventory {
 
             int itemid = item.getItemId();
             if (ItemConstants.isRechargeable(itemid)) {
-                quantity = (short) item.getQuantity();
+                quantity = item.getQuantity();
             } else if (ItemId.isWeddingToken(itemid) || ItemId.isWeddingRing(itemid)) {
                 return (0);
             }
@@ -428,10 +422,10 @@ class CharacterInventory {
             if (quantity < 0) {
                 return (0);
             }
-            short iQuant = (short) item.getQuantity();
+            int iQuant = item.getQuantity();
 
             if (quantity <= iQuant && iQuant > 0) {
-                InventoryManipulator.removeFromSlot(c, type, (byte) slot, quantity, false);
+                InventoryManipulator.removeFromSlot(c, type, (byte) slot, (short) quantity, false);
                 int recvMesos = ii.getPrice(itemid, quantity);
                 if (recvMesos > 0) {
                     owner.gainMeso(recvMesos, false);

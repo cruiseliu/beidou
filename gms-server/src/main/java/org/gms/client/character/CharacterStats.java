@@ -7,7 +7,7 @@ import org.gms.client.processor.action.PetAutopotProcessor;
 import org.gms.client.JobEnum;
 import org.gms.client.Skill;
 import org.gms.client.inventory.Equip;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.weaponType.WeaponTypeDefinition;
@@ -355,8 +355,8 @@ public class CharacterStats {
                 WeaponTypeDefinition weapon = WeaponTypeRegistry.of(weapon_item.getItemId());
                 if (weapon.ammoIdRange() != null) {
                     ItemInformationProvider ii = ItemInformationProvider.getInstance();
-                    Inventory inv = owner.getInventory(InventoryType.USE);
-                    for (short i = 1; i <= inv.getSlotLimit(); i++) {
+                    InventoryTab inv = owner.getInventory(InventoryType.USE);
+                    for (int i = 1; i <= inv.getSlotLimit(); i++) {
                         ItemSlot item = inv.getItem(i);
                         if (item == null) {
                             continue;

@@ -25,7 +25,7 @@ import org.gms.client.character.Stat;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.inventory.Equip;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
@@ -130,7 +130,7 @@ public final class MTSHandler extends AbstractPacketHandler {
                     return;
                 }
 
-                Inventory inv = c.getPlayer().getInventory(invType);
+                InventoryTab inv = c.getPlayer().getInventory(invType);
                 inv.lockInventory();
                 ItemSlot i;
                 try {
@@ -307,9 +307,7 @@ public final class MTSHandler extends AbstractPacketHandler {
                             if (rs.getInt("type") != 1) {
                                 ItemSlot ii = new ItemSlot(rs.getInt("itemid"), (short) 0, (short) rs.getInt("quantity"));
                                 ii.setOwner(rs.getString("owner"));
-                                ii.setPosition(
-                                        c.getPlayer().getInventory(ItemConstants.getInventoryType(rs.getInt("itemid")))
-                                                .getNextFreeSlot());
+                                ii.setPosition(c.getPlayer().getInventory(ItemConstants.getInventoryType(rs.getInt("itemid"))).getNextFreeSlot());
                                 i = ii.copy();
                             } else {
                                 ItemSlot equipSlot = ItemSlot.equipItem(rs.getInt("itemid"), (byte) rs.getInt("position"));
@@ -340,9 +338,7 @@ public final class MTSHandler extends AbstractPacketHandler {
                                 equip.setExpiration(rs.getLong("expiration"));
                                 if (equip.getCashInfo() != null) equip.getCashInfo().setGiftFrom(rs.getString("giftFrom"));   // 非现金装备不携带 giftFrom
                                 ItemSlot equipItem = equipSlot;
-                                equipItem.setPosition(
-                                        c.getPlayer().getInventory(ItemConstants.getInventoryType(rs.getInt("itemid")))
-                                                .getNextFreeSlot());
+                                equipItem.setPosition(c.getPlayer().getInventory(ItemConstants.getInventoryType(rs.getInt("itemid"))).getNextFreeSlot());
                                 i = equipItem.copy();
                             }
                             try (PreparedStatement pse = con.prepareStatement(

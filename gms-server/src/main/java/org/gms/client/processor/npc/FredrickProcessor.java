@@ -25,7 +25,7 @@ package org.gms.client.processor.npc;
 
 import org.gms.client.character.Character;
 import org.gms.client.Client;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ItemFactory;
@@ -65,7 +65,7 @@ public class FredrickProcessor {
     }
 
     private static byte canRetrieveFromFredrick(Character chr, List<Pair<ItemSlot, InventoryType>> items) {
-        if (!Inventory.checkSpotsAndOwnership(chr, items)) {
+        if (!InventoryTab.checkSpotsAndOwnership(chr, items)) {
             List<Integer> itemids = new LinkedList<>();
             for (Pair<ItemSlot, InventoryType> it : items) {
                 itemids.add(it.getLeft().getItemId());

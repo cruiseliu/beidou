@@ -24,13 +24,13 @@ import org.gms.client.character.Character;
 /**
  * @author Ronan
  */
-public class InventoryProof extends Inventory {
+public class InventoryProof extends InventoryTab {
 
     public InventoryProof(Character mc) {
-        super(mc, InventoryType.CANHOLD, (byte) 0);
+        super(mc, InventoryType.CANHOLD, 0);
     }
 
-    public void cloneContents(Inventory inv) {
+    public void cloneContents(InventoryTab inv) {
         inv.lockInventory();
         lock.lock();
         try {
@@ -39,7 +39,7 @@ public class InventoryProof extends Inventory {
 
             for (ItemSlot it : inv.list()) {
                 ItemSlot item = new ItemSlot(it.getItemId(), it.getPosition(), it.getQuantity());
-                inventory.put((short) item.getPosition(), item);
+                inventory.put(item.getPosition(), item);
             }
         } finally {
             lock.unlock();
@@ -57,14 +57,14 @@ public class InventoryProof extends Inventory {
     }
 
     @Override
-    protected short addSlot(ItemSlot item) {
+    protected int addSlot(ItemSlot item) {
         if (item == null) {
             return -1;
         }
 
         lock.lock();
         try {
-            short slotId = getNextFreeSlot();
+            int slotId = getNextFreeSlot();
             if (slotId < 0) {
                 return -1;
             }
@@ -77,7 +77,7 @@ public class InventoryProof extends Inventory {
     }
 
     @Override
-    protected void addSlotFromDB(short slot, ItemSlot item) {
+    protected void addSlotFromDB(int slot, ItemSlot item) {
         lock.lock();
         try {
             inventory.put(slot, item);
@@ -87,7 +87,7 @@ public class InventoryProof extends Inventory {
     }
 
     @Override
-    public void removeSlot(short slot) {
+    public void removeSlot(int slot) {
         lock.lock();
         try {
             inventory.remove(slot);

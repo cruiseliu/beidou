@@ -1,7 +1,7 @@
 package org.gms.client.character;
 
 import org.gms.client.EffectType;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.config.GameConfig;
@@ -217,7 +217,7 @@ class CharacterRates {
     }
 
     public void updateCouponRates() {
-        Inventory cashInv = owner.getInventory(InventoryType.CASH);
+        InventoryTab cashInv = owner.getInventory(InventoryType.CASH);
         if (cashInv == null) {
             return;
         }

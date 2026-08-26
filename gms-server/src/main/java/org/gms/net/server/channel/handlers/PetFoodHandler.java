@@ -24,7 +24,7 @@ package org.gms.net.server.channel.handlers;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.autoban.AutobanManager;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.Pet;
@@ -73,7 +73,7 @@ public final class PetFoodHandler extends AbstractPacketHandler {
 
         if (c.tryacquireClient()) {
             try {
-                Inventory useInv = chr.getInventory(InventoryType.USE);
+                InventoryTab useInv = chr.getInventory(InventoryType.USE);
                 useInv.lockInventory();
                 try {
                     ItemSlot use = useInv.getItem(pos);

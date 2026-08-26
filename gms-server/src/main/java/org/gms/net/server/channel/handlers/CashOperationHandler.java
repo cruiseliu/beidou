@@ -25,7 +25,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.Ring;
 import org.gms.client.inventory.Equip;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
@@ -325,7 +325,7 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                         return;
                     }
 
-                    Inventory mi = chr.getInventory(InventoryType.getByType(invType));
+                    InventoryTab mi = chr.getInventory(InventoryType.getByType(invType));
                     ItemSlot item = mi.findByCashId(cashId);
                     if (item == null) {
                         c.enableCSActions();

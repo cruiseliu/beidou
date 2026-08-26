@@ -198,11 +198,11 @@ public class AbstractPlayerInteraction {
         return getPlayer().getEventInstance();
     }
 
-    public Inventory getInventory(int type) {
+    public InventoryTab getInventory(int type) {
         return getPlayer().getInventory(InventoryType.getByType((byte) type));
     }
 
-    public Inventory getInventory(InventoryType type) {
+    public InventoryTab getInventory(InventoryType type) {
         return getPlayer().getInventory(type);
     }
 
@@ -280,7 +280,7 @@ public class AbstractPlayerInteraction {
             addedItems.add(new Pair<>(it, ItemConstants.getInventoryType(itemids.get(i))));
         }
 
-        return Inventory.checkSpots(c.getPlayer(), addedItems);
+        return InventoryTab.checkSpots(c.getPlayer(), addedItems);
     }
 
     private List<Pair<ItemSlot, InventoryType>> prepareProofInventoryItems(List<Pair<Integer, Integer>> items) {
@@ -322,7 +322,7 @@ public class AbstractPlayerInteraction {
                 if (!toAdd.isEmpty()) {
                     List<Pair<Integer, Integer>> toRemove = toRemoveItemList.get(i);
 
-                    Inventory inv = this.getInventory(i);
+                    InventoryTab inv = this.getInventory(i);
                     prfInv.cloneContents(inv);
 
                     for (Pair<Integer, Integer> p : toRemove) {
@@ -331,7 +331,7 @@ public class AbstractPlayerInteraction {
 
                     List<Pair<ItemSlot, InventoryType>> addItems = prepareProofInventoryItems(toAdd);
 
-                    boolean canHold = Inventory.checkSpots(c.getPlayer(), addItems, true);
+                    boolean canHold = InventoryTab.checkSpots(c.getPlayer(), addItems, true);
                     if (!canHold) {
                         return false;
                     }
@@ -873,7 +873,7 @@ public class AbstractPlayerInteraction {
     public void removeFromParty(int id, List<Character> party) {
         for (Character chr : party) {
             InventoryType type = ItemConstants.getInventoryType(id);
-            Inventory iv = chr.getInventory(type);
+            InventoryTab iv = chr.getInventory(type);
             int possesed = iv.countById(id);
             if (possesed > 0) {
                 InventoryManipulator.removeById(c, ItemConstants.getInventoryType(id), id, possesed, true, false);
@@ -903,14 +903,14 @@ public class AbstractPlayerInteraction {
     }
 
     public void removeAllByInventory(int invType) {
-        Inventory inv = getInventory(invType);
+        InventoryTab inv = getInventory(invType);
         for (ItemSlot item : new ArrayList<>(inv.list())) {
             InventoryManipulator.removeFromSlot(c, inv.getType(), (short) item.getPosition(), (short) item.getQuantity(), false);
         }
     }
 
     public void removeAllByInventorySlot(int invType, short slot) {
-        Inventory inv = getInventory(invType);
+        InventoryTab inv = getInventory(invType);
         ItemSlot item = inv.getItem(slot);
         if (item != null) {
             InventoryManipulator.removeFromSlot(c, inv.getType(), (short) item.getPosition(), (short) item.getQuantity(), false);

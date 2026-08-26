@@ -24,7 +24,7 @@ package org.gms.client.processor.npc;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.autoban.AutobanFactory;
-import org.gms.client.inventory.Inventory;
+import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
@@ -122,7 +122,7 @@ public class StorageProcessor {
                     int itemId = p.readInt();
                     short quantity = p.readShort();
                     InventoryType invType = ItemConstants.getInventoryType(itemId);
-                    Inventory inv = chr.getInventory(invType);
+                    InventoryTab inv = chr.getInventory(invType);
                     if (slot < 1 || slot > inv.getSlotLimit()) { // player inv starts at one
                         AutobanFactory.PACKET_EDIT.alert(c.getPlayer(),
                                 c.getPlayer().getName() + " tried to packet edit with storage.");
