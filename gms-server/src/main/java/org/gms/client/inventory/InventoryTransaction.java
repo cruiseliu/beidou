@@ -2,8 +2,6 @@ package org.gms.client.inventory;
 
 import org.gms.client.character.Character;
 import org.gms.constants.inventory.ItemConstants;
-import org.gms.server.ItemInformationProvider;
-import org.gms.util.PacketCreator;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -23,7 +21,6 @@ import java.util.function.DoubleSupplier;
  * 冻结为 pool 全体，反操纵）→ 按权重 roll → 影子落位 → commit。
  */
 public class InventoryTransaction {
-    private static ItemInformationProvider itemInfo = ItemInformationProvider.getInstance();
     /** 事务域：EQUIPPED 与 CANHOLD 不在其中 */
     private static final InventoryType[] TX_TYPES = {
         InventoryType.EQUIP,
@@ -153,15 +150,18 @@ public class InventoryTransaction {
     }
 
     private void addInternal(ItemStack item) {
+        // fixme: [refactor] check exclusive item
         ItemStack remaining = item.copy();
 
         int itemId = remaining.itemId;
         InventoryType type = tabTypeOf(itemId);
         InventoryTab tab = shadow.get(type);
 
-        // todo: [refactor] rechargeable item use stackLimit=1 and charge=x
-        boolean stackable = !ItemConstants.isRechargeable(itemId) && !ItemConstants.isEquipment(itemId);
-        int stackLimit = stackable ? itemInfo.getSlotMax(character.getClient(), itemId) : 1;
+        // 可充值与装备同为"一组一格"（quantity = 组数、次数在该组宿主 Item 上；分组永久）：
+        // 装备显式排除（其 wz slotMax 无堆叠意义），可充值由 getStackLimit 归一为 1——
+        // 上限 1 即天然不进并堆循环、每个 quantity 单位落一个新槽
+        boolean stackable = !ItemConstants.isEquipment(itemId);
+        int stackLimit = stackable ? item.getStackLimit(character.getClient()) : 1;
 
         if (stackLimit > 1) {
             for (ItemSlot slot : tab.listById(itemId)) {
@@ -216,12 +216,14 @@ public class InventoryTransaction {
         return this;
     }
 
-    /** 影子上自首堆逐个扣减（与 op 记录序一致）；不足且 mayFail → failed */
+    /**
+     * 影子上自首堆逐个扣减（与 op 记录序一致）；不足且 mayFail → failed。
+     * 可充值的 quantity 语义为组数（每组一格、每组算 1）；发数级扣减（消耗一发）走消耗路径，不在此。
+     */
     private void removeInternal(ItemStack item, boolean mayFail) {
         int itemId = item.itemId;
         InventoryType type = tabTypeOf(itemId);
         InventoryTab tab = shadow.get(type);
-        boolean rechargeable = ItemConstants.isRechargeable(itemId);
 
         int remaining = item.quantity;
 
@@ -231,7 +233,9 @@ public class InventoryTransaction {
             }
             remaining -= slot.takeAtMost(remaining).quantity;
             ops.add(new SetQtyOp(type, slot.position, slot.quantity, slot.quantity == 0));
-            tab.removeItem(slot.position, 0, rechargeable);  // todo: [refactor] use a better api to clear empty slot
+            if (slot.quantity == 0) {
+                tab.removeSlot(slot.position);   // 扣空的组整格移除，影子表项与 ops 保持一致
+            }
         }
 
         if (mayFail && remaining > 0) {
@@ -269,8 +273,10 @@ public class InventoryTransaction {
         InventoryType type = tabTypeOf(itemId);
         InventoryTab tab = shadow.get(type);
 
-        boolean stackable = !ItemConstants.isRechargeable(itemId) && !ItemConstants.isEquipment(itemId);
-        int stackLimit = stackable ? itemInfo.getSlotMax(character.getClient(), itemId) : 1;
+        boolean stackable = !ItemConstants.isEquipment(itemId);
+        int stackLimit = stackable
+                ? new ItemStack(option.itemId, option.quantity).getStackLimit(character.getClient())
+                : 1;
 
         int freeSlots = tab.getNumFreeSlot();
         if (freeSlots * stackLimit >= option.quantity) {
@@ -322,7 +328,8 @@ public class InventoryTransaction {
                 op.replay(inventory.getTab(op.type), mods);
             }
             if (!mods.isEmpty()) {
-                character.sendPacket(PacketCreator.modifyInventory(true, mods));
+                // 经 remote 层发包：可充值物品 wire 前由 ModifyInventoryOp 做 charge→quantity 还原
+                character.getRemote().updateInventory(mods);
             }
         }
 

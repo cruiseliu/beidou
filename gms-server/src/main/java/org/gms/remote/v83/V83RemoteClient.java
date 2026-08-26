@@ -25,6 +25,7 @@ public final class V83RemoteClient implements RemoteClient {
     private final StatChangedOp statChanged = new StatChangedOp();
     private final UpdateSkillsOp updateSkills = new UpdateSkillsOp();
     private final CooldownOp cooldown = new CooldownOp();
+    private final ModifyInventoryOp inventory = new ModifyInventoryOp();
 
     public V83RemoteClient(Client client) {
         this.client = client;
@@ -76,6 +77,12 @@ public final class V83RemoteClient implements RemoteClient {
         @Override
         public RemoteUpdate clearSkillCooldown(int skillId) {
             V83RemoteClient.this.clearSkillCooldown(skillId);
+            return this;
+        }
+
+        @Override
+        public RemoteUpdate updateInventory(java.util.List<org.gms.client.inventory.ModifyInventory> mods) {
+            V83RemoteClient.this.updateInventory(mods);
             return this;
         }
 
@@ -141,6 +148,18 @@ public final class V83RemoteClient implements RemoteClient {
         flushIfImmediate();
     }
 
+    @Override
+    public synchronized void updateInventory(java.util.List<org.gms.client.inventory.ModifyInventory> mods) {
+        inventory.mergeAll(mods);
+        flushIfImmediate();
+    }
+
+    @Override
+    public synchronized void announceInventoryFull() {
+        inventory.markFull();
+        flushIfImmediate();
+    }
+
     private void flushIfImmediate() {
         if (depth == 0) {
             flush();
@@ -152,5 +171,6 @@ public final class V83RemoteClient implements RemoteClient {
         statChanged.sendTo(client);
         updateSkills.sendTo(client);
         cooldown.sendTo(client);
+        inventory.sendTo(client);
     }
 }

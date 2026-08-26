@@ -2402,6 +2402,11 @@ public class Character extends AbstractAnimatedMapObject {
         return client != null ? client.getRemote() : RemoteClient.DISCONNECTED;
     }
 
+    /** 远端客户端门面（跨包公开；背包域等组件用） */
+    public RemoteClient getRemote() {
+        return remote();
+    }
+
     @Override
     public int getObjectId() {
         return getId();
@@ -3218,6 +3223,7 @@ public class Character extends AbstractAnimatedMapObject {
     // ── inventory 门面 ──
 
     public InventoryTab getInventory(InventoryType type) { return inventory.getInventory(type); }
+    public Inventory getInventorySet() { return inventory.getInventorySet(); }
     public int countItem(int itemid) { return inventory.countItem(itemid); }
     public boolean canHold(int itemid) { return inventory.canHold(itemid); }
     public boolean canHold(int itemid, int quantity) { return inventory.canHold(itemid, quantity); }

@@ -21,12 +21,11 @@
 */
 package org.gms.client.inventory;
 
+import org.gms.util.Locks;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.constants.inventory.ItemConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.gms.server.ItemInformationProvider;
 import org.gms.server.ThreadManager;
 import org.gms.util.Pair;
@@ -63,17 +62,13 @@ public class InventoryTab implements Iterable<ItemSlot> {
     }
 
     public int getSlotLimit() {
-        lock.lock();
-        try {
+        try (var ignored = Locks.acquire(lock)) {
             return slotLimit;
-        } finally {
-            lock.unlock();
         }
     }
 
     public void setSlotLimit(int newLimit) {
-        lock.lock();
-        try {
+        try (var ignored = Locks.acquire(lock)) {
             if (newLimit < slotLimit) {
                 List<Integer> toRemove = new LinkedList<>();
                 for (ItemSlot it : list()) {
@@ -88,17 +83,12 @@ public class InventoryTab implements Iterable<ItemSlot> {
             }
 
             slotLimit = newLimit;
-        } finally {
-            lock.unlock();
         }
     }
 
     public Collection<ItemSlot> list() {
-        lock.lock();
-        try {
+        try (var ignored = Locks.acquire(lock)) {
             return new ArrayList<>(inventory.values());
-        } finally {
-            lock.unlock();
         }
     }
 
@@ -111,7 +101,7 @@ public class InventoryTab implements Iterable<ItemSlot> {
         return null;
     }
 
-        public int countById(int itemId) {
+    public int countById(int itemId) {
         int qty = 0;
         for (ItemSlot item : list()) {
             if (item.getItemId() == itemId) {
@@ -119,41 +109,6 @@ public class InventoryTab implements Iterable<ItemSlot> {
             }
         }
         return qty;
-    }
-
-        public int freeSlotCountById(int itemId, int required) {
-        List<ItemSlot> itemList = listById(itemId);
-        int openSlot = 0;
-
-        if (!ItemConstants.isRechargeable(itemId)) {
-            for (ItemSlot item : itemList) {
-                required -= item.getQuantity();
-
-                if (required >= 0) {
-                    openSlot++;
-                    if (required == 0) {
-                        return openSlot;
-                    }
-                } else {
-                    return openSlot;
-                }
-            }
-        } else {
-            for (ItemSlot item : itemList) {
-                required -= 1;
-
-                if (required >= 0) {
-                    openSlot++;
-                    if (required == 0) {
-                        return openSlot;
-                    }
-                } else {
-                    return openSlot;
-                }
-            }
-        }
-
-        return -1;
     }
 
     public List<ItemSlot> listById(int itemId) {
@@ -171,6 +126,7 @@ public class InventoryTab implements Iterable<ItemSlot> {
         return ret;
     }
 
+    // todo: [refactor] remove this overload
     public int addItem(ItemSlot item) {
         int slotId = addSlot(item);
         if (slotId == -1) {
@@ -200,8 +156,7 @@ public class InventoryTab implements Iterable<ItemSlot> {
     }
 
     public void move(int sSlot, int dSlot, int slotMax) {
-        lock.lock();
-        try {
+        try (var ignored = Locks.acquire(lock)) {
             ItemSlot source = inventory.get(sSlot);
             ItemSlot target = inventory.get(dSlot);
             if (source == null) {
@@ -225,8 +180,6 @@ public class InventoryTab implements Iterable<ItemSlot> {
             } else {
                 swap(target, source);
             }
-        } finally {
-            lock.unlock();
         }
     }
 
@@ -241,11 +194,8 @@ public class InventoryTab implements Iterable<ItemSlot> {
     }
 
     public ItemSlot getItem(int slot) {
-        lock.lock();
-        try {
+        try (var ignored = Locks.acquire(lock)) {
             return inventory.get(slot);
-        } finally {
-            lock.unlock();
         }
     }
 
@@ -273,16 +223,13 @@ public class InventoryTab implements Iterable<ItemSlot> {
         }
 
         int slotId;
-        lock.lock();
-        try {
+        try (var ignored = Locks.acquire(lock)) {
             slotId = getNextFreeSlot();
             if (slotId < 0) {
                 return -1;
             }
 
             inventory.put(slotId, item);
-        } finally {
-            lock.unlock();
         }
 
         if (ItemConstants.isRateCoupon(item.getItemId())) {
@@ -294,11 +241,8 @@ public class InventoryTab implements Iterable<ItemSlot> {
     }
 
     protected void addSlotFromDB(int slot, ItemSlot item) {
-        lock.lock();
-        try {
+        try (var ignored = Locks.acquire(lock)) {
             inventory.put(slot, item);
-        } finally {
-            lock.unlock();
         }
 
         if (ItemConstants.isRateCoupon(item.getItemId())) {
@@ -308,11 +252,8 @@ public class InventoryTab implements Iterable<ItemSlot> {
 
     public void removeSlot(int slot) {
         ItemSlot item;
-        lock.lock();
-        try {
+        try (var ignored = Locks.acquire(lock)) {
             item = inventory.remove(slot);
-        } finally {
-            lock.unlock();
         }
 
         if (item != null && ItemConstants.isRateCoupon(item.getItemId())) {
@@ -321,31 +262,22 @@ public class InventoryTab implements Iterable<ItemSlot> {
     }
 
     public boolean isFull() {
-        lock.lock();
-        try {
+        try (var ignored = Locks.acquire(lock)) {
             return inventory.size() >= slotLimit;
-        } finally {
-            lock.unlock();
         }
     }
 
     public boolean isFull(int margin) {
-        lock.lock();
-        try {
+        try (var ignored = Locks.acquire(lock)) {
             //System.out.print("(" + inventory.size() + " " + margin + " <> " + slotLimit + ")");
             return inventory.size() + margin >= slotLimit;
-        } finally {
-            lock.unlock();
         }
     }
 
     public boolean isFullAfterSomeItems(int margin, int used) {
-        lock.lock();
-        try {
+        try (var ignored = Locks.acquire(lock)) {
             //System.out.print("(" + inventory.size() + " " + margin + " <> " + slotLimit + " -" + used + ")");
             return inventory.size() + margin >= slotLimit - used;
-        } finally {
-            lock.unlock();
         }
     }
 
@@ -354,16 +286,13 @@ public class InventoryTab implements Iterable<ItemSlot> {
             return -1;
         }
 
-        lock.lock();
-        try {
+        try (var ignored = Locks.acquire(lock)) {
             for (int i = 1; i <= slotLimit; i++) {
                 if (!inventory.containsKey(i)) {
                     return i;
                 }
             }
             return -1;
-        } finally {
-            lock.unlock();
         }
     }
 
@@ -372,8 +301,7 @@ public class InventoryTab implements Iterable<ItemSlot> {
             return 0;
         }
 
-        lock.lock();
-        try {
+        try (var ignored = Locks.acquire(lock)) {
             int free = 0;
             for (int i = 1; i <= slotLimit; i++) {
                 if (!inventory.containsKey(i)) {
@@ -381,8 +309,6 @@ public class InventoryTab implements Iterable<ItemSlot> {
                 }
             }
             return free;
-        } finally {
-            lock.unlock();
         }
     }
 
@@ -589,20 +515,14 @@ public class InventoryTab implements Iterable<ItemSlot> {
     }
 
     public boolean checked() {
-        lock.lock();
-        try {
+        try (var ignored = Locks.acquire(lock)) {
             return checked;
-        } finally {
-            lock.unlock();
         }
     }
 
     public void checked(boolean yes) {
-        lock.lock();
-        try {
+        try (var ignored = Locks.acquire(lock)) {
             checked = yes;
-        } finally {
-            lock.unlock();
         }
     }
 

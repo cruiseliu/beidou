@@ -22,9 +22,12 @@
 package org.gms.server.quest.actions;
 
 import org.gms.client.character.Character;
-import org.gms.client.Client;
+import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemPool;
+import org.gms.client.inventory.ItemStack;
+import org.gms.client.inventory.ItemStackWeight;
+import org.gms.client.inventory.InventoryTransaction;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.util.I18nUtil;
@@ -36,12 +39,9 @@ import org.gms.server.ItemInformationProvider;
 import org.gms.server.quest.Quest;
 import org.gms.server.quest.QuestActionType;
 import org.gms.util.PacketCreator;
-import org.gms.util.Pair;
 import org.gms.util.Randomizer;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
@@ -58,7 +58,6 @@ public class ItemAction extends AbstractQuestAction {
         super(QuestActionType.ITEM, quest);
         processData(data);
     }
-
 
     @Override
     public void processData(Data data) {
@@ -91,8 +90,8 @@ public class ItemAction extends AbstractQuestAction {
 
     @Override
     public void run(Character chr, Integer extSelection) {
-        List<ItemData> takeItem = new LinkedList<>();
-        List<ItemData> giveItem = new LinkedList<>();
+        List<ItemData> takeItem = new ArrayList<>();
+        List<ItemData> giveItem = new ArrayList<>();
 
         int props = 0, rndProps = 0, accProps = 0;
         for (ItemData item : items) {
@@ -140,15 +139,6 @@ public class ItemAction extends AbstractQuestAction {
 
             InventoryType type = ItemConstants.getInventoryType(itemid);
             int quantity = count * -1; // Invert
-            if (type.equals(InventoryType.EQUIP)) {
-                if (chr.getInventory(type).countById(itemid) < quantity) {
-                    // Not enough in the equip inventoty, so check Equipped...
-                    if (chr.getInventory(InventoryType.EQUIPPED).countById(itemid) > quantity) {
-                        // Found it equipped, so change the type to equipped.
-                        type = InventoryType.EQUIPPED;
-                    }
-                }
-            }
 
             InventoryManipulator.removeById(chr.getClient(), type, itemid, quantity, true, false);
             chr.sendPacket(PacketCreator.getShowItemGain(itemid, (short) count, true));
@@ -164,92 +154,64 @@ public class ItemAction extends AbstractQuestAction {
 
     @Override
     public boolean check(Character chr, Integer extSelection) {
-        List<Pair<ItemSlot, InventoryType>> gainList = new LinkedList<>();
-        List<Pair<ItemSlot, InventoryType>> selectList = new LinkedList<>();
-        List<Pair<ItemSlot, InventoryType>> randomList = new LinkedList<>();
+        List<ItemStack> removes = new ArrayList<>();          // 固定收取（count<0）
+        List<ItemStack> gains = new ArrayList<>();            // 固定发放（count>0）
+        List<ItemStackWeight> poolOptions = new ArrayList<>(); // 随机池（prop>=0）
+        List<Integer> allItemids = new ArrayList<>();          // 失败提示用（事务无法定位失败项，整体报告）
 
-        List<Integer> allSlotUsed = new ArrayList(5);
-        for (byte i = 0; i < 5; i++) {
-            allSlotUsed.add(0);
-        }
-
+        int extNum = 0;
         for (ItemData item : items) {
             if (!canGetItem(item, chr)) {
                 continue;
             }
 
-            InventoryType type = ItemConstants.getInventoryType(item.getId());
-            if (item.getProp() != null) {
-                ItemSlot toItem = new ItemSlot(item.getId(), (short) 0, (short) item.getCount());
-
-                if (item.getProp() < 0) {
-                    selectList.add(new Pair<>(toItem, type));
-                } else {
-                    randomList.add(new Pair<>(toItem, type));
+            Integer prop = item.getProp();
+            if (prop == null) {
+                collectBySign(item.getCount() < 0 ? removes : gains, item.getId(), Math.abs(item.getCount()));
+                allItemids.add(item.getId());
+            } else if (prop < 0) {
+                if (extSelection != extNum++) {
+                    continue;
                 }
-
+                // 玩家选择项按数量符号归入收取/发放
+                collectBySign(item.getCount() < 0 ? removes : gains, item.getId(), Math.abs(item.getCount()));
+                allItemids.add(item.getId());
             } else {
-                // Make sure they can hold the item.
-                ItemSlot toItem = new ItemSlot(item.getId(), (short) 0, (short) item.getCount());
-                gainList.add(new Pair<>(toItem, type));
-
-                if (item.getCount() < 0) {
-                    // Make sure they actually have the item.
-                    int quantity = item.getCount() * -1;
-
-                    int freeSlotCount = chr.getInventory(type).freeSlotCountById(item.getId(), quantity);
-                    if (freeSlotCount == -1) {
-                        if (type.equals(InventoryType.EQUIP) && chr.getInventory(InventoryType.EQUIPPED).countById(item.getId()) > quantity) {
-                            continue;
-                        }
-
-                        announceInventoryLimit(Collections.singletonList(item.getId()), chr);
-                        return false;
-                    } else {
-                        int idx = type.getType() - 1;   // more slots available from the given items!
-                        allSlotUsed.set(idx, allSlotUsed.get(idx) - freeSlotCount);
-                    }
-                }
+                poolOptions.add(new ItemStackWeight(item.getId(), item.getCount(), prop));
+                allItemids.add(item.getId());
             }
         }
 
-        if (!randomList.isEmpty()) {
-            int result;
-            Client c = chr.getClient();
+        // 先取后给（run 语义），随机池收尾（验全 = roll 样本空间冻结）；
+        // testUpdate：commit 不落真，addPoolAndCommit 的 roll 被丢弃，仅返回可行性
+        InventoryTransaction tx = chr.getInventorySet().testUpdate();
+        tx.remove(removes).add(gains);
+        boolean feasible = poolOptions.isEmpty() ? tx.commit() : tx.addPoolAndCommit(new ItemPool(poolOptions));
 
-            List<Integer> rndUsed = new ArrayList(5);
-            for (byte i = 0; i < 5; i++) {
-                rndUsed.add(allSlotUsed.get(i));
-            }
-
-            for (Pair<ItemSlot, InventoryType> it : randomList) {
-                int idx = it.getRight().getType() - 1;
-
-                result = InventoryManipulator.checkSpaceProgressively(c, it.getLeft().getItemId(), it.getLeft().getQuantity(), "", rndUsed.get(idx), false);
-                if (result % 2 == 0) {
-                    announceInventoryLimit(Collections.singletonList(it.getLeft().getItemId()), chr);
-                    return false;
-                }
-
-                allSlotUsed.set(idx, Math.max(allSlotUsed.get(idx), result >> 1));
-            }
-        }
-
-        if (!selectList.isEmpty()) {
-            Pair<ItemSlot, InventoryType> selected = selectList.get(extSelection);
-            gainList.add(selected);
-        }
-
-        if (!canHold(chr, gainList)) {
-            List<Integer> gainItemids = new LinkedList<>();
-            for (Pair<ItemSlot, InventoryType> it : gainList) {
-                gainItemids.add(it.getLeft().getItemId());
-            }
-
-            announceInventoryLimit(gainItemids, chr);
+        if (!feasible) {
+            announceInventoryLimit(allItemids, chr);
             return false;
         }
         return true;
+    }
+
+    /**
+     * wz 任务数据的 count 历史语义为发数；而事务/Inventory 的入参 ItemStack 即最终槽位内容
+     * （可充值一组一格，quantity = 组数、次数在宿主 Item）。此处在调用点完成转换：
+     * 发数按组拆分（每组满充 slotMax、尾组余数），非可充值原样单堆。
+     */
+    private static void collectBySign(List<ItemStack> target, int itemId, int count) {
+        if (!ItemConstants.isRechargeable(itemId)) {
+            target.add(new ItemStack(itemId, count));
+            return;
+        }
+        int slotMax = ItemInformationProvider.getInstance().getSlotMax(null, itemId);
+        int remaining = count;
+        while (remaining > 0 && slotMax > 0) {
+            int groupCharge = Math.min(remaining, slotMax);
+            remaining -= groupCharge;
+            target.add(new ItemStack(Item.rechargeable(itemId, groupCharge), 1));
+        }
     }
 
     private void announceInventoryLimit(List<Integer> itemids, Character chr) {
@@ -263,27 +225,6 @@ public class ItemAction extends AbstractQuestAction {
         chr.dropMessage(1, I18nUtil.getMessage("ItemAction.Message1"));
     }
 
-    private boolean canHold(Character chr, List<Pair<ItemSlot, InventoryType>> gainList) {
-        List<Integer> toAddItemids = new LinkedList<>();
-        List<Integer> toAddQuantity = new LinkedList<>();
-        List<Integer> toRemoveItemids = new LinkedList<>();
-        List<Integer> toRemoveQuantity = new LinkedList<>();
-
-        for (Pair<ItemSlot, InventoryType> item : gainList) {
-            ItemSlot it = item.getLeft();
-
-            if (it.getQuantity() > 0) {
-                toAddItemids.add(it.getItemId());
-                toAddQuantity.add((int) it.getQuantity());
-            } else {
-                toRemoveItemids.add(it.getItemId());
-                toRemoveQuantity.add(-1 * ((int) it.getQuantity()));
-            }
-        }
-
-        // thanks onechord for noticing quests unnecessarily giving out "full inventory" from quests that also takes items from players
-        return chr.getAbstractPlayerInteraction().canHoldAllAfterRemoving(toAddItemids, toAddQuantity, toRemoveItemids, toRemoveQuantity);
-    }
 
     private boolean canGetItem(ItemData item, Character chr) {
         if (item.getGender() != 2 && item.getGender() != chr.getGender()) {

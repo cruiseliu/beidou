@@ -20,6 +20,8 @@ public interface RemoteUpdate extends AutoCloseable {
 
     RemoteUpdate clearSkillCooldown(int skillId);
 
+    RemoteUpdate updateInventory(java.util.List<org.gms.client.inventory.ModifyInventory> mods);
+
     /** 立即发送域内积攒的通知（等价 close）。 */
     void commit();
 
@@ -61,6 +63,11 @@ public interface RemoteUpdate extends AutoCloseable {
 
         @Override
         public RemoteUpdate clearSkillCooldown(int skillId) {
+            return this;
+        }
+
+        @Override
+        public RemoteUpdate updateInventory(java.util.List<org.gms.client.inventory.ModifyInventory> mods) {
             return this;
         }
 

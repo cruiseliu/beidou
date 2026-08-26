@@ -25,6 +25,10 @@ public class Item implements Comparable<Item> {
 
     int petId = -1;
 
+    /** 可充值物品（飞镖/子弹）的可使用次数；新表示下 quantity 恒 1（一组一格），次数存此。
+     *  非可充值物品不使用本字段。 */
+    int charge;
+
     Item(int id, int position, int petid) {
         this.id = id;
         this.petId = petid;
@@ -35,6 +39,26 @@ public class Item implements Comparable<Item> {
 
     public int getItemId() {
         return id;
+    }
+
+    /** 是否可充值物品（飞镖/子弹）——quantity 语义为"组数"（恒 1），次数在 charge */
+    public boolean isRechargeable() {
+        return ItemConstants.isRechargeable(id);
+    }
+
+    /** 工厂：创建携带可使用次数的可充值物品本体（"一组一格"表示中的该组；供包外构造） */
+    public static Item rechargeable(int itemId, int charge) {
+        Item item = new Item(itemId, 0, -1);
+        item.charge = charge;
+        return item;
+    }
+
+    public int getCharge() {
+        return charge;
+    }
+
+    public void setCharge(int charge) {
+        this.charge = charge;
     }
 
     // ── 持久化数据转换（inventory 域；槽位 position/quantity 经宿主 slot 读写，信封组装在 Character.toData） ──

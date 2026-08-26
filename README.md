@@ -3,8 +3,8 @@
 实验性的第三方 BeiDouMS fork，早期开发阶段。
 
 * 短期目标：改善可维护性
-* 中期目标：优化单机体验
-* 长期目标：游戏内容按版本模组化
+* 中期目标：优化单机体验、无 mod 干净版本
+* 长期目标：游戏内容模组化、多客户端支持
 
 新法代码，古法 review。
 
@@ -21,13 +21,16 @@ BeiDouMS 主要开发痛点：
 
  1. 巨型类拆分
      1. [x] ~~拆分 Character.java~~
-     2. [ ] 拆分 Packet.java
+     2. [ ] 拆分 Packet.java (In Progress)
      3. [ ] 拆分 MapleMap.java
  2. ID 特判数据化
      1. [ ] 聚合职业数据 (In Progress)
      2. [x] ~~聚合武器类型数据~~
      3. [ ] 聚合技能数据
  3. 剥离通信层
+     1. [x] 下行框架
+     2. [ ] 上行框架
+     3. [ ] 隔离 hack
  4. 重构脚本框架
      1. [ ] 支持 ESM (In Progress)
      2. [ ] 支持 i18n
@@ -45,3 +48,7 @@ BeiDouMS 主要开发痛点：
     2. [ ] 职业 (In Progress)
     3. [ ] 技能 (In Progress)
     4. [ ] Buff (In Progress)
+ 2. Inventory 部分
+    1. [ ] 道具 (In Progress)
+    2. [ ] 装备 (In Progress)
+    3. [ ] 背包 (In Progress)

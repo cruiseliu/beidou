@@ -37,6 +37,12 @@ public interface RemoteClient {
     /** 清除技能冷却显示（到期/重置）。 */
     void clearSkillCooldown(int skillId);
 
+    /** 背包槽变更通知（并堆/新槽/移动/移除；v83 为 INVENTORY_OPERATION，同合并域一包） */
+    void updateInventory(java.util.List<org.gms.client.inventory.ModifyInventory> mods);
+
+    /** 背包满提示（v83：SHOW_STATUS_INFO(0xff)；空 INVENTORY_OPERATION 复用 modifyInventory 语义） */
+    void announceInventoryFull();
+
     /** 无连接/已断开时的空实现——对齐 Character.sendPacket 对 client==null 的静默容忍。 */
     RemoteClient DISCONNECTED = new RemoteClient() {
         @Override
@@ -70,6 +76,14 @@ public interface RemoteClient {
 
         @Override
         public void clearSkillCooldown(int skillId) {
+        }
+
+        @Override
+        public void updateInventory(java.util.List<org.gms.client.inventory.ModifyInventory> mods) {
+        }
+
+        @Override
+        public void announceInventoryFull() {
         }
     };
 }
