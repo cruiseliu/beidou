@@ -4,6 +4,7 @@ package org.gms.service;
 import lombok.extern.slf4j.Slf4j;
 import org.gms.client.character.Stat;
 import org.gms.client.inventory.Equip;
+import org.gms.client.inventory.Item;
 import org.gms.constants.api.InformationType;
 import org.gms.exception.BizException;
 import org.gms.model.dto.*;
@@ -38,7 +39,8 @@ public class CommonService {
         if (submitData.getId() == null) {
             throw new BizException(I18nUtil.getExceptionMessage("PARAMETER_SHOULD_NOT_NULL"));
         }
-        Equip equip = itemService.getEquipmentInfoByItemId(submitData.getId());
+        Item item = itemService.getEquipmentInfoByItemId(submitData.getId());
+        Equip equip = item.getEquipInfo();
         EquipmentInfoRtnDTO rtn = new EquipmentInfoRtnDTO();
         rtn.setStr((short) equip.getStat(Stat.STR));
         rtn.setDex((short) equip.getStat(Stat.DEX));
@@ -56,7 +58,7 @@ public class CommonService {
         rtn.setSpeed((short) equip.getStat(Stat.SPEED));
         rtn.setJump((short) equip.getStat(Stat.JUMP));
         rtn.setUpgradeSlot((byte) equip.getEnhancementSlots());
-        rtn.setExpire(equip.getExpiration());
+        rtn.setExpire(item.getExpiration());
         return rtn;
     }
 

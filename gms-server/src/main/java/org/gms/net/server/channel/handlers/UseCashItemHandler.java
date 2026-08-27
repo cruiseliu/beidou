@@ -78,6 +78,7 @@ import java.util.List;
 
 import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import org.gms.client.inventory.ItemFlag;
 
 public final class UseCashItemHandler extends AbstractPacketHandler {
     private static final Logger log = LoggerFactory.getLogger(UseCashItemHandler.class);
@@ -248,12 +249,10 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
                 if (eq == null) { //Check if the type is EQUIPMENT?
                     return;
                 }
-                short flag = (short) eq.getFlag();
-                if (eq.getExpiration() > -1 && (eq.getFlag() & ItemConstants.LOCK) != ItemConstants.LOCK) {
+                if (eq.getExpiration() > -1 && !eq.hasFlag(ItemFlag.LOCK)) {
                     return; //No perma items pls
                 }
-                flag |= ItemConstants.LOCK;
-                eq.setFlag(flag);
+                eq.addFlag(ItemFlag.LOCK);
 
                 long period = 0;
                 if (itemId == 5061000) {
@@ -621,12 +620,14 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
             InventoryType type = InventoryType.getByType((byte) p.readInt());
             short slot = (short) p.readInt();
             ItemSlot item = player.getInventory(type).getItem(slot);
-            if (item == null || item.getQuantity() <= 0 || KarmaManipulator.hasKarmaFlag(item) || !ii.isKarmaAble(item.getItemId())) {
+            if (item == null || item.getQuantity() <= 0
+                    // 可交易一次置位时不可再剪（覆盖规则）；可剪性读构造期落位的恒定标签
+                    || item.hasFlag(ItemFlag.TRADE_ONCE) || !item.hasFlag(ItemFlag.SCISSOR_USABLE)) {
                 c.enableActions();
                 return;
             }
 
-            KarmaManipulator.setKarmaFlag(item);
+            KarmaManipulator.applyScissors(item);
             player.forceUpdateItem(item);
             remove(c, position, itemId);
             c.enableActions();
@@ -643,7 +644,7 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
                 return; // 如果装备的金锤子使用次数大于等于2或玩家没有金锤子，则返回
             }
             equip.setVicious(equip.getVicious() + 1); // 增加装备的金锤子已使用次数
-            equip.setUpgradeSlots(equip.getEnhancementSlots() + 1); // 增加装备的升级插槽数量
+            equip.setEnhancementSlots(equip.getEnhancementSlots() + 1); // 增加装备的升级插槽数量
             remove(c, position, itemId); // 移除指定位置的物品
             c.enableActions(); // 发送启用操作的封包
             c.sendPacket(PacketCreator.sendHammerData(equip.getVicious())); // 发送锤子数据封包

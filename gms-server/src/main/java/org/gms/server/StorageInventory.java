@@ -110,7 +110,7 @@ public class StorageInventory {
         if (source == null) {
             return;
         }
-        short slotMax = ItemInformationProvider.getInstance().getSlotMax(c, source.getItemId());
+        short slotMax = ItemInformationProvider.getInstance().getSlotMax(source.getItemId());
         this.move(src, dst, slotMax);
     }
 
@@ -172,7 +172,7 @@ public class StorageInventory {
                 if (dstItem.getItemId() != srcItem.getItemId()) {
                     continue;
                 }
-                if (dstItem.getQuantity() == ii.getSlotMax(c, this.getItem(dst).getItemId())) {
+                if (dstItem.getQuantity() == ii.getSlotMax(this.getItem(dst).getItemId())) {
                     break;
                 }
 

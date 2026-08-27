@@ -102,7 +102,7 @@ public enum ItemFactory {
     private static ItemSlot loadEquipFromResultSet(ResultSet rs) throws SQLException {
         ItemSlot equipSlot = ItemSlot.equipItem(rs.getInt("itemid"), (short) rs.getInt("position"));
         Equip equip = equipSlot.getEquipInfo();
-        equip.setOwner(rs.getString("owner"));
+        equipSlot.setOwner(rs.getString("owner"));
         equip.setStat(Stat.ACCURACY, (short) rs.getInt("acc"));
         equip.setStat(Stat.AVOIDABILITY, (short) rs.getInt("avoid"));
         equip.setStat(Stat.DEX, (short) rs.getInt("dex"));
@@ -111,7 +111,7 @@ public enum ItemFactory {
         equip.setStat(Stat.INT, (short) rs.getInt("int"));
         equip.setStat(Stat.JUMP, (short) rs.getInt("jump"));
         equip.setVicious((short) rs.getInt("vicious"));
-        equip.setFlag((short) rs.getInt("flag"));
+        equip.LEGACY_setFlagsFromLegacy(rs.getInt("flag"));
         equip.setStat(Stat.LUK, (short) rs.getInt("luk"));
         equip.setStat(Stat.M_ATK, (short) rs.getInt("matk"));
         equip.setStat(Stat.M_DEF, (short) rs.getInt("mdef"));
@@ -124,8 +124,8 @@ public enum ItemFactory {
         equip.setEnhancementLevel(rs.getByte("level"));
         equip.setItemExp(rs.getInt("itemexp"));
         equip.setItemLevel(rs.getByte("itemlevel"));
-        equip.setExpiration(rs.getLong("expiration"));
-        if (equip.getCashInfo() != null) equip.getCashInfo().setGiftFrom(rs.getString("giftFrom"));
+        equipSlot.setExpiration(rs.getLong("expiration"));
+        if (equipSlot.getCashInfo() != null) equipSlot.getCashInfo().setGiftFrom(rs.getString("giftFrom"));
         equip.setRingId(rs.getInt("ringid"));
 
         return equipSlot;
@@ -193,7 +193,7 @@ public enum ItemFactory {
                             item.setOwner(rs.getString("owner"));
                             item.setExpiration(rs.getLong("expiration"));
                             if (item.getCashInfo() != null) item.getCashInfo().setGiftFrom(rs.getString("giftFrom"));
-                            item.setFlag((short) rs.getInt("flag"));
+                            item.getItem().setFlagsFromLegacy(rs.getInt("flag"));
                             items.add(new Pair<>(item, mit));
                         }
                     }
@@ -245,7 +245,7 @@ public enum ItemFactory {
                             psItem.setInt(7, item.getQuantity());
                             psItem.setString(8, item.getOwner());
                             psItem.setInt(9, item.getPetId());      // thanks Daddy Egg for alerting a case of unique petid constraint breach getting raised
-                            psItem.setInt(10, item.getFlag());
+                            psItem.setInt(10, item.getLegacyFlags());
                             psItem.setLong(11, item.getExpiration());
                             psItem.setString(12, item.getCashInfo() != null ? item.getCashInfo().getGiftFrom() : "");
                             psItem.executeUpdate();
@@ -359,7 +359,7 @@ public enum ItemFactory {
                                 item.setOwner(rs.getString("owner"));
                                 item.setExpiration(rs.getLong("expiration"));
                                 if (item.getCashInfo() != null) item.getCashInfo().setGiftFrom(rs.getString("giftFrom"));
-                                item.setFlag((short) rs.getInt("flag"));
+                                item.getItem().setFlagsFromLegacy(rs.getInt("flag"));
                                 items.add(new Pair<>(item, mit));
                             }
                         }
@@ -422,7 +422,7 @@ public enum ItemFactory {
                         ps.setInt(7, item.getQuantity());
                         ps.setString(8, item.getOwner());
                         ps.setInt(9, item.getPetId());
-                        ps.setInt(10, item.getFlag());
+                        ps.setInt(10, item.getLegacyFlags());
                         ps.setLong(11, item.getExpiration());
                         ps.setString(12, item.getCashInfo() != null ? item.getCashInfo().getGiftFrom() : "");
                         ps.executeUpdate();

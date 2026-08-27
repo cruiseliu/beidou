@@ -42,17 +42,16 @@ public class RechargeCommand extends Command {
         Character player = c.getPlayer();
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
         for (ItemSlot torecharge : c.getPlayer().getInventory(InventoryType.USE).list()) {
-            if (ItemConstants.isThrowingStar(torecharge.getItemId())) {
-                torecharge.setQuantity(ii.getSlotMax(c, torecharge.getItemId()));
+            int itemId = torecharge.getItemId();
+            if (ItemConstants.isThrowingStar(itemId) || ItemConstants.isBullet(itemId)) {
+                // 满充目标含精通加成，问 Item；写回仍走旧数量表示（次数表示迁移见重构待办）
+                torecharge.setQuantity((short) torecharge.getItem().getChargeLimit(player));
                 c.getPlayer().forceUpdateItem(torecharge);
-            } else if (ItemConstants.isArrow(torecharge.getItemId())) {
-                torecharge.setQuantity(ii.getSlotMax(c, torecharge.getItemId()));
+            } else if (ItemConstants.isArrow(itemId)) {
+                torecharge.setQuantity(ii.getSlotMax(itemId));
                 c.getPlayer().forceUpdateItem(torecharge);
-            } else if (ItemConstants.isBullet(torecharge.getItemId())) {
-                torecharge.setQuantity(ii.getSlotMax(c, torecharge.getItemId()));
-                c.getPlayer().forceUpdateItem(torecharge);
-            } else if (ItemConstants.isConsumable(torecharge.getItemId())) {
-                torecharge.setQuantity(ii.getSlotMax(c, torecharge.getItemId()));
+            } else if (ItemConstants.isConsumable(itemId)) {
+                torecharge.setQuantity(ii.getSlotMax(itemId));
                 c.getPlayer().forceUpdateItem(torecharge);
             }
         }

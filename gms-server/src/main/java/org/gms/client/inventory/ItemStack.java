@@ -11,7 +11,18 @@ public class ItemStack {
 
     final int itemId;
     int quantity;
-    Item item;
+    Item item = null;  // lazy construction on getItem()
+
+    /** Initiate ItemStack from external data, where quantity may indicates charge */
+    public static ItemStack fromExternal(int itemId, int quantity) {
+        if (Item.isRechargeable(itemId)) {
+            Item item = new Item(itemId);
+            item.charge = quantity;
+            return new ItemStack(item, 1);
+        } else {
+            return new ItemStack(itemId, quantity);
+        }
+    }
 
     public ItemStack(int itemId, int quantity) {
         this.itemId = itemId;
@@ -24,26 +35,38 @@ public class ItemStack {
         this.item = item;
     }
 
-    public ItemStack copy() {
+    ItemStack copy() {
         ItemStack ret = new ItemStack(itemId, quantity);
-        ret.item = item;
+        if (item != null) {
+            ret.item = item.copy();
+        }
         return ret;
     }
 
-    /** 是否可充值物品（飞镖/子弹）——quantity 语义为"组数"，次数语义由宿主 Item.charge 承载 */
-    public boolean isRechargeable() {
-        return org.gms.constants.inventory.ItemConstants.isRechargeable(itemId);
+    /** 堆叠上限 */
+    int getStackLimit() {
+        return Item.getStackLimit(itemId);
     }
 
-    /** 堆叠上限：可充值恒 1，其余查 wz slotMax */
-    public int getStackLimit(org.gms.client.Client client) {
-        return isRechargeable() ? 1 : org.gms.server.ItemInformationProvider.getInstance().getSlotMax(client, itemId);
+    /**
+     * 并堆判定门面：宿主未接线时视作"该 itemId 的默认构造实例"
+     * （wz 类型旗标落位后的无主物品——与背包既有堆的可达状态一致）。
+     */
+    boolean canMergeWith(Item existing) {
+        return getItem().canMergeWith(existing);
     }
 
-    public ItemStack takeAtMost(int n) {
+    ItemStack takeAtMost(int n) {
         ItemStack ret = copy();
         ret.quantity = Math.min(n, quantity);
         quantity -= ret.quantity;
         return ret;
+    }
+
+    Item getItem() {
+        if (item == null) {
+            item = new Item(itemId);
+        }
+        return item;
     }
 }

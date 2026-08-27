@@ -30,6 +30,7 @@ import org.gms.client.inventory.InventoryTransaction;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.constants.inventory.ItemConstants;
+import org.gms.exception.BizException;
 import org.gms.util.I18nUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -195,23 +196,8 @@ public class ItemAction extends AbstractQuestAction {
         return true;
     }
 
-    /**
-     * wz 任务数据的 count 历史语义为发数；而事务/Inventory 的入参 ItemStack 即最终槽位内容
-     * （可充值一组一格，quantity = 组数、次数在宿主 Item）。此处在调用点完成转换：
-     * 发数按组拆分（每组满充 slotMax、尾组余数），非可充值原样单堆。
-     */
     private static void collectBySign(List<ItemStack> target, int itemId, int count) {
-        if (!ItemConstants.isRechargeable(itemId)) {
-            target.add(new ItemStack(itemId, count));
-            return;
-        }
-        int slotMax = ItemInformationProvider.getInstance().getSlotMax(null, itemId);
-        int remaining = count;
-        while (remaining > 0 && slotMax > 0) {
-            int groupCharge = Math.min(remaining, slotMax);
-            remaining -= groupCharge;
-            target.add(new ItemStack(Item.rechargeable(itemId, groupCharge), 1));
-        }
+        target.add(ItemStack.fromExternal(itemId, count));
     }
 
     private void announceInventoryLimit(List<Integer> itemids, Character chr) {

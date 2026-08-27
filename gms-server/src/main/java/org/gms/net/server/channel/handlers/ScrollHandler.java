@@ -112,7 +112,7 @@ public final class ScrollHandler extends AbstractPacketHandler {
                 ScrollResult scrollSuccess = Equip.ScrollResult.FAIL; // 默认设置为失败
                 if (scrolled == null) {
                     scrollSuccess = Equip.ScrollResult.CURSE; // 卷轴诅咒装备
-                } else if (scrolled.getEnhancementLevel() > oldLevel || (ItemConstants.isCleanSlate(scroll.getItemId()) && scrolled.getEnhancementSlots() == oldSlots + 1) || ItemConstants.isFlagModifier(scroll.getItemId(), (short) scrolled.getFlag())) {
+                } else if (scrolled.getEnhancementLevel() > oldLevel || (ItemConstants.isCleanSlate(scroll.getItemId()) && scrolled.getEnhancementSlots() == oldSlots + 1) || ItemConstants.isFlagModifier(scroll.getItemId(), scrolled.getFlags())) {
                     scrollSuccess = Equip.ScrollResult.SUCCESS; // 卷轴成功升级装备
                 }
 

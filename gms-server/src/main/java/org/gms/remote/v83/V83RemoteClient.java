@@ -16,6 +16,37 @@ import org.gms.remote.StatsUpdate;
  * 未开域时语义调用立即发送；开域期间入队，最外层域关闭时按固定顺序逐 op 编码发送。
  */
 public final class V83RemoteClient implements RemoteClient {
+    /** v83 客户端旗标字的逐位拼装——协议出口的唯一组装点。逐枚举取位，不假设
+     *  underlying 值连续或对齐；服务端逻辑不得读写整型旗标视图。 */
+    public static int assembleClientFlagBits(org.gms.client.inventory.Item item) {
+        int bits = 0;
+        boolean equipType = item.getInventoryTab() == org.gms.client.inventory.InventoryType.EQUIP;
+        for (org.gms.client.inventory.ItemFlag f : org.gms.client.inventory.ItemFlag.values()) {
+            if (!item.hasFlag(f)) {
+                continue;
+            }
+            if (f == org.gms.client.inventory.ItemFlag.SCISSOR_USABLE) {
+                continue;   // 服务端语义标签，客户端无此位
+            }
+            if (f == org.gms.client.inventory.ItemFlag.TRADE_ONCE) {
+                // karma 出口按类别取旧位
+                bits |= equipType ? org.gms.client.inventory.ItemFlag.LEGACY_KARMA_EQP
+                                  : org.gms.client.inventory.ItemFlag.LEGACY_KARMA_USE;
+                continue;
+            }
+            bits |= f.legacyValue();
+        }
+        org.gms.client.inventory.Equip equipInfo = item.getEquipInfo();
+        if (equipInfo != null) {
+            for (org.gms.client.inventory.EquipFlag f : org.gms.client.inventory.EquipFlag.values()) {
+                if (equipInfo.hasFlag(f)) {
+                    bits |= f.legacyValue();
+                }
+            }
+        }
+        return bits;
+    }
+
     private final Client client;
 
     /** 合并域深度（0 = 未开域，语义调用立即发送） */

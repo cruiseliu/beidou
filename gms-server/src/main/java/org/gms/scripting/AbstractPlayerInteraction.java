@@ -635,7 +635,7 @@ public class AbstractPlayerInteraction {
                 if (item != null) {
                     Equip it = item.getEquipInfo();
                     if (ItemConstants.isAccessory(item.getItemId()) && it.getEnhancementSlots() <= 0) {
-                        it.setUpgradeSlots(3);
+                        it.setEnhancementSlots(3);
                     }
 
                     if (GameConfig.getServerBoolean("use_enhanced_crafting") && c.getPlayer().isUseCS()) {

@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import org.gms.client.inventory.ItemFlag;
 
 /**
  * @author Matze
@@ -86,7 +87,7 @@ public class InventoryManipulator {
     private static boolean addByIdInternal(Client c, Character chr, InventoryType type, InventoryTab inv, int itemId, short quantity, String owner, int petid, short flag, long expiration) {
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
         if (!type.equals(InventoryType.EQUIP)) {
-            short slotMax = ii.getSlotMax(c, itemId);
+            short slotMax = ii.getSlotMax(itemId);
             List<ItemSlot> existing = inv.listById(itemId);
             if (!ItemConstants.isRechargeable(itemId) && petid == -1) {
                 if (existing.size() > 0) { // first update all existing slots to slotMax
@@ -95,7 +96,7 @@ public class InventoryManipulator {
                         if (i.hasNext()) {
                             ItemSlot eItem = i.next();
                             short oldQ = (short) eItem.getQuantity();
-                            if (oldQ < slotMax && ((eItem.getOwner().equals(owner) || owner == null) && eItem.getFlag() == flag)) {
+                            if (oldQ < slotMax && ((eItem.getOwner().equals(owner) || owner == null) && eItem.getLegacyFlags() == flag)) {
                                 short newQ = (short) Math.min(oldQ + quantity, slotMax);
                                 quantity -= (newQ - oldQ);
                                 eItem.setQuantity(newQ);
@@ -113,7 +114,7 @@ public class InventoryManipulator {
                     if (newQ != 0) {
                         quantity -= newQ;
                         ItemSlot nItem = new ItemSlot(itemId, (short) 0, newQ, petid);
-                        nItem.setFlag(flag);
+                        nItem.getItem().setFlagsFromLegacy(flag);
                         nItem.setExpiration(expiration);
                         int newSlot = inv.addItem(nItem);
                         if (newSlot == -1) {
@@ -135,7 +136,7 @@ public class InventoryManipulator {
                 }
             } else {
                 ItemSlot nItem = new ItemSlot(itemId, (short) 0, quantity, petid);
-                nItem.setFlag(flag);
+                nItem.getItem().setFlagsFromLegacy(flag);
                 nItem.setExpiration(expiration);
                 Pet newPet = null;
                 if (petid > -1) {   // 新宠物登记（createPet 后物品入包；Pet 对象由角色统一管理）
@@ -157,7 +158,7 @@ public class InventoryManipulator {
             }
         } else if (quantity == 1) {
             ItemSlot nEquip = ii.getEquipById(itemId);
-            nEquip.setFlag(flag);
+            nEquip.getItem().setFlagsFromLegacy(flag);
             nEquip.setExpiration(expiration);
             if (owner != null) {
                 nEquip.setOwner(owner);
@@ -210,7 +211,7 @@ public class InventoryManipulator {
         short quantity = (short) item.getQuantity();
 
         if (!type.equals(InventoryType.EQUIP)) {
-            short slotMax = ii.getSlotMax(c, itemid);
+            short slotMax = ii.getSlotMax(itemid);
             List<ItemSlot> existing = inv.listById(itemid);
             if (!ItemConstants.isRechargeable(itemid) && petId == -1) {
                 if (existing.size() > 0) { // first update all existing slots to slotMax
@@ -219,7 +220,7 @@ public class InventoryManipulator {
                         if (i.hasNext()) {
                             ItemSlot eItem = i.next();
                             short oldQ = (short) eItem.getQuantity();
-                            if (oldQ < slotMax && item.getFlag() == eItem.getFlag() && item.getOwner().equals(eItem.getOwner())) {
+                            if (oldQ < slotMax && item.canMergeWith(eItem.getItem())) {
                                 short newQ = (short) Math.min(oldQ + quantity, slotMax);
                                 quantity -= (newQ - oldQ);
                                 eItem.setQuantity(newQ);
@@ -237,7 +238,7 @@ public class InventoryManipulator {
                     ItemSlot nItem = new ItemSlot(itemid, (short) 0, newQ, petId);
                     nItem.setExpiration(item.getExpiration());
                     nItem.setOwner(item.getOwner());
-                    nItem.setFlag(item.getFlag());
+                    nItem.getItem().setFlagsFromLegacy(item.getLegacyFlags());
                     int newSlot = inv.addItem(nItem);
                     if (newSlot == -1) {
                         c.sendPacket(PacketCreator.getInventoryFull());
@@ -255,7 +256,7 @@ public class InventoryManipulator {
             } else {
                 ItemSlot nItem = new ItemSlot(itemid, (short) 0, quantity, petId);
                 nItem.setExpiration(item.getExpiration());
-                nItem.setFlag(item.getFlag());
+                nItem.getItem().setFlagsFromLegacy(item.getLegacyFlags());
 
                 int newSlot = inv.addItem(nItem);
                 if (newSlot == -1) {
@@ -314,7 +315,7 @@ public class InventoryManipulator {
         }
 
         if (!type.equals(InventoryType.EQUIP)) {
-            short slotMax = ii.getSlotMax(c, itemid);
+            short slotMax = ii.getSlotMax(itemid);
             List<ItemSlot> existing = inv.listById(itemid);
 
             final int numSlotsNeeded;
@@ -369,7 +370,7 @@ public class InventoryManipulator {
         }
 
         if (!type.equals(InventoryType.EQUIP)) {
-            short slotMax = ii.getSlotMax(c, itemid);
+            short slotMax = ii.getSlotMax(itemid);
             final int numSlotsNeeded;
 
             if (ItemConstants.isRechargeable(itemid)) {
@@ -511,7 +512,7 @@ public class InventoryManipulator {
             olddstQ = (short) initialTarget.getQuantity();
         }
         short oldsrcQ = (short) source.getQuantity();
-        short slotMax = ii.getSlotMax(c, source.getItemId());
+        short slotMax = ii.getSlotMax(source.getItemId());
         inv.move(src, dst, slotMax);
         final List<ModifyInventory> mods = new ArrayList<>();
         if (!(type.equals(InventoryType.EQUIP) || type.equals(InventoryType.CASH)) && initialTarget != null && initialTarget.getItemId() == source.getItemId() && !ItemConstants.isRechargeable(source.getItemId()) && isSameOwner(source, initialTarget)) {
@@ -569,9 +570,7 @@ public class InventoryManipulator {
         boolean itemChanged = false;
 
         if (ii.isUntradeableOnEquip(source.getItemId())) {
-            short flag = (short) source.getFlag();      // thanks BHB for noticing flags missing after equipping these      //感谢BHB在安装这些设备后发现旗帜丢失
-            flag |= ItemConstants.UNTRADEABLE;
-            source.setFlag(flag);
+            sourceItem.addFlag(ItemFlag.UNTRADEABLE);   // thanks BHB for noticing flags missing after equipping these
 
             itemChanged = true;
         }
@@ -864,6 +863,6 @@ public class InventoryManipulator {
     }
 
     public static boolean isSandboxItem(ItemSlot it) {
-        return (it.getFlag() & ItemConstants.SANDBOX) == ItemConstants.SANDBOX;
+        return it.hasFlag(ItemFlag.SANDBOX);
     }
 }

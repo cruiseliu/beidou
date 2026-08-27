@@ -151,40 +151,20 @@ public class InventoryTransaction {
 
     private void addInternal(ItemStack item) {
         // fixme: [refactor] check exclusive item
-        ItemStack remaining = item.copy();
-
-        int itemId = remaining.itemId;
+        int itemId = item.itemId;
         InventoryType type = tabTypeOf(itemId);
-        InventoryTab tab = shadow.get(type);
 
-        // 可充值与装备同为"一组一格"（quantity = 组数、次数在该组宿主 Item 上；分组永久）：
-        // 装备显式排除（其 wz slotMax 无堆叠意义），可充值由 getStackLimit 归一为 1——
-        // 上限 1 即天然不进并堆循环、每个 quantity 单位落一个新槽
-        boolean stackable = !ItemConstants.isEquipment(itemId);
-        int stackLimit = stackable ? item.getStackLimit(character.getClient()) : 1;
-
-        if (stackLimit > 1) {
-            for (ItemSlot slot : tab.listById(itemId)) {
-                if (remaining.quantity == 0) {
-                    return;
-                }
-                if (!slot.getOwner().isEmpty() || slot.getFlag() != 0) {  // fixme: [refactor] merge same flag
-                    continue;
-                }
-                if (slot.quantity < stackLimit) {
-                    slot.quantity += remaining.takeAtMost(stackLimit - slot.quantity).quantity;
-                    ops.add(new SetQtyOp(type, slot.position, slot.quantity, false));
-                }
+        List<InventoryTab.StackPlacement> placements = new ArrayList<>();
+        int leftover = shadow.get(type).addInternal(item, placements);
+        for (InventoryTab.StackPlacement p : placements) {
+            if (p.mergedExisting()) {
+                ops.add(new SetQtyOp(type, p.slot().getPosition(), p.slot().getQuantity(), false));
+            } else {
+                ops.add(new AddSlotOp(type, p.slot().getPosition(), p.slot()));
             }
         }
-
-        while (remaining.quantity > 0) {
-            ItemSlot slot = tab.addStack(remaining.takeAtMost(stackLimit));
-            if (slot == null) {
-                failed = true;
-                return;
-            }
-            ops.add(new AddSlotOp(type, slot.position, slot));
+        if (leftover > 0) {
+            failed = true;
         }
     }
 
@@ -275,7 +255,7 @@ public class InventoryTransaction {
 
         boolean stackable = !ItemConstants.isEquipment(itemId);
         int stackLimit = stackable
-                ? new ItemStack(option.itemId, option.quantity).getStackLimit(character.getClient())
+                ? new ItemStack(option.itemId, option.quantity).getStackLimit()
                 : 1;
 
         int freeSlots = tab.getNumFreeSlot();
@@ -285,7 +265,7 @@ public class InventoryTransaction {
 
         ItemStack remaining = new ItemStack(itemId, option.quantity - freeSlots * stackLimit);
         for (ItemSlot slot : tab.listById(itemId)) {
-            if (!slot.getOwner().isEmpty() || slot.getFlag() != 0) {  // fixme: [refactor] merge same flag
+            if (!remaining.canMergeWith(slot.getItem())) {  // fixme: [refactor] merge same flag
                 continue;
             }
             if (slot.quantity < stackLimit) {

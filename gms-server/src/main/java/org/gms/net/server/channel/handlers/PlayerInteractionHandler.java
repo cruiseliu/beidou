@@ -55,6 +55,7 @@ import org.gms.util.PacketCreator;
 import java.awt.*;
 import java.sql.SQLException;
 import java.util.Arrays;
+import org.gms.client.inventory.ItemFlag;
 
 /**
  * @author Matze
@@ -545,7 +546,7 @@ public final class PlayerInteractionHandler extends AbstractPacketHandler {
                     if ((quantity <= item.getQuantity() && quantity >= 0) || ItemConstants.isRechargeable(item.getItemId())) {
                         //此处判断不可交易/不可丢弃物品是否允许交易
                         if (!GameConfig.getServerBoolean("trade_limit_item_nodrop") && ii.isDropRestricted(item.getItemId())) { // ensure that undroppable items do not make it to the trade window    //确保不可丢弃的物品不会进入交易窗口
-                            if (!KarmaManipulator.hasKarmaFlag(item)) {
+                            if (!item.hasFlag(ItemFlag.TRADE_ONCE)) {
                                 log.warn(I18nUtil.getLogMessage("PlayerInteractionHandler.warn3"), chr.getName(),item.getInventoryType().getName(),item.getItemId());
                                 c.sendPacket(PacketCreator.serverNotice(1, I18nUtil.getMessage("PlayerInteractionHandler.message6")));
                                 c.sendPacket(PacketCreator.enableActions());

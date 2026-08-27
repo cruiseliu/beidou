@@ -126,7 +126,7 @@ public final class EnterMTSHandler extends AbstractPacketHandler {
                     } else {
                         ItemSlot equipSlot = ItemSlot.equipItem(rs.getInt("itemid"), (byte) rs.getInt("position"));
                         Equip equip = equipSlot.getEquipInfo();
-                        equip.setOwner(rs.getString("owner"));
+                        equipSlot.setOwner(rs.getString("owner"));
                         equip.setStat(Stat.ACCURACY, (short) rs.getInt("acc"));
                         equip.setStat(Stat.AVOIDABILITY, (short) rs.getInt("avoid"));
                         equip.setStat(Stat.DEX, (short) rs.getInt("dex"));
@@ -135,7 +135,7 @@ public final class EnterMTSHandler extends AbstractPacketHandler {
                         equip.setStat(Stat.INT, (short) rs.getInt("int"));
                         equip.setStat(Stat.JUMP, (short) rs.getInt("jump"));
                         equip.setVicious((short) rs.getInt("vicious"));
-                        equip.setFlag((short) rs.getInt("flag"));
+                        equipSlot.getItem().setFlagsFromLegacy(rs.getInt("flag"));
                         equip.setStat(Stat.LUK, (short) rs.getInt("luk"));
                         equip.setStat(Stat.M_ATK, (short) rs.getInt("matk"));
                         equip.setStat(Stat.M_DEF, (short) rs.getInt("mdef"));
@@ -149,8 +149,8 @@ public final class EnterMTSHandler extends AbstractPacketHandler {
                         equip.setItemLevel(rs.getByte("itemlevel"));
                         equip.setItemExp(rs.getInt("itemexp"));
                         equip.setRingId(rs.getInt("ringid"));
-                        equip.setExpiration(rs.getLong("expiration"));
-                        if (equip.getCashInfo() != null) equip.getCashInfo().setGiftFrom(rs.getString("giftFrom"));   // 非现金装备不携带 giftFrom
+                        equipSlot.setExpiration(rs.getLong("expiration"));
+                        if (equipSlot.getCashInfo() != null) equipSlot.getCashInfo().setGiftFrom(rs.getString("giftFrom"));   // 非现金装备不携带 giftFrom
 
                         items.add(new MTSItemInfo(equipSlot, rs.getInt("price") + 100 + (int) (rs.getInt("price") * 0.1), rs.getInt("id"), rs.getInt("seller"), rs.getString("sellername"), rs.getString("sell_ends")));
                     }
@@ -186,7 +186,7 @@ public final class EnterMTSHandler extends AbstractPacketHandler {
                     } else {
                         ItemSlot equipSlot = ItemSlot.equipItem(rs.getInt("itemid"), (byte) rs.getInt("position"));
                         Equip equip = equipSlot.getEquipInfo();
-                        equip.setOwner(rs.getString("owner"));
+                        equipSlot.setOwner(rs.getString("owner"));
                         equip.setStat(Stat.ACCURACY, (short) rs.getInt("acc"));
                         equip.setStat(Stat.AVOIDABILITY, (short) rs.getInt("avoid"));
                         equip.setStat(Stat.DEX, (short) rs.getInt("dex"));
@@ -208,9 +208,9 @@ public final class EnterMTSHandler extends AbstractPacketHandler {
                         equip.setItemLevel(rs.getByte("itemlevel"));
                         equip.setItemExp(rs.getInt("itemexp"));
                         equip.setRingId(rs.getInt("ringid"));
-                        equip.setFlag((short) rs.getInt("flag"));
-                        equip.setExpiration(rs.getLong("expiration"));
-                        if (equip.getCashInfo() != null) equip.getCashInfo().setGiftFrom(rs.getString("giftFrom"));   // 非现金装备不携带 giftFrom
+                        equipSlot.getItem().setFlagsFromLegacy(rs.getInt("flag"));
+                        equipSlot.setExpiration(rs.getLong("expiration"));
+                        if (equipSlot.getCashInfo() != null) equipSlot.getCashInfo().setGiftFrom(rs.getString("giftFrom"));   // 非现金装备不携带 giftFrom
                         items.add(new MTSItemInfo(equipSlot, rs.getInt("price"), rs.getInt("id"), rs.getInt("seller"), rs.getString("sellername"), rs.getString("sell_ends")));
                     }
                 }
@@ -236,7 +236,7 @@ public final class EnterMTSHandler extends AbstractPacketHandler {
                     } else {
                         ItemSlot equipSlot = ItemSlot.equipItem(rs.getInt("itemid"), (byte) rs.getInt("position"));
                         Equip equip = equipSlot.getEquipInfo();
-                        equip.setOwner(rs.getString("owner"));
+                        equipSlot.setOwner(rs.getString("owner"));
                         equip.setStat(Stat.ACCURACY, (short) rs.getInt("acc"));
                         equip.setStat(Stat.AVOIDABILITY, (short) rs.getInt("avoid"));
                         equip.setStat(Stat.DEX, (short) rs.getInt("dex"));
@@ -258,9 +258,9 @@ public final class EnterMTSHandler extends AbstractPacketHandler {
                         equip.setItemLevel(rs.getByte("itemlevel"));
                         equip.setItemExp(rs.getInt("itemexp"));
                         equip.setRingId(rs.getInt("ringid"));
-                        equip.setFlag((short) rs.getInt("flag"));
-                        equip.setExpiration(rs.getLong("expiration"));
-                        if (equip.getCashInfo() != null) equip.getCashInfo().setGiftFrom(rs.getString("giftFrom"));   // 非现金装备不携带 giftFrom
+                        equipSlot.getItem().setFlagsFromLegacy(rs.getInt("flag"));
+                        equipSlot.setExpiration(rs.getLong("expiration"));
+                        if (equipSlot.getCashInfo() != null) equipSlot.getCashInfo().setGiftFrom(rs.getString("giftFrom"));   // 非现金装备不携带 giftFrom
                         items.add(new MTSItemInfo(equipSlot, rs.getInt("price"), rs.getInt("id"), rs.getInt("seller"), rs.getString("sellername"), rs.getString("sell_ends")));
                     }
                 }

@@ -29,6 +29,8 @@ import org.gms.client.Client;
 import org.gms.client.command.Command;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.InventoryType;
+import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemFlag;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.constants.inventory.ItemConstants;
@@ -64,14 +66,15 @@ public class ProItemCommand extends Command {
             ItemSlot it = ii.getEquipById(itemid);
             it.setOwner(player.getName());
 
-            hardsetItemStats(it.getEquipInfo(), stat, spdjmp);
+            hardsetItemStats(it.getItem(), stat, spdjmp);
             InventoryManipulator.addFromDrop(c, it);
         } else {
             player.dropMessage(6, I18nUtil.getMessage("ProItemCommand.message4"));
         }
     }
 
-    private static void hardsetItemStats(Equip equip, short stat, short spdjmp) {
+    private static void hardsetItemStats(Item item, short stat, short spdjmp) {
+        Equip equip = item.getEquipInfo();
         equip.setStat(Stat.STR, stat);
         equip.setStat(Stat.DEX, stat);
         equip.setStat(Stat.INT, stat);
@@ -87,8 +90,6 @@ public class ProItemCommand extends Command {
         equip.setStat(Stat.MAX_HP, stat);
         equip.setStat(Stat.MAX_MP, stat);
 
-        short flag = (short) equip.getFlag();
-        flag |= ItemConstants.UNTRADEABLE;
-        equip.setFlag(flag);
+        item.addFlag(ItemFlag.UNTRADEABLE);
     }
 }

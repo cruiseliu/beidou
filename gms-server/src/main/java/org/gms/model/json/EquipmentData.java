@@ -2,10 +2,12 @@ package org.gms.model.json;
 
 import org.gms.client.character.Stat;
 
+import java.util.List;
+
 /**
  * Equip（装备域）的持久化数据载体（character_json 的 inventory 域内嵌）。
  * 属性按 Stat 枚举拆为显式字段（0 序列化为 null）；ringId=-1、其余数值字段 0 也序列化为 null。
- * officialCanLevelUp 为构造期派生（wz 成长表判定），不序列化。
+ * officialCanLevelUp 为运行期派生（按需查 wz 成长表，有缓存），不序列化。
  */
 public class EquipmentData {
     public Integer enhancementSlots;
@@ -15,6 +17,9 @@ public class EquipmentData {
     public Integer vicious;
     /** 戒指 id；-1（非戒指）序列化为 null */
     public Integer ringId;
+
+    /** 装备专属旗标（{@link org.gms.client.inventory.EquipFlag} 名单；SPIKES/COLD；空省略） */
+    public List<String> equipFlags;
 
     // ── 属性（Stat 枚举对齐；0 序列化为 null）──
     public Integer str;

@@ -14,11 +14,8 @@ GNU Affero General Public License for more details.
  */
 package org.gms.client.inventory;
 
-import org.gms.client.Client;
-import org.gms.client.inventory.manipulator.KarmaManipulator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.gms.constants.inventory.ItemConstants;
 import org.gms.model.json.ItemData;
 import org.gms.server.ItemInformationProvider;
 
@@ -45,12 +42,12 @@ public class ItemSlot implements Comparable<ItemSlot> {
         } else {
             slot = new ItemSlot(stack.item, position, stack.quantity);
         }
-        // 可充值：次数语义在宿主 Item 的 charge——宿主携带 > 未指定落位取 wz 满组
+        // 可充值：次数语义在宿主 Item 的 charge——宿主携带 > 未指定落位取 wz 满组（无玩家加成，基数）
         if (slot.isRechargeable()) {
             if (stack.item != null && stack.item.charge > 0) {
                 slot.getItem().setCharge(stack.item.charge);
             } else {
-                slot.getItem().setCharge(ItemInformationProvider.getInstance().getSlotMax(null, stack.itemId));
+                slot.getItem().setCharge(ItemInformationProvider.getInstance().getSlotMax(stack.itemId));
             }
         }
         return slot;
@@ -63,13 +60,13 @@ public class ItemSlot implements Comparable<ItemSlot> {
     }
 
     public ItemSlot(int id, int position, int quantity) {
-        this.item = new Item(id, position, -1);
+        this.item = new Item(id);
         this.position = position;
         this.quantity = normalizeQuantity(this.item, quantity);
     }
 
     public ItemSlot(int id, int position, int quantity, int petid) {
-        this.item = new Item(id, position, petid);
+        this.item = new Item(id, petid);
         this.position = position;
         this.quantity = normalizeQuantity(this.item, quantity);
     }
@@ -102,15 +99,7 @@ public class ItemSlot implements Comparable<ItemSlot> {
     }
 
     public ItemSlot copy() {
-        ItemSlot ret = new ItemSlot(item.getItemId(), position, quantity, item.getPetId());
-        ret.item.flag = item.flag;
-        ret.item.owner = item.owner;
-        ret.item.expiration = item.expiration;
-        ret.item.charge = item.charge;
-        if (item.equipInfo != null) {
-            ret.item.equipInfo = item.equipInfo.copy(ret.item);
-        }
-        return ret;
+        return new ItemSlot(item.copy(), position, quantity);
     }
 
     // ── 槽位自身 ──
@@ -136,9 +125,14 @@ public class ItemSlot implements Comparable<ItemSlot> {
         return item.isRechargeable();
     }
 
-    /** 堆叠上限：可充值恒 1（一组一格），其余查 wz slotMax */
-    public int getStackLimit(Client client) {
-        return isRechargeable() ? 1 : ItemInformationProvider.getInstance().getSlotMax(client, item.getItemId());
+    /** 堆叠上限：可充值恒 1（一组一格，次数上限见 Item.getChargeLimit），其余查 wz slotMax */
+    public int getStackLimit() {
+        return isRechargeable() ? 1 : ItemInformationProvider.getInstance().getSlotMax(item.getItemId());
+    }
+
+    /** 并堆判定门面（委托本体；语义见 Item.canMergeWith） */
+    public boolean canMergeWith(Item incoming) {
+        return item.canMergeWith(incoming);
     }
 
     /** 可使用量：可充值返回 charge（次数），其余返回 quantity */
@@ -153,7 +147,7 @@ public class ItemSlot implements Comparable<ItemSlot> {
     }
 
     public InventoryType getInventoryType() {
-        return item.getInventoryType();
+        return item.getInventoryTab();
     }
 
     public int getItemType() {
@@ -172,12 +166,21 @@ public class ItemSlot implements Comparable<ItemSlot> {
         return item.getPetId();
     }
 
-    public int getFlag() {
-        return item.getFlag();
+    public boolean hasFlag(ItemFlag f) {
+        return item.hasFlag(f);
     }
 
-    public void setFlag(int b) {
-        item.setFlag(b);
+    public void addFlag(ItemFlag f) {
+        item.addFlag(f);
+    }
+
+    public void removeFlag(ItemFlag f) {
+        item.removeFlag(f);
+    }
+
+    /** 过渡：旧整型视图（存档列/协议组装用） */
+    public int getLegacyFlags() {
+        return item.getLegacyFlags();
     }
 
     public long getExpiration() {
@@ -200,9 +203,12 @@ public class ItemSlot implements Comparable<ItemSlot> {
         return item.getEquipInfo();
     }
 
-    /** 依赖 KarmaManipulator（其 API 收 ItemSlot），暂留门面层；随其签名迁移进 Item */
+    /** "可交易一次"覆盖两类锁源（覆盖规则见 ItemFlag.TRADE_ONCE）；
+     *  依赖 KarmaManipulator 门面留待随其签名迁移 */
     public boolean isUntradeable() {
-        return ((item.getFlag() & ItemConstants.UNTRADEABLE) == ItemConstants.UNTRADEABLE) || (ItemInformationProvider.getInstance().isDropRestricted(item.getItemId()) && !KarmaManipulator.hasKarmaFlag(this));
+        boolean unlockedOnce = item.hasFlag(ItemFlag.TRADE_ONCE);
+        return (item.hasFlag(ItemFlag.UNTRADEABLE) && !unlockedOnce)
+                || (!unlockedOnce && ItemInformationProvider.getInstance().isDropRestricted(item.getItemId()));
     }
 
     @Override
@@ -220,7 +226,10 @@ public class ItemSlot implements Comparable<ItemSlot> {
         d.itemId = item.id;
         d.position = position;
         d.quantity = quantity;
-        d.flag = item.flag == 0 ? null : item.flag;
+        if (!item.flags().isEmpty()) {
+            d.itemFlags = item.flags().stream().map(Enum::name).toList();
+        }
+        d.charge = item.getCharge() > 0 ? item.getCharge() : null;
         d.owner = item.owner.isEmpty() ? null : item.owner;
         d.expiration = item.expiration == -1 ? null : item.expiration;
         d.petId = item.petId == -1 ? null : item.petId;
@@ -230,23 +239,9 @@ public class ItemSlot implements Comparable<ItemSlot> {
         return d;
     }
 
-    public void applyData(ItemData d) {
-        position = d.position;
-        quantity = d.quantity;
-        if (d.flag != null) {
-            item.flag = d.flag;
-        }
-        if (d.owner != null) {
-            item.owner = d.owner;
-        }
-        if (d.expiration != null) {
-            item.expiration = d.expiration;
-        }
-        if (d.petId != null) {
-            item.petId = d.petId;
-        }
-        if (d.equip != null) {
-            item.equipInfo.applyData(d.equip);
-        }
+    /** 反序列化工厂：宿主经 {@link Item#fromData} 直接构建完整状态，槽位由私有构造组装，
+     *  不暴露半初始化对象（可充值的旧格式归一照常在构造期发生） */
+    public static ItemSlot fromData(ItemData d) {
+        return new ItemSlot(Item.fromData(d), d.position, d.quantity);
     }
 }

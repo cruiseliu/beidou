@@ -380,7 +380,7 @@ public class MakerProcessor {
 
         Equip eqp = item.getEquipInfo();
         if (ItemConstants.isAccessory(item.getItemId()) && eqp.getEnhancementSlots() <= 0) {
-            eqp.setUpgradeSlots(3);
+            eqp.setEnhancementSlots(3);
         }
 
         if (GameConfig.getServerBoolean("use_enhanced_crafting")) {

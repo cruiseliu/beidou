@@ -279,7 +279,7 @@ public class PlayerShop extends AbstractMapObject {
                     return false;
                 }
 
-                KarmaManipulator.toggleKarmaFlagToUntradeable(newItem);
+                KarmaManipulator.onTradeCompleted(newItem);
 
                 visitorLock.lock();
                 try {

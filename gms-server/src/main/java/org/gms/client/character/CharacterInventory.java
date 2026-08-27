@@ -34,6 +34,7 @@ import org.gms.util.Pair;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
+import org.gms.client.inventory.ItemFlag;
 
 /**
  * 背包模块组件：各类型背包（inventories）+ 槽位（slots）+ 物品查询/持有判定
@@ -100,9 +101,7 @@ class CharacterInventory {
             }
             InventoryTab inv = inventorySet.tabs[type.ordinal()];
             for (ItemData d : items) {
-                ItemSlot item = new ItemSlot(d.itemId, (short) d.position, (short) d.quantity, d.petId == null ? -1 : d.petId);
-                item.applyData(d);
-                inv.addItemFromDB(item);
+                inv.addItemFromDB(ItemSlot.fromData(d));
             }
         }
     }
@@ -273,10 +272,8 @@ class CharacterInventory {
                     for (ItemSlot item : inv.list()) {
                         expiration = item.getExpiration();
 
-                        if (expiration != -1 && (expiration < currenttime) && ((item.getFlag() & ItemConstants.LOCK) == ItemConstants.LOCK)) {
-                            short lock = (short) item.getFlag();
-                            lock &= ~(ItemConstants.LOCK);
-                            item.setFlag(lock); //Probably need a check, else people can make expiring items into permanent items...
+                        if (expiration != -1 && (expiration < currenttime) && item.hasFlag(ItemFlag.LOCK)) {
+                            item.removeFlag(ItemFlag.LOCK); //Probably need a check, else people can make expiring items into permanent items...
                             item.setExpiration(-1);
                             forceUpdateItem(item);   //TEST :3
                         } else if (expiration != -1 && expiration < currenttime) {

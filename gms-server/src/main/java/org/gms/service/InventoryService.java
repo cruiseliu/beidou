@@ -223,7 +223,7 @@ public class InventoryService {
                     .quantity((short) item.getQuantity())
                     .owner(item.getOwner())
                     .petId(item.getPetId())
-                    .flag((short) item.getFlag())
+                    .flag((short) item.getLegacyFlags())
                     .expiration(item.getExpiration())
                     .giftFrom(item.getCashInfo() != null ? item.getCashInfo().getGiftFrom() : "")
                     .online(true)

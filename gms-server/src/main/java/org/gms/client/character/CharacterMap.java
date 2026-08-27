@@ -30,6 +30,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
+import org.gms.client.inventory.EquipFlag;
 
 /**
  * 地图模块组件：当前地图（map/mapId）+ 换图状态 + 换图流程（changeMap 系列）+ 地图历史 + 放逐（banish）。
@@ -284,7 +285,7 @@ class CharacterMap {
         }
 
         for (var it : owner.getInventory(InventoryType.EQUIPPED).list()) {
-            if ((it.getFlag() & ItemConstants.COLD) == ItemConstants.COLD
+            if (it.getItem().getEquipInfo() != null && it.getItem().getEquipInfo().hasFlag(EquipFlag.COLD)
                     && ((returnMapid == MapId.EL_NATH && thisMapid != MapId.ORBIS_TOWER_BOTTOM)
                     || returnMapid == MapId.INTERNET_CAFE)) {
                 return true;        //protection from cold
@@ -472,7 +473,7 @@ class CharacterMap {
     void changeMapBanish(int mapid, String portal, String msg) {
         if (GameConfig.getServerBoolean("use_spikes_avoid_banish")) {
             for (ItemSlot it : owner.getInventory(InventoryType.EQUIPPED).list()) {
-                if ((it.getFlag() & ItemConstants.SPIKES) == ItemConstants.SPIKES) {
+                if (it.getItem().getEquipInfo() != null && it.getItem().getEquipInfo().hasFlag(EquipFlag.SPIKES)) {
                     return;
                 }
             }

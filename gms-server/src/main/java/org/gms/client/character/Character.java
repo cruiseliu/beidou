@@ -115,6 +115,7 @@ import java.util.regex.Pattern;
 import static org.gms.client.character.Stat.*;
 
 import static java.util.concurrent.TimeUnit.*;
+import org.gms.client.inventory.ItemFlag;
 
 public class Character extends AbstractAnimatedMapObject {
     private static final Logger log = LoggerFactory.getLogger(Character.class);
@@ -1516,9 +1517,9 @@ public class Character extends AbstractAnimatedMapObject {
         chr.getInventory(InventoryType.ETC).setSlotLimit(charactersDO.getEtcslots());
         // 背包物品随 character_json 的 inventory 域恢复（loadDataFromJson → applyData），不再读背包表；
         // 戒指注册与沙盒标志从恢复后的已穿戴物品收集
-        short sandboxCheck = 0x0;
+        boolean hasSandbox = false;
         for (ItemSlot item : chr.getInventory(InventoryType.EQUIPPED).list()) {
-            sandboxCheck |= item.getFlag();
+            hasSandbox |= item.hasFlag(ItemFlag.SANDBOX);
             Equip equipInfo = item.getEquipInfo();
             if (equipInfo != null && equipInfo.getRingId() > -1) {
                 Ring ring = Ring.loadFromDb(equipInfo.getRingId());
@@ -1530,13 +1531,13 @@ public class Character extends AbstractAnimatedMapObject {
         }
         for (InventoryType inventoryType : InventoryType.values()) {
             for (ItemSlot item : chr.getInventory(inventoryType).list()) {
-                sandboxCheck |= item.getFlag();
+                hasSandbox |= item.hasFlag(ItemFlag.SANDBOX);
             }
         }
         // 背包就绪后批量加载全量宠物并恢复召唤槽（原 Item 构造触发加载，解耦后改由角色统一负责）
         chr.pets.loadPetsFromInventories();
         chr.commitExcludedItems();
-        if ((sandboxCheck & ItemConstants.SANDBOX) == ItemConstants.SANDBOX) {
+        if (hasSandbox) {
             chr.setHasSandboxItem();
         }
         chr.marriage.setPartnerId(charactersDO.getPartnerId());

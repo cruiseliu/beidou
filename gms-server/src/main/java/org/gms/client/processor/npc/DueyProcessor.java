@@ -274,7 +274,7 @@ public class DueyProcessor {
                 inv.unlockInventory();
             }
 
-            KarmaManipulator.toggleKarmaFlagToUntradeable(item);
+            KarmaManipulator.onTradeCompleted(item);
             item.setQuantity(amount);
 
             if (!insertPackageItem(packageId, item)) {

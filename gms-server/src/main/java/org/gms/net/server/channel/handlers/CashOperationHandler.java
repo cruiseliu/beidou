@@ -375,7 +375,7 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                                 cs.addToInventory(boughtItem);
                                 c.sendPacket(PacketCreator.showBoughtCashItem(boughtItem, c.getAccID()));
                                 cs.gainCash(toCharge, itemRing, chr.getWorld());
-                                cs.gift(partner.getId(), chr.getName(), text, eqp.getCashInfo() != null ? eqp.getCashInfo().getSN() : 0, rings.getRight());
+                                cs.gift(partner.getId(), chr.getName(), text, boughtItem.getCashInfo() != null ? boughtItem.getCashInfo().getSN() : 0, rings.getRight());
                                 chr.getCrushRings().add(Ring.loadFromDb(rings.getLeft()));
                                 noteService.sendWithFame(text, chr.getName(), partner.getName());
                                 noteService.show(partner);
@@ -439,7 +439,7 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                                 cs.addToInventory(boughtRingItem);
                                 c.sendPacket(PacketCreator.showBoughtCashRing(boughtRingItem, partner.getName(), c.getAccID()));
                                 cs.gainCash(payment, -itemRing.getPrice());
-                                cs.gift(partner.getId(), chr.getName(), text, eqp.getCashInfo() != null ? eqp.getCashInfo().getSN() : 0, rings.getRight());
+                                cs.gift(partner.getId(), chr.getName(), text, boughtRingItem.getCashInfo() != null ? boughtRingItem.getCashInfo().getSN() : 0, rings.getRight());
                                 chr.getFriendshipRings().add(Ring.loadFromDb(rings.getLeft()));
                                 noteService.sendWithFame(text, chr.getName(), partner.getName());
                                 noteService.show(partner);

@@ -120,7 +120,9 @@ public class InventorySearchRtnDTO {
         if (getGiftFrom() != null && !getGiftFrom().isEmpty() && item.getCashInfo() != null) {
             item.getCashInfo().setGiftFrom(getGiftFrom());
         }
-        item.setFlag(getFlag());
+        if (getFlag() != null) {
+            item.getItem().setFlagsFromLegacy(getFlag());
+        }
         return item;
     }
 }

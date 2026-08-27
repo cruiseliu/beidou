@@ -125,7 +125,7 @@ public class Trade {
         meso = 0;
 
         for (ItemSlot item : exchangeItems) {
-            KarmaManipulator.toggleKarmaFlagToUntradeable(item);
+            KarmaManipulator.onTradeCompleted(item);
             InventoryManipulator.addFromDrop(chr.getClient(), item, show);
         }
 

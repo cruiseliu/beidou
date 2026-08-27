@@ -309,7 +309,7 @@ public class HiredMerchant extends AbstractMapObject {
                 return;
             }
 
-            KarmaManipulator.toggleKarmaFlagToUntradeable(newItem);
+            KarmaManipulator.onTradeCompleted(newItem);
 
             int price = (int) Math.min((float) pItem.getPrice() * quantity, Integer.MAX_VALUE);
             if (c.getPlayer().getMeso() >= price) {
@@ -484,7 +484,7 @@ public class HiredMerchant extends AbstractMapObject {
                         if (mpsi.getItem().getInventoryType().equals(InventoryType.EQUIP)) {
                             InventoryManipulator.addFromDrop(c, mpsi.getItem(), false);
                         } else {
-                            InventoryManipulator.addById(c, mpsi.getItem().getItemId(), (short) (mpsi.getBundles() * mpsi.getItem().getQuantity()), mpsi.getItem().getOwner(), -1, (short) mpsi.getItem().getFlag(), mpsi.getItem().getExpiration());
+                            InventoryManipulator.addById(c, mpsi.getItem().getItemId(), (short) (mpsi.getBundles() * mpsi.getItem().getQuantity()), mpsi.getItem().getOwner(), -1, (short) mpsi.getItem().getLegacyFlags(), mpsi.getItem().getExpiration());
                         }
                     }
                 }

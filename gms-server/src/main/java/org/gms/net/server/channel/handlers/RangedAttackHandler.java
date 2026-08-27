@@ -28,6 +28,7 @@ import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
+import org.gms.client.inventory.Item;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.weaponType.WeaponTypeDefinition;
 import org.gms.client.weaponType.WeaponTypeEnum;
@@ -147,7 +148,7 @@ public final class RangedAttackHandler extends AbstractDealDamageHandler {
                     slot = (short) item.getPosition();
 
                     if (id == ItemId.BALANCED_FURY && (item.getQuantity() - bulletCount) <= 10) {   //平衡之怒低于10，则自动补充，如果设置数值过低时，会造成出拳平A
-                        supplement = (short) -ItemInformationProvider.getInstance().getSlotMax(c,id);  //设定补充到限制的最高数值
+                        supplement = (short) -Item.getChargeLimit(id, chr);  //设定补充到限制的最高数值
                     }
 
                     if (item.getQuantity() >= bulletCount) { //Fixes the bug where you can't use your last arrow.

@@ -134,7 +134,7 @@ class CharacterEquips {
         }
         ItemSlot equipSlot = ItemInformationProvider.getInstance().getEquipById(itemId);
         Equip equip = equipSlot.getEquipInfo();
-        if (!InventoryManipulator.checkSpace(owner.getClient(), itemId, 1, equip.getOwner())) {
+        if (!InventoryManipulator.checkSpace(owner.getClient(), itemId, 1, equipSlot.getOwner())) {
             owner.message(I18nUtil.getMessage("AbstractPlayerInteraction.gainEquip.message2", InventoryType.EQUIP.getName()));
         }
         Stat[] all = Stat.values();
@@ -147,7 +147,7 @@ class CharacterEquips {
             equip.setEnhancementSlots(upgradeSlot);
         }
         if (expire != null) {
-            equip.setExpiration(expire > 0 ? MINUTES.toMillis(expire) + System.currentTimeMillis() : -1);
+            equipSlot.setExpiration(expire > 0 ? MINUTES.toMillis(expire) + System.currentTimeMillis() : -1);
         }
         InventoryManipulator.addFromDrop(owner.getClient(), equipSlot, false);
     }

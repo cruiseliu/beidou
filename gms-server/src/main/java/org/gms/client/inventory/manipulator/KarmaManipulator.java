@@ -1,58 +1,34 @@
-/*
-    This file is part of the HeavenMS MapleStory Server
-    Copyleft (L) 2016 - 2019 RonanLana
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as
-    published by the Free Software Foundation version 3 as published by
-    the Free Software Foundation. You may not use, modify or distribute
-    this program under any other version of the GNU Affero General Public
-    License.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
 package org.gms.client.inventory.manipulator;
 
+import org.gms.client.inventory.ItemFlag;
 import org.gms.client.inventory.ItemSlot;
-import org.gms.constants.inventory.ItemConstants;
 
 /**
- * @author RonanLana
+ * 宿命剪刀（Karma Scissors）语义工具。两个实例标签、三条覆盖规则：
+ * <ul>
+ *   <li>{@code SCISSOR_USABLE}（恒定，wz tradeAvailable 落位）：该物品允许被剪</li>
+ *   <li>{@code TRADE_ONCE}（瞬态）："可交易一次"，覆盖 {@code UNTRADEABLE} 与
+ *       {@code SCISSOR_USABLE}——置位期间可交易且不可再剪</li>
+ * </ul>
+ * 成交出口必须调用 {@link #onTradeCompleted} 复位（Trade/PlayerShop/HiredMerchant/
+ * Wedding/Storage/Duey 六类）。legacy 位映射在组装点按类别完成。
  */
 public class KarmaManipulator {
-    private static short getKarmaFlag(ItemSlot item) {
-        return item.getItemType() == 1 ? ItemConstants.KARMA_EQP : ItemConstants.KARMA_USE;
+    private KarmaManipulator() {
     }
 
-    public static boolean hasKarmaFlag(ItemSlot item) {
-        short karmaFlag = getKarmaFlag(item);
-        return (item.getFlag() & karmaFlag) == karmaFlag;
+    /** 是否处于"可交易一次"状态 */
+    public static boolean isTradeOnceUnlocked(ItemSlot item) {
+        return item.hasFlag(ItemFlag.TRADE_ONCE);
     }
 
-    public static void toggleKarmaFlagToUntradeable(ItemSlot item) {
-        short karmaFlag = getKarmaFlag(item);
-        short flag = (short) item.getFlag();
-
-        if ((flag & karmaFlag) == karmaFlag) {
-            flag ^= karmaFlag;
-            flag |= ItemConstants.UNTRADEABLE;
-
-            item.setFlag(flag);
-        }
+    /** 使用宿命剪刀成功：进入"可交易一次"（UNTRADEABLE 保持置位，由覆盖规则放行） */
+    public static void applyScissors(ItemSlot item) {
+        item.addFlag(ItemFlag.TRADE_ONCE);
     }
 
-    public static void setKarmaFlag(ItemSlot item) {
-        short karmaFlag = getKarmaFlag(item);
-        short flag = (short) item.getFlag();
-
-        flag |= karmaFlag;
-        flag &= (0xFFFFFFFF ^ ItemConstants.UNTRADEABLE);
-        item.setFlag(flag);
+    /** 成交完成：复位"可交易一次"，回到锁定态 */
+    public static void onTradeCompleted(ItemSlot item) {
+        item.removeFlag(ItemFlag.TRADE_ONCE);
     }
 }

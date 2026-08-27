@@ -99,7 +99,7 @@ public class StorageProcessor {
                             if (storage.takeOut(item)) {
                                 chr.setUsedStorage();
 
-                                KarmaManipulator.toggleKarmaFlagToUntradeable(item);
+                                KarmaManipulator.onTradeCompleted(item);
                                 InventoryManipulator.addFromDrop(c, item, false);
                                 chr.gainMeso(-takeoutFee, false);
 
@@ -179,7 +179,7 @@ public class StorageProcessor {
 
                         chr.gainMeso(-storeFee, false, true, false);
 
-                        KarmaManipulator.toggleKarmaFlagToUntradeable(item);
+                        KarmaManipulator.onTradeCompleted(item);
                         item.setQuantity(quantity);
 
                         storage.store(item); // inside a critical section, "!(storage.isFull())" is still in effect...

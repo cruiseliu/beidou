@@ -31,8 +31,8 @@ import org.gms.client.command.Command;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
-import org.gms.constants.inventory.ItemConstants;
 import org.gms.util.I18nUtil;
+import org.gms.client.inventory.ItemFlag;
 
 public class SetEqStatCommand extends Command {
     {
@@ -74,9 +74,7 @@ public class SetEqStatCommand extends Command {
                 eq.setStat(Stat.STR, newStat);
                 eq.setStat(Stat.LUK, newStat);
 
-                short flag = (short) eq.getFlag();
-                flag |= ItemConstants.UNTRADEABLE;
-                eq.setFlag(flag);
+                eqItem.addFlag(ItemFlag.UNTRADEABLE);
 
                 player.forceUpdateItem(eqItem);
             } catch (Exception e) {

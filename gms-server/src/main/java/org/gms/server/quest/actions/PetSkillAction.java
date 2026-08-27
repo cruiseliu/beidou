@@ -29,6 +29,7 @@ import org.gms.provider.Data;
 import org.gms.provider.DataTool;
 import org.gms.server.quest.Quest;
 import org.gms.server.quest.QuestActionType;
+import org.gms.client.inventory.ItemFlag;
 
 /**
  * @author Tyler (Twdtwd)
@@ -61,6 +62,8 @@ public class PetSkillAction extends AbstractQuestAction {
     @Override
     public void run(Character chr, Integer extSelection) {
         ItemSlot petItem = chr.findPetItemSlot(chr.getPet(0).getUniqueId());
-        petItem.setFlag((byte) ItemConstants.getFlagByInt(flag));
+        if (flag == 128) {
+            petItem.addFlag(ItemFlag.PET_COME);
+        }
     }
 } 

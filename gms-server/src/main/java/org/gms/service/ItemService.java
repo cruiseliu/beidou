@@ -2,8 +2,8 @@ package org.gms.service;
 
 
 import lombok.extern.slf4j.Slf4j;
-import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.InventoryType;
+import org.gms.client.inventory.Item;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.exception.BizException;
 import org.gms.server.ItemInformationProvider;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class ItemService {
-    public Equip getEquipmentInfoByItemId(Integer itemId) {
+    public Item getEquipmentInfoByItemId(Integer itemId) {
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
         String itemName = ii.getName(itemId);
         if (itemName == null) {
@@ -24,6 +24,6 @@ public class ItemService {
             throw new BizException(I18nUtil.getExceptionMessage("ONLY_SUPPORT_GIVE_EQUIP"));
         }
 
-        return ItemInformationProvider.getInstance().getEquipById(itemId).getEquipInfo();
+        return ItemInformationProvider.getInstance().getEquipById(itemId).getItem();
     }
 }

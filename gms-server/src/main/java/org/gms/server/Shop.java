@@ -25,6 +25,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
+import org.gms.client.inventory.Item;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.Pet;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
@@ -109,7 +110,7 @@ public class Shop {
                             InventoryManipulator.addById(c, itemId, quantity, "", -1);
                             c.getPlayer().gainMeso(-amount, false);
                         } else {
-                            quantity = ii.getSlotMax(c, item.getItemId());
+                            quantity = (short) Item.getChargeLimit(item.getItemId(), chr);
                             InventoryManipulator.addById(c, itemId, quantity, "", -1);
                             c.getPlayer().gainMeso(-item.getPrice(), false);
                         }
@@ -131,8 +132,7 @@ public class Shop {
                             InventoryManipulator.addById(c, itemId, quantity, "", -1);
                             InventoryManipulator.removeById(c, InventoryType.ETC, ItemId.PERFECT_PITCH, amount, false, false);
                         } else {
-                            short slotMax = ii.getSlotMax(c, item.getItemId());
-                            quantity = slotMax;
+                            quantity = (short) Item.getChargeLimit(item.getItemId(), chr);
                             InventoryManipulator.addById(c, itemId, quantity, "", -1);
                             InventoryManipulator.removeById(c, InventoryType.ETC, ItemId.PERFECT_PITCH, amount, false, false);
                         }
@@ -237,7 +237,7 @@ public class Shop {
         if (item == null || !ItemConstants.isRechargeable(item.getItemId())) {
             return;
         }
-        short slotMax = ii.getSlotMax(c, item.getItemId());
+        int slotMax = item.getItem().getChargeLimit(c.getPlayer());
         if (item.getQuantity() < 0) {
             return;
         }

@@ -21,12 +21,14 @@
 */
 package org.gms.constants.inventory;
 
+import org.gms.client.inventory.EquipFlag;
 import org.gms.client.inventory.InventoryType;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.ItemId;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -150,11 +152,11 @@ public final class ItemConstants {
         return scrollId == ItemId.SPIKES_SCROLL || scrollId == ItemId.COLD_PROTECTION_SCROLl;
     }
 
-    public static boolean isFlagModifier(int scrollId, short flag) {
-        if (scrollId == ItemId.COLD_PROTECTION_SCROLl && ((flag & ItemConstants.COLD) == ItemConstants.COLD)) {
+    public static boolean isFlagModifier(int scrollId, EnumSet<EquipFlag> flag) {
+        if (scrollId == ItemId.COLD_PROTECTION_SCROLl && flag.contains(EquipFlag.COLD)) {
             return true;
         }
-        return scrollId == ItemId.SPIKES_SCROLL && ((flag & ItemConstants.SPIKES) == ItemConstants.SPIKES);
+        return scrollId == ItemId.SPIKES_SCROLL && flag.contains(EquipFlag.SPIKES);
     }
 
     public static boolean isChaosScroll(int scrollId) {

@@ -35,6 +35,7 @@ import org.gms.server.ItemInformationProvider;
 import org.gms.util.I18nUtil;
 
 import static java.util.concurrent.TimeUnit.DAYS;
+import org.gms.client.inventory.ItemFlag;
 
 public class ItemDropCommand extends Command {
     {
@@ -80,12 +81,9 @@ public class ItemDropCommand extends Command {
 
                 toDrop.setOwner("");
                 if (player.gmLevel() < 3) {
-                    short f = (short) toDrop.getFlag();
-                    f |= ItemConstants.ACCOUNT_SHARING;
-                    f |= ItemConstants.UNTRADEABLE;
-                    f |= ItemConstants.SANDBOX;
-
-                    toDrop.setFlag(f);
+                    toDrop.addFlag(ItemFlag.ACCOUNT_SHARING);
+                    toDrop.addFlag(ItemFlag.UNTRADEABLE);
+                    toDrop.addFlag(ItemFlag.SANDBOX);
                     toDrop.setOwner("TRIAL-MODE");
                 }
 
@@ -107,12 +105,9 @@ public class ItemDropCommand extends Command {
 
         toDrop.setOwner(player.getName());
         if (player.gmLevel() < 3) {
-            short f = (short) toDrop.getFlag();
-            f |= ItemConstants.ACCOUNT_SHARING;
-            f |= ItemConstants.UNTRADEABLE;
-            f |= ItemConstants.SANDBOX;
-
-            toDrop.setFlag(f);
+            toDrop.addFlag(ItemFlag.ACCOUNT_SHARING);
+            toDrop.addFlag(ItemFlag.UNTRADEABLE);
+            toDrop.addFlag(ItemFlag.SANDBOX);
             toDrop.setOwner("TRIAL-MODE");
         }
 

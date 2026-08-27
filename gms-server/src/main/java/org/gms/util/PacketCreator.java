@@ -41,6 +41,7 @@ import org.gms.client.inventory.Equip.ScrollResult;
 import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
+import org.gms.client.inventory.Item;
 import org.gms.client.inventory.ItemFactory;
 import org.gms.client.inventory.ModifyInventory;
 import org.gms.client.inventory.Pet;
@@ -292,6 +293,9 @@ public class PacketCreator {
     private static void addCharEquips(final OutPacket p, Character chr) {
         InventoryTab equip = chr.getInventory(InventoryType.EQUIPPED);
         Collection<ItemSlot> ii = ItemInformationProvider.getInstance().canWearEquipment(chr, equip.list());
+        // 过滤非装备占位（金币伪 id=0 等），避免进入外观位图
+        ii = ii.stream().filter(it -> it.getItemType() == 1)
+                .collect(java.util.stream.Collectors.toList());
         Map<Short, Integer> myEquip = new LinkedHashMap<>();
         Map<Short, Integer> maskedEquip = new LinkedHashMap<>();
         for (ItemSlot item : ii) {
@@ -433,7 +437,7 @@ public class PacketCreator {
         if (equip == null) {
             p.writeShort(item.getQuantity());
             p.writeString(item.getOwner());
-            p.writeShort(item.getFlag()); // flag
+            p.writeShort(item.getLegacyFlags()); // flag
 
             if (ItemConstants.isRechargeable(item.getItemId())) {
                 p.writeInt(2);
@@ -458,8 +462,8 @@ public class PacketCreator {
         p.writeShort(equip.getStat(Stat.HANDS)); // hands
         p.writeShort(equip.getStat(Stat.SPEED)); // speed
         p.writeShort(equip.getStat(Stat.JUMP)); // jump
-        p.writeString(equip.getOwner()); // owner name
-        p.writeShort(equip.getFlag()); //Item Flags
+        p.writeString(item.getOwner()); // owner name
+        p.writeShort(item.getLegacyFlags()); //Item Flags
 
         if (isCash) {
             for (int i = 0; i < 10; i++) {
@@ -2422,7 +2426,7 @@ public class PacketCreator {
                 p.writeShort(0);
                 p.writeInt(0);
                 p.writeShort(doubleToShortBits(ii.getUnitPrice(item.getItemId())));
-                p.writeShort(ii.getSlotMax(c, item.getItemId()));
+                p.writeShort((short) Item.getChargeLimit(item.getItemId(), c.getPlayer()));
             }
         }
         return p;

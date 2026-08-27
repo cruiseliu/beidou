@@ -21,12 +21,12 @@
  */
 package org.gms.client.inventory;
 
-import org.gms.model.json.EquipmentData;
 import org.gms.client.Client;
 import org.gms.client.character.Stat;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.ExpTable;
 import org.gms.constants.inventory.ItemConstants;
+import org.gms.model.json.EquipmentData;
 import org.gms.server.ItemInformationProvider;
 import org.gms.util.I18nUtil;
 import org.gms.util.PacketCreator;
@@ -36,7 +36,8 @@ import org.gms.util.Randomizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -64,61 +65,42 @@ public class Equip {
         }
     }
 
+    private int itemId;
+
     /** 属性数组（下标 = Stat.ordinal()，含装备段；仿 CharacterStats 的数组布局设计） */
     private int[] stats = new int[Stat.count()];
+
+    /** 装备专属旗标（SPIKES/COLD）；其余位（UNTRADEABLE/KARMA_EQP/LOCK…）归宿主 Item 集 */
+    private final EnumSet<EquipFlag> flags = EnumSet.noneOf(EquipFlag.class);
 
     private int enhancementLevel;
     private int enhancementSlots;
     private int vicious;
 
-    // timeless or reverse, or any equip that could levelup on GMS for all effects
-    /** wz 登记了成长升级表（info/level）：timeless/reverse/元素杖等 GMS 可成长装备。
-     *  决定升级属性来源（wz 表 vs 通用随机）、经验吸收系数（0.85/0.6）与成长上限（wz 表最大级）。 */
-    private boolean officialCanLevelUp = false;
-    private int itemLevel;
-    private int itemExp;
+    private int itemLevel = 1;
+    private int itemExp = 0;
 
     private int ringId = -1;
 
-    private final Item item;
-
-    /** 包内构造：经 Item 构造器定性创建（外部创建装备物品走 Equip.create 工厂） */
-    Equip(Item owner, int itemId) {
-        this.item = owner;
-        this.itemExp = 0;
-        this.itemLevel = 1;
-
-        this.officialCanLevelUp = (ii.getEquipLevel(itemId, false) > 1);
+    /**
+     * 包内常规构造：经 Item 构造器定性创建。wz 基础属性（攻击/防御/四维/升级槽/旗标）
+     * 在此全量初始化——保证任何创建路径产出的装备即刻处于正确状态。
+     * 调用方需要自定义初始化（如 DB 行恢复）时，可改走 {@link #Equip(int)} 分离构造 +
+     * 外部赋值，再交 {@code new Item(id, equip)} 接线。
+     */
+    /** 分离构造：暂无宿主、初始化可在外部继续进行；宿主由 {@link #attach} 或 Item 构造器接线 */
+    Equip(int itemId) {
+        this.itemId = itemId;
+        ii.initWzBaseStats(this, itemId);
     }
 
-    // ── 物品公共状态委托（owner 为宿主；保留原签名供内外部调用）──
+    /** 反序列化专用：纯壳构造——一切状态由 fromData 从存档注入，不读 wz */
+    private Equip() {
+        // skip loading wz
+    }
 
     public int getItemId() {
-        return item.getItemId();
-    }
-
-    public String getOwner() {
-        return item.getOwner();
-    }
-
-    public void setOwner(String ownerName) {
-        item.setOwner(ownerName);
-    }
-
-    public long getExpiration() {
-        return item.getExpiration();
-    }
-
-    public void setExpiration(long expire) {
-        item.setExpiration(expire);
-    }
-
-    public CashItemInfo getCashInfo() {
-        return item.getCashInfo();
-    }
-
-    public boolean isCashItem() {
-        return item.isCashItem();
+        return itemId;
     }
 
     /** 属性数组访问（下标 = Stat.ordinal()；唯一属性读写入口） */
@@ -130,41 +112,23 @@ public class Equip {
         stats[stat.ordinal()] = value;
     }
 
-    /** 装备信息深拷贝（owner 由 Item.copy 接线到新物品；公共字段拷贝在 Item.copy） */
-    Equip copy(Item newOwner) {
-        Equip ret = new Equip(newOwner, newOwner.getItemId());
-        ret.enhancementSlots = enhancementSlots;
-        ret.stats = stats.clone();
-        ret.vicious = vicious;
-        ret.itemLevel = itemLevel;
-        ret.itemExp = itemExp;
-        ret.enhancementLevel = enhancementLevel;
-        ret.officialCanLevelUp = officialCanLevelUp;
-        return ret;
+    // ── 装备旗标 ──
+
+    public boolean hasFlag(EquipFlag f) {
+        return flags.contains(f);
     }
 
-    public int getFlag() {
-        return item.getFlag();
+    public EnumSet<EquipFlag> getFlags() {
+        return flags.clone();
     }
 
-    public int getEnhancementSlots() {
-        return enhancementSlots;
+    public void addFlag(EquipFlag f) {
+        flags.add(f);
     }
 
-    public int getVicious() {
-        return vicious;
-    }
-
-    public void setFlag(int flag) {
-        item.setFlag(flag);
-    }
-
-    public void setVicious(int vicious) {
-        this.vicious = vicious;
-    }
-
-    public void setEnhancementSlots(int upgradeSlots) {
-        this.enhancementSlots = upgradeSlots;
+    public void LEGACY_setFlagsFromLegacy(int raw) {
+        flags.clear();
+        EquipFlag.collectFromLegacy(raw, flags);
     }
 
     public int getEnhancementLevel() {
@@ -172,11 +136,69 @@ public class Equip {
     }
 
     public void setEnhancementLevel(int level) {
-        this.enhancementLevel = level;
+        enhancementLevel = level;
+    }
+
+    public int getEnhancementSlots() {
+        return enhancementSlots;
+    }
+
+    public void setEnhancementSlots(int slots) {
+        enhancementSlots = slots;
+    }
+
+    public int getVicious() {
+        return vicious;
+    }
+
+    public void setVicious(int vicious) {
+        this.vicious = vicious;
+    }
+
+    /** wz 登记了成长升级表（info/level）：timeless/reverse/元素杖等 GMS 可成长装备。
+     *  决定升级属性来源（wz 表 vs 通用随机）、经验吸收系数（0.85/0.6）与成长上限；
+     *  运行期按需派生（getEquipLevel 有缓存），不随对象持久化 */
+    public boolean officialCanLevelUp() {
+        return ii.getEquipLevel(itemId, false) > 1;
     }
 
     public int getItemLevel() {
         return itemLevel;
+    }
+
+    public void setItemLevel(int level) {
+        this.itemLevel = level;
+    }
+
+    public int getItemExp() {
+        return itemExp;
+    }
+
+    public void setItemExp(int exp) {
+        this.itemExp = exp;
+    }
+
+    public int getRingId() {
+        return ringId;
+    }
+
+    public void setRingId(int id) {
+        this.ringId = id;
+    }
+
+    /** 装备信息深拷贝（owner 由 Item.copy 接线到新物品；公共字段拷贝在 Item.copy） */
+    Equip copy() {
+        Equip ret = new Equip();
+        ret.itemId = itemId;
+        ret.stats = stats.clone();
+        ret.flags.addAll(flags);
+        ret.enhancementLevel = enhancementLevel;
+        ret.enhancementSlots = enhancementSlots;
+        ret.vicious = vicious;
+        ret.itemLevel = itemLevel;
+        ret.itemExp = itemExp;
+        ret.ringId = ringId;
+        return ret;
     }
 
     private static int getStatModifier(boolean isAttribute) {
@@ -252,7 +274,7 @@ public class Equip {
      * @param stats 属性升级列表，包含属性类型和增加值
      * @return 提示消息
      */
-    public String gainStats(List<Pair<Stat, Integer>> stats) {
+    private String gainStats(List<Pair<Stat, Integer>> stats) {
         StringBuilder lvupStr = new StringBuilder(); // 使用 StringBuilder 提高字符串拼接效率
         int maxStat = GameConfig.getServerInt("max_equipment_stat"); // 获取属性最大值
 
@@ -333,9 +355,9 @@ public class Equip {
     }
 
     private void gainLevel(Client c, ItemSlot slot) {  // fixme: [refactor] rewire slot param
-        List<Pair<Stat, Integer>> stats = new LinkedList<>(); // 初始化属性升级列表
+        List<Pair<Stat, Integer>> stats = new ArrayList<>(); // 初始化属性升级列表
 
-        if (officialCanLevelUp) {// wz 成长表装备：升级属性从 wz 表读取
+        if (officialCanLevelUp()) {// wz 成长表装备：升级属性从 wz 表读取
             List<Pair<String, Integer>> elementalStats = ii.getItemLevelupStats(getItemId(), itemLevel);
             for (Pair<String, Integer> p : elementalStats) {
                 if (p.getRight() > 0) { // 只有增加值大于0时才添加到列表
@@ -368,10 +390,6 @@ public class Equip {
         c.sendPacket(PacketCreator.showEquipmentLevelUp());
         c.getPlayer().getMap().broadcastPacket(c.getPlayer(), PacketCreator.showForeignEffect(c.getPlayer().getId(), 15));
         c.getPlayer().forceUpdateItem(slot); // 强制更新装备状态
-    }
-
-    public int getItemExp() {
-        return itemExp;
     }
 
     private static double normalizedMasteryExp(int reqLevel) {
@@ -410,7 +428,7 @@ public class Equip {
 
         // 计算经验值修正因子
         float masteryModifier = (GameConfig.getServerFloat("equip_exp_rate") * ExpTable.getExpNeededForLevel(1)) / (float) normalizedMasteryExp(reqLevel);
-        float elementModifier = (officialCanLevelUp) ? 0.85f : 0.6f;
+        float elementModifier = (officialCanLevelUp()) ? 0.85f : 0.6f;
 
         float baseExpGain = gain * elementModifier * masteryModifier;// 计算实际获得的经验值
 
@@ -442,7 +460,7 @@ public class Equip {
     }
 
     private boolean reachedMaxLevel() {
-        if (officialCanLevelUp) {
+        if (officialCanLevelUp()) {
             if (itemLevel < ItemInformationProvider.getInstance().getEquipLevel(getItemId(), true)) {
                 return false;
             }
@@ -463,22 +481,13 @@ public class Equip {
         return "'" + eqpName + "' -> LV: #e#b" + itemLevel + "#k#n    " + eqpInfo + "\r\n";
     }
 
-    public void setItemExp(int exp) {
-        this.itemExp = exp;
-    }
-
-    public void setItemLevel(int level) {
-        this.itemLevel = level;
-    }
-
-    public void setUpgradeSlots(int i) {
-        this.enhancementSlots = i;
-    }
-
     // ── 持久化数据转换（装备域；信封组装在 ItemSlot.toData） ──
 
     public EquipmentData toData() {
         EquipmentData d = new EquipmentData();
+        if (!flags.isEmpty()) {
+            d.equipFlags = flags.stream().map(Enum::name).toList();
+        }
         d.enhancementSlots = enhancementSlots == 0 ? null : enhancementSlots;
         d.enhancementLevel = enhancementLevel == 0 ? null : enhancementLevel;
         d.itemLevel = itemLevel == 0 ? null : itemLevel;
@@ -494,26 +503,28 @@ public class Equip {
         return d;
     }
 
-    public void applyData(EquipmentData d) {
-        if (d.enhancementSlots != null) enhancementSlots = d.enhancementSlots;
-        if (d.enhancementLevel != null) enhancementLevel = d.enhancementLevel;
-        if (d.itemLevel != null) itemLevel = d.itemLevel;
-        if (d.itemExp != null) itemExp = d.itemExp;
-        if (d.vicious != null) vicious = d.vicious;
-        if (d.ringId != null) ringId = d.ringId;
+    /** 反序列化工厂：无视 wz，一切数据从存档加载；省略字段取中性默认
+     *  （ringId=-1、itemLevel=1、其余 0）；要求宿主先于组件存在 */
+    public static Equip fromData(Item owner, EquipmentData d) {
+        Equip e = new Equip();
+        e.itemId = owner.id;
+        if (d.equipFlags != null) {
+            for (String name : d.equipFlags) {
+                e.addFlag(EquipFlag.valueOf(name));
+            }
+        }
+        if (d.enhancementSlots != null) e.enhancementSlots = d.enhancementSlots;
+        if (d.enhancementLevel != null) e.enhancementLevel = d.enhancementLevel;
+        if (d.itemLevel != null) e.itemLevel = d.itemLevel;
+        if (d.itemExp != null) e.itemExp = d.itemExp;
+        if (d.vicious != null) e.vicious = d.vicious;
+        if (d.ringId != null) e.ringId = d.ringId;
         for (Stat st : Stat.values()) {
             Integer v = d.stat(st);
             if (v != null) {
-                stats[st.ordinal()] = v;
+                e.stats[st.ordinal()] = v;
             }
         }
-    }
-
-    public int getRingId() {
-        return ringId;
-    }
-
-    public void setRingId(int id) {
-        this.ringId = id;
+        return e;
     }
 }

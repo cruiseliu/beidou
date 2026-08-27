@@ -136,6 +136,66 @@ public class InventoryTab implements Iterable<ItemSlot> {
         return slotId;
     }
 
+    /** 入包放置明细（发生序）：mergedExisting=并堆（终值已写入该槽）；否则全新槽 */
+    record StackPlacement(boolean mergedExisting, ItemSlot slot) {
+    }
+
+    /**
+     * 事务级入包（实现贴近原 InventoryTransaction.addInternal）：先并同类可合并堆
+     * （判定收敛 Item.canMergeWith），溢出逐组开新槽；放不下时已生效部分保留。
+     * 宿主未接线的装备以 wz 模板工厂生成，数量非 1 拒绝；
+     * EQUIPPED/CANHOLD/UNDEFINED 不支持。
+     *
+     * @param placements 每个被改动槽的明细（发生序），调用方各自翻译成 SlotOp / ModifyInventory
+     * @return 未放入的剩余量（0 = 全部放入）
+     */
+    int addInternal(ItemStack stack, List<StackPlacement> placements) {
+        if (type == InventoryType.EQUIPPED || type == InventoryType.CANHOLD || type == InventoryType.UNDEFINED) {
+            throw new UnsupportedOperationException("不支持该背包类型: " + type);
+        }
+        ItemStack remaining = stack.copy();   // 游标在副本上消耗，不碰调用方入参
+
+        if (type == InventoryType.EQUIP && remaining.quantity != 1) {
+            throw new IllegalArgumentException("装备数量恒为 1: " + remaining.itemId + " x" + remaining.quantity);
+        }
+
+        int stackLimit = remaining.getStackLimit();
+
+        if (stackLimit > 1) {
+            for (ItemSlot slot : listById(remaining.itemId)) {
+                if (remaining.quantity == 0) {
+                    return 0;
+                }
+                if (!remaining.canMergeWith(slot.getItem())) {
+                    continue;
+                }
+                if (slot.getQuantity() < stackLimit) {
+                    slot.quantity += remaining.takeAtMost(stackLimit - slot.getQuantity()).quantity;
+                    placements.add(new StackPlacement(true, slot));
+                }
+            }
+        }
+
+        while (remaining.quantity > 0) {
+            ItemStack unit = remaining.takeAtMost(stackLimit);
+            ItemSlot fresh = buildUnit(unit);
+            if (addItem(fresh) == -1) {
+                remaining.quantity += unit.quantity;   // 未放入，游标归还该组
+                return remaining.quantity;
+            }
+            placements.add(new StackPlacement(false, fresh));
+        }
+        return 0;
+    }
+
+    /** 单组内容物构建：宿主已接线则原样承载；无宿主装备走 wz 模板工厂，其余默认构造 */
+    private ItemSlot buildUnit(ItemStack unit) {
+        if (unit.getItem() != null || type != InventoryType.EQUIP) {
+            return ItemSlot.fromStack(unit, 0);
+        }
+        return ItemInformationProvider.getInstance().getEquipById(unit.itemId);
+    }
+
     // find an empty slot to host the stack, or return null if no room
     // this method will never merge it with other slots
     public ItemSlot addStack(ItemStack item) {

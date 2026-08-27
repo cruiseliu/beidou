@@ -29,7 +29,9 @@ import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.client.autoban.AutobanFactory;
 import org.gms.client.inventory.Equip;
+import org.gms.client.inventory.EquipFlag;
 import org.gms.client.inventory.InventoryTab;
+import org.gms.client.inventory.ItemFlag;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.weaponType.WeaponTypeRegistry;
@@ -37,9 +39,6 @@ import org.gms.config.GameConfig;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.inventory.EquipSlot;
 import org.gms.constants.inventory.ItemConstants;
-import org.gms.constants.skills.Assassin;
-import org.gms.constants.skills.Gunslinger;
-import org.gms.constants.skills.NightWalker;
 import org.gms.net.server.Server;
 import org.gms.util.*;
 import org.slf4j.Logger;
@@ -94,7 +93,6 @@ public class ItemInformationProvider {
     protected Map<Integer, Short> slotMaxCache = new HashMap<>();
     protected Map<Integer, BuffEffectData> itemEffects = new HashMap<>();
     protected Map<Integer, Map<String, Integer>> equipStatsCache = new HashMap<>();
-    protected Map<Integer, Equip> equipCache = new HashMap<>();
     protected Map<Integer, Data> equipLevelInfoCache = new HashMap<>();
     protected Map<Integer, Integer> equipLevelReqCache = new HashMap<>();
     protected Map<Integer, Integer> equipMaxLevelCache = new HashMap<>();
@@ -341,27 +339,11 @@ public class ItemInformationProvider {
         return list;
     }
 
-    private static short getExtraSlotMaxFromPlayer(Client c, int itemId) {
-        short ret = 0;
-
-        // thanks GMChuck for detecting player sensitive data being cached into getSlotMax
-        if (ItemConstants.isThrowingStar(itemId)) {
-            if (c.getPlayer().getJob().isA(JobEnum.NIGHTWALKER1)) {
-                ret += c.getPlayer().getSkillLevel(NightWalker.CLAW_MASTERY) * 10;
-            } else {
-                ret += c.getPlayer().getSkillLevel(Assassin.CLAW_MASTERY) * 10;
-            }
-        } else if (ItemConstants.isBullet(itemId)) {
-            ret += c.getPlayer().getSkillLevel(Gunslinger.GUN_MASTERY) * 10;
-        }
-
-        return ret;
-    }
-
-    public short getSlotMax(Client c, int itemId) {
+    /** wz 静态堆叠上限（与玩家无关；可充值的次数上限含精通加成，见 {@link org.gms.client.inventory.Item#getChargeLimit}） */
+    public short getSlotMax(int itemId) {
         Short slotMax = slotMaxCache.get(itemId);
         if (slotMax != null) {
-            return (short) (slotMax + getExtraSlotMaxFromPlayer(c, itemId));
+            return slotMax;
         }
         short ret = 0;
         Data item = getItemData(itemId);
@@ -383,7 +365,7 @@ public class ItemInformationProvider {
         }
 
         slotMaxCache.put(itemId, ret);
-        return (short) (ret + getExtraSlotMaxFromPlayer(c, itemId));
+        return ret;
     }
 
     public int getMeso(int itemId) {
@@ -1090,17 +1072,13 @@ public class ItemInformationProvider {
 
                 // 判断是否成功应用卷轴效果（根据成功率和GM状态）
                 if (assertGM || rollSuccessChance(prop)) {
-                    short flag = (short) nEquip.getFlag(); // 获取装备的标志位
-
-                    // 根据卷轴ID应用不同的效果
+                    // 根据卷轴ID应用不同的效果（防滑/防冻 → 装备专属旗标）
                     switch (scrollId) {
                         case ItemId.SPIKES_SCROLL:
-                            flag |= ItemConstants.SPIKES; // 设置刺击标志位
-                            nEquip.setFlag((byte) flag);
+                            nEquip.addFlag(EquipFlag.SPIKES);
                             break;
                         case ItemId.COLD_PROTECTION_SCROLl:
-                            flag |= ItemConstants.COLD; // 设置寒冷保护标志位
-                            nEquip.setFlag((byte) flag);
+                            nEquip.addFlag(EquipFlag.COLD);
                             break;
                         case ItemId.CLEAN_SLATE_1:
                         case ItemId.CLEAN_SLATE_3:
@@ -1193,57 +1171,53 @@ public class ItemInformationProvider {
         }
     }
 
-    /** wz 模板装备（数据全量自 wz 填充，含 tuc→upgradeSlots）。
-     *  原私有重载的 ringId 参数是死的：被误当 upgradeSlots 传入后被 tuc 覆盖，戒指 id 由调用方 setRingId。 */
-    public ItemSlot getEquipById(int equipId) {
-        ItemSlot equipItem = ItemSlot.equipItem(equipId, (byte) 0);
-        Equip nEquip = equipItem.getEquipInfo();
+    /** 构造期 wz 基础初始化：属性数组（截断到 short）+ tuc→升级槽 + 不可交易/防滑旗标。
+     *  由 Equip 构造函数调用，保证任何创建路径产出的装备都处于完整初始态。 */
+    public void initWzBaseStats(Equip equip, int equipId) {
         Map<String, Integer> stats = this.getEquipStats(equipId);
         if (stats != null) {
             for (Entry<String, Integer> stat : stats.entrySet()) {
                 if (stat.getKey().equals("STR")) {
-                    nEquip.setStat(Stat.STR, (short) stat.getValue().intValue());
+                    equip.setStat(Stat.STR, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("DEX")) {
-                    nEquip.setStat(Stat.DEX, (short) stat.getValue().intValue());
+                    equip.setStat(Stat.DEX, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("INT")) {
-                    nEquip.setStat(Stat.INT, (short) stat.getValue().intValue());
+                    equip.setStat(Stat.INT, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("LUK")) {
-                    nEquip.setStat(Stat.LUK, (short) stat.getValue().intValue());
+                    equip.setStat(Stat.LUK, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("PAD")) {
-                    nEquip.setStat(Stat.P_ATK, (short) stat.getValue().intValue());
+                    equip.setStat(Stat.P_ATK, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("PDD")) {
-                    nEquip.setStat(Stat.P_DEF, (short) stat.getValue().intValue());
+                    equip.setStat(Stat.P_DEF, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("MAD")) {
-                    nEquip.setStat(Stat.M_ATK, (short) stat.getValue().intValue());
+                    equip.setStat(Stat.M_ATK, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("MDD")) {
-                    nEquip.setStat(Stat.M_DEF, (short) stat.getValue().intValue());
+                    equip.setStat(Stat.M_DEF, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("ACC")) {
-                    nEquip.setStat(Stat.ACCURACY, (short) stat.getValue().intValue());
+                    equip.setStat(Stat.ACCURACY, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("EVA")) {
-                    nEquip.setStat(Stat.AVOIDABILITY, (short) stat.getValue().intValue());
+                    equip.setStat(Stat.AVOIDABILITY, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("Speed")) {
-                    nEquip.setStat(Stat.SPEED, (short) stat.getValue().intValue());
+                    equip.setStat(Stat.SPEED, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("Jump")) {
-                    nEquip.setStat(Stat.JUMP, (short) stat.getValue().intValue());
+                    equip.setStat(Stat.JUMP, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("MHP")) {
-                    nEquip.setStat(Stat.MAX_HP, (short) stat.getValue().intValue());
+                    equip.setStat(Stat.MAX_HP, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("MMP")) {
-                    nEquip.setStat(Stat.MAX_MP, (short) stat.getValue().intValue());
+                    equip.setStat(Stat.MAX_MP, (short) stat.getValue().intValue());
                 } else if (stat.getKey().equals("tuc")) {
-                    nEquip.setEnhancementSlots((byte) stat.getValue().intValue());
-                } else if (isUntradeableRestricted(equipId)) {  // thanks Hyun & Thora for showing an issue with more than only "Untradeable" items being flagged as such here
-                    short flag = (short) nEquip.getFlag();
-                    flag |= ItemConstants.UNTRADEABLE;
-                    nEquip.setFlag(flag);
+                    equip.setEnhancementSlots((byte) stat.getValue().intValue());
                 } else if (stats.get("fs") > 0) {
-                    short flag = (short) nEquip.getFlag();
-                    flag |= ItemConstants.SPIKES;
-                    nEquip.setFlag(flag);
-                    equipCache.put(equipId, nEquip);
+                    // tradeBlock 的 UNTRADEABLE 由 Item.applyWzTypeFlags 统一落位（含装备）
+                    equip.addFlag(EquipFlag.SPIKES);
                 }
             }
         }
-        return equipItem.copy();
+    }
+
+    /** wz 模板装备：构造即完成全量 wz 初始化（initWzBaseStats），此处仅定型装备类型槽位。 */
+    public ItemSlot getEquipById(int equipId) {
+        return ItemSlot.equipItem(equipId, (byte) 0);
     }
 
     private static int getRandStat(int defaultValue, int maxRange) {
@@ -1773,6 +1747,9 @@ public class ItemInformationProvider {
         if (chr.getJob() != JobEnum.SUPERGM || chr.getJob() != JobEnum.GM) {
             for (ItemSlot item : inv.list()) {
                 Equip equip = item.getEquipInfo();
+                if (equip == null) {
+                    continue;   // 非装备占位（如金币伪 id=0）不参与需求聚合
+                }
                 tdex += equip.getStat(Stat.DEX);
                 tstr += equip.getStat(Stat.STR);
                 tluk += equip.getStat(Stat.LUK);
@@ -1781,6 +1758,9 @@ public class ItemInformationProvider {
         }
         for (ItemSlot item : items) {
             Equip equip = item.getEquipInfo();
+            if (equip == null) {
+                continue;
+            }
             int reqLevel = getEquipLevelReq(equip.getItemId());
             if (highfivestamp) {
                 reqLevel -= 5;

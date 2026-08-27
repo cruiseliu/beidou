@@ -73,7 +73,7 @@ public final class WeddingHandler extends AbstractPacketHandler {
                                                         marriage.addGiftItem(groomWishlist, newItem);
                                                         InventoryManipulator.removeFromSlot(c, type, slot, quantity, false, false);
 
-                                                        KarmaManipulator.toggleKarmaFlagToUntradeable(newItem);
+                                                        KarmaManipulator.onTradeCompleted(newItem);
                                                         marriage.setIntProperty(groomWishlistProp, giftCount + 1);
 
                                                         c.sendPacket(WeddingPackets.onWeddingGiftResult((byte) 0xB, marriage.getWishlistItems(groomWishlist), Collections.singletonList(newItem)));
