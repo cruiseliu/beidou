@@ -129,7 +129,10 @@ public class CharacterStats {
             }
         }
         if (!silent && !statUpdates.isEmpty()) {
-            owner.remote().update().updateStats(statUpdates).unlockActions().commit();
+            try (var u = owner.remote().update()) {
+                u.stats().updateStats(statUpdates);
+                u.basic().unlockActions();
+            }
         }
     }
 
@@ -145,7 +148,7 @@ public class CharacterStats {
             }
         }
         if (!statUpdates.isEmpty()) {
-            tx.updateStats(statUpdates);
+            tx.stats().updateStats(statUpdates);
         }
     }
 

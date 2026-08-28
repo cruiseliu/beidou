@@ -5,85 +5,30 @@ package org.gms.remote;
  * 当前客户端版本接受的封包格式收在实现内（见 org.gms.remote.v83）。
  * 每连接一个实例，经 {@code Client.getRemote()} 取用；{@code Character.remote()} 提供便捷转发。
  *
- * <p>内置有状态合并域（transaction）：未开域时语义调用立即编码发送；
- * 开域（{@link #update()}）期间所有语义调用入队（同字段后写覆盖，绝对值合并即净 diff），
- * 域关闭时统一组包发送。组件无需感知合并——一律正常公告，合并范围由编排层
- * （一个 handler / 一次升级 / 一次转职）开域决定。
+ * <p>本接口只见语义模块分组，不见具体方法——防上帝接口；各域的全部语义调用
+ * 归属 {@link StatsModule}/{@link SkillsModule}/{@link BasicModule}/
+ * {@link CooldownModule}/{@link InventoryModule}。
  *
- * <p>将对称地处理收、发双向：本期仅实现 S→C（发包），C→S（收包解析为语义事件）预留。
+ * <p>内置有状态合并域（transaction）：未开域时语义调用立即编码发送；
+ * 开域（{@link #update()}）期间入对应域缓冲，最外层关闭时按实现声明的固定序统一组包发送。
+ * wire 上怎么合并是版本编码器的私事（多对多，见 doc/09 §5.2）——语义 API 不暴露合并组。
+ *
+ * <p>将对称地处理收、发双向：本期仅实现 S→C（发包），C→S 预留。
  */
 public interface RemoteClient {
-    /** 开启合并域：try-with-resources 使用，close 即统一发送。嵌套开启返回空句柄（外层收口）。 */
+    /** 开启合并域：try-with-resources 使用，close 即统一发送。嵌套开启返回空收口语义（外层负责）。 */
     RemoteUpdate update();
 
-    /** 面板属性 + hp/mp/ap 通知（stats 域）。无打开的合并域时立即发送。 */
-    void updateStats(StatsUpdate update);
+    StatsModule stats();
 
-    /** SP 通知（技能域，按职业分桶的原始事实）。无打开的合并域时立即发送。 */
-    void updateSp(SpUpdate update);
+    SkillsModule skills();
 
-    /** 基础标识通知（basic 域：jobId/level/exp）。无打开的合并域时立即发送。 */
-    void updateBasic(BasicUpdate update);
+    BasicModule basic();
 
-    /** 解除客户端动作锁（v83 中并入 STAT_CHANGED 首字节；无其他内容时=空更新包）。 */
-    void unlockActions();
+    CooldownModule cooldown();
 
-    /** 技能等级/master/到期通知（skill 域）。无打开的合并域时立即发送。 */
-    void updateSkill(SkillUpdate update);
-
-    /** 移除已获得技能的通知（客户端侧删除）。 */
-    void removeSkill(int skillId);
-
-    /** 清除技能冷却显示（到期/重置）。 */
-    void clearSkillCooldown(int skillId);
-
-    /** 背包槽变更通知（并堆/新槽/移动/移除；v83 为 INVENTORY_OPERATION，同合并域一包） */
-    void updateInventory(java.util.List<org.gms.client.inventory.ModifyInventory> mods);
-
-    /** 背包满提示（v83：SHOW_STATUS_INFO(0xff)；空 INVENTORY_OPERATION 复用 modifyInventory 语义） */
-    void announceInventoryFull();
+    InventoryModule inventory();
 
     /** 无连接/已断开时的空实现——对齐 Character.sendPacket 对 client==null 的静默容忍。 */
-    RemoteClient DISCONNECTED = new RemoteClient() {
-        @Override
-        public RemoteUpdate update() {
-            return RemoteUpdate.NOOP;
-        }
-
-        @Override
-        public void updateStats(StatsUpdate update) {
-        }
-
-        @Override
-        public void updateSp(SpUpdate update) {
-        }
-
-        @Override
-        public void updateBasic(BasicUpdate update) {
-        }
-
-        @Override
-        public void unlockActions() {
-        }
-
-        @Override
-        public void updateSkill(SkillUpdate update) {
-        }
-
-        @Override
-        public void removeSkill(int skillId) {
-        }
-
-        @Override
-        public void clearSkillCooldown(int skillId) {
-        }
-
-        @Override
-        public void updateInventory(java.util.List<org.gms.client.inventory.ModifyInventory> mods) {
-        }
-
-        @Override
-        public void announceInventoryFull() {
-        }
-    };
+    RemoteClient DISCONNECTED = DisconnectedClient.INSTANCE;
 }

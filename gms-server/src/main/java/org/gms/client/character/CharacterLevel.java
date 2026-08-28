@@ -240,8 +240,8 @@ class CharacterLevel {
                         .setMp(owner.stats.getTotal(Stat.MAX_MP))
                         .commit();
             }
-            owner.remote().updateBasic(new BasicUpdate().level(level).exp(exp.get()));
-            owner.remote().unlockActions();
+            owner.remote().basic().updateBasic(new BasicUpdate().level(level).exp(exp.get()));
+            owner.remote().basic().unlockActions();
         }   // try-with-resources close = 统一发送
 
         owner.getMap().broadcastMessage(owner, PacketCreator.showForeignEffect(owner.getId(), 0), false);

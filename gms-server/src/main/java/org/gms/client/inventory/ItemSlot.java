@@ -82,8 +82,10 @@ public class ItemSlot implements Comparable<ItemSlot> {
         if (quantity > 1) {
             log.warn("可充值物品 {} 以旧格式构造（quantity={}），已转换为 charge；调用方应改用新表示",
                     item.getItemId(), quantity);
+            item.charge = quantity;
+        } else if (item.charge <= 0) {
+            item.charge = 1;   // 全新单组默认；已带 charge 的宿主（如共享 Item 的影子包装）不动
         }
-        item.charge = quantity;
         return 1;
     }
 
@@ -100,6 +102,15 @@ public class ItemSlot implements Comparable<ItemSlot> {
 
     public ItemSlot copy() {
         return new ItemSlot(item.copy(), position, quantity);
+    }
+
+    /**
+     * 影子包装（交换式事务专用）：共享 Item 本体、仅隔离槽位视角——
+     * prepare 期间对影子槽的数量/移除操作不触碰真身容器，而 Item 级字段
+     * （charge 等）由事务语义保证在 TX 内不变（charge 变更不走背包，见决策）。
+     */
+    static ItemSlot shadowWrap(ItemSlot src) {
+        return new ItemSlot(src.item, src.getPosition(), src.getQuantity());
     }
 
     // ── 槽位自身 ──

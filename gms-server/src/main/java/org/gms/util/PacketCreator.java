@@ -393,7 +393,8 @@ public class PacketCreator {
         addItemInfo(p, item, false, pet);
     }
 
-    protected static void addItemInfo(final OutPacket p, ItemSlot item, boolean zeroPosition, Pet pet) {
+    /** 物品体编码器：inventory-op 直组（v83）与各处打包共用；改此处的字节序前先看多重集基线 */
+    public static void addItemInfo(final OutPacket p, ItemSlot item, boolean zeroPosition, Pet pet) {
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
         boolean isCash = ii.isCash(item.getItemId());
         boolean isPet = item.getPetId() > -1;

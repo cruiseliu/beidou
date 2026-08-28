@@ -27,6 +27,7 @@ import org.gms.client.Client;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.server.ItemInformationProvider;
+import org.gms.remote.SlotChange;
 import org.gms.server.ThreadManager;
 import org.gms.util.Pair;
 
@@ -136,20 +137,60 @@ public class InventoryTab implements Iterable<ItemSlot> {
         return slotId;
     }
 
-    /** 入包放置明细（发生序）：mergedExisting=并堆（终值已写入该槽）；否则全新槽 */
-    record StackPlacement(boolean mergedExisting, ItemSlot slot) {
+    /** 容器内部映射快照（浅拷贝：值引用随容器演进，键位集合定格于此刻）——diff 的 before 侧 */
+    Map<Integer, ItemSlot> snapshot() {
+        return new LinkedHashMap<>(inventory);
+    }
+
+    /** 整容器换装（2b 交换式事务的 commit 原语）：内部映射被 other 的内容取代（迭代序=other 序） */
+    void adopt(InventoryTab other) {
+        inventory.clear();
+        inventory.putAll(other.inventory);
     }
 
     /**
-     * 事务级入包（实现贴近原 InventoryTransaction.addInternal）：先并同类可合并堆
-     * （判定收敛 Item.canMergeWith），溢出逐组开新槽；放不下时已生效部分保留。
-     * 宿主未接线的装备以 wz 模板工厂生成，数量非 1 拒绝；
-     * EQUIPPED/CANHOLD/UNDEFINED 不支持。
+     * 状态对状态的容器差异（2b：通知与状态应用的共同来源，取代操作序列记录）。
+     * 位置升序；同位置 remove 先于 add；身份匹配仅数量不同 → mode 1 数量更新。
+     * 身份 = Item 引用同一——共享纪律下影子包装与真身槽共享 Item，引用相等即同一
+     * 物品实体；字段巧合一致（如同位置换入一模一样的新堆）不算，走 remove+add。
+     * 推论：Item 级字段变更（如 charge）引用不变 → 定义性地不产生 diff 事件
+     * （charge 走独立的 UpdateAmmoCharge 事件，见决策）。
+     */
+    static List<SlotChange> diff(Map<Integer, ItemSlot> before, Map<Integer, ItemSlot> after) {
+        List<SlotChange> changes = new ArrayList<>();
+        var positions = new java.util.TreeSet<Integer>();
+        positions.addAll(before.keySet());
+        positions.addAll(after.keySet());
+        for (int pos : positions) {
+            ItemSlot b = before.get(pos);
+            ItemSlot a = after.get(pos);
+            if (b != null && (a == null || !sameItem(b, a))) {
+                changes.add(new SlotChange.Removed(b));   // 旧槽消失（或换成了别的东西）
+            }
+            if (a != null) {
+                if (b == null || !sameItem(b, a)) {
+                    changes.add(new SlotChange.Added(a));
+                } else if (a.getQuantity() != b.getQuantity()) {
+                    changes.add(new SlotChange.QuantityUpdated(a));
+                }
+            }
+        }
+        return changes;
+    }
+
+    /** 同一物品实体 = Item 引用相同（影子薄包装与真身槽共享 Item，见 shadowWrap） */
+    private static boolean sameItem(ItemSlot a, ItemSlot b) {
+        return a.getItem() == b.getItem();
+    }
+
+    /**
+     * 事务级入包：先并同类可合并堆（判定收敛 Item.canMergeWith），溢出逐组开新槽；
+     * 放不下时已生效部分保留。宿主未接线的装备以 wz 模板工厂生成，数量非 1 拒绝；
+     * EQUIPPED/CANHOLD/UNDEFINED 不支持。变化的通知由调用方经 snapshot/diff 产出。
      *
-     * @param placements 每个被改动槽的明细（发生序），调用方各自翻译成 SlotOp / ModifyInventory
      * @return 未放入的剩余量（0 = 全部放入）
      */
-    int addInternal(ItemStack stack, List<StackPlacement> placements) {
+    int addInternal(ItemStack stack) {
         if (type == InventoryType.EQUIPPED || type == InventoryType.CANHOLD || type == InventoryType.UNDEFINED) {
             throw new UnsupportedOperationException("不支持该背包类型: " + type);
         }
@@ -171,7 +212,6 @@ public class InventoryTab implements Iterable<ItemSlot> {
                 }
                 if (slot.getQuantity() < stackLimit) {
                     slot.quantity += remaining.takeAtMost(stackLimit - slot.getQuantity()).quantity;
-                    placements.add(new StackPlacement(true, slot));
                 }
             }
         }
@@ -183,7 +223,6 @@ public class InventoryTab implements Iterable<ItemSlot> {
                 remaining.quantity += unit.quantity;   // 未放入，游标归还该组
                 return remaining.quantity;
             }
-            placements.add(new StackPlacement(false, fresh));
         }
         return 0;
     }

@@ -2,25 +2,25 @@ package org.gms.remote;
 
 /**
  * 合并域句柄：{@code RemoteClient.update()} 开启，close 时统一发送域内积攒的通知。
- * 本身不携带状态——队列在 RemoteClient 内（见其类注释）；嵌套 update() 返回空句柄，
- * 由最外层收口。方法与 RemoteClient 的语义调用一一对应（链式便捷）。
+ * 与 RemoteClient 返回相同的模块单例——缓冲与冲刷由客户端自身的 depth 状态决定，
+ * 句柄仅提供会话内书写的入口与生命周期。语义调用平铺书写，不再链式。
  */
 public interface RemoteUpdate extends AutoCloseable {
-    RemoteUpdate updateStats(StatsUpdate update);
+    StatsModule stats();
 
-    RemoteUpdate updateSp(SpUpdate update);
+    SkillsModule skills();
 
-    RemoteUpdate updateBasic(BasicUpdate update);
+    BasicModule basic();
 
-    RemoteUpdate unlockActions();
+    CooldownModule cooldown();
 
-    RemoteUpdate updateSkill(SkillUpdate update);
+    InventoryModule inventory();
 
-    RemoteUpdate removeSkill(int skillId);
-
-    RemoteUpdate clearSkillCooldown(int skillId);
-
-    RemoteUpdate updateInventory(java.util.List<org.gms.client.inventory.ModifyInventory> mods);
+    /**
+     * 丢弃本作用域积累的全部语义事件并结束（P2：全域 drop transaction，O(1) 弃段）。
+     * 所有模块一并生效——横切能力而非领域特例。
+     */
+    void drop();
 
     /** 立即发送域内积攒的通知（等价 close）。 */
     void commit();
@@ -29,54 +29,24 @@ public interface RemoteUpdate extends AutoCloseable {
     @Override
     void close();
 
-    /** 空实现（无连接 / 嵌套域）。 */
+    /** 空实现（无连接）：模块访问器路由到静默空模块，语义调用安全无害。 */
     RemoteUpdate NOOP = new RemoteUpdate() {
-        @Override
-        public RemoteUpdate updateStats(StatsUpdate update) {
-            return this;
-        }
+        private final DisconnectedClient silent = new DisconnectedClient();
 
-        @Override
-        public RemoteUpdate updateSp(SpUpdate update) {
-            return this;
-        }
-
-        @Override
-        public RemoteUpdate updateBasic(BasicUpdate update) {
-            return this;
-        }
-
-        @Override
-        public RemoteUpdate unlockActions() {
-            return this;
-        }
-
-        @Override
-        public RemoteUpdate updateSkill(SkillUpdate update) {
-            return this;
-        }
-
-        @Override
-        public RemoteUpdate removeSkill(int skillId) {
-            return this;
-        }
-
-        @Override
-        public RemoteUpdate clearSkillCooldown(int skillId) {
-            return this;
-        }
-
-        @Override
-        public RemoteUpdate updateInventory(java.util.List<org.gms.client.inventory.ModifyInventory> mods) {
-            return this;
-        }
-
-        @Override
-        public void commit() {
+        @Override public StatsModule stats() { return silent; }
+        @Override public SkillsModule skills() { return silent; }
+        @Override public BasicModule basic() { return silent; }
+        @Override public CooldownModule cooldown() { return silent; }
+        @Override public InventoryModule inventory() { return silent; }
+        @Override public void commit() {
         }
 
         @Override
         public void close() {
+        }
+
+        @Override
+        public void drop() {
         }
     };
 }

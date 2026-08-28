@@ -86,10 +86,10 @@ class CharacterSp {
     }
 
     private void announceSpLocked() {
-        owner.remote().update()
-                .updateSp(new SpUpdate(owner.job.def().jobId(), remainingSp))
-                .unlockActions()
-                .commit();
+        try (var u = owner.remote().update()) {
+            u.skills().updateSp(new SpUpdate(owner.job.def().jobId(), remainingSp));
+            u.basic().unlockActions();
+        }
     }
 
     /** 全部桶（jobId 升序的值数组；v83 SP 表职业分桶块用，Evan 未实现语义待定） */

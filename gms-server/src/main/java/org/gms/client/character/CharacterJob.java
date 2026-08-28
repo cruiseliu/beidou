@@ -188,8 +188,8 @@ class CharacterJob {
                         .commit();
             }
 
-            owner.remote().updateBasic(new BasicUpdate().jobId(getId()));
-            owner.remote().unlockActions();
+            owner.remote().basic().updateBasic(new BasicUpdate().jobId(getId()));
+            owner.remote().basic().unlockActions();
         }
 
         owner.setMPC(new PartyCharacter(owner));

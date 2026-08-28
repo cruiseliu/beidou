@@ -2,6 +2,7 @@ package org.gms.client.inventory;
 
 import org.gms.client.character.Character;
 import org.gms.constants.inventory.ItemConstants;
+import org.gms.remote.SlotChange;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,19 +56,16 @@ public class Inventory {
      *         quantity = 未放入量（可充值以组计）；完全失败时即原量）
      */
     public ItemStack add(ItemStack stack) {
-        List<InventoryTab.StackPlacement> placements = new ArrayList<>();
-        int leftover = getTab(ItemConstants.getInventoryType(stack.itemId))
-                .addInternal(stack, placements);
+        InventoryTab tab = getTab(ItemConstants.getInventoryType(stack.itemId));
+        var before = tab.snapshot();
+        int leftover = tab.addInternal(stack);
 
-        List<ModifyInventory> mods = new ArrayList<>(placements.size());
-        for (InventoryTab.StackPlacement p : placements) {
-            mods.add(new ModifyInventory(p.mergedExisting() ? 1 : 0, p.slot()));
-        }
+        List<SlotChange> changes = InventoryTab.diff(before, tab.snapshot());
         if (leftover > 0) {
-            owner.getRemote().announceInventoryFull();
+            owner.getRemote().inventory().announceInventoryFull();
         }
-        if (!mods.isEmpty()) {
-            owner.getRemote().updateInventory(mods);
+        if (!changes.isEmpty()) {
+            owner.getRemote().inventory().updateInventory(changes);
         }
         return leftover == 0 ? null : new ItemStack(stack.itemId, leftover);
     }

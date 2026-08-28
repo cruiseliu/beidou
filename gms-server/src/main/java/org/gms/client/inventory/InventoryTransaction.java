@@ -1,6 +1,8 @@
 package org.gms.client.inventory;
 
 import org.gms.client.character.Character;
+import org.gms.remote.RemoteUpdate;
+import org.gms.remote.SlotChange;
 import org.gms.constants.inventory.ItemConstants;
 
 import java.util.ArrayList;
@@ -10,11 +12,24 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.DoubleSupplier;
 
 /**
- * Inventory 事务（shadow rehearsal，设计见 doc/09）：
- * begin 统一锁常规 tab（ordinal 序，持锁至 commit/rollback）并深拷贝影子；
- * 流式 add/remove 族在影子上预演并记录槽级 op（不可行置 failed，后续 no-op）；
- * commit 逐条重放 op 到真实 tab（持锁保证与影子逐槽一致），ModifyInventory 一次发包。
- * testUpdate 模式 commit 不重放，仅返回可行性。
+ * Inventory 事务（2b 交换式：shadow rehearsal + swap + diff）：
+ * begin 统一锁常规 tab（ordinal 序，持锁至 commit/rollback）并做影子薄包装（Item 本体共享）；
+ * 流式 add/remove 族只改影子（不可行置 failed，后续 no-op）——不记录任何操作序列；
+ * commit 把影子容器整体换装进真身，通知 = diff(换装前, 换装后) 一次发包。
+ * testUpdate 模式不换装，仅返回可行性。
+ *
+ * <p>容器只关心状态不关心操作序列：瞬时中间态（加了又删、加了又并）在 diff 中自然抵消。
+ * 撤销 = 丢弃影子（真身从未被碰——比"碰了再还原"更强的不变量）。
+ *
+ * <p>已登记的边界决策：
+ * <ul>
+ *   <li>charge 变更在语义层对 Inventory/本事务不可见（将来走独立的 UpdateAmmoCharge
+ *       事件，翻译成背包 packet 是 v83 编码器的私事）；diff 身份 = Item 引用，
+ *       引用不变则 charge 变更定义性地不产生通知。</li>
+ *   <li>move 不复用本事务（将来背包排序走独立 move TX）；diff 规格因此不含 move。</li>
+ *   <li>外部 ItemSlot 引用失效已审计清白（引用面均为游离对象/局部变量，2026-08-27）；
+ *       Item 引用因共享纪律不失效。</li>
+ * </ul>
  *
  * <p>约束：EQUIPPED/CANHOLD 不支持（UnsupportedOperationException）；影子单独存本类不占
  * tabs[CAN_HOLD]；事务不得跨线程。addPool 经 addPoolAndCommit 组合暴露：验全（roll 样本空间
@@ -30,74 +45,19 @@ public class InventoryTransaction {
         InventoryType.CASH,
     };
 
-    /** 槽级重放动作（影子操作时记录，commit 对真实 tab 逐条执行；影子与真实起点同构，结果确定） */
-    private abstract static class SlotOp {
-        final InventoryType type;
-        final int slot;
-
-        SlotOp(InventoryType type, int slot) {
-            this.type = type;
-            this.slot = slot;
-        }
-
-        abstract void replay(InventoryTab real, List<ModifyInventory> mods);
-    }
-
-    /** 新增槽：影子新建的 ItemSlot 对象直接落真实同槽（该对象此后即为真实对象） */
-    private static final class AddSlotOp extends SlotOp {
-        private final ItemSlot item;
-
-        AddSlotOp(InventoryType type, int slot, ItemSlot item) {
-            super(type, slot);
-            this.item = item;
-        }
-
-        @Override
-        void replay(InventoryTab real, List<ModifyInventory> mods) {
-            real.addItemFromDB(item);
-            mods.add(new ModifyInventory(0, item));
-        }
-    }
-
-    /** 堆数量变更（并堆/扣减后仍留）：以影子终值作用于真实原对象 */
-    private static final class SetQtyOp extends SlotOp {
-        private final int newQty;
-        private final boolean removed;   // 扣减至 0 整槽移除
-
-        SetQtyOp(InventoryType type, int slot, int newQty, boolean removed) {
-            super(type, slot);
-            this.newQty = newQty;
-            this.removed = removed;
-        }
-
-        @Override
-        void replay(InventoryTab real, List<ModifyInventory> mods) {
-            ItemSlot realItem = real.getItem(slot);
-            if (realItem == null) {
-                return;
-            }
-            if (removed) {
-                real.removeSlot(slot);
-                mods.add(new ModifyInventory(3, realItem));
-            } else {
-                realItem.setQuantity(Math.max(0, newQty));
-                mods.add(new ModifyInventory(1, realItem));
-            }
-        }
-    }
-
     private final Inventory inventory;
     private final Character character;
     private final boolean testMode;
     /** roll 随机源（默认 ThreadLocalRandom；可注入供测试/审计） */
     private final DoubleSupplier random;
 
-    /** 影子：type → 深拷贝 tab（现有堆为 ItemSlot.copy，事务改影子不污染真实对象） */
+    /** 影子：type → 薄包装 tab（共享 Item 本体，仅槽位视角隔离；事务改影子不污染真实容器） */
     private final EnumMap<InventoryType, InventoryTab> shadow = new EnumMap<>(InventoryType.class);
-    /** 槽级 op log（发生序） */
-    private final List<SlotOp> ops = new ArrayList<>();
 
     private boolean failed = false;
+
+    /** P2 事务信封：prepare 起缓冲全部通知；成功随 commit 冲刷，failed → drop 弃段 */
+    private RemoteUpdate packetScope;
 
     InventoryTransaction(Inventory inventory, Character character, boolean testMode) {
         this.inventory = inventory;
@@ -117,7 +77,7 @@ public class InventoryTransaction {
                 InventoryTab real = inventory.getTab(type);
                 InventoryTab copy = new InventoryTab(character, type, real.getSlotLimit());  // todo: [refactor] use "more-raw" tab
                 for (ItemSlot item : real.list()) {
-                    copy.addItemFromDB(item.copy());
+                    copy.addItemFromDB(ItemSlot.shadowWrap(item));   // Item 共享：薄包装
                 }
                 shadow.put(type, copy);
             }
@@ -125,6 +85,7 @@ public class InventoryTransaction {
             end();
             throw e;
         }
+        packetScope = character.getRemote().update();   // 事务信封：段从现在起收集一切通知
     }
 
     private void end() {
@@ -153,16 +114,7 @@ public class InventoryTransaction {
         // fixme: [refactor] check exclusive item
         int itemId = item.itemId;
         InventoryType type = tabTypeOf(itemId);
-
-        List<InventoryTab.StackPlacement> placements = new ArrayList<>();
-        int leftover = shadow.get(type).addInternal(item, placements);
-        for (InventoryTab.StackPlacement p : placements) {
-            if (p.mergedExisting()) {
-                ops.add(new SetQtyOp(type, p.slot().getPosition(), p.slot().getQuantity(), false));
-            } else {
-                ops.add(new AddSlotOp(type, p.slot().getPosition(), p.slot()));
-            }
-        }
+        int leftover = shadow.get(type).addInternal(item);
         if (leftover > 0) {
             failed = true;
         }
@@ -197,7 +149,7 @@ public class InventoryTransaction {
     }
 
     /**
-     * 影子上自首堆逐个扣减（与 op 记录序一致）；不足且 mayFail → failed。
+     * 影子上自首堆逐个扣减；不足且 mayFail → failed。
      * 可充值的 quantity 语义为组数（每组一格、每组算 1）；发数级扣减（消耗一发）走消耗路径，不在此。
      */
     private void removeInternal(ItemStack item, boolean mayFail) {
@@ -212,9 +164,8 @@ public class InventoryTransaction {
                 return;
             }
             remaining -= slot.takeAtMost(remaining).quantity;
-            ops.add(new SetQtyOp(type, slot.position, slot.quantity, slot.quantity == 0));
             if (slot.quantity == 0) {
-                tab.removeSlot(slot.position);   // 扣空的组整格移除，影子表项与 ops 保持一致
+                tab.removeSlot(slot.position);   // 扣空的组整格移除
             }
         }
 
@@ -295,22 +246,31 @@ public class InventoryTransaction {
 
     // ── 提交 ──
 
-    /** failed → 丢弃返回 false；test 模式返回可行性；否则逐条重放 + 一次发包 */
+    /** failed → 丢弃返回 false；test 模式返回可行性（不换装）；否则整容器换装 + diff 一次发包 */
     public boolean commit() {
         if (failed) {
             rollback();
+            if (packetScope != null) {
+                packetScope.drop();   // 失败兜底：整段事件弃置
+            }
             return false;
         }
 
         if (!testMode) {
-            List<ModifyInventory> mods = new ArrayList<>();
-            for (SlotOp op : ops) {
-                op.replay(inventory.getTab(op.type), mods);
+            List<SlotChange> changes = new ArrayList<>();
+            for (InventoryType type : TX_TYPES) {
+                InventoryTab real = inventory.getTab(type);
+                InventoryTab sh = shadow.get(type);
+                var before = real.snapshot();
+                real.adopt(sh);
+                changes.addAll(InventoryTab.diff(before, sh.snapshot()));
             }
-            if (!mods.isEmpty()) {
-                // 经 remote 层发包：可充值物品 wire 前由 ModifyInventoryOp 做 charge→quantity 还原
-                character.getRemote().updateInventory(mods);
+            if (!changes.isEmpty()) {
+                character.getRemote().inventory().updateInventory(changes);
             }
+        }
+        if (packetScope != null) {
+            packetScope.commit();
         }
 
         end();
@@ -318,7 +278,7 @@ public class InventoryTransaction {
     }
 
     private void rollback() {
-        end();   // 影子丢弃即回滚（真实从未被碰）
+        end();   // 丢弃影子即回滚（真身从未被碰——2b 更强不变量）
     }
 
     // ── 工具 ──
