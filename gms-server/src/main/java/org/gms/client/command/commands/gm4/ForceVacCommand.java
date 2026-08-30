@@ -26,7 +26,7 @@ package org.gms.client.command.commands.gm4;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
-import org.gms.client.inventory.Pet;
+import org.gms.client.pet.Pet;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.constants.id.ItemId;
 import org.gms.server.maps.MapItem;
@@ -62,13 +62,8 @@ public class ForceVacCommand extends Command {
                 } else if (ItemId.isNxCard(mapItem.getItemId())) {
                     // Add NX to account, show effect and make item disappear
                     player.getCashShop().gainCash(1, mapItem.getItemId() == ItemId.NX_CARD_100 ? 100 : 250);
-                } else if (mapItem.getItem().getItemId() >= 5000000 && mapItem.getItem().getItemId() <= 5000100) {
-                    int petId = Pet.createPet(mapItem.getItem().getItemId());
-                    if (petId == -1) {
-                        continue;
-                    }
-                    InventoryManipulator.REFACTOR5_addById(c, mapItem.getItem().getItemId(), (short) mapItem.getItem().getQuantity(), null, petId);
                 } else if (InventoryManipulator.addFromDrop(c, mapItem.getItem(), true)) {
+                    // 宠物道具同样走 addFromDrop：入包 enter 钩子领养原 petid（不新建宠物）
                     if (mapItem.getItemId() == ItemId.NX_CARD_100) {
                         player.updateAriantScore();
                     }

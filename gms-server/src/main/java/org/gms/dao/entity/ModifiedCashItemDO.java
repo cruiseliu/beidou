@@ -12,7 +12,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
-import org.gms.client.inventory.Pet;
+import org.gms.client.pet.Pet;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.net.server.Server;
@@ -120,21 +120,41 @@ public class ModifiedCashItemDO implements Serializable, Cloneable {
         return onSale != null && onSale == 1;
     }
 
-    public ItemSlot toItem() {
+    /**
+     * 宠物商品（isPet）的 pets 行到期：period 天数语义（1 = 1 天；-1 = 永久；其余 = period 天）。
+     * 宠物到期归 pets.expires_at，item.expiration 恒 -1（setExpiration 对宠物道具强制 -1）。
+     */
+    public long petExpiresAt() {
+        long now = Server.getInstance().getCurrentTime();
+        if (period == -1) {
+            return -1;
+        }
+        if (period == 1) {
+            return now + DAYS.toMillis(1);
+        }
+        return now + DAYS.toMillis(period);
+    }
+
+    /**
+     * 由商城商品构造物品。petId = 宠物商品的 pets 行 id（经 CharacterPets.createPetData 预先建行，
+     * 非宠物传 -1）——本方法不再隐式建行。
+     */
+    public ItemSlot toItem(int petId) {
         ItemSlot item;
 
-        int petid = -1;
-        if (ItemConstants.isPet(itemId)) {
-            petid = Pet.createPet(itemId);
+        if (ItemConstants.isPet(itemId) != (petId > -1)) {
+            throw new IllegalStateException("商城商品与 petId 不一致: itemId=" + itemId + " petId=" + petId);
         }
 
         if (ItemConstants.getInventoryType(itemId).equals(InventoryType.EQUIP)) {
             item = ItemInformationProvider.getInstance().getEquipById(itemId);
         } else {
-            item = new ItemSlot(itemId, (byte) 0, count, petid);
+            item = new ItemSlot(itemId, (byte) 0, count, petId);
         }
 
-        if (period == 1) {
+        if (petId > -1) {
+            // 宠物到期归 pets.expires_at（petExpiresAt()），物品侧不设到期
+        } else if (period == 1) {
             switch (itemId) {
                 case ItemId.DROP_COUPON_2X_4H,
                      ItemId.EXP_COUPON_2X_4H: // 4 Hour 2X coupons, the period is 1, but we don't want them to last a day.

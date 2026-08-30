@@ -28,7 +28,7 @@ import org.gms.client.autoban.AutobanFactory;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
-import org.gms.client.inventory.Pet;
+import org.gms.client.pet.Pet;
 import org.gms.client.status.MonsterStatus;
 import org.gms.client.status.MonsterStatusEffect;
 import org.gms.config.GameConfig;
@@ -2517,11 +2517,12 @@ public class MapleMap {
             chr.sendPacket(PacketCreator.getClock(pqTimer / 1000));
         }
 
-        Pet[] pets = chr.getPets();
+        Pet[] pets = chr.getSummonSlots();
         for (Pet pet : pets) {
             if (pet != null) {
                 pet.setPos(getGroundBelow(chr.getPosition()));
-                chr.sendPacket(PacketCreator.showPet(chr, pet, false, false));
+                int fh = getFootholds().findBelow(pet.getPos()).getId();
+                chr.sendPacket(PacketCreator.showPet(chr, pet, false, false, fh));
             } else {
                 break;
             }

@@ -1,5 +1,6 @@
 package org.gms.client.inventory;
 
+import org.gms.client.pet.Pet;
 /**
  * @author kevin
  */

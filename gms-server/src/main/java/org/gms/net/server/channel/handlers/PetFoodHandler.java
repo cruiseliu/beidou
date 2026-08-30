@@ -27,7 +27,7 @@ import org.gms.client.autoban.AutobanManager;
 import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
-import org.gms.client.inventory.Pet;
+import org.gms.client.pet.Pet;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
@@ -53,7 +53,7 @@ public final class PetFoodHandler extends AbstractPacketHandler {
         }
         int previousFullness = 100;
         byte slot = 0;
-        Pet[] pets = chr.getPets();
+        Pet[] pets = chr.getSummonSlots();
         for (byte i = 0; i < 3; i++) {
             if (pets[i] != null) {
                 if (pets[i].getFullness() < previousFullness) {

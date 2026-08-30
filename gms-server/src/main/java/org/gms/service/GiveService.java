@@ -7,6 +7,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.PacketStat;
 import org.gms.client.inventory.*;
+import org.gms.client.pet.Pet;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.constants.string.ExtendType;
@@ -202,35 +203,14 @@ public class GiveService {
             throw new BizException(I18nUtil.getExceptionMessage("ONLY_SUPPORT_GIVE_ITEM"));
         }
 
-        boolean isPet = ItemConstants.isPet(itemId);
-
-        long expiration;
-        int petId;
-        if (isPet) {
-            long days = Math.max(1, quantity);
-            expiration = System.currentTimeMillis() + DAYS.toMillis(days);
-            petId = Pet.createPet(itemId);
-        } else {
-            expiration = 0;
-            petId = 0;
-        }
+        // 宠物不再支持 web 批量发放（合法获取只有商城与脚本独立 API；doc/11 §9 break 清单）
 
         Server.getInstance().getWorlds().forEach(world -> world.getPlayerStorage().getAllCharacters().forEach(chr -> {
-            if (isPet) {
-                InventoryManipulator.REFACTOR6_addById(chr.getClient(), itemId, quantity, "WAdmin", petId, expiration);
-                chr.message(I18nUtil.getMessage("Give.Pet.All", quantity, itemName));
-            } else {
-                InventoryManipulator.REFACTOR7_addById(chr.getClient(), itemId, quantity, "WAdmin", -1, (short) 0, -1);
-                chr.message(I18nUtil.getMessage("Give.Item.All", quantity, itemName));
-            }
+            InventoryManipulator.REFACTOR7_addById(chr.getClient(), itemId, quantity, "WAdmin", -1, (short) 0, -1);
+            chr.message(I18nUtil.getMessage("Give.Item.All", quantity, itemName));
         }));
 
-        if (isPet) {
-            log.info(I18nUtil.getLogMessage("Give.Pet.All.info1", quantity, itemId, itemName));
-        } else {
-            log.info(I18nUtil.getLogMessage("Give.Item.All.info1", quantity, itemId, itemName));
-        }
-
+        log.info(I18nUtil.getLogMessage("Give.Item.All.info1", quantity, itemId, itemName));
     }
 
     private void giveItemChr(Character chr, int itemId, short quantity) {
@@ -244,29 +224,11 @@ public class GiveService {
             throw new BizException(I18nUtil.getExceptionMessage("ONLY_SUPPORT_GIVE_ITEM"));
         }
 
-        boolean isPet = ItemConstants.isPet(itemId);
+        // 宠物不再支持 web 发放（合法获取只有商城与脚本独立 API；doc/11 §9 break 清单）
 
-        long expiration = 0;
-        int petId = 0;
-        if (isPet) {
-            long days = Math.max(1, quantity);
-            expiration = System.currentTimeMillis() + DAYS.toMillis(days);
-            petId = Pet.createPet(itemId);
-        }
-
-        if (isPet) {
-            InventoryManipulator.REFACTOR6_addById(chr.getClient(), itemId, quantity, "WAdmin", petId, expiration);
-            chr.message(I18nUtil.getMessage("Give.Pet.Chr", quantity, itemName));
-        } else {
-            InventoryManipulator.REFACTOR7_addById(chr.getClient(), itemId, quantity, "WAdmin", -1, (short) 0, -1);
-            chr.message(I18nUtil.getMessage("Give.Item.Chr", quantity, itemName));
-        }
-
-        if (isPet) {
-            log.info(I18nUtil.getLogMessage("Give.Pet.Chr.info1", chr.getId(), chr.getName(), quantity, itemId, itemName));
-        } else {
-            log.info(I18nUtil.getLogMessage("Give.Item.Chr.info1", chr.getId(), chr.getName(), quantity, itemId, itemName));
-        }
+        InventoryManipulator.REFACTOR7_addById(chr.getClient(), itemId, quantity, "WAdmin", -1, (short) 0, -1);
+        chr.message(I18nUtil.getMessage("Give.Item.Chr", quantity, itemName));
+        log.info(I18nUtil.getLogMessage("Give.Item.Chr.info1", chr.getId(), chr.getName(), quantity, itemId, itemName));
     }
 
     private void giveEquipAllOnlineChr(GiveResourceReqDTO submitData) {

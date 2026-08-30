@@ -15,17 +15,18 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-package org.gms.client.inventory;
+package org.gms.client.pet;
 
 import org.gms.client.character.Character;
+import org.gms.client.inventory.ItemSlot;
 import org.gms.util.CashIdGenerator;
 import org.gms.constants.game.ExpTable;
 import org.gms.server.ItemInformationProvider;
 import org.gms.server.movement.AbsoluteLifeMovement;
 import org.gms.server.movement.LifeMovement;
 import org.gms.server.movement.LifeMovementFragment;
+import org.gms.model.json.PetData;
 import org.gms.util.DatabaseConnection;
-import org.gms.util.PacketCreator;
 import org.gms.util.Pair;
 
 import java.awt.*;
@@ -50,7 +51,10 @@ public class Pet {
     private int tameness = 0;
     private byte level = 1;
     private int fullness = 100;
-    private int Fh;
+    /** 到期 epoch 毫秒（-1 = 永久）；生命周期由 pet 模块管理，宿主物品 expiration 恒 -1 */
+    private long expiresAt = -1;
+    /** 活跃态：到期转化后置 false（失活宠物物品继续作为 petId 宿主，数据保留） */
+    private boolean active = true;
     private Point pos;
     private int stance;
     private boolean summoned;
@@ -80,17 +84,12 @@ public class Pet {
     public static Pet loadFromDb(Character owner, int itemid, int petid) {
         Pet ret = new Pet(owner, itemid, petid);
         try (Connection con = DatabaseConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement("SELECT name, level, closeness, fullness, summoned, flag FROM pets WHERE petid = ?")) { // Get the pet details...
+             PreparedStatement ps = con.prepareStatement("SELECT data FROM pets_json WHERE petid = ?")) {
             ps.setInt(1, petid);
 
             try (ResultSet rs = ps.executeQuery()) {
                 rs.next();
-                ret.setName(rs.getString("name"));
-                ret.setTameness(Math.min(rs.getInt("closeness"), 30000));
-                ret.setLevel((byte) Math.min(rs.getByte("level"), 30));
-                ret.setFullness(Math.min(rs.getInt("fullness"), 100));
-                ret.setSummoned(rs.getInt("summoned") == 1);
-                ret.setPetAttribute(rs.getInt("flag"));
+                ret.applyData(PetData.deserialize(rs.getString("data")));
             }
             return ret;
         } catch (SQLException e) {
@@ -117,28 +116,50 @@ public class Pet {
         }
     }
 
+    /**
+     * 建宠物数据行（角色无关：商城授予入现金仓库/礼包/礼物等无角色背包上下文的流）。
+     * 行 ≠ 对象驻留；返回 petid，-1 = 失败。
+     */
+    public static int createPetData(int itemId, long expiresAt) {
+        return createPet(itemId, expiresAt);
+    }
+
+    /** 删除 pets/petignores 行（授予入包失败补偿；角色无关） */
+    public static void deletePetRow(int petId) {
+        org.gms.manager.ServerManager.getApplicationContext().getBean(org.gms.service.InventoryService.class).deletePetData(petId);
+        CashIdGenerator.freeCashId(petId);
+    }
+
     /** 用指定连接保存：角色保存主事务内调用，消除第二写者（SQLite 单写者下避免 SQLITE_BUSY） */
     public void saveToDb(Connection con) {
-        try (PreparedStatement ps = con.prepareStatement("UPDATE pets SET name = ?, level = ?, closeness = ?, fullness = ?, summoned = ?, flag = ? WHERE petid = ?")) {
-            ps.setString(1, getName());
-            ps.setInt(2, getLevel());
-            ps.setInt(3, getTameness());
-            ps.setInt(4, getFullness());
-            ps.setInt(5, isSummoned() ? 1 : 0);
-            ps.setInt(6, getPetAttribute());
-            ps.setInt(7, getUniqueId());
+        try (PreparedStatement ps = con.prepareStatement("INSERT INTO pets_json (petid, data) VALUES (?, ?) ON CONFLICT(petid) DO UPDATE SET data = excluded.data")) {
+            ps.setInt(1, getUniqueId());
+            ps.setString(2, toData().serialize());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public static int createPet(int itemid) {
+    /**
+     * 建宠物数据行（行 ≠ 对象驻留）：返回 petid，-1 = 失败。
+     * expiresAt = 到期 epoch 毫秒（-1 = 永久）；active 恒出生即 true。
+     */
+    static int createPet(int itemid, long expiresAt) {
         try (Connection con = DatabaseConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement("INSERT INTO pets (petid, name, level, closeness, fullness, summoned, flag) VALUES (?, ?, 1, 0, 100, 0, 0)")) {
+             PreparedStatement ps = con.prepareStatement("INSERT INTO pets_json (petid, data) VALUES (?, ?)")) {
             int ret = CashIdGenerator.generateCashId();
+            PetData data = new PetData();
+            data.name = ItemInformationProvider.getInstance().getName(itemid);
+            data.level = 1;
+            data.tameness = 0;
+            data.fullness = 100;
+            data.summoned = false;
+            data.flag = 0;
+            data.expiresAt = expiresAt;
+            data.active = true;
             ps.setInt(1, ret);
-            ps.setString(2, ItemInformationProvider.getInstance().getName(itemid));
+            ps.setString(2, data.serialize());
             ps.executeUpdate();
             return ret;
         } catch (SQLException e) {
@@ -147,21 +168,30 @@ public class Pet {
         }
     }
 
-    public static int createPet(int itemid, byte level, int tameness, int fullness) {
-        try (Connection con = DatabaseConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement("INSERT INTO pets (petid, name, level, closeness, fullness, summoned, flag) VALUES (?, ?, ?, ?, ?, 0, 0)")) {
-            int ret = CashIdGenerator.generateCashId();
-            ps.setInt(1, ret);
-            ps.setString(2, ItemInformationProvider.getInstance().getName(itemid));
-            ps.setByte(3, level);
-            ps.setInt(4, tameness);
-            ps.setInt(5, fullness);
-            ps.executeUpdate();
-            return ret;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return -1;
-        }
+    // ── 持久化数据转换（pets_json；PetData 载体）──
+
+    PetData toData() {
+        PetData data = new PetData();
+        data.name = name;
+        data.level = level;
+        data.tameness = tameness;
+        data.fullness = fullness;
+        data.summoned = summoned;
+        data.flag = petAttribute;
+        data.expiresAt = expiresAt;
+        data.active = active;
+        return data;
+    }
+
+    void applyData(PetData data) {
+        name = data.name;
+        level = (byte) Math.min(data.level, 30);
+        tameness = Math.min(data.tameness, 30000);
+        fullness = Math.min(data.fullness, 100);
+        summoned = data.summoned;
+        petAttribute = data.flag;
+        expiresAt = data.expiresAt;
+        active = data.active;
     }
 
     public Character getOwner() {
@@ -226,8 +256,7 @@ public class Pet {
                 tameness = newTameness;
                 while (newTameness >= ExpTable.getTamenessNeededForLevel(level)) {
                     level += 1;
-                    owner.sendPacket(PacketCreator.showOwnPetLevelUp(slot));
-                    owner.getMap().broadcastMessage(PacketCreator.showPetLevelUp(owner, slot));
+                    owner.getRemote().pet().petLevelUp(owner, slot);
                 }
             }
 
@@ -246,7 +275,7 @@ public class Pet {
             enjoyed = false;
         }
 
-        owner.getMap().broadcastMessage(PacketCreator.petFoodResponse(owner.getId(), slot, enjoyed, owner.hasPetChatballoon(slot)));
+        owner.getRemote().pet().petFoodResponse(owner, slot, enjoyed, owner.hasPetChatballoon(slot));
         saveToDb();
 
         ItemSlot petz = owner.findPetItemSlot(uniqueid);
@@ -267,14 +296,6 @@ public class Pet {
         this.fullness = fullness;
     }
 
-    public int getFh() {
-        return Fh;
-    }
-
-    public void setFh(int Fh) {
-        this.Fh = Fh;
-    }
-
     public Point getPos() {
         return pos;
     }
@@ -293,6 +314,22 @@ public class Pet {
 
     public boolean isSummoned() {
         return summoned;
+    }
+
+    public long getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(long expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public void setSummoned(boolean yes) {

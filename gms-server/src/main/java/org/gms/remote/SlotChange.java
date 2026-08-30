@@ -1,7 +1,7 @@
 package org.gms.remote;
 
 import org.gms.client.inventory.Item;
-import org.gms.client.inventory.Pet;
+import org.gms.client.pet.Pet;
 
 /**
  * 背包槽位变更的语义记录：身份 = Item 引用（同一实体），槽位事实（position/quantity）按需散布。

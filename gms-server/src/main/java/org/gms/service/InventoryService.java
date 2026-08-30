@@ -40,7 +40,6 @@ public class InventoryService {
     private final InventoryitemsMapper inventoryitemsMapper;
     private final InventoryequipmentMapper inventoryequipmentMapper;
     private final RingsMapper ringsMapper;
-    private final PetsMapper petsMapper;
     private final PetignoresMapper petignoresMapper;
 
     public List<InventoryTypeRtnDTO> getInventoryTypeList() {
@@ -127,7 +126,16 @@ public class InventoryService {
                 .distinct()
                 .toList();
         if (!petIds.isEmpty()) {
-            petsMapper.deleteBatchByIds(petIds);
+            try (java.sql.Connection con = org.gms.util.DatabaseConnection.getConnection();
+                 java.sql.PreparedStatement ps = con.prepareStatement("DELETE FROM pets_json WHERE petid = ?")) {
+                for (Integer petId : petIds) {
+                    ps.setInt(1, petId);
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+            } catch (java.sql.SQLException e) {
+                throw new IllegalStateException("批量删除 pets_json 行失败", e);
+            }
             petIds.forEach(CashIdGenerator::freeCashId);
         }
 
@@ -287,7 +295,7 @@ public class InventoryService {
 
         // 仅以下值可修改
         if (data.getQuantity() != null && !type.isEquip()) item.setQuantity(data.getQuantity());
-        if (data.getExpiration() != null) item.setExpiration(data.getExpiration());
+        if (data.getExpiration() != null && item.getPetId() == -1) item.setExpiration(data.getExpiration());   // 宠物道具到期归 pet 模块，不接受物品侧修改
         InventoryEquipRtnDTO equipment = data.getInventoryEquipment();
         if (type.isEquip() && equipment != null) {
             Equip equip = item.getEquipInfo();
@@ -425,7 +433,13 @@ public class InventoryService {
                 return;
             }
             petignoresMapper.deleteByQuery(QueryWrapper.create().where(PETIGNORES_D_O.PETID.eq(petId)));
-            petsMapper.deleteById(Long.valueOf(petId));
+            try (java.sql.Connection con = org.gms.util.DatabaseConnection.getConnection();
+                 java.sql.PreparedStatement ps = con.prepareStatement("DELETE FROM pets_json WHERE petid = ?")) {
+                ps.setInt(1, petId);
+                ps.executeUpdate();
+            } catch (java.sql.SQLException e) {
+                throw new IllegalStateException("删除 pets_json 行失败: " + petId, e);
+            }
         }
 
 

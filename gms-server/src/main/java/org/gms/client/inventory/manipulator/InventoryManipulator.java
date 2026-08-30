@@ -28,8 +28,8 @@ import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
+import org.gms.client.pet.Pet;
 import org.gms.client.inventory.ModifyInventory;
-import org.gms.client.inventory.Pet;
 import org.gms.model.pojo.NewYearCardRecord;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.ItemId;
@@ -133,21 +133,14 @@ public class InventoryManipulator {
             } else {
                 ItemSlot nItem = new ItemSlot(itemId, (short) 0, quantity, petid);
                 nItem.getItem().setFlagsFromLegacy(flag);
-                nItem.setExpiration(expiration);
-                Pet newPet = null;
-                if (petid > -1) {   // 新宠物登记（createPet 后物品入包；Pet 对象由角色统一管理）
-                    newPet = Pet.loadFromDb(chr, itemId, petid);
-                    if (newPet != null) {
-                        chr.registerPet(newPet);
-                    }
-                }
+                // 宠物道具不设物品到期（归 pet 模块 pets.expires_at）
                 int newSlot = inv.addItem(nItem);
                 if (newSlot == -1) {
                     c.sendPacket(PacketCreator.getInventoryFull());
                     c.sendPacket(PacketCreator.getShowInventoryFull());
                     return false;
                 }
-                c.sendPacket(PacketCreator.modifyInventory(true, Collections.singletonList(new ModifyInventory(0, nItem).withPet(newPet))));
+                c.sendPacket(PacketCreator.modifyInventory(true, Collections.singletonList(new ModifyInventory(0, nItem).withPet(chr.getPetById(petid)))));
                 if (InventoryManipulator.isSandboxItem(nItem)) {
                     chr.setHasSandboxItem();
                 }
@@ -251,7 +244,7 @@ public class InventoryManipulator {
                 }
             } else {
                 ItemSlot nItem = new ItemSlot(itemid, (short) 0, quantity, petId);
-                nItem.setExpiration(item.getExpiration());
+                // 宠物道具（petId > -1）不设物品到期（归 pet 模块）
                 nItem.getItem().setFlagsFromLegacy(item.getLegacyFlags());
 
                 int newSlot = inv.addItem(nItem);
@@ -428,25 +421,10 @@ public class InventoryManipulator {
 
             announceModifyInventory(c, item, fromDrop, allowZero);
         } else {
-            int petid = item.getPetId();
-            if (petid > -1) { // thanks Vcoc for finding a d/c issue with equipped pets and pets remaining on DB here
-                int petIdx = chr.getPetIndex(petid);
-                if (petIdx > -1) {
-                    Pet pet = chr.getPet(petIdx);
-                    chr.unEquipPet(pet, true);
-                }
-
-                inv.removeItem(slot, quantity, allowZero);
-                if (type != InventoryType.CANHOLD) {
-                    announceModifyInventory(c, item, fromDrop, allowZero);
-                }
-
-                // thanks Robin Schulz for noticing pet issues when moving pets out of inventory
-            } else {
-                inv.removeItem(slot, quantity, allowZero);
-                if (type != InventoryType.CANHOLD) {
-                    announceModifyInventory(c, item, fromDrop, allowZero);
-                }
+            // 宠物道具：removeSlot 内的 leave 钩子会通知 pet 域解除召唤（releasePet）
+            inv.removeItem(slot, quantity, allowZero);
+            if (type != InventoryType.CANHOLD) {
+                announceModifyInventory(c, item, fromDrop, allowZero);
             }
         }
     }
@@ -671,7 +649,7 @@ public class InventoryManipulator {
         if (petIndex != -1) {
             Pet pet = chr.getPet(petIndex);
             if (pet != null) {
-                chr.getMap().broadcastMessage(chr, PacketCreator.changePetName(chr, pet.getName(), (byte)petIndex), false);
+                chr.getRemote().pet().petNameChange(chr, pet.getName(), (byte) petIndex);
             }
         }
 
@@ -725,7 +703,7 @@ public class InventoryManipulator {
         if (petIndex != -1) {
             Pet pet = chr.getPet(petIndex);
             if (pet != null) {
-                chr.getMap().broadcastMessage(chr, PacketCreator.changePetName(chr, pet.getName(), (byte)petIndex), false);
+                chr.getRemote().pet().petNameChange(chr, pet.getName(), (byte) petIndex);
             }
         }
         
@@ -773,15 +751,6 @@ public class InventoryManipulator {
         MapleMap map = chr.getMap();
         if ((!ItemConstants.isRechargeable(itemId) && source.getQuantity() < quantity) || quantity < 0) {
             return;
-        }
-
-        int petid = source.getPetId();
-        if (petid > -1) {
-            int petIdx = chr.getPetIndex(petid);
-            if (petIdx > -1) {
-                Pet pet = chr.getPet(petIdx);
-                chr.unEquipPet(pet, true);
-            }
         }
 
         Point dropPos = new Point(chr.getPosition());

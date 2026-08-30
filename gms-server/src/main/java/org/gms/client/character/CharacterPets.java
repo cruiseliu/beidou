@@ -1,17 +1,21 @@
 package org.gms.client.character;
 
 import org.gms.client.Client;
+import org.gms.client.pet.Pet;
+import org.gms.client.pet.PetDataFactory;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
-import org.gms.client.inventory.Pet;
-import org.gms.client.inventory.PetDataFactory;
+import org.gms.client.inventory.manipulator.InventoryManipulator;
+import org.gms.constants.id.ItemId;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.dao.entity.PetignoresDO;
 import org.gms.manager.ServerManager;
+import org.gms.net.server.Server;
+import org.gms.server.TimerManager;
 import org.gms.service.InventoryService;
+import org.gms.util.CashIdGenerator;
 import org.gms.util.I18nUtil;
 import org.gms.util.Locks;
-import org.gms.util.PacketCreator;
 
 import java.awt.Point;
 import java.sql.Connection;
@@ -26,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -41,7 +46,8 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  * 原实现 pets 用 petLock、excluded 用 chrLock、且 petLock 还被 lastVisitedMaps 误用，
  * 重构时统一收敛（lastVisitedMaps 已在 Character 中改用自己的锁）。
  */
-class CharacterPets {
+public class CharacterPets {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CharacterPets.class);
     private static final InventoryService inventoryService = ServerManager.getApplicationContext().getBean(InventoryService.class);
     private static final long PET_LOOT_TELEPORT_CONTEXT_EXPIRE_NS = MILLISECONDS.toNanos(1500L);
 
@@ -65,6 +71,9 @@ class CharacterPets {
     /** 宠物拾取补偿用传送前坐标（1.5s 有效） */
     private Point petLootTeleportBeforePos = null;
     private long petLootTeleportBeforePosTime = 0;
+
+    /** 最近到期调度任务（单个；adopt/release/到期时重排） */
+    private ScheduledFuture<?> expiryTask;
 
     CharacterPets(Character owner) {
         this.owner = owner;
@@ -99,38 +108,168 @@ class CharacterPets {
     }
 
     /**
-     * 登录加载：背包就绪后收集全部 petid，从 pets 表批量载入并恢复召唤槽
-     * （pets 表无角色列，归属即背包持有；孤儿行不加载——与旧 Item 构造触发加载的语义一致）。
+     * 驻留登记（JS hook onEnterInventory 的落点）：宿主物品进入本角色背包。
+     * 幂等：已驻留 no-op。summoned=1 的宠物恢复召唤槽（≤3）并加载过滤配置。
+     * 到期已过的宠物先补算到期策略（离线到期不依赖定时器）。
      */
-    void loadPetsFromInventories() {
-        List<Pet> summoned = new ArrayList<>();
-        for (ItemSlot item : owner.getInventory(InventoryType.CASH).list()) {
-            int petid = item.getPetId();
-            if (petid < 0) {
-                continue;
-            }
-            Pet pet = getPetById(petid);
-            if (pet == null) {
-                pet = Pet.loadFromDb(owner, item.getItemId(), petid);
-                if (pet != null) {
-                    registerPet(pet);
-                }
-            }
-            if (pet != null && pet.isSummoned()) {
-                summoned.add(pet);
+    public void adoptPet(int petId, int itemId, boolean isLogin) {
+        if (getPetById(petId) != null) {
+            return;
+        }
+        Pet pet = Pet.loadFromDb(owner, itemId, petId);
+        if (pet == null) {
+            log.warn("宠物物品 petId={} 无对应 pets 行（脏数据），忽略登记 chr={}", petId, owner.getId());
+            return;
+        }
+        registerPet(pet);
+        if (isExpired(pet)) {
+            applyExpirationPolicy(pet);
+        } else if (pet.isSummoned()) {
+            if (getNoPets() < 3) {
+                addPet(pet);
+                loadPetExcludedItems(petId);
+                commitExcludedItems();
+                // adopt 异步于登录流程：饥饿注册随召唤恢复进行（替代 PlayerLoggedinHandler 的槽位遍历）
+                owner.getClient().getWorldServer().registerPetHunger(owner, owner.getPetIndex(pet));
+            } else {
+                pet.setSummoned(false);
+                pet.saveToDb();
             }
         }
-        for (Pet pet : summoned) {
-            if (getNoPets() >= 3) {
-                break;
+        rescheduleExpiry();
+    }
+
+    /**
+     * 驻留注销（JS hook onLeaveInventory 的落点）：宿主物品离开本角色背包
+     * （存现金仓库/移除等）。召唤中则先下阵。幂等：未驻留 no-op。
+     */
+    public void releasePet(int petId) {
+        Pet pet = getPetById(petId);
+        if (pet == null) {
+            return;
+        }
+        if (getPetIndex(pet) > -1) {
+            unEquipPet(pet, true);
+        }
+        unregisterPet(petId);
+        rescheduleExpiry();
+    }
+
+    // ── 生命周期：授予与孵化（doc/11 §5）──
+
+    /**
+     * 发放宠物入本角色背包（脚本独立 API gainPet 的落点）：
+     * 建 pets 行 → 物品带 petid 入包（enter 钩子 adopt 登记）→ 入包失败补偿删行。
+     */
+    public boolean grantPet(int itemId, long expiresAt) {
+        int petId = Pet.createPetData(itemId, expiresAt);
+        if (petId == -1) {
+            return false;
+        }
+        if (!InventoryManipulator.REFACTOR6_addById(owner.getClient(), itemId, (short) 1, null, petId, -1)) {
+            Pet.deletePetRow(petId);
+            return false;
+        }
+        rescheduleExpiry();
+        return true;
+    }
+
+    /**
+     * 改种（孵化/任务进化）：进化龙/宝贝龙/绿龙是不同物品，先后引用同一 petId——
+     * 同一 petId 换宿主物品（remove + add），pets 行不换。先试算空间，失败不动原物。
+     */
+    public boolean evolvePet(int petId, int newItemId) {
+        Pet pet = getPetById(petId);
+        if (pet == null) {
+            return false;
+        }
+        ItemSlot host = owner.findPetItemSlot(petId);
+        if (host == null) {
+            return false;
+        }
+        var c = owner.getClient();
+        if (!InventoryManipulator.checkSpace(c, newItemId, 1, "")) {
+            return false;
+        }
+        InventoryManipulator.removeFromSlot(c, InventoryType.CASH, (short) host.getPosition(), (short) 1, false);
+        if (!InventoryManipulator.REFACTOR6_addById(c, newItemId, (short) 1, null, petId, -1)) {
+            // 理论上 checkSpace 后不会到这；兜底回插旧形态，避免宿主悬空
+            InventoryManipulator.REFACTOR6_addById(c, pet.getItemId(), (short) 1, null, petId, -1);
+            return false;
+        }
+        rescheduleExpiry();
+        return true;
+    }
+
+    // ── 生命周期：到期（doc/11 §6）──
+
+    /** 宠物到期判定：expires_at > 0 且已过（-1 = 永久） */
+    private static boolean isExpired(Pet pet) {
+        return pet.isActive() && pet.getExpiresAt() > 0 && pet.getExpiresAt() <= Server.getInstance().getCurrentTime();
+    }
+
+    /**
+     * 到期策略：默认 = 失活（下阵 + active=0，宿主物品与 pets 行原样保留）；
+     * 符文蜗牛例外 = 永久销毁（下阵 + 删行 + 移除宿主物品）。
+     * FIXME [pet] 蜗牛官方语义为"未召唤时计时暂停"（expires_at 改召唤中累积），本期墙钟直算。
+     */
+    private void applyExpirationPolicy(Pet pet) {
+        if (getPetIndex(pet) > -1) {
+            unEquipPet(pet, true);
+        }
+        if (pet.getItemId() == ItemId.PET_SNAIL) {
+            // 蜗牛销毁：leave 钩子回灌 releasePet 时对象已注销，幂等收敛
+            Pet.deleteFromDb(owner, pet.getUniqueId());
+            unregisterPet(pet.getUniqueId());
+            ItemSlot host = owner.findPetItemSlot(pet.getUniqueId());
+            if (host != null) {
+                InventoryManipulator.removeFromSlot(owner.getClient(), InventoryType.CASH, (short) host.getPosition(), (short) 1, false);
             }
-            addPet(pet);
-            owner.loadPetExcludedItems(pet.getUniqueId());
+            log.info("试用宠物到期销毁 petId={} chr={}", pet.getUniqueId(), owner.getId());
+        } else {
+            pet.setActive(false);
+            pet.saveToDb();
+            log.info("宠物到期失活 petId={} chr={}", pet.getUniqueId(), owner.getId());
+        }
+    }
+
+    /**
+     * 到期调度：单个"本角色最近的将来到期"任务（adopt/release/到期时重排）。
+     * 离线到期由 adopt 补算覆盖，无需跨会话定时器。
+     */
+    private void rescheduleExpiry() {
+        if (expiryTask != null) {
+            expiryTask.cancel(false);
+            expiryTask = null;
+        }
+        long now = Server.getInstance().getCurrentTime();
+        long nearest = Long.MAX_VALUE;
+        synchronized (this) {
+            for (Pet pet : allPets.values()) {
+                if (pet.isActive() && pet.getExpiresAt() > now && pet.getExpiresAt() < nearest) {
+                    nearest = pet.getExpiresAt();
+                }
+            }
+        }
+        if (nearest < Long.MAX_VALUE) {
+            expiryTask = TimerManager.getInstance().register(this::runExpiryCheck, nearest - now + 500);
+        }
+    }
+
+    private void runExpiryCheck() {
+        boolean changed = false;
+        for (Pet pet : List.copyOf(allPets.values())) {
+            if (isExpired(pet)) {
+                applyExpirationPolicy(pet);
+                changed = true;
+            }
+        }
+        if (changed) {
+            rescheduleExpiry();
         }
     }
 
     // ── 槽位管理 ──
-
     void addPet(Pet pet) {
         try (var ignored = Locks.acquire(lock)) {
             for (int i = 0; i < 3; i++) {
@@ -278,15 +417,6 @@ class CharacterPets {
 
     // ── 生命周期 ──
 
-    void unEquipAllPets() {
-        for (int i = 0; i < 3; i++) {
-            Pet pet = getPet(i);
-            if (pet != null) {
-                unEquipPet(pet, true);
-            }
-        }
-    }
-
     void unEquipPet(Pet pet, boolean shift_left) {
         unEquipPet(pet, shift_left, false);
     }
@@ -301,12 +431,11 @@ class CharacterPets {
         }
 
         owner.getClient().getWorldServer().unregisterPetHunger(owner, petIdx);
-        owner.getMap().broadcastMessage(owner, PacketCreator.showPet(owner, pet, true, hunger), true);
+        owner.getRemote().pet().desummonPet(owner, chrPet, hunger);
 
         removePet(pet, shift_left);
         commitExcludedItems();
 
-        owner.sendPacket(PacketCreator.petStatUpdate(owner));
         owner.enableActions();
     }
 
@@ -422,7 +551,7 @@ class CharacterPets {
 
             Set<Integer> exclItems = pe.getValue();
             if (!exclItems.isEmpty()) {
-                owner.sendPacket(PacketCreator.loadExceptionList(owner.getId(), pe.getKey(), petIndex, new ArrayList<>(exclItems)));
+                owner.getRemote().pet().loadExclusionList(owner, pe.getKey(), petIndex, new ArrayList<>(exclItems));
 
                 try (var ignored = Locks.acquire(lock)) {
                     excludedItems.addAll(exclItems);
@@ -441,7 +570,7 @@ class CharacterPets {
 
             Set<Integer> exclItems = pe.getValue();
             if (!exclItems.isEmpty()) {
-                c.sendPacket(PacketCreator.loadExceptionList(owner.getId(), pe.getKey(), petIndex, new ArrayList<>(exclItems)));
+                c.getRemote().pet().loadExclusionList(owner, pe.getKey(), petIndex, new ArrayList<>(exclItems));
             }
         }
     }

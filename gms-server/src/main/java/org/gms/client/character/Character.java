@@ -44,6 +44,7 @@ import org.gms.client.PacketStat;
 import org.gms.remote.RemoteClient;
 import org.gms.client.autoban.AutobanManager;
 import org.gms.client.creator.CharacterFactoryRecipe;
+import org.gms.client.pet.Pet;
 import org.gms.client.inventory.*;
 import org.gms.client.job.WeaponRule;
 import org.gms.client.weaponType.WeaponTypeDefinition;
@@ -1535,9 +1536,7 @@ public class Character extends AbstractAnimatedMapObject {
                 hasSandbox |= item.hasFlag(ItemFlag.SANDBOX);
             }
         }
-        // 背包就绪后批量加载全量宠物并恢复召唤槽（原 Item 构造触发加载，解耦后改由角色统一负责）
-        chr.pets.loadPetsFromInventories();
-        chr.commitExcludedItems();
+        // 宠物随背包装载逐项 enter(isLogin=true) 钩子登记（adoptPet），此处无需批量扫描
         if (hasSandbox) {
             chr.setHasSandboxItem();
         }
@@ -2851,6 +2850,11 @@ public class Character extends AbstractAnimatedMapObject {
     public void registerPet(Pet pet) { pets.registerPet(pet); }
     public void unregisterPet(int petid) { pets.unregisterPet(petid); }
 
+    /** 宠物物品进入背包（JS hook onEnterInventory 落点）：登记驻留并恢复召唤 */
+
+
+
+
     /** 按 petid 在 CASH 背包查找宿主物品（宠物→物品方向；未找到返回 null） */
     public ItemSlot findPetItemSlot(int petid) {
         for (ItemSlot item : getInventory(InventoryType.CASH).list()) {
@@ -2871,7 +2875,11 @@ public class Character extends AbstractAnimatedMapObject {
     public Map<Integer, Set<Integer>> getExcluded() { return pets.getExcluded(); }
     public Set<Integer> getExcludedItems() { return pets.getExcludedItems(); }
     public int getNoPets() { return pets.getNoPets(); }
-    public Pet[] getPets() { return pets.getPets(); }
+    /** 宠物组件（绑定角色的宠物状态：驻留/召唤槽/到期计时器；脚本与业务直达） */
+    public org.gms.client.character.CharacterPets getPets() { return pets; }
+
+    /** 召唤槽位快照（0..2；协议组装/遍历用） */
+    public Pet[] getSummonSlots() { return pets.getPets(); }
     public Pet getPet(int index) { return pets.getPet(index); }
     public byte getPetIndex(int petId) { return pets.getPetIndex(petId); }
     public byte getPetIndex(Pet pet) { return pets.getPetIndex(pet); }
@@ -2884,7 +2892,6 @@ public class Character extends AbstractAnimatedMapObject {
     public void removePet(Pet pet, boolean shift_left) { pets.removePet(pet, shift_left); }
     public void shiftPetsRight() { pets.shiftPetsRight(); }
     public void runFullnessSchedule(int petSlot) { pets.runFullnessSchedule(petSlot); }
-    public void unEquipAllPets() { pets.unEquipAllPets(); }
     public void unEquipPet(Pet pet, boolean shift_left) { pets.unEquipPet(pet, shift_left); }
     public void unEquipPet(Pet pet, boolean shift_left, boolean hunger) { pets.unEquipPet(pet, shift_left, hunger); }
     public void setPetLootTeleportBeforePos(Point pos) { pets.setPetLootTeleportBeforePos(pos); }

@@ -1,12 +1,14 @@
 package org.gms.client.inventory;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,10 +32,13 @@ public final class ItemRegistry {
         File dir = new File("data/item");
         for (File file : dir.listFiles((d, name) -> name.endsWith(".json"))) {
             try {
-                ItemDefinition def = JSON.parseObject(Files.readString(file.toPath()), ItemDefinition.class);
-                ItemDefinition prev = DEFS.put(def.itemId(), def);
-                if (prev != null) {
-                    throw new IllegalStateException("道具 id 重复定义: " + def.itemId() + "（" + prev + " / " + def + "）");
+                // 单文件多条目数组（类比 wz 一 img 多条目）；非数组输入不检测，转换自然抛异常
+                for (Object entry : (List<?>) JSON.parse(Files.readString(file.toPath()))) {
+                    ItemDefinition def = ((JSONObject) entry).to(ItemDefinition.class);
+                    ItemDefinition prev = DEFS.put(def.itemId(), def);
+                    if (prev != null) {
+                        throw new IllegalStateException("道具 id 重复定义: " + def.itemId() + "（" + prev + " / " + def + "）");
+                    }
                 }
             } catch (IOException e) {
                 throw new UncheckedIOException("读取道具定义失败: " + file, e);

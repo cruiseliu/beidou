@@ -44,7 +44,7 @@ import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.Item;
 import org.gms.client.inventory.ItemFactory;
 import org.gms.client.inventory.ModifyInventory;
-import org.gms.client.inventory.Pet;
+import org.gms.client.pet.Pet;
 import org.gms.client.keybind.KeyBinding;
 import org.gms.client.keybind.QuickslotBinding;
 import org.gms.constants.game.CommodityFlag;
@@ -1989,10 +1989,11 @@ public class PacketCreator {
 
         p.writeShort(0);//chr.getFh()
         p.writeByte(0);
-        Pet[] pet = chr.getPets();
+        Pet[] pet = chr.getSummonSlots();
         for (byte i = 0; i < 3; i++) {
             if (pet[i] != null) {
-                addPetInfo(p, pet[i], false, chr.hasPetNameTag(i), chr.hasPetChatballoon(i));
+                // fh 传 0：与上文玩家自身 fh 的硬编码一致；旧值为召唤图快照，跨图本就失真
+                addPetInfo(p, pet[i], false, 0, chr.hasPetNameTag(i), chr.hasPetChatballoon(i));
             }
         }
         p.writeByte(0); //end of pets
@@ -2745,7 +2746,7 @@ public class PacketCreator {
         p.writeByte(0); // pMedalInfo, thanks to Arnah (Vertisy)
 
         // CUIUserInfo::SetMultiPetInfo
-        Pet[] pets = chr.getPets();
+        Pet[] pets = chr.getSummonSlots();
         for (byte i = 0; i < 3; i++) {
             if (pets[i] != null) {
                 p.writeBool(true);
@@ -4437,7 +4438,7 @@ public class PacketCreator {
         return p;
     }
 
-    private static void addPetInfo(final OutPacket p, Pet pet, boolean showpet, boolean hasNameTag, boolean hasChatBalloon) {
+    private static void addPetInfo(final OutPacket p, Pet pet, boolean showpet, int fh, boolean hasNameTag, boolean hasChatBalloon) {
         p.writeByte(1);
         if (showpet) {
             p.writeByte(0);
@@ -4448,12 +4449,12 @@ public class PacketCreator {
         p.writeLong(pet.getUniqueId());
         p.writePos(pet.getPos());
         p.writeByte(pet.getStance());
-        p.writeShort(pet.getFh());
+        p.writeShort(fh);
         p.writeBool(hasNameTag);
         p.writeBool(hasChatBalloon);
     }
 
-    public static Packet showPet(Character chr, Pet pet, boolean remove, boolean hunger) {
+    public static Packet showPet(Character chr, Pet pet, boolean remove, boolean hunger, int fh) {
         byte petIndex = chr.getPetIndex(pet);
         OutPacket p = OutPacket.create(SendOpcode.SPAWN_PET);
         p.writeInt(chr.getId());
@@ -4462,7 +4463,7 @@ public class PacketCreator {
             p.writeByte(0);
             p.writeBool(hunger);
         } else {
-            addPetInfo(p, pet, true, chr.hasPetNameTag(petIndex), chr.hasPetChatballoon(petIndex));
+            addPetInfo(p, pet, true, fh, chr.hasPetNameTag(petIndex), chr.hasPetChatballoon(petIndex));
         }
         return p;
     }
@@ -4562,7 +4563,7 @@ public class PacketCreator {
         mask |= PacketStat.PET.getValue();
         p.writeByte(0);
         p.writeInt(mask);
-        Pet[] pets = chr.getPets();
+        Pet[] pets = chr.getSummonSlots();
         for (int i = 0; i < 3; i++) {
             if (pets[i] != null) {
                 p.writeLong(pets[i].getUniqueId());
@@ -7159,12 +7160,12 @@ public class PacketCreator {
         return p;
     }
 
-    public static Packet takeFromCashInventory(ItemSlot item) {
+    public static Packet takeFromCashInventory(ItemSlot item, Pet pet) {
         final OutPacket p = OutPacket.create(SendOpcode.CASHSHOP_OPERATION);
 
         p.writeByte(0x68);
         p.writeShort(item.getPosition());
-        addItemInfo(p, item, true, null);
+        addItemInfo(p, item, true, pet);
 
         return p;
     }

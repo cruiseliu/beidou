@@ -23,13 +23,9 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.SkillFactory;
 import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.Pet;
+import org.gms.client.pet.Pet;
+import org.gms.client.pet.PetDataFactory;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
-import org.gms.constants.id.ItemId;
-import org.gms.provider.DataProvider;
-import org.gms.provider.DataProviderFactory;
-import org.gms.provider.DataTool;
-import org.gms.provider.wz.WZFiles;
 import org.gms.util.PacketCreator;
 
 import java.awt.*;
@@ -38,8 +34,6 @@ import java.awt.*;
  * @author RonanLana - just added locking on OdinMS' SpawnPetHandler method body
  */
 public class SpawnPetProcessor {
-    private static final DataProvider dataRoot = DataProviderFactory.getDataProvider(WZFiles.ITEM);
-
     public static void processSpawnPet(Client c, byte slot, boolean lead) {
         if (c.tryacquireClient()) {
             try {
@@ -49,25 +43,14 @@ public class SpawnPetProcessor {
                     return;
                 }
 
-                int petid = pet.getItemId();
-                if (petid == ItemId.DRAGON_PET || petid == ItemId.ROBO_PET) {
-                    if (chr.haveItem(petid + 1)) {
-                        chr.dropMessage(5, "You can't hatch your " + (petid == ItemId.DRAGON_PET ? "Dragon egg" : "Robo egg") + " if you already have a Baby " + (petid == ItemId.DRAGON_PET ? "Dragon." : "Robo."));
-                        c.sendPacket(PacketCreator.enableActions());
-                        return;
-                    } else {
-                        int evolveid = DataTool.getInt("info/evol1", dataRoot.getData("Pet/" + petid + ".img"));
-                        int petId = Pet.createPet(evolveid);
-                        if (petId == -1) {
-                            return;
-                        }
-                        long expiration = chr.getInventory(InventoryType.CASH).getItem(slot).getExpiration();
-                        InventoryManipulator.removeById(c, InventoryType.CASH, petid, (short) 1, false, false);
-                        InventoryManipulator.REFACTOR6_addById(c, evolveid, (short) 1, null, petId, expiration);
-
-                        c.sendPacket(PacketCreator.enableActions());
-                        return;
+                int evolveid = PetDataFactory.getEvolution(pet.getItemId());
+                if (evolveid > 0) {
+                    // 蛋类道具不可召唤（官方语义）：客户端以 SPAWN_PET 表达"使用"——孵化 = 换宿主物品
+                    if (!chr.getPets().evolvePet(pet.getUniqueId(), evolveid)) {
+                        chr.dropMessage(5, "无法孵化，请检查背包空间。");
                     }
+                    c.sendPacket(PacketCreator.enableActions());
+                    return;
                 }
                 if (chr.getPetIndex(pet) != -1) {
                     chr.unEquipPet(pet, true);
@@ -81,15 +64,14 @@ public class SpawnPetProcessor {
                     Point pos = chr.getPosition();
                     pos.y -= 12;
                     pet.setPos(pos);
-                    pet.setFh(chr.getMap().getFootholds().findBelow(pet.getPos()).getId());
+                    int fh = chr.getMap().getFootholds().findBelow(pet.getPos()).getId();
                     pet.setStance(0);
                     pet.setSummoned(true);
                     pet.saveToDb();
                     chr.addPet(pet);
                     // 登录时未召唤的宠物不会预加载过滤配置，这里补载后再同步给客户端。
                     chr.loadPetExcludedItems(pet.getUniqueId());
-                    chr.getMap().broadcastMessage(c.getPlayer(), PacketCreator.showPet(c.getPlayer(), pet, false, false), true);
-                    c.sendPacket(PacketCreator.petStatUpdate(c.getPlayer()));
+                    chr.getRemote().pet().summonPet(chr, pet, fh);
                     c.sendPacket(PacketCreator.enableActions());
 
                     chr.commitExcludedItems();

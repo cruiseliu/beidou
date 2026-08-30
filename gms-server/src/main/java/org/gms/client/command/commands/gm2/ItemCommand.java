@@ -26,7 +26,7 @@ package org.gms.client.command.commands.gm2;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
-import org.gms.client.inventory.Pet;
+import org.gms.client.pet.Pet;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.config.GameConfig;
 import org.gms.constants.inventory.ItemConstants;
@@ -65,21 +65,6 @@ public class ItemCommand extends Command {
         if (GameConfig.getServerBoolean("block_generate_cash_item") && ii.isCash(itemId)) {
             player.yellowMessage(I18nUtil.getMessage("ItemCommand.message4"));
             return;
-        }
-
-        if (ItemConstants.isPet(itemId)) {
-            if (params.length >= 2) {   // thanks to istreety & TacoBell
-                quantity = 1;
-                long days = Math.max(1, Integer.parseInt(params[1]));
-                long expiration = System.currentTimeMillis() + DAYS.toMillis(days);
-                int petid = Pet.createPet(itemId);
-
-                InventoryManipulator.REFACTOR6_addById(c, itemId, quantity, player.getName(), petid, expiration);
-                return;
-            } else {
-                player.yellowMessage(I18nUtil.getMessage("ItemCommand.message5"));
-                return;
-            }
         }
 
         short flag = 0;

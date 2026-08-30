@@ -111,9 +111,6 @@ public final class ItemConstants {
         return itemId / 1000 == 5000;
     }
 
-    public static boolean isExpirablePet(int itemId) {
-        return GameConfig.getServerBoolean("use_erase_pet_on_expiration") || itemId == ItemId.PET_SNAIL;
-    }
 
     public static boolean isPermanentItem(int itemId) {
         return permanentItemids.contains(itemId);

@@ -4,7 +4,7 @@ import java.util.List;
 
 /** 无连接实现：全部语义调用静默容忍（对齐 Character.sendPacket 对 client==null 的行为）。 */
 final class DisconnectedClient implements RemoteClient, StatsModule, SkillsModule,
-        BasicModule, CooldownModule, InventoryModule {
+        BasicModule, CooldownModule, InventoryModule, PetModule {
     /** 供各空实现共享的静默单例（模块调用即本类空体） */
     static final DisconnectedClient INSTANCE = new DisconnectedClient();
 
@@ -16,6 +16,7 @@ final class DisconnectedClient implements RemoteClient, StatsModule, SkillsModul
         @Override public BasicModule basic() { return INSTANCE; }
         @Override public CooldownModule cooldown() { return INSTANCE; }
         @Override public InventoryModule inventory() { return INSTANCE; }
+        @Override public PetModule pet() { return INSTANCE; }
         @Override public void commit() {
         }
 
@@ -62,6 +63,27 @@ final class DisconnectedClient implements RemoteClient, StatsModule, SkillsModul
     @Override public void announceInventoryFull() {
     }
 
+    @Override public void summonPet(org.gms.client.character.Character chr, org.gms.client.pet.Pet pet, int fh) {
+    }
+
+    @Override public void desummonPet(org.gms.client.character.Character chr, org.gms.client.pet.Pet pet, boolean hunger) {
+    }
+
+    @Override public void petStatUpdate(org.gms.client.character.Character chr) {
+    }
+
+    @Override public void petLevelUp(org.gms.client.character.Character chr, byte slot) {
+    }
+
+    @Override public void petFoodResponse(org.gms.client.character.Character chr, byte slot, boolean enjoyed, boolean hasChatBalloon) {
+    }
+
+    @Override public void petNameChange(org.gms.client.character.Character chr, String newName, byte slot) {
+    }
+
+    @Override public void loadExclusionList(org.gms.client.character.Character chr, int petId, byte petIndex, java.util.List<Integer> itemIds) {
+    }
+
     // ── 模块访问器返回自身（同为空实现） ──
 
     @Override public StatsModule stats() {
@@ -81,6 +103,10 @@ final class DisconnectedClient implements RemoteClient, StatsModule, SkillsModul
     }
 
     @Override public InventoryModule inventory() {
+        return this;
+    }
+
+    @Override public PetModule pet() {
         return this;
     }
 }

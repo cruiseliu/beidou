@@ -66,7 +66,7 @@ public class ItemSlot implements Comparable<ItemSlot> {
     }
 
     public ItemSlot(int id, int position, int quantity, int petid) {
-        this.item = new Item(id, petid);
+        this.item = petid > -1 ? Item.fromPet(id, petid) : new Item(id);
         this.position = position;
         this.quantity = normalizeQuantity(this.item, quantity);
     }

@@ -191,7 +191,7 @@ public enum ItemFactory {
 
                             ItemSlot item = new ItemSlot(rs.getInt("itemid"), (byte) rs.getInt("position"), (short) rs.getInt("quantity"), petid);
                             item.setOwner(rs.getString("owner"));
-                            item.setExpiration(rs.getLong("expiration"));
+                            if (petid == -1) item.setExpiration(rs.getLong("expiration"));   // 宠物道具到期归 pet 模块
                             if (item.getCashInfo() != null) item.getCashInfo().setGiftFrom(rs.getString("giftFrom"));
                             item.getItem().setFlagsFromLegacy(rs.getInt("flag"));
                             items.add(new Pair<>(item, mit));
@@ -357,7 +357,7 @@ public enum ItemFactory {
 
                                 ItemSlot item = new ItemSlot(rs.getInt("itemid"), (byte) rs.getInt("position"), (short) (bundles * rs.getInt("quantity")), petid);
                                 item.setOwner(rs.getString("owner"));
-                                item.setExpiration(rs.getLong("expiration"));
+                                if (petid == -1) item.setExpiration(rs.getLong("expiration"));   // 宠物道具到期归 pet 模块
                                 if (item.getCashInfo() != null) item.getCashInfo().setGiftFrom(rs.getString("giftFrom"));
                                 item.getItem().setFlagsFromLegacy(rs.getInt("flag"));
                                 items.add(new Pair<>(item, mit));

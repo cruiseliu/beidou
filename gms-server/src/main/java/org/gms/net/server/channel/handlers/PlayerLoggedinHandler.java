@@ -34,7 +34,7 @@ import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
-import org.gms.client.inventory.Pet;
+import org.gms.client.pet.Pet;
 import org.gms.client.keybind.KeyBinding;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
@@ -369,11 +369,7 @@ public final class PlayerLoggedinHandler extends AbstractPacketHandler {
             player.checkBerserk(player.isHidden());
 
             if (newcomer) {
-                for (Pet pet : player.getPets()) {
-                    if (pet != null) {
-                        wserv.registerPetHunger(player, player.getPetIndex(pet));
-                    }
-                }
+                // 宠物饥饿注册随 adoptPet 的召唤恢复进行（adopt 异步于登录流程，此处槽位可能未就绪）
 
                 Mount mount = player.getMapleMount();   // thanks Ari for noticing a scenario where Silver Mane quest couldn't be started
                 if (mount.getItemId() != 0) {

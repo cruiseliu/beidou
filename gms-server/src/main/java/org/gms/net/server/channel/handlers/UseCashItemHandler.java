@@ -37,7 +37,7 @@ import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ModifyInventory;
-import org.gms.client.inventory.Pet;
+import org.gms.client.pet.Pet;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.client.inventory.manipulator.KarmaManipulator;
 import org.gms.client.processor.npc.DueyProcessor;
@@ -420,7 +420,7 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
                 player.forceUpdateItem(item);
             }
 
-            player.getMap().broadcastMessage(player, PacketCreator.changePetName(player, newName, (byte)0), true);
+            player.getRemote().pet().petNameChange(player, newName, (byte) 0);
             c.enableActions();
             remove(c, position, itemId);
         } else if (itemType == 520) {//钱袋子

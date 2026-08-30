@@ -17,7 +17,7 @@ import org.gms.scripting.item.ItemScriptManager;
 
 import java.util.LinkedList;
 
-import org.gms.client.inventory.Pet;
+import org.gms.client.pet.Pet;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.ItemId;
@@ -276,28 +276,9 @@ class CharacterInventory {
                             item.setExpiration(-1);
                             forceUpdateItem(item);   //TEST :3
                         } else if (expiration != -1 && expiration < currenttime) {
-                            if (!ItemConstants.isPet(item.getItemId())) {
-                                owner.sendPacket(PacketCreator.itemExpired(item.getItemId()));
-                                toberemove.add(item);
-                            } else {
-                                Pet pet = owner.getPetById(item.getPetId());   // thanks Lame for noticing pets not getting despawned after expiration time
-                                if (pet != null) {
-                                    owner.unEquipPet(pet, true);
-                                }
-
-                                if (ItemConstants.isExpirablePet(item.getItemId())) {
-                                    if (item.getPetId() > -1) {
-                                        // 宠物道具真正过期销毁时，同时清理 pets/petignores，避免数据库残留孤儿数据。
-                                        Pet.deleteFromDb(owner, item.getPetId());
-                                        owner.unregisterPet(item.getPetId());
-                                    }
-                                    owner.sendPacket(PacketCreator.itemExpired(item.getItemId()));
-                                    toberemove.add(item);
-                                } else {
-                                    item.setExpiration(-1);
-                                    forceUpdateItem(item);
-                                }
-                            }
+                            // 宠物道具到期由 pet 模块管理（pets.expires_at + 专属计时器），inventory 不感知
+                            owner.sendPacket(PacketCreator.itemExpired(item.getItemId()));
+                            toberemove.add(item);
                         }
                     }
 

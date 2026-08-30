@@ -16,6 +16,8 @@ public interface RemoteUpdate extends AutoCloseable {
 
     InventoryModule inventory();
 
+    PetModule pet();
+
     /**
      * 丢弃本作用域积累的全部语义事件并结束（P2：全域 drop transaction，O(1) 弃段）。
      * 所有模块一并生效——横切能力而非领域特例。
@@ -38,6 +40,7 @@ public interface RemoteUpdate extends AutoCloseable {
         @Override public BasicModule basic() { return silent; }
         @Override public CooldownModule cooldown() { return silent; }
         @Override public InventoryModule inventory() { return silent; }
+        @Override public PetModule pet() { return silent; }
         @Override public void commit() {
         }
 

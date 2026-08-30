@@ -22,6 +22,7 @@ import org.gms.remote.v83.translate.CooldownTranslator;
 import org.gms.remote.v83.translate.SkillsTranslator;
 import org.gms.remote.v83.translate.StatsTranslator;
 import org.gms.remote.v83.translate.InventoryTranslator;
+import org.gms.remote.v83.translate.PetTranslator;
 import org.gms.util.ThreadLocalUtil;
 
 import java.nio.charset.Charset;
@@ -37,7 +38,7 @@ import java.nio.charset.Charset;
  * STAT_CHANGED，见 doc/09 §5.2）——语义模块（skills/basic）与后端包的归属解耦。
  */
 public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsModule,
-        BasicModule, CooldownModule, InventoryModule {
+        BasicModule, CooldownModule, InventoryModule, org.gms.remote.PetModule {
 
     /** v83 客户端旗标字的逐位拼装——legacy 旗标视图（Item.getLegacyFlags）的唯一组装点。 */
     public static int assembleClientFlagBits(org.gms.client.inventory.Item item) {
@@ -73,6 +74,7 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
     private final SkillsTranslator skillsT = new SkillsTranslator();
     private final CooldownTranslator cooldownT;
     private final InventoryTranslator inventoryT;
+    private final PetTranslator petT;
 
     /** 当前书写段（null = 无作用域）；嵌套经 parent 链接 */
     private ScopeLog active;
@@ -82,6 +84,7 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
         Charset charset = CharsetConstants.getCharset(ThreadLocalUtil.getClientLang());
         this.cooldownT = new CooldownTranslator();
         this.inventoryT = new InventoryTranslator(charset);
+        this.petT = new PetTranslator(charset);
     }
 
     @Override
@@ -257,6 +260,8 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
         @Override public CooldownModule cooldown() { return V83RemoteClient.this; }
 
         @Override public InventoryModule inventory() { return V83RemoteClient.this; }
+
+        @Override public org.gms.remote.PetModule pet() { return V83RemoteClient.this; }
     }
 
     // ── 模块访问器（RemoteClient 面）：同上，返回自身 ──
@@ -270,4 +275,46 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
     @Override public synchronized CooldownModule cooldown() { return this; }
 
     @Override public synchronized InventoryModule inventory() { return this; }
+
+    @Override public synchronized org.gms.remote.PetModule pet() { return this; }
+
+    // ── PetModule（org.gms.remote.PetModule）：PetTranslator 即时编码；广播机制属 map 模块（临时豁免）──
+
+    @Override
+    public synchronized void summonPet(org.gms.client.character.Character chr, org.gms.client.pet.Pet pet, int fh) {
+        chr.getMap().broadcastMessage(chr, new BytesPacket(petT.spawnPet(chr, pet, false, false, fh)), true);
+        chr.sendPacket(new BytesPacket(petT.petStatUpdate(chr)));
+    }
+
+    @Override
+    public synchronized void desummonPet(org.gms.client.character.Character chr, org.gms.client.pet.Pet pet, boolean hunger) {
+        chr.getMap().broadcastMessage(chr, new BytesPacket(petT.spawnPet(chr, pet, true, hunger, 0)), true);
+        chr.sendPacket(new BytesPacket(petT.petStatUpdate(chr)));
+    }
+
+    @Override
+    public synchronized void petStatUpdate(org.gms.client.character.Character chr) {
+        chr.sendPacket(new BytesPacket(petT.petStatUpdate(chr)));
+    }
+
+    @Override
+    public synchronized void petLevelUp(org.gms.client.character.Character chr, byte slot) {
+        chr.sendPacket(new BytesPacket(petT.petLevelUpOwn(slot)));
+        chr.getMap().broadcastMessage(new BytesPacket(petT.petLevelUpForeign(chr, slot)));
+    }
+
+    @Override
+    public synchronized void petFoodResponse(org.gms.client.character.Character chr, byte slot, boolean enjoyed, boolean hasChatBalloon) {
+        chr.getMap().broadcastMessage(new BytesPacket(petT.petFoodResponse(chr.getId(), slot, enjoyed, hasChatBalloon)));
+    }
+
+    @Override
+    public synchronized void petNameChange(org.gms.client.character.Character chr, String newName, byte slot) {
+        chr.getMap().broadcastMessage(chr, new BytesPacket(petT.petNameChange(chr, newName, slot)), true);
+    }
+
+    @Override
+    public synchronized void loadExclusionList(org.gms.client.character.Character chr, int petId, byte petIndex, java.util.List<Integer> itemIds) {
+        chr.sendPacket(new BytesPacket(petT.exclusionList(chr.getId(), petId, petIndex, itemIds)));
+    }
 }

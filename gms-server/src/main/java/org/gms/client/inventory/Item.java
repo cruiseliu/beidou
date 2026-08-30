@@ -40,6 +40,7 @@ public class Item implements Comparable<Item> {
     private ItemScript script;
 
     Item(int id) {
+        assertNotPet(id);
         this.id = id;
         this.script = ItemScript.forItem(id);
         equipInfo = getInventoryTab() == InventoryType.EQUIP ? new Equip(id) : null;
@@ -47,13 +48,33 @@ public class Item implements Comparable<Item> {
         applyWzTypeFlags();
     }
 
-    Item(int id, int petid) {
+    private Item(int id, int petid) {
         this.id = id;
         this.script = ItemScript.forItem(id);
         this.equipInfo = getInventoryTab() == InventoryType.EQUIP ? new Equip(id) : null;
         this.cashInfo = ii.isCash(id) ? new CashItemInfo() : null;
         this.petId = petid;
         applyWzTypeFlags();
+    }
+
+    /**
+     * 工厂：宠物道具（唯一合法的宠物物品构造通路；petId 由 CharacterPets 授予链提供）。
+     */
+    public static Item fromPet(int id, int petId) {
+        if (!ItemConstants.isPet(id)) {
+            throw new IllegalStateException("非宠物 id 禁止经 fromPet 构造: " + id);
+        }
+        if (petId <= -1) {
+            throw new IllegalStateException("宠物道具必须携带 petId: " + id);
+        }
+        return new Item(id, petId);
+    }
+
+    /** 宠物道具禁止经通用通路构造（背景：合法获取只有商城与脚本独立 API） */
+    private static void assertNotPet(int id) {
+        if (ItemConstants.isPet(id)) {
+            throw new IllegalStateException("宠物道具禁止经通用物品通路构造: " + id);
+        }
     }
 
     private Item() {
@@ -288,7 +309,9 @@ public class Item implements Comparable<Item> {
     }
 
     public void setExpiration(long expire) {
-        this.expiration = !ItemConstants.isPermanentItem(id) ? expire : ItemConstants.isPet(id) ? Long.MAX_VALUE : -1;
+        // 到期归属是 caller 的责任：宠物道具（到期归 pet 模块 pets.expires_at）不得走到这里
+        assert petId == -1 : "宠物道具禁止设置物品到期: " + id;
+        this.expiration = !ItemConstants.isPermanentItem(id) ? expire : -1;
     }
 
     /** 点券物品会话信息；非现金物品为 null */

@@ -7,7 +7,7 @@ package org.gms.remote;
  *
  * <p>本接口只见语义模块分组，不见具体方法——防上帝接口；各域的全部语义调用
  * 归属 {@link StatsModule}/{@link SkillsModule}/{@link BasicModule}/
- * {@link CooldownModule}/{@link InventoryModule}。
+ * {@link CooldownModule}/{@link InventoryModule}/{@link PetModule}。
  *
  * <p>内置有状态合并域（transaction）：未开域时语义调用立即编码发送；
  * 开域（{@link #update()}）期间入对应域缓冲，最外层关闭时按实现声明的固定序统一组包发送。
@@ -28,6 +28,8 @@ public interface RemoteClient {
     CooldownModule cooldown();
 
     InventoryModule inventory();
+
+    PetModule pet();
 
     /** 无连接/已断开时的空实现——对齐 Character.sendPacket 对 client==null 的静默容忍。 */
     RemoteClient DISCONNECTED = DisconnectedClient.INSTANCE;

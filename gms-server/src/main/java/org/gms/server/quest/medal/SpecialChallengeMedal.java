@@ -2,7 +2,7 @@ package org.gms.server.quest.medal;
 
 import org.gms.client.character.Character;
 import org.gms.client.QuestStatus;
-import org.gms.client.inventory.Pet;
+import org.gms.client.pet.Pet;
 import org.gms.constants.game.DelayedQuestUpdate;
 import org.gms.server.life.Monster;
 import org.gms.server.quest.Quest;
@@ -74,7 +74,7 @@ public final class SpecialChallengeMedal {
      */
     public static int getMaxPetTameness(Character player) {
         int tameness = 0;
-        for (Pet pet : player.getPets()) {
+        for (Pet pet : player.getSummonSlots()) {
             if (pet != null && pet.getTameness() > tameness) {
                 tameness = pet.getTameness();
             }

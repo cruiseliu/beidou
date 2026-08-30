@@ -3,7 +3,7 @@ package org.gms.remote.v83.translate;
 import io.netty.buffer.ByteBuf;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Item;
-import org.gms.client.inventory.Pet;
+import org.gms.client.pet.Pet;
 import org.gms.constants.game.ExpTable;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.server.ItemInformationProvider;

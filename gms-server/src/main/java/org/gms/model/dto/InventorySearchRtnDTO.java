@@ -116,7 +116,7 @@ public class InventorySearchRtnDTO {
             item = new ItemSlot(getItemId(), getPosition(), getQuantity(), getPetId());
         }
         item.setOwner(getOwner());
-        item.setExpiration(getExpiration());
+        if (item.getPetId() == -1) item.setExpiration(getExpiration());   // 宠物道具到期归 pet 模块
         if (getGiftFrom() != null && !getGiftFrom().isEmpty() && item.getCashInfo() != null) {
             item.getCashInfo().setGiftFrom(getGiftFrom());
         }

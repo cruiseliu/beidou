@@ -1,0 +1,152 @@
+[
+ {
+  "itemId": 5211000,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211004,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211005,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211006,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211007,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211008,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211009,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211010,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211011,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211012,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211013,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211014,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211015,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211016,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211017,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211018,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211037,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211038,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211039,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211040,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211041,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211042,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211043,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211044,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211045,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211046,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211048,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211049,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211052,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ },
+ {
+  "itemId": 5211060,
+  "hooks": "item/coupon.js",
+  "expRate": "info/rate"
+ }
+]

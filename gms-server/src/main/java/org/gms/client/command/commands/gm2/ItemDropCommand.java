@@ -28,7 +28,7 @@ import org.gms.client.Client;
 import org.gms.client.command.Command;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
-import org.gms.client.inventory.Pet;
+import org.gms.client.pet.Pet;
 import org.gms.config.GameConfig;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.server.ItemInformationProvider;
@@ -67,33 +67,6 @@ public class ItemDropCommand extends Command {
         if (GameConfig.getServerBoolean("block_generate_cash_item") && ii.isCash(itemId)) {
             player.yellowMessage(I18nUtil.getMessage("ItemCommand.message4"));
             return;
-        }
-
-        if (ItemConstants.isPet(itemId)) {
-            if (params.length >= 2) {   // thanks to istreety & TacoBell
-                quantity = 1;
-                long days = Math.max(1, Integer.parseInt(params[1]));
-                long expiration = System.currentTimeMillis() + DAYS.toMillis(days);
-                int petid = Pet.createPet(itemId);
-
-                ItemSlot toDrop = new ItemSlot(itemId, (short) 0, quantity, petid);
-                toDrop.setExpiration(expiration);
-
-                toDrop.setOwner("");
-                if (player.gmLevel() < 3) {
-                    toDrop.addFlag(ItemFlag.ACCOUNT_SHARING);
-                    toDrop.addFlag(ItemFlag.UNTRADEABLE);
-                    toDrop.addFlag(ItemFlag.SANDBOX);
-                    toDrop.setOwner("TRIAL-MODE");
-                }
-
-                c.getPlayer().getMap().spawnItemDrop(c.getPlayer(), c.getPlayer(), toDrop, c.getPlayer().getPosition(), true, true);
-
-                return;
-            } else {
-                player.yellowMessage(I18nUtil.getMessage("ItemDropCommand.message3"));
-                return;
-            }
         }
 
         ItemSlot toDrop;

@@ -22,7 +22,7 @@
 package org.gms.server.quest.requirements;
 
 import org.gms.client.character.Character;
-import org.gms.client.inventory.Pet;
+import org.gms.client.pet.Pet;
 import org.gms.provider.Data;
 import org.gms.provider.DataTool;
 import org.gms.server.quest.Quest;
@@ -53,7 +53,7 @@ public class MinTamenessRequirement extends AbstractQuestRequirement {
     public boolean check(Character chr, Integer npcid) {
         int curTameness = 0;
 
-        for (Pet pet : chr.getPets()) {
+        for (Pet pet : chr.getSummonSlots()) {
             if (pet == null) {
                 continue;
             }

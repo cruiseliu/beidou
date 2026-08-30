@@ -28,6 +28,7 @@ import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
+import org.gms.client.pet.Pet;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.ItemId;
@@ -116,7 +117,7 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                             return;
                         }
 
-                        ItemSlot item = cItem.toItem();
+                        ItemSlot item = cItem.toItem(ItemConstants.isPet(cItem.getItemId()) ? org.gms.client.pet.Pet.createPetData(cItem.getItemId(), cItem.petExpiresAt()) : -1);
                         if (!ensureCashInventoryCapacity(c, cs, 1)) {
                             return;
                         }
@@ -301,7 +302,14 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                     }
                     if (chr.getInventory(item.getInventoryType()).addItem(item) != -1) {
                         cs.removeFromInventory(item);
-                        c.sendPacket(PacketCreator.takeFromCashInventory(item));
+                        Pet pet = null;
+                        if (item.getPetId() > -1) {   // 宠物入包时登记（同 InventoryManipulator.addById）
+                            pet = Pet.loadFromDb(chr, item.getItemId(), item.getPetId());
+                            if (pet != null) {
+                                chr.registerPet(pet);
+                            }
+                        }
+                        c.sendPacket(PacketCreator.takeFromCashInventory(item, pet));
 
                         if (item.getEquipInfo() != null) {
                             Equip equip = item.getEquipInfo();
@@ -326,15 +334,12 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                     if (item == null) {
                         c.enableCSActions();
                         return;
-                    } else if (c.getPlayer().getPetIndex(item.getPetId()) > -1) {
-                        chr.getClient().sendPacket(PacketCreator.serverNotice(1, "当前正在装备中的宠物无法放入现金仓库。"));
-                        c.enableCSActions();
-                        return;
                     } else if (ItemId.isWeddingRing(item.getItemId()) || ItemId.isWeddingToken(item.getItemId())) {
                         chr.getClient().sendPacket(PacketCreator.serverNotice(1, "关系类道具无法放入现金仓库。"));
                         c.enableCSActions();
                         return;
                     }
+                    // 召唤中的宠物存入现金仓库：removeSlot 的 leave 钩子会自动下阵（releasePet）
                     if (!ensureCashInventoryCapacity(c, cs, 1)) {
                         return;
                     }
@@ -363,7 +368,7 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                             if (!ensureCashInventoryCapacity(c, cs, 1)) {
                                 return;
                             }
-                            ItemSlot boughtItem = itemRing.toItem();
+                            ItemSlot boughtItem = itemRing.toItem(-1);
                             Equip eqp = boughtItem.getEquipInfo();
                             if (eqp != null) {
                                 Pair<Integer, Integer> rings = Ring.createRing(itemRing.getItemId(), chr, partner);
@@ -427,7 +432,7 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                             if (!ensureCashInventoryCapacity(c, cs, 1)) {
                                 return;
                             }
-                            ItemSlot boughtRingItem = itemRing.toItem();
+                            ItemSlot boughtRingItem = itemRing.toItem(-1);
                             Equip eqp = boughtRingItem.getEquipInfo();
                             if (eqp != null) {
                                 Pair<Integer, Integer> rings = Ring.createRing(itemRing.getItemId(), chr, partner);
@@ -469,7 +474,7 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                             return;
                         }
                         if (chr.registerNameChange(newName)) { //success
-                            ItemSlot item = cItem.toItem();
+                            ItemSlot item = cItem.toItem(ItemConstants.isPet(cItem.getItemId()) ? org.gms.client.pet.Pet.createPetData(cItem.getItemId(), cItem.petExpiresAt()) : -1);
                             c.sendPacket(PacketCreator.showNameChangeSuccess(item, c.getAccID()));
                             cs.gainCash(4, cItem, chr.getWorld());
                             cs.addToInventory(item);
@@ -501,7 +506,7 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                         } else if (!ensureCashInventoryCapacity(c, cs, 1)) {
                             return;
                         } else if (chr.registerWorldTransfer(newWorldSelection)) {
-                            ItemSlot item = cItem.toItem();
+                            ItemSlot item = cItem.toItem(ItemConstants.isPet(cItem.getItemId()) ? org.gms.client.pet.Pet.createPetData(cItem.getItemId(), cItem.petExpiresAt()) : -1);
                             c.sendPacket(PacketCreator.showWorldTransferSuccess(item, c.getAccID()));
                             cs.gainCash(4, cItem, chr.getWorld());
                             cs.addToInventory(item);

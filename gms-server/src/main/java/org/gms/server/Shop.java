@@ -27,7 +27,7 @@ import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.Item;
 import org.gms.client.inventory.ItemSlot;
-import org.gms.client.inventory.Pet;
+import org.gms.client.pet.Pet;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.inventory.ItemConstants;
@@ -150,12 +150,9 @@ public class Shop {
                     int cardreduce = value - cost;
                     int diff = cardreduce + c.getPlayer().getMeso();
                     if (InventoryManipulator.checkSpace(c, itemId, quantity, "")) {
-                        if (ItemConstants.isPet(itemId)) {
-                            int petid = Pet.createPet(itemId);
-                            InventoryManipulator.REFACTOR6_addById(c, itemId, quantity, "", petid, -1);
-                        } else {
-                            InventoryManipulator.REFACTOR6_addById(c, itemId, quantity, "", -1, -1);
-                        }
+                        // 宠物不再经由 NPC 商店发放（合法获取只有商城与脚本独立 API）；
+                        // 若有商店配置了宠物商品，通用通路会被 Item 构造断言拒绝（doc/11 §9 break 清单）
+                        InventoryManipulator.REFACTOR6_addById(c, itemId, quantity, "", -1, -1);
                         c.getPlayer().gainMeso(diff, false);
                     } else {
                         c.sendPacket(PacketCreator.shopTransaction((byte) 3));

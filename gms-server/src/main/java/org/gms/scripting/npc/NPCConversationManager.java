@@ -26,7 +26,7 @@ import org.gms.client.character.Character;
 import org.gms.client.*;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ItemFactory;
-import org.gms.client.inventory.Pet;
+import org.gms.client.pet.Pet;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
 import org.gms.constants.game.NextLevelType;
@@ -380,7 +380,7 @@ public class NPCConversationManager extends AbstractPlayerInteraction {
     }
 
     public void gainTameness(int tameness) {
-        for (Pet pet : getPlayer().getPets()) {
+        for (Pet pet : getPlayer().getSummonSlots()) {
             if (pet != null) {
                 pet.gainTamenessFullness(getPlayer(), tameness, 0, 0);
             }

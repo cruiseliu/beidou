@@ -19,7 +19,6 @@
 */
 package org.gms.util;
 
-import org.gms.dao.mapper.PetsMapper;
 import org.gms.dao.mapper.RingsMapper;
 import org.gms.manager.ServerManager;
 
@@ -41,12 +40,15 @@ public class CashIdGenerator {
                 existentCashIds.add(ringsDO.getId());
             }
         });
-        PetsMapper petsMapper = ServerManager.getApplicationContext().getBean(PetsMapper.class);
-        petsMapper.selectAll().forEach(petsDO -> {
-            if (petsDO.getPetid() != null) {
-                existentCashIds.add(petsDO.getPetid().intValue());
+        try (java.sql.Connection con = org.gms.util.DatabaseConnection.getConnection();
+             java.sql.PreparedStatement ps = con.prepareStatement("SELECT petid FROM pets_json");
+             java.sql.ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                existentCashIds.add(rs.getInt("petid"));
             }
-        });
+        } catch (java.sql.SQLException e) {
+            throw new IllegalStateException("加载 pets_json 号段失败", e);
+        }
 
         runningCashId = 0;
         do {

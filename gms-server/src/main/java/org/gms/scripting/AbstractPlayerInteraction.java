@@ -24,6 +24,7 @@ package org.gms.scripting;
 import org.gms.client.character.Character;
 import org.gms.client.*;
 import org.gms.client.inventory.*;
+import org.gms.client.pet.Pet;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.DelayedQuestUpdate;
@@ -527,47 +528,26 @@ public class AbstractPlayerInteraction {
         }
     }
 
-    public ItemSlot evolvePet(byte slot, int afterId) {
-        Pet target;
-
-        long period = DAYS.toMillis(90);    //refreshes expiration date: 90 days
-
-
-        target = getPlayer().getPet(slot);
+    /**
+     * 孵化/任务进化（脚本 API）：同一 petId 换宿主物品，宠物本体（pets 行）不变。
+     */
+    public boolean evolvePet(byte slot, int afterId) {
+        Pet target = getPlayer().getPet(slot);
         if (target == null) {
             getPlayer().message("Pet could not be evolved...");
-            return (null);
+            return false;
         }
+        return getPlayer().getPets().evolvePet(target.getUniqueId(), afterId);
+    }
 
-        ItemSlot tmp = gainItem(afterId, (short) 1, false, true, period, target);
-            
-            /*
-            evolved = Pet.loadFromDb(tmp.getItemId(), tmp.getPosition(), tmp.getPetId());
-            
-            evolved = tmp.getPet();
-            if(evolved == null) {
-                getPlayer().message("Pet structure non-existent for " + tmp.getItemId() + "...");
-                return(null);
-            }
-            else if(tmp.getPetId() == -1) {
-                getPlayer().message("Pet id -1");
-                return(null);
-            }
-            
-            getPlayer().addPet(evolved);
-            
-            getPlayer().getMap().broadcastMessage(c.getPlayer(), PacketCreator.showPet(c.getPlayer(), evolved, false, false), true);
-            c.sendPacket(PacketCreator.petStatUpdate(c.getPlayer()));
-            c.sendPacket(PacketCreator.enableActions());
-            chr.getClient().getWorldServer().registerPetHunger(chr, chr.getPetIndex(evolved));
-            */
-
-        ItemSlot targetItem = getPlayer().findPetItemSlot(target.getUniqueId());
-        if (targetItem != null) {
-            InventoryManipulator.removeFromSlot(c, InventoryType.CASH, (short) targetItem.getPosition(), (short) 1, false);
-        }
-
-        return null;
+    /**
+     * 发放宠物（脚本独立 API；通用 gainItem 禁止宠物 id——Item 构造断言拦截）。
+     *
+     * @param days 有效天数（&lt;=0 = 永久）
+     */
+    public boolean gainPet(int id, int days) {
+        long expiresAt = days > 0 ? org.gms.net.server.Server.getInstance().getCurrentTime() + java.util.concurrent.TimeUnit.DAYS.toMillis(days) : -1;
+        return getPlayer().getPets().grantPet(id, expiresAt);
     }
 
     public void gainItem(int id, short quantity) {
@@ -595,39 +575,11 @@ public class AbstractPlayerInteraction {
     }
 
     public ItemSlot gainItem(int id, short quantity, boolean randomStats, boolean showMessage, long expires, Pet from) {
+        // 宠物 id 走独立 API gainPet（Item 构造断言拦截通用通路）；from 参数遗留自旧进化流，已废弃
         ItemSlot item = null;
-        Pet evolved;
         int petId = -1;
 
         if (quantity >= 0) {
-            if (ItemConstants.isPet(id)) {
-                petId = Pet.createPet(id);
-
-                if (from != null) {
-                    evolved = Pet.loadFromDb(getPlayer(), id, petId);
-
-                    Point pos = getPlayer().getPosition();
-                    pos.y -= 12;
-                    evolved.setPos(pos);
-                    evolved.setFh(getPlayer().getMap().getFootholds().findBelow(evolved.getPos()).getId());
-                    evolved.setStance(0);
-                    evolved.setSummoned(true);
-
-                    evolved.setName(from.getName().compareTo(ItemInformationProvider.getInstance().getName(from.getItemId())) != 0 ? from.getName() : ItemInformationProvider.getInstance().getName(id));
-                    evolved.setTameness(from.getTameness());
-                    evolved.setFullness(from.getFullness());
-                    evolved.setLevel(from.getLevel());
-                    // 到期属于宿主物品属性：繁殖出的宠物找宿主物品设置（当前必在包内未注册，直接查背包）
-                    ItemSlot evolvedItem = getPlayer().findPetItemSlot(petId);
-                    if (evolvedItem != null) {
-                        evolvedItem.setExpiration(System.currentTimeMillis() + expires);
-                    }
-                    evolved.saveToDb();
-                }
-
-                //InventoryManipulator.addById(c, id, (short) 1, null, petId, expires == -1 ? -1 : System.currentTimeMillis() + expires);
-            }
-
             ItemInformationProvider ii = ItemInformationProvider.getInstance();
 
             if (ItemConstants.getInventoryType(id).equals(InventoryType.EQUIP)) {

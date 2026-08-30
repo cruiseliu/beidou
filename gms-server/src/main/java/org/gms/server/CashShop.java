@@ -261,7 +261,7 @@ public class CashShop {
             List<ItemSlot> cashPackage = new ArrayList<>();
 
             for (int sn : packages.get(itemId)) {
-                cashPackage.add(getItem(sn).toItem());
+                cashPackage.add(getItem(sn).toItem(ItemConstants.isPet(getItem(sn).getItemId()) ? org.gms.client.pet.Pet.createPetData(getItem(sn).getItemId(), getItem(sn).petExpiresAt()) : -1));
             }
 
             return cashPackage;
@@ -422,7 +422,7 @@ public class CashShop {
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
                         ModifiedCashItemDO cItem = CashItemFactory.getItem(rs.getInt("sn"));
-                        ItemSlot item = cItem.toItem();
+                        ItemSlot item = cItem.toItem(ItemConstants.isPet(cItem.getItemId()) ? org.gms.client.pet.Pet.createPetData(cItem.getItemId(), cItem.petExpiresAt()) : -1);
                         Equip equip = null;
                         item.getCashInfo().setGiftFrom(rs.getString("from"));
                         int itemsToStore = 1;
@@ -535,7 +535,7 @@ public class CashShop {
                 removeFromInventory(cashShopSurprise);
             }
 
-            ItemSlot itemReward = cashItemReward.get().toItem();
+            ItemSlot itemReward = cashItemReward.get().toItem(ItemConstants.isPet(cashItemReward.get().getItemId()) ? org.gms.client.pet.Pet.createPetData(cashItemReward.get().getItemId(), cashItemReward.get().petExpiresAt()) : -1);
             addToInventory(itemReward);
 
             return Optional.of(new CashShopSurpriseResult(cashShopSurprise, itemReward));
@@ -582,6 +582,6 @@ public class CashShop {
                 .onSale(1)
                 .priority(0)
                 .build()
-                .toItem();
+                .toItem(-1);
     }
 }
