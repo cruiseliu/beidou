@@ -32,6 +32,11 @@ public record InventoryOperationPacket(boolean updateTick, List<Change> changes,
         return new InventoryOperationPacket(updateTick, List.copyOf(changes), addMovement);
     }
 
+    /** 空操作帧（updateTick=true, count=0）：背包满信号的第一帧（与 0xff 状态包成对） */
+    public static ByteBuf encodeEmpty() {
+        return encode(of(true, List.of()));
+    }
+
     public static ByteBuf encode(InventoryOperationPacket packet) {
         ByteBuf out = Unpooled.buffer();
         out.writeShortLE(OPCODE);

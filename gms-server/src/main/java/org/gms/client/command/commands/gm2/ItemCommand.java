@@ -74,7 +74,7 @@ public class ItemCommand extends Command {
                 long expiration = System.currentTimeMillis() + DAYS.toMillis(days);
                 int petid = Pet.createPet(itemId);
 
-                InventoryManipulator.addById(c, itemId, quantity, player.getName(), petid, expiration);
+                InventoryManipulator.REFACTOR6_addById(c, itemId, quantity, player.getName(), petid, expiration);
                 return;
             } else {
                 player.yellowMessage(I18nUtil.getMessage("ItemCommand.message5"));
@@ -88,6 +88,6 @@ public class ItemCommand extends Command {
             flag |= ItemConstants.UNTRADEABLE;
         }
 
-        InventoryManipulator.addById(c, itemId, quantity, player.getName(), -1, flag, -1);
+        InventoryManipulator.REFACTOR7_addById(c, itemId, quantity, player.getName(), -1, flag, -1);
     }
 }

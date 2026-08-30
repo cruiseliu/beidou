@@ -4,7 +4,6 @@ import org.gms.client.character.Character;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.remote.SlotChange;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -57,17 +56,25 @@ public class Inventory {
      */
     public ItemStack add(ItemStack stack) {
         InventoryTab tab = getTab(ItemConstants.getInventoryType(stack.itemId));
-        var before = tab.snapshot();
-        int leftover = tab.addInternal(stack);
 
-        List<SlotChange> changes = InventoryTab.diff(before, tab.snapshot());
-        if (leftover > 0) {
-            owner.getRemote().inventory().announceInventoryFull();
+        List<SlotChange> changes;
+        ItemStack remaining;
+        // 快照→变更→快照→通知 必须在锁内完成：通知与真身变更同序，防止
+        // "后改的槽先发、先改的槽后发"把客户端绝对值倒推回旧值（Q1 竞态窗口）。
+        // ReentrantLock 可重入，TX 外层持锁时不阻塞；先例：legacy addById 与 TX commit 均锁内发包。
+        try (var ignored = org.gms.util.Locks.acquire(tab.lock)) {
+            var before = tab.snapshot();
+            remaining = tab.addInternal(stack);
+            changes = InventoryTab.diff(before, tab.snapshot());
+
+            if (remaining != null) {
+                owner.getRemote().inventory().announceInventoryFull();
+            }
+            if (!changes.isEmpty()) {
+                owner.getRemote().inventory().updateInventory(changes);
+            }
         }
-        if (!changes.isEmpty()) {
-            owner.getRemote().inventory().updateInventory(changes);
-        }
-        return leftover == 0 ? null : new ItemStack(stack.itemId, leftover);
+        return remaining;
     }
 
     /** 释放全部背包（防内存泄漏） */

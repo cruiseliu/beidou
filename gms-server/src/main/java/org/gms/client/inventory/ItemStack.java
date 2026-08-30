@@ -25,6 +25,10 @@ public class ItemStack {
     }
 
     public ItemStack(int itemId, int quantity) {
+        if (org.gms.constants.inventory.ItemConstants.isPet(itemId)) {
+            // 宠物物品必须经带 petId 的构造（宿主 Item）——无主 itemId 构造会产出宠物系统不识别的空壳
+            throw new IllegalArgumentException("禁止用 itemId 构造宠物 ItemStack: " + itemId + "，请携带宿主 Item（petId）");
+        }
         this.itemId = itemId;
         this.quantity = quantity;
     }
@@ -35,7 +39,7 @@ public class ItemStack {
         this.item = item;
     }
 
-    ItemStack copy() {
+    ItemStack deepCopy() {
         ItemStack ret = new ItemStack(itemId, quantity);
         if (item != null) {
             ret.item = item.copy();
@@ -57,7 +61,7 @@ public class ItemStack {
     }
 
     ItemStack takeAtMost(int n) {
-        ItemStack ret = copy();
+        ItemStack ret = deepCopy();
         ret.quantity = Math.min(n, quantity);
         quantity -= ret.quantity;
         return ret;

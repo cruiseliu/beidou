@@ -28,7 +28,6 @@ import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.server.ItemInformationProvider;
 import org.gms.remote.SlotChange;
-import org.gms.server.ThreadManager;
 import org.gms.util.Pair;
 
 import java.util.ArrayList;
@@ -50,16 +49,23 @@ public class InventoryTab implements Iterable<ItemSlot> {
     protected final Map<Integer, ItemSlot> inventory;
     protected final InventoryType type;
     protected final Lock lock = new ReentrantLock(true);
+    /** true = 不派发钩子事件（TX 影子/证明背包等非真实持有场景） */
+    private final boolean silent;
 
     protected Character owner;
     protected int slotLimit;
     protected boolean checked = false;
 
     public InventoryTab(Character mc, InventoryType type, int slotLimit) {
+        this(mc, type, slotLimit, false);
+    }
+
+    InventoryTab(Character mc, InventoryType type, int slotLimit, boolean silent) {
         this.owner = mc;
         this.inventory = new LinkedHashMap<>();
         this.type = type;
         this.slotLimit = slotLimit;
+        this.silent = silent;
     }
 
     public int getSlotLimit() {
@@ -165,13 +171,13 @@ public class InventoryTab implements Iterable<ItemSlot> {
             ItemSlot b = before.get(pos);
             ItemSlot a = after.get(pos);
             if (b != null && (a == null || !sameItem(b, a))) {
-                changes.add(new SlotChange.Removed(b));   // 旧槽消失（或换成了别的东西）
+                changes.add(new SlotChange.Removed(b.getItem(), b.getPosition()));   // 旧槽消失（或换成了别的东西）
             }
             if (a != null) {
                 if (b == null || !sameItem(b, a)) {
-                    changes.add(new SlotChange.Added(a));
+                    changes.add(new SlotChange.Added(a.getItem(), a.getPosition(), a.getQuantity()));
                 } else if (a.getQuantity() != b.getQuantity()) {
-                    changes.add(new SlotChange.QuantityUpdated(a));
+                    changes.add(new SlotChange.QuantityUpdated(a.getItem(), a.getPosition(), a.getQuantity()));
                 }
             }
         }
@@ -190,53 +196,39 @@ public class InventoryTab implements Iterable<ItemSlot> {
      *
      * @return 未放入的剩余量（0 = 全部放入）
      */
-    int addInternal(ItemStack stack) {
+    ItemStack addInternal(ItemStack stack) {
+        // fixme: [refactor] check exclusive item
+
         if (type == InventoryType.EQUIPPED || type == InventoryType.CANHOLD || type == InventoryType.UNDEFINED) {
             throw new UnsupportedOperationException("不支持该背包类型: " + type);
         }
-        ItemStack remaining = stack.copy();   // 游标在副本上消耗，不碰调用方入参
-
-        if (type == InventoryType.EQUIP && remaining.quantity != 1) {
-            throw new IllegalArgumentException("装备数量恒为 1: " + remaining.itemId + " x" + remaining.quantity);
-        }
+        ItemStack remaining = stack.deepCopy();   // 游标在副本上消耗，不碰调用方入参
 
         int stackLimit = remaining.getStackLimit();
 
         if (stackLimit > 1) {
             for (ItemSlot slot : listById(remaining.itemId)) {
-                if (remaining.quantity == 0) {
-                    return 0;
-                }
-                if (!remaining.canMergeWith(slot.getItem())) {
-                    continue;
-                }
-                if (slot.getQuantity() < stackLimit) {
-                    slot.quantity += remaining.takeAtMost(stackLimit - slot.getQuantity()).quantity;
+                if (remaining.canMergeWith(slot.getItem()) && slot.quantity < stackLimit) {
+                    slot.quantity += remaining.takeAtMost(stackLimit - slot.quantity).quantity;
+                    if (remaining.quantity == 0) {
+                        return null;
+                    }
                 }
             }
         }
 
-        while (remaining.quantity > 0) {
-            ItemStack unit = remaining.takeAtMost(stackLimit);
-            ItemSlot fresh = buildUnit(unit);
-            if (addItem(fresh) == -1) {
-                remaining.quantity += unit.quantity;   // 未放入，游标归还该组
-                return remaining.quantity;
-            }
+        while (remaining.quantity > 0 && !isFull()) {
+            // todo: [refactor] make adding logic clean so it don't need to iter every time
+            addStack(remaining.takeAtMost(stackLimit));
         }
-        return 0;
+
+        return remaining.quantity == 0 ? null : remaining;
     }
 
-    /** 单组内容物构建：宿主已接线则原样承载；无宿主装备走 wz 模板工厂，其余默认构造 */
-    private ItemSlot buildUnit(ItemStack unit) {
-        if (unit.getItem() != null || type != InventoryType.EQUIP) {
-            return ItemSlot.fromStack(unit, 0);
-        }
-        return ItemInformationProvider.getInstance().getEquipById(unit.itemId);
-    }
-
-    // find an empty slot to host the stack, or return null if no room
-    // this method will never merge it with other slots
+    /**
+     * Find an empty slot to host the stack, or return null if no room.
+     * This method will never merge it with other slots.
+     */
     public ItemSlot addStack(ItemStack item) {
         ItemSlot slot = ItemSlot.fromStack(item, 0);
         int index = addItem(slot);
@@ -331,9 +323,8 @@ public class InventoryTab implements Iterable<ItemSlot> {
             inventory.put(slotId, item);
         }
 
-        if (ItemConstants.isRateCoupon(item.getItemId())) {
-            // deadlocks with coupons rates found thanks to GabrielSin & Masterrulax
-            ThreadManager.getInstance().newTask(() -> owner.updateCouponRates());
+        if (!silent) {
+            item.getItem().onEnterInventory(owner, false);
         }
 
         return slotId;
@@ -344,8 +335,8 @@ public class InventoryTab implements Iterable<ItemSlot> {
             inventory.put(slot, item);
         }
 
-        if (ItemConstants.isRateCoupon(item.getItemId())) {
-            ThreadManager.getInstance().newTask(() -> owner.updateCouponRates());
+        if (!silent) {
+            item.getItem().onEnterInventory(owner, true);   // 登录装载初始化
         }
     }
 
@@ -355,8 +346,8 @@ public class InventoryTab implements Iterable<ItemSlot> {
             item = inventory.remove(slot);
         }
 
-        if (item != null && ItemConstants.isRateCoupon(item.getItemId())) {
-            ThreadManager.getInstance().newTask(() -> owner.updateCouponRates());
+        if (!silent && item != null) {
+            item.getItem().onLeaveInventory(owner, false);
         }
     }
 

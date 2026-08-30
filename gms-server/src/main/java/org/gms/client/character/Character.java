@@ -77,6 +77,7 @@ import org.gms.net.server.guild.GuildCharacter;
 import org.gms.net.server.services.task.world.CharacterSaveService;
 import org.gms.net.server.services.type.WorldServices;
 import org.gms.net.server.world.*;
+import org.gms.scripting.item.ItemScript;
 import org.gms.scripting.AbstractPlayerInteraction;
 import org.gms.scripting.event.EventInstanceManager;
 import org.gms.server.*;
@@ -115,7 +116,6 @@ import java.util.regex.Pattern;
 import static org.gms.client.character.Stat.*;
 
 import static java.util.concurrent.TimeUnit.*;
-import org.gms.client.inventory.ItemFlag;
 
 public class Character extends AbstractAnimatedMapObject {
     private static final Logger log = LoggerFactory.getLogger(Character.class);
@@ -132,6 +132,7 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterJob job = new CharacterJob(this);
     final CharacterMap map = new CharacterMap(this);
     final CharacterRates rates = new CharacterRates(this);
+    final CharacterScriptRunner scriptRunner = new CharacterScriptRunner();
     final CharacterAntiCheat antiCheat = new CharacterAntiCheat(this);
     final CharacterMarket market = new CharacterMarket(this);
     final CharacterQuests quests = new CharacterQuests(this);
@@ -1439,7 +1440,7 @@ public class Character extends AbstractAnimatedMapObject {
         ret.setMapId(this.getMapId());
         ret.initialSpawnPoint = this.getInitialSpawnPoint();
 
-        ret.inventory.inventorySet.tabs[InventoryType.EQUIPPED.ordinal()] = this.getInventory(InventoryType.EQUIPPED);
+        ret.inventory.inventory.tabs[InventoryType.EQUIPPED.ordinal()] = this.getInventory(InventoryType.EQUIPPED);
 
         ret.gm.setGMLevel(this.gmLevel());
         ret.world = this.getWorld();
@@ -2627,6 +2628,7 @@ public class Character extends AbstractAnimatedMapObject {
         cancelDiseaseExpireTask();
         stopSkillTimers();
         cancelExpirationTask();
+        ItemScript.logout(this);
         quests.empty();
 
         if (recoveryTask != null) {
@@ -3032,11 +3034,14 @@ public class Character extends AbstractAnimatedMapObject {
     public void revertPlayerRates() { rates.revertPlayerRates(); }
     public void setWorldRates() { rates.setWorldRates(); }
     public void revertWorldRates() { rates.revertWorldRates(); }
-    public void setCouponRates() { rates.setCouponRates(); }
-    public void updateCouponRates() { rates.updateCouponRates(); }
     public void resetPlayerRates() { rates.resetPlayerRates(); }
-    public void dispelBuffCoupons() { rates.dispelBuffCoupons(); }
-    public Set<Integer> getActiveCoupons() { return rates.getActiveCoupons(); }
+    public Set<Integer> getActiveItemIds() { return rates.getActiveItemIds(); }
+
+    /** 倍率贡献 sink（脚本经 bind 层调用；ITEM 桶，见 doc/10 分桶模型） */
+    public CharacterRates getRates() { return rates; }
+
+    /** 脚本回调调度器（容器事件/定时器回调的唯一执行通道） */
+    public CharacterScriptRunner getScriptRunner() { return scriptRunner; }
 
     // ── skills 门面 ──
 
@@ -3223,8 +3228,8 @@ public class Character extends AbstractAnimatedMapObject {
 
     // ── inventory 门面 ──
 
+    public Inventory getInventory() { return inventory.getInventory(); }
     public InventoryTab getInventory(InventoryType type) { return inventory.getInventory(type); }
-    public Inventory getInventorySet() { return inventory.getInventorySet(); }
     public int countItem(int itemid) { return inventory.countItem(itemid); }
     public boolean canHold(int itemid) { return inventory.canHold(itemid); }
     public boolean canHold(int itemid, int quantity) { return inventory.canHold(itemid, quantity); }
@@ -3234,8 +3239,8 @@ public class Character extends AbstractAnimatedMapObject {
     public boolean haveItemEquipped(int itemid) { return inventory.getEquips().haveItemEquipped(itemid); }
     public boolean haveWeddingRing() { return inventory.haveWeddingRing(); }
     public int getItemQuantity(int itemid, boolean checkEquipped) { return inventory.getItemQuantity(itemid, checkEquipped); }
-        public boolean haveItem(int itemid) { return inventory.haveItem(itemid); }
-        public boolean hasEmptySlot(int itemId) { return inventory.hasEmptySlot(itemId); }
+    public boolean haveItem(int itemid) { return inventory.haveItem(itemid); }
+    public boolean hasEmptySlot(int itemId) { return inventory.hasEmptySlot(itemId); }
     public boolean hasEmptySlot(byte invType) { return inventory.hasEmptySlot(invType); }
     public byte getSlots(int type) { return (byte) inventory.getSlots(type); }
     public boolean canGainSlots(int type, int slots) { return inventory.canGainSlots(type, slots); }

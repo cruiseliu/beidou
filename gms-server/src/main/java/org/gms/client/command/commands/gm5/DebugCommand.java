@@ -141,20 +141,10 @@ public class DebugCommand extends Command {
                 }
                 break;
 
-            case "servercoupons":
-            case "coupons":
-                String s = I18nUtil.getMessage("DebugCommand.message18");
-                player.dropMessage(6, s);
-                for (Integer i : Server.getInstance().getActiveCoupons()) {
-                    s = ii.getName(i) + "  (" + i + ");";
-                    player.dropMessage(6, s);
-                }
-                break;
-
             case "playercoupons":
-                s = I18nUtil.getMessage("DebugCommand.message19");
+                String s = I18nUtil.getMessage("DebugCommand.message19");
                 player.dropMessage(6, s);
-                for (Integer i : player.getActiveCoupons()) {
+                for (Integer i : player.getActiveItemIds()) {
                     s = ii.getName(i) + "  (" + i + ");";
                     player.dropMessage(6, s);
                 }

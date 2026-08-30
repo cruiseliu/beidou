@@ -55,23 +55,19 @@ import org.gms.client.inventory.ItemFlag;
 public class InventoryManipulator {
     private static final Logger log = LoggerFactory.getLogger(InventoryManipulator.class);
 
-    public static boolean addById(Client c, int itemId, short quantity) {
-        return addById(c, itemId, quantity, null, -1, -1);
+    public static boolean REFACTOR4_addById(Client c, int itemId, short quantity, long expiration) {
+        return REFACTOR7_addById(c, itemId, quantity, null, -1, (byte) 0, expiration);
     }
 
-    public static boolean addById(Client c, int itemId, short quantity, long expiration) {
-        return addById(c, itemId, quantity, null, -1, (byte) 0, expiration);
+    public static boolean REFACTOR5_addById(Client c, int itemId, short quantity, String owner, int petid) {
+        return REFACTOR6_addById(c, itemId, quantity, owner, petid, -1);
     }
 
-    public static boolean addById(Client c, int itemId, short quantity, String owner, int petid) {
-        return addById(c, itemId, quantity, owner, petid, -1);
+    public static boolean REFACTOR6_addById(Client c, int itemId, short quantity, String owner, int petid, long expiration) {
+        return REFACTOR7_addById(c, itemId, quantity, owner, petid, (byte) 0, expiration);
     }
 
-    public static boolean addById(Client c, int itemId, short quantity, String owner, int petid, long expiration) {
-        return addById(c, itemId, quantity, owner, petid, (byte) 0, expiration);
-    }
-
-    public static boolean addById(Client c, int itemId, short quantity, String owner, int petid, short flag, long expiration) {
+    public static boolean REFACTOR7_addById(Client c, int itemId, short quantity, String owner, int petid, short flag, long expiration) {
         Character chr = c.getPlayer();
         InventoryType type = ItemConstants.getInventoryType(itemId);
 

@@ -484,7 +484,7 @@ public class HiredMerchant extends AbstractMapObject {
                         if (mpsi.getItem().getInventoryType().equals(InventoryType.EQUIP)) {
                             InventoryManipulator.addFromDrop(c, mpsi.getItem(), false);
                         } else {
-                            InventoryManipulator.addById(c, mpsi.getItem().getItemId(), (short) (mpsi.getBundles() * mpsi.getItem().getQuantity()), mpsi.getItem().getOwner(), -1, (short) mpsi.getItem().getLegacyFlags(), mpsi.getItem().getExpiration());
+                            InventoryManipulator.REFACTOR7_addById(c, mpsi.getItem().getItemId(), (short) (mpsi.getBundles() * mpsi.getItem().getQuantity()), mpsi.getItem().getOwner(), -1, (short) mpsi.getItem().getLegacyFlags(), mpsi.getItem().getExpiration());
                         }
                     }
                 }

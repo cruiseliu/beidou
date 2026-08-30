@@ -79,7 +79,7 @@ public final class ItemRewardHandler extends AbstractPacketHandler {
                     }
                     InventoryManipulator.addFromDrop(c, item, false);
                 } else {
-                    InventoryManipulator.addById(c, selectedReward.itemid, selectedReward.quantity, "", -1);
+                    InventoryManipulator.REFACTOR5_addById(c, selectedReward.itemid, selectedReward.quantity, "", -1);
                 }
                 InventoryManipulator.removeById(c, InventoryType.USE, itemId, 1, false, false);
                 if (selectedReward.worldmsg != null) {

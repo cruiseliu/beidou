@@ -163,15 +163,6 @@ public final class ItemConstants {
         return scrollId >= 2049100 && scrollId <= 2049103;
     }
 
-    public static boolean isRateCoupon(int itemId) {
-        int itemType = itemId / 1000;
-        return itemType == 5211 || itemType == 5360;
-    }
-
-    public static boolean isExpCoupon(int couponId) {
-        return couponId / 1000 == 5211;
-    }
-
     public static boolean isPartyItem(int itemId) {
         return itemId >= 2022430 && itemId <= 2022433 || itemId >= 2022160 && itemId <= 2022163;
     }

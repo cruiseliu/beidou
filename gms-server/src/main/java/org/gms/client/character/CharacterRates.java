@@ -1,47 +1,40 @@
 package org.gms.client.character;
 
 import org.gms.client.EffectType;
-import org.gms.client.inventory.InventoryTab;
-import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.ItemSlot;
+import org.gms.client.inventory.Item;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
-import org.gms.constants.inventory.ItemConstants;
 import org.gms.constants.string.ExtendType;
 import org.gms.dao.entity.ExtendValueDO;
-import org.gms.net.server.Server;
 import org.gms.net.server.world.World;
 import org.gms.server.BuffEffectData;
 import org.gms.server.ItemInformationProvider;
 import org.gms.util.ExtendUtil;
 import org.gms.util.Locks;
 
-import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.IdentityHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 /**
- * 倍率与优惠券模块组件：玩家/世界倍率（exp/meso/drop）+ 经验优惠券（coupon）管理与叠加。
- * 仿照 CharacterBuffs/CharacterChair 模式：数据 + 领域逻辑内聚于此，持有 owner 反向引用，
- * Character 保留公开具名门面（getExpRate/getCouponRates/updateCouponRates/... 对外转发）。
+ * 倍率模块组件：玩家/世界 base 倍率（exp/meso/drop）+ 道具倍率贡献桶（coupon 等，见 doc/10）。
+ * 数据 + 领域逻辑内聚于此，持有 owner 反向引用；Character 保留公开具名门面
+ * （getExpRate/... 对外转发），并经 {@code Character.getRates()} 直接暴露本类（脚本 sink）。
  *
- * 边界：只承载倍率与优惠券语义。原实现分散在 Character 的 getExpRate 系列与 setCouponRates 系列，
- * 重构收敛为本类；优惠券 buff 的施加/解除复用 owner 的 buff 门面（cancelEffect/applyTo）。
+ * 边界：base 倍率与桶派生倍率在此汇聚（getter 相乘）；条目语义（哪张券几倍、何时生效）
+ * 全部在道具脚本侧。
  */
-class CharacterRates {
+public class CharacterRates {
     private final Character owner;
 
+    /** base 倍率（世界 × 玩家，含 extend 覆盖）；倍率券贡献不在字段内，经 coupon 系（桶派生）在 getter 相乘 */
     private float expRate = 1;
     private float mesoRate = 1;
     private float dropRate = 1;
+    /** 各 kind 的桶派生倍率（ITEM 桶 max，缺省 1）——由 {@link #recalc()} 唯一写入 */
     private int expCoupon = 1, mesoCoupon = 1, dropCoupon = 1;
-    private final Map<Integer, Integer> activeCoupons = new LinkedHashMap<>();
-    private final Map<Integer, Integer> activeCouponRates = new LinkedHashMap<>();
     private float mobExpRate = -1;
 
     CharacterRates(Character owner) {
@@ -59,7 +52,7 @@ class CharacterRates {
             return 1;
         }
 
-        return expRate;
+        return expRate * expCoupon;
     }
 
     public float getLevelExpRate() {
@@ -104,7 +97,7 @@ class CharacterRates {
 
     public float getBossDropRate() {
         World w = owner.getWorldServer();
-        return (dropRate / w.getDropRate()) * w.getBossDropRate();
+        return (dropRate * dropCoupon / w.getDropRate()) * w.getBossDropRate();
     }
 
     public int getCouponMesoRate() {
@@ -196,152 +189,12 @@ class CharacterRates {
         }
     }
 
-    // ── 优惠券（coupon） ──
-
-    public void setCouponRates() {
-        List<Integer> couponEffects;
-
-        Collection<ItemSlot> cashItems = owner.getInventory(InventoryType.CASH).list();
-        try (var ignored = Locks.acquire(owner.chrLock)) {
-            setActiveCoupons(cashItems);
-            couponEffects = activateCouponsEffects();
-        }
-
-        for (Integer couponId : couponEffects) {
-            commitBuffCoupon(couponId);
-        }
-    }
-
-    private void revertCouponRates() {
-        revertCouponsEffects();
-    }
-
-    public void updateCouponRates() {
-        InventoryTab cashInv = owner.getInventory(InventoryType.CASH);
-        if (cashInv == null) {
-            return;
-        }
-
-        // effLock/chrLock 已冗余：revert/setCouponRates 内部自持锁
-
-        cashInv.lockInventory();
-        try {
-            revertCouponRates();
-            setCouponRates();
-        } finally {
-            cashInv.unlockInventory();
-
-        }
-    }
-
     public void resetPlayerRates() {
         expRate = 1;
         mesoRate = 1;
         dropRate = 1;
-
-        expCoupon = 1;
-        mesoCoupon = 1;
-        dropCoupon = 1;
-    }
-
-    private int getCouponMultiplier(int couponId) {
-        return activeCouponRates.get(couponId);
-    }
-
-    private void setExpCouponRate(int couponId, int couponQty) {
-        this.expCoupon *= (getCouponMultiplier(couponId) * couponQty);
-    }
-
-    private void setDropCouponRate(int couponId, int couponQty) {
-        this.dropCoupon *= (getCouponMultiplier(couponId) * couponQty);
-        this.mesoCoupon *= (getCouponMultiplier(couponId) * couponQty);
-    }
-
-    private void revertCouponsEffects() {
-        dispelBuffCoupons();
-
-        this.expRate /= this.expCoupon;
-        this.dropRate /= this.dropCoupon;
-        this.mesoRate /= this.mesoCoupon;
-
-        this.expCoupon = 1;
-        this.dropCoupon = 1;
-        this.mesoCoupon = 1;
-    }
-
-    private List<Integer> activateCouponsEffects() {
-        List<Integer> toCommitEffect = new LinkedList<>();
-
-        if (GameConfig.getServerBoolean("use_stack_coupon_rates")) {
-            for (Entry<Integer, Integer> coupon : activeCoupons.entrySet()) {
-                int couponId = coupon.getKey();
-                int couponQty = coupon.getValue();
-
-                toCommitEffect.add(couponId);
-
-                if (ItemConstants.isExpCoupon(couponId)) {
-                    setExpCouponRate(couponId, couponQty);
-                } else {
-                    setDropCouponRate(couponId, couponQty);
-                }
-            }
-        } else {
-            int maxExpRate = 1, maxDropRate = 1, maxExpCouponId = -1, maxDropCouponId = -1;
-
-            for (Entry<Integer, Integer> coupon : activeCoupons.entrySet()) {
-                int couponId = coupon.getKey();
-
-                if (ItemConstants.isExpCoupon(couponId)) {
-                    if (maxExpRate < getCouponMultiplier(couponId)) {
-                        maxExpCouponId = couponId;
-                        maxExpRate = getCouponMultiplier(couponId);
-                    }
-                } else {
-                    if (maxDropRate < getCouponMultiplier(couponId)) {
-                        maxDropCouponId = couponId;
-                        maxDropRate = getCouponMultiplier(couponId);
-                    }
-                }
-            }
-
-            if (maxExpCouponId > -1) {
-                toCommitEffect.add(maxExpCouponId);
-            }
-            if (maxDropCouponId > -1) {
-                toCommitEffect.add(maxDropCouponId);
-            }
-
-            this.expCoupon = maxExpRate;
-            this.dropCoupon = maxDropRate;
-            this.mesoCoupon = maxDropRate;
-        }
-
-        this.expRate *= this.expCoupon;
-        this.dropRate *= this.dropCoupon;
-        this.mesoRate *= this.mesoCoupon;
-
-        return toCommitEffect;
-    }
-
-    private void setActiveCoupons(Collection<ItemSlot> cashItems) {
-        activeCoupons.clear();
-        activeCouponRates.clear();
-
-        Map<Integer, Integer> coupons = Server.getInstance().getCouponRates();
-        List<Integer> active = Server.getInstance().getActiveCoupons();
-
-        for (ItemSlot it : cashItems) {
-            if (ItemConstants.isRateCoupon(it.getItemId()) && active.contains(it.getItemId())) {
-                Integer count = activeCoupons.get(it.getItemId());
-
-                if (count != null) {
-                    activeCoupons.put(it.getItemId(), count + 1);
-                } else {
-                    activeCoupons.put(it.getItemId(), 1);
-                    activeCouponRates.put(it.getItemId(), coupons.get(it.getItemId()));
-                }
-            }
-        }
+        // 桶条目（券贡献）不在此清理：GM/网页改倍率路径复用本方法重校 base，
+        // 持有券的贡献应保持；桶随登出/道具离开自然撤销
     }
 
     private void commitBuffCoupon(int couponid) {
@@ -357,28 +210,138 @@ class CharacterRates {
         mse.applyTo(owner);
     }
 
-    public void dispelBuffCoupons() {
-        List<EffectStatus> effects = owner.buffs.getAllEffects();
+    /** 调试/展示：当前桶内贡献物品 id 集（sourceId） */
+    public Set<Integer> getActiveItemIds() {
+        try (var ignored = Locks.acquire(owner.chrLock)) {
+            return Collections.unmodifiableSet(collectContributingItemIds());
+        }
+    }
 
-        for (EffectStatus effect : effects) {
-            if (ItemConstants.isRateCoupon(effect.getData().getSourceId())) {
-                owner.cancelEffect(effect.getData(), false);
+    private Set<Integer> collectContributingItemIds() {
+        Set<Integer> ids = new LinkedHashSet<>();
+        for (Item item : itemExp.keySet()) {
+            ids.add(item.getItemId());
+        }
+        for (Item item : itemMeso.keySet()) {
+            ids.add(item.getItemId());
+        }
+        for (Item item : itemDrop.keySet()) {
+            ids.add(item.getItemId());
+        }
+        return ids;
+    }
+
+    // ── 倍率贡献桶（倍率 sink，脚本经 character.getRates() 调用；见 doc/10 分桶模型） ──
+    //
+    // ITEM 桶：条目 = 道具对象 → 绝对倍率（替换语义），按 kind 分表；桶值 = max(条目, 缺省 1)，
+    // 由 recalc() 写入 coupon 系字段并在 getter 与 base 相乘。
+
+    private final Map<Item, Integer> itemExp = new IdentityHashMap<>();
+    private final Map<Item, Integer> itemMeso = new IdentityHashMap<>();
+    private final Map<Item, Integer> itemDrop = new IdentityHashMap<>();
+    /** 已应用 buff 图标的物品 sourceId 簿记（recalc 差量同步，替代旧 isRateCoupon 判定） */
+    private Set<Integer> buffedItemIds = new LinkedHashSet<>();
+
+
+    public void updateExp(RateBucket bucket, Item item, int multiplier) {
+        requireItemBucket(bucket);
+        try (var ignored = Locks.acquire(owner.chrLock)) {
+            itemExp.put(item, multiplier);
+        }
+    }
+
+
+    public void updateMeso(RateBucket bucket, Item item, int multiplier) {
+        requireItemBucket(bucket);
+        try (var ignored = Locks.acquire(owner.chrLock)) {
+            itemMeso.put(item, multiplier);
+        }
+    }
+
+
+    public void updateDrop(RateBucket bucket, Item item, int multiplier) {
+        requireItemBucket(bucket);
+        try (var ignored = Locks.acquire(owner.chrLock)) {
+            itemDrop.put(item, multiplier);
+        }
+    }
+
+
+    public void withdrawExp(RateBucket bucket, Item item) {
+        requireItemBucket(bucket);
+        try (var ignored = Locks.acquire(owner.chrLock)) {
+            itemExp.remove(item);
+        }
+    }
+
+
+    public void withdrawMeso(RateBucket bucket, Item item) {
+        requireItemBucket(bucket);
+        try (var ignored = Locks.acquire(owner.chrLock)) {
+            itemMeso.remove(item);
+        }
+    }
+
+
+    public void withdrawDrop(RateBucket bucket, Item item) {
+        requireItemBucket(bucket);
+        try (var ignored = Locks.acquire(owner.chrLock)) {
+            itemDrop.remove(item);
+        }
+    }
+
+
+    public void recalc() {
+        Set<Integer> contributing;
+        try (var ignored = Locks.acquire(owner.chrLock)) {
+            expCoupon = maxOf(itemExp);
+            mesoCoupon = maxOf(itemMeso);
+            dropCoupon = maxOf(itemDrop);
+            contributing = collectContributingItemIds();
+        }
+        syncItemBuffs(contributing);
+    }
+
+    private static void requireItemBucket(RateBucket bucket) {
+        if (bucket != RateBucket.ITEM) {
+            throw new UnsupportedOperationException("暂只支持 ITEM 桶: " + bucket);
+        }
+    }
+
+    private static int maxOf(Map<Item, Integer> entries) {
+        int max = 1;
+        for (int value : entries.values()) {
+            max = Math.max(max, value);
+        }
+        return max;
+    }
+
+    /** buff 图标差量同步：贡献集缩小 → 撤退出的 sourceId buff；扩大 → 补应用新入的（展示策略在 commitBuffCoupon） */
+    private void syncItemBuffs(Set<Integer> contributing) {
+        Set<Integer> retired = new LinkedHashSet<>(buffedItemIds);
+        retired.removeAll(contributing);
+        if (!retired.isEmpty()) {
+            for (EffectStatus effect : owner.buffs.getAllEffects()) {
+                if (retired.contains(effect.getData().getSourceId())) {
+                    owner.cancelEffect(effect.getData(), false);
+                }
             }
         }
-    }
-
-    public Set<Integer> getActiveCoupons() {
-        try (var ignored = Locks.acquire(owner.chrLock)) {
-            return Collections.unmodifiableSet(activeCoupons.keySet());
+        for (Integer sourceId : contributing) {
+            if (!buffedItemIds.contains(sourceId)) {
+                commitBuffCoupon(sourceId);
+            }
         }
+        buffedItemIds = contributing;
     }
 
-    /** 内部倍率字段（expRate/mesoRate/dropRate）直接访问门面，供持久化/重置等场景 */
+    /** 金币倍率（base × ITEM 桶派生） */
     float getMesoRate() {
-        return mesoRate;
+        return mesoRate * mesoCoupon;
     }
 
+    /** 掉落倍率（base × ITEM 桶派生） */
     float getDropRate() {
-        return dropRate;
+        return dropRate * dropCoupon;
     }
 }

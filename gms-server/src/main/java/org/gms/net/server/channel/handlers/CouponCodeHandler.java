@@ -260,7 +260,7 @@ public final class CouponCodeHandler extends AbstractPacketHandler {
                                     cs.addToInventory(it);
                                     cashItems.add(it);
                                 } else {
-                                    InventoryManipulator.addById(c, item, qty, "", -1);
+                                    InventoryManipulator.REFACTOR5_addById(c, item, qty, "", -1);
                                     items.add(new Pair<>((int) qty, item));
                                 }
                                 break;

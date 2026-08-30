@@ -8,6 +8,7 @@ import org.gms.constants.skills.Assassin;
 import org.gms.constants.skills.Gunslinger;
 import org.gms.constants.skills.NightWalker;
 import org.gms.model.json.ItemData;
+import org.gms.scripting.item.ItemScript;
 import org.gms.server.ItemInformationProvider;
 
 /**
@@ -35,8 +36,12 @@ public class Item implements Comparable<Item> {
      *  非可充值物品不使用本字段。 */
     int charge;
 
+    /** 钩子脚本包装（ItemDefinition.hooks 接线；未登记道具 null，随 copy 共享引用） */
+    private ItemScript script;
+
     Item(int id) {
         this.id = id;
+        this.script = ItemScript.forItem(id);
         equipInfo = getInventoryTab() == InventoryType.EQUIP ? new Equip(id) : null;
         cashInfo = ii.isCash(id) ? new CashItemInfo() : null;
         applyWzTypeFlags();
@@ -44,6 +49,7 @@ public class Item implements Comparable<Item> {
 
     Item(int id, int petid) {
         this.id = id;
+        this.script = ItemScript.forItem(id);
         this.equipInfo = getInventoryTab() == InventoryType.EQUIP ? new Equip(id) : null;
         this.cashInfo = ii.isCash(id) ? new CashItemInfo() : null;
         this.petId = petid;
@@ -56,6 +62,7 @@ public class Item implements Comparable<Item> {
     public Item copy() {
         Item ret = new Item();
         ret.id = id;
+        ret.script = script;
         ret.flagSet.addAll(flagSet);
         ret.owner = owner;
         ret.expiration = expiration;
@@ -73,6 +80,7 @@ public class Item implements Comparable<Item> {
     public static Item fromData(ItemData d) {
         Item it = new Item();
         it.id = d.itemId;
+        it.script = ItemScript.forItem(d.itemId);
         it.cashInfo = ii.isCash(d.itemId) ? new CashItemInfo() : null;
         it.petId = d.petId == null ? -1 : d.petId;
         if (d.equip != null) {
@@ -116,6 +124,25 @@ public class Item implements Comparable<Item> {
 
     public int getItemId() {
         return id;
+    }
+
+    /** 钩子脚本包装；未登记道具 null（派发方据此判定是否投递事件） */
+    public ItemScript getScript() {
+        return script;
+    }
+
+    /** 进入背包事件（容器回调入口）：有钩子脚本时转异步派发，在角色脚本会话内执行 */
+    public void onEnterInventory(Character character, boolean isLogin) {
+        if (script != null) {
+            ItemScript.postEnter(character, this, isLogin);
+        }
+    }
+
+    /** 离开背包事件（容器回调入口）；isLogout=true = 登出清场 */
+    public void onLeaveInventory(Character character, boolean isLogout) {
+        if (script != null) {
+            ItemScript.postLeave(character, this, isLogout);
+        }
     }
 
     /** 是否可充值物品（飞镖/子弹）——quantity 语义为"组数"（恒 1），次数在 charge */

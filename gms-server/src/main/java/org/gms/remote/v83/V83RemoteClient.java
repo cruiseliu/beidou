@@ -25,7 +25,6 @@ import org.gms.remote.v83.translate.InventoryTranslator;
 import org.gms.util.ThreadLocalUtil;
 
 import java.nio.charset.Charset;
-import java.util.List;
 
 /**
  * route：语义模块调用 → 作用域段（SemanticEvent 原始序列）→ 按域分发 translate → 帧 ByteBuf

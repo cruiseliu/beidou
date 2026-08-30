@@ -217,10 +217,10 @@ public class GiveService {
 
         Server.getInstance().getWorlds().forEach(world -> world.getPlayerStorage().getAllCharacters().forEach(chr -> {
             if (isPet) {
-                InventoryManipulator.addById(chr.getClient(), itemId, quantity, "WAdmin", petId, expiration);
+                InventoryManipulator.REFACTOR6_addById(chr.getClient(), itemId, quantity, "WAdmin", petId, expiration);
                 chr.message(I18nUtil.getMessage("Give.Pet.All", quantity, itemName));
             } else {
-                InventoryManipulator.addById(chr.getClient(), itemId, quantity, "WAdmin", -1, (short) 0, -1);
+                InventoryManipulator.REFACTOR7_addById(chr.getClient(), itemId, quantity, "WAdmin", -1, (short) 0, -1);
                 chr.message(I18nUtil.getMessage("Give.Item.All", quantity, itemName));
             }
         }));
@@ -255,10 +255,10 @@ public class GiveService {
         }
 
         if (isPet) {
-            InventoryManipulator.addById(chr.getClient(), itemId, quantity, "WAdmin", petId, expiration);
+            InventoryManipulator.REFACTOR6_addById(chr.getClient(), itemId, quantity, "WAdmin", petId, expiration);
             chr.message(I18nUtil.getMessage("Give.Pet.Chr", quantity, itemName));
         } else {
-            InventoryManipulator.addById(chr.getClient(), itemId, quantity, "WAdmin", -1, (short) 0, -1);
+            InventoryManipulator.REFACTOR7_addById(chr.getClient(), itemId, quantity, "WAdmin", -1, (short) 0, -1);
             chr.message(I18nUtil.getMessage("Give.Item.Chr", quantity, itemName));
         }
 

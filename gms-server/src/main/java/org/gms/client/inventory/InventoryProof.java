@@ -27,7 +27,7 @@ import org.gms.client.character.Character;
 public class InventoryProof extends InventoryTab {
 
     public InventoryProof(Character mc) {
-        super(mc, InventoryType.CANHOLD, 0);
+        super(mc, InventoryType.CANHOLD, 0, true);   // 证明物品不参与道具钩子语义
     }
 
     public void cloneContents(InventoryTab inv) {

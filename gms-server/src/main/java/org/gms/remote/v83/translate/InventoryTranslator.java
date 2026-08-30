@@ -2,7 +2,7 @@ package org.gms.remote.v83.translate;
 
 import io.netty.buffer.ByteBuf;
 import org.gms.client.inventory.Equip;
-import org.gms.client.inventory.ItemSlot;
+import org.gms.client.inventory.Item;
 import org.gms.client.inventory.Pet;
 import org.gms.constants.game.ExpTable;
 import org.gms.constants.inventory.ItemConstants;
@@ -50,15 +50,17 @@ public final class InventoryTranslator implements Translator {
 
     @Override
     public List<ByteBuf> flush() {
-        List<ByteBuf> frames = new ArrayList<>(2);
-        if (full) {
-            frames.add(InventoryFullPacket.encode());
-            full = false;
-        }
+        List<ByteBuf> frames = new ArrayList<>(3);
+        // 已生效变更先行；背包满=空操作帧 + 0xff 状态帧成对（对齐 addById 失败双包）
         if (!changes.isEmpty()) {
             frames.add(InventoryOperationPacket.encode(
                     InventoryOperationPacket.of(true, changes)));
             changes.clear();
+        }
+        if (full) {
+            frames.add(InventoryOperationPacket.encodeEmpty());
+            frames.add(InventoryFullPacket.encode());
+            full = false;
         }
         return frames;
     }
@@ -66,28 +68,27 @@ public final class InventoryTranslator implements Translator {
     // ── 语义 → packet 字段 ──
 
     private InventoryOperationPacket.Change toChange(SlotChange c) {
-        if (c instanceof SlotChange.Added(var item, var pet)) {
-            ItemSlot snapshot = item.isRechargeable() ? chargedSnapshot(item) : item;
+        if (c instanceof SlotChange.Added(var item, var pos, var quantity, var pet)) {
+            // 可充值 wire 数量 = 可使用次数（charge）；语义 quantity 为组数（恒 1）
+            short wireQuantity = (short) (item.isRechargeable() ? item.getCharge() : quantity);
             return new InventoryOperationPacket.Added(
-                    tabOf(item), (short) item.getPosition(), bodyOf(snapshot, pet));
+                    tabOf(item), (short) pos, bodyOf(item, wireQuantity, pet));
         }
-        if (c instanceof SlotChange.QuantityUpdated(var item)) {
-            return new InventoryOperationPacket.QuantityUpdated(
-                    tabOf(item), (short) item.getPosition(),
-                    (short) (item.isRechargeable() ? item.getItem().getCharge() : item.getQuantity()));
+        if (c instanceof SlotChange.QuantityUpdated(var item, var pos, var quantity)) {
+            short wireQuantity = (short) (item.isRechargeable() ? item.getCharge() : quantity);
+            return new InventoryOperationPacket.QuantityUpdated(tabOf(item), (short) pos, wireQuantity);
         }
-        if (c instanceof SlotChange.Moved(var item, var oldPos)) {
-            return new InventoryOperationPacket.Moved(
-                    tabOf(item), oldPos, (short) item.getPosition());
+        if (c instanceof SlotChange.Moved(var item, var oldPos, var pos)) {
+            return new InventoryOperationPacket.Moved(tabOf(item), (short) oldPos, (short) pos);
         }
-        if (c instanceof SlotChange.Removed(var item)) {
-            return new InventoryOperationPacket.Removed(tabOf(item), (short) item.getPosition());
+        if (c instanceof SlotChange.Removed(var item, var pos)) {
+            return new InventoryOperationPacket.Removed(tabOf(item), (short) pos);
         }
         throw new IllegalStateException("未知槽位变更: " + c);
     }
 
-    /** 语义快照（可充值：数量 = charge）→ 纯字段物品体 */
-    private InventoryOperationPacket.ItemBody bodyOf(ItemSlot item, Pet pet) {
+    /** Item 实体 + wire 数量 → 纯字段物品体（Equip 域查表在此完成） */
+    private InventoryOperationPacket.ItemBody bodyOf(Item item, int wireQuantity, Pet pet) {
         int itemId = item.getItemId();
         boolean cash = ii.isCash(itemId);
         long expiration = Filetimes.toWire(item.getExpiration());
@@ -127,7 +128,7 @@ public final class InventoryTranslator implements Translator {
         }
         return new InventoryOperationPacket.ItemBody.Stack(
                 itemId, cash, serial, expiration,
-                (short) item.getQuantity(), item.getOwner(), item.getLegacyFlags(),
+                (short) wireQuantity, item.getOwner(), item.getLegacyFlags(),
                 ItemConstants.isRechargeable(itemId));
     }
 
@@ -151,13 +152,8 @@ public final class InventoryTranslator implements Translator {
         };
     }
 
-    private static byte tabOf(ItemSlot item) {
-        return item.getInventoryType().getType();
+    private static byte tabOf(Item item) {
+        return item.getInventoryTab().getType();
     }
 
-    private static ItemSlot chargedSnapshot(ItemSlot item) {
-        ItemSlot snapshot = item.copy();
-        snapshot.setQuantity(item.getItem().getCharge());
-        return snapshot;
-    }
 }

@@ -111,10 +111,6 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                         if (ItemConstants.isCashStore(cItem.getItemId()) && chr.getLevel() < 16) {
                             c.enableCSActions();
                             return;
-                        } else if (ItemConstants.isRateCoupon(cItem.getItemId()) && !GameConfig.getServerBoolean("use_supply_rate_coupons")) {
-                            chr.dropMessage(1, "当前无法购买倍率券。");
-                            c.enableCSActions();
-                            return;
                         } else if (ItemConstants.isMapleLife(cItem.getItemId()) && chr.getLevel() < 30) {
                             c.enableCSActions();
                             return;
@@ -409,7 +405,7 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                     if (chr.getMeso() >= itemPrice) {
                         if (chr.canHold(itemId)) {
                             chr.gainMeso(-itemPrice, false);
-                            InventoryManipulator.addById(c, itemId, (short) 1, "", -1);
+                            InventoryManipulator.REFACTOR5_addById(c, itemId, (short) 1, "", -1);
                             c.sendPacket(PacketCreator.showBoughtQuestItem(itemId));
                         }
                     }

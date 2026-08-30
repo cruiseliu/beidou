@@ -272,7 +272,7 @@ class CharacterLevel {
         if (GameConfig.getServerBoolean("use_perfect_pitch") && level >= 30) {
             //milestones?
             if (InventoryManipulator.checkSpace(owner.client, ItemId.PERFECT_PITCH, (short) 1, "")) {
-                InventoryManipulator.addById(owner.client, ItemId.PERFECT_PITCH, (short) 1, "", -1);
+                InventoryManipulator.REFACTOR5_addById(owner.client, ItemId.PERFECT_PITCH, (short) 1, "", -1);
             }
         } else if (level == 10) {
             ThreadManager.getInstance().newTask(() -> {

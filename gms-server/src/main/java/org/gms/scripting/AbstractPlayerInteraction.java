@@ -63,6 +63,7 @@ import java.util.List;
 import java.util.*;
 
 import static java.util.concurrent.TimeUnit.DAYS;
+import org.gms.client.inventory.ItemStack;
 
 public class AbstractPlayerInteraction {
 
@@ -778,7 +779,7 @@ public class AbstractPlayerInteraction {
         for (Character chr : party) {
             Client cl = chr.getClient();
             if (quantity >= 0) {
-                InventoryManipulator.addById(cl, id, quantity);
+                chr.getInventory().add(ItemStack.fromExternal(id, quantity));
             } else {
                 InventoryManipulator.removeById(cl, ItemConstants.getInventoryType(id), id, -quantity, true, false);
             }

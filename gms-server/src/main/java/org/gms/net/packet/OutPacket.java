@@ -1,9 +1,8 @@
 package org.gms.net.packet;
 
 import org.gms.net.opcodes.Opcode;
-import org.gms.net.opcodes.SendOpcode;
 
-import java.awt.*;
+import java.awt.Point;
 
 public interface OutPacket extends Packet {
     void writeByte(byte value);

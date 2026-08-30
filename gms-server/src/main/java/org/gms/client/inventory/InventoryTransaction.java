@@ -75,7 +75,7 @@ public class InventoryTransaction {
         try {
             for (InventoryType type : TX_TYPES) {
                 InventoryTab real = inventory.getTab(type);
-                InventoryTab copy = new InventoryTab(character, type, real.getSlotLimit());  // todo: [refactor] use "more-raw" tab
+                InventoryTab copy = new InventoryTab(character, type, real.getSlotLimit(), true);   // 影子不派发钩子
                 for (ItemSlot item : real.list()) {
                     copy.addItemFromDB(ItemSlot.shadowWrap(item));   // Item 共享：薄包装
                 }
@@ -111,11 +111,10 @@ public class InventoryTransaction {
     }
 
     private void addInternal(ItemStack item) {
-        // fixme: [refactor] check exclusive item
         int itemId = item.itemId;
         InventoryType type = tabTypeOf(itemId);
-        int leftover = shadow.get(type).addInternal(item);
-        if (leftover > 0) {
+        ItemStack remaining = shadow.get(type).addInternal(item);
+        if (remaining != null) {
             failed = true;
         }
     }
@@ -267,6 +266,14 @@ public class InventoryTransaction {
             }
             if (!changes.isEmpty()) {
                 character.getRemote().inventory().updateInventory(changes);
+            }
+            // 钩子事件经 diff 派发（adopt 不经过 addSlot/removeSlot）：Added/Removed 即"进入/离开背包"
+            for (SlotChange change : changes) {
+                if (change instanceof SlotChange.Added added) {
+                    added.item().onEnterInventory(character, false);
+                } else if (change instanceof SlotChange.Removed removed) {
+                    removed.item().onLeaveInventory(character, false);
+                }
             }
         }
         if (packetScope != null) {

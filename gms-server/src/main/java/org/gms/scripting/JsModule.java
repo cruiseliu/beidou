@@ -62,6 +62,14 @@ public final class JsModule implements AutoCloseable {
     private final Value exports;
     private boolean destroyed;
 
+    /** 正在本线程执行脚本的模块（脚本内经 bind 发起的 Java→JS 回呼据此定位 context 锁） */
+    private static final ThreadLocal<JsModule> CURRENT = new ThreadLocal<>();
+
+    /** 当前线程正在执行的模块；不在任何脚本执行内返回 null */
+    public static JsModule current() {
+        return CURRENT.get();
+    }
+
     private JsModule(String key) throws IOException {
         this.key = key;
         this.engine = GraalJSScriptEngine.create(SHARED_ENGINE, Context.newBuilder("js")
@@ -168,6 +176,46 @@ public final class JsModule implements AutoCloseable {
                 throw new IllegalArgumentException("JS module has no callable export: " + functionName);
             }
             return (T) toJava(fn.execute(args == null ? new Object[0] : args));
+        }
+    }
+
+    /**
+     * 在本模块锁内执行任意闭包（polyglot Value），返回原始执行结果。
+     *
+     * <p>供"持有闭包延迟执行"的派发方共用（定时器回调、容器事件经 ItemScript 等）：
+     * polyglot Context 默认禁止并发进入，所有进入同一 context 的路径必须共用同一把锁
+     * （本实例监视器）——"context 内无并行"契约的落点。执行期间登记
+     * {@link #current()}，脚本内嵌套的 setTimeout 据此归属同一模块。
+     */
+    public Object execute(Value fn, Object... args) {
+        synchronized (this) {
+            ensureAlive();
+            CURRENT.set(this);
+            try {
+                return fn.execute(args == null ? new Object[0] : args);
+            } finally {
+                CURRENT.set(null);
+            }
+        }
+    }
+
+    /**
+     * 调用具名导出（取导出、可执行检查、执行同在一个锁区域内——任何 polyglot Value
+     * 操作都不得在锁外触碰 context）；导出不存在/不可执行返回 null。
+     */
+    public Object callExport(String name, Object... args) {
+        synchronized (this) {
+            ensureAlive();
+            Value fn = exports.getMember(name);
+            if (fn == null || !fn.canExecute()) {
+                return null;
+            }
+            CURRENT.set(this);
+            try {
+                return fn.execute(args == null ? new Object[0] : args);
+            } finally {
+                CURRENT.set(null);
+            }
         }
     }
 

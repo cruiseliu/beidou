@@ -139,7 +139,6 @@ public class CharacterService {
         Character character = getCharacter(data);
         character.resetPlayerRates();
         character.setWorldRates();
-        character.setCouponRates();
     }
 
     public void resetRate(ExtendValueDO data) {
@@ -151,7 +150,6 @@ public class CharacterService {
         Character character = getCharacter(data);
         character.resetPlayerRates();
         character.setWorldRates();
-        character.setCouponRates();
     }
 
     public void resetRates(ExtendValueDO data) {
@@ -163,7 +161,6 @@ public class CharacterService {
         Character character = getCharacter(data);
         character.resetPlayerRates();
         character.setWorldRates();
-        character.setCouponRates();
     }
 
     public void resetMerchant() {

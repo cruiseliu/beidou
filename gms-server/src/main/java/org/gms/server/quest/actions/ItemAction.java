@@ -148,7 +148,7 @@ public class ItemAction extends AbstractQuestAction {
         for (ItemData iEntry : giveItem) {
             int itemid = iEntry.getId(), count = iEntry.getCount(), period = iEntry.getPeriod();    // thanks Vcoc for noticing quest milestone item not getting removed from inventory after a while
 
-            InventoryManipulator.addById(chr.getClient(), itemid, (short) count, "", -1, period > 0 ? (System.currentTimeMillis() + MINUTES.toMillis(period)) : -1);
+            InventoryManipulator.REFACTOR6_addById(chr.getClient(), itemid, (short) count, "", -1, period > 0 ? (System.currentTimeMillis() + MINUTES.toMillis(period)) : -1);
             chr.sendPacket(PacketCreator.getShowItemGain(itemid, (short) count, true));
         }
     }
@@ -185,7 +185,7 @@ public class ItemAction extends AbstractQuestAction {
 
         // 先取后给（run 语义），随机池收尾（验全 = roll 样本空间冻结）；
         // testUpdate：commit 不落真，addPoolAndCommit 的 roll 被丢弃，仅返回可行性
-        InventoryTransaction tx = chr.getInventorySet().testUpdate();
+        InventoryTransaction tx = chr.getInventory().testUpdate();
         tx.remove(removes).add(gains);
         boolean feasible = poolOptions.isEmpty() ? tx.commit() : tx.addPoolAndCommit(new ItemPool(poolOptions));
 
@@ -247,7 +247,7 @@ public class ItemAction extends AbstractQuestAction {
                         return false;
                     }
 
-                    InventoryManipulator.addById(chr.getClient(), item.getId(), (short) missingQty);
+                    chr.getInventory().add(ItemStack.fromExternal(item.getId(), missingQty));
                     log.debug("Chr {} obtained {}x {} from questId {}", chr, itemid, missingQty, questID);
                 }
                 return true;

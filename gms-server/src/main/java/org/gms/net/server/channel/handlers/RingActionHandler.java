@@ -48,6 +48,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import org.gms.client.inventory.ItemStack;
+import org.gms.constants.inventory.ItemConstants;
 
 /**
  * @author Jvlaple
@@ -366,8 +368,8 @@ public final class RingActionHandler extends AbstractPacketHandler {
                         source.setMarriageItemId(newItemId);
                         target.setMarriageItemId(newItemId + 1);
 
-                        InventoryManipulator.addById(source.getClient(), newItemId, (short) 1);
-                        InventoryManipulator.addById(c, (newItemId + 1), (short) 1);
+                        source.getInventory().add(new ItemStack(newItemId, 1));
+                        target.getInventory().add(new ItemStack(newItemId + 1, 1));
 
                         source.sendPacket(WeddingPackets.OnMarriageResult(marriageId, source, false));
                         target.sendPacket(WeddingPackets.OnMarriageResult(marriageId, source, false));
@@ -431,7 +433,7 @@ public final class RingActionHandler extends AbstractPacketHandler {
 
                                 String baseMessage = "You've been invited to %s and %s's Wedding!".formatted(groom, bride);
                                 Character guestChr = c.getWorldServer().getPlayerStorage().getCharacterById(guest);
-                                if (guestChr != null && InventoryManipulator.checkSpace(guestChr.getClient(), newItemId, 1, "") && InventoryManipulator.addById(guestChr.getClient(), newItemId, (short) 1, expiration)) {
+                                if (guestChr != null && InventoryManipulator.checkSpace(guestChr.getClient(), newItemId, 1, "") && InventoryManipulator.REFACTOR4_addById(guestChr.getClient(), newItemId, (short) 1, expiration)) {
                                     guestChr.dropMessage(6, "[Wedding] %s".formatted(baseMessage));
                                 } else {
                                     String dueyMessage = baseMessage + " Receive your invitation from Duey!";

@@ -41,7 +41,6 @@ import org.gms.constants.game.GameConstants;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.constants.net.OpcodeConstants;
 import org.gms.constants.net.ServerConstants;
-import org.gms.dao.entity.NxcouponsDO;
 import org.gms.manager.ServerManager;
 import org.gms.net.ChannelDependencies;
 import org.gms.net.PacketProcessor;
@@ -102,8 +101,6 @@ public class Server {
     }
 
     private static final Set<Integer> activeFly = new HashSet<>();
-    private static final Map<Integer, Integer> couponRates = new HashMap<>(30);
-    private static final List<Integer> activeCoupons = new LinkedList<>();
     private ChannelDependencies channelDependencies;
 
     private LoginServer loginServer;
@@ -160,7 +157,6 @@ public class Server {
     private volatile boolean shuttingDown = false;
 
     private static final NpcService npcService = ServerManager.getApplicationContext().getBean(NpcService.class);
-    private static final NxCouponService nxCouponService = ServerManager.getApplicationContext().getBean(NxCouponService.class);
     private static final CharacterService characterService = ServerManager.getApplicationContext().getBean(CharacterService.class);
     private static final AccountService accountService = ServerManager.getApplicationContext().getBean(AccountService.class);
     private static final NxCodeService nxCodeService = ServerManager.getApplicationContext().getBean(NxCodeService.class);
@@ -556,53 +552,6 @@ public class Server {
         return Math.max(0, nextDay.getTimeInMillis() - System.currentTimeMillis());
     }
 
-    public Map<Integer, Integer> getCouponRates() {
-        return couponRates;
-    }
-
-    public List<Integer> getActiveCoupons() {
-        synchronized (activeCoupons) {
-            return activeCoupons;
-        }
-    }
-
-    public void commitActiveCoupons() {
-        for (World world : getWorlds()) {
-            for (Character chr : world.getPlayerStorage().getAllCharacters()) {
-                if (!chr.isLoggedIn()) {
-                    continue;
-                }
-
-                chr.updateCouponRates();
-            }
-        }
-    }
-
-    public void toggleCoupon(Integer couponId) {
-        if (ItemConstants.isRateCoupon(couponId)) {
-            synchronized (activeCoupons) {
-                if (activeCoupons.contains(couponId)) {
-                    activeCoupons.remove(couponId);
-                } else {
-                    activeCoupons.add(couponId);
-                }
-
-                commitActiveCoupons();
-            }
-        }
-    }
-
-    public void updateActiveCoupons() {
-        synchronized (activeCoupons) {
-            activeCoupons.clear();
-            Calendar c = Calendar.getInstance();
-            int weekDay = c.get(Calendar.DAY_OF_WEEK);
-            int hourDay = c.get(Calendar.HOUR_OF_DAY);
-            int weekdayMask = (1 << weekDay);
-            activeCoupons.addAll(nxCouponService.selectActiveCouponIds(weekdayMask, hourDay));
-        }
-    }
-
     public void runAnnouncePlayerDiseasesSchedule() {
         List<Client> processDiseaseAnnounceClients;
         disLock.lock();
@@ -706,11 +655,6 @@ public class Server {
         // 清空失效的现金物品
         nxCodeService.clearExpirations();
 
-        // 重载倍率卡
-        List<NxcouponsDO> nxcouponsDOList = nxCouponService.getNxCoupons(new NxcouponsDO());
-        couponRates.clear();
-        nxcouponsDOList.forEach(nxcouponsDO -> couponRates.put(nxcouponsDO.getCouponid(), nxcouponsDO.getRate()));
-        updateActiveCoupons();
         newYearCardService.startPendingNewYearCardRequests();
         CashIdGenerator.loadExistentCashIdsFromDb();
 
@@ -786,7 +730,6 @@ public class Server {
 
         long timeLeft = getTimeLeftForNextHour();
         tMan.register(new CharacterDiseaseTask(), GameConfig.getServerLong("update_interval"), GameConfig.getServerLong("update_interval"));
-        tMan.register(new CouponTask(), HOURS.toMillis(1), timeLeft);
         tMan.register(new RankingCommandTask(), MINUTES.toMillis(5), MINUTES.toMillis(5));
         tMan.register(new RankingLoginTask(), HOURS.toMillis(1), timeLeft);
         tMan.register(new LoginCoordinatorTask(), HOURS.toMillis(1), timeLeft);

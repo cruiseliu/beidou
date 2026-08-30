@@ -301,7 +301,6 @@ public class CommandsExecutor {
         addCommand("ignore", 3, IgnoreCommand.class);
         addCommand("ignored", 3, IgnoredCommand.class);
         addCommand("pos", 3, PosCommand.class);
-        addCommand("togglecoupon", 3, ToggleCouponCommand.class);
         addCommand("togglewhitechat", 3, ChatCommand.class);
         addCommand("fame", 3, FameCommand.class);
         addCommand("givenx", 3, GiveNxCommand.class);
@@ -400,7 +399,6 @@ public class CommandsExecutor {
         addCommand("shutdown", 6, ShutdownCommand.class);
         addCommand("clearquestcache", 6, ClearQuestCacheCommand.class);
         addCommand("clearquest", 6, ClearQuestCommand.class);
-        addCommand("supplyratecoupon", 6, SupplyRateCouponCommand.class);
         addCommand("spawnallpnpcs", 6, SpawnAllPNpcsCommand.class);
         addCommand("eraseallpnpcs", 6, EraseAllPNpcsCommand.class);
         addCommand("addchannel", 6, ServerAddChannelCommand.class);

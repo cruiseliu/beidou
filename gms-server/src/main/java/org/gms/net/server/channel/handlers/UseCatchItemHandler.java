@@ -63,7 +63,7 @@ public final class UseCatchItemHandler extends AbstractPacketHandler {
                     chr.getMap().broadcastMessage(PacketCreator.catchMonster(monsterid, itemId, (byte) 1));
                     mob.getMap().killMonster(mob, null, false);
                     InventoryManipulator.removeById(c, InventoryType.USE, itemId, 1, true, true);
-                    InventoryManipulator.addById(c, ItemId.HOG, (short) 1, "", -1);
+                    InventoryManipulator.REFACTOR5_addById(c, ItemId.HOG, (short) 1, "", -1);
                 }
                 c.sendPacket(PacketCreator.enableActions());
                 break;
@@ -74,7 +74,7 @@ public final class UseCatchItemHandler extends AbstractPacketHandler {
                             chr.getMap().broadcastMessage(PacketCreator.catchMonster(monsterid, itemId, (byte) 1));
                             mob.getMap().killMonster(mob, null, false);
                             InventoryManipulator.removeById(c, InventoryType.USE, itemId, 1, true, true);
-                            InventoryManipulator.addById(c, ItemId.GHOST_SACK, (short) 1, "", -1);
+                            InventoryManipulator.REFACTOR5_addById(c, ItemId.GHOST_SACK, (short) 1, "", -1);
                         } else {
                             abm.spam(10);
                             c.sendPacket(PacketCreator.catchMessage(0));
@@ -92,7 +92,7 @@ public final class UseCatchItemHandler extends AbstractPacketHandler {
                                     chr.getMap().broadcastMessage(PacketCreator.catchMonster(monsterid, itemId, (byte) 1));
                                     mob.getMap().killMonster(mob, null, false);
                                     InventoryManipulator.removeById(c, InventoryType.USE, itemId, 1, true, true);
-                                    InventoryManipulator.addById(c, ItemId.ARPQ_SPIRIT_JEWEL, (short) 1, "", -1);
+                                    InventoryManipulator.REFACTOR5_addById(c, ItemId.ARPQ_SPIRIT_JEWEL, (short) 1, "", -1);
                                     chr.updateAriantScore();
                                 } else {
                                     chr.getMap().broadcastMessage(PacketCreator.catchMonster(monsterid, itemId, (byte) 0));
@@ -115,7 +115,7 @@ public final class UseCatchItemHandler extends AbstractPacketHandler {
                         chr.getMap().broadcastMessage(PacketCreator.catchMonster(monsterid, itemId, (byte) 1));
                         mob.getMap().killMonster(mob, null, false);
                         InventoryManipulator.removeById(c, InventoryType.USE, itemId, 1, true, true);
-                        InventoryManipulator.addById(c, ItemId.TAMED_RUDOLPH, (short) 1, "", -1);
+                        InventoryManipulator.REFACTOR5_addById(c, ItemId.TAMED_RUDOLPH, (short) 1, "", -1);
                     } else {
                         c.sendPacket(PacketCreator.catchMessage(0));
                     }
@@ -128,7 +128,7 @@ public final class UseCatchItemHandler extends AbstractPacketHandler {
                         chr.getMap().broadcastMessage(PacketCreator.catchMonster(monsterid, itemId, (byte) 1));
                         mob.getMap().killMonster(mob, null, false);
                         InventoryManipulator.removeById(c, InventoryType.USE, itemId, 1, true, true);
-                        InventoryManipulator.addById(c, ItemId.MONSTER_MARBLE_1, (short) 1, "", -1);
+                        InventoryManipulator.REFACTOR5_addById(c, ItemId.MONSTER_MARBLE_1, (short) 1, "", -1);
                     } else {
                         c.sendPacket(PacketCreator.catchMessage(0));
                     }
@@ -141,7 +141,7 @@ public final class UseCatchItemHandler extends AbstractPacketHandler {
                         chr.getMap().broadcastMessage(PacketCreator.catchMonster(monsterid, itemId, (byte) 1));
                         mob.getMap().killMonster(mob, null, false);
                         InventoryManipulator.removeById(c, InventoryType.USE, itemId, 1, true, true);
-                        InventoryManipulator.addById(c, ItemId.MONSTER_MARBLE_2, (short) 1, "", -1);
+                        InventoryManipulator.REFACTOR5_addById(c, ItemId.MONSTER_MARBLE_2, (short) 1, "", -1);
                     } else {
                         c.sendPacket(PacketCreator.catchMessage(0));
                     }
@@ -154,7 +154,7 @@ public final class UseCatchItemHandler extends AbstractPacketHandler {
                         chr.getMap().broadcastMessage(PacketCreator.catchMonster(monsterid, itemId, (byte) 1));
                         mob.getMap().killMonster(mob, null, false);
                         InventoryManipulator.removeById(c, InventoryType.USE, itemId, 1, true, true);
-                        InventoryManipulator.addById(c, ItemId.MONSTER_MARBLE_3, (short) 1, "", -1);
+                        InventoryManipulator.REFACTOR5_addById(c, ItemId.MONSTER_MARBLE_3, (short) 1, "", -1);
                     } else {
                         c.sendPacket(PacketCreator.catchMessage(0));
                     }
@@ -167,7 +167,7 @@ public final class UseCatchItemHandler extends AbstractPacketHandler {
                         chr.getMap().broadcastMessage(PacketCreator.catchMonster(monsterid, itemId, (byte) 1));
                         mob.getMap().killMonster(mob, null, false);
                         InventoryManipulator.removeById(c, InventoryType.USE, itemId, 1, true, true);
-                        InventoryManipulator.addById(c, ItemId.EPQ_MONSTER_MARBLE, (short) 1, "", -1);
+                        InventoryManipulator.REFACTOR5_addById(c, ItemId.EPQ_MONSTER_MARBLE, (short) 1, "", -1);
                     } else {
                         c.sendPacket(PacketCreator.catchMessage(0));
                     }
@@ -181,7 +181,7 @@ public final class UseCatchItemHandler extends AbstractPacketHandler {
                         chr.getMap().broadcastMessage(PacketCreator.catchMonster(monsterid, itemId, (byte) 1));
                         mob.getMap().killMonster(mob, null, false);
                         InventoryManipulator.removeById(c, InventoryType.USE, itemId, 1, true, true);
-                        InventoryManipulator.addById(c, ItemId.FISH_NET_WITH_A_CATCH, (short) 1, "", -1);
+                        InventoryManipulator.REFACTOR5_addById(c, ItemId.FISH_NET_WITH_A_CATCH, (short) 1, "", -1);
                     } else {
                         chr.message("You cannot use the Fishing Net yet.");
                     }
@@ -204,7 +204,7 @@ public final class UseCatchItemHandler extends AbstractPacketHandler {
                             chr.getMap().broadcastMessage(PacketCreator.catchMonster(monsterid, itemId, (byte) 1));
                             mob.getMap().killMonster(mob, null, false);
                             InventoryManipulator.removeById(c, InventoryType.USE, itemId, 1, true, true);
-                            InventoryManipulator.addById(c, itemGanho, (short) 1, "", -1);
+                            InventoryManipulator.REFACTOR5_addById(c, itemGanho, (short) 1, "", -1);
                         } else if (mob.getId() != MobId.P_JUNIOR) {
                             if (mobHp != 0) {
                                 abm.spam(10);

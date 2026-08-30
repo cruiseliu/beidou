@@ -79,6 +79,7 @@ import java.util.List;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import org.gms.client.inventory.ItemFlag;
+import org.gms.client.inventory.ItemStack;
 
 public final class UseCashItemHandler extends AbstractPacketHandler {
     private static final Logger log = LoggerFactory.getLogger(UseCashItemHandler.class);
@@ -170,7 +171,7 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
             }
 
             if (!success) {
-                InventoryManipulator.addById(c, itemId, (short) 1);
+                player.getInventory().add(new ItemStack(itemId, 1));
                 c.enableActions();
             }
         } else if (itemType == 505) { // AP/SP reset //能力、技能点重置卷轴
@@ -749,7 +750,7 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
         if (c.getPlayer().getInventory(InventoryType.getByType((byte) (id / 1000000))).isFull()) {
             return false;
         }
-        InventoryManipulator.addById(c, id, (short) amount);
+        c.getPlayer().getInventory().add(new ItemStack(id, amount));
         return true;
     }
 

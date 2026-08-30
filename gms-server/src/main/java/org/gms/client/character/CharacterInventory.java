@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import org.gms.client.inventory.ItemFlag;
+import org.gms.client.inventory.ItemStack;
 
 /**
  * 背包模块组件：各类型背包（inventories）+ 槽位（slots）+ 物品查询/持有判定
@@ -52,7 +53,7 @@ class CharacterInventory {
     private final Character owner;
 
     /** 背包集合（持有全部 InventoryTab；重构期直接暴露内部数组） */
-    Inventory inventorySet;
+    Inventory inventory;
 
     private int slots = 0;
     /** 装备域子模块（穿戴编排/装备经验/精灵吊坠/已装备查询） */
@@ -67,8 +68,8 @@ class CharacterInventory {
     CharacterInventory(Character owner) {
         this.owner = owner;
         useCS = false;
-        inventorySet = new Inventory(owner);
-        this.equips = new CharacterEquips(owner, inventorySet.tabs[InventoryType.EQUIPPED.ordinal()]);
+        inventory = new Inventory(owner);
+        this.equips = new CharacterEquips(owner, inventory.tabs[InventoryType.EQUIPPED.ordinal()]);
     }
 
     /** 装备域子模块（对齐 CharacterBuffs.getActive() 的暴露方式） */
@@ -85,7 +86,7 @@ class CharacterInventory {
                 continue;
             }
             List<ItemData> items = new ArrayList<>();
-            for (ItemSlot item : inventorySet.tabs[type.ordinal()].list()) {
+            for (ItemSlot item : inventory.tabs[type.ordinal()].list()) {
                 items.add(item.toData());
             }
             data.put(type.name(), items);
@@ -99,7 +100,7 @@ class CharacterInventory {
             if (items == null) {
                 continue;
             }
-            InventoryTab inv = inventorySet.tabs[type.ordinal()];
+            InventoryTab inv = inventory.tabs[type.ordinal()];
             for (ItemData d : items) {
                 inv.addItemFromDB(ItemSlot.fromData(d));
             }
@@ -109,26 +110,26 @@ class CharacterInventory {
     // ── 查询 ──
 
     InventoryTab getInventory(InventoryType type) {
-        return inventorySet.tabs[type.ordinal()];
+        return inventory.tabs[type.ordinal()];
     }
 
     /** 全部背包（saveCharToDB 遍历用；包内可见） */
     InventoryTab[] getInventories() {
-        return inventorySet.tabs;
+        return inventory.tabs;
     }
 
     /** 背包集合 */
-    Inventory getInventorySet() {
-        return inventorySet;
+    Inventory getInventory() {
+        return inventory;
     }
 
     /** 释放全部背包（Character.empty 调用，防内存泄漏） */
     void disposeAll() {
-        inventorySet.disposeAll();
+        inventory.disposeAll();
     }
 
     int countItem(int itemid) {
-        return inventorySet.tabs[ItemConstants.getInventoryType(itemid).ordinal()].countById(itemid);
+        return inventory.tabs[ItemConstants.getInventoryType(itemid).ordinal()].countById(itemid);
     }
 
     boolean canHold(int itemid) {
@@ -156,8 +157,8 @@ class CharacterInventory {
     }
 
     boolean haveItemWithId(int itemid, boolean checkEquipped) {
-        return (inventorySet.tabs[ItemConstants.getInventoryType(itemid).ordinal()].findById(itemid) != null)
-                || (checkEquipped && inventorySet.tabs[InventoryType.EQUIPPED.ordinal()].findById(itemid) != null);
+        return (inventory.tabs[ItemConstants.getInventoryType(itemid).ordinal()].findById(itemid) != null)
+                || (checkEquipped && inventory.tabs[InventoryType.EQUIPPED.ordinal()].findById(itemid) != null);
     }
 
     boolean haveWeddingRing() {
@@ -173,9 +174,9 @@ class CharacterInventory {
     }
 
     int getItemQuantity(int itemid, boolean checkEquipped) {
-        int count = inventorySet.tabs[ItemConstants.getInventoryType(itemid).ordinal()].countById(itemid);
+        int count = inventory.tabs[ItemConstants.getInventoryType(itemid).ordinal()].countById(itemid);
         if (checkEquipped) {
-            count += inventorySet.tabs[InventoryType.EQUIPPED.ordinal()].countById(itemid);
+            count += inventory.tabs[InventoryType.EQUIPPED.ordinal()].countById(itemid);
         }
         return count;
     }
@@ -193,11 +194,11 @@ class CharacterInventory {
     }
 
     int getSlots(int type) {
-        return type == InventoryType.CASH.getType() ? 96 : inventorySet.tabs[type].getSlotLimit();
+        return type == InventoryType.CASH.getType() ? 96 : inventory.tabs[type].getSlotLimit();
     }
 
     boolean canGainSlots(int type, int slots) {
-        slots += inventorySet.tabs[type].getSlotLimit();
+        slots += inventory.tabs[type].getSlotLimit();
         return slots <= 96;
     }
 
@@ -237,17 +238,17 @@ class CharacterInventory {
     }
 
     private int gainSlotsInternal(int type, int slots) {
-        inventorySet.tabs[type].lockInventory();
+        inventory.tabs[type].lockInventory();
         try {
             if (canGainSlots(type, slots)) {
-                int newLimit = inventorySet.tabs[type].getSlotLimit() + slots;
-                inventorySet.tabs[type].setSlotLimit(newLimit);
+                int newLimit = inventory.tabs[type].getSlotLimit() + slots;
+                inventory.tabs[type].setSlotLimit(newLimit);
                 return newLimit;
             } else {
                 return -1;
             }
         } finally {
-            inventorySet.tabs[type].unlockInventory();
+            inventory.tabs[type].unlockInventory();
         }
     }
 
@@ -263,12 +264,10 @@ class CharacterInventory {
     void expirationTask() {
         if (itemExpireTask == null) {
             itemExpireTask = TimerManager.getInstance().register(() -> {
-                boolean deletedCoupon = false;
-
                 long expiration, currenttime = System.currentTimeMillis();
 
                 List<ItemSlot> toberemove = new ArrayList<>();
-                for (InventoryTab inv : inventorySet.tabs) {
+                for (InventoryTab inv : inventory.tabs) {
                     for (ItemSlot item : inv.list()) {
                         expiration = item.getExpiration();
 
@@ -280,9 +279,6 @@ class CharacterInventory {
                             if (!ItemConstants.isPet(item.getItemId())) {
                                 owner.sendPacket(PacketCreator.itemExpired(item.getItemId()));
                                 toberemove.add(item);
-                                if (ItemConstants.isRateCoupon(item.getItemId())) {
-                                    deletedCoupon = true;
-                                }
                             } else {
                                 Pet pet = owner.getPetById(item.getPetId());   // thanks Lame for noticing pets not getting despawned after expiration time
                                 if (pet != null) {
@@ -321,15 +317,11 @@ class CharacterInventory {
                                 }
                             }
                             for (Integer itemid : toadd) {
-                                InventoryManipulator.addById(owner.client, itemid, (short) 1);
+                                inventory.add(new ItemStack(itemid, 1));
                             }
                         }
 
                         toberemove.clear();
-                    }
-
-                    if (deletedCoupon) {
-                        owner.updateCouponRates();
                     }
                 }
             }, 60000);

@@ -2,9 +2,6 @@ package org.gms.remote;
 
 import java.util.List;
 
-
-import java.util.List;
-
 /**
  * 语义事件的不可变载体：作用域期间语义调用的原始发生序记录（不做任何合并——
  * 合并是消费侧的事，见 doc/09 §5.2）。commit 时由实现按序分发给后端处理。
