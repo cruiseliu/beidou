@@ -1,1 +1,0 @@
--- 已丢弃 1 条 ALTER MODIFY COLUMN（SQLite 动态类型下无意义）

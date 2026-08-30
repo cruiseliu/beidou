@@ -1,7 +1,0 @@
-CREATE TABLE IF NOT EXISTS `wishlists`
-(
-    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-    `charid` INT(11) NOT NULL,
-    `sn`     INT(11) NOT NULL
-
-);

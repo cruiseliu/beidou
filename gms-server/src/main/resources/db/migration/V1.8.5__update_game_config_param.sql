@@ -1,2 +1,0 @@
-UPDATE `game_config` SET config_value = 'false' WHERE config_code = 'use_enable_party_level_limit_lift';
-UPDATE `game_config` SET config_value = 'false' WHERE config_code = 'use_equipment_level_up_vicious';

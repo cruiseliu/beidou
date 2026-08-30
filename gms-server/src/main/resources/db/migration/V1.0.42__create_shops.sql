@@ -1,6 +1,0 @@
-CREATE TABLE IF NOT EXISTS `shops`
-(
-    `shopid` INTEGER PRIMARY KEY AUTOINCREMENT,
-    `npcid`  INT(11)          NOT NULL DEFAULT '0'
-
-);

@@ -1,9 +1,0 @@
-CREATE TABLE IF NOT EXISTS `hp_mp_alert`
-(
-    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-    `c_id` INT(11) NOT NULL,
-    `hp`   TINYINT NOT NULL DEFAULT 10,
-    `mp`   TINYINT NOT NULL DEFAULT 10
-
-);
-CREATE UNIQUE INDEX IF NOT EXISTS `hp_mp_alert_uq1` ON `hp_mp_alert` (`c_id`);
