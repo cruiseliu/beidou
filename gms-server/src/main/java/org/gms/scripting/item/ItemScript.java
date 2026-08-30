@@ -33,7 +33,9 @@ public final class ItemScript {
 
     public static final String HOOK_ENTER = "onEnterInventory";
     public static final String HOOK_LEAVE = "onLeaveInventory";
-    // 未来扩展（onEquip 等）：同一脚本文件加导出 + 此处加常量 + 调用点
+    public static final String HOOK_EQUIP = "onEquip";
+    public static final String HOOK_UNEQUIP = "onUnequip";
+    // 未来扩展：同一脚本文件加导出 + 此处加常量 + 调用点
 
     private static final Logger log = LoggerFactory.getLogger(ItemScript.class);
     private static final Map<String, ItemScript> CACHE = new HashMap<>();
@@ -64,6 +66,32 @@ public final class ItemScript {
         ItemScript s = forItem(item.getItemId());
         if (s != null) {
             s.invoke(HOOK_LEAVE, chr, item, isLogout);
+        }
+    }
+
+    /** 装备穿戴事件的唯一派发入口（isLogin=true = 登录装载初始化） */
+    public static void postEquip(Character chr, Item item, boolean isLogin) {
+        chr.getScriptRunner().post(() -> invokeEquip(chr, item, isLogin));
+    }
+
+    /** 装备卸下事件的唯一派发入口（isLogout=true = 登出清场，当前引擎不产生，契约保留） */
+    public static void postUnequip(Character chr, Item item, boolean isLogout) {
+        chr.getScriptRunner().post(() -> invokeUnequip(chr, item, isLogout));
+    }
+
+    /** 调度器会话内同步执行穿戴钩子 */
+    public static void invokeEquip(Character chr, Item item, boolean isLogin) {
+        ItemScript s = forItem(item.getItemId());
+        if (s != null) {
+            s.invoke(HOOK_EQUIP, chr, item, isLogin);
+        }
+    }
+
+    /** 调度器会话内同步执行卸下钩子 */
+    public static void invokeUnequip(Character chr, Item item, boolean isLogout) {
+        ItemScript s = forItem(item.getItemId());
+        if (s != null) {
+            s.invoke(HOOK_UNEQUIP, chr, item, isLogout);
         }
     }
 

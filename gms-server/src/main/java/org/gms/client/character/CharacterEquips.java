@@ -27,21 +27,12 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 class CharacterEquips {
     private final Character owner;
 
-    /** 精灵吊坠（1122017）装备时长计数：每满 1 小时 +1，最高 3（经验加成 10%/小时） */
-    private byte pendantExp = 0;
-    private ScheduledFuture<?> pendantOfSpirit = null;
-
     /** 已穿戴背包引用（CharacterInventory 构造时传入——Character 的字段初始化顺序不保证先于本类） */
     private final InventoryTab equipped;
 
     CharacterEquips(Character owner, InventoryTab equipped) {
         this.owner = owner;
         this.equipped = equipped;
-    }
-
-    /** 精灵吊坠经验计数（CharacterLevel.gainExp 读取：装备经验加成 = gain/10 × pendantExp） */
-    byte pendantExp() {
-        return pendantExp;
     }
 
     /** 已穿戴装备属性聚合（全量重算）：共享段 [0, EQUIP_INDEX_BEGIN) 逐属性求和，
@@ -152,49 +143,4 @@ class CharacterEquips {
         InventoryManipulator.addFromDrop(owner.getClient(), equipSlot, false);
     }
 
-    void equippedItem(Equip equip) {
-        int itemid = equip.getItemId();
-
-        if (itemid == ItemId.PENDANT_OF_THE_SPIRIT) {
-            this.equipPendantOfSpirit();
-        }
-    }
-
-    void unequippedItem(Equip equip) {
-        int itemid = equip.getItemId();
-
-        if (itemid == ItemId.PENDANT_OF_THE_SPIRIT) {
-            this.unequipPendantOfSpirit();
-        }
-    }
-
-    private void equipPendantOfSpirit() {   //精灵吊坠装备时长经验计算
-        if (pendantOfSpirit == null) {
-            pendantOfSpirit = TimerManager.getInstance().register(() -> {
-                if (pendantExp < 3) {
-                    pendantExp++;
-                    //用于准确提示装备1小时内还是装备经过几小时
-                    owner.message(I18nUtil.getMessage(pendantExp <= 2 ? "Character.equipPendantOfSpirit.message1" : "Character.equipPendantOfSpirit.message2", pendantExp == 3 ? 2 : pendantExp, pendantExp * 10));
-                } else {
-                    pendantOfSpirit.cancel(false);
-                }
-            }, 3600000); //1 hour
-        }
-    }
-
-    private void unequipPendantOfSpirit() {
-        if (pendantOfSpirit != null) {
-            pendantOfSpirit.cancel(false);
-            pendantOfSpirit = null;
-        }
-        pendantExp = 0;
-    }
-
-    /** 清空精灵吊坠计时器（Character.empty 调用） */
-    void clearPendantOfSpirit() {
-        if (pendantOfSpirit != null) {
-            pendantOfSpirit.cancel(true);
-        }
-        pendantOfSpirit = null;
-    }
 }

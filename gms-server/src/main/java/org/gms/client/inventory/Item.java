@@ -145,6 +145,20 @@ public class Item implements Comparable<Item> {
         }
     }
 
+    /** 穿戴事件（装备编排回调入口）；isLogin=true = 登录装载初始化 */
+    public void onEquip(Character character, boolean isLogin) {
+        if (script != null) {
+            ItemScript.postEquip(character, this, isLogin);
+        }
+    }
+
+    /** 卸下事件（装备编排回调入口）；isLogout=true = 登出清场（当前引擎不产生，契约保留） */
+    public void onUnequip(Character character, boolean isLogout) {
+        if (script != null) {
+            ItemScript.postUnequip(character, this, isLogout);
+        }
+    }
+
     /** 是否可充值物品（飞镖/子弹）——quantity 语义为"组数"（恒 1），次数在 charge */
     public boolean isRechargeable() {
         return isRechargeable(id);

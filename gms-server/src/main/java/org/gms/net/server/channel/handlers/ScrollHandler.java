@@ -146,7 +146,7 @@ public final class ScrollHandler extends AbstractPacketHandler {
 
                             inv.lockInventory();
                             try {
-                                chr.unequippedItem(toScroll); // 卸下装备
+                                toScrollItem.getItem().onUnequip(chr, false); // 卸下装备
                                 inv.removeItem((short) toScrollItem.getPosition()); // 移除装备
                             } finally {
                                 inv.unlockInventory();

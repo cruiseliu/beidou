@@ -349,7 +349,7 @@ public final class PlayerLoggedinHandler extends AbstractPacketHandler {
             eqpInv.lockInventory();
             try {
                 for (ItemSlot it : eqpInv.list()) {
-                    player.equippedItem(it.getEquipInfo());
+                    it.getItem().onEquip(player, true);   // 登录装载初始化
                 }
             } finally {
                 eqpInv.unlockInventory();

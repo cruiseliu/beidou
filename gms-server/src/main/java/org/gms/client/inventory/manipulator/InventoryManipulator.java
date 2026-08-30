@@ -420,7 +420,7 @@ public class InventoryManipulator {
         if (type == InventoryType.EQUIPPED) {
             inv.lockInventory();
             try {
-                chr.unequippedItem(item.getEquipInfo());
+                item.getItem().onUnequip(chr, false);
                 inv.removeItem(slot, quantity, allowZero);
             } finally {
                 inv.unlockInventory();
@@ -632,8 +632,8 @@ public class InventoryManipulator {
         try {
             targetItem = eqpdInv.getItem(dst);
             target = targetItem == null ? null : targetItem.getEquipInfo();
-            if (target != null) {
-                chr.unequippedItem(target);
+            if (targetItem != null) {
+                targetItem.getItem().onUnequip(chr, false);
                 eqpdInv.removeSlot(dst);
             }
         } finally {
@@ -653,7 +653,7 @@ public class InventoryManipulator {
             if (source.getRingId() > -1) {
                 chr.getRingById(source.getRingId()).equip();
             }
-            chr.equippedItem(source);
+            sourceItem.getItem().onEquip(chr, false);
             eqpdInv.addItemFromDB(sourceItem);
         } finally {
             eqpdInv.unlockInventory();
@@ -705,7 +705,7 @@ public class InventoryManipulator {
             if (source.getRingId() > -1) {
                 chr.getRingById(source.getRingId()).unequip();
             }
-            chr.unequippedItem(source);
+            sourceItem.getItem().onUnequip(chr, false);
             eqpdInv.removeSlot(src);
         } finally {
             eqpdInv.unlockInventory();
@@ -810,7 +810,7 @@ public class InventoryManipulator {
             if (type == InventoryType.EQUIPPED) {
                 inv.lockInventory();
                 try {
-                    chr.unequippedItem(source.getEquipInfo());
+                    source.getItem().onUnequip(chr, false);
                     inv.removeSlot(src);
                 } finally {
                     inv.unlockInventory();

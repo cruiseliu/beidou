@@ -102,9 +102,8 @@ class CharacterLevel {
             party = Integer.MAX_VALUE;  // integer overflow, heh.
         }
 
-        int equip = (int) Math.min((long) (gain / 10) * owner.inventory.getEquips().pendantExp(), Integer.MAX_VALUE);
-
-        gainExpInternal(gain, equip, party, show, inChat, white);
+        // TODO [refactor] equip 行曾由精灵吊坠独占；其加成现并入桶倍率（RateBucket.EQUIP），如需独立经验行再恢复
+        gainExpInternal(gain, 0, party, show, inChat, white);
     }
 
     public void loseExp(int loss, boolean show, boolean inChat) {

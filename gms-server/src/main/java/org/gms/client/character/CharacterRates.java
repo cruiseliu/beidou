@@ -13,6 +13,7 @@ import org.gms.util.ExtendUtil;
 import org.gms.util.Locks;
 
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -33,8 +34,8 @@ public class CharacterRates {
     private float expRate = 1;
     private float mesoRate = 1;
     private float dropRate = 1;
-    /** 各 kind 的桶派生倍率（ITEM 桶 max，缺省 1）——由 {@link #recalc()} 唯一写入 */
-    private int expCoupon = 1, mesoCoupon = 1, dropCoupon = 1;
+    /** 各 kind 的桶派生倍率（= Π 桶 max，缺省 1）——由 {@link #recalc()} 唯一写入 */
+    private double expCoupon = 1, mesoCoupon = 1, dropCoupon = 1;
     private float mobExpRate = -1;
 
     CharacterRates(Character owner) {
@@ -52,7 +53,7 @@ public class CharacterRates {
             return 1;
         }
 
-        return expRate * expCoupon;
+        return (float) (expRate * expCoupon);
     }
 
     public float getLevelExpRate() {
@@ -80,32 +81,32 @@ public class CharacterRates {
     }
 
     public int getCouponExpRate() {
-        return expCoupon;
+        return (int) Math.round(expCoupon);
     }
 
     public float getRawExpRate() {
-        return expRate / (expCoupon * owner.getWorldServer().getExpRate());
+        return (float) (expRate / (expCoupon * owner.getWorldServer().getExpRate()));
     }
 
     public int getCouponDropRate() {
-        return dropCoupon;
+        return (int) Math.round(dropCoupon);
     }
 
     public float getRawDropRate() {
-        return dropRate / (dropCoupon * owner.getWorldServer().getDropRate());
+        return (float) (dropRate / (dropCoupon * owner.getWorldServer().getDropRate()));
     }
 
     public float getBossDropRate() {
         World w = owner.getWorldServer();
-        return (dropRate * dropCoupon / w.getDropRate()) * w.getBossDropRate();
+        return (float) (dropRate * dropCoupon / w.getDropRate()) * w.getBossDropRate();
     }
 
     public int getCouponMesoRate() {
-        return mesoCoupon;
+        return (int) Math.round(mesoCoupon);
     }
 
     public float getRawMesoRate() {
-        return mesoRate / (mesoCoupon * owner.getWorldServer().getMesoRate());
+        return (float) (mesoRate / (mesoCoupon * owner.getWorldServer().getMesoRate()));
     }
 
     public float getQuestExpRate() {
@@ -219,101 +220,91 @@ public class CharacterRates {
 
     private Set<Integer> collectContributingItemIds() {
         Set<Integer> ids = new LinkedHashSet<>();
-        for (Item item : itemExp.keySet()) {
-            ids.add(item.getItemId());
-        }
-        for (Item item : itemMeso.keySet()) {
-            ids.add(item.getItemId());
-        }
-        for (Item item : itemDrop.keySet()) {
-            ids.add(item.getItemId());
+        for (Map<RateBucket, Map<Item, Double>> kind : new Map[]{expBuckets, mesoBuckets, dropBuckets}) {
+            for (Map<Item, Double> bucket : kind.values()) {
+                for (Item item : bucket.keySet()) {
+                    ids.add(item.getItemId());
+                }
+            }
         }
         return ids;
     }
 
     // ── 倍率贡献桶（倍率 sink，脚本经 character.getRates() 调用；见 doc/10 分桶模型） ──
     //
-    // ITEM 桶：条目 = 道具对象 → 绝对倍率（替换语义），按 kind 分表；桶值 = max(条目, 缺省 1)，
-    // 由 recalc() 写入 coupon 系字段并在 getter 与 base 相乘。
+    // 条目 = (kind, bucket, 道具对象) → 绝对倍率（double，替换语义）；桶内取 max、桶间相乘，
+    // 由 recalc() 写入 coupon 系字段并在 getter 与 base 相乘。桶值见 RateBucket（ITEM/EQUIP）。
 
-    private final Map<Item, Integer> itemExp = new IdentityHashMap<>();
-    private final Map<Item, Integer> itemMeso = new IdentityHashMap<>();
-    private final Map<Item, Integer> itemDrop = new IdentityHashMap<>();
+    private final Map<RateBucket, Map<Item, Double>> expBuckets = new EnumMap<>(RateBucket.class);
+    private final Map<RateBucket, Map<Item, Double>> mesoBuckets = new EnumMap<>(RateBucket.class);
+    private final Map<RateBucket, Map<Item, Double>> dropBuckets = new EnumMap<>(RateBucket.class);
     /** 已应用 buff 图标的物品 sourceId 簿记（recalc 差量同步，替代旧 isRateCoupon 判定） */
     private Set<Integer> buffedItemIds = new LinkedHashSet<>();
 
 
-    public void updateExp(RateBucket bucket, Item item, int multiplier) {
-        requireItemBucket(bucket);
-        try (var ignored = Locks.acquire(owner.chrLock)) {
-            itemExp.put(item, multiplier);
-        }
+    public void updateExp(RateBucket bucket, Item item, double multiplier) {
+        bucketOf(expBuckets, bucket).put(item, multiplier);
     }
 
 
-    public void updateMeso(RateBucket bucket, Item item, int multiplier) {
-        requireItemBucket(bucket);
-        try (var ignored = Locks.acquire(owner.chrLock)) {
-            itemMeso.put(item, multiplier);
-        }
+    public void updateMeso(RateBucket bucket, Item item, double multiplier) {
+        bucketOf(mesoBuckets, bucket).put(item, multiplier);
     }
 
 
-    public void updateDrop(RateBucket bucket, Item item, int multiplier) {
-        requireItemBucket(bucket);
-        try (var ignored = Locks.acquire(owner.chrLock)) {
-            itemDrop.put(item, multiplier);
-        }
+    public void updateDrop(RateBucket bucket, Item item, double multiplier) {
+        bucketOf(dropBuckets, bucket).put(item, multiplier);
     }
 
 
     public void withdrawExp(RateBucket bucket, Item item) {
-        requireItemBucket(bucket);
-        try (var ignored = Locks.acquire(owner.chrLock)) {
-            itemExp.remove(item);
-        }
+        withdrawFrom(expBuckets, bucket, item);
     }
 
 
     public void withdrawMeso(RateBucket bucket, Item item) {
-        requireItemBucket(bucket);
-        try (var ignored = Locks.acquire(owner.chrLock)) {
-            itemMeso.remove(item);
-        }
+        withdrawFrom(mesoBuckets, bucket, item);
     }
 
 
     public void withdrawDrop(RateBucket bucket, Item item) {
-        requireItemBucket(bucket);
-        try (var ignored = Locks.acquire(owner.chrLock)) {
-            itemDrop.remove(item);
-        }
+        withdrawFrom(dropBuckets, bucket, item);
     }
 
 
     public void recalc() {
         Set<Integer> contributing;
         try (var ignored = Locks.acquire(owner.chrLock)) {
-            expCoupon = maxOf(itemExp);
-            mesoCoupon = maxOf(itemMeso);
-            dropCoupon = maxOf(itemDrop);
+            expCoupon = productOf(expBuckets);
+            mesoCoupon = productOf(mesoBuckets);
+            dropCoupon = productOf(dropBuckets);
             contributing = collectContributingItemIds();
         }
         syncItemBuffs(contributing);
     }
 
-    private static void requireItemBucket(RateBucket bucket) {
-        if (bucket != RateBucket.ITEM) {
-            throw new UnsupportedOperationException("暂只支持 ITEM 桶: " + bucket);
+    private static Map<Item, Double> bucketOf(Map<RateBucket, Map<Item, Double>> kind, RateBucket bucket) {
+        return kind.computeIfAbsent(bucket, b -> new IdentityHashMap<>());
+    }
+
+    private static void withdrawFrom(Map<RateBucket, Map<Item, Double>> kind, RateBucket bucket, Item item) {
+        Map<Item, Double> entries = kind.get(bucket);
+        if (entries != null) {
+            entries.remove(item);
         }
     }
 
-    private static int maxOf(Map<Item, Integer> entries) {
-        int max = 1;
-        for (int value : entries.values()) {
-            max = Math.max(max, value);
+    /** kind 倍率 = Π 桶 max(条目, 缺省 1)：桶内互斥取最大、桶间相乘 */
+    private static double productOf(Map<RateBucket, Map<Item, Double>> kind) {
+        double product = 1;
+        for (Map<Item, Double> entries : kind.values()) {
+            double max = 1;
+            for (double value : entries.values()) {
+                max = Math.max(max, value);
+            }
+            product *= max;
         }
-        return max;
+        return product;
     }
 
     /** buff 图标差量同步：贡献集缩小 → 撤退出的 sourceId buff；扩大 → 补应用新入的（展示策略在 commitBuffCoupon） */
@@ -335,13 +326,13 @@ public class CharacterRates {
         buffedItemIds = contributing;
     }
 
-    /** 金币倍率（base × ITEM 桶派生） */
+    /** 金币倍率（base × 桶派生） */
     float getMesoRate() {
-        return mesoRate * mesoCoupon;
+        return (float) (mesoRate * mesoCoupon);
     }
 
-    /** 掉落倍率（base × ITEM 桶派生） */
+    /** 掉落倍率（base × 桶派生） */
     float getDropRate() {
-        return dropRate * dropCoupon;
+        return (float) (dropRate * dropCoupon);
     }
 }

@@ -2641,8 +2641,6 @@ public class Character extends AbstractAnimatedMapObject {
         }
         extraRecoveryTask = null;
 
-        inventory.getEquips().clearPendantOfSpirit();
-
         clearCpqTimer();
 
         if (mapleMount != null) {
@@ -3275,8 +3273,6 @@ public class Character extends AbstractAnimatedMapObject {
     public void increaseEquipExp(int expGain) { inventory.getEquips().increaseEquipExp(expGain); }
     public void showAllEquipFeatures() { inventory.getEquips().showAllEquipFeatures(); }
     public void gainEquip(int itemId, Integer[] stats, Byte upgradeSlot, Long expireTime) { inventory.getEquips().gainEquip(itemId, stats, upgradeSlot, expireTime); }
-    public void equippedItem(Equip equip) { inventory.getEquips().equippedItem(equip); }
-    public void unequippedItem(Equip equip) { inventory.getEquips().unequippedItem(equip); }
 
     // ── family 门面 ──
 
