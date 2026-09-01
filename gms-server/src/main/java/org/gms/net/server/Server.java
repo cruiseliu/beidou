@@ -656,7 +656,6 @@ public class Server {
         nxCodeService.clearExpirations();
 
         newYearCardService.startPendingNewYearCardRequests();
-        CashIdGenerator.loadExistentCashIdsFromDb();
 
         // 接受未完成的改名
         nameChangeService.applyAllNameChange();

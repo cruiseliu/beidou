@@ -12,7 +12,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
-import org.gms.client.pet.Pet;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.net.server.Server;

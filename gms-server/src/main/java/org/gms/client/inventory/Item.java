@@ -308,6 +308,25 @@ public class Item implements Comparable<Item> {
         return expiration;
     }
 
+    /**
+     * 过渡方法：协议组装视图。宠物道具的 item.expiration 恒 -1（到期归 pet 模块
+     * pets.expires_at，见 setExpiration 断言），协议侧的到期真值经 Pet.load 取宠物到期；
+     * 非宠物道具即物品自身到期。
+     * 客户端语义（实测）：wire ≥ DEFAULT_TIME 显示"过期"，PERMANENT 显示"永久"，其余显示日期。
+     * 宠物失活 → -1（getTime 的 DEFAULT_TIME，即"过期"标记）；永久 → -3（PERMANENT 选择器）。
+     */
+    public long LEGACY_getExpiration() {
+        if (petId > -1) {
+            org.gms.client.pet.Pet pet = org.gms.client.pet.Pet.load(petId);
+            if (!pet.isAlive()) {
+                return -1;
+            }
+            long petExpiration = pet.getExpiration();
+            return petExpiration == -1 ? -3 : petExpiration;
+        }
+        return expiration;
+    }
+
     public void setExpiration(long expire) {
         // 到期归属是 caller 的责任：宠物道具（到期归 pet 模块 pets.expires_at）不得走到这里
         assert petId == -1 : "宠物道具禁止设置物品到期: " + id;

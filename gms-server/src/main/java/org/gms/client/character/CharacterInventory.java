@@ -313,7 +313,13 @@ class CharacterInventory {
 
     void forceUpdateItem(ItemSlot item) {
         final List<ModifyInventory> mods = new ArrayList<>();
-        Pet pet = item.getPetId() > -1 ? owner.getPetById(item.getPetId()) : null;
+        Pet pet = null;
+        if (item.getPetId() > -1) {
+            pet = owner.getPetById(item.getPetId());
+            if (pet == null) {
+                pet = Pet.load(item.getPetId());   // 宠物已移出驻留位（如到期卸下后的刷新）时自愈
+            }
+        }
         mods.add(new ModifyInventory(3, item).withPet(pet));
         mods.add(new ModifyInventory(0, item).withPet(pet));
         owner.sendPacket(PacketCreator.modifyInventory(true, mods));

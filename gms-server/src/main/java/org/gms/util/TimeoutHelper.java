@@ -14,6 +14,7 @@ import org.gms.server.TimerManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// Thread-safe timer.
 public class TimeoutHelper {
     private static final Logger log = LoggerFactory.getLogger(TimerManager.class);
 
@@ -22,6 +23,13 @@ public class TimeoutHelper {
     private boolean active = false;
     private BiConsumer<Integer, Long> listener = null;
     private Map<Integer, ScheduledFuture<?>> futures = new HashMap<>();
+
+    public static TimeoutHelper createAndStart(BiConsumer<Integer, Long> listener) {
+        TimeoutHelper ret = new TimeoutHelper();
+        ret.setListener(listener);
+        ret.start();
+        return ret;
+    }
 
     // Register a listener function, whose signature is `callback(int id, long timestamp)`.
     // The parameters are identical to those provided in `schedule(id, timestamp)`,

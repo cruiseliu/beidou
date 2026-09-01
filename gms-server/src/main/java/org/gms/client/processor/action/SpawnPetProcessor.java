@@ -21,11 +21,9 @@ package org.gms.client.processor.action;
 
 import org.gms.client.character.Character;
 import org.gms.client.Client;
-import org.gms.client.SkillFactory;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.pet.Pet;
 import org.gms.client.pet.PetDataFactory;
-import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.util.PacketCreator;
 
 import java.awt.*;
@@ -44,12 +42,16 @@ public class SpawnPetProcessor {
                 }
 
                 int evolveid = PetDataFactory.getEvolution(pet.getItemId());
-                if (evolveid > 0) {
+                if (PetDataFactory.isHatchling(pet.getItemId()) && evolveid > 0) {
                     // 蛋类道具不可召唤（官方语义）：客户端以 SPAWN_PET 表达"使用"——孵化 = 换宿主物品
-                    if (!chr.getPets().evolvePet(pet.getUniqueId(), evolveid)) {
+                    if (!chr.getPets().evolvePet(pet.getPetId(), evolveid)) {
                         chr.dropMessage(5, "无法孵化，请检查背包空间。");
                     }
                     c.sendPacket(PacketCreator.enableActions());
+                    return;
+                }
+                if (!pet.isAlive()) {
+                    c.sendPacket(PacketCreator.enableActions());   // 失活宠物不可召唤（doc/11 §7）
                     return;
                 }
                 if (chr.getPetIndex(pet) != -1) {
@@ -69,8 +71,7 @@ public class SpawnPetProcessor {
                     pet.setSummoned(true);
                     pet.saveToDb();
                     chr.addPet(pet);
-                    // 登录时未召唤的宠物不会预加载过滤配置，这里补载后再同步给客户端。
-                    chr.loadPetExcludedItems(pet.getUniqueId());
+                    // 过滤清单随 Pet 本体（adopt 时已装载），召唤后同步给客户端。
                     chr.getRemote().pet().summonPet(chr, pet, fh);
                     c.sendPacket(PacketCreator.enableActions());
 

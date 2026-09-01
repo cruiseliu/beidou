@@ -51,7 +51,7 @@ public class PetSpeedAction extends AbstractQuestAction {
 
         c.lockClient();
         try {
-            pet.addPetAttribute(c.getPlayer(), Pet.PetAttribute.OWNER_SPEED);
+            pet.setFlag(Pet.PetFlag.OWNER_SPEED);
         } finally {
             c.unlockClient();
         }

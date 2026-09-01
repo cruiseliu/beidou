@@ -18,9 +18,11 @@
 package org.gms.client.pet;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterPets;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.util.CashIdGenerator;
 import org.gms.constants.game.ExpTable;
+import org.gms.net.server.Server;
 import org.gms.server.ItemInformationProvider;
 import org.gms.server.movement.AbsoluteLifeMovement;
 import org.gms.server.movement.LifeMovement;
@@ -28,13 +30,20 @@ import org.gms.server.movement.LifeMovementFragment;
 import org.gms.model.json.PetData;
 import org.gms.util.DatabaseConnection;
 import org.gms.util.Pair;
+import org.gms.util.TimeoutHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.awt.*;
+import java.awt.Point;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 宠物：与物品解耦的独立对象，由角色（CharacterPets）全权管理生命周期。
@@ -44,158 +53,203 @@ import java.util.List;
  * itemId 是 wz 数据 key（宠物命令/饥饿/可食饲料判定），自持于此。
  */
 public class Pet {
-    private final Character owner;
-    private final int itemId;
-    private final int uniqueid;
-    private String name;
-    private int tameness = 0;
-    private byte level = 1;
-    private int fullness = 100;
-    /** 到期 epoch 毫秒（-1 = 永久）；生命周期由 pet 模块管理，宿主物品 expiration 恒 -1 */
-    private long expiresAt = -1;
-    /** 活跃态：到期转化后置 false（失活宠物物品继续作为 petId 宿主，数据保留） */
-    private boolean active = true;
-    private Point pos;
-    private int stance;
-    private boolean summoned;
-    private int petAttribute = 0;
+    private static final Logger log = LoggerFactory.getLogger(Pet.class);
+    private static final ItemInformationProvider ii = ItemInformationProvider.getInstance();
 
-    public enum PetAttribute {
+    private static final Map<Integer, Pet> loadedPets = new ConcurrentHashMap<>();
+
+    private static final TimeoutHelper expireTimer = TimeoutHelper.createAndStart((petId, timestamp) -> {
+        Pet pet = loadedPets.get(petId);
+        if (pet != null) {
+            pet.onExpire();
+        }
+    });
+
+    private CharacterPets owner = null;
+    private int petId;
+
+    private int itemId;
+    private String name = null;
+
+    private int tameness = 0;
+    private int level = 1;
+    private int fullness = 100;
+
+    private long expiration = -1;
+
+    /** 到期 epoch 毫秒（-1 = 永久）；协议组装侧经 Item.LEGACY_getExpiration 间接消费 */
+    public long getExpiration() {
+        return expiration;
+    }
+
+    // TODO(debug, 临时): @pet 到期显示探测哨兵（PetCommand debug1/2/3），配合 getTime/toWire 的 -8 临时分支，测完移除
+    /** debug1：wire = 现在 - 30 天（过去日期，客户端显示待测） */
+    public static final long DEBUG_EXPIRE_PAST = -6;
+    /** debug2：wire = 现在 + 30 天（近未来基线） */
+    public static final long DEBUG_EXPIRE_FUTURE = -7;
+    /** debug3：wire = PERMANENT + 12h（2078-12-31T12:00，超过 PERMANENT、低于 DEFAULT_TIME） */
+    public static final long DEBUG_ABOVE_PERMANENT = -8;
+    /** debug4：wire = DEFAULT_TIME（150842304000000000，2079-01-01T00:00，客户端"过期"显示的实测下沿） */
+    public static final long DEBUG_DEFAULT_TIME = -9;
+
+    private boolean alive = true;
+
+    private boolean summoned = false;
+    private Point pos = new Point(0, 0);
+    private int stance = 0;
+
+    private int flags = 0;
+
+    // NOTE: the list is assumed immutable
+    private List<Integer> ignoreItems = new ArrayList<>();
+
+    public enum PetFlag {
         OWNER_SPEED(0x01);
 
-        private final int i;
+        private final int value;
 
-        PetAttribute(int i) {
-            this.i = i;
+        PetFlag(int i) {
+            this.value = i;
         }
 
         public int getValue() {
-            return i;
+            return value;
         }
     }
 
-    Pet(Character owner, int itemId, int uniqueid) {
-        this.owner = owner;
-        this.itemId = itemId;
-        this.uniqueid = uniqueid;
-        this.pos = new Point(0, 0);
+    /** 物种变更（孵化/任务进化）：宠物本体认知的物种随新宿主形态刷新并立即落库 */
+    public void evolveTo(int newItemId) {
+        itemId = newItemId;
+        saveToDb();
     }
 
-    public static Pet loadFromDb(Character owner, int itemid, int petid) {
-        Pet ret = new Pet(owner, itemid, petid);
+    public List<Integer> getIgnoreItems() {
+        return ignoreItems;
+    }
+
+    /** 整体替换拾取屏蔽清单并立即落库（客户端提交过滤设置的落点） */
+    public void setIgnoreItems(List<Integer> itemIds) {
+        ignoreItems = itemIds;
+        saveToDb();
+    }
+
+    // -- Object life cycle --
+
+    public static Pet create(int itemId) {
+        // wz info/life 单位为天，工厂边界统一换算为毫秒
+        return Pet.create(itemId, TimeUnit.DAYS.toMillis(PetDataFactory.getLife(itemId)));
+    }
+
+    /** 建宠物对象：durationMs = 持续时长毫秒（<=0 = 永久） */
+    public static Pet create(int itemId, long durationMs) {
+        Pet pet = new Pet();
+        pet.petId = CashIdGenerator.generateCashId();
+        pet.itemId = itemId;
+        if (durationMs > 0) {
+            pet.expiration = Server.getInstance().getCurrentTime() + durationMs;
+        } else if (durationMs == DEBUG_EXPIRE_PAST || durationMs == DEBUG_EXPIRE_FUTURE) {
+            // TODO(debug, 临时): 相对探测日期（过去/未来 30 天）
+            long offset = java.util.concurrent.TimeUnit.DAYS.toMillis(30);
+            pet.expiration = Server.getInstance().getCurrentTime() + (durationMs == DEBUG_EXPIRE_PAST ? -offset : offset);
+        } else if (durationMs == DEBUG_ABOVE_PERMANENT || durationMs == DEBUG_DEFAULT_TIME) {
+            pet.expiration = durationMs;   // 哨兵直通：getTime/toWire 映射 PERMANENT+12h / DEFAULT_TIME
+        }
+
+        // NOTE: must save before return
+        // if saving fails, creation fails
+        pet.saveToDb();
+
+        pet.finishInit();
+        return pet;
+    }
+
+    public static Pet load(int petId) {
+        Pet pet = loadedPets.get(petId);
+        if (pet != null) {
+            return pet;
+        }
+
+        pet = new Pet();
+
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement("SELECT data FROM pets_json WHERE petid = ?")) {
-            ps.setInt(1, petid);
+            ps.setInt(1, petId);
 
             try (ResultSet rs = ps.executeQuery()) {
                 rs.next();
-                ret.applyData(PetData.deserialize(rs.getString("data")));
+                pet.applyData(PetData.deserialize(rs.getString("data")));
             }
-            return ret;
         } catch (SQLException e) {
             e.printStackTrace();
-            return null;
+            throw new RuntimeException("Failed to load pet.");
+        }
+
+        pet.finishInit();
+        return pet;
+    }
+
+    private Pet() {}
+
+    private void finishInit() {
+        loadedPets.put(petId, this);
+        if (alive && expiration > 0) {
+            expireTimer.schedule(petId, expiration);
         }
     }
 
-    public static void deleteFromDb(Character owner, int petid) {
-        try {
-            // 宠物基础数据删除后，petignores 会通过外键级联清理，这里同步移除角色内存中的缓存。
-            owner.deletePetExcludedData(petid);
-            CashIdGenerator.freeCashId(petid);
-        } catch (Exception ex) {
-            ex.printStackTrace();
+    private void onExpire() {
+        if (!alive) {
+            log.warn("onExpire called on expired pet (petId:{})", petId);
+            return;
+        }
+
+        if (PetDataFactory.canRevive(itemId)) {
+            log.info("Pet expired (petId:{})", petId);
+            // 先落库失活再通知：推送的宠物物品体经 LEGACY/translator 取 alive，映射"过期"哨兵
+            alive = false;
+            saveToDb();
+            if (owner != null) {
+                owner.onPetExpire(this);
+            }
+
+        } else {
+            log.info("Pet permanently expired (petId:{}, itemId:{})", petId, itemId);
+            if (owner != null) {
+                owner.onPetDestroy(this);
+            }
+            deleteFromDb();
+            dispose();
         }
     }
 
-    public void saveToDb() {
-        try (Connection con = DatabaseConnection.getConnection()) {
-            saveToDb(con);
-        } catch (SQLException e) {
-            e.printStackTrace();
+    /** Free unneeded instance to prevent resource leak. No semantic change to the game. */
+    public void dispose() {
+        expireTimer.cancel(petId);
+        loadedPets.remove(petId);
+        owner = null;
+    }
+
+    // -- Basic info --
+
+    public void bind(CharacterPets newOwner) {
+        if (owner != null) {
+            owner.unregisterPet(this);
         }
+        owner = newOwner;
+        newOwner.registerPet(this);
     }
 
-    /**
-     * 建宠物数据行（角色无关：商城授予入现金仓库/礼包/礼物等无角色背包上下文的流）。
-     * 行 ≠ 对象驻留；返回 petid，-1 = 失败。
-     */
-    public static int createPetData(int itemId, long expiresAt) {
-        return createPet(itemId, expiresAt);
+    public void bind(Character owner) {
+        bind(owner.getPets());
     }
 
-    /** 删除 pets/petignores 行（授予入包失败补偿；角色无关） */
-    public static void deletePetRow(int petId) {
-        org.gms.manager.ServerManager.getApplicationContext().getBean(org.gms.service.InventoryService.class).deletePetData(petId);
-        CashIdGenerator.freeCashId(petId);
+    public void unbind() {
+        owner.unregisterPet(this);
+        this.owner = null;
     }
 
-    /** 用指定连接保存：角色保存主事务内调用，消除第二写者（SQLite 单写者下避免 SQLITE_BUSY） */
-    public void saveToDb(Connection con) {
-        try (PreparedStatement ps = con.prepareStatement("INSERT INTO pets_json (petid, data) VALUES (?, ?) ON CONFLICT(petid) DO UPDATE SET data = excluded.data")) {
-            ps.setInt(1, getUniqueId());
-            ps.setString(2, toData().serialize());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * 建宠物数据行（行 ≠ 对象驻留）：返回 petid，-1 = 失败。
-     * expiresAt = 到期 epoch 毫秒（-1 = 永久）；active 恒出生即 true。
-     */
-    static int createPet(int itemid, long expiresAt) {
-        try (Connection con = DatabaseConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement("INSERT INTO pets_json (petid, data) VALUES (?, ?)")) {
-            int ret = CashIdGenerator.generateCashId();
-            PetData data = new PetData();
-            data.name = ItemInformationProvider.getInstance().getName(itemid);
-            data.level = 1;
-            data.tameness = 0;
-            data.fullness = 100;
-            data.summoned = false;
-            data.flag = 0;
-            data.expiresAt = expiresAt;
-            data.active = true;
-            ps.setInt(1, ret);
-            ps.setString(2, data.serialize());
-            ps.executeUpdate();
-            return ret;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return -1;
-        }
-    }
-
-    // ── 持久化数据转换（pets_json；PetData 载体）──
-
-    PetData toData() {
-        PetData data = new PetData();
-        data.name = name;
-        data.level = level;
-        data.tameness = tameness;
-        data.fullness = fullness;
-        data.summoned = summoned;
-        data.flag = petAttribute;
-        data.expiresAt = expiresAt;
-        data.active = active;
-        return data;
-    }
-
-    void applyData(PetData data) {
-        name = data.name;
-        level = (byte) Math.min(data.level, 30);
-        tameness = Math.min(data.tameness, 30000);
-        fullness = Math.min(data.fullness, 100);
-        summoned = data.summoned;
-        petAttribute = data.flag;
-        expiresAt = data.expiresAt;
-        active = data.active;
-    }
-
-    public Character getOwner() {
-        return owner;
+    public int getPetId() {
+        return petId;
     }
 
     public int getItemId() {
@@ -203,32 +257,142 @@ public class Pet {
     }
 
     public String getName() {
-        return name;
+        return name == null ? ii.getName(itemId) : name;
     }
 
     public void setName(String name) {
         this.name = name;
     }
 
-    public int getUniqueId() {
-        return uniqueid;
-    }
-
-    public void setUniqueId(int id) {
-        throw new UnsupportedOperationException("petid 不可变（唯一标识，与宿主物品的关联键）");
-    }
+    // -- Feed --
 
     public int getTameness() {
         return tameness;
     }
 
-    public void setTameness(int tameness) {
-        this.tameness = tameness;
-    }
-
-    public byte getLevel() {
+    public int getLevel() {
         return level;
     }
+
+    public int getFullness() {
+        return fullness;
+    }
+
+    // todo: [refactor] handle inside
+    public void setFullness(int fullness) {
+        this.fullness = fullness;
+    }
+
+    public boolean isAlive() {
+        return alive;
+    }
+
+    // -- Map object --
+
+    public boolean isSummoned() {
+        return summoned;
+    }
+
+    public void setSummoned(boolean yes) {
+        this.summoned = yes;
+    }
+
+    public Point getPos() {
+        return pos;
+    }
+
+    public void setPos(Point pos) {
+        this.pos = pos;
+    }
+
+    public int getStance() {
+        return stance;
+    }
+
+    public void setStance(int stance) {
+        this.stance = stance;
+    }
+
+    public void applyMovements(List<LifeMovementFragment> movement) {
+        for (LifeMovementFragment move : movement) {
+            if (move instanceof LifeMovement) {
+                if (move instanceof AbsoluteLifeMovement) {
+                    this.setPos(move.getPosition());
+                }
+                this.setStance(((LifeMovement) move).getNewstate());
+            }
+        }
+    }
+
+    // -- Persistence --
+
+    public void saveToDb() {
+        try (Connection con = DatabaseConnection.getConnection()) {
+            saveToDb(con);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to save pet");
+        }
+    }
+
+    /** 用指定连接保存：角色保存主事务内调用，消除第二写者（SQLite 单写者下避免 SQLITE_BUSY） */
+    public void saveToDb(Connection con) {
+        try (PreparedStatement ps = con.prepareStatement("INSERT INTO pets_json (petid, data) VALUES (?, ?) ON CONFLICT(petid) DO UPDATE SET data = excluded.data")) {
+            ps.setInt(1, petId);
+            ps.setString(2, toData().serialize());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to save pet");
+        }
+    }
+
+    public void deleteFromDb() {
+        try (Connection con = DatabaseConnection.getConnection()) {
+            PreparedStatement ps = con.prepareStatement("DELETE FROM pets_json where petid=?");
+            ps.setInt(1, petId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to delete pet");
+        }
+    }
+
+    PetData toData() {
+        PetData data = new PetData();
+        data.petId = petId;
+        data.itemId = itemId;
+        data.name = name;
+        data.level = level;
+        data.tameness = tameness;
+        data.fullness = fullness;
+        data.summoned = summoned;
+        data.flags = flags;
+        data.expiration = expiration;
+        data.alive = alive;
+        if (!ignoreItems.isEmpty()) {
+            data.ignoreItems = ignoreItems;
+        }
+        return data;
+    }
+
+    void applyData(PetData data) {
+        petId = data.petId;
+        itemId = data.itemId;
+        name = data.name;
+        level = data.level;
+        tameness = data.tameness;
+        fullness = data.fullness;
+        summoned = data.summoned;
+        flags = data.flags;
+        expiration = data.expiration;
+        alive = data.alive;
+        if (data.ignoreItems != null) {
+            ignoreItems = data.ignoreItems;
+        }
+    }
+
+    // -- TODO --
 
     public void gainTamenessFullness(Character owner, int incTameness, int incFullness, int type) {
         gainTamenessFullness(owner, incTameness, incFullness, type, false);
@@ -278,103 +442,34 @@ public class Pet {
         owner.getRemote().pet().petFoodResponse(owner, slot, enjoyed, owner.hasPetChatballoon(slot));
         saveToDb();
 
-        ItemSlot petz = owner.findPetItemSlot(uniqueid);
+        ItemSlot petz = owner.findPetItemSlot(petId);
         if (petz != null) {
             owner.forceUpdateItem(petz);
         }
     }
 
-    public void setLevel(byte level) {
-        this.level = level;
-    }
-
-    public int getFullness() {
-        return fullness;
-    }
-
-    public void setFullness(int fullness) {
-        this.fullness = fullness;
-    }
-
-    public Point getPos() {
-        return pos;
-    }
-
-    public void setPos(Point pos) {
-        this.pos = pos;
-    }
-
-    public int getStance() {
-        return stance;
-    }
-
-    public void setStance(int stance) {
-        this.stance = stance;
-    }
-
-    public boolean isSummoned() {
-        return summoned;
-    }
-
-    public long getExpiresAt() {
-        return expiresAt;
-    }
-
-    public void setExpiresAt(long expiresAt) {
-        this.expiresAt = expiresAt;
-    }
-
-    public boolean isActive() {
-        return active;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
-    }
-
-    public void setSummoned(boolean yes) {
-        this.summoned = yes;
-    }
-
-    public int getPetAttribute() {
-        return this.petAttribute;
-    }
-
-    private void setPetAttribute(int flag) {
-        this.petAttribute = flag;
-    }
-
-    public void addPetAttribute(Character owner, PetAttribute flag) {
-        this.petAttribute |= flag.getValue();
-        saveToDb();
-
-        ItemSlot petz = owner.findPetItemSlot(uniqueid);
-        if (petz != null) {
-            owner.forceUpdateItem(petz);
-        }
-    }
-
-    public void removePetAttribute(Character owner, PetAttribute flag) {
-        this.petAttribute &= 0xFFFFFFFF ^ flag.getValue();
-        saveToDb();
-
-        ItemSlot petz = owner.findPetItemSlot(uniqueid);
-        if (petz != null) {
-            owner.forceUpdateItem(petz);
-        }
-    }
 
     public Pair<Integer, Boolean> canConsume(int itemId) {
-        return ItemInformationProvider.getInstance().canPetConsume(this.itemId, itemId);
+        return ii.canPetConsume(this.itemId, itemId);
     }
 
-    public void updatePosition(List<LifeMovementFragment> movement) {
-        for (LifeMovementFragment move : movement) {
-            if (move instanceof LifeMovement) {
-                if (move instanceof AbsoluteLifeMovement) {
-                    this.setPos(move.getPosition());
-                }
-                this.setStance(((LifeMovement) move).getNewstate());
+
+
+    // -- Flags --
+    // FIXME: The whole usage is weird.
+
+    public int getFlags() {
+        return flags;
+    }
+
+    public void setFlag(PetFlag flag) {
+        this.flags |= flag.getValue();
+        saveToDb();
+
+        if (owner != null) {
+            ItemSlot petz = owner.getPlayer().findPetItemSlot(petId);
+            if (petz != null) {
+                owner.getPlayer().forceUpdateItem(petz);
             }
         }
     }

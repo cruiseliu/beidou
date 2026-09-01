@@ -48,7 +48,7 @@ public final class MovePetHandler extends AbstractMovementPacketHandler {
         if (slot == -1) {
             return;
         }
-        player.getPet(slot).updatePosition(res);
+        player.getPet(slot).applyMovements(res);
         player.getMap().broadcastMessage(player, PacketCreator.movePet(player.getId(), petId, slot, res), false);
     }
 }

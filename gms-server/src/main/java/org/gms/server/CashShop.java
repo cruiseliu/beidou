@@ -26,6 +26,7 @@ import net.jcip.annotations.GuardedBy;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
+import org.gms.client.pet.Pet;
 import org.gms.client.inventory.ItemFactory;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.ItemId;
@@ -164,6 +165,9 @@ public class CashShop {
                         .price(price)
                         .bonus(bonus)
                         .priority(priority)
+                        // FIXME: 官方语义 Period=0 = 无期限，此处改写为 90 天——在售永久宠物（wz permanent=1，
+                        // 如品克缤 SN 60001005）实际按 90 天出售。宠物发放链已支持真永久（pets.expires_at=-1
+                        // → 客户端 PERMANENT 哨兵），确认商品语义后应还原 period 原值。
                         .period(period == 0 ? 90 : period)
                         .maplePoint(maplePoint)
                         .meso(meso)
@@ -261,7 +265,14 @@ public class CashShop {
             List<ItemSlot> cashPackage = new ArrayList<>();
 
             for (int sn : packages.get(itemId)) {
-                cashPackage.add(getItem(sn).toItem(ItemConstants.isPet(getItem(sn).getItemId()) ? org.gms.client.pet.Pet.createPetData(getItem(sn).getItemId(), getItem(sn).petExpiresAt()) : -1));
+                ItemSlot item;
+                if (ItemConstants.isPet(getItem(sn).getItemId())) {
+                    Pet pet = Pet.create(getItem(sn).getItemId(), java.util.concurrent.TimeUnit.DAYS.toMillis(getItem(sn).getPeriod()));
+                    item = getItem(sn).toItem(pet.getPetId());
+                } else {
+                    item = getItem(sn).toItem(-1);
+                }
+                cashPackage.add(item);
             }
 
             return cashPackage;
@@ -422,7 +433,13 @@ public class CashShop {
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
                         ModifiedCashItemDO cItem = CashItemFactory.getItem(rs.getInt("sn"));
-                        ItemSlot item = cItem.toItem(ItemConstants.isPet(cItem.getItemId()) ? org.gms.client.pet.Pet.createPetData(cItem.getItemId(), cItem.petExpiresAt()) : -1);
+                        ItemSlot item;
+                        if (ItemConstants.isPet(cItem.getItemId())) {
+                            Pet pet = Pet.create(cItem.getItemId(), java.util.concurrent.TimeUnit.DAYS.toMillis(cItem.getPeriod()));
+                            item = cItem.toItem(pet.getPetId());
+                        } else {
+                            item = cItem.toItem(-1);
+                        }
                         Equip equip = null;
                         item.getCashInfo().setGiftFrom(rs.getString("from"));
                         int itemsToStore = 1;
@@ -535,7 +552,13 @@ public class CashShop {
                 removeFromInventory(cashShopSurprise);
             }
 
-            ItemSlot itemReward = cashItemReward.get().toItem(ItemConstants.isPet(cashItemReward.get().getItemId()) ? org.gms.client.pet.Pet.createPetData(cashItemReward.get().getItemId(), cashItemReward.get().petExpiresAt()) : -1);
+            ItemSlot itemReward;
+            if (ItemConstants.isPet(cashItemReward.get().getItemId())) {
+                Pet pet = Pet.create(cashItemReward.get().getItemId(), (int) (long) cashItemReward.get().getPeriod());
+                itemReward = cashItemReward.get().toItem(pet.getPetId());
+            } else {
+                itemReward = cashItemReward.get().toItem(-1);
+            }
             addToInventory(itemReward);
 
             return Optional.of(new CashShopSurpriseResult(cashShopSurprise, itemReward));

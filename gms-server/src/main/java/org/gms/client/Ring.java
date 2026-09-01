@@ -85,9 +85,6 @@ public class Ring implements Comparable<Ring> {
                     ps.executeBatch();
                 }
 
-                CashIdGenerator.freeCashId(ring.getRingId());
-                CashIdGenerator.freeCashId(ring.getPartnerRingId());
-
                 try (PreparedStatement ps = con.prepareStatement("UPDATE inventoryequipment SET ringid=-1 WHERE ringid=?")) {
                     ps.setInt(1, ring.getRingId());
                     ps.addBatch();

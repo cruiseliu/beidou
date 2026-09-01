@@ -56,7 +56,7 @@ public final class PetTranslator {
         writeIntLE(out, PacketStat.PET.getValue());
         Pet[] pets = chr.getSummonSlots();
         for (int i = 0; i < 3; i++) {
-            writeLongLE(out, pets[i] != null ? pets[i].getUniqueId() : 0L);
+            writeLongLE(out, pets[i] != null ? pets[i].getPetId() : 0L);
         }
         out.writeByte(0);
         return out;
@@ -122,7 +122,7 @@ public final class PetTranslator {
         out.writeByte(0);   // showpet 位（v83 固定 0）
         writeIntLE(out, pet.getItemId());
         writeString(out, pet.getName());
-        writeLongLE(out, pet.getUniqueId());
+        writeLongLE(out, pet.getPetId());
         Point pos = pet.getPos();
         out.writeShortLE((short) pos.getX());
         out.writeShortLE((short) pos.getY());

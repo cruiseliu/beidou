@@ -117,7 +117,15 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                             return;
                         }
 
-                        ItemSlot item = cItem.toItem(ItemConstants.isPet(cItem.getItemId()) ? org.gms.client.pet.Pet.createPetData(cItem.getItemId(), cItem.petExpiresAt()) : -1);
+                        ItemSlot item;
+                        if (ItemConstants.isPet(cItem.getItemId())) {
+                            Pet pet = Pet.create(cItem.getItemId(), java.util.concurrent.TimeUnit.DAYS.toMillis(cItem.getPeriod()));
+                            item = cItem.toItem(pet.getPetId());
+                        } else {
+                            item = cItem.toItem(-1);
+                        }
+
+                        // ItemSlot item = cItem.toItem(ItemConstants.isPet(cItem.getItemId()) ? Pet.createPetData(cItem.getItemId(), cItem.petExpiresAt()) : -1);
                         if (!ensureCashInventoryCapacity(c, cs, 1)) {
                             return;
                         }
@@ -304,9 +312,10 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                         cs.removeFromInventory(item);
                         Pet pet = null;
                         if (item.getPetId() > -1) {   // 宠物入包时登记（同 InventoryManipulator.addById）
-                            pet = Pet.loadFromDb(chr, item.getItemId(), item.getPetId());
+                            pet = Pet.load(item.getPetId());
                             if (pet != null) {
-                                chr.registerPet(pet);
+                                // chr.registerPet(pet);
+                                pet.bind(chr);
                             }
                         }
                         c.sendPacket(PacketCreator.takeFromCashInventory(item, pet));
@@ -474,7 +483,13 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                             return;
                         }
                         if (chr.registerNameChange(newName)) { //success
-                            ItemSlot item = cItem.toItem(ItemConstants.isPet(cItem.getItemId()) ? org.gms.client.pet.Pet.createPetData(cItem.getItemId(), cItem.petExpiresAt()) : -1);
+                            ItemSlot item;
+                            if (ItemConstants.isPet(cItem.getItemId())) {
+                                Pet pet = Pet.create(cItem.getItemId(), java.util.concurrent.TimeUnit.DAYS.toMillis(cItem.getPeriod()));
+                                item = cItem.toItem(pet.getPetId());
+                            } else {
+                                item = cItem.toItem(-1);
+                            }
                             c.sendPacket(PacketCreator.showNameChangeSuccess(item, c.getAccID()));
                             cs.gainCash(4, cItem, chr.getWorld());
                             cs.addToInventory(item);
@@ -506,7 +521,13 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                         } else if (!ensureCashInventoryCapacity(c, cs, 1)) {
                             return;
                         } else if (chr.registerWorldTransfer(newWorldSelection)) {
-                            ItemSlot item = cItem.toItem(ItemConstants.isPet(cItem.getItemId()) ? org.gms.client.pet.Pet.createPetData(cItem.getItemId(), cItem.petExpiresAt()) : -1);
+                            ItemSlot item;
+                            if (ItemConstants.isPet(cItem.getItemId())) {
+                                Pet pet = Pet.create(cItem.getItemId(), java.util.concurrent.TimeUnit.DAYS.toMillis(cItem.getPeriod()));
+                                item = cItem.toItem(pet.getPetId());
+                            } else {
+                                item = cItem.toItem(-1);
+                            }
                             c.sendPacket(PacketCreator.showWorldTransferSuccess(item, c.getAccID()));
                             cs.gainCash(4, cItem, chr.getWorld());
                             cs.addToInventory(item);

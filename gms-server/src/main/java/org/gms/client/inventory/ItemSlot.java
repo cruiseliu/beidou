@@ -198,6 +198,11 @@ public class ItemSlot implements Comparable<ItemSlot> {
         return item.getExpiration();
     }
 
+    /** 过渡：协议组装视图（宠物道具返回宠物到期，委托 Item.LEGACY_getExpiration） */
+    public long LEGACY_getExpiration() {
+        return item.LEGACY_getExpiration();
+    }
+
     public void setExpiration(long expire) {
         item.setExpiration(expire);
     }

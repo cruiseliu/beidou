@@ -8,14 +8,14 @@ import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.inventory.ItemConstants;
-import org.gms.dao.entity.PetignoresDO;
 import org.gms.manager.ServerManager;
 import org.gms.net.server.Server;
-import org.gms.server.TimerManager;
 import org.gms.service.InventoryService;
-import org.gms.util.CashIdGenerator;
+import org.gms.server.ItemInformationProvider;
 import org.gms.util.I18nUtil;
 import org.gms.util.Locks;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.Point;
 import java.sql.Connection;
@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -47,23 +46,20 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  * 重构时统一收敛（lastVisitedMaps 已在 Character 中改用自己的锁）。
  */
 public class CharacterPets {
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CharacterPets.class);
+    private static final Logger log = LoggerFactory.getLogger(CharacterPets.class);
     private static final InventoryService inventoryService = ServerManager.getApplicationContext().getBean(InventoryService.class);
     private static final long PET_LOOT_TELEPORT_CONTEXT_EXPIRE_NS = MILLISECONDS.toNanos(1500L);
 
     private final Character owner;
 
     /** 三个召唤槽位（沿用旧名 pets） */
-    private final Pet[] pets = new Pet[3];
+    private final Pet[] activePets = new Pet[3];
 
     /** 全量宠物：petid → Pet（角色负责管理；与物品只靠 petid 关联，互不存引用） */
     private final Map<Integer, Pet> allPets = new LinkedHashMap<>();
 
     /** 宠物模块锁：串行化槽位/过滤配置/拾取上下文 */
     private final Lock lock = new ReentrantLock(true);
-
-    /** 宠物ID → 屏蔽道具ID集（内存态，增量同步到 petignores 表） */
-    private final Map<Integer, Set<Integer>> excluded = new LinkedHashMap<>();
 
     /** 本角色已生效的屏蔽道具ID集（客户端加载列表用） */
     private final Set<Integer> excludedItems = new LinkedHashSet<>();
@@ -72,19 +68,16 @@ public class CharacterPets {
     private Point petLootTeleportBeforePos = null;
     private long petLootTeleportBeforePosTime = 0;
 
-    /** 最近到期调度任务（单个；adopt/release/到期时重排） */
-    private ScheduledFuture<?> expiryTask;
-
     CharacterPets(Character owner) {
         this.owner = owner;
     }
 
     // ── 全量管理 ──
 
-    /** 宠物登记（创建/加载时调用） */
-    void registerPet(Pet pet) {
+    /** 宠物登记（Pet 对象初始化时自行调用） */
+    public void registerPet(Pet pet) {
         try (var ignored = Locks.acquire(lock)) {
-            allPets.put(pet.getUniqueId(), pet);
+            allPets.put(pet.getPetId(), pet);
         }
     }
 
@@ -96,14 +89,28 @@ public class CharacterPets {
     }
 
     /** 宠物注销（物品删除时调用；同步移出召唤槽） */
-    void unregisterPet(int petid) {
+    public void unregisterPet(int petid) {
+        Pet pet;
         try (var ignored = Locks.acquire(lock)) {
-            allPets.remove(petid);
+            pet = allPets.remove(petid);
             for (int i = 0; i < 3; i++) {
-                if (pets[i] != null && pets[i].getUniqueId() == petid) {
-                    pets[i] = null;
+                if (activePets[i] != null && activePets[i].getPetId() == petid) {
+                    activePets[i] = null;
                 }
             }
+        }
+        // if (pet != null) {
+        //     pet.onDetach();   // 驻留注销事件：对象自清（到期任务等）
+        // }
+    }
+
+    public void unregisterPet(Pet pet) {
+        unregisterPet(pet.getPetId());
+    }
+
+    void dispose() {
+        for (Pet pet : allPets.values()) {
+            pet.dispose();
         }
     }
 
@@ -116,18 +123,16 @@ public class CharacterPets {
         if (getPetById(petId) != null) {
             return;
         }
-        Pet pet = Pet.loadFromDb(owner, itemId, petId);
+        Pet pet = Pet.load(petId);
         if (pet == null) {
             log.warn("宠物物品 petId={} 无对应 pets 行（脏数据），忽略登记 chr={}", petId, owner.getId());
             return;
         }
+        pet.bind(owner);
         registerPet(pet);
-        if (isExpired(pet)) {
-            applyExpirationPolicy(pet);
-        } else if (pet.isSummoned()) {
+        if (pet.isSummoned()) {
             if (getNoPets() < 3) {
                 addPet(pet);
-                loadPetExcludedItems(petId);
                 commitExcludedItems();
                 // adopt 异步于登录流程：饥饿注册随召唤恢复进行（替代 PlayerLoggedinHandler 的槽位遍历）
                 owner.getClient().getWorldServer().registerPetHunger(owner, owner.getPetIndex(pet));
@@ -136,7 +141,6 @@ public class CharacterPets {
                 pet.saveToDb();
             }
         }
-        rescheduleExpiry();
     }
 
     /**
@@ -152,25 +156,29 @@ public class CharacterPets {
             unEquipPet(pet, true);
         }
         unregisterPet(petId);
-        rescheduleExpiry();
     }
 
     // ── 生命周期：授予与孵化（doc/11 §5）──
 
     /**
-     * 发放宠物入本角色背包（脚本独立 API gainPet 的落点）：
+     * 发放宠物入本角色背包，持续时长取 wz info/life（脚本独立 API gainPet 的落点）：
      * 建 pets 行 → 物品带 petid 入包（enter 钩子 adopt 登记）→ 入包失败补偿删行。
      */
-    public boolean grantPet(int itemId, long expiresAt) {
-        int petId = Pet.createPetData(itemId, expiresAt);
-        if (petId == -1) {
+    public boolean grantPet(int itemId) {
+        return grant(Pet.create(itemId));
+    }
+
+    /** 发放指定持续时长（毫秒，<=0 = 永久）的宠物 */
+    public boolean grantPet(int itemId, long durationMs) {
+        return grant(Pet.create(itemId, durationMs));
+    }
+
+    private boolean grant(Pet pet) {
+        int petId = pet.getPetId();
+        if (!InventoryManipulator.REFACTOR6_addById(owner.getClient(), pet.getItemId(), (short) 1, null, petId, -1)) {
+            ServerManager.getApplicationContext().getBean(InventoryService.class).deletePetData(petId);
             return false;
         }
-        if (!InventoryManipulator.REFACTOR6_addById(owner.getClient(), itemId, (short) 1, null, petId, -1)) {
-            Pet.deletePetRow(petId);
-            return false;
-        }
-        rescheduleExpiry();
         return true;
     }
 
@@ -191,90 +199,29 @@ public class CharacterPets {
         if (!InventoryManipulator.checkSpace(c, newItemId, 1, "")) {
             return false;
         }
+        // 名字未被玩家改过则随形态重置（蛋名"进化龙"→ 新形态默认名；官方语义）
+        String defaultOld = ItemInformationProvider.getInstance().getName(pet.getItemId());
+        if (pet.getName() != null && pet.getName().equals(defaultOld)) {
+            pet.setName(ItemInformationProvider.getInstance().getName(newItemId));
+        }
+        pet.evolveTo(newItemId);   // 物种刷新并落库（名字/物种一次写库；cached 对象的 itemId 必须同步，否则每次召唤都重复孵化）
+        // 驻留交由钩子收敛：remove 排队 Leave（release，顺带落库新名），add 侧自愈装载并登记，
+        // 随后的 Enter(adopt) 幂等 no-op——net 线程不做手工登记，避免与脚本队列竞态
         InventoryManipulator.removeFromSlot(c, InventoryType.CASH, (short) host.getPosition(), (short) 1, false);
         if (!InventoryManipulator.REFACTOR6_addById(c, newItemId, (short) 1, null, petId, -1)) {
             // 理论上 checkSpace 后不会到这；兜底回插旧形态，避免宿主悬空
             InventoryManipulator.REFACTOR6_addById(c, pet.getItemId(), (short) 1, null, petId, -1);
             return false;
         }
-        rescheduleExpiry();
         return true;
-    }
-
-    // ── 生命周期：到期（doc/11 §6）──
-
-    /** 宠物到期判定：expires_at > 0 且已过（-1 = 永久） */
-    private static boolean isExpired(Pet pet) {
-        return pet.isActive() && pet.getExpiresAt() > 0 && pet.getExpiresAt() <= Server.getInstance().getCurrentTime();
-    }
-
-    /**
-     * 到期策略：默认 = 失活（下阵 + active=0，宿主物品与 pets 行原样保留）；
-     * 符文蜗牛例外 = 永久销毁（下阵 + 删行 + 移除宿主物品）。
-     * FIXME [pet] 蜗牛官方语义为"未召唤时计时暂停"（expires_at 改召唤中累积），本期墙钟直算。
-     */
-    private void applyExpirationPolicy(Pet pet) {
-        if (getPetIndex(pet) > -1) {
-            unEquipPet(pet, true);
-        }
-        if (pet.getItemId() == ItemId.PET_SNAIL) {
-            // 蜗牛销毁：leave 钩子回灌 releasePet 时对象已注销，幂等收敛
-            Pet.deleteFromDb(owner, pet.getUniqueId());
-            unregisterPet(pet.getUniqueId());
-            ItemSlot host = owner.findPetItemSlot(pet.getUniqueId());
-            if (host != null) {
-                InventoryManipulator.removeFromSlot(owner.getClient(), InventoryType.CASH, (short) host.getPosition(), (short) 1, false);
-            }
-            log.info("试用宠物到期销毁 petId={} chr={}", pet.getUniqueId(), owner.getId());
-        } else {
-            pet.setActive(false);
-            pet.saveToDb();
-            log.info("宠物到期失活 petId={} chr={}", pet.getUniqueId(), owner.getId());
-        }
-    }
-
-    /**
-     * 到期调度：单个"本角色最近的将来到期"任务（adopt/release/到期时重排）。
-     * 离线到期由 adopt 补算覆盖，无需跨会话定时器。
-     */
-    private void rescheduleExpiry() {
-        if (expiryTask != null) {
-            expiryTask.cancel(false);
-            expiryTask = null;
-        }
-        long now = Server.getInstance().getCurrentTime();
-        long nearest = Long.MAX_VALUE;
-        synchronized (this) {
-            for (Pet pet : allPets.values()) {
-                if (pet.isActive() && pet.getExpiresAt() > now && pet.getExpiresAt() < nearest) {
-                    nearest = pet.getExpiresAt();
-                }
-            }
-        }
-        if (nearest < Long.MAX_VALUE) {
-            expiryTask = TimerManager.getInstance().register(this::runExpiryCheck, nearest - now + 500);
-        }
-    }
-
-    private void runExpiryCheck() {
-        boolean changed = false;
-        for (Pet pet : List.copyOf(allPets.values())) {
-            if (isExpired(pet)) {
-                applyExpirationPolicy(pet);
-                changed = true;
-            }
-        }
-        if (changed) {
-            rescheduleExpiry();
-        }
     }
 
     // ── 槽位管理 ──
     void addPet(Pet pet) {
         try (var ignored = Locks.acquire(lock)) {
             for (int i = 0; i < 3; i++) {
-                if (pets[i] == null) {
-                    pets[i] = pet;
+                if (activePets[i] == null) {
+                    activePets[i] = pet;
                     return;
                 }
             }
@@ -285,9 +232,9 @@ public class CharacterPets {
         try (var ignored = Locks.acquire(lock)) {
             int slot = -1;
             for (int i = 0; i < 3; i++) {
-                if (pets[i] != null) {
-                    if (pets[i].getUniqueId() == pet.getUniqueId()) {
-                        pets[i] = null;
+                if (activePets[i] != null) {
+                    if (activePets[i].getPetId() == pet.getPetId()) {
+                        activePets[i] = null;
                         slot = i;
                         break;
                     }
@@ -297,9 +244,9 @@ public class CharacterPets {
                 if (slot > -1) {
                     for (int i = slot; i < 3; i++) {
                         if (i != 2) {
-                            pets[i] = pets[i + 1];
+                            activePets[i] = activePets[i + 1];
                         } else {
-                            pets[i] = null;
+                            activePets[i] = null;
                         }
                     }
                 }
@@ -309,10 +256,10 @@ public class CharacterPets {
 
     void shiftPetsRight() {
         try (var ignored = Locks.acquire(lock)) {
-            if (pets[2] == null) {
-                pets[2] = pets[1];
-                pets[1] = pets[0];
-                pets[0] = null;
+            if (activePets[2] == null) {
+                activePets[2] = activePets[1];
+                activePets[1] = activePets[0];
+                activePets[0] = null;
             }
         }
     }
@@ -321,7 +268,7 @@ public class CharacterPets {
         try (var ignored = Locks.acquire(lock)) {
             int ret = 0;
             for (int i = 0; i < 3; i++) {
-                if (pets[i] != null) {
+                if (activePets[i] != null) {
                     ret++;
                 }
             }
@@ -329,9 +276,9 @@ public class CharacterPets {
         }
     }
 
-    Pet[] getPets() {
+    Pet[] getActivePets() {
         try (var ignored = Locks.acquire(lock)) {
-            return Arrays.copyOf(pets, pets.length);
+            return Arrays.copyOf(activePets, activePets.length);
         }
     }
 
@@ -340,15 +287,15 @@ public class CharacterPets {
             return null;
         }
         try (var ignored = Locks.acquire(lock)) {
-            return pets[index];
+            return activePets[index];
         }
     }
 
     byte getPetIndex(int petId) {
         try (var ignored = Locks.acquire(lock)) {
             for (byte i = 0; i < 3; i++) {
-                if (pets[i] != null) {
-                    if (pets[i].getUniqueId() == petId) {
+                if (activePets[i] != null) {
+                    if (activePets[i].getPetId() == petId) {
                         return i;
                     }
                 }
@@ -357,11 +304,11 @@ public class CharacterPets {
         }
     }
 
-    byte getPetIndex(Pet pet) {
+    public byte getPetIndex(Pet pet) {
         try (var ignored = Locks.acquire(lock)) {
             for (byte i = 0; i < 3; i++) {
-                if (pets[i] != null) {
-                    if (pets[i].getUniqueId() == pet.getUniqueId()) {
+                if (activePets[i] != null) {
+                    if (activePets[i].getPetId() == pet.getPetId()) {
                         return i;
                     }
                 }
@@ -417,7 +364,7 @@ public class CharacterPets {
 
     // ── 生命周期 ──
 
-    void unEquipPet(Pet pet, boolean shift_left) {
+    public void unEquipPet(Pet pet, boolean shift_left) {
         unEquipPet(pet, shift_left, false);
     }
 
@@ -454,80 +401,22 @@ public class CharacterPets {
         } else {
             pet.setFullness(newFullness);
             pet.saveToDb();
-            ItemSlot petz = owner.findPetItemSlot(pet.getUniqueId());
+            ItemSlot petz = owner.findPetItemSlot(pet.getPetId());
             if (petz != null) {
                 owner.forceUpdateItem(petz);
             }
         }
     }
 
-    // ── 过滤配置（petignores 内存态） ──
+    // ── 过滤配置（数据随 Pet 本体，Pet.setExcludes；此处只做驻留侧汇总与下发） ──
 
-    void resetExcluded(int petId) {
-        try (var ignored = Locks.acquire(lock)) {
-            Set<Integer> petExclude = excluded.get(petId);
-
-            if (petExclude != null) {
-                petExclude.clear();
-            } else {
-                excluded.put(petId, new LinkedHashSet<>());
-            }
-        }
-    }
-
-    void addExcluded(int petId, int x) {
-        try (var ignored = Locks.acquire(lock)) {
-            excluded.get(petId).add(x);
-        }
-    }
-
-    /**
-     * 统一从数据库加载单只宠物的过滤配置，确保召唤时内存状态与数据库保持一致。
-     */
-    void loadPetExcludedItems(int petId) {
-        List<Integer> excludedItemIds = inventoryService.getPetIgnoreByPetId(petId).stream()
-                .map(PetignoresDO::getItemid)
-                .filter(Objects::nonNull)
-                .toList();
-        replacePetExcludedItemsInMemory(petId, excludedItemIds);
-    }
-
-    /** 客户端提交过滤设置时，直接按差异增量更新数据库，避免角色保存时再做危险的全量删写。 */
+    /** 客户端提交过滤设置：写入 Pet 本体（立即落库）后重发本角色的过滤列表 */
     void updatePetExcludedItems(int petId, Set<Integer> newExcludedItems) {
-        Set<Integer> currentExcludedItems = getExcludedForPet(petId);
-        Set<Integer> normalizedExcludedItems = new LinkedHashSet<>(newExcludedItems);
-
-        Set<Integer> toAdd = new LinkedHashSet<>(normalizedExcludedItems);
-        toAdd.removeAll(currentExcludedItems);
-
-        Set<Integer> toRemove = new LinkedHashSet<>(currentExcludedItems);
-        toRemove.removeAll(normalizedExcludedItems);
-
-        inventoryService.addPetIgnoreItems(petId, toAdd);
-        inventoryService.removePetIgnoreItems(petId, toRemove);
-        replacePetExcludedItemsInMemory(petId, normalizedExcludedItems);
-    }
-
-    /** 宠物被永久删除时同步清理数据库和角色内存中的过滤配置，避免残留脏数据。 */
-    void deletePetExcludedData(int petId) {
-        inventoryService.deletePetData(petId);
-        removeExcluded(petId);
-    }
-
-    Set<Integer> getExcludedForPet(int petId) {
-        try (var ignored = Locks.acquire(lock)) {
-            Set<Integer> petExcludedItems = excluded.get(petId);
-            if (petExcludedItems == null) {
-                return Collections.emptySet();
-            }
-            return Collections.unmodifiableSet(new LinkedHashSet<>(petExcludedItems));
+        Pet pet = getPetById(petId);
+        if (pet != null) {
+            pet.setIgnoreItems(new ArrayList<>(newExcludedItems));
         }
-    }
-
-    Map<Integer, Set<Integer>> getExcluded() {
-        try (var ignored = Locks.acquire(lock)) {
-            return Collections.unmodifiableMap(new LinkedHashMap<>(excluded));
-        }
+        commitExcludedItems();
     }
 
     Set<Integer> getExcludedItems() {
@@ -537,61 +426,35 @@ public class CharacterPets {
     }
 
     void commitExcludedItems() {
-        Map<Integer, Set<Integer>> petExcluded = getExcluded();
-
         try (var ignored = Locks.acquire(lock)) {
             excludedItems.clear();
         }
 
-        for (Map.Entry<Integer, Set<Integer>> pe : petExcluded.entrySet()) {
-            byte petIndex = getPetIndex(pe.getKey());
+        for (Pet pet : activePets) {
+            if (pet == null || pet.getIgnoreItems().isEmpty()) {
+                continue;
+            }
+            byte petIndex = getPetIndex(pet);
             if (petIndex < 0) {
                 continue;
             }
-
-            Set<Integer> exclItems = pe.getValue();
-            if (!exclItems.isEmpty()) {
-                owner.getRemote().pet().loadExclusionList(owner, pe.getKey(), petIndex, new ArrayList<>(exclItems));
-
-                try (var ignored = Locks.acquire(lock)) {
-                    excludedItems.addAll(exclItems);
-                }
+            owner.getRemote().pet().loadExclusionList(owner, pet.getPetId(), petIndex, new ArrayList<>(pet.getIgnoreItems()));
+            try (var ignored = Locks.acquire(lock)) {
+                excludedItems.addAll(pet.getIgnoreItems());
             }
         }
     }
 
     void exportExcludedItems(Client c) {
-        Map<Integer, Set<Integer>> petExcluded = getExcluded();
-        for (Map.Entry<Integer, Set<Integer>> pe : petExcluded.entrySet()) {
-            byte petIndex = getPetIndex(pe.getKey());
+        for (Pet pet : activePets) {
+            if (pet == null || pet.getIgnoreItems().isEmpty()) {
+                continue;
+            }
+            byte petIndex = getPetIndex(pet);
             if (petIndex < 0) {
                 continue;
             }
-
-            Set<Integer> exclItems = pe.getValue();
-            if (!exclItems.isEmpty()) {
-                c.getRemote().pet().loadExclusionList(owner, pe.getKey(), petIndex, new ArrayList<>(exclItems));
-            }
-        }
-    }
-
-    private void replacePetExcludedItemsInMemory(int petId, Collection<Integer> itemIds) {
-        try (var ignored = Locks.acquire(lock)) {
-            excluded.remove(petId);
-            if (itemIds != null && !itemIds.isEmpty()) {
-                LinkedHashSet<Integer> normalizedItems = itemIds.stream()
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toCollection(LinkedHashSet::new));
-                if (!normalizedItems.isEmpty()) {
-                    excluded.put(petId, normalizedItems);
-                }
-            }
-        }
-    }
-
-    private void removeExcluded(int petId) {
-        try (var ignored = Locks.acquire(lock)) {
-            excluded.remove(petId);
+            c.getRemote().pet().loadExclusionList(owner, pet.getPetId(), petIndex, new ArrayList<>(pet.getIgnoreItems()));
         }
     }
 
@@ -634,5 +497,29 @@ public class CharacterPets {
         for (Pet pet : petList) {
             pet.saveToDb(con);
         }
+    }
+
+    public void onPetExpire(Pet pet) {
+        int index = getPetIndex(pet);
+        if (index >= 0) {
+            unEquipPet(pet, true);
+        }
+        // 客户端不会自行按本地时钟判过期（过期显示 = wire 携带 EXPIRED 哨兵），到期必须主动刷新物品体
+        ItemSlot host = owner.findPetItemSlot(pet.getPetId());
+        if (host != null) {
+            owner.forceUpdateItem(host);
+        }
+    }
+
+    public void onPetDestroy(Pet pet) {
+        ItemSlot host = owner.findPetItemSlot(pet.getPetId());
+        if (host != null) {
+            InventoryManipulator.removeFromSlot(owner.getClient(), InventoryType.CASH, (short) host.getPosition(), (short) 1, false);
+        }
+        unregisterPet(pet);
+    }
+
+    public Character getPlayer() {
+        return owner;
     }
 }

@@ -61,7 +61,7 @@ public class PetSkillAction extends AbstractQuestAction {
 
     @Override
     public void run(Character chr, Integer extSelection) {
-        ItemSlot petItem = chr.findPetItemSlot(chr.getPet(0).getUniqueId());
+        ItemSlot petItem = chr.findPetItemSlot(chr.getPet(0).getPetId());
         if (flag == 128) {
             petItem.addFlag(ItemFlag.PET_COME);
         }

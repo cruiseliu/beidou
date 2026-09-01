@@ -256,6 +256,7 @@ public class CommandsExecutor {
         addCommand("gmshop", 2, GmShopCommand.class);
         addCommand("heal", 2, HealCommand.class);
         addCommand("item", 2, ItemCommand.class);
+        addCommand("pet", 2, PetCommand.class);
         addCommand("drop", 2, ItemDropCommand.class);
         addCommand("level", 2, LevelCommand.class);
         addCommand("levelpro", 2, LevelProCommand.class);

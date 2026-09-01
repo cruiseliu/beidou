@@ -537,7 +537,7 @@ public class AbstractPlayerInteraction {
             getPlayer().message("Pet could not be evolved...");
             return false;
         }
-        return getPlayer().getPets().evolvePet(target.getUniqueId(), afterId);
+        return getPlayer().getPets().evolvePet(target.getPetId(), afterId);
     }
 
     /**
@@ -546,8 +546,7 @@ public class AbstractPlayerInteraction {
      * @param days 有效天数（&lt;=0 = 永久）
      */
     public boolean gainPet(int id, int days) {
-        long expiresAt = days > 0 ? org.gms.net.server.Server.getInstance().getCurrentTime() + java.util.concurrent.TimeUnit.DAYS.toMillis(days) : -1;
-        return getPlayer().getPets().grantPet(id, expiresAt);
+        return getPlayer().getPets().grantPet(id, DAYS.toMillis(days));
     }
 
     public void gainItem(int id, short quantity) {

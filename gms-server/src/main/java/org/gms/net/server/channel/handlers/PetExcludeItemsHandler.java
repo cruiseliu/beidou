@@ -65,8 +65,7 @@ public final class PetExcludeItemsHandler extends AbstractPacketHandler {
             }
         }
 
-        // 客户端会提交完整过滤列表，这里先确保旧配置已加载，再按差异增量更新数据库和内存。
-        chr.loadPetExcludedItems(petId);
+        // 客户端提交完整过滤列表：整体写入 Pet 本体（立即落库），再重发本角色的过滤列表
         chr.updatePetExcludedItems(petId, newExcludedItems);
         chr.commitExcludedItems();
     }

@@ -10,14 +10,12 @@ import org.gms.client.inventory.*;
 import org.gms.dao.entity.CharactersDO;
 import org.gms.dao.entity.InventoryequipmentDO;
 import org.gms.dao.entity.InventoryitemsDO;
-import org.gms.dao.entity.PetignoresDO;
 import org.gms.dao.mapper.*;
 import org.gms.exception.BizException;
 import org.gms.model.dto.*;
 import org.gms.net.server.Server;
 import org.gms.net.server.world.World;
 import org.gms.server.ItemInformationProvider;
-import org.gms.util.CashIdGenerator;
 import org.gms.util.I18nUtil;
 import org.gms.util.PacketCreator;
 import org.gms.util.RequireUtil;
@@ -31,7 +29,6 @@ import static com.mybatisflex.core.query.QueryMethods.distinct;
 import static org.gms.dao.entity.table.CharactersDOTableDef.CHARACTERS_D_O;
 import static org.gms.dao.entity.table.InventoryequipmentDOTableDef.INVENTORYEQUIPMENT_D_O;
 import static org.gms.dao.entity.table.InventoryitemsDOTableDef.INVENTORYITEMS_D_O;
-import static org.gms.dao.entity.table.PetignoresDOTableDef.PETIGNORES_D_O;
 
 @Transactional
 @Service
@@ -40,7 +37,6 @@ public class InventoryService {
     private final InventoryitemsMapper inventoryitemsMapper;
     private final InventoryequipmentMapper inventoryequipmentMapper;
     private final RingsMapper ringsMapper;
-    private final PetignoresMapper petignoresMapper;
 
     public List<InventoryTypeRtnDTO> getInventoryTypeList() {
         List<InventoryTypeRtnDTO> list = new ArrayList<>();
@@ -136,7 +132,6 @@ public class InventoryService {
             } catch (java.sql.SQLException e) {
                 throw new IllegalStateException("批量删除 pets_json 行失败", e);
             }
-            petIds.forEach(CashIdGenerator::freeCashId);
         }
 
         QueryWrapper equipmentQueryWrapper = QueryWrapper.create().where(INVENTORYEQUIPMENT_D_O.INVENTORYITEMID.in(inventoryItemIds));
@@ -148,7 +143,6 @@ public class InventoryService {
                 .toList();
         if (!ringIds.isEmpty()) {
             ringsMapper.deleteBatchByIds(ringIds);
-            ringIds.forEach(CashIdGenerator::freeCashId);
         }
         inventoryequipmentMapper.deleteByQuery(equipmentQueryWrapper);
         inventoryitemsMapper.deleteByQuery(itemQueryWrapper);
@@ -385,63 +379,25 @@ public class InventoryService {
         }
     }
 
-    public List<PetignoresDO> getPetIgnoreByPetId(Integer petId) {
-        return petignoresMapper.selectListByQuery(QueryWrapper.create().where(PETIGNORES_D_O.PETID.eq(petId)));
-    }
-
         /**
-     * 添加宠物忽略物品列表
+     * 删除宠物相关数据
+     * 包括宠物的忽略物品列表和宠物本身的信息
      *
      * @param petId 宠物 ID
-     * @param itemIds 物品 ID 集合，将添加到宠物的忽略列表中
      */
-    public void addPetIgnoreItems(Integer petId, Collection<Integer> itemIds) {
-        if (petId == null || itemIds == null || itemIds.isEmpty()) {
+    // FIXME: [refactor] why the hell is this inventory?
+    public void deletePetData(Integer petId) {
+        if (petId == null) {
             return;
         }
-        petignoresMapper.insertBatch(itemIds.stream()
-                .map(itemId -> PetignoresDO.builder()
-                    .petid(petId)
-                    .itemid(itemId)
-                    .build())
-                .collect(Collectors.toList()));
+        try (java.sql.Connection con = org.gms.util.DatabaseConnection.getConnection();
+                java.sql.PreparedStatement ps = con.prepareStatement("DELETE FROM pets_json WHERE petid = ?")) {
+            ps.setInt(1, petId);
+            ps.executeUpdate();
+        } catch (java.sql.SQLException e) {
+            throw new IllegalStateException("删除 pets_json 行失败: " + petId, e);
+        }
     }
-
-        /**
-         * 移除宠物忽略物品列表中的物品
-         *
-         * @param petId 宠物 ID
-         * @param itemIds 物品 ID 集合，将从宠物的忽略列表中移除
-         */
-        public void removePetIgnoreItems(Integer petId, Collection<Integer> itemIds) {
-            if (petId == null || itemIds == null || itemIds.isEmpty()) {
-                return;
-            }
-            petignoresMapper.deleteByQuery(QueryWrapper.create()
-                    .where(PETIGNORES_D_O.PETID.eq(petId))
-                    .and(PETIGNORES_D_O.ITEMID.in(itemIds)));
-        }
-
-        /**
-         * 删除宠物相关数据
-         * 包括宠物的忽略物品列表和宠物本身的信息
-         *
-         * @param petId 宠物 ID
-         */
-        public void deletePetData(Integer petId) {
-            if (petId == null) {
-                return;
-            }
-            petignoresMapper.deleteByQuery(QueryWrapper.create().where(PETIGNORES_D_O.PETID.eq(petId)));
-            try (java.sql.Connection con = org.gms.util.DatabaseConnection.getConnection();
-                 java.sql.PreparedStatement ps = con.prepareStatement("DELETE FROM pets_json WHERE petid = ?")) {
-                ps.setInt(1, petId);
-                ps.executeUpdate();
-            } catch (java.sql.SQLException e) {
-                throw new IllegalStateException("删除 pets_json 行失败: " + petId, e);
-            }
-        }
-
 
     private void modifyInventoryCheck(InventorySearchRtnDTO data) {
         RequireUtil.requireNotNull(data.getItemId(), I18nUtil.getExceptionMessage("PARAMETER_SHOULD_NOT_EMPTY", "itemId"));

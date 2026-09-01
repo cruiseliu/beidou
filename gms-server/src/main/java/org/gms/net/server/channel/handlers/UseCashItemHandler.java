@@ -415,7 +415,7 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
             pet.setName(newName);
             pet.saveToDb();
 
-            ItemSlot item = player.findPetItemSlot(pet.getUniqueId());
+            ItemSlot item = player.findPetItemSlot(pet.getPetId());
             if (item != null) {
                 player.forceUpdateItem(item);
             }

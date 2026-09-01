@@ -140,7 +140,12 @@ public class InventoryManipulator {
                     c.sendPacket(PacketCreator.getShowInventoryFull());
                     return false;
                 }
-                c.sendPacket(PacketCreator.modifyInventory(true, Collections.singletonList(new ModifyInventory(0, nItem).withPet(chr.getPetById(petid)))));
+                // 组包需要 Pet 数据；钩子派发是异步的，可能此刻已被 Leave 释放——load 缓存自愈
+                Pet packetPet = chr.getPetById(petid);
+                if (packetPet == null) {
+                    packetPet = Pet.load(petid);
+                }
+                c.sendPacket(PacketCreator.modifyInventory(true, Collections.singletonList(new ModifyInventory(0, nItem).withPet(packetPet))));
                 if (InventoryManipulator.isSandboxItem(nItem)) {
                     chr.setHasSandboxItem();
                 }

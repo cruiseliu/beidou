@@ -129,11 +129,16 @@ public class PacketCreator {
     private final static long PERMANENT = 150841440000000000L; // 00 C0 9B 90 7D E5 17 02
 
     public static long getTime(long utcTimestamp) {
-        if (utcTimestamp < 0 && utcTimestamp >= -3) {
+        // TODO(debug, 临时): -8 = PERMANENT+12h、-9 = DEFAULT_TIME，配合 @pet debug3/4 到期显示探测，测完移除
+        if (utcTimestamp < 0 && utcTimestamp >= -9) {
             if (utcTimestamp == -1) {
                 return DEFAULT_TIME;    //high number ll
             } else if (utcTimestamp == -2) {
                 return ZERO_TIME;
+            } else if (utcTimestamp == -8) {
+                return PERMANENT + 432000000000L;   // PERMANENT + 12h（2078-12-31T12:00）
+            } else if (utcTimestamp == -9) {
+                return DEFAULT_TIME;
             } else {
                 return PERMANENT;
             }
@@ -185,7 +190,7 @@ public class PacketCreator {
             Pet pet = chr.getPet(i);
             if (pet != null) //Checked GMS.. and your pets stay when going into the cash shop.
             {
-                p.writeLong(pet.getUniqueId());
+                p.writeLong(pet.getPetId());
             } else {
                 p.writeLong(0);
             }
@@ -421,14 +426,14 @@ public class PacketCreator {
         if (isCash) {
             p.writeLong(isPet ? item.getPetId() : isRing ? equip.getRingId() : item.getCashInfo() != null ? item.getCashInfo().getCashId() : 0);
         }
-        addExpirationTime(p, item.getExpiration());
+        addExpirationTime(p, item.LEGACY_getExpiration());
         if (isPet) {
             p.writeFixedString(StringUtil.getRightPaddedStr(pet.getName(), '\0', 13));
             p.writeByte(pet.getLevel());
             p.writeShort(pet.getTameness());
             p.writeByte(pet.getFullness());
-            addExpirationTime(p, item.getExpiration());
-            p.writeShort(pet.getPetAttribute()); // PetAttribute noticed by lrenex & Spoon
+            addExpirationTime(p, item.LEGACY_getExpiration());
+            p.writeShort(pet.getFlags()); // PetAttribute noticed by lrenex & Spoon
             p.writeShort(0); // PetSkill
             p.writeInt(18000); // RemainLife
             p.writeShort(0); // attribute
@@ -1811,7 +1816,7 @@ public class PacketCreator {
         p.writeInt(giveOwnership ? 0 : -1);
 
         if (drop.getMeso() == 0) {
-            addExpirationTime(p, drop.getItem().getExpiration());
+            addExpirationTime(p, drop.getItem().LEGACY_getExpiration());
         }
         p.writeBool(!drop.isPlayerDrop());
         return p;
@@ -1838,7 +1843,7 @@ public class PacketCreator {
             p.writeShort(0);//Fh?
         }
         if (drop.getMeso() == 0) {
-            addExpirationTime(p, drop.getItem().getExpiration());
+            addExpirationTime(p, drop.getItem().LEGACY_getExpiration());
         }
         p.writeByte(drop.isPlayerDrop() ? 0 : 1); //pet EQP pickup
         return p;
@@ -4446,7 +4451,7 @@ public class PacketCreator {
 
         p.writeInt(pet.getItemId());
         p.writeString(pet.getName());
-        p.writeLong(pet.getUniqueId());
+        p.writeLong(pet.getPetId());
         p.writePos(pet.getPos());
         p.writeByte(pet.getStance());
         p.writeShort(fh);
@@ -4566,7 +4571,7 @@ public class PacketCreator {
         Pet[] pets = chr.getSummonSlots();
         for (int i = 0; i < 3; i++) {
             if (pets[i] != null) {
-                p.writeLong(pets[i].getUniqueId());
+                p.writeLong(pets[i].getPetId());
             } else {
                 p.writeLong(0);
             }
@@ -6986,7 +6991,7 @@ public class PacketCreator {
             p.writeFixedString(giftMessage, 73);
             return;
         }
-        addExpirationTime(p, item.getExpiration());
+        addExpirationTime(p, item.LEGACY_getExpiration());
         p.writeLong(0);
     }
 

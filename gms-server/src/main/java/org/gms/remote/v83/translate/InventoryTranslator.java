@@ -98,11 +98,21 @@ public final class InventoryTranslator implements Translator {
             if (pet == null) {
                 throw new IllegalArgumentException("宠物物品缺 Pet 对象: " + itemId);
             }
+            // 宠物到期归 Pet（item.expiration 恒 -1）；通用槽与宠物体共用本记录的 expiration 字段。
+            // 客户端语义（实测）：wire ≥ EXPIRED 显示"过期"，PERMANENT 显示"永久"，其余显示日期。
+            long petExpiration;
+            if (!pet.isAlive()) {
+                petExpiration = Filetimes.EXPIRED;              // 失活 → "过期"
+            } else if (pet.getExpiration() == -1) {
+                petExpiration = Filetimes.PERMANENT;            // 永久 → "永久"
+            } else {
+                petExpiration = Filetimes.toWire(pet.getExpiration());
+            }
             return new InventoryOperationPacket.ItemBody.Pet(
-                    itemId, cash, cash ? item.getPetId() : 0, expiration,
+                    itemId, cash, cash ? item.getPetId() : 0, petExpiration,
                     pet.getName().getBytes(charset),
                     (byte) pet.getLevel(), (short) pet.getTameness(), (byte) pet.getFullness(),
-                    (short) pet.getPetAttribute());
+                    (short) pet.getFlags());
         }
         long serial = 0;
         if (cash && item.getCashInfo() != null) {

@@ -2664,6 +2664,7 @@ public class Character extends AbstractAnimatedMapObject {
 
                 // thanks Shavit for noticing a memory leak with inventories holding owner object
                 inventory.disposeAll();
+                pets.dispose();
             }, MINUTES.toMillis(5));
         }
     }
@@ -2850,11 +2851,6 @@ public class Character extends AbstractAnimatedMapObject {
     public void registerPet(Pet pet) { pets.registerPet(pet); }
     public void unregisterPet(int petid) { pets.unregisterPet(petid); }
 
-    /** 宠物物品进入背包（JS hook onEnterInventory 落点）：登记驻留并恢复召唤 */
-
-
-
-
     /** 按 petid 在 CASH 背包查找宿主物品（宠物→物品方向；未找到返回 null） */
     public ItemSlot findPetItemSlot(int petid) {
         for (ItemSlot item : getInventory(InventoryType.CASH).list()) {
@@ -2864,22 +2860,16 @@ public class Character extends AbstractAnimatedMapObject {
         }
         return null;
     }
-    public void resetExcluded(int petId) { pets.resetExcluded(petId); }
-    public void addExcluded(int petId, int x) { pets.addExcluded(petId, x); }
-    public void loadPetExcludedItems(int petId) { pets.loadPetExcludedItems(petId); }
     public void updatePetExcludedItems(int petId, Set<Integer> newExcludedItems) { pets.updatePetExcludedItems(petId, newExcludedItems); }
-    public void deletePetExcludedData(int petId) { pets.deletePetExcludedData(petId); }
-    public Set<Integer> getExcludedForPet(int petId) { return pets.getExcludedForPet(petId); }
     public void commitExcludedItems() { pets.commitExcludedItems(); }
     public void exportExcludedItems(Client c) { pets.exportExcludedItems(c); }
-    public Map<Integer, Set<Integer>> getExcluded() { return pets.getExcluded(); }
     public Set<Integer> getExcludedItems() { return pets.getExcludedItems(); }
     public int getNoPets() { return pets.getNoPets(); }
     /** 宠物组件（绑定角色的宠物状态：驻留/召唤槽/到期计时器；脚本与业务直达） */
     public org.gms.client.character.CharacterPets getPets() { return pets; }
 
     /** 召唤槽位快照（0..2；协议组装/遍历用） */
-    public Pet[] getSummonSlots() { return pets.getPets(); }
+    public Pet[] getSummonSlots() { return pets.getActivePets(); }
     public Pet getPet(int index) { return pets.getPet(index); }
     public byte getPetIndex(int petId) { return pets.getPetIndex(petId); }
     public byte getPetIndex(Pet pet) { return pets.getPetIndex(pet); }

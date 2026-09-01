@@ -1,84 +1,32 @@
-/*
-    This file is part of the HeavenMS MapleStory Server
-    Copyleft (L) 2016 - 2019 RonanLana
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as
-    published by the Free Software Foundation version 3 as published by
-    the Free Software Foundation. You may not use, modify or distribute
-    this program under any other version of the GNU Affero General Public
-    License.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
 package org.gms.util;
 
-import org.gms.dao.mapper.RingsMapper;
-import org.gms.manager.ServerManager;
-
-import java.util.HashSet;
-import java.util.Set;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
- * @author RonanLana
+ * cash id 发号器（petid/ringid 共用号段）：unique_id 表单行计数器，
+ * `UPDATE ... RETURNING` 原子递增取号——SQLite 单写者下天然无并发重复，
+ * 号只增不复用（行删除后 id 即作废），无进程内状态、无启动期预热。
  */
 public class CashIdGenerator {
-    private final static Set<Integer> existentCashIds = new HashSet<>(10000);
-    private static Integer runningCashId = 0;
 
-    public static synchronized void loadExistentCashIdsFromDb() {
-        RingsMapper ringsMapper = ServerManager.getApplicationContext().getBean(RingsMapper.class);
-        existentCashIds.clear();
-        ringsMapper.selectAll().forEach(ringsDO -> {
-            if (ringsDO.getId() != null) {
-                existentCashIds.add(ringsDO.getId());
+    private static final String KEY = "cash_id";
+
+    /** 原子取下一个 id；表无行/DB 异常直接抛（发号失败应使调用方失败，而非静默 -1） */
+    public static int generateCashId() {
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement("UPDATE unique_id SET value = value + 1 WHERE name = ? RETURNING value")) {
+            ps.setString(1, KEY);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    throw new IllegalStateException("unique_id 缺少 " + KEY + " 行");
+                }
+                return rs.getInt(1);
             }
-        });
-        try (java.sql.Connection con = org.gms.util.DatabaseConnection.getConnection();
-             java.sql.PreparedStatement ps = con.prepareStatement("SELECT petid FROM pets_json");
-             java.sql.ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                existentCashIds.add(rs.getInt("petid"));
-            }
-        } catch (java.sql.SQLException e) {
-            throw new IllegalStateException("加载 pets_json 号段失败", e);
-        }
-
-        runningCashId = 0;
-        do {
-            runningCashId++;    // hopefully the id will never surpass the allotted amount for pets/rings?
-        } while (existentCashIds.contains(runningCashId));
-    }
-
-    private static void getNextAvailableCashId() {
-        runningCashId++;
-        if (runningCashId >= 777000000) {
-            loadExistentCashIdsFromDb();
+        } catch (SQLException e) {
+            throw new IllegalStateException("cash id 发号失败", e);
         }
     }
-
-    public static synchronized int generateCashId() {
-        while (true) {
-            if (!existentCashIds.contains(runningCashId)) {
-                int ret = runningCashId;
-                getNextAvailableCashId();
-
-                // existentCashids.add(ret)... no need to do this since the wrap over already refetches already used cashids from the DB
-                return ret;
-            }
-
-            getNextAvailableCashId();
-        }
-    }
-
-    public static synchronized void freeCashId(int cashId) {
-        existentCashIds.remove(cashId);
-    }
-
 }

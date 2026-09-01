@@ -75,6 +75,35 @@ public class PetDataFactory {
     }
 
     /**
+     * 蛋类判别（wz info/hungry 缺失 = 无宠物行为、不可召唤的蛋）：进化龙 5000028 / 机器蛋 5000047。
+     * 注意"有 evol1"不构成判据——可召唤宠物（宝贝龙等）同样携带任务进化目标。
+     */
+    public static boolean isHatchling(int petId) {
+        Data root = dataRoot.getData("Pet/" + petId + ".img");
+        return root != null && root.getChildByPath("info/hungry") == null;
+    }
+
+    /**
+     * 宠物持续时间（wz info/life，单位天）：发放时计算 expiresAt 的真值来源；无字段返回 0（永久）。
+     */
+    public static int getLife(int petId) {
+        Data root = dataRoot.getData("Pet/" + petId + ".img");
+        if (root == null) {
+            return 0;
+        }
+        if (DataTool.getInt("info/permanent", root, 0) == 1) {
+            return 0;
+        }
+        return DataTool.getInt("info/life", root, 0);
+    }
+
+    public static boolean canRevive(int petId) {
+        Data root = dataRoot.getData("Pet/" + petId + ".img");
+        int noRevive = DataTool.getInt("info/noRevive", root, 0);
+        return noRevive != 1;
+    }
+
+    /**
      * 孵化/进化目标（wz info/evol1）：蛋类道具使用时换宿主的去向 id；无进化定义返回 0。
      */
     public static int getEvolution(int petId) {
