@@ -3,7 +3,7 @@ package org.gms.remote;
 import java.util.List;
 
 /**
- * 语义模块：域归属见类型注释；wire 组装归后端私有（多对多约束见 doc/09 §5.2）。
+ * 语义模块：域归属见类型注释；wire 组装归后端私有（多对多映射见 gms-server/doc/package-client.md §3）。
  */
 /** 背包资产域 */
 public interface InventoryModule {

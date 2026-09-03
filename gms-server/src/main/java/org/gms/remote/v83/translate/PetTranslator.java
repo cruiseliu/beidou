@@ -1,33 +1,27 @@
 package org.gms.remote.v83.translate;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import org.gms.client.PacketStat;
 import org.gms.client.character.Character;
 import org.gms.client.pet.Pet;
+import org.gms.remote.v83.packet.PetExceptionListPacket;
+import org.gms.remote.v83.packet.PetFoodResponsePacket;
+import org.gms.remote.v83.packet.PetNameChangePacket;
+import org.gms.remote.v83.packet.ShowForeignEffectPacket;
+import org.gms.remote.v83.packet.ShowItemGainInchatPacket;
+import org.gms.remote.v83.packet.SpawnPetPacket;
+import org.gms.remote.v83.packet.StatChangedPacket;
 
 import java.awt.Point;
 import java.nio.charset.Charset;
 import java.util.List;
 
 /**
- * 宠物域翻译：语义调用 → v83 整帧（含 opcode 头）。
- * 与 StatsTranslator 等缓冲式 Translator 不同，宠物封包多为即时发送的地图广播
- * （出现/消失/演出），无合并语义——各方法到达即编码返回，由 route 直接 send。
- * STAT_CHANGED(宠物位) 为多对一落点（PetModule 语义骑 stats 包型，同 doc/09 §5.2）。
- *
- * <p>编码来源：原 PacketCreator 宠物段迁入（分层要求：remote 层不依赖 PacketCreator）；
- * 字符串/坐标基元对齐 ByteBufOutPacket（charset 长度前缀串、short x/y）。
+ * 宠物域翻译：语义调用 → packet record → encode。
+ * 多为即时发送的地图广播（出现/消失/演出），无合并语义；
+ * STAT_CHANGED(宠物位) 为多对一落点（PetModule 语义骑 stats 包型）。
+ * 职责边界见 gms-server/doc/package-client.md §3/§6。
  */
 public final class PetTranslator {
-    private static final int OPC_SPAWN_PET = 0xA8;
-    private static final int OPC_PET_NAMECHANGE = 0xAC;
-    private static final int OPC_PET_EXCEPTION_LIST = 0xAD;
-    private static final int OPC_PET_COMMAND = 0xAE;
-    private static final int OPC_SHOW_FOREIGN_EFFECT = 0xC6;
-    private static final int OPC_SHOW_ITEM_GAIN_INCHAT = 0xCE;
-    private static final int OPC_STAT_CHANGED = 0x1F;
-
     private final Charset charset;
 
     public PetTranslator(Charset charset) {
@@ -37,118 +31,51 @@ public final class PetTranslator {
     /** SPAWN_PET：出现（addPetInfo）/消失（remove + hunger 位）；fh 仅出现分支消费 */
     public ByteBuf spawnPet(Character chr, Pet pet, boolean remove, boolean hunger, int fh) {
         byte petIndex = chr.getPetIndex(pet);
-        ByteBuf out = frame(OPC_SPAWN_PET);
-        writeIntLE(out, chr.getId());
-        out.writeByte(petIndex);
         if (remove) {
-            out.writeByte(0);
-            out.writeBoolean(hunger);
-        } else {
-            writePetInfo(out, pet, fh, chr.hasPetNameTag(petIndex), chr.hasPetChatballoon(petIndex));
+            return SpawnPetPacket.encode(
+                    SpawnPetPacket.remove(chr.getId(), petIndex, hunger));
         }
-        return out;
-    }
-
-    /** STAT_CHANGED（仅 PET 掩码位）：三槽位 petid 长整型，属性栏刷新 */
-    public ByteBuf petStatUpdate(Character chr) {
-        ByteBuf out = frame(OPC_STAT_CHANGED);
-        out.writeByte(0);
-        writeIntLE(out, PacketStat.PET.getValue());
-        Pet[] pets = chr.getSummonSlots();
-        for (int i = 0; i < 3; i++) {
-            writeLongLE(out, pets[i] != null ? pets[i].getPetId() : 0L);
-        }
-        out.writeByte(0);
-        return out;
-    }
-
-    /** SHOW_ITEM_GAIN_INCHAT(4)：本人升级演出 */
-    public ByteBuf petLevelUpOwn(byte index) {
-        ByteBuf out = frame(OPC_SHOW_ITEM_GAIN_INCHAT);
-        out.writeByte(4);
-        out.writeByte(0);
-        out.writeByte(index);
-        return out;
-    }
-
-    /** SHOW_FOREIGN_EFFECT(4)：全图升级演出 */
-    public ByteBuf petLevelUpForeign(Character chr, byte index) {
-        ByteBuf out = frame(OPC_SHOW_FOREIGN_EFFECT);
-        writeIntLE(out, chr.getId());
-        out.writeByte(4);
-        out.writeByte(0);
-        out.writeByte(index);
-        return out;
-    }
-
-    /** PET_COMMAND(response=1)：喂食反馈 */
-    public ByteBuf petFoodResponse(int cid, byte index, boolean success, boolean hasChatBalloon) {
-        ByteBuf out = frame(OPC_PET_COMMAND);
-        writeIntLE(out, cid);
-        out.writeByte(index);
-        out.writeByte(1);
-        out.writeBoolean(success);
-        out.writeBoolean(hasChatBalloon);
-        return out;
-    }
-
-    /** PET_NAMECHANGE：改名（携带名字标签佩戴位） */
-    public ByteBuf petNameChange(Character chr, String newName, byte slot) {
-        ByteBuf out = frame(OPC_PET_NAMECHANGE);
-        writeIntLE(out, chr.getId());
-        out.writeByte(slot);
-        writeString(out, newName);
-        out.writeBoolean(chr.hasPetNameTag(slot));
-        return out;
-    }
-
-    /** PET_EXCEPTION_LIST：拾取过滤列表 */
-    public ByteBuf exclusionList(int cid, int petId, byte petIdx, List<Integer> itemIds) {
-        ByteBuf out = frame(OPC_PET_EXCEPTION_LIST);
-        writeIntLE(out, cid);
-        out.writeByte(petIdx);
-        writeLongLE(out, petId);
-        out.writeByte(itemIds.size());
-        for (int id : itemIds) {
-            writeIntLE(out, id);
-        }
-        return out;
-    }
-
-    // ── 字段编码（对齐 PacketCreator.addPetInfo / ByteBufOutPacket 基元）──
-
-    private void writePetInfo(ByteBuf out, Pet pet, int fh, boolean hasNameTag, boolean hasChatBalloon) {
-        out.writeByte(1);
-        out.writeByte(0);   // showpet 位（v83 固定 0）
-        writeIntLE(out, pet.getItemId());
-        writeString(out, pet.getName());
-        writeLongLE(out, pet.getPetId());
         Point pos = pet.getPos();
-        out.writeShortLE((short) pos.getX());
-        out.writeShortLE((short) pos.getY());
-        out.writeByte(pet.getStance());
-        out.writeShortLE(fh);
-        out.writeBoolean(hasNameTag);
-        out.writeBoolean(hasChatBalloon);
+        return SpawnPetPacket.encode(SpawnPetPacket.appear(chr.getId(), petIndex,
+                pet.getItemId(), pet.getName().getBytes(charset), pet.getPetId(),
+                (short) pos.getX(), (short) pos.getY(), (byte) pet.getStance(),
+                (short) fh, chr.hasPetNameTag(petIndex), chr.hasPetChatballoon(petIndex)));
     }
 
-    private static ByteBuf frame(int opcode) {
-        ByteBuf out = Unpooled.buffer();
-        out.writeShortLE((short) opcode);
-        return out;
+    /** STAT_CHANGED（仅 PET 掩码位）：三槽位 petid，属性栏（槽位指派）刷新 */
+    public ByteBuf petStatUpdate(Character chr) {
+        Pet[] pets = chr.getSummonSlots();
+        return StatChangedPacket.encode(StatChangedPacket.petIds(false, new long[]{
+                pets[0] != null ? pets[0].getPetId() : 0L,
+                pets[1] != null ? pets[1].getPetId() : 0L,
+                pets[2] != null ? pets[2].getPetId() : 0L}));
     }
 
-    private void writeString(ByteBuf out, String value) {
-        byte[] bytes = value.getBytes(charset);
-        out.writeShortLE(bytes.length);
-        out.writeBytes(bytes);
+    /** 升级演出（本人帧 SHOW_ITEM_GAIN_INCHAT / 全图帧 SHOW_FOREIGN_EFFECT） */
+    public ByteBuf petLevelUpOwn(int index) {
+        return ShowItemGainInchatPacket.encode(new ShowItemGainInchatPacket((byte) index));
     }
 
-    private static void writeIntLE(ByteBuf out, int value) {
-        out.writeIntLE(value);
+    public ByteBuf petLevelUpForeign(Character chr, int index) {
+        return ShowForeignEffectPacket.encode(
+                new ShowForeignEffectPacket(chr.getId(), (byte) index));
     }
 
-    private static void writeLongLE(ByteBuf out, long value) {
-        out.writeLongLE(value);
+    /** 喂食反馈（全图气球） */
+    public ByteBuf petFoodResponse(Character chr, int slot, boolean success, boolean hasChatBalloon) {
+        return PetFoodResponsePacket.encode(
+                new PetFoodResponsePacket(chr.getId(), (byte) slot, success, hasChatBalloon));
+    }
+
+    /** 改名演出（全图） */
+    public ByteBuf petNameChange(Character chr, String newName, int slot) {
+        return PetNameChangePacket.encode(new PetNameChangePacket(chr.getId(), (byte) slot,
+                newName.getBytes(charset), chr.hasPetNameTag(slot)));
+    }
+
+    /** 拾取过滤列表下发（本人） */
+    public ByteBuf exclusionList(Character chr, int petId, int petIndex, List<Integer> itemIds) {
+        return PetExceptionListPacket.encode(
+                new PetExceptionListPacket(chr.getId(), (byte) petIndex, petId, itemIds));
     }
 }

@@ -13,6 +13,7 @@ const WzJsonConverter = Java.type("org.gms.scripting.WzJsonConverter");
 const DataProviderFactory = Java.type("org.gms.provider.DataProviderFactory");
 const WZFiles = Java.type("org.gms.provider.wz.WZFiles");
 const ItemRegistry = Java.type("org.gms.client.inventory.ItemRegistry");
+const I18nUtil = Java.type("org.gms.util.I18nUtil");
 
 // provider 惰性取用：WZFiles 初始化需要 Spring 容器（wz 语言配置），不在模块装载期触碰
 let itemDataProvider = null;
@@ -73,13 +74,21 @@ export function getWzItemData(itemId) {
     return data;
 }
 
-/** 道具定义（普通 JS 对象；rate 映射值 = wz 路径）；未登记道具 null */
+/** 道具定义（data/item/*.json[c] 条目原文经 JSON.parse，字段集 = 数据文件本身，
+ *  Java 侧只消费 itemId/hooks，其余字段是脚本载荷，缺失即 undefined）；未登记道具 null */
+const itemDefCache = new Map();
+
 export function getItemDefinition(itemId) {
-    const def = ItemRegistry.of(itemId);
-    return def == null ? null : {
-        hooks: def.hooks(),
-        expRate: def.expRate(),
-        mesoRate: def.mesoRate(),
-        dropRate: def.dropRate(),
-    };
+    if (itemDefCache.has(itemId)) {
+        return itemDefCache.get(itemId);
+    }
+    const raw = ItemRegistry.rawJson(itemId);
+    const def = raw == null ? null : JSON.parse(raw);
+    itemDefCache.set(itemId, def);
+    return def;
+}
+
+/** i18n 消息文本（resources 里的 message code，如 "UseCashItemHandler.handlePacket.message10"） */
+export function getMessage(code, ...args) {
+    return I18nUtil.getMessage(code, args);
 }

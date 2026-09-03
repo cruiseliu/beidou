@@ -315,7 +315,7 @@ public final class CashOperationHandler extends AbstractPacketHandler {
                             pet = Pet.load(item.getPetId());
                             if (pet != null) {
                                 // chr.registerPet(pet);
-                                pet.bind(chr);
+                                pet.bind(chr.getPets());
                             }
                         }
                         c.sendPacket(PacketCreator.takeFromCashInventory(item, pet));

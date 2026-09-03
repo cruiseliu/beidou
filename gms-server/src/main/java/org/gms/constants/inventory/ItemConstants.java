@@ -354,7 +354,7 @@ public final class ItemConstants {
 
     public static final List<Short> PETS_NAME_TAG = Collections.unmodifiableList(Arrays.asList(Pet0NameTag, Pet1NameTag, Pet2NameTag));
 
-    public static boolean isValidPetIndex(byte petIndex) {
+    public static boolean isValidPetIndex(int petIndex) {
         return petIndex >= 0 && petIndex < 3;
     }
 }

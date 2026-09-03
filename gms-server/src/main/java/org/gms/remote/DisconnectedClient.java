@@ -10,7 +10,6 @@ final class DisconnectedClient implements RemoteClient, StatsModule, SkillsModul
 
     static final RemoteUpdate NOOP_UPDATE = new RemoteUpdate() {
         // 模块访问器路由到静默单例自身（断线角色的会话书写安全无害）
-        // 模块访问器路由到静默单例自身（断线角色的会话书写安全无害）
         @Override public StatsModule stats() { return INSTANCE; }
         @Override public SkillsModule skills() { return INSTANCE; }
         @Override public BasicModule basic() { return INSTANCE; }
@@ -72,16 +71,19 @@ final class DisconnectedClient implements RemoteClient, StatsModule, SkillsModul
     @Override public void petStatUpdate(org.gms.client.character.Character chr) {
     }
 
-    @Override public void petLevelUp(org.gms.client.character.Character chr, byte slot) {
+    @Override public void updatePanel(org.gms.client.pet.Pet pet, int level, int tameness, int fullness, boolean levelUp) {
     }
 
-    @Override public void petFoodResponse(org.gms.client.character.Character chr, byte slot, boolean enjoyed, boolean hasChatBalloon) {
+    @Override public void petLevelUp(org.gms.client.character.Character chr, int slot) {
     }
 
-    @Override public void petNameChange(org.gms.client.character.Character chr, String newName, byte slot) {
+    @Override public void petFoodResponse(org.gms.client.character.Character chr, int slot, boolean enjoyed, boolean hasChatBalloon) {
     }
 
-    @Override public void loadExclusionList(org.gms.client.character.Character chr, int petId, byte petIndex, java.util.List<Integer> itemIds) {
+    @Override public void petNameChange(org.gms.client.character.Character chr, String newName, int slot) {
+    }
+
+    @Override public void loadExclusionList(org.gms.client.character.Character chr, int petId, int petIndex, List<Integer> itemIds) {
     }
 
     // ── 模块访问器返回自身（同为空实现） ──

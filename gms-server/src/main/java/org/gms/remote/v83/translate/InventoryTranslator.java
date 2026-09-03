@@ -2,11 +2,13 @@ package org.gms.remote.v83.translate;
 
 import io.netty.buffer.ByteBuf;
 import org.gms.client.inventory.Equip;
+import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.Item;
 import org.gms.client.pet.Pet;
 import org.gms.constants.game.ExpTable;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.server.ItemInformationProvider;
+import org.gms.remote.SemanticEvent;
 import org.gms.remote.SlotChange;
 import org.gms.remote.v83.packet.InventoryFullPacket;
 import org.gms.remote.v83.packet.InventoryOperationPacket;
@@ -16,11 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 背包域翻译：语义 SlotChange → packet 树（纯字段）。
- * 到达即翻译（冻结语义）：可充值物品的 wire 数量（= 可使用次数）在本层经快照拷贝
- * 抽取，不触碰共享槽位；cash 序列号三选一（宠物=petId、戒指=ringId、其余=cashId）、
- * 成长经验 nibble（ExpTable）等语义查表也在此完成——packet 层只见基础字段。
- * 背包满提示与操作包可能同帧产出（两个 ByteBuf）。
+ * 背包域翻译：语义 SlotChange → packet record（纯字段）。
+ * 语义查表在此完成：可充值 wire 数量、cash 序列号三选一（宠物=petId、戒指=ringId、
+ * 其余=cashId）、成长经验 nibble（ExpTable）、到期映射。职责见 doc/package-client.md §6。
  */
 public final class InventoryTranslator implements Translator {
     private static final ItemInformationProvider ii = ItemInformationProvider.getInstance();
@@ -98,21 +98,9 @@ public final class InventoryTranslator implements Translator {
             if (pet == null) {
                 throw new IllegalArgumentException("宠物物品缺 Pet 对象: " + itemId);
             }
-            // 宠物到期归 Pet（item.expiration 恒 -1）；通用槽与宠物体共用本记录的 expiration 字段。
-            // 客户端语义（实测）：wire ≥ EXPIRED 显示"过期"，PERMANENT 显示"永久"，其余显示日期。
-            long petExpiration;
-            if (!pet.isAlive()) {
-                petExpiration = Filetimes.EXPIRED;              // 失活 → "过期"
-            } else if (pet.getExpiration() == -1) {
-                petExpiration = Filetimes.PERMANENT;            // 永久 → "永久"
-            } else {
-                petExpiration = Filetimes.toWire(pet.getExpiration());
-            }
-            return new InventoryOperationPacket.ItemBody.Pet(
-                    itemId, cash, cash ? item.getPetId() : 0, petExpiration,
-                    pet.getName().getBytes(charset),
-                    (byte) pet.getLevel(), (short) pet.getTameness(), (byte) pet.getFullness(),
-                    (short) pet.getFlags());
+            return petBody(itemId, pet.getPetId(), pet.getName(), pet.getLevel(),
+                    pet.getTameness(), pet.getFullness(), pet.getFlags(),
+                    pet.isAlive(), pet.getExpiration());
         }
         long serial = 0;
         if (cash && item.getCashInfo() != null) {
@@ -140,6 +128,38 @@ public final class InventoryTranslator implements Translator {
                 itemId, cash, serial, expiration,
                 (short) wireQuantity, item.getOwner(), item.getLegacyFlags(),
                 ItemConstants.isRechargeable(itemId));
+    }
+
+    /**
+     * 宠物面板快照 → body 刷新变更（Rem+Add，对齐 forceUpdateItem 帧序）。
+     * tameness 在本层 min(30000) 截断：服务端可持有超出值，客户端只显示 30000。
+     */
+    public void onPetPanel(SemanticEvent.PetPanel s) {
+        byte tab = (byte) InventoryType.CASH.getType();
+        changes.add(new InventoryOperationPacket.Removed(tab, s.pos()));
+        changes.add(new InventoryOperationPacket.Added(tab, s.pos(),
+                petBody(s.itemId(), s.petId(), s.name(), s.level(), s.tameness(),
+                        s.fullness(), s.flags(), s.alive(), s.expiration())));
+    }
+
+    /** 宠物物品体（PetModule 面板快照与 inventory SlotChange 共用）。
+     *  宠物到期归 Pet（item.expiration 恒 -1）；客户端语义（实测）：wire ≥ EXPIRED
+     *  显示"过期"，PERMANENT 显示"永久"，其余显示日期。 */
+    private InventoryOperationPacket.ItemBody.Pet petBody(int itemId, long petId, String name,
+            int level, int tameness, int fullness, int flags, boolean alive, long expiration) {
+        long wireExpiration;
+        if (!alive) {
+            wireExpiration = Filetimes.EXPIRED;              // 失活 → "过期"
+        } else if (expiration == -1) {
+            wireExpiration = Filetimes.PERMANENT;            // 永久 → "永久"
+        } else {
+            wireExpiration = Filetimes.toWire(expiration);
+        }
+        return new InventoryOperationPacket.ItemBody.Pet(
+                itemId, true, petId, wireExpiration,
+                name.getBytes(charset),
+                (byte) level, (short) Math.min(tameness, 30000), (byte) fullness,
+                (short) flags);
     }
 
     private short[] equipStats(Equip equip) {

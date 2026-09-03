@@ -1,0 +1,12 @@
+[
+    {
+        "itemId": 2120000,  // Pet Food / 宠物食品
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ -1 ],
+            "fullness": 30,
+            "tameness": 1,
+            "alwaysEnjoy": false
+        }
+    }
+]

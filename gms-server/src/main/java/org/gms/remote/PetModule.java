@@ -1,5 +1,7 @@
 package org.gms.remote;
 
+import java.util.List;
+
 import org.gms.client.character.Character;
 import org.gms.client.pet.Pet;
 
@@ -17,15 +19,23 @@ public interface PetModule {
     /** 宠物属性栏刷新 */
     void petStatUpdate(Character chr);
 
+    /**
+     * 宠物面板状态推送（tameness/level/fullness 绝对值，经宠物物品体刷新到达客户端）。
+     * levelUp = 本次变更跨越了等级边界（域内 recalcLevel 的计算结果），实现据此决定
+     * 是否附带升级演出（commit 时刻广播）；false 不代表面板未变。
+     * pet 引用只在调用返回前有效——实现入口即冻结所需快照。
+     */
+    void updatePanel(Pet pet, int level, int tameness, int fullness, boolean levelUp);
+
     /** 升级演出（本人 + 全图） */
-    void petLevelUp(Character chr, byte slot);
+    void petLevelUp(Character chr, int slot);
 
     /** 喂食反馈（全图气球） */
-    void petFoodResponse(Character chr, byte slot, boolean enjoyed, boolean hasChatBalloon);
+    void petFoodResponse(Character chr, int slot, boolean enjoyed, boolean hasChatBalloon);
 
     /** 改名演出（全图） */
-    void petNameChange(Character chr, String newName, byte slot);
+    void petNameChange(Character chr, String newName, int slot);
 
     /** 拾取过滤列表下发（本人） */
-    void loadExclusionList(Character chr, int petId, byte petIndex, java.util.List<Integer> itemIds);
+    void loadExclusionList(Character chr, int petId, int petIndex, List<Integer> itemIds);
 }

@@ -9,7 +9,7 @@ import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryProof;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
-import org.gms.client.inventory.ModifyInventory;
+import org.gms.remote.SlotChange;
 import org.gms.server.CashShop;
 import org.gms.server.maps.MapItem;
 import org.gms.server.maps.MapObject;
@@ -312,7 +312,6 @@ class CharacterInventory {
     // ── 物品操作 ──
 
     void forceUpdateItem(ItemSlot item) {
-        final List<ModifyInventory> mods = new ArrayList<>();
         Pet pet = null;
         if (item.getPetId() > -1) {
             pet = owner.getPetById(item.getPetId());
@@ -320,9 +319,10 @@ class CharacterInventory {
                 pet = Pet.load(item.getPetId());   // 宠物已移出驻留位（如到期卸下后的刷新）时自愈
             }
         }
-        mods.add(new ModifyInventory(3, item).withPet(pet));
-        mods.add(new ModifyInventory(0, item).withPet(pet));
-        owner.sendPacket(PacketCreator.modifyInventory(true, mods));
+        short pos = (short) item.getPosition();
+        owner.getRemote().inventory().updateInventory(List.of(
+                new SlotChange.Removed(item.getItem(), pos),
+                new SlotChange.Added(item.getItem(), pos, item.getQuantity(), pet)));
     }
 
     void setHasSandboxItem() {

@@ -53,7 +53,8 @@ public final class PetCommandHandler extends AbstractPacketHandler {
         }
 
         if (Randomizer.nextInt(100) < petCommand.getProbability()) {
-            pet.gainTamenessFullness(chr, petCommand.getIncrease(), 0, command);
+            pet.addTameness(petCommand.getIncrease());
+            // pet.gainTamenessFullness(chr, petCommand.getIncrease(), 0, command);
             chr.getMap().broadcastMessage(PacketCreator.commandResponse(chr.getId(), petIndex, false, command, chr.hasPetChatballoon(petIndex)));
         } else {
             chr.getMap().broadcastMessage(PacketCreator.commandResponse(chr.getId(), petIndex, true, command, chr.hasPetChatballoon(petIndex)));

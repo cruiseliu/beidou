@@ -55,24 +55,20 @@ public class SpawnPetProcessor {
                     return;
                 }
                 if (chr.getPetIndex(pet) != -1) {
-                    chr.unEquipPet(pet, true);
+                    pet.desummon();
                 } else {
                     if (chr.getSkillLevel(8) == 0 && chr.getPet(0) != null) {
-                        chr.unEquipPet(chr.getPet(0), false);
+                        chr.getPet(0).desummon();
                     }
                     if (lead) {
                         chr.shiftPetsRight();
                     }
                     Point pos = chr.getPosition();
                     pos.y -= 12;
-                    pet.setPos(pos);
                     int fh = chr.getMap().getFootholds().findBelow(pet.getPos()).getId();
-                    pet.setStance(0);
-                    pet.setSummoned(true);
-                    pet.saveToDb();
-                    chr.addPet(pet);
-                    // 过滤清单随 Pet 本体（adopt 时已装载），召唤后同步给客户端。
-                    chr.getRemote().pet().summonPet(chr, pet, fh);
+
+                    pet.summon(pos, fh);
+
                     c.sendPacket(PacketCreator.enableActions());
 
                     chr.commitExcludedItems();

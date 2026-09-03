@@ -35,6 +35,7 @@ public final class ItemScript {
     public static final String HOOK_LEAVE = "onLeaveInventory";
     public static final String HOOK_EQUIP = "onEquip";
     public static final String HOOK_UNEQUIP = "onUnequip";
+    public static final String HOOK_USE = "onUse";
     // 未来扩展：同一脚本文件加导出 + 此处加常量 + 调用点
 
     private static final Logger log = LoggerFactory.getLogger(ItemScript.class);
@@ -93,6 +94,17 @@ public final class ItemScript {
         if (s != null) {
             s.invoke(HOOK_UNEQUIP, chr, item, isLogout);
         }
+    }
+
+    /**
+     * 使用钩子同步执行。调用方先用 {@link #hasHook}(HOOK_USE) 判定"有 onUse 钩子"再调本方法
+     * （首次判定会触发脚本装载）；执行在角色脚本会话内（CharacterScriptRunner.call 通道）。
+     * 返回 true = 允许使用（消耗由调用方统一执行）；脚本返回 false/非布尔/执行异常 → false
+     * （拒绝，fail-safe 不消耗）。
+     */
+    public boolean invokeUse(Character chr, Item item) {
+        Object ret = chr.getScriptRunner().call(() -> invoke(HOOK_USE, chr, item));
+        return ret instanceof Boolean b && b;
     }
 
     /** 登出清场：全部在包道具补发 leave(isLogout=true)（脚本清理定时器与条目），随后关闭脚本会话 */

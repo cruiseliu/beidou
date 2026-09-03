@@ -21,18 +21,15 @@ import java.awt.Point;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -128,7 +125,7 @@ public class CharacterPets {
             log.warn("宠物物品 petId={} 无对应 pets 行（脏数据），忽略登记 chr={}", petId, owner.getId());
             return;
         }
-        pet.bind(owner);
+        pet.bind(this);
         registerPet(pet);
         if (pet.isSummoned()) {
             if (getNoPets() < 3) {
@@ -153,7 +150,7 @@ public class CharacterPets {
             return;
         }
         if (getPetIndex(pet) > -1) {
-            unEquipPet(pet, true);
+            unEquipPet(pet);
         }
         unregisterPet(petId);
     }
@@ -204,7 +201,7 @@ public class CharacterPets {
         if (pet.getName() != null && pet.getName().equals(defaultOld)) {
             pet.setName(ItemInformationProvider.getInstance().getName(newItemId));
         }
-        pet.evolveTo(newItemId);   // 物种刷新并落库（名字/物种一次写库；cached 对象的 itemId 必须同步，否则每次召唤都重复孵化）
+        pet.evolve(newItemId);   // 物种刷新并落库（名字/物种一次写库；cached 对象的 itemId 必须同步，否则每次召唤都重复孵化）
         // 驻留交由钩子收敛：remove 排队 Leave（release，顺带落库新名），add 侧自愈装载并登记，
         // 随后的 Enter(adopt) 幂等 no-op——net 线程不做手工登记，避免与脚本队列竞态
         InventoryManipulator.removeFromSlot(c, InventoryType.CASH, (short) host.getPosition(), (short) 1, false);
@@ -217,7 +214,7 @@ public class CharacterPets {
     }
 
     // ── 槽位管理 ──
-    void addPet(Pet pet) {
+    public void addPet(Pet pet) {
         try (var ignored = Locks.acquire(lock)) {
             for (int i = 0; i < 3; i++) {
                 if (activePets[i] == null) {
@@ -228,7 +225,7 @@ public class CharacterPets {
         }
     }
 
-    void removePet(Pet pet, boolean shift_left) {
+    public void removePet(Pet pet, boolean shift_left) {
         try (var ignored = Locks.acquire(lock)) {
             int slot = -1;
             for (int i = 0; i < 3; i++) {
@@ -282,6 +279,16 @@ public class CharacterPets {
         }
     }
 
+    public List<Pet> getSummonedPets() {
+        List<Pet> ret = new ArrayList<>();
+        for (Pet pet : activePets) {
+            if (pet != null) {
+                ret.add(pet);
+            }
+        }
+        return ret;
+    }
+
     Pet getPet(int index) {
         if (index < 0) {
             return null;
@@ -327,14 +334,14 @@ public class CharacterPets {
         return petEqp == null ? 0 : petEqp.getItemId();
     }
 
-    boolean hasPetNameTag(byte petIndex) {
+    boolean hasPetNameTag(int petIndex) {
         if (!ItemConstants.isValidPetIndex(petIndex)) {
             return false;
         }
         return owner.getInventory(InventoryType.EQUIPPED).getItem(ItemConstants.PET_EQUIP_SLOTS.get(petIndex).nameTag()) != null;
     }
 
-    boolean hasPetChatballoon(byte petIndex) {
+    public boolean hasPetChatballoon(int petIndex) {
         if (!ItemConstants.isValidPetIndex(petIndex)) {
             return false;
         }
@@ -364,11 +371,10 @@ public class CharacterPets {
 
     // ── 生命周期 ──
 
-    public void unEquipPet(Pet pet, boolean shift_left) {
-        unEquipPet(pet, shift_left, false);
-    }
+    private void unEquipPet(Pet pet) {
+        boolean shift_left = true;
+        boolean hunger = false;
 
-    void unEquipPet(Pet pet, boolean shift_left, boolean hunger) {
         byte petIdx = getPetIndex(pet);
         Pet chrPet = getPet(petIdx);
 
@@ -387,25 +393,25 @@ public class CharacterPets {
     }
 
     void runFullnessSchedule(int petSlot) {
-        Pet pet = getPet(petSlot);
-        if (pet == null) {
-            return;
-        }
+        // Pet pet = getPet(petSlot);
+        // if (pet == null) {
+        //     return;
+        // }
 
-        int newFullness = pet.getFullness() - PetDataFactory.getHunger(pet.getItemId());
-        if (newFullness <= 5) {
-            pet.setFullness(15);
-            pet.saveToDb();
-            unEquipPet(pet, true);
-            owner.dropMessage(6, I18nUtil.getMessage("Character.runFullnessSchedule"));
-        } else {
-            pet.setFullness(newFullness);
-            pet.saveToDb();
-            ItemSlot petz = owner.findPetItemSlot(pet.getPetId());
-            if (petz != null) {
-                owner.forceUpdateItem(petz);
-            }
-        }
+        // int newFullness = pet.getFullness() - PetDataFactory.getHunger(pet.getItemId());
+        // if (newFullness <= 5) {
+        //     pet.setFullness(15);
+        //     pet.saveToDb();
+        //     unEquipPet(pet);
+        //     owner.dropMessage(6, I18nUtil.getMessage("Character.runFullnessSchedule"));
+        // } else {
+        //     pet.setFullness(newFullness);
+        //     pet.saveToDb();
+        //     ItemSlot petz = owner.findPetItemSlot(pet.getPetId());
+        //     if (petz != null) {
+        //         owner.forceUpdateItem(petz);
+        //     }
+        // }
     }
 
     // ── 过滤配置（数据随 Pet 本体，Pet.setExcludes；此处只做驻留侧汇总与下发） ──
@@ -425,7 +431,7 @@ public class CharacterPets {
         }
     }
 
-    void commitExcludedItems() {
+    public void commitExcludedItems() {
         try (var ignored = Locks.acquire(lock)) {
             excludedItems.clear();
         }
@@ -499,19 +505,26 @@ public class CharacterPets {
         }
     }
 
-    public void onPetExpire(Pet pet) {
+    public void handleExpire(Pet pet) {
         int index = getPetIndex(pet);
         if (index >= 0) {
-            unEquipPet(pet, true);
+            unEquipPet(pet);
         }
         // 客户端不会自行按本地时钟判过期（过期显示 = wire 携带 EXPIRED 哨兵），到期必须主动刷新物品体
         ItemSlot host = owner.findPetItemSlot(pet.getPetId());
         if (host != null) {
-            owner.forceUpdateItem(host);
+            owner.forceUpdateItem(host);  // fixme: [refactor] v83 should be responsible for this
         }
     }
 
-    public void onPetDestroy(Pet pet) {
+    public void handleRevive(Pet pet) {
+        ItemSlot host = owner.findPetItemSlot(pet.getPetId());
+        if (host != null) {
+            owner.forceUpdateItem(host);  // fixme: [refactor] v83 should be responsible for this
+        }
+    }
+
+    public void handleDestroy(Pet pet) {
         ItemSlot host = owner.findPetItemSlot(pet.getPetId());
         if (host != null) {
             InventoryManipulator.removeFromSlot(owner.getClient(), InventoryType.CASH, (short) host.getPosition(), (short) 1, false);
@@ -521,5 +534,18 @@ public class CharacterPets {
 
     public Character getPlayer() {
         return owner;
+    }
+
+    public void handleLevelUp(Pet pet) {
+        int index = getPetIndex(pet);
+        if (index >= 0) {
+            owner.getRemote().pet().petLevelUp(owner, index);
+        } else {
+            log.warn("Inactive pet %d level up", pet.getPetId());
+        }
+    }
+
+    public int getCharacterId() {
+        return owner.id;
     }
 }

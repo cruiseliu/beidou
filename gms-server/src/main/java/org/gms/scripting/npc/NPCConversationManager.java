@@ -382,7 +382,7 @@ public class NPCConversationManager extends AbstractPlayerInteraction {
     public void gainTameness(int tameness) {
         for (Pet pet : getPlayer().getSummonSlots()) {
             if (pet != null) {
-                pet.gainTamenessFullness(getPlayer(), tameness, 0, 0);
+                pet.addTameness(tameness);
             }
         }
     }

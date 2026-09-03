@@ -17,8 +17,8 @@
  *     脚本按"回调必然触发"书写——定时器与状态因此总能被清干净）。
  *
  * import 的 API 契约（bind.js，本注释即约定）：
- *   getItemDefinition(itemId) -> { hooks, expRate, mesoRate, dropRate } | null
- *       普通 JS 对象（record 已展开）；未声明的字段为 null。
+ *   getItemDefinition(itemId) -> data/item 条目原文对象 | null（字段集随数据文件：
+ *       hooks / expRate / mesoRate / dropRate ...，缺失即 undefined）。
  *       rate 映射值 = wz 路径（如 "info/rate"），指向该 kind 倍率真值所在节点
  *   getWzItemData(itemId)     -> 整棵 wz 道具节点（无语义转换：imgdir → 对象、
  *       标量原样、画布/向量省略），如 { info: { rate: 2, time: {"0": "MON:18-20", ...} },

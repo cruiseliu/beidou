@@ -1,9 +1,8 @@
 package org.gms.remote;
 
 /**
- * 合并域句柄：{@code RemoteClient.update()} 开启，close 时统一发送域内积攒的通知。
- * 与 RemoteClient 返回相同的模块单例——缓冲与冲刷由客户端自身的 depth 状态决定，
- * 句柄仅提供会话内书写的入口与生命周期。语义调用平铺书写，不再链式。
+ * 合并域句柄：{@code RemoteClient.update()} 开启，语义调用平铺书写（句柄不参与路由）。
+ * 事务/回滚语义见 gms-server/doc/package-client.md §2。
  */
 public interface RemoteUpdate extends AutoCloseable {
     StatsModule stats();

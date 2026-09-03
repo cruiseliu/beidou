@@ -2846,7 +2846,6 @@ public class Character extends AbstractAnimatedMapObject {
 
     // ── pets 门面 ──
 
-    public void addPet(Pet pet) { pets.addPet(pet); }
     public Pet getPetById(int petid) { return pets.getPetById(petid); }
     public void registerPet(Pet pet) { pets.registerPet(pet); }
     public void unregisterPet(int petid) { pets.unregisterPet(petid); }
@@ -2874,7 +2873,7 @@ public class Character extends AbstractAnimatedMapObject {
     public byte getPetIndex(int petId) { return pets.getPetIndex(petId); }
     public byte getPetIndex(Pet pet) { return pets.getPetIndex(pet); }
     public int getPetEquipItemId(byte petIndex) { return pets.getPetEquipItemId(petIndex); }
-    public boolean hasPetNameTag(byte petIndex) { return pets.hasPetNameTag(petIndex); }
+    public boolean hasPetNameTag(int petIndex) { return pets.hasPetNameTag(petIndex); }
     public boolean hasPetChatballoon(byte petIndex) { return pets.hasPetChatballoon(petIndex); }
     public boolean isEquippedMesoMagnet(byte petIndex) { return pets.isEquippedMesoMagnet(petIndex); }
     public boolean isEquippedItemPouch(byte petIndex) { return pets.isEquippedItemPouch(petIndex); }
@@ -2882,8 +2881,6 @@ public class Character extends AbstractAnimatedMapObject {
     public void removePet(Pet pet, boolean shift_left) { pets.removePet(pet, shift_left); }
     public void shiftPetsRight() { pets.shiftPetsRight(); }
     public void runFullnessSchedule(int petSlot) { pets.runFullnessSchedule(petSlot); }
-    public void unEquipPet(Pet pet, boolean shift_left) { pets.unEquipPet(pet, shift_left); }
-    public void unEquipPet(Pet pet, boolean shift_left, boolean hunger) { pets.unEquipPet(pet, shift_left, hunger); }
     public void setPetLootTeleportBeforePos(Point pos) { pets.setPetLootTeleportBeforePos(pos); }
     public Point getPetLootTeleportBeforePos() { return pets.getPetLootTeleportBeforePos(); }
 

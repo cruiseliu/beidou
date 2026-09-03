@@ -202,6 +202,7 @@ public final class JsModule implements AutoCloseable {
     /**
      * 调用具名导出（取导出、可执行检查、执行同在一个锁区域内——任何 polyglot Value
      * 操作都不得在锁外触碰 context）；导出不存在/不可执行返回 null。
+     * 返回值经 {@link #toJava} 转换（标量还原 Java 原生类型），与 {@link #call} 一致。
      */
     public Object callExport(String name, Object... args) {
         synchronized (this) {
@@ -212,7 +213,7 @@ public final class JsModule implements AutoCloseable {
             }
             CURRENT.set(this);
             try {
-                return fn.execute(args == null ? new Object[0] : args);
+                return toJava(fn.execute(args == null ? new Object[0] : args));
             } finally {
                 CURRENT.set(null);
             }

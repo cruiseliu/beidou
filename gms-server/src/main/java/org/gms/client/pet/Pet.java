@@ -29,6 +29,7 @@ import org.gms.server.movement.LifeMovement;
 import org.gms.server.movement.LifeMovementFragment;
 import org.gms.model.json.PetData;
 import org.gms.util.DatabaseConnection;
+import org.gms.util.I18nUtil;
 import org.gms.util.Pair;
 import org.gms.util.TimeoutHelper;
 import org.slf4j.Logger;
@@ -40,6 +41,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -65,10 +67,21 @@ public class Pet {
         }
     });
 
-    private CharacterPets owner = null;
+    private static final TimeoutHelper hungerTimer = TimeoutHelper.createAndStart((petId, timestamp) -> {
+        Pet pet = loadedPets.get(petId);
+        if (pet != null) {
+            pet.onHunger(timestamp);
+        }
+    });
+
+    // -- immutable identifier --
+
     private int petId;
 
+    // -- local states --
+
     private int itemId;
+
     private String name = null;
 
     private int tameness = 0;
@@ -76,83 +89,37 @@ public class Pet {
     private int fullness = 100;
 
     private long expiration = -1;
-
-    /** 到期 epoch 毫秒（-1 = 永久）；协议组装侧经 Item.LEGACY_getExpiration 间接消费 */
-    public long getExpiration() {
-        return expiration;
-    }
-
-    // TODO(debug, 临时): @pet 到期显示探测哨兵（PetCommand debug1/2/3），配合 getTime/toWire 的 -8 临时分支，测完移除
-    /** debug1：wire = 现在 - 30 天（过去日期，客户端显示待测） */
-    public static final long DEBUG_EXPIRE_PAST = -6;
-    /** debug2：wire = 现在 + 30 天（近未来基线） */
-    public static final long DEBUG_EXPIRE_FUTURE = -7;
-    /** debug3：wire = PERMANENT + 12h（2078-12-31T12:00，超过 PERMANENT、低于 DEFAULT_TIME） */
-    public static final long DEBUG_ABOVE_PERMANENT = -8;
-    /** debug4：wire = DEFAULT_TIME（150842304000000000，2079-01-01T00:00，客户端"过期"显示的实测下沿） */
-    public static final long DEBUG_DEFAULT_TIME = -9;
-
     private boolean alive = true;
+
+    // NOTE: the list is assumed immutable
+    private List<Integer> ignoreItems = new ArrayList<>();
+
+    // -- owner states --
+
+    private CharacterPets owner = null;
 
     private boolean summoned = false;
     private Point pos = new Point(0, 0);
     private int stance = 0;
 
+    // -- to be refactor --
+
     private int flags = 0;
 
-    // NOTE: the list is assumed immutable
-    private List<Integer> ignoreItems = new ArrayList<>();
-
-    public enum PetFlag {
-        OWNER_SPEED(0x01);
-
-        private final int value;
-
-        PetFlag(int i) {
-            this.value = i;
-        }
-
-        public int getValue() {
-            return value;
-        }
-    }
-
-    /** 物种变更（孵化/任务进化）：宠物本体认知的物种随新宿主形态刷新并立即落库 */
-    public void evolveTo(int newItemId) {
-        itemId = newItemId;
-        saveToDb();
-    }
-
-    public List<Integer> getIgnoreItems() {
-        return ignoreItems;
-    }
-
-    /** 整体替换拾取屏蔽清单并立即落库（客户端提交过滤设置的落点） */
-    public void setIgnoreItems(List<Integer> itemIds) {
-        ignoreItems = itemIds;
-        saveToDb();
-    }
-
-    // -- Object life cycle --
+    // -- object life cycle --
 
     public static Pet create(int itemId) {
         // wz info/life 单位为天，工厂边界统一换算为毫秒
         return Pet.create(itemId, TimeUnit.DAYS.toMillis(PetDataFactory.getLife(itemId)));
     }
 
-    /** 建宠物对象：durationMs = 持续时长毫秒（<=0 = 永久） */
+    /** 建宠物对象：durationMs = 持续时长毫秒（-1 = 永久） */
     public static Pet create(int itemId, long durationMs) {
         Pet pet = new Pet();
         pet.petId = CashIdGenerator.generateCashId();
         pet.itemId = itemId;
         if (durationMs > 0) {
             pet.expiration = Server.getInstance().getCurrentTime() + durationMs;
-        } else if (durationMs == DEBUG_EXPIRE_PAST || durationMs == DEBUG_EXPIRE_FUTURE) {
-            // TODO(debug, 临时): 相对探测日期（过去/未来 30 天）
-            long offset = java.util.concurrent.TimeUnit.DAYS.toMillis(30);
-            pet.expiration = Server.getInstance().getCurrentTime() + (durationMs == DEBUG_EXPIRE_PAST ? -offset : offset);
-        } else if (durationMs == DEBUG_ABOVE_PERMANENT || durationMs == DEBUG_DEFAULT_TIME) {
-            pet.expiration = durationMs;   // 哨兵直通：getTime/toWire 映射 PERMANENT+12h / DEFAULT_TIME
         }
 
         // NOTE: must save before return
@@ -170,19 +137,8 @@ public class Pet {
         }
 
         pet = new Pet();
-
-        try (Connection con = DatabaseConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement("SELECT data FROM pets_json WHERE petid = ?")) {
-            ps.setInt(1, petId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                rs.next();
-                pet.applyData(PetData.deserialize(rs.getString("data")));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Failed to load pet.");
-        }
+        pet.petId = petId;
+        pet.loadFromDb();
 
         pet.finishInit();
         return pet;
@@ -197,56 +153,240 @@ public class Pet {
         }
     }
 
-    private void onExpire() {
-        if (!alive) {
-            log.warn("onExpire called on expired pet (petId:{})", petId);
-            return;
-        }
-
-        if (PetDataFactory.canRevive(itemId)) {
-            log.info("Pet expired (petId:{})", petId);
-            // 先落库失活再通知：推送的宠物物品体经 LEGACY/translator 取 alive，映射"过期"哨兵
-            alive = false;
-            saveToDb();
-            if (owner != null) {
-                owner.onPetExpire(this);
-            }
-
-        } else {
-            log.info("Pet permanently expired (petId:{}, itemId:{})", petId, itemId);
-            if (owner != null) {
-                owner.onPetDestroy(this);
-            }
-            deleteFromDb();
-            dispose();
-        }
-    }
-
     /** Free unneeded instance to prevent resource leak. No semantic change to the game. */
     public void dispose() {
         expireTimer.cancel(petId);
+        hungerTimer.cancel(petId);
         loadedPets.remove(petId);
         owner = null;
     }
 
-    // -- Basic info --
-
-    public void bind(CharacterPets newOwner) {
+    private void destroy() {
+        log.info("Pet {} destroyed (itemId:{})", petId, itemId);
         if (owner != null) {
-            owner.unregisterPet(this);
+            owner.handleDestroy(this);
         }
-        owner = newOwner;
-        newOwner.registerPet(this);
+        deleteFromDb();
+        dispose();
     }
 
-    public void bind(Character owner) {
-        bind(owner.getPets());
+    // -- expire and revive --
+
+    private void onExpire() {
+        if (!alive) {
+            log.warn("onExpire called on expired pet {}", petId);
+            return;
+        }
+
+        if (!PetDataFactory.canRevive(itemId)) {
+            destroy();
+            return;
+        }
+
+        log.info("Pet {} expired", petId);
+        alive = false;
+
+        if (owner != null) {
+            owner.handleExpire(this);
+        }
+
+        saveToDb();
+    }
+
+    // todo: [refactor] wire to this
+    public void revive(long durationMs) {
+        if (alive) {
+            log.warn("revive called on live pet {}", petId);
+            return;
+        }
+
+        log.info("Pet {} revived", petId);
+        alive = true;
+
+        if (durationMs > 0) {
+            expiration = Server.getInstance().getCurrentTime() + durationMs;
+            expireTimer.schedule(petId, expiration);
+        }
+
+        saveToDb();
+    }
+
+    // -- player operations --
+
+    public void bind(CharacterPets newOwner) {
+        if (owner != newOwner) {
+            if (owner != null) {
+                log.warn("bind called on pet {} bound to character {}", petId, owner.getCharacterId());
+                owner.unregisterPet(this);
+            }
+            owner = newOwner;
+            owner.registerPet(this);
+
+            // FIXME: [refactor] summon on login
+        }
     }
 
     public void unbind() {
-        owner.unregisterPet(this);
-        this.owner = null;
+        if (summoned) {
+            desummon();
+        }
+        if (owner != null) {
+            owner.unregisterPet(this);
+            owner = null;
+            saveToDb();
+        }
     }
+
+    public void summon(Point summonPoint, int footholdId) {
+        Character chr = owner.getPlayer();
+
+        hungerTimer.cancel(petId);
+        pos = summonPoint;
+        stance = 0;
+
+        summoned = true;
+
+        long now = Server.getInstance().getCurrentTime();
+        hungerTimer.schedule(petId, now + PetDefinitionHelper.getHungryInterval(itemId));
+
+        owner.addPet(this);
+
+        chr.getRemote().pet().summonPet(chr, this, footholdId);
+    }
+
+    public void desummon() {
+        Character player = owner.getPlayer();
+        int petIdx = owner.getPetIndex(this);
+
+        hungerTimer.cancel(petId);
+
+        summoned = false;
+        // saveToDb();
+
+        player.getClient().getWorldServer().unregisterPetHunger(player, (byte) petIdx);
+        player.getRemote().pet().desummonPet(player, this, false);
+
+        owner.removePet(this, true);
+        owner.commitExcludedItems();
+
+        player.enableActions();
+    }
+
+    // -- management --
+
+    public void setName(String name) {
+        this.name = name;
+        saveToDb();  // major change, be conservative
+    }
+
+    public void evolve(int newItemId) {
+        itemId = newItemId;
+        saveToDb();  // major change, be conservative
+        // fixme: [refactor] notify client?
+    }
+
+    public void setIgnoreItems(List<Integer> itemIds) {
+        ignoreItems = itemIds;
+    }
+
+    /** 宿主角色（远端语义入口用）；未绑定（未 adopt）时返回 null */
+    public Character getOwner() {
+        return owner == null ? null : owner.getPlayer();
+    }
+
+    // -- interactions --
+
+    public void addTameness(int delta) {
+        tameness = Math.max(0, tameness + delta);
+        boolean levelUp = recalcLevel();
+        owner.getPlayer().getRemote().pet().updatePanel(this, level, tameness, fullness, levelUp);
+    }
+
+    /** 亲密度 -> 等级重算；返回本次是否跨越了等级边界（升级演出判定的域内事实） */
+    private boolean recalcLevel() {
+        int index = Arrays.binarySearch(ExpTable.getPetTamenessArray(), tameness);
+        if (index < 0) {
+            index = -index - 2;  // for (a[k] < x < a[k+1]) it returns -k-2
+        }
+
+        int oldLevel = level;
+        level = Math.clamp(index + 1, 1, 30);
+        return level > oldLevel;
+    }
+
+    public void addFullness(int delta) {
+        fullness = Math.clamp(fullness + delta, 0, 100);
+        owner.getPlayer().getRemote().pet().updatePanel(this, level, tameness, fullness, false);
+    }
+
+    public void onHunger(long timestamp) {
+        if (summoned) {
+            addFullness(-1);
+            if (fullness == 0) {
+                addTameness(-1);
+                desummon();
+                fullness = 5;
+            } else {
+                hungerTimer.schedule(petId, timestamp + PetDefinitionHelper.getHungryInterval(itemId));
+            }
+
+            owner.getPlayer().dropMessage(6, I18nUtil.getMessage("Character.runFullnessSchedule"));
+        }
+    }
+
+    public void announceFeedResult(boolean enjoy) {
+        Character player = owner.getPlayer();
+        int slot = owner.getPetIndex(this);
+        player.getRemote().pet().petFoodResponse(player, slot, enjoy, owner.hasPetChatballoon(slot));
+    }
+
+    private void TMP_announceUpdated() {
+        Character player = owner.getPlayer();
+        ItemSlot petz = player.findPetItemSlot(petId);
+        if (petz != null) {
+            player.forceUpdateItem(petz);
+        }
+    }
+
+    // TODO
+    // public void chat() {}
+
+    // -- todo stuff --
+
+    /** 到期 epoch 毫秒（-1 = 永久）；协议组装侧经 Item.LEGACY_getExpiration 间接消费 */
+    public long getExpiration() {
+        return expiration;
+    }
+
+    // TODO(debug, 临时): @pet 到期显示探测哨兵（PetCommand debug1/2/3），配合 getTime/toWire 的 -8 临时分支，测完移除
+    /** debug1：wire = 现在 - 30 天（过去日期，客户端显示待测） */
+    public static final long DEBUG_EXPIRE_PAST = -6;
+    /** debug2：wire = 现在 + 30 天（近未来基线） */
+    public static final long DEBUG_EXPIRE_FUTURE = -7;
+    /** debug3：wire = PERMANENT + 12h（2078-12-31T12:00，超过 PERMANENT、低于 DEFAULT_TIME） */
+    public static final long DEBUG_ABOVE_PERMANENT = -8;
+    /** debug4：wire = DEFAULT_TIME（150842304000000000，2079-01-01T00:00，客户端"过期"显示的实测下沿） */
+    public static final long DEBUG_DEFAULT_TIME = -9;
+
+    public enum PetFlag {
+        OWNER_SPEED(0x01);
+
+        private final int value;
+
+        PetFlag(int i) {
+            this.value = i;
+        }
+
+        public int getValue() {
+            return value;
+        }
+    }
+
+    public List<Integer> getIgnoreItems() {
+        return ignoreItems;
+    }
+
+    // -- Basic info --
 
     public int getPetId() {
         return petId;
@@ -258,10 +398,6 @@ public class Pet {
 
     public String getName() {
         return name == null ? ii.getName(itemId) : name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     // -- Feed --
@@ -276,11 +412,6 @@ public class Pet {
 
     public int getFullness() {
         return fullness;
-    }
-
-    // todo: [refactor] handle inside
-    public void setFullness(int fullness) {
-        this.fullness = fullness;
     }
 
     public boolean isAlive() {
@@ -325,6 +456,21 @@ public class Pet {
     }
 
     // -- Persistence --
+
+    public void loadFromDb() {
+        String json;
+        try (Connection con = DatabaseConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement("SELECT data FROM pets_json WHERE petid=?")) {
+            ps.setInt(1, petId);
+            ResultSet rs = ps.executeQuery();
+            rs.next();
+            json = rs.getString("data");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to load pet");
+        }
+        applyData(PetData.deserialize(json));
+    }
 
     public void saveToDb() {
         try (Connection con = DatabaseConnection.getConnection()) {
@@ -391,69 +537,6 @@ public class Pet {
             ignoreItems = data.ignoreItems;
         }
     }
-
-    // -- TODO --
-
-    public void gainTamenessFullness(Character owner, int incTameness, int incFullness, int type) {
-        gainTamenessFullness(owner, incTameness, incFullness, type, false);
-    }
-
-    public void gainTamenessFullness(Character owner, int incTameness, int incFullness, int type, boolean forceEnjoy) {
-        byte slot = owner.getPetIndex(this);
-        boolean enjoyed;
-
-        //will NOT increase pet's tameness if tried to feed pet with 100% fullness
-        // unless forceEnjoy == true (cash shop)
-        if (fullness < 100 || incFullness == 0 || forceEnjoy) {   //incFullness == 0: command given
-            int newFullness = fullness + incFullness;
-            if (newFullness > 100) {
-                newFullness = 100;
-            }
-            fullness = newFullness;
-
-            if (incTameness > 0 && tameness < 30000) {
-                int newTameness = tameness + incTameness;
-                if (newTameness > 30000) {
-                    newTameness = 30000;
-                }
-
-                tameness = newTameness;
-                while (newTameness >= ExpTable.getTamenessNeededForLevel(level)) {
-                    level += 1;
-                    owner.getRemote().pet().petLevelUp(owner, slot);
-                }
-            }
-
-            enjoyed = true;
-        } else {
-            int newTameness = tameness - 1;
-            if (newTameness < 0) {
-                newTameness = 0;
-            }
-
-            tameness = newTameness;
-            if (level > 1 && newTameness < ExpTable.getTamenessNeededForLevel(level - 1)) {
-                level -= 1;
-            }
-
-            enjoyed = false;
-        }
-
-        owner.getRemote().pet().petFoodResponse(owner, slot, enjoyed, owner.hasPetChatballoon(slot));
-        saveToDb();
-
-        ItemSlot petz = owner.findPetItemSlot(petId);
-        if (petz != null) {
-            owner.forceUpdateItem(petz);
-        }
-    }
-
-
-    public Pair<Integer, Boolean> canConsume(int itemId) {
-        return ii.canPetConsume(this.itemId, itemId);
-    }
-
-
 
     // -- Flags --
     // FIXME: The whole usage is weird.

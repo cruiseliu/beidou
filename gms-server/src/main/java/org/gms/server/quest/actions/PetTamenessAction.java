@@ -56,7 +56,7 @@ public class PetTamenessAction extends AbstractQuestAction {
 
         c.lockClient();
         try {
-            pet.gainTamenessFullness(chr, tameness, 0, 0);
+            pet.addTameness(tameness);
         } finally {
             c.unlockClient();
         }

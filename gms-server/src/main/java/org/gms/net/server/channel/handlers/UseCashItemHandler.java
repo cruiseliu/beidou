@@ -52,6 +52,7 @@ import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
 import org.gms.net.packet.out.SendNoteSuccessPacket;
 import org.gms.net.server.Server;
+import org.gms.scripting.item.ItemScript;
 import org.gms.util.I18nUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,6 +122,21 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
         }
 
         if (toUse.getQuantity() < 1) {
+            c.enableActions();
+            return;
+        }
+
+        // 道具脚本钩子优先：有 onUse 钩子的道具由脚本全权接管使用语义，
+        // 返回 true 才由这里统一消耗（脚本只声明"可使用"，不自行删物品；false/异常=拒绝，脚本已自行反馈）；
+        // 无钩子（未登记道具或脚本未导出 onUse）回落内建处理链。
+        // 合并域包住 hook + 消耗：一次使用的全部语义更新（脚本内多次 mutation、消耗、pet 域事件）一次 flush
+        ItemScript script = ItemScript.forItem(itemId);
+        if (script != null && script.hasHook(ItemScript.HOOK_USE)) {
+            try (var update = player.getRemote().update()) {
+                if (script.invokeUse(player, toUse.getItem())) {
+                    remove(c, position, itemId);
+                }
+            }
             c.enableActions();
             return;
         }
@@ -442,25 +458,6 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
             c.sendPacket(PacketCreator.owlOfMinerva(c, itemid, hmsAvailable));
             c.enableActions();
 
-        } else if (itemType == 524) {//宠物食品
-            boolean isUse = false;
-            for (byte i = 0; i < 3; i++) {
-                Pet pet = player.getPet(i);
-                if (pet != null) {
-                    Pair<Integer, Boolean> pair = pet.canConsume(itemId);
-                    if (pair.getRight()) {
-                        isUse = true;
-                        pet.gainTamenessFullness(player, pair.getLeft(), 100, 1, true);
-                        remove(c, position, itemId);
-                        break;
-                    }
-                } else {
-                    break;
-                }
-            }
-            if (!isUse)
-                player.dropMessage(1, I18nUtil.getMessage("UseCashItemHandler.handlePacket.message10")); //所有宠物都不匹配时弹出提示。
-            c.enableActions();
         } else if (itemType == 528) {//臭屁和花香，改变周围角色表情
     //
             //以下修复不完美。

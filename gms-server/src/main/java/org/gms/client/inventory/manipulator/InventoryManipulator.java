@@ -31,6 +31,7 @@ import org.gms.client.inventory.ItemSlot;
 import org.gms.client.pet.Pet;
 import org.gms.client.inventory.ModifyInventory;
 import org.gms.model.pojo.NewYearCardRecord;
+import org.gms.remote.SlotChange;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.inventory.ItemConstants;
@@ -435,11 +436,14 @@ public class InventoryManipulator {
     }
 
     private static void announceModifyInventory(Client c, ItemSlot item, boolean fromDrop, boolean allowZero) {
+        // fromDrop 原为 wire updateTick；语义通道恒 true，参数保留待该字节语义厘清
+        List<SlotChange> changes;
         if (item.getQuantity() == 0 && !allowZero) {
-            c.sendPacket(PacketCreator.modifyInventory(fromDrop, Collections.singletonList(new ModifyInventory(3, item))));
+            changes = List.of(new SlotChange.Removed(item.getItem(), (short) item.getPosition()));
         } else {
-            c.sendPacket(PacketCreator.modifyInventory(fromDrop, Collections.singletonList(new ModifyInventory(1, item))));
+            changes = List.of(new SlotChange.QuantityUpdated(item.getItem(), (short) item.getPosition(), item.getQuantity()));
         }
+        c.getPlayer().getRemote().inventory().updateInventory(changes);
     }
 
     public static void removeById(Client c, InventoryType type, int itemId, int quantity, boolean fromDrop, boolean consume) {

@@ -7,15 +7,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * STAT_CHANGED（0x1F）封包树：mask 升序的属性条目 + SP 表职业分桶块（变长，占 0x8000 位）。
- * mask 为派生值（工厂计算）；历史宽度表原样保留（0x1→byte / ≤0x4→int / <0x20→byte /
- * <0xFFFF→short / 0x20000→short / 其余→int）——勿"修正"。
+ * STAT_CHANGED（0x1F）封包树，按 opcode 一 record，形态为嵌套 Body：
+ * <ul>
+ *   <li>{@link Body.Stats}：mask 升序的属性条目 + SP 表职业分桶块（变长，占 0x8000 位）。
+ *       mask 为派生值（工厂计算）；历史宽度表原样保留（0x1→byte / ≤0x4→int / <0x20→byte /
+ *       <0xFFFF→short / 0x20000→short / 其余→int）——勿"修正"。</li>
+ *   <li>{@link Body.PetIds}：仅 PET 掩码位（0x180008），三召唤槽 petid 长整型 + 终止位。
+ *       客户端语义：槽位 -> petid 指派刷新（面板数值本体走宠物物品体，不经本包）。</li>
+ * </ul>
  */
-public record StatChangedPacket(boolean unlockActions, int mask,
-                                List<StatEntry> entries, SpBuckets spBuckets) {
+public record StatChangedPacket(boolean unlockActions, Body body) {
     private static final int OPCODE = 0x1F;
     private static final int SP_TABLE_MASK = 0x8000;
+    private static final int PET_MASK = 0x180008;
 
+    public sealed interface Body {
+        record Stats(int mask, List<StatEntry> entries, SpBuckets spBuckets) implements Body {
+        }
+
+        record PetIds(long[] petIds) implements Body {
+        }
+    }
+
+    /** 属性条目形态（mask 升序 + SP 桶） */
     public static StatChangedPacket of(boolean unlockActions, List<StatEntry> entries,
                                        SpBuckets spBuckets) {
         List<StatEntry> sorted = new ArrayList<>(entries);
@@ -27,22 +41,38 @@ public record StatChangedPacket(boolean unlockActions, int mask,
         if (spBuckets != null) {
             mask |= SP_TABLE_MASK;
         }
-        return new StatChangedPacket(unlockActions, mask, List.copyOf(sorted), spBuckets);
+        return new StatChangedPacket(unlockActions, new Body.Stats(mask, List.copyOf(sorted), spBuckets));
+    }
+
+    /** 宠物槽位指派形态 */
+    public static StatChangedPacket petIds(boolean unlockActions, long[] petIds) {
+        return new StatChangedPacket(unlockActions, new Body.PetIds(petIds));
     }
 
     public static ByteBuf encode(StatChangedPacket packet) {
         ByteBuf out = Unpooled.buffer();
         out.writeShortLE(OPCODE);
         out.writeBoolean(packet.unlockActions());
-        out.writeIntLE(packet.mask());
-        for (StatEntry e : packet.entries()) {
-            writeStatValue(out, e.mask(), e.value());
-        }
-        if (packet.spBuckets() != null) {
-            out.writeByte(packet.spBuckets().buckets().size());
-            for (SpBuckets.Bucket b : packet.spBuckets().buckets()) {
-                out.writeByte(b.index());
-                out.writeByte(b.sp());
+        switch (packet.body()) {
+            case Body.Stats stats -> {
+                out.writeIntLE(stats.mask());
+                for (StatEntry e : stats.entries()) {
+                    writeStatValue(out, e.mask(), e.value());
+                }
+                if (stats.spBuckets() != null) {
+                    out.writeByte(stats.spBuckets().buckets().size());
+                    for (SpBuckets.Bucket b : stats.spBuckets().buckets()) {
+                        out.writeByte(b.index());
+                        out.writeByte(b.sp());
+                    }
+                }
+            }
+            case Body.PetIds petIds -> {
+                out.writeIntLE(PET_MASK);
+                for (long petId : petIds.petIds()) {
+                    out.writeLongLE(petId);
+                }
+                out.writeByte(0);
             }
         }
         return out;

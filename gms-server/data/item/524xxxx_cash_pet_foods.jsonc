@@ -1,0 +1,222 @@
+[
+    {
+        "itemId": 5240000,  // Monkey Banana / 新鲜香蕉
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000007, 5000011, 5000013, 5000021 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    },
+    {
+        "itemId": 5240001,  // Micro-Chips / 电池
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000047 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    },
+    {
+        "itemId": 5240002,  // Dog Bone / 骨头
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000001, 5000006, 5000007, 5000018, 5000037 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    },
+    {
+        "itemId": 5240003,  // Bamboo / 竹
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000007, 5000008 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    },
+    {
+        "itemId": 5240004,  // Porgy / 鲜鱼
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000000, 5000004, 5000007, 5000023 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    },
+    {
+        "itemId": 5240005,  // Clover / 绿草
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000002, 5000005, 5000007, 5000014, 5000015, 5000034 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    },
+    {
+        "itemId": 5240006,  // Red Meat / 新鲜肉
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000003, 5000007, 5000009, 5000010, 5000012, 5000020, 5000024, 5000044, 5000101, 5000102 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    },
+    {
+        "itemId": 5240007,  // Frozen Fruits / 水果雪糕
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000007, 5000020, 5000102 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    },
+    {
+        "itemId": 5240008,  // Turkey Feed / 火鸡饲料
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000007, 5000022 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    },
+    {
+        "itemId": 5240009,  // Purple Heart Pudding / 羊羹
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000024 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    },
+    {
+        "itemId": 5240010,  // Golden Coin Chocolate / 金币巧克力
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000025 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    },
+    {
+        "itemId": 5240011,  // Cotton Candy / 棉花糖
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000026 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    },
+    {
+        "itemId": 5240012,  // Dragon Marble Candy / 水晶糖
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000028, 5000029, 5000030, 5000031, 5000032, 5000033 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    },
+    {
+        "itemId": 5240013,  // Caramel Beetle / 褐色甲虫
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000036 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    },
+    {
+        "itemId": 5240015,  // Garlic Salt Chips / 蒜盐薯片
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000039 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    },
+    {
+        "itemId": 5240017,  // Snowflake / 雪花儿
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000014, 5000015, 5000041, 5000055 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    },
+    {
+        "itemId": 5240018,  // Sprout / 小叶子
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000042, 5000100 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    },
+    {
+        "itemId": 5240020,  // Caviar / 鱼子酱
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000045 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    },
+    {
+        "itemId": 5240021,  // Robo Oil / 机器人的轻油
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000017, 5000048, 5000049, 5000050, 5000051, 5000052, 5000053 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    },
+    {
+        "itemId": 5240023,  // Bread / 面包
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000058 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    },
+    {
+        "itemId": 5240024,  // Pinky DrumStick / 品克缤大肉排
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000060 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    },
+    {
+        "itemId": 5240027,  // Golden Drumstick / 骨肉相连
+        "hooks": "item/pet_food.js",
+        "scriptData": {
+            "consumers": [ 5000066 ],
+            "fullness": 100,
+            "tameness": 100,
+            "alwaysEnjoy": true
+        }
+    }
+]
