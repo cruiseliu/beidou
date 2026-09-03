@@ -7,7 +7,7 @@ import java.util.List;
  * 事件即意图，与"未开域逐条即时调用"共用同一组处理函数。
  * 携带可变实体的事件须为冻结快照，契约见 gms-server/doc/package-client.md §1。
  */
-public sealed interface SemanticEvent {
+public sealed interface SemanticEvent extends ScopeRecord {
 
     record Stats(StatsUpdate update) implements SemanticEvent {}
 

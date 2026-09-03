@@ -22,7 +22,6 @@ package org.gms.client.command.commands.gm2;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
-import org.gms.client.pet.Pet;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.server.ItemInformationProvider;
 import org.gms.util.I18nUtil;
@@ -77,15 +76,8 @@ public class PetCommand extends Command {
         }
     }
 
-    /** LIFE 词法：[数字][d/h/m/s]，无单位 = 天；非法数字抛 NumberFormatException。
-     *  TODO(debug, 临时): debug1/2/3 = 到期显示探测哨兵，测完移除（见 Pet.DEBUG_*） */
+    /** LIFE 词法：[数字][d/h/m/s]，无单位 = 天；非法数字抛 NumberFormatException。 */
     private static long parseLife(String s) {
-        switch (s) {
-            case "debug1": return Pet.DEBUG_EXPIRE_PAST;         // wire = 现在 - 30 天
-            case "debug2": return Pet.DEBUG_EXPIRE_FUTURE;       // wire = 现在 + 30 天
-            case "debug3": return Pet.DEBUG_ABOVE_PERMANENT;     // wire = PERMANENT + 12h
-            case "debug4": return Pet.DEBUG_DEFAULT_TIME;        // wire = DEFAULT_TIME（预期显示"过期"）
-        }
         String lower = s.toLowerCase();
         long value = Long.parseLong(lower.substring(0, lower.length() - 1));
         return switch (lower.charAt(lower.length() - 1)) {

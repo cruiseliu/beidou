@@ -21,10 +21,14 @@ package org.gms.client.processor.action;
 
 import org.gms.client.character.Character;
 import org.gms.client.Client;
+import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryType;
+import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemPool;
 import org.gms.client.pet.Pet;
-import org.gms.client.pet.PetDataFactory;
 import org.gms.util.PacketCreator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 
@@ -32,21 +36,33 @@ import java.awt.*;
  * @author RonanLana - just added locking on OdinMS' SpawnPetHandler method body
  */
 public class SpawnPetProcessor {
+    private static final Logger log = LoggerFactory.getLogger(Inventory.class);
+
     public static void processSpawnPet(Client c, byte slot, boolean lead) {
         if (c.tryacquireClient()) {
             try {
                 Character chr = c.getPlayer();
+                Inventory inv = chr.getInventory();
+
                 Pet pet = chr.getPetById(chr.getInventory(InventoryType.CASH).getItem(slot).getPetId());
                 if (pet == null) {
                     return;
                 }
 
-                int evolveid = PetDataFactory.getEvolution(pet.getItemId());
-                if (PetDataFactory.isHatchling(pet.getItemId()) && evolveid > 0) {
+                Item petItem = chr.findPetItemSlot(pet.getPetId()).getItem();
+
+                if (pet.isEgg()) {
                     // 蛋类道具不可召唤（官方语义）：客户端以 SPAWN_PET 表达"使用"——孵化 = 换宿主物品
-                    if (!chr.getPets().evolvePet(pet.getPetId(), evolveid)) {
+                    ItemPool pool = pet.getEvolvePool();
+                    boolean success = inv.tryUpdate()  // will trigger onLeave/EnterInventory hooks
+                            .remove(petItem, 1)
+                            .addPoolAndCommit(pool);
+                    if (!success) {
+                        // this should never happen
+                        log.error("Failed to hatch pet {} (item:{})", pet.getPetId(), pet.getItemId());
                         chr.dropMessage(5, "无法孵化，请检查背包空间。");
                     }
+                    pet.evolve(chr.findPetItemSlot(pet.getPetId()).getItemId());
                     c.sendPacket(PacketCreator.enableActions());
                     return;
                 }
@@ -72,7 +88,6 @@ public class SpawnPetProcessor {
                     c.sendPacket(PacketCreator.enableActions());
 
                     chr.commitExcludedItems();
-                    chr.getClient().getWorldServer().registerPetHunger(chr, chr.getPetIndex(pet));
                 }
             } finally {
                 c.releaseClient();

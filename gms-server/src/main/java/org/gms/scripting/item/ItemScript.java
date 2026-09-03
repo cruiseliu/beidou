@@ -25,8 +25,9 @@ import java.util.Map;
  *       无半成品状态；</li>
  *   <li>同一路径全局共享同一实例（intern）——脚本状态天然跨角色可见（有状态脚本契约，
  *       coupon.js 的 pendingTimers 依赖此语义）；</li>
- *   <li>线程模型：钩子执行须在调用方的脚本会话内（CharacterScriptRunner 保证串行；
- *       脚本内 setTimeout 依赖会话上下文），JsModule 内部 synchronized 兜底互斥。</li>
+ *   <li>线程模型：钩子同步执行在调用方的脚本会话内（CharacterScriptRunner 保证同角色
+ *       串行；脚本内 setTimeout 依赖会话上下文），JsModule 内部 synchronized 兜底互斥；
+ *       异步诉求由脚本内部 setTimeout 表达，回调回流本会话串行执行。</li>
  * </ul>
  */
 public final class ItemScript {
@@ -46,12 +47,12 @@ public final class ItemScript {
      * 经角色调度器异步串行执行——容器只需调本方法，不感知调度细节。
      */
     public static void postEnter(Character chr, Item item, boolean isLogin) {
-        chr.getScriptRunner().post(() -> invokeEnter(chr, item, isLogin));
+        chr.getScriptRunner().run(() -> invokeEnter(chr, item, isLogin));
     }
 
     /** 容器事件的唯一派发入口：出包（isLogout=true = 登出清场） */
     public static void postLeave(Character chr, Item item, boolean isLogout) {
-        chr.getScriptRunner().post(() -> invokeLeave(chr, item, isLogout));
+        chr.getScriptRunner().run(() -> invokeLeave(chr, item, isLogout));
     }
 
     /** 调度器会话内同步执行进入钩子（由 CharacterScriptRunner 调用；无定义/无钩子静默） */
@@ -72,12 +73,12 @@ public final class ItemScript {
 
     /** 装备穿戴事件的唯一派发入口（isLogin=true = 登录装载初始化） */
     public static void postEquip(Character chr, Item item, boolean isLogin) {
-        chr.getScriptRunner().post(() -> invokeEquip(chr, item, isLogin));
+        chr.getScriptRunner().run(() -> invokeEquip(chr, item, isLogin));
     }
 
     /** 装备卸下事件的唯一派发入口（isLogout=true = 登出清场，当前引擎不产生，契约保留） */
     public static void postUnequip(Character chr, Item item, boolean isLogout) {
-        chr.getScriptRunner().post(() -> invokeUnequip(chr, item, isLogout));
+        chr.getScriptRunner().run(() -> invokeUnequip(chr, item, isLogout));
     }
 
     /** 调度器会话内同步执行穿戴钩子 */
@@ -111,7 +112,7 @@ public final class ItemScript {
     public static void logout(Character chr) {
         for (InventoryTab tab : chr.getInventory().tabs) {
             for (ItemSlot item : tab.list()) {
-                chr.getScriptRunner().post(() -> invokeLeave(chr, item.getItem(), true));
+                chr.getScriptRunner().run(() -> invokeLeave(chr, item.getItem(), true));
             }
         }
         chr.getScriptRunner().close();

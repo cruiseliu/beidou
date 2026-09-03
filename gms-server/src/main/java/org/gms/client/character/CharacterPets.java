@@ -75,6 +75,17 @@ public class CharacterPets {
     public void registerPet(Pet pet) {
         try (var ignored = Locks.acquire(lock)) {
             allPets.put(pet.getPetId(), pet);
+            if (pet.isSummoned()) {
+                // this is only possible on login
+                // since character is initialized before entering map,
+                // the map is responsible for the real summon
+                if (getNoPets() < 3) {
+                    addPet(pet);
+                    commitExcludedItems();
+                } else {
+                    log.error("register summoned {} without empty slot", pet);
+                }
+            }
         }
     }
 
@@ -116,43 +127,16 @@ public class CharacterPets {
      * 幂等：已驻留 no-op。summoned=1 的宠物恢复召唤槽（≤3）并加载过滤配置。
      * 到期已过的宠物先补算到期策略（离线到期不依赖定时器）。
      */
-    public void adoptPet(int petId, int itemId, boolean isLogin) {
-        if (getPetById(petId) != null) {
-            return;
-        }
-        Pet pet = Pet.load(petId);
-        if (pet == null) {
-            log.warn("宠物物品 petId={} 无对应 pets 行（脏数据），忽略登记 chr={}", petId, owner.getId());
-            return;
-        }
-        pet.bind(this);
-        registerPet(pet);
-        if (pet.isSummoned()) {
-            if (getNoPets() < 3) {
-                addPet(pet);
-                commitExcludedItems();
-                // adopt 异步于登录流程：饥饿注册随召唤恢复进行（替代 PlayerLoggedinHandler 的槽位遍历）
-                owner.getClient().getWorldServer().registerPetHunger(owner, owner.getPetIndex(pet));
-            } else {
-                pet.setSummoned(false);
-                pet.saveToDb();
-            }
-        }
+    public void handlePetEnterInventory(int petId) {
+        Pet.load(petId).bind(this);
     }
 
     /**
      * 驻留注销（JS hook onLeaveInventory 的落点）：宿主物品离开本角色背包
      * （存现金仓库/移除等）。召唤中则先下阵。幂等：未驻留 no-op。
      */
-    public void releasePet(int petId) {
-        Pet pet = getPetById(petId);
-        if (pet == null) {
-            return;
-        }
-        if (getPetIndex(pet) > -1) {
-            unEquipPet(pet);
-        }
-        unregisterPet(petId);
+    public void handlePetLeaveInventory(int petId) {
+        Pet.load(petId).unbind(this);
     }
 
     // ── 生命周期：授予与孵化（doc/11 §5）──
@@ -383,35 +367,12 @@ public class CharacterPets {
             chrPet.saveToDb();
         }
 
-        owner.getClient().getWorldServer().unregisterPetHunger(owner, petIdx);
         owner.getRemote().pet().desummonPet(owner, chrPet, hunger);
 
         removePet(pet, shift_left);
         commitExcludedItems();
 
         owner.enableActions();
-    }
-
-    void runFullnessSchedule(int petSlot) {
-        // Pet pet = getPet(petSlot);
-        // if (pet == null) {
-        //     return;
-        // }
-
-        // int newFullness = pet.getFullness() - PetDataFactory.getHunger(pet.getItemId());
-        // if (newFullness <= 5) {
-        //     pet.setFullness(15);
-        //     pet.saveToDb();
-        //     unEquipPet(pet);
-        //     owner.dropMessage(6, I18nUtil.getMessage("Character.runFullnessSchedule"));
-        // } else {
-        //     pet.setFullness(newFullness);
-        //     pet.saveToDb();
-        //     ItemSlot petz = owner.findPetItemSlot(pet.getPetId());
-        //     if (petz != null) {
-        //         owner.forceUpdateItem(petz);
-        //     }
-        // }
     }
 
     // ── 过滤配置（数据随 Pet 本体，Pet.setExcludes；此处只做驻留侧汇总与下发） ──

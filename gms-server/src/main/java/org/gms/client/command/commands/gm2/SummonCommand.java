@@ -26,8 +26,6 @@ package org.gms.client.command.commands.gm2;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
-import org.gms.net.server.Server;
-import org.gms.net.server.channel.Channel;
 import org.gms.server.maps.MapleMap;
 import org.gms.util.I18nUtil;
 import org.gms.util.StringUtil;

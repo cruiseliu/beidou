@@ -312,17 +312,10 @@ class CharacterInventory {
     // ── 物品操作 ──
 
     void forceUpdateItem(ItemSlot item) {
-        Pet pet = null;
-        if (item.getPetId() > -1) {
-            pet = owner.getPetById(item.getPetId());
-            if (pet == null) {
-                pet = Pet.load(item.getPetId());   // 宠物已移出驻留位（如到期卸下后的刷新）时自愈
-            }
-        }
         short pos = (short) item.getPosition();
         owner.getRemote().inventory().updateInventory(List.of(
                 new SlotChange.Removed(item.getItem(), pos),
-                new SlotChange.Added(item.getItem(), pos, item.getQuantity(), pet)));
+                new SlotChange.Added(item.getItem(), pos, item.getQuantity())));
     }
 
     void setHasSandboxItem() {

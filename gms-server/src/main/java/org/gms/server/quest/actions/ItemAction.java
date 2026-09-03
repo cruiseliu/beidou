@@ -22,7 +22,6 @@
 package org.gms.server.quest.actions;
 
 import org.gms.client.character.Character;
-import org.gms.client.inventory.Item;
 import org.gms.client.inventory.ItemPool;
 import org.gms.client.inventory.ItemStack;
 import org.gms.client.inventory.ItemStackWeight;
@@ -30,7 +29,6 @@ import org.gms.client.inventory.InventoryTransaction;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.constants.inventory.ItemConstants;
-import org.gms.exception.BizException;
 import org.gms.util.I18nUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

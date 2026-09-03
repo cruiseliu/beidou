@@ -28,13 +28,11 @@ import org.gms.client.Client;
 import org.gms.client.command.Command;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
-import org.gms.client.pet.Pet;
 import org.gms.config.GameConfig;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.server.ItemInformationProvider;
 import org.gms.util.I18nUtil;
 
-import static java.util.concurrent.TimeUnit.DAYS;
 import org.gms.client.inventory.ItemFlag;
 
 public class ItemDropCommand extends Command {

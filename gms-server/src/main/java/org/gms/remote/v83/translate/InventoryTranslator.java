@@ -9,7 +9,9 @@ import org.gms.constants.game.ExpTable;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.server.ItemInformationProvider;
 import org.gms.remote.SemanticEvent;
+import org.gms.remote.PetSnap;
 import org.gms.remote.SlotChange;
+import org.gms.remote.v83.FrozenInventoryEvent;
 import org.gms.remote.v83.packet.InventoryFullPacket;
 import org.gms.remote.v83.packet.InventoryOperationPacket;
 
@@ -36,6 +38,19 @@ public final class InventoryTranslator implements Translator {
     public void onInventoryMods(List<SlotChange> semantic) {
         for (SlotChange c : semantic) {
             changes.add(toChange(c));
+        }
+    }
+
+    /** freeze 产物：pet 槽位已带快照的背包变更（Passthrough 原样 / PetBody 展开为 Add） */
+    public void onFrozenInventory(FrozenInventoryEvent f) {
+        for (FrozenInventoryEvent.Element el : f.elements()) {
+            if (el instanceof FrozenInventoryEvent.Element.Passthrough(var c)) {
+                changes.add(toChange(c));
+            } else if (el instanceof FrozenInventoryEvent.Element.PetBody(short pos, int itemId, PetSnap snap)) {
+                changes.add(new InventoryOperationPacket.Added((byte) InventoryType.CASH.getType(), pos,
+                        petBody(itemId, snap.petId(), snap.name(), snap.level(), snap.tameness(),
+                                snap.fullness(), snap.flags(), snap.alive(), snap.expiration())));
+            }
         }
     }
 
@@ -68,11 +83,11 @@ public final class InventoryTranslator implements Translator {
     // ── 语义 → packet 字段 ──
 
     private InventoryOperationPacket.Change toChange(SlotChange c) {
-        if (c instanceof SlotChange.Added(var item, var pos, var quantity, var pet)) {
+        if (c instanceof SlotChange.Added(var item, var pos, var quantity)) {
             // 可充值 wire 数量 = 可使用次数（charge）；语义 quantity 为组数（恒 1）
             short wireQuantity = (short) (item.isRechargeable() ? item.getCharge() : quantity);
             return new InventoryOperationPacket.Added(
-                    tabOf(item), (short) pos, bodyOf(item, wireQuantity, pet));
+                    tabOf(item), (short) pos, bodyOf(item, wireQuantity));
         }
         if (c instanceof SlotChange.QuantityUpdated(var item, var pos, var quantity)) {
             short wireQuantity = (short) (item.isRechargeable() ? item.getCharge() : quantity);
@@ -88,19 +103,15 @@ public final class InventoryTranslator implements Translator {
     }
 
     /** Item 实体 + wire 数量 → 纯字段物品体（Equip 域查表在此完成） */
-    private InventoryOperationPacket.ItemBody bodyOf(Item item, int wireQuantity, Pet pet) {
+    private InventoryOperationPacket.ItemBody bodyOf(Item item, int wireQuantity) {
         int itemId = item.getItemId();
         boolean cash = ii.isCash(itemId);
         long expiration = Filetimes.toWire(item.getExpiration());
         byte type = (byte) item.getItemType();
 
         if (type == 3) {
-            if (pet == null) {
-                throw new IllegalArgumentException("宠物物品缺 Pet 对象: " + itemId);
-            }
-            return petBody(itemId, pet.getPetId(), pet.getName(), pet.getLevel(),
-                    pet.getTameness(), pet.getFullness(), pet.getFlags(),
-                    pet.isAlive(), pet.getExpiration());
+            // 不变量：宠物槽位的 Added 必经 FrozenInventoryEvent.PetBody（freeze 保证），不该走到这里
+            throw new IllegalStateException("宠物物品体缺冻结快照: " + itemId);
         }
         long serial = 0;
         if (cash && item.getCashInfo() != null) {

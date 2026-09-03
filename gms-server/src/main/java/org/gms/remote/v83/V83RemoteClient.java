@@ -3,12 +3,14 @@ package org.gms.remote.v83;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import org.gms.client.Client;
+import org.gms.client.character.Character;
 import org.gms.constants.string.CharsetConstants;
 import org.gms.net.packet.Packet;
 import org.gms.remote.BasicModule;
 import org.gms.remote.BasicUpdate;
 import org.gms.remote.CooldownModule;
 import org.gms.remote.InventoryModule;
+import org.gms.remote.PetModule;
 import org.gms.remote.RemoteClient;
 import org.gms.remote.RemoteUpdate;
 import org.gms.remote.ScopeLog;
@@ -17,7 +19,17 @@ import org.gms.remote.SkillUpdate;
 import org.gms.remote.SkillsModule;
 import org.gms.remote.SpUpdate;
 import org.gms.remote.StatsModule;
+import org.gms.client.inventory.Equip;
+import org.gms.client.inventory.EquipFlag;
+import org.gms.client.inventory.InventoryType;
+import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemFlag;
 import org.gms.client.inventory.ItemSlot;
+import org.gms.client.pet.Pet;
+import org.gms.remote.PetSnap;
+import org.gms.remote.ScopeRecord;
+import org.gms.remote.SlotChange;
+import org.gms.client.pet.Pet;
 import org.gms.remote.StatsUpdate;
 import org.gms.remote.v83.translate.CooldownTranslator;
 import org.gms.remote.v83.translate.SkillsTranslator;
@@ -35,29 +47,29 @@ import java.util.List;
  * 分层与原则见 gms-server/doc/package-client.md §4/§5；多对多落点注释保留在 deliver。
  */
 public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsModule,
-        BasicModule, CooldownModule, InventoryModule, org.gms.remote.PetModule {
+        BasicModule, CooldownModule, InventoryModule, PetModule {
 
     /** v83 客户端旗标字的逐位拼装——legacy 旗标视图（Item.getLegacyFlags）的唯一组装点。 */
-    public static int assembleClientFlagBits(org.gms.client.inventory.Item item) {
+    public static int assembleClientFlagBits(Item item) {
         int bits = 0;
-        boolean equipType = item.getInventoryTab() == org.gms.client.inventory.InventoryType.EQUIP;
-        for (org.gms.client.inventory.ItemFlag f : org.gms.client.inventory.ItemFlag.values()) {
+        boolean equipType = item.getInventoryTab() == InventoryType.EQUIP;
+        for (ItemFlag f : ItemFlag.values()) {
             if (!item.hasFlag(f)) {
                 continue;
             }
-            if (f == org.gms.client.inventory.ItemFlag.SCISSOR_USABLE) {
+            if (f == ItemFlag.SCISSOR_USABLE) {
                 continue;   // 服务端语义标签，客户端无此位
             }
-            if (f == org.gms.client.inventory.ItemFlag.TRADE_ONCE) {
-                bits |= equipType ? org.gms.client.inventory.ItemFlag.LEGACY_KARMA_EQP
-                                  : org.gms.client.inventory.ItemFlag.LEGACY_KARMA_USE;
+            if (f == ItemFlag.TRADE_ONCE) {
+                bits |= equipType ? ItemFlag.LEGACY_KARMA_EQP
+                                  : ItemFlag.LEGACY_KARMA_USE;
                 continue;
             }
             bits |= f.legacyValue();
         }
-        org.gms.client.inventory.Equip equipInfo = item.getEquipInfo();
+        Equip equipInfo = item.getEquipInfo();
         if (equipInfo != null) {
-            for (org.gms.client.inventory.EquipFlag f : org.gms.client.inventory.EquipFlag.values()) {
+            for (EquipFlag f : EquipFlag.values()) {
                 if (equipInfo.hasFlag(f)) {
                     bits |= f.legacyValue();
                 }
@@ -138,15 +150,58 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
     }
 
     private synchronized void dispatch(SemanticEvent e) {
+        ScopeRecord r = freeze(e);
         if (active == null) {
-            deliver(e);
+            deliver(r);
             flushAll();
         } else {
-            active.append(e);
+            active.append(r);
         }
     }
 
-    /** 语义事件 → 域翻译（多对多映射的唯一维护点） */
+    /**
+     * peek/冻结：事件入域时由版本实现解析活引用——Inventory 对 pet 盲，宠物槽位的
+     * body 数据在此补齐为 PetSnap 快照，翻译层只读快照（不受事务内后续 mutation 影响）。
+     * 无活引用的事件原样透传。
+     */
+    private ScopeRecord freeze(SemanticEvent e) {
+        if (!(e instanceof SemanticEvent.InventoryMods(var changes))) {
+            return e;
+        }
+        boolean hasPet = changes.stream().anyMatch(c ->
+                c instanceof SlotChange.Added a && a.item().getPetId() > -1);
+        if (!hasPet) {
+            return e;
+        }
+        List<FrozenInventoryEvent.Element> elements = changes.stream().map(c -> {
+            if (c instanceof SlotChange.Added a && a.item().getPetId() > -1) {
+                Pet pet = resolvePet(a.item().getPetId());
+                return (FrozenInventoryEvent.Element) new FrozenInventoryEvent.Element.PetBody(
+                        (short) a.position(), a.item().getItemId(),
+                        new PetSnap(pet.getPetId(), pet.getName(), pet.getLevel(),
+                                pet.getTameness(), pet.getFullness(), pet.getFlags(),
+                                pet.isAlive(), pet.getExpiration()));
+            }
+            return (FrozenInventoryEvent.Element) new FrozenInventoryEvent.Element.Passthrough(c);
+        }).toList();
+        return new FrozenInventoryEvent(elements);
+    }
+
+    /** 宠物解析（沿用 forceUpdateItem 的自愈语义：驻留位查无则 DB 兜底） */
+    private Pet resolvePet(int petId) {
+        Pet pet = client.getPlayer().getPetById(petId);
+        return pet != null ? pet : Pet.load(petId);
+    }
+
+    /** 语义事件/冻结记录 → 域翻译（多对多映射的唯一维护点） */
+    private void deliver(ScopeRecord r) {
+        if (r instanceof FrozenInventoryEvent f) {
+            inventoryT.onFrozenInventory(f);
+            return;
+        }
+        deliver((SemanticEvent) r);
+    }
+
     private void deliver(SemanticEvent e) {
         if (e instanceof SemanticEvent.Stats(var u)) {
             statsT.onStats(u);
@@ -172,7 +227,7 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
                 // 升级演出：commit 时刻即时广播（先于 flushAll 的 inventory 帧 = legacy 演出→状态时序）。
                 // TODO: rethink about map broadcast——地图广播尚未纳入事务模型（deliver 即发送，
                 //       drop 撤不回；summon/desummon 等入口广播同样在事务保护之外），整体设计待重审。
-                org.gms.client.character.Character chr = client.getPlayer();
+                Character chr = client.getPlayer();
                 chr.sendPacket(new BytesPacket(petT.petLevelUpOwn(snap.petIndex())));
                 chr.getMap().broadcastMessage(new BytesPacket(petT.petLevelUpForeign(chr, snap.petIndex())));
             }
@@ -248,7 +303,7 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
             done = true;
             ScopeLog closed = popMine();
             if (active == null) {
-                closed.events().forEach(V83RemoteClient.this::deliver);
+                closed.records().forEach(V83RemoteClient.this::deliver);
                 flushAll();
             } else {
                 active.adopt(closed);
@@ -288,19 +343,19 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
     // ── PetModule（org.gms.remote.PetModule）：PetTranslator 即时编码；广播机制属 map 模块（临时豁免）──
 
     @Override
-    public synchronized void summonPet(org.gms.client.character.Character chr, org.gms.client.pet.Pet pet, int fh) {
+    public synchronized void summonPet(Character chr, Pet pet, int fh) {
         chr.getMap().broadcastMessage(chr, new BytesPacket(petT.spawnPet(chr, pet, false, false, fh)), true);
         chr.sendPacket(new BytesPacket(petT.petStatUpdate(chr)));
     }
 
     @Override
-    public synchronized void desummonPet(org.gms.client.character.Character chr, org.gms.client.pet.Pet pet, boolean hunger) {
+    public synchronized void desummonPet(Character chr, Pet pet, boolean hunger) {
         chr.getMap().broadcastMessage(chr, new BytesPacket(petT.spawnPet(chr, pet, true, hunger, 0)), true);
         chr.sendPacket(new BytesPacket(petT.petStatUpdate(chr)));
     }
 
     @Override
-    public synchronized void petStatUpdate(org.gms.client.character.Character chr) {
+    public synchronized void petStatUpdate(Character chr) {
         chr.sendPacket(new BytesPacket(petT.petStatUpdate(chr)));
     }
 
@@ -309,9 +364,8 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
      * 一切 wire 后果（body 刷新与升级演出）都发生在 commit 边界之后，drop 才能整体弃段。
      */
     @Override
-    public synchronized void updatePanel(org.gms.client.pet.Pet pet, int level, int tameness,
-                                         int fullness, boolean levelUp) {
-        org.gms.client.character.Character chr = pet.getOwner();
+    public synchronized void updatePanel(Pet pet, boolean levelUp) {
+        Character chr = pet.getOwner();
         if (chr == null) {
             return;
         }
@@ -321,27 +375,27 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
         }
         dispatch(new SemanticEvent.PetPanel(chr.getId(), chr.getPetIndex(pet),
                 (short) host.getPosition(), pet.getPetId(), pet.getItemId(), pet.getName(),
-                level, tameness, fullness, pet.getFlags(), pet.isAlive(), pet.getExpiration(),
+                pet.getLevel(), pet.getTameness(), pet.getFullness(), pet.getFlags(), pet.isAlive(), pet.getExpiration(),
                 levelUp));
     }
 
-    public synchronized void petLevelUp(org.gms.client.character.Character chr, int slot) {
+    public synchronized void petLevelUp(Character chr, int slot) {
         chr.sendPacket(new BytesPacket(petT.petLevelUpOwn(slot)));
         chr.getMap().broadcastMessage(new BytesPacket(petT.petLevelUpForeign(chr, slot)));
     }
 
     @Override
-    public synchronized void petFoodResponse(org.gms.client.character.Character chr, int slot, boolean enjoyed, boolean hasChatBalloon) {
+    public synchronized void petFoodResponse(Character chr, int slot, boolean enjoyed, boolean hasChatBalloon) {
         chr.getMap().broadcastMessage(new BytesPacket(petT.petFoodResponse(chr, slot, enjoyed, hasChatBalloon)));
     }
 
     @Override
-    public synchronized void petNameChange(org.gms.client.character.Character chr, String newName, int slot) {
+    public synchronized void petNameChange(Character chr, String newName, int slot) {
         chr.getMap().broadcastMessage(chr, new BytesPacket(petT.petNameChange(chr, newName, slot)), true);
     }
 
     @Override
-    public synchronized void loadExclusionList(org.gms.client.character.Character chr, int petId, int petIndex, List<Integer> itemIds) {
+    public synchronized void loadExclusionList(Character chr, int petId, int petIndex, List<Integer> itemIds) {
         chr.sendPacket(new BytesPacket(petT.exclusionList(chr, petId, petIndex, itemIds)));
     }
 }

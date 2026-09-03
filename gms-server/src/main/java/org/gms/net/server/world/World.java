@@ -31,7 +31,6 @@ import org.gms.client.BuddylistEntry;
 import org.gms.client.character.Character;
 import org.gms.client.Family;
 import org.gms.config.GameConfig;
-import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
 import org.gms.dao.entity.PlayernpcsFieldDO;
 import org.gms.dao.mapper.PlayernpcsFieldMapper;
@@ -61,7 +60,6 @@ import org.gms.net.server.task.HiredMerchantTask;
 import org.gms.net.server.task.MapOwnershipTask;
 import org.gms.net.server.task.MountTirednessTask;
 import org.gms.net.server.task.PartySearchTask;
-import org.gms.net.server.task.PetFullnessTask;
 import org.gms.net.server.task.ServerMessageTask;
 import org.gms.net.server.task.TimedMapObjectTask;
 import org.gms.net.server.task.TimeoutTask;
@@ -187,11 +185,6 @@ public class World {
     private final Lock srvMessagesLock = new ReentrantLock();
     private ScheduledFuture<?> srvMessagesSchedule;
 
-    private final Lock activePetsLock = new ReentrantLock(true);
-    private final Map<Integer, Integer> activePets = new LinkedHashMap<>();
-    private ScheduledFuture<?> petsSchedule;
-    private long petUpdate;
-
     private final Lock activeMountsLock = new ReentrantLock(true);
     private final Map<Integer, Integer> activeMounts = new LinkedHashMap<>();
     private ScheduledFuture<?> mountsSchedule;
@@ -243,15 +236,13 @@ public class World {
         this.suggestRLock = suggestLock.readLock();
         this.suggestWLock = suggestLock.writeLock();
 
-        petUpdate = Server.getInstance().getCurrentTime();
-        mountUpdate = petUpdate;
+        mountUpdate = Server.getInstance().getCurrentTime();
 
         for (int i = 0; i < 9; i++) {
             cashItemBought.add(new LinkedHashMap<>());
         }
 
         TimerManager tman = TimerManager.getInstance();
-        petsSchedule = tman.register(new PetFullnessTask(this), MINUTES.toMillis(1), MINUTES.toMillis(1));
         srvMessagesSchedule = tman.register(new ServerMessageTask(this), SECONDS.toMillis(10), SECONDS.toMillis(10));
         mountsSchedule = tman.register(new MountTirednessTask(this), MINUTES.toMillis(1), MINUTES.toMillis(1));
         merchantSchedule = tman.register(new HiredMerchantTask(this), 10 * MINUTES.toMillis(1), 10 * MINUTES.toMillis(1));
@@ -1442,71 +1433,6 @@ public class World {
         return cashLeaderboards;
     }
 
-    public void registerPetHunger(Character chr, byte petSlot) {
-        if (chr.isGM() && GameConfig.getServerBoolean("gm_pets_never_hungry") || GameConfig.getServerBoolean("pets_never_hungry")) {
-            return;
-        }
-
-        Integer key = getPetKey(chr, petSlot);
-
-        activePetsLock.lock();
-        try {
-            int initProc;
-            if (Server.getInstance().getCurrentTime() - petUpdate > 55000) {
-                initProc = GameConfig.getServerInt("pet_exhaust_count") - 2;
-            } else {
-                initProc = GameConfig.getServerInt("pet_exhaust_count") - 1;
-            }
-
-            activePets.put(key, initProc);
-        } finally {
-            activePetsLock.unlock();
-        }
-    }
-
-    public void unregisterPetHunger(Character chr, byte petSlot) {
-        Integer key = getPetKey(chr, petSlot);
-
-        activePetsLock.lock();
-        try {
-            activePets.remove(key);
-        } finally {
-            activePetsLock.unlock();
-        }
-    }
-
-    public void runPetSchedule() {
-        Map<Integer, Integer> deployedPets;
-
-        activePetsLock.lock();
-        try {
-            petUpdate = Server.getInstance().getCurrentTime();
-            deployedPets = new HashMap<>(activePets);   // exception here found thanks to MedicOP
-        } finally {
-            activePetsLock.unlock();
-        }
-
-        for (Map.Entry<Integer, Integer> dp : deployedPets.entrySet()) {
-            Character chr = this.getPlayerStorage().getCharacterById(dp.getKey() / 4);
-            if (chr == null || !chr.isLoggedInWorld()) {
-                continue;
-            }
-
-            int dpVal = dp.getValue() + 1;
-            if (dpVal == GameConfig.getServerInt("pet_exhaust_count")) {
-                chr.runFullnessSchedule(dp.getKey() % 4);
-                dpVal = 0;
-            }
-
-            activePetsLock.lock();
-            try {
-                activePets.put(dp.getKey(), dpVal);
-            } finally {
-                activePetsLock.unlock();
-            }
-        }
-    }
-
     public void registerMountHunger(Character chr) {
         if (chr.isGM() && GameConfig.getServerBoolean("gm_pets_never_hungry") || GameConfig.getServerBoolean("pets_never_hungry")) {
             return;
@@ -2125,11 +2051,6 @@ public class World {
     public final void shutdown() {
         for (Channel ch : getChannels()) {
             ch.shutdown();
-        }
-
-        if (petsSchedule != null) {
-            petsSchedule.cancel(false);
-            petsSchedule = null;
         }
 
         if (srvMessagesSchedule != null) {

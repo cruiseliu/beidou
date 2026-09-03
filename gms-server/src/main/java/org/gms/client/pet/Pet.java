@@ -1,25 +1,11 @@
-/*
-	This file is part of the OdinMS Maple Story Server
-    Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
-		       Matthias Butz <matze@odinms.de>
-		       Jan Christian Meyer <vimes@odinms.de>
-
-    This program is free software under the GNU Affero General Public License
-    version 3 as published by the Free Software Foundation, see LICENSE for details.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
 package org.gms.client.pet;
 
 import org.gms.client.character.Character;
 import org.gms.client.character.CharacterPets;
+import org.gms.client.inventory.Item;
+import org.gms.client.inventory.ItemPool;
 import org.gms.client.inventory.ItemSlot;
+import org.gms.client.inventory.ItemStackWeight;
 import org.gms.util.CashIdGenerator;
 import org.gms.constants.game.ExpTable;
 import org.gms.net.server.Server;
@@ -48,7 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 宠物：与物品解耦的独立对象，由角色（CharacterPets）全权管理生命周期。
+ * 宠物：与物品解耦的独立对象，自行管理生命周期。
  * 与宿主物品只靠 petid 关联、互不存引用：
  * - 宠物需要宿主物品时经 owner 遍历 CASH 背包按 petid 匹配（findPetItemSlot）；
  * - 物品需要宠物时经 CharacterPets 的 petid→Pet 映射查询。
@@ -113,7 +99,6 @@ public class Pet {
         return Pet.create(itemId, TimeUnit.DAYS.toMillis(PetDataFactory.getLife(itemId)));
     }
 
-    /** 建宠物对象：durationMs = 持续时长毫秒（-1 = 永久） */
     public static Pet create(int itemId, long durationMs) {
         Pet pet = new Pet();
         pet.petId = CashIdGenerator.generateCashId();
@@ -162,7 +147,7 @@ public class Pet {
     }
 
     private void destroy() {
-        log.info("Pet {} destroyed (itemId:{})", petId, itemId);
+        log.info("{} destroyed", this);
         if (owner != null) {
             owner.handleDestroy(this);
         }
@@ -174,7 +159,7 @@ public class Pet {
 
     private void onExpire() {
         if (!alive) {
-            log.warn("onExpire called on expired pet {}", petId);
+            log.warn("onExpire called on expired {}", this);
             return;
         }
 
@@ -183,7 +168,7 @@ public class Pet {
             return;
         }
 
-        log.info("Pet {} expired", petId);
+        log.info("{} expired", this);
         alive = false;
 
         if (owner != null) {
@@ -196,11 +181,11 @@ public class Pet {
     // todo: [refactor] wire to this
     public void revive(long durationMs) {
         if (alive) {
-            log.warn("revive called on live pet {}", petId);
+            log.warn("revive called on live {}", this);
             return;
         }
 
-        log.info("Pet {} revived", petId);
+        log.info("{} revived", this);
         alive = true;
 
         if (durationMs > 0) {
@@ -216,13 +201,11 @@ public class Pet {
     public void bind(CharacterPets newOwner) {
         if (owner != newOwner) {
             if (owner != null) {
-                log.warn("bind called on pet {} bound to character {}", petId, owner.getCharacterId());
+                log.warn("bind called on {} bound to character {}", this, owner.getCharacterId());
                 owner.unregisterPet(this);
             }
             owner = newOwner;
             owner.registerPet(this);
-
-            // FIXME: [refactor] summon on login
         }
     }
 
@@ -237,11 +220,20 @@ public class Pet {
         }
     }
 
-    public void summon(Point summonPoint, int footholdId) {
-        Character chr = owner.getPlayer();
+    /** Identical to unbind(), but with a little more debug message. */
+    public void unbind(CharacterPets oldOwner) {
+        if (owner == oldOwner) {
+            unbind();
+        } else {
+            log.error("unbind called on {} from bad owner {}", this, oldOwner.getCharacterId());
+        }
+    }
+
+    public void summon(Point position, int foothold) {
+        Character player = owner.getPlayer();
 
         hungerTimer.cancel(petId);
-        pos = summonPoint;
+        pos = position;
         stance = 0;
 
         summoned = true;
@@ -251,19 +243,16 @@ public class Pet {
 
         owner.addPet(this);
 
-        chr.getRemote().pet().summonPet(chr, this, footholdId);
+        player.getRemote().pet().summonPet(player, this, foothold);
     }
 
     public void desummon() {
         Character player = owner.getPlayer();
-        int petIdx = owner.getPetIndex(this);
 
         hungerTimer.cancel(petId);
 
         summoned = false;
-        // saveToDb();
 
-        player.getClient().getWorldServer().unregisterPetHunger(player, (byte) petIdx);
         player.getRemote().pet().desummonPet(player, this, false);
 
         owner.removePet(this, true);
@@ -274,10 +263,20 @@ public class Pet {
 
     // -- management --
 
+    public Character getOwner() {
+        return owner == null ? null : owner.getPlayer();
+    }
+
     public void setName(String name) {
         this.name = name;
         saveToDb();  // major change, be conservative
     }
+
+    public void setIgnoreItems(List<Integer> itemIds) {
+        ignoreItems = itemIds;
+    }
+
+    // -- evolve --
 
     public void evolve(int newItemId) {
         itemId = newItemId;
@@ -285,38 +284,46 @@ public class Pet {
         // fixme: [refactor] notify client?
     }
 
-    public void setIgnoreItems(List<Integer> itemIds) {
-        ignoreItems = itemIds;
+    public boolean isEgg() {
+        return PetDefinitionHelper.isEgg(itemId);
     }
 
-    /** 宿主角色（远端语义入口用）；未绑定（未 adopt）时返回 null */
-    public Character getOwner() {
-        return owner == null ? null : owner.getPlayer();
+    public ItemPool getEvolvePool() {
+        if (!PetDefinitionHelper.canEvolve(itemId)) {
+            return null;
+        }
+
+        List<ItemStackWeight> pool = new ArrayList<>();
+        for (Pair<Integer, Integer> candidate : PetDefinitionHelper.getEvolvePool(itemId)) {
+            int evolveItemId = candidate.getLeft();
+            int prob = candidate.getRight();
+            Item evolveResult = Item.fromPet(evolveItemId, petId);
+            pool.add(new ItemStackWeight(evolveResult, 1, prob));
+        }
+        return new ItemPool(pool);
     }
 
     // -- interactions --
 
     public void addTameness(int delta) {
         tameness = Math.max(0, tameness + delta);
-        boolean levelUp = recalcLevel();
-        owner.getPlayer().getRemote().pet().updatePanel(this, level, tameness, fullness, levelUp);
+        int oldLevel = level;
+        recalcLevel();
+        owner.getPlayer().getRemote().pet().updatePanel(this, level > oldLevel);
     }
 
-    /** 亲密度 -> 等级重算；返回本次是否跨越了等级边界（升级演出判定的域内事实） */
-    private boolean recalcLevel() {
+    private void recalcLevel() {
         int index = Arrays.binarySearch(ExpTable.getPetTamenessArray(), tameness);
         if (index < 0) {
             index = -index - 2;  // for (a[k] < x < a[k+1]) it returns -k-2
         }
 
-        int oldLevel = level;
         level = Math.clamp(index + 1, 1, 30);
-        return level > oldLevel;
     }
 
     public void addFullness(int delta) {
         fullness = Math.clamp(fullness + delta, 0, 100);
-        owner.getPlayer().getRemote().pet().updatePanel(this, level, tameness, fullness, false);
+        owner.getPlayer().getRemote().pet().updatePanel(this, false);
     }
 
     public void onHunger(long timestamp) {
@@ -340,117 +347,23 @@ public class Pet {
         player.getRemote().pet().petFoodResponse(player, slot, enjoy, owner.hasPetChatballoon(slot));
     }
 
-    private void TMP_announceUpdated() {
-        Character player = owner.getPlayer();
-        ItemSlot petz = player.findPetItemSlot(petId);
-        if (petz != null) {
-            player.forceUpdateItem(petz);
-        }
-    }
-
     // TODO
     // public void chat() {}
 
-    // -- todo stuff --
-
-    /** 到期 epoch 毫秒（-1 = 永久）；协议组装侧经 Item.LEGACY_getExpiration 间接消费 */
-    public long getExpiration() {
-        return expiration;
-    }
-
-    // TODO(debug, 临时): @pet 到期显示探测哨兵（PetCommand debug1/2/3），配合 getTime/toWire 的 -8 临时分支，测完移除
-    /** debug1：wire = 现在 - 30 天（过去日期，客户端显示待测） */
-    public static final long DEBUG_EXPIRE_PAST = -6;
-    /** debug2：wire = 现在 + 30 天（近未来基线） */
-    public static final long DEBUG_EXPIRE_FUTURE = -7;
-    /** debug3：wire = PERMANENT + 12h（2078-12-31T12:00，超过 PERMANENT、低于 DEFAULT_TIME） */
-    public static final long DEBUG_ABOVE_PERMANENT = -8;
-    /** debug4：wire = DEFAULT_TIME（150842304000000000，2079-01-01T00:00，客户端"过期"显示的实测下沿） */
-    public static final long DEBUG_DEFAULT_TIME = -9;
-
-    public enum PetFlag {
-        OWNER_SPEED(0x01);
-
-        private final int value;
-
-        PetFlag(int i) {
-            this.value = i;
-        }
-
-        public int getValue() {
-            return value;
-        }
-    }
-
-    public List<Integer> getIgnoreItems() {
-        return ignoreItems;
-    }
-
-    // -- Basic info --
-
-    public int getPetId() {
-        return petId;
-    }
-
-    public int getItemId() {
-        return itemId;
-    }
-
-    public String getName() {
-        return name == null ? ii.getName(itemId) : name;
-    }
-
-    // -- Feed --
-
-    public int getTameness() {
-        return tameness;
-    }
-
-    public int getLevel() {
-        return level;
-    }
-
-    public int getFullness() {
-        return fullness;
-    }
-
-    public boolean isAlive() {
-        return alive;
-    }
-
-    // -- Map object --
-
-    public boolean isSummoned() {
-        return summoned;
-    }
-
-    public void setSummoned(boolean yes) {
-        this.summoned = yes;
-    }
-
-    public Point getPos() {
-        return pos;
-    }
+    // -- map object --
+    // todo: [refactor] move to a MapObject?
 
     public void setPos(Point pos) {
         this.pos = pos;
-    }
-
-    public int getStance() {
-        return stance;
-    }
-
-    public void setStance(int stance) {
-        this.stance = stance;
     }
 
     public void applyMovements(List<LifeMovementFragment> movement) {
         for (LifeMovementFragment move : movement) {
             if (move instanceof LifeMovement) {
                 if (move instanceof AbsoluteLifeMovement) {
-                    this.setPos(move.getPosition());
+                    pos = move.getPosition();
                 }
-                this.setStance(((LifeMovement) move).getNewstate());
+                stance = ((LifeMovement) move).getNewstate();
             }
         }
     }
@@ -538,8 +451,69 @@ public class Pet {
         }
     }
 
+    // -- getters --
+
+    public int getPetId() {
+        return petId;
+    }
+
+    public int getItemId() {
+        return itemId;
+    }
+
+    public String getName() {
+        return name == null ? ii.getName(itemId) : name;
+    }
+
+    public int getTameness() {
+        return tameness;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public int getFullness() {
+        return fullness;
+    }
+
+    /** 到期 epoch 毫秒（-1 = 永久）；协议组装侧经 Item.LEGACY_getExpiration 间接消费 */
+    public long getExpiration() {
+        return expiration;
+    }
+
+    public boolean isAlive() {
+        return alive;
+    }
+
+    public List<Integer> getIgnoreItems() {
+        return ignoreItems;
+    }
+
+    public Point getPos() {
+        return pos;
+    }
+
+    public int getStance() {
+        return stance;
+    }
+
     // -- Flags --
     // FIXME: The whole usage is weird.
+
+    public enum PetFlag {
+        OWNER_SPEED(0x01);
+
+        private final int value;
+
+        PetFlag(int i) {
+            this.value = i;
+        }
+
+        public int getValue() {
+            return value;
+        }
+    }
 
     public int getFlags() {
         return flags;
@@ -555,5 +529,20 @@ public class Pet {
                 owner.getPlayer().forceUpdateItem(petz);
             }
         }
+    }
+
+    public boolean isSummoned() {
+        return summoned;
+    }
+
+    public void setSummoned(boolean yes) {
+        this.summoned = yes;
+    }
+
+    // -- Debug --
+    @Override
+    public String toString() {
+        int ownerId = owner == null ? 0 : owner.getCharacterId();
+        return "Pet(id=" + petId + ", itemId=" + itemId + ", ownerId=" + ownerId + ")";
     }
 }

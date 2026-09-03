@@ -9,23 +9,23 @@ import java.util.List;
  */
 public final class ScopeLog {
     private final ScopeLog parent;
-    private final List<SemanticEvent> events = new ArrayList<>();
+    private final List<ScopeRecord> records = new ArrayList<>();
 
     public ScopeLog(ScopeLog parent) {
         this.parent = parent;
     }
 
-    public void append(SemanticEvent e) {
-        events.add(e);
+    public void append(ScopeRecord r) {
+        records.add(r);
     }
 
     /** 子段并入父段末尾（嵌套关闭路径）；子段随之废弃 */
     public void adopt(ScopeLog child) {
-        events.addAll(child.events);
+        records.addAll(child.records);
     }
 
-    public List<SemanticEvent> events() {
-        return events;
+    public List<ScopeRecord> records() {
+        return records;
     }
 
     public ScopeLog parent() {

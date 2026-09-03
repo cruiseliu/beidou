@@ -5,7 +5,7 @@
  * 进出背包"这一容器事实，pet 的全部游戏语义（驻留登记/注销、召唤恢复/解除）在 Java 侧。
  */
 export function onEnterInventory(character, item, isLogin) {
-    character.getPets().adoptPet(item.getPetId(), item.getItemId(), isLogin);
+    character.getPets().handlePetEnterInventory(item.getPetId());
 }
 
 export function onLeaveInventory(character, item, isLogout) {
@@ -13,5 +13,5 @@ export function onLeaveInventory(character, item, isLogout) {
         // 登出无清场：summoned 状态随保存持久化，下次登录 adopt 恢复召唤槽
         return;
     }
-    character.getPets().releasePet(item.getPetId());
+    character.getPets().handlePetLeaveInventory(item.getPetId());
 }

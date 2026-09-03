@@ -126,6 +126,10 @@ public class InventoryTransaction {
         return this;
     }
 
+    public InventoryTransaction remove(Item item, int quantity) {
+        return remove(new ItemStack(item, quantity));
+    }
+
     public InventoryTransaction remove(List<ItemStack> items) {
         for (ItemStack item : items) {
             remove(item);
@@ -188,34 +192,33 @@ public class InventoryTransaction {
         if (failed) {
             return;
         }
-        for (ItemStackWeight item : pool.items) {
-            if (!canFit(item)) {
+        for (ItemStackWeight candidate : pool.items) {
+            if (!canFit(candidate.stack)) {
                 failed = true;
                 return;
             }
         }
-        ItemStackWeight picked = rollWeighted(pool);
-        addInternal(new ItemStack(picked.itemId, picked.quantity));
+        ItemStack picked = rollWeighted(pool);
+        addInternal(picked);
     }
 
-    private boolean canFit(ItemStackWeight option) {
-        int itemId = option.itemId;
+    private boolean canFit(ItemStack stack) {
+        int itemId = stack.itemId;
         InventoryType type = tabTypeOf(itemId);
         InventoryTab tab = shadow.get(type);
 
-        boolean stackable = !ItemConstants.isEquipment(itemId);
-        int stackLimit = stackable
-                ? new ItemStack(option.itemId, option.quantity).getStackLimit()
-                : 1;
+        int stackLimit = stack.item.getStackLimit();
 
         int freeSlots = tab.getNumFreeSlot();
-        if (freeSlots * stackLimit >= option.quantity) {
+        if (freeSlots * stackLimit >= stack.quantity) {
             return true;
         }
 
-        ItemStack remaining = new ItemStack(itemId, option.quantity - freeSlots * stackLimit);
+        ItemStack remaining = stack.shallowCopy();
+        remaining.takeAtMost(freeSlots * stackLimit);
+
         for (ItemSlot slot : tab.listById(itemId)) {
-            if (!remaining.canMergeWith(slot.getItem())) {  // fixme: [refactor] merge same flag
+            if (!remaining.canMergeWith(slot.getItem())) {
                 continue;
             }
             if (slot.quantity < stackLimit) {
@@ -228,7 +231,7 @@ public class InventoryTransaction {
         return remaining.quantity == 0;
     }
 
-    private ItemStackWeight rollWeighted(ItemPool pool) {
+    private ItemStack rollWeighted(ItemPool pool) {
         double total = 0;
         for (ItemStackWeight option : pool.items) {
             total += Math.max(0, option.weight);
@@ -237,10 +240,10 @@ public class InventoryTransaction {
         for (ItemStackWeight option : pool.items) {
             roll -= Math.max(0, option.weight);
             if (roll < 0) {
-                return option;
+                return option.stack;
             }
         }
-        return pool.items.get(pool.items.size() - 1);
+        return pool.items.get(pool.items.size() - 1).stack;
     }
 
     // ── 提交 ──

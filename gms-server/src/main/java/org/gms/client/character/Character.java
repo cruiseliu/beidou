@@ -2880,7 +2880,6 @@ public class Character extends AbstractAnimatedMapObject {
     public boolean isEquippedPetItemIgnore(byte petIndex) { return pets.isEquippedPetItemIgnore(petIndex); }
     public void removePet(Pet pet, boolean shift_left) { pets.removePet(pet, shift_left); }
     public void shiftPetsRight() { pets.shiftPetsRight(); }
-    public void runFullnessSchedule(int petSlot) { pets.runFullnessSchedule(petSlot); }
     public void setPetLootTeleportBeforePos(Point pos) { pets.setPetLootTeleportBeforePos(pos); }
     public Point getPetLootTeleportBeforePos() { return pets.getPetLootTeleportBeforePos(); }
 

@@ -40,11 +40,11 @@ public class ItemStack {
     }
 
     ItemStack deepCopy() {
-        ItemStack ret = new ItemStack(itemId, quantity);
-        if (item != null) {
-            ret.item = item.copy();
-        }
-        return ret;
+        return item == null ? new ItemStack(itemId, quantity) : new ItemStack(item.copy(), quantity);
+    }
+
+    ItemStack shallowCopy() {
+        return item == null ? new ItemStack(itemId, quantity) : new ItemStack(item, quantity);
     }
 
     /** 堆叠上限 */

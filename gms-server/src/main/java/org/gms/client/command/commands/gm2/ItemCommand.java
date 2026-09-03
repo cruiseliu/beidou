@@ -26,14 +26,11 @@ package org.gms.client.command.commands.gm2;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
-import org.gms.client.pet.Pet;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.config.GameConfig;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.server.ItemInformationProvider;
 import org.gms.util.I18nUtil;
-
-import static java.util.concurrent.TimeUnit.DAYS;
 
 public class ItemCommand extends Command {
     {

@@ -25,7 +25,7 @@ public interface PetModule {
      * 是否附带升级演出（commit 时刻广播）；false 不代表面板未变。
      * pet 引用只在调用返回前有效——实现入口即冻结所需快照。
      */
-    void updatePanel(Pet pet, int level, int tameness, int fullness, boolean levelUp);
+    void updatePanel(Pet pet, boolean levelUp);
 
     /** 升级演出（本人 + 全图） */
     void petLevelUp(Character chr, int slot);

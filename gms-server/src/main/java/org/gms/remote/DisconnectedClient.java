@@ -1,5 +1,8 @@
 package org.gms.remote;
 
+import org.gms.client.character.Character;
+import org.gms.client.pet.Pet;
+
 import java.util.List;
 
 /** 无连接实现：全部语义调用静默容忍（对齐 Character.sendPacket 对 client==null 的行为）。 */
@@ -62,28 +65,28 @@ final class DisconnectedClient implements RemoteClient, StatsModule, SkillsModul
     @Override public void announceInventoryFull() {
     }
 
-    @Override public void summonPet(org.gms.client.character.Character chr, org.gms.client.pet.Pet pet, int fh) {
+    @Override public void summonPet(Character chr, Pet pet, int fh) {
     }
 
-    @Override public void desummonPet(org.gms.client.character.Character chr, org.gms.client.pet.Pet pet, boolean hunger) {
+    @Override public void desummonPet(Character chr, Pet pet, boolean hunger) {
     }
 
-    @Override public void petStatUpdate(org.gms.client.character.Character chr) {
+    @Override public void petStatUpdate(Character chr) {
     }
 
-    @Override public void updatePanel(org.gms.client.pet.Pet pet, int level, int tameness, int fullness, boolean levelUp) {
+    @Override public void updatePanel(Pet pet, boolean levelUp) {
     }
 
-    @Override public void petLevelUp(org.gms.client.character.Character chr, int slot) {
+    @Override public void petLevelUp(Character chr, int slot) {
     }
 
-    @Override public void petFoodResponse(org.gms.client.character.Character chr, int slot, boolean enjoyed, boolean hasChatBalloon) {
+    @Override public void petFoodResponse(Character chr, int slot, boolean enjoyed, boolean hasChatBalloon) {
     }
 
-    @Override public void petNameChange(org.gms.client.character.Character chr, String newName, int slot) {
+    @Override public void petNameChange(Character chr, String newName, int slot) {
     }
 
-    @Override public void loadExclusionList(org.gms.client.character.Character chr, int petId, int petIndex, List<Integer> itemIds) {
+    @Override public void loadExclusionList(Character chr, int petId, int petIndex, List<Integer> itemIds) {
     }
 
     // ── 模块访问器返回自身（同为空实现） ──
