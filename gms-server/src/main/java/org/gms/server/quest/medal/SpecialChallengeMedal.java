@@ -74,7 +74,7 @@ public final class SpecialChallengeMedal {
      */
     public static int getMaxPetTameness(Character player) {
         int tameness = 0;
-        for (Pet pet : player.getSummonSlots()) {
+        for (Pet pet : player.LEGACY_getSummonSlots()) {
             if (pet != null && pet.getTameness() > tameness) {
                 tameness = pet.getTameness();
             }

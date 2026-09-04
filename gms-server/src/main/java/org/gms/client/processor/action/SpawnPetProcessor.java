@@ -42,52 +42,38 @@ public class SpawnPetProcessor {
         if (c.tryacquireClient()) {
             try {
                 Character chr = c.getPlayer();
-                Inventory inv = chr.getInventory();
 
                 Pet pet = chr.getPetById(chr.getInventory(InventoryType.CASH).getItem(slot).getPetId());
                 if (pet == null) {
                     return;
                 }
 
-                Item petItem = chr.findPetItemSlot(pet.getPetId()).getItem();
-
                 if (pet.isEgg()) {
-                    // 蛋类道具不可召唤（官方语义）：客户端以 SPAWN_PET 表达"使用"——孵化 = 换宿主物品
-                    ItemPool pool = pet.getEvolvePool();
-                    boolean success = inv.tryUpdate()  // will trigger onLeave/EnterInventory hooks
-                            .remove(petItem, 1)
-                            .addPoolAndCommit(pool);
-                    if (!success) {
-                        // this should never happen
-                        log.error("Failed to hatch pet {} (item:{})", pet.getPetId(), pet.getItemId());
-                        chr.dropMessage(5, "无法孵化，请检查背包空间。");
-                    }
-                    pet.evolve(chr.findPetItemSlot(pet.getPetId()).getItemId());
+                    pet.evolve();
                     c.sendPacket(PacketCreator.enableActions());
                     return;
                 }
+
                 if (!pet.isAlive()) {
                     c.sendPacket(PacketCreator.enableActions());   // 失活宠物不可召唤（doc/11 §7）
                     return;
                 }
+
                 if (chr.getPetIndex(pet) != -1) {
-                    pet.desummon();
+                    pet.dismiss();
                 } else {
                     if (chr.getSkillLevel(8) == 0 && chr.getPet(0) != null) {
-                        chr.getPet(0).desummon();
-                    }
-                    if (lead) {
-                        chr.shiftPetsRight();
+                        chr.getPet(0).dismiss();
                     }
                     Point pos = chr.getPosition();
                     pos.y -= 12;
                     int fh = chr.getMap().getFootholds().findBelow(pet.getPos()).getId();
 
-                    pet.summon(pos, fh);
+                    pet.summon(!lead, pos, fh);
 
                     c.sendPacket(PacketCreator.enableActions());
 
-                    chr.commitExcludedItems();
+                    chr.getRemote().pet().updateIgnoreList(chr);
                 }
             } finally {
                 c.releaseClient();

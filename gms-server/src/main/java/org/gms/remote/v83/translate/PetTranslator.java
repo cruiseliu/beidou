@@ -3,6 +3,7 @@ package org.gms.remote.v83.translate;
 import io.netty.buffer.ByteBuf;
 import org.gms.client.character.Character;
 import org.gms.client.pet.Pet;
+import org.gms.remote.v83.PacketRecordLog;
 import org.gms.remote.v83.packet.PetExceptionListPacket;
 import org.gms.remote.v83.packet.PetFoodResponsePacket;
 import org.gms.remote.v83.packet.PetNameChangePacket;
@@ -32,50 +33,62 @@ public final class PetTranslator {
     public ByteBuf spawnPet(Character chr, Pet pet, boolean remove, boolean hunger, int fh) {
         byte petIndex = chr.getPetIndex(pet);
         if (remove) {
-            return SpawnPetPacket.encode(
-                    SpawnPetPacket.remove(chr.getId(), petIndex, hunger));
+            var packet = SpawnPetPacket.remove(chr.getId(), petIndex, hunger);
+            PacketRecordLog.debug(packet);
+            return SpawnPetPacket.encode(packet);
         }
         Point pos = pet.getPos();
-        return SpawnPetPacket.encode(SpawnPetPacket.appear(chr.getId(), petIndex,
+        var packet = SpawnPetPacket.appear(chr.getId(), petIndex,
                 pet.getItemId(), pet.getName().getBytes(charset), pet.getPetId(),
                 (short) pos.getX(), (short) pos.getY(), (byte) pet.getStance(),
-                (short) fh, chr.hasPetNameTag(petIndex), chr.hasPetChatballoon(petIndex)));
+                (short) fh, chr.hasPetNameTag(petIndex), chr.hasPetChatballoon(petIndex));
+        PacketRecordLog.debug(packet);
+        return SpawnPetPacket.encode(packet);
     }
 
     /** STAT_CHANGED（仅 PET 掩码位）：三槽位 petid，属性栏（槽位指派）刷新 */
     public ByteBuf petStatUpdate(Character chr) {
-        Pet[] pets = chr.getSummonSlots();
-        return StatChangedPacket.encode(StatChangedPacket.petIds(false, new long[]{
+        Pet[] pets = chr.LEGACY_getSummonSlots();
+        var packet = StatChangedPacket.petIds(false, new long[]{
                 pets[0] != null ? pets[0].getPetId() : 0L,
                 pets[1] != null ? pets[1].getPetId() : 0L,
-                pets[2] != null ? pets[2].getPetId() : 0L}));
+                pets[2] != null ? pets[2].getPetId() : 0L});
+        PacketRecordLog.debug(packet);
+        return StatChangedPacket.encode(packet);
     }
 
     /** 升级演出（本人帧 SHOW_ITEM_GAIN_INCHAT / 全图帧 SHOW_FOREIGN_EFFECT） */
     public ByteBuf petLevelUpOwn(int index) {
-        return ShowItemGainInchatPacket.encode(new ShowItemGainInchatPacket((byte) index));
+        var packet = new ShowItemGainInchatPacket((byte) index);
+        PacketRecordLog.debug(packet);
+        return ShowItemGainInchatPacket.encode(packet);
     }
 
     public ByteBuf petLevelUpForeign(Character chr, int index) {
-        return ShowForeignEffectPacket.encode(
-                new ShowForeignEffectPacket(chr.getId(), (byte) index));
+        var packet = new ShowForeignEffectPacket(chr.getId(), (byte) index);
+        PacketRecordLog.debug(packet);
+        return ShowForeignEffectPacket.encode(packet);
     }
 
     /** 喂食反馈（全图气球） */
     public ByteBuf petFoodResponse(Character chr, int slot, boolean success, boolean hasChatBalloon) {
-        return PetFoodResponsePacket.encode(
-                new PetFoodResponsePacket(chr.getId(), (byte) slot, success, hasChatBalloon));
+        var packet = new PetFoodResponsePacket(chr.getId(), (byte) slot, success, hasChatBalloon);
+        PacketRecordLog.debug(packet);
+        return PetFoodResponsePacket.encode(packet);
     }
 
     /** 改名演出（全图） */
     public ByteBuf petNameChange(Character chr, String newName, int slot) {
-        return PetNameChangePacket.encode(new PetNameChangePacket(chr.getId(), (byte) slot,
-                newName.getBytes(charset), chr.hasPetNameTag(slot)));
+        var packet = new PetNameChangePacket(chr.getId(), (byte) slot,
+                newName.getBytes(charset), chr.hasPetNameTag(slot));
+        PacketRecordLog.debug(packet);
+        return PetNameChangePacket.encode(packet);
     }
 
     /** 拾取过滤列表下发（本人） */
-    public ByteBuf exclusionList(Character chr, int petId, int petIndex, List<Integer> itemIds) {
-        return PetExceptionListPacket.encode(
-                new PetExceptionListPacket(chr.getId(), (byte) petIndex, petId, itemIds));
+    public ByteBuf ignoreList(int cid, byte petIndex, long petId, List<Integer> itemIds) {
+        var packet = new PetExceptionListPacket(cid, petIndex, petId, itemIds);
+        PacketRecordLog.debug(packet);
+        return PetExceptionListPacket.encode(packet);
     }
 }

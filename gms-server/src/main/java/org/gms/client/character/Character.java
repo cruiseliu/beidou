@@ -1390,7 +1390,8 @@ public class Character extends AbstractAnimatedMapObject {
 
             ret.level.setLevel(rs.getInt("level"));
             // job 仅从 character_json 恢复（applyData），character 表 job 列为冗余双写
-            ret.applyData(CharacterData.deserialize(rs.getString("stats_json")));
+            CharacterData charData = CharacterData.deserialize(rs.getString("stats_json"));
+            ret.applyData(charData);
             ret.level.setExp(rs.getInt("exp"));
             ret.fame.setFame(rs.getInt("fame"));
             ret.level.setGachaExp(rs.getInt("gachaexp"));
@@ -1626,6 +1627,7 @@ public class Character extends AbstractAnimatedMapObject {
         data.sp = sp.toData();
         data.debuffs = debuffs.toData();
         data.antiCheat = antiCheat.toData();
+        data.pets = pets.toData();
         data.inventory = inventory.toData();
         data.jobId = job.getId();
         data.mapId = getMapId();
@@ -1639,6 +1641,9 @@ public class Character extends AbstractAnimatedMapObject {
         ap.applyData(data.ap);
         sp.applyData(data.sp);
         debuffs.applyData(data.debuffs, data.timestamp);
+        if (data.pets != null) {
+            pets.applyData(data.pets);
+        }
         antiCheat.applyData(data.antiCheat);
         if (data.inventory != null) {
             inventory.applyData(data.inventory);
@@ -2065,7 +2070,7 @@ public class Character extends AbstractAnimatedMapObject {
                     ps.executeUpdate();
                 }
 
-                pets.saveToDb(con);   // 并入主事务连接，消除第二写者（SQLITE_BUSY）
+                pets.savePetsToDb(con);   // 并入主事务连接，消除第二写者（SQLITE_BUSY）
 
                 // Key config
                 deleteWhereCharacterId(con, "DELETE FROM keymap WHERE characterid = ?");
@@ -2847,8 +2852,6 @@ public class Character extends AbstractAnimatedMapObject {
     // ── pets 门面 ──
 
     public Pet getPetById(int petid) { return pets.getPetById(petid); }
-    public void registerPet(Pet pet) { pets.registerPet(pet); }
-    public void unregisterPet(int petid) { pets.unregisterPet(petid); }
 
     /** 按 petid 在 CASH 背包查找宿主物品（宠物→物品方向；未找到返回 null） */
     public ItemSlot findPetItemSlot(int petid) {
@@ -2859,29 +2862,24 @@ public class Character extends AbstractAnimatedMapObject {
         }
         return null;
     }
-    public void updatePetExcludedItems(int petId, Set<Integer> newExcludedItems) { pets.updatePetExcludedItems(petId, newExcludedItems); }
-    public void commitExcludedItems() { pets.commitExcludedItems(); }
-    public void exportExcludedItems(Client c) { pets.exportExcludedItems(c); }
-    public Set<Integer> getExcludedItems() { return pets.getExcludedItems(); }
-    public int getNoPets() { return pets.getNoPets(); }
+    public void setPetIgnoreItems(List<Integer> items) { pets.setIgnoreList(items); }
+    public List<Integer> getExcludedItems() { return pets.getIgnoreList(); }
+    public List<Pet> getSummonedPets() { return pets.getSummonedPets(); }
+    public boolean hasSummonedPet() { return pets.hasSummonedPet(); }
     /** 宠物组件（绑定角色的宠物状态：驻留/召唤槽/到期计时器；脚本与业务直达） */
-    public org.gms.client.character.CharacterPets getPets() { return pets; }
+    public CharacterPets getPets() { return pets; }
 
     /** 召唤槽位快照（0..2；协议组装/遍历用） */
-    public Pet[] getSummonSlots() { return pets.getActivePets(); }
-    public Pet getPet(int index) { return pets.getPet(index); }
-    public byte getPetIndex(int petId) { return pets.getPetIndex(petId); }
-    public byte getPetIndex(Pet pet) { return pets.getPetIndex(pet); }
+    public Pet[] LEGACY_getSummonSlots() { return pets.LEGACY_getActivePets(); }
+    public Pet getPet(int index) { return pets.getSummonedPet(index); }
+    public byte getPetIndex(int petId) { return (byte) pets.getSummonedPetIndex(petId); }
+    public byte getPetIndex(Pet pet) { return (byte) pets.getSummonedPetIndex(pet); }
     public int getPetEquipItemId(byte petIndex) { return pets.getPetEquipItemId(petIndex); }
     public boolean hasPetNameTag(int petIndex) { return pets.hasPetNameTag(petIndex); }
     public boolean hasPetChatballoon(byte petIndex) { return pets.hasPetChatballoon(petIndex); }
     public boolean isEquippedMesoMagnet(byte petIndex) { return pets.isEquippedMesoMagnet(petIndex); }
     public boolean isEquippedItemPouch(byte petIndex) { return pets.isEquippedItemPouch(petIndex); }
     public boolean isEquippedPetItemIgnore(byte petIndex) { return pets.isEquippedPetItemIgnore(petIndex); }
-    public void removePet(Pet pet, boolean shift_left) { pets.removePet(pet, shift_left); }
-    public void shiftPetsRight() { pets.shiftPetsRight(); }
-    public void setPetLootTeleportBeforePos(Point pos) { pets.setPetLootTeleportBeforePos(pos); }
-    public Point getPetLootTeleportBeforePos() { return pets.getPetLootTeleportBeforePos(); }
 
     // ── debuffs 门面 ──
 

@@ -1994,7 +1994,7 @@ public class PacketCreator {
 
         p.writeShort(0);//chr.getFh()
         p.writeByte(0);
-        Pet[] pet = chr.getSummonSlots();
+        Pet[] pet = chr.LEGACY_getSummonSlots();
         for (byte i = 0; i < 3; i++) {
             if (pet[i] != null) {
                 // fh 传 0：与上文玩家自身 fh 的硬编码一致；旧值为召唤图快照，跨图本就失真
@@ -2751,7 +2751,7 @@ public class PacketCreator {
         p.writeByte(0); // pMedalInfo, thanks to Arnah (Vertisy)
 
         // CUIUserInfo::SetMultiPetInfo
-        Pet[] pets = chr.getSummonSlots();
+        Pet[] pets = chr.LEGACY_getSummonSlots();
         for (byte i = 0; i < 3; i++) {
             if (pets[i] != null) {
                 p.writeBool(true);
@@ -4568,7 +4568,7 @@ public class PacketCreator {
         mask |= PacketStat.PET.getValue();
         p.writeByte(0);
         p.writeInt(mask);
-        Pet[] pets = chr.getSummonSlots();
+        Pet[] pets = chr.LEGACY_getSummonSlots();
         for (int i = 0; i < 3; i++) {
             if (pets[i] != null) {
                 p.writeLong(pets[i].getPetId());

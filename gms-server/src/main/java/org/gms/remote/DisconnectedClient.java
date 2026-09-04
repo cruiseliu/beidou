@@ -65,28 +65,28 @@ final class DisconnectedClient implements RemoteClient, StatsModule, SkillsModul
     @Override public void announceInventoryFull() {
     }
 
-    @Override public void summonPet(Character chr, Pet pet, int fh) {
+    @Override public void summonPet(Pet pet, int fh) {
     }
 
-    @Override public void desummonPet(Character chr, Pet pet, boolean hunger) {
-    }
-
-    @Override public void petStatUpdate(Character chr) {
+    @Override public void dismissPet(Pet pet, boolean hunger) {
     }
 
     @Override public void updatePanel(Pet pet, boolean levelUp) {
     }
 
-    @Override public void petLevelUp(Character chr, int slot) {
+    @Override public void updateIgnoreList(Character chr) {
+    }
+
+    @Override public void expire(Pet pet) {
+    }
+
+    @Override public void revive(Pet pet) {
     }
 
     @Override public void petFoodResponse(Character chr, int slot, boolean enjoyed, boolean hasChatBalloon) {
     }
 
     @Override public void petNameChange(Character chr, String newName, int slot) {
-    }
-
-    @Override public void loadExclusionList(Character chr, int petId, int petIndex, List<Integer> itemIds) {
     }
 
     // ── 模块访问器返回自身（同为空实现） ──

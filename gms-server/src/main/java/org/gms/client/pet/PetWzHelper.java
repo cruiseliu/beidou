@@ -11,9 +11,11 @@ import org.gms.provider.DataProvider;
 import org.gms.provider.DataProviderFactory;
 import org.gms.provider.DataTool;
 import org.gms.provider.wz.WZFiles;
+import org.gms.server.ItemInformationProvider;
 import org.gms.util.Pair;
 
-public class PetDefinitionHelper {
+public class PetWzHelper {
+    private static final ItemInformationProvider ii = ItemInformationProvider.getInstance();
     private static final DataProvider itemWzFiles = DataProviderFactory.getDataProvider(WZFiles.ITEM);
 
     private static final Map<Integer, Data> petWzs = new ConcurrentHashMap<>();
@@ -27,8 +29,18 @@ public class PetDefinitionHelper {
         return data;
     }
 
-    public static boolean canPetEatFood(int petItemId, int foodItemId) {
-        return true;
+    /** Pet life duration in milliseconds, or -1 if permanent. */
+    public static long getDurationMs(int petItemId) {
+        Data wz = getPetWz(petItemId);
+        if (DataTool.getInt("info/permanent", wz, 0) == 1) {
+            return Pet.PERMANENT;
+        }
+        int days = DataTool.getInt("info/life", wz);
+        return TimeUnit.DAYS.toMillis(days);
+    }
+
+    public static boolean canRevive(int petItemId) {
+        return DataTool.getInt("info/noRevive", getPetWz(petItemId), 0) != 1;
     }
 
     private static int getHungrySpeed(int petItemId) {  // todo: cache this?
@@ -63,5 +75,9 @@ public class PetDefinitionHelper {
             candidates.add(new Pair<>(evolveItemId, prob));
         }
         return candidates;
+    }
+
+    public static String getItemName(int itemId) {
+        return ii.getName(itemId);
     }
 }

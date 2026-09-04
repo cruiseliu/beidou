@@ -72,7 +72,7 @@ public final class InnerPortalHandler extends AbstractPacketHandler {
         Point afterPos = new Point(targetPortal.getPosition());
 
         // 记录传送前玩家坐标，供宠物拾取反作弊旧位置物品补偿使用
-        player.setPetLootTeleportBeforePos(new Point(playerPos));
+        // player.setPetLootTeleportBeforePos(new Point(playerPos));
 
         movePlayerInMap(player, afterPos);
         player.markTeleportLikeMove(new Point(playerPos), afterPos);

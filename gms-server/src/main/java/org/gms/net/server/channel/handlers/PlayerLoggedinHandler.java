@@ -408,7 +408,7 @@ public final class PlayerLoggedinHandler extends AbstractPacketHandler {
                 player.createDragon();
             }
 
-            player.commitExcludedItems();
+            player.getRemote().pet().updateIgnoreList(player);
             showDueyNotification(c, player);
 
             player.resetPlayerRates();

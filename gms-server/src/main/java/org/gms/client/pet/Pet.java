@@ -4,12 +4,10 @@ import org.gms.client.character.Character;
 import org.gms.client.character.CharacterPets;
 import org.gms.client.inventory.Item;
 import org.gms.client.inventory.ItemPool;
-import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.ItemStackWeight;
 import org.gms.util.CashIdGenerator;
 import org.gms.constants.game.ExpTable;
 import org.gms.net.server.Server;
-import org.gms.server.ItemInformationProvider;
 import org.gms.server.movement.AbsoluteLifeMovement;
 import org.gms.server.movement.LifeMovement;
 import org.gms.server.movement.LifeMovementFragment;
@@ -31,7 +29,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 宠物：与物品解耦的独立对象，自行管理生命周期。
@@ -39,10 +36,12 @@ import java.util.concurrent.TimeUnit;
  * - 宠物需要宿主物品时经 owner 遍历 CASH 背包按 petid 匹配（findPetItemSlot）；
  * - 物品需要宠物时经 CharacterPets 的 petid→Pet 映射查询。
  * itemId 是 wz 数据 key（宠物命令/饥饿/可食饲料判定），自持于此。
+ * 纪律：部分方法跨 Pet 和 CharacterPets 双类，入口/主体统一放在此类，后者只放强依赖 Character 对象的部分。
  */
 public class Pet {
     private static final Logger log = LoggerFactory.getLogger(Pet.class);
-    private static final ItemInformationProvider ii = ItemInformationProvider.getInstance();
+
+    public static final long PERMANENT = -1;
 
     private static final Map<Integer, Pet> loadedPets = new ConcurrentHashMap<>();
 
@@ -68,19 +67,18 @@ public class Pet {
 
     private int itemId;
 
+    // null means the locale default name (todo: use client's locale)
     private String name = null;
 
     private int tameness = 0;
     private int level = 1;
     private int fullness = 100;
 
-    private long expiration = -1;
+    private long expiration = PERMANENT;
     private boolean alive = true;
+    private boolean expiredOffline = false;
 
-    // NOTE: the list is assumed immutable
-    private List<Integer> ignoreItems = new ArrayList<>();
-
-    // -- owner states --
+    // -- owner and summoned states --
 
     private CharacterPets owner = null;
 
@@ -92,11 +90,10 @@ public class Pet {
 
     private int flags = 0;
 
-    // -- object life cycle --
+    // -- Object life cycle --
 
     public static Pet create(int itemId) {
-        // wz info/life 单位为天，工厂边界统一换算为毫秒
-        return Pet.create(itemId, TimeUnit.DAYS.toMillis(PetDataFactory.getLife(itemId)));
+        return Pet.create(itemId, PetWzHelper.getDurationMs(itemId));
     }
 
     public static Pet create(int itemId, long durationMs) {
@@ -134,7 +131,8 @@ public class Pet {
     private void finishInit() {
         loadedPets.put(petId, this);
         if (alive && expiration > 0) {
-            expireTimer.schedule(petId, expiration);
+            // at this time owner is not bound yet, so an immediate expire will set expiredOffline
+            expireTimer.scheduleOrTrigger(petId, expiration);
         }
     }
 
@@ -146,16 +144,53 @@ public class Pet {
         owner = null;
     }
 
-    private void destroy() {
-        log.info("{} destroyed", this);
-        if (owner != null) {
-            owner.handleDestroy(this);
+    // -- Ownership --
+
+    public void bind(CharacterPets toOwner) {
+        if (owner != toOwner) {
+            if (owner != null) {
+                log.warn("bind called on {} from {}", this, toOwner);
+                owner.unregisterPet(this);
+            }
+
+            owner = toOwner;
+            owner.registerPet(this);
+
+            if (expiredOffline) {
+                expireInternal();
+                expiredOffline = false;
+            }
         }
-        deleteFromDb();
-        dispose();
     }
 
-    // -- expire and revive --
+    public void unbind() {
+        if (owner == null) {
+            log.warn("unbind called on {}", this);
+            return;
+        }
+
+        if (summoned) {
+            dismiss();
+        }
+        owner.unregisterPet(this);
+        owner = null;
+        saveToDb();
+    }
+
+    /** Identical to unbind(), but with a little more debug message. */
+    public void unbind(CharacterPets fromOwner) {
+        if (owner == fromOwner) {
+            unbind();
+        } else {
+            log.error("unbind called on {} from {}", this, fromOwner);
+        }
+    }
+
+    public Character getOwner() {
+        return owner == null ? null : owner.getCharacter();
+    }
+
+    // -- Expire and revive --
 
     private void onExpire() {
         if (!alive) {
@@ -163,19 +198,46 @@ public class Pet {
             return;
         }
 
-        if (!PetDataFactory.canRevive(itemId)) {
+        if (owner == null) {
+            log.info("{} expired offline", this);
+            alive = false;
+            expiredOffline = true;
+            saveToDb();
+            dispose();
+
+        } else {
+            expireInternal();
+        }
+    }
+
+    private void expireInternal() {
+        if (PetWzHelper.canRevive(itemId)) {
+            log.info("{} expired", this);
+            alive = false;
+            if (summoned) {
+                dismiss();
+            }
+            saveToDb();
+            owner.getRemote().expire(this);
+
+        } else {
             destroy();
-            return;
         }
+    }
 
-        log.info("{} expired", this);
-        alive = false;
-
-        if (owner != null) {
-            owner.handleExpire(this);
+    /**
+     * Permanently remove the pet.
+     * This can only be called when the owner is online.
+     */
+    public void destroy() {
+        log.info("{} destroyed", this);
+        if (summoned) {
+            dismiss();
         }
-
-        saveToDb();
+        owner.removePetItem(this);
+        owner.unregisterPet(this);
+        deleteFromDb();
+        dispose();
     }
 
     // todo: [refactor] wire to this
@@ -188,128 +250,70 @@ public class Pet {
         log.info("{} revived", this);
         alive = true;
 
+        saveToDb();
+
+        owner.getRemote().revive(this);
+
         if (durationMs > 0) {
             expiration = Server.getInstance().getCurrentTime() + durationMs;
             expireTimer.schedule(petId, expiration);
         }
-
-        saveToDb();
     }
 
-    // -- player operations --
+    // -- Summon --
 
-    public void bind(CharacterPets newOwner) {
-        if (owner != newOwner) {
-            if (owner != null) {
-                log.warn("bind called on {} bound to character {}", this, owner.getCharacterId());
-                owner.unregisterPet(this);
-            }
-            owner = newOwner;
-            owner.registerPet(this);
-        }
+    public void summon(boolean atTail, Point position, int foothold) {
+        summonSilently(atTail);
+        announceSummon(position, foothold);
     }
 
-    public void unbind() {
-        if (summoned) {
-            desummon();
-        }
-        if (owner != null) {
-            owner.unregisterPet(this);
-            owner = null;
-            saveToDb();
-        }
-    }
-
-    /** Identical to unbind(), but with a little more debug message. */
-    public void unbind(CharacterPets oldOwner) {
-        if (owner == oldOwner) {
-            unbind();
-        } else {
-            log.error("unbind called on {} from bad owner {}", this, oldOwner.getCharacterId());
-        }
-    }
-
-    public void summon(Point position, int foothold) {
-        Character player = owner.getPlayer();
-
+    public void summonSilently(boolean atTail) {
         hungerTimer.cancel(petId);
-        pos = position;
-        stance = 0;
 
         summoned = true;
 
         long now = Server.getInstance().getCurrentTime();
-        hungerTimer.schedule(petId, now + PetDefinitionHelper.getHungryInterval(itemId));
+        hungerTimer.schedule(petId, now + PetWzHelper.getHungryInterval(itemId));
 
-        owner.addPet(this);
-
-        player.getRemote().pet().summonPet(player, this, foothold);
+        owner.addSummonedPet(this, atTail);
     }
 
-    public void desummon() {
-        Character player = owner.getPlayer();
+    public void announceSummon(Point position, int foothold) {
+        if (!summoned) {
+            log.error("announceSummon called on dismissed {}", this);
+            return;
+        }
 
+        pos = position;
+        stance = 0;
+        owner.getRemote().summonPet(this, foothold);
+    }
+
+    public void dismiss() {
+        dismissInternal(false);
+    }
+
+    private void dismissInternal(boolean starve) {
         hungerTimer.cancel(petId);
 
         summoned = false;
 
-        player.getRemote().pet().desummonPet(player, this, false);
+        owner.getRemote().dismissPet(this, starve);
 
-        owner.removePet(this, true);
-        owner.commitExcludedItems();
+        owner.removeDismissedPet(this);
+        getOwner().getRemote().pet().updateIgnoreList(getOwner());
 
-        player.enableActions();
+        // todo: [refactor] ugly api
+        owner.getCharacter().enableActions();
     }
 
-    // -- management --
-
-    public Character getOwner() {
-        return owner == null ? null : owner.getPlayer();
-    }
-
-    public void setName(String name) {
-        this.name = name;
-        saveToDb();  // major change, be conservative
-    }
-
-    public void setIgnoreItems(List<Integer> itemIds) {
-        ignoreItems = itemIds;
-    }
-
-    // -- evolve --
-
-    public void evolve(int newItemId) {
-        itemId = newItemId;
-        saveToDb();  // major change, be conservative
-        // fixme: [refactor] notify client?
-    }
-
-    public boolean isEgg() {
-        return PetDefinitionHelper.isEgg(itemId);
-    }
-
-    public ItemPool getEvolvePool() {
-        if (!PetDefinitionHelper.canEvolve(itemId)) {
-            return null;
-        }
-
-        List<ItemStackWeight> pool = new ArrayList<>();
-        for (Pair<Integer, Integer> candidate : PetDefinitionHelper.getEvolvePool(itemId)) {
-            int evolveItemId = candidate.getLeft();
-            int prob = candidate.getRight();
-            Item evolveResult = Item.fromPet(evolveItemId, petId);
-            pool.add(new ItemStackWeight(evolveResult, 1, prob));
-        }
-        return new ItemPool(pool);
-    }
-
-    // -- interactions --
+    // -- Interactions --
 
     public void addTameness(int delta) {
         tameness = Math.max(0, tameness + delta);
         int oldLevel = level;
         recalcLevel();
-        owner.getPlayer().getRemote().pet().updatePanel(this, level > oldLevel);
+        owner.getRemote().updatePanel(this, level > oldLevel);
     }
 
     private void recalcLevel() {
@@ -323,7 +327,7 @@ public class Pet {
 
     public void addFullness(int delta) {
         fullness = Math.clamp(fullness + delta, 0, 100);
-        owner.getPlayer().getRemote().pet().updatePanel(this, false);
+        owner.getRemote().updatePanel(this, false);
     }
 
     public void onHunger(long timestamp) {
@@ -331,26 +335,71 @@ public class Pet {
             addFullness(-1);
             if (fullness == 0) {
                 addTameness(-1);
-                desummon();
+                dismissInternal(true);
                 fullness = 5;
             } else {
-                hungerTimer.schedule(petId, timestamp + PetDefinitionHelper.getHungryInterval(itemId));
+                hungerTimer.schedule(petId, timestamp + PetWzHelper.getHungryInterval(itemId));
             }
 
-            owner.getPlayer().dropMessage(6, I18nUtil.getMessage("Character.runFullnessSchedule"));
+            owner.getCharacter().dropMessage(6, I18nUtil.getMessage("Character.runFullnessSchedule"));
         }
     }
 
     public void announceFeedResult(boolean enjoy) {
-        Character player = owner.getPlayer();
-        int slot = owner.getPetIndex(this);
-        player.getRemote().pet().petFoodResponse(player, slot, enjoy, owner.hasPetChatballoon(slot));
+        Character player = owner.getCharacter();
+        int slot = owner.getSummonedPetIndex(this);
+        owner.getRemote().petFoodResponse(player, slot, enjoy, owner.hasPetChatballoon(slot));
     }
 
-    // TODO
-    // public void chat() {}
+    // TODO [refactor]
+    // public void chat() {
+    // }
 
-    // -- map object --
+    public void setName(String name) {
+        this.name = name;
+        saveToDb();  // major change, be conservative
+    }
+
+    // -- Evolve --
+
+    /**
+     * Evolve the pet (or hatch the egg) and replace its item.
+     * The result is determined by the wz file.
+     * NOTE: This method does not consume the evolve stone or validate the level requirement.
+     */
+    public int evolve() {
+        itemId = owner.evolvePetItem(this, getEvolveItemPool());
+        saveToDb();
+        return itemId;
+    }
+
+    /** Evolve the pet to a fixed result and replace its item. */
+    public void evolveTo(int newItemId) {
+        owner.evolvePetItem(this, newItemId);
+        itemId = newItemId;
+        saveToDb();
+    }
+
+    public boolean isEgg() {
+        return PetWzHelper.isEgg(itemId);
+    }
+
+    public ItemPool getEvolveItemPool() {
+        if (!PetWzHelper.canEvolve(itemId)) {
+            return null;
+        }
+
+        List<ItemStackWeight> pool = new ArrayList<>();
+        for (Pair<Integer, Integer> candidate : PetWzHelper.getEvolvePool(itemId)) {
+            int evolveItemId = candidate.getLeft();
+            int prob = candidate.getRight();
+            Item evolveResult = Item.fromPet(evolveItemId, petId);
+            pool.add(new ItemStackWeight(evolveResult, 1, prob));
+        }
+        return new ItemPool(pool);
+    }
+
+    // -- Map states --
     // todo: [refactor] move to a MapObject?
 
     public void setPos(Point pos) {
@@ -425,13 +474,10 @@ public class Pet {
         data.level = level;
         data.tameness = tameness;
         data.fullness = fullness;
-        data.summoned = summoned;
-        data.flags = flags;
         data.expiration = expiration;
         data.alive = alive;
-        if (!ignoreItems.isEmpty()) {
-            data.ignoreItems = ignoreItems;
-        }
+        data.expiredOffline = expiredOffline;
+        data.flags = flags;
         return data;
     }
 
@@ -442,16 +488,13 @@ public class Pet {
         level = data.level;
         tameness = data.tameness;
         fullness = data.fullness;
-        summoned = data.summoned;
-        flags = data.flags;
         expiration = data.expiration;
         alive = data.alive;
-        if (data.ignoreItems != null) {
-            ignoreItems = data.ignoreItems;
-        }
+        expiredOffline = data.expiredOffline;
+        flags = data.flags;
     }
 
-    // -- getters --
+    // -- Getters --
 
     public int getPetId() {
         return petId;
@@ -462,7 +505,7 @@ public class Pet {
     }
 
     public String getName() {
-        return name == null ? ii.getName(itemId) : name;
+        return name == null ? PetWzHelper.getItemName(itemId) : name;
     }
 
     public int getTameness() {
@@ -486,10 +529,6 @@ public class Pet {
         return alive;
     }
 
-    public List<Integer> getIgnoreItems() {
-        return ignoreItems;
-    }
-
     public Point getPos() {
         return pos;
     }
@@ -498,9 +537,14 @@ public class Pet {
         return stance;
     }
 
-    // -- Flags --
-    // FIXME: The whole usage is weird.
+    // -- todo --
 
+    // this should be unnecessary if it's cohensive enough
+    public boolean isSummoned() {
+        return summoned;
+    }
+
+    // FIXME: The whole mechanic is weird
     public enum PetFlag {
         OWNER_SPEED(0x01);
 
@@ -522,27 +566,16 @@ public class Pet {
     public void setFlag(PetFlag flag) {
         this.flags |= flag.getValue();
         saveToDb();
-
         if (owner != null) {
-            ItemSlot petz = owner.getPlayer().findPetItemSlot(petId);
-            if (petz != null) {
-                owner.getPlayer().forceUpdateItem(petz);
-            }
+            owner.getRemote().updatePanel(this, false);
         }
     }
 
-    public boolean isSummoned() {
-        return summoned;
-    }
-
-    public void setSummoned(boolean yes) {
-        this.summoned = yes;
-    }
-
     // -- Debug --
+
     @Override
     public String toString() {
-        int ownerId = owner == null ? 0 : owner.getCharacterId();
+        int ownerId = owner == null ? 0 : owner.getCharacter().getId();
         return "Pet(id=" + petId + ", itemId=" + itemId + ", ownerId=" + ownerId + ")";
     }
 }

@@ -39,7 +39,7 @@ function action(mode, type, selection) {
     if (mode < 1) {
         cm.dispose();
     } else {
-        if (cm.getPlayer().getNoPets() == 0) {
+        if (!cm.getPlayer().hasSummonedPet()) {
             cm.sendNextPrev("“嗯... 你真的带着你的宠物来到这里吗？这些障碍是为宠物准备的。你没有宠物来这里干什么？滚出去！”");
         } else {
             cm.gainItem(4031035, -1);

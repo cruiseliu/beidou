@@ -64,7 +64,6 @@ import java.util.List;
 import java.util.*;
 
 import static java.util.concurrent.TimeUnit.DAYS;
-import org.gms.client.inventory.ItemStack;
 
 public class AbstractPlayerInteraction {
 
@@ -532,12 +531,12 @@ public class AbstractPlayerInteraction {
      * 孵化/任务进化（脚本 API）：同一 petId 换宿主物品，宠物本体（pets 行）不变。
      */
     public boolean evolvePet(byte slot, int afterId) {
-        Pet target = getPlayer().getPet(slot);
-        if (target == null) {
-            getPlayer().message("Pet could not be evolved...");
+        Pet pet = getPlayer().getPet(slot);
+        if (pet == null) {
             return false;
         }
-        return getPlayer().getPets().evolvePet(target.getPetId(), afterId);
+        pet.evolveTo(afterId);
+        return true;
     }
 
     /**

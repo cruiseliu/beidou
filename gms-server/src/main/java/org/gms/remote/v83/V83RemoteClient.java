@@ -29,7 +29,6 @@ import org.gms.client.pet.Pet;
 import org.gms.remote.PetSnap;
 import org.gms.remote.ScopeRecord;
 import org.gms.remote.SlotChange;
-import org.gms.client.pet.Pet;
 import org.gms.remote.StatsUpdate;
 import org.gms.remote.v83.translate.CooldownTranslator;
 import org.gms.remote.v83.translate.SkillsTranslator;
@@ -221,6 +220,12 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
             inventoryT.onInventoryMods(changes);
         } else if (e instanceof SemanticEvent.InventoryFull) {
             inventoryT.onInventoryFull();
+        } else if (e instanceof SemanticEvent.PetIgnoreList l) {
+            for (Pet pet : client.getPlayer().getSummonedPets()) {
+                byte petIndex = client.getPlayer().getPetIndex(pet);
+                client.sendPacket(new BytesPacket(
+                        petT.ignoreList(l.cid(), petIndex, pet.getPetId(), l.itemIds())));
+            }
         } else if (e instanceof SemanticEvent.PetPanel snap) {
             inventoryT.onPetPanel(snap);
             if (snap.levelUp()) {
@@ -343,19 +348,16 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
     // ── PetModule（org.gms.remote.PetModule）：PetTranslator 即时编码；广播机制属 map 模块（临时豁免）──
 
     @Override
-    public synchronized void summonPet(Character chr, Pet pet, int fh) {
+    public synchronized void summonPet(Pet pet, int fh) {
+        Character chr = pet.getOwner();
         chr.getMap().broadcastMessage(chr, new BytesPacket(petT.spawnPet(chr, pet, false, false, fh)), true);
         chr.sendPacket(new BytesPacket(petT.petStatUpdate(chr)));
     }
 
     @Override
-    public synchronized void desummonPet(Character chr, Pet pet, boolean hunger) {
+    public synchronized void dismissPet(Pet pet, boolean hunger) {
+        Character chr = pet.getOwner();
         chr.getMap().broadcastMessage(chr, new BytesPacket(petT.spawnPet(chr, pet, true, hunger, 0)), true);
-        chr.sendPacket(new BytesPacket(petT.petStatUpdate(chr)));
-    }
-
-    @Override
-    public synchronized void petStatUpdate(Character chr) {
         chr.sendPacket(new BytesPacket(petT.petStatUpdate(chr)));
     }
 
@@ -363,8 +365,24 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
      * 面板推送入口：入口即冻结快照（pet 引用不出本方法），只记录不发送——
      * 一切 wire 后果（body 刷新与升级演出）都发生在 commit 边界之后，drop 才能整体弃段。
      */
+    /** 到期/复活的 wire 同为面板物品体刷新（alive 位决定 EXPIRED/活态映射），故共用同一通路。 */
+    @Override
+    public void expire(Pet pet) {
+        dispatchPetPanel(pet, false);
+    }
+
+    @Override
+    public void revive(Pet pet) {
+        dispatchPetPanel(pet, false);
+    }
+
     @Override
     public synchronized void updatePanel(Pet pet, boolean levelUp) {
+        dispatchPetPanel(pet, levelUp);
+    }
+
+    /** 面板/生命周期共同通路：入口冻结快照并 dispatch（PetPanel），发送时机由作用域决定。 */
+    private synchronized void dispatchPetPanel(Pet pet, boolean levelUp) {
         Character chr = pet.getOwner();
         if (chr == null) {
             return;
@@ -384,6 +402,15 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
         chr.getMap().broadcastMessage(new BytesPacket(petT.petLevelUpForeign(chr, slot)));
     }
 
+    /**
+     * 拾取过滤列表下发入口：入口即冻结快照（槽位随取随冻——左移会改变槽位）。
+     * petIndex < 0（未召唤）时 wire 无从定位，静默跳过。commit 时刻本人下发。
+     */
+    @Override
+    public void updateIgnoreList(Character chr) {
+        dispatch(new SemanticEvent.PetIgnoreList(chr.getId(), List.copyOf(chr.getExcludedItems())));
+    }
+
     @Override
     public synchronized void petFoodResponse(Character chr, int slot, boolean enjoyed, boolean hasChatBalloon) {
         chr.getMap().broadcastMessage(new BytesPacket(petT.petFoodResponse(chr, slot, enjoyed, hasChatBalloon)));
@@ -392,10 +419,5 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
     @Override
     public synchronized void petNameChange(Character chr, String newName, int slot) {
         chr.getMap().broadcastMessage(chr, new BytesPacket(petT.petNameChange(chr, newName, slot)), true);
-    }
-
-    @Override
-    public synchronized void loadExclusionList(Character chr, int petId, int petIndex, List<Integer> itemIds) {
-        chr.sendPacket(new BytesPacket(petT.exclusionList(chr, petId, petIndex, itemIds)));
     }
 }

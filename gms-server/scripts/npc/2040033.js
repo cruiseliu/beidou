@@ -41,7 +41,7 @@ function start() {
 
 function action(mode, type, selection) {
     if (mode < 1) {
-    } else if (cm.getPlayer().getNoPets() == 0) {
+    } else if (!cm.getPlayer().hasSummonedPet()) {
         cm.sendNextPrev("Hmmm ... did you really get here with your pet? These obstacles are for pets. What are you here for without it?? Get outta here!");
     } else {
         cm.gainItem(4031128, -1);

@@ -53,7 +53,7 @@ public class MinTamenessRequirement extends AbstractQuestRequirement {
     public boolean check(Character chr, Integer npcid) {
         int curTameness = 0;
 
-        for (Pet pet : chr.getSummonSlots()) {
+        for (Pet pet : chr.LEGACY_getSummonSlots()) {
             if (pet == null) {
                 continue;
             }

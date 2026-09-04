@@ -28,8 +28,8 @@ import org.gms.client.pet.Pet;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author BubblesDev
@@ -53,7 +53,7 @@ public final class PetExcludeItemsHandler extends AbstractPacketHandler {
             return;
         }
 
-        Set<Integer> newExcludedItems = new LinkedHashSet<>();
+        List<Integer> newExcludedItems = new ArrayList<>();
         byte amount = p.readByte();
         for (int i = 0; i < amount; i++) {
             int itemId = p.readInt();
@@ -66,7 +66,7 @@ public final class PetExcludeItemsHandler extends AbstractPacketHandler {
         }
 
         // 客户端提交完整过滤列表：整体写入 Pet 本体（立即落库），再重发本角色的过滤列表
-        chr.updatePetExcludedItems(petId, newExcludedItems);
-        chr.commitExcludedItems();
+        chr.setPetIgnoreItems(newExcludedItems);
+        chr.getRemote().pet().updateIgnoreList(chr);
     }
 }

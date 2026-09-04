@@ -51,13 +51,13 @@ public final class PetFoodHandler extends AbstractPacketHandler {
         abm.spam(2);
         p.readInt(); // timestamp issue detected thanks to Masterrulax
         abm.setTimestamp(1, Server.getInstance().getCurrentTimestamp(), 3);
-        if (chr.getNoPets() == 0) {
+        if (!chr.hasSummonedPet()) {
             c.sendPacket(PacketCreator.enableActions());
             return;
         }
         int previousFullness = 100;
         byte slot = 0;
-        Pet[] pets = chr.getSummonSlots();
+        Pet[] pets = chr.LEGACY_getSummonSlots();
         for (byte i = 0; i < 3; i++) {
             if (pets[i] != null) {
                 if (pets[i].getFullness() < previousFullness) {

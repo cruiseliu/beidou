@@ -103,6 +103,10 @@ public class InventoryTransaction {
         return this;
     }
 
+    public InventoryTransaction add(Item item, int quantity) {
+        return add(new ItemStack(item, quantity));
+    }
+
     public InventoryTransaction add(List<ItemStack> items) {
         for (ItemStack item : items) {
             add(item);

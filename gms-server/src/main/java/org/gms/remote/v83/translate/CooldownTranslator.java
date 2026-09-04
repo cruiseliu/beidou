@@ -1,6 +1,7 @@
 package org.gms.remote.v83.translate;
 
 import io.netty.buffer.ByteBuf;
+import org.gms.remote.v83.PacketRecordLog;
 import org.gms.remote.v83.packet.CooldownPacket;
 
 
@@ -25,6 +26,7 @@ public final class CooldownTranslator implements Translator {
     public List<ByteBuf> flush() {
         List<ByteBuf> frames = new ArrayList<>(packets.size());
         for (CooldownPacket packet : packets) {
+            PacketRecordLog.debug(packet);
             frames.add(CooldownPacket.encode(packet));
         }
         packets.clear();

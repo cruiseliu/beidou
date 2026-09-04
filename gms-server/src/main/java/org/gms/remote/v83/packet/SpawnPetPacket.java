@@ -3,8 +3,6 @@ package org.gms.remote.v83.packet;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
-import java.util.List;
-
 /**
  * SPAWN_PET（0xA8）封包树：出现（addPetInfo）/消失（remove + hunger 位）两形态。
  * 名字以会话编码字节传入（冻结纪律：packet 层不做字符集转换）。

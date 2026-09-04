@@ -4,7 +4,6 @@ import io.netty.buffer.ByteBuf;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.Item;
-import org.gms.client.pet.Pet;
 import org.gms.constants.game.ExpTable;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.server.ItemInformationProvider;
@@ -12,6 +11,7 @@ import org.gms.remote.SemanticEvent;
 import org.gms.remote.PetSnap;
 import org.gms.remote.SlotChange;
 import org.gms.remote.v83.FrozenInventoryEvent;
+import org.gms.remote.v83.PacketRecordLog;
 import org.gms.remote.v83.packet.InventoryFullPacket;
 import org.gms.remote.v83.packet.InventoryOperationPacket;
 
@@ -68,8 +68,9 @@ public final class InventoryTranslator implements Translator {
         List<ByteBuf> frames = new ArrayList<>(3);
         // 已生效变更先行；背包满=空操作帧 + 0xff 状态帧成对（对齐 addById 失败双包）
         if (!changes.isEmpty()) {
-            frames.add(InventoryOperationPacket.encode(
-                    InventoryOperationPacket.of(true, changes)));
+            var packet = InventoryOperationPacket.of(true, changes);
+            PacketRecordLog.debug(packet);
+            frames.add(InventoryOperationPacket.encode(packet));
             changes.clear();
         }
         if (full) {

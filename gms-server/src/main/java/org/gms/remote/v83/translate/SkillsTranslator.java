@@ -2,6 +2,7 @@ package org.gms.remote.v83.translate;
 
 import org.gms.remote.SkillUpdate;
 import io.netty.buffer.ByteBuf;
+import org.gms.remote.v83.PacketRecordLog;
 import org.gms.remote.v83.packet.UpdateSkillsPacket;
 
 import java.util.ArrayList;
@@ -36,7 +37,9 @@ public final class SkillsTranslator implements Translator {
         if (entries.isEmpty()) {
             return List.of();   // 例：建角/转职的 level0 技能被静默过滤后，不得发出空帧
         }
-        List<ByteBuf> frames = List.of(UpdateSkillsPacket.encode(new UpdateSkillsPacket(entries)));
+        var packet = new UpdateSkillsPacket(entries);
+        PacketRecordLog.debug(packet);
+        List<ByteBuf> frames = List.of(UpdateSkillsPacket.encode(packet));
         entries.clear();
         return frames;
     }

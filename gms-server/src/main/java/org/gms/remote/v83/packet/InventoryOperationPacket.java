@@ -3,7 +3,6 @@ package org.gms.remote.v83.packet;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**

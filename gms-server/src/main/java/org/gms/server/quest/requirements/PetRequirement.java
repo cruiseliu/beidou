@@ -54,7 +54,7 @@ public class PetRequirement extends AbstractQuestRequirement {
 
     @Override
     public boolean check(Character chr, Integer npcid) {
-        for (Pet pet : chr.getSummonSlots()) {
+        for (Pet pet : chr.LEGACY_getSummonSlots()) {
             if (pet == null) {
                 continue;   // thanks Arufonsu for showing a NPE occurring here
             }

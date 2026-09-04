@@ -7,6 +7,7 @@ import org.gms.remote.BasicUpdate;
 import org.gms.remote.SpUpdate;
 import org.gms.remote.StatsUpdate;
 import io.netty.buffer.ByteBuf;
+import org.gms.remote.v83.PacketRecordLog;
 import org.gms.remote.v83.packet.StatChangedPacket;
 
 import java.util.ArrayList;
@@ -132,6 +133,7 @@ public final class StatsTranslator implements Translator {
                         sp.spByJob().values().stream().mapToInt(Integer::intValue).toArray())
                 : null;
         var packet = StatChangedPacket.of(unlockActions, entries, spBuckets);
+        PacketRecordLog.debug(packet);
         reset();
         return List.of(StatChangedPacket.encode(packet));
     }

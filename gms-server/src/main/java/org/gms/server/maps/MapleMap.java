@@ -2517,17 +2517,13 @@ public class MapleMap {
             chr.sendPacket(PacketCreator.getClock(pqTimer / 1000));
         }
 
-        Pet[] pets = chr.getSummonSlots();
-        for (Pet pet : pets) {
-            if (pet != null) {
-                pet.setPos(getGroundBelow(chr.getPosition()));
-                int fh = getFootholds().findBelow(pet.getPos()).getId();
-                chr.sendPacket(PacketCreator.showPet(chr, pet, false, false, fh));
-            } else {
-                break;
-            }
+        for (Pet pet : chr.getPets().getSummonedPets()) {
+            Point pos = getGroundBelow(chr.getPosition());
+            int fh = getFootholds().findBelow(pos).getId();
+            pet.announceSummon(pos, fh);
         }
-        chr.commitExcludedItems();  // thanks OishiiKawaiiDesu for noticing pet item ignore registry erasing upon changing maps
+
+        chr.getRemote().pet().updateIgnoreList(chr);  // thanks OishiiKawaiiDesu for noticing pet item ignore registry erasing upon changing maps
 
         if (chr.getMonsterCarnival() != null) {
             chr.sendPacket(PacketCreator.getClock(chr.getMonsterCarnival().getTimeLeftSeconds()));

@@ -64,9 +64,6 @@ public class Item implements Comparable<Item> {
         if (!ItemConstants.isPet(id)) {
             throw new IllegalStateException("非宠物 id 禁止经 fromPet 构造: " + id);
         }
-        if (petId <= -1) {
-            throw new IllegalStateException("宠物道具必须携带 petId: " + id);
-        }
         return new Item(id, petId);
     }
 
@@ -141,6 +138,10 @@ public class Item implements Comparable<Item> {
         if (ii.isKarmaAble(id)) {
             addFlag(ItemFlag.SCISSOR_USABLE);   // 宿命剪刀可用性恒定标签
         }
+    }
+
+    public int getId() {
+        return id;
     }
 
     public int getItemId() {
@@ -282,10 +283,17 @@ public class Item implements Comparable<Item> {
      * </ol>
      */
     public boolean canMergeWith(Item other) {
-        return getStackLimit() > 1
-                && id == other.id
-                && flagSet.equals(other.flagSet)
-                && owner.equals(other.owner);
+        if (id != other.id || getStackLimit() == 1) {
+            return false;
+        }
+        if (!flagSet.equals(other.flagSet) || !owner.equals(other.owner)) {
+            return false;
+        }
+        if (getCashId() != other.getCashId()) {
+            // todo: [refactor] implement smarter cash item merge
+            return false;
+        }
+        return true;
     }
 
     /** 从旧整型旗标恢复：按类别分桶到 Item/Equip 两组（0x02 在装备上是 SPIKES） */
@@ -336,6 +344,13 @@ public class Item implements Comparable<Item> {
     /** 点券物品会话信息；非现金物品为 null */
     public CashItemInfo getCashInfo() {
         return cashInfo;
+    }
+
+    public long getCashId() {
+        if (cashInfo == null) {
+            return -1;
+        }
+        return cashInfo.getCashId();
     }
 
     /** 是否现金物品（构造时按 isCash 定性；cashId/sn/giftFrom 仅现金物品携带） */
