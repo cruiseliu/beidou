@@ -1,6 +1,5 @@
 package org.gms.remote.v83.translate;
 
-import io.netty.buffer.ByteBuf;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.Item;
@@ -11,9 +10,9 @@ import org.gms.remote.SemanticEvent;
 import org.gms.remote.PetSnap;
 import org.gms.remote.SlotChange;
 import org.gms.remote.v83.FrozenInventoryEvent;
-import org.gms.remote.v83.PacketRecordLog;
 import org.gms.remote.v83.packet.InventoryFullPacket;
 import org.gms.remote.v83.packet.InventoryOperationPacket;
+import org.gms.remote.v83.packet.V83Packet;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -64,21 +63,19 @@ public final class InventoryTranslator implements Translator {
     }
 
     @Override
-    public List<ByteBuf> flush() {
-        List<ByteBuf> frames = new ArrayList<>(3);
+    public List<V83Packet> flush() {
+        List<V83Packet> packets = new ArrayList<>(3);
         // 已生效变更先行；背包满=空操作帧 + 0xff 状态帧成对（对齐 addById 失败双包）
         if (!changes.isEmpty()) {
-            var packet = InventoryOperationPacket.of(true, changes);
-            PacketRecordLog.debug(packet);
-            frames.add(InventoryOperationPacket.encode(packet));
+            packets.add(InventoryOperationPacket.of(true, changes));
             changes.clear();
         }
         if (full) {
-            frames.add(InventoryOperationPacket.encodeEmpty());
-            frames.add(InventoryFullPacket.encode());
+            packets.add(InventoryOperationPacket.empty());
+            packets.add(new InventoryFullPacket());
             full = false;
         }
-        return frames;
+        return packets;
     }
 
     // ── 语义 → packet 字段 ──

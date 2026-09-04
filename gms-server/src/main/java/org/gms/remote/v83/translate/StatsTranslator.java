@@ -6,9 +6,8 @@ import org.gms.constants.game.GameConstants;
 import org.gms.remote.BasicUpdate;
 import org.gms.remote.SpUpdate;
 import org.gms.remote.StatsUpdate;
-import io.netty.buffer.ByteBuf;
-import org.gms.remote.v83.PacketRecordLog;
 import org.gms.remote.v83.packet.StatChangedPacket;
+import org.gms.remote.v83.packet.V83Packet;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -95,7 +94,7 @@ public final class StatsTranslator implements Translator {
     }
 
     @Override
-    public List<ByteBuf> flush() {
+    public List<V83Packet> flush() {
         boolean spTable = sp != null && spTableJob(sp.jobId());
         List<StatChangedPacket.StatEntry> entries = new ArrayList<>(panel.size() + 6);
         if (level != null) {
@@ -133,9 +132,8 @@ public final class StatsTranslator implements Translator {
                         sp.spByJob().values().stream().mapToInt(Integer::intValue).toArray())
                 : null;
         var packet = StatChangedPacket.of(unlockActions, entries, spBuckets);
-        PacketRecordLog.debug(packet);
         reset();
-        return List.of(StatChangedPacket.encode(packet));
+        return List.of(packet);
     }
 
     private boolean spBucketsUnused(boolean spTable) {

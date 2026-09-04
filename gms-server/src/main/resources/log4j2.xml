@@ -11,8 +11,8 @@
         <property name="rolling_max">10</property>
         <property name="rolling_timeInterval">1</property>
         <property name="rolling_timeModulate">true</property>
-        <property name="console_print_level">DEBUG</property>
-        <property name="file_print_level">DEBUG</property>
+        <property name="console_print_level">TRACE</property>
+        <property name="file_print_level">TRACE</property>
         <property name="output_log_level">INFO</property>
     </Properties>
 
@@ -39,6 +39,9 @@
     </appenders>
 
     <loggers>
+        <!-- remote 通道 packet 日志：debug=JSON / trace=hex bytes -->
+        <Logger name="org.gms.remote" level="TRACE"/>
+
         <!-- 降低 Druid 的日志级别 -->
         <Logger name="com.alibaba.druid" level="ERROR">
             <AppenderRef ref="Console"/>

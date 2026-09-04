@@ -2,12 +2,13 @@ package org.gms.remote.v83.packet;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import org.gms.net.opcodes.SendOpcode;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * STAT_CHANGED（0x1F）封包树，按 opcode 一 record，形态为嵌套 Body：
+ * STAT_CHANGED 封包树，按 opcode 一 record，形态为嵌套 Body：
  * <ul>
  *   <li>{@link Body.Stats}：mask 升序的属性条目 + SP 表职业分桶块（变长，占 0x8000 位）。
  *       mask 为派生值（工厂计算）；历史宽度表原样保留（0x1→byte / ≤0x4→int / <0x20→byte /
@@ -16,8 +17,7 @@ import java.util.List;
  *       客户端语义：槽位 -> petid 指派刷新（面板数值本体走宠物物品体，不经本包）。</li>
  * </ul>
  */
-public record StatChangedPacket(boolean unlockActions, Body body) {
-    private static final int OPCODE = 0x1F;
+public record StatChangedPacket(boolean unlockActions, Body body) implements V83Packet {
     private static final int SP_TABLE_MASK = 0x8000;
     private static final int PET_MASK = 0x180008;
 
@@ -49,11 +49,17 @@ public record StatChangedPacket(boolean unlockActions, Body body) {
         return new StatChangedPacket(unlockActions, new Body.PetIds(petIds));
     }
 
-    public static ByteBuf encode(StatChangedPacket packet) {
+    @Override
+    public SendOpcode opcode() {
+        return SendOpcode.STAT_CHANGED;
+    }
+
+    @Override
+    public ByteBuf encode() {
         ByteBuf out = Unpooled.buffer();
-        out.writeShortLE(OPCODE);
-        out.writeBoolean(packet.unlockActions());
-        switch (packet.body()) {
+        out.writeShortLE(opcode().getValue());
+        out.writeBoolean(unlockActions);
+        switch (body) {
             case Body.Stats stats -> {
                 out.writeIntLE(stats.mask());
                 for (StatEntry e : stats.entries()) {

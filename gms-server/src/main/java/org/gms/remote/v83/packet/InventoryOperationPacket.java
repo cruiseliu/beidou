@@ -2,18 +2,18 @@ package org.gms.remote.v83.packet;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import org.gms.net.opcodes.SendOpcode;
 
 import java.util.List;
 
 /**
- * INVENTORY_OPERATION（0x1D）封包树：槽位变更列表（纯字段，无外部对象）。
+ * INVENTORY_OPERATION 封包树：槽位变更列表（纯字段，无外部对象）。
  * 数量为绝对终值（可充值 = 可使用次数，由 translate 层完成 charge→数量换算）；
  * addMovement 尾字节为派生值（moved/removed 出现负位=穿戴位，取末条结论），工厂计算。
  * 身份 = Item 引用（语义层已保证 Added.body 是冻结快照）。
  */
 public record InventoryOperationPacket(boolean updateTick, List<Change> changes,
-                                       Byte addMovement) {
-    private static final int OPCODE = 0x1D;
+                                       Byte addMovement) implements V83Packet {
 
     public static InventoryOperationPacket of(boolean updateTick, List<Change> changes) {
         Byte addMovement = null;
@@ -31,18 +31,24 @@ public record InventoryOperationPacket(boolean updateTick, List<Change> changes,
         return new InventoryOperationPacket(updateTick, List.copyOf(changes), addMovement);
     }
 
-    /** 空操作帧（updateTick=true, count=0）：背包满信号的第一帧（与 0xff 状态包成对） */
-    public static ByteBuf encodeEmpty() {
-        return encode(of(true, List.of()));
+    /** 空操作帧 record（updateTick=true, count=0）：背包满信号的第一帧（与 0xff 状态包成对） */
+    public static InventoryOperationPacket empty() {
+        return of(true, List.of());
     }
 
-    public static ByteBuf encode(InventoryOperationPacket packet) {
+    @Override
+    public SendOpcode opcode() {
+        return SendOpcode.INVENTORY_OPERATION;
+    }
+
+    @Override
+    public ByteBuf encode() {
         ByteBuf out = Unpooled.buffer();
-        out.writeShortLE(OPCODE);
-        out.writeBoolean(packet.updateTick());
-        out.writeByte(packet.changes().size());
+        out.writeShortLE(opcode().getValue());
+        out.writeBoolean(updateTick);
+        out.writeByte(changes.size());
         int addMovement = -1;
-        for (Change c : packet.changes()) {
+        for (Change c : changes) {
             if (c instanceof Added(var tab, var pos, var body)) {
                 writeHeader(out, (byte) 0, tab, pos);
                 writeBody(out, body);

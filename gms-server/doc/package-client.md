@@ -83,9 +83,14 @@ EXPIRED/PERMANENT/日期、tameness min(30000) 截断、名字 -> 会话编码�
 
 ## 7. packet 层
 
-- **每种 opcode 一个树状 record** + 静态 `encode(packet)`；一个 opcode 内的多种形态
+- **每种 opcode 一个树状 record**，实现 `V83Packet` 接口（`opcode()` 返回 `SendOpcode`
+  枚举常量，实例 `encode()` 编出整帧）；一个 opcode 内的多种形态
   用嵌套 sealed body 表达（如 `InventoryOperationPacket.ItemBody`、
   `StatChangedPacket.Body.Stats/PetIds`）。
 - opcode 之间可以有共用子树（如宠物/装备/消耗品共用的物品体头部）。
 - packet 层零字符集知识（字符串以会话编码字节传入）、零语义查表（只做字段排布），
   wire 常量（掩码位、历史宽度表）内聚在 record 内。
+- **发送侧可观测性归 route 层**：`V83RemoteClient.send`/`wire` 是全部 wire 后果
+  （含地图广播帧）的统一出口，在此 encode 并记日志——debug 级 packet record JSON、
+  trace 级整帧 hex bytes（logger `org.gms.remote`，由日志级别门控，
+  不走 `use_debug_show_packet` 开关）；translate 层与 packet record 不自行编码、不记日志。

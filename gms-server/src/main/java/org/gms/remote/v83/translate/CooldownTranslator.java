@@ -1,10 +1,7 @@
 package org.gms.remote.v83.translate;
 
-import io.netty.buffer.ByteBuf;
-import org.gms.remote.v83.PacketRecordLog;
 import org.gms.remote.v83.packet.CooldownPacket;
-
-
+import org.gms.remote.v83.packet.V83Packet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,13 +20,9 @@ public final class CooldownTranslator implements Translator {
     }
 
     @Override
-    public List<ByteBuf> flush() {
-        List<ByteBuf> frames = new ArrayList<>(packets.size());
-        for (CooldownPacket packet : packets) {
-            PacketRecordLog.debug(packet);
-            frames.add(CooldownPacket.encode(packet));
-        }
+    public List<V83Packet> flush() {
+        List<V83Packet> out = new ArrayList<>(packets);
         packets.clear();
-        return frames;
+        return out;
     }
 }

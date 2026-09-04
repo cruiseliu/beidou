@@ -2,23 +2,29 @@ package org.gms.remote.v83.packet;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import org.gms.net.opcodes.SendOpcode;
 
 import java.util.List;
 
 /**
- * PET_EXCEPTION_LIST（0xAD）：拾取过滤列表下发。
+ * PET_EXCEPTION_LIST：拾取过滤列表下发。
  */
-public record PetExceptionListPacket(int cid, byte petIndex, long petId, List<Integer> itemIds) {
-    private static final int OPCODE = 0xAD;
+public record PetExceptionListPacket(int cid, byte petIndex, long petId, List<Integer> itemIds) implements V83Packet {
 
-    public static ByteBuf encode(PetExceptionListPacket packet) {
+    @Override
+    public SendOpcode opcode() {
+        return SendOpcode.PET_EXCEPTION_LIST;
+    }
+
+    @Override
+    public ByteBuf encode() {
         ByteBuf out = Unpooled.buffer();
-        out.writeShortLE(OPCODE);
-        out.writeIntLE(packet.cid());
-        out.writeByte(packet.petIndex());
-        out.writeLongLE(packet.petId());
-        out.writeByte(packet.itemIds().size());
-        for (int id : packet.itemIds()) {
+        out.writeShortLE(opcode().getValue());
+        out.writeIntLE(cid);
+        out.writeByte(petIndex);
+        out.writeLongLE(petId);
+        out.writeByte(itemIds.size());
+        for (int id : itemIds) {
             out.writeIntLE(id);
         }
         return out;

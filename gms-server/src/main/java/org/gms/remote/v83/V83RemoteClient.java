@@ -1,5 +1,6 @@
 package org.gms.remote.v83;
 
+import com.alibaba.fastjson2.JSON;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import org.gms.client.Client;
@@ -30,23 +31,30 @@ import org.gms.remote.PetSnap;
 import org.gms.remote.ScopeRecord;
 import org.gms.remote.SlotChange;
 import org.gms.remote.StatsUpdate;
+import org.gms.remote.v83.packet.V83Packet;
 import org.gms.remote.v83.translate.CooldownTranslator;
 import org.gms.remote.v83.translate.SkillsTranslator;
 import org.gms.remote.v83.translate.StatsTranslator;
 import org.gms.remote.v83.translate.InventoryTranslator;
 import org.gms.remote.v83.translate.PetTranslator;
+import org.gms.util.HexTool;
 import org.gms.util.ThreadLocalUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.Charset;
 import java.util.List;
 
 /**
- * route 层：语义模块调用 → 作用域段 → 按域分发 translate → 帧 → 传输适配（BytesPacket）。
+ * route 层：语义模块调用 → 作用域段 → 按域分发 translate → packet record → 统一
+ * encode + 日志 + 传输适配（BytesPacket）。
  * 对参数不做理解、只透传；固定冲刷序 stats → skills → cooldown → inventory。
  * 分层与原则见 gms-server/doc/package-client.md §4/§5；多对多落点注释保留在 deliver。
  */
 public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsModule,
         BasicModule, CooldownModule, InventoryModule, PetModule {
+
+    private static final Logger log = LoggerFactory.getLogger(V83RemoteClient.class);
 
     /** v83 客户端旗标字的逐位拼装——legacy 旗标视图（Item.getLegacyFlags）的唯一组装点。 */
     public static int assembleClientFlagBits(Item item) {
@@ -223,8 +231,7 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
         } else if (e instanceof SemanticEvent.PetIgnoreList l) {
             for (Pet pet : client.getPlayer().getSummonedPets()) {
                 byte petIndex = client.getPlayer().getPetIndex(pet);
-                client.sendPacket(new BytesPacket(
-                        petT.ignoreList(l.cid(), petIndex, pet.getPetId(), l.itemIds())));
+                send(petT.ignoreList(l.cid(), petIndex, pet.getPetId(), l.itemIds()));
             }
         } else if (e instanceof SemanticEvent.PetPanel snap) {
             inventoryT.onPetPanel(snap);
@@ -233,30 +240,42 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
                 // TODO: rethink about map broadcast——地图广播尚未纳入事务模型（deliver 即发送，
                 //       drop 撤不回；summon/desummon 等入口广播同样在事务保护之外），整体设计待重审。
                 Character chr = client.getPlayer();
-                chr.sendPacket(new BytesPacket(petT.petLevelUpOwn(snap.petIndex())));
-                chr.getMap().broadcastMessage(new BytesPacket(petT.petLevelUpForeign(chr, snap.petIndex())));
+                chr.sendPacket(wire(petT.petLevelUpOwn(snap.petIndex())));
+                chr.getMap().broadcastMessage(wire(petT.petLevelUpForeign(chr, snap.petIndex())));
             }
         }
     }
 
     /** 固定冲刷序：stats → skills → cooldown → inventory */
     private void flushAll() {
-        for (ByteBuf frame : statsT.flush()) {
-            send(frame);
+        for (V83Packet packet : statsT.flush()) {
+            send(packet);
         }
-        for (ByteBuf frame : skillsT.flush()) {
-            send(frame);
+        for (V83Packet packet : skillsT.flush()) {
+            send(packet);
         }
-        for (ByteBuf frame : cooldownT.flush()) {
-            send(frame);
+        for (V83Packet packet : cooldownT.flush()) {
+            send(packet);
         }
-        for (ByteBuf frame : inventoryT.flush()) {
-            send(frame);
+        for (V83Packet packet : inventoryT.flush()) {
+            send(packet);
         }
     }
 
-    private void send(ByteBuf frame) {
-        client.sendPacket(new BytesPacket(frame));
+    private void send(V83Packet packet) {
+        client.sendPacket(wire(packet));
+    }
+
+    /** debug 级 JSON + encode + trace 级 hex，产出传输帧；广播路径复用同一出口保证日志齐全 */
+    private BytesPacket wire(V83Packet packet) {
+        if (log.isDebugEnabled()) {
+            log.debug("[remote] {} {}", packet.opcode(), JSON.toJSONString(packet));
+        }
+        ByteBuf frame = packet.encode();
+        if (log.isTraceEnabled()) {
+            log.trace("[remote] {} hex {}", packet.opcode(), HexTool.toHexString(ByteBufUtil.getBytes(frame)));
+        }
+        return new BytesPacket(frame);
     }
 
     /** 传输适配：帧 ByteBuf → Packet（复用既有加密/发送管线） */
@@ -350,15 +369,15 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
     @Override
     public synchronized void summonPet(Pet pet, int fh) {
         Character chr = pet.getOwner();
-        chr.getMap().broadcastMessage(chr, new BytesPacket(petT.spawnPet(chr, pet, false, false, fh)), true);
-        chr.sendPacket(new BytesPacket(petT.petStatUpdate(chr)));
+        chr.getMap().broadcastMessage(chr, wire(petT.spawnPet(chr, pet, false, false, fh)), true);
+        send(petT.petStatUpdate(chr));
     }
 
     @Override
     public synchronized void dismissPet(Pet pet, boolean hunger) {
         Character chr = pet.getOwner();
-        chr.getMap().broadcastMessage(chr, new BytesPacket(petT.spawnPet(chr, pet, true, hunger, 0)), true);
-        chr.sendPacket(new BytesPacket(petT.petStatUpdate(chr)));
+        chr.getMap().broadcastMessage(chr, wire(petT.spawnPet(chr, pet, true, hunger, 0)), true);
+        send(petT.petStatUpdate(chr));
     }
 
     /**
@@ -398,8 +417,8 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
     }
 
     public synchronized void petLevelUp(Character chr, int slot) {
-        chr.sendPacket(new BytesPacket(petT.petLevelUpOwn(slot)));
-        chr.getMap().broadcastMessage(new BytesPacket(petT.petLevelUpForeign(chr, slot)));
+        chr.sendPacket(wire(petT.petLevelUpOwn(slot)));
+        chr.getMap().broadcastMessage(wire(petT.petLevelUpForeign(chr, slot)));
     }
 
     /**
@@ -413,11 +432,11 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
 
     @Override
     public synchronized void petFoodResponse(Character chr, int slot, boolean enjoyed, boolean hasChatBalloon) {
-        chr.getMap().broadcastMessage(new BytesPacket(petT.petFoodResponse(chr, slot, enjoyed, hasChatBalloon)));
+        chr.getMap().broadcastMessage(wire(petT.petFoodResponse(chr, slot, enjoyed, hasChatBalloon)));
     }
 
     @Override
     public synchronized void petNameChange(Character chr, String newName, int slot) {
-        chr.getMap().broadcastMessage(chr, new BytesPacket(petT.petNameChange(chr, newName, slot)), true);
+        chr.getMap().broadcastMessage(chr, wire(petT.petNameChange(chr, newName, slot)), true);
     }
 }

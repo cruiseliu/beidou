@@ -2,13 +2,13 @@ package org.gms.remote.v83.packet;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import org.gms.net.opcodes.SendOpcode;
 
 /**
- * SPAWN_PET（0xA8）封包树：出现（addPetInfo）/消失（remove + hunger 位）两形态。
+ * SPAWN_PET 封包树：出现（addPetInfo）/消失（remove + hunger 位）两形态。
  * 名字以会话编码字节传入（冻结纪律：packet 层不做字符集转换）。
  */
-public record SpawnPetPacket(int cid, byte petIndex, PetBody body) {
-    private static final int OPCODE = 0xA8;
+public record SpawnPetPacket(int cid, byte petIndex, PetBody body) implements V83Packet {
 
     public static SpawnPetPacket remove(int cid, byte petIndex, boolean hunger) {
         return new SpawnPetPacket(cid, petIndex, new PetBody.Remove(hunger));
@@ -21,12 +21,18 @@ public record SpawnPetPacket(int cid, byte petIndex, PetBody body) {
                 new PetBody.Appear(itemId, name, petId, x, y, stance, fh, hasNameTag, hasChatBalloon));
     }
 
-    public static ByteBuf encode(SpawnPetPacket packet) {
+    @Override
+    public SendOpcode opcode() {
+        return SendOpcode.SPAWN_PET;
+    }
+
+    @Override
+    public ByteBuf encode() {
         ByteBuf out = Unpooled.buffer();
-        out.writeShortLE(OPCODE);
-        out.writeIntLE(packet.cid());
-        out.writeByte(packet.petIndex());
-        switch (packet.body()) {
+        out.writeShortLE(opcode().getValue());
+        out.writeIntLE(cid);
+        out.writeByte(petIndex);
+        switch (body) {
             case PetBody.Remove(boolean hunger) -> {
                 out.writeByte(0);
                 out.writeBoolean(hunger);
