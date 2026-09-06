@@ -23,6 +23,7 @@ package org.gms.net.server;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.gms.infra.DeadlineTimer;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.SkillFactory;
@@ -177,6 +178,9 @@ public class Server {
         ReadWriteLock loginLock = new ReentrantReadWriteLock(true);
         this.lgnRLock = loginLock.readLock();
         this.lgnWLock = loginLock.writeLock();
+
+        // 定时基础设施与游戏时钟同源：deadline 全部以 Server.getCurrentTime() 为基准
+        DeadlineTimer.useClock(this::getCurrentTime);
     }
 
     public int getCurrentTimestamp() {

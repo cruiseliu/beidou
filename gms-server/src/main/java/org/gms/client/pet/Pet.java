@@ -15,7 +15,6 @@ import org.gms.model.json.PetData;
 import org.gms.util.DatabaseConnection;
 import org.gms.util.I18nUtil;
 import org.gms.util.Pair;
-import org.gms.util.TimeoutHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,8 +26,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 宠物：与物品解耦的独立对象，自行管理生命周期。
@@ -37,27 +34,19 @@ import java.util.concurrent.ConcurrentHashMap;
  * - 物品需要宠物时经 CharacterPets 的 petid→Pet 映射查询。
  * itemId 是 wz 数据 key（宠物命令/饥饿/可食饲料判定），自持于此。
  * 纪律：部分方法跨 Pet 和 CharacterPets 双类，入口/主体统一放在此类，后者只放强依赖 Character 对象的部分。
+ *
+ * <p><b>并发模型（M1 宠物 POC）</b>：状态变更（bind/unbind/summon/dismiss/destroy/revive/
+ * 亲密度/饱食度/命名/旗帜/进化）经 owner（或 bind 的目标 owner）strand 自封存——strand 内
+ * 调用 inline、跨线程调用入队等待，调用方线程无关；全局注册表归 {@link PetManager} 壳；
+ * 定时器归 owner 的 KeyedTimers（无主宠物零定时器，离线过期在 acquire 时经
+ * scheduleOrRun 补判）。单字段 getter 不设防（最坏读到旧值，对发包无害）——
+ * 严禁在 getter 上加锁/断言：remote 冻结路径持 remote monitor 调它们，加锁会制造
+ * remote↔pet 反向锁序。
  */
 public class Pet {
     private static final Logger log = LoggerFactory.getLogger(Pet.class);
 
     public static final long PERMANENT = -1;
-
-    private static final Map<Integer, Pet> loadedPets = new ConcurrentHashMap<>();
-
-    private static final TimeoutHelper expireTimer = TimeoutHelper.createAndStart((petId, timestamp) -> {
-        Pet pet = loadedPets.get(petId);
-        if (pet != null) {
-            pet.onExpire();
-        }
-    });
-
-    private static final TimeoutHelper hungerTimer = TimeoutHelper.createAndStart((petId, timestamp) -> {
-        Pet pet = loadedPets.get(petId);
-        if (pet != null) {
-            pet.onHunger(timestamp);
-        }
-    });
 
     // -- immutable identifier --
 
@@ -76,7 +65,6 @@ public class Pet {
 
     private long expiration = PERMANENT;
     private boolean alive = true;
-    private boolean expiredOffline = false;
 
     // -- owner and summoned states --
 
@@ -108,45 +96,36 @@ public class Pet {
         // if saving fails, creation fails
         pet.saveToDb();
 
-        pet.finishInit();
+        PetManager.get().register(pet);
         return pet;
     }
 
     public static Pet load(int petId) {
-        Pet pet = loadedPets.get(petId);
-        if (pet != null) {
-            return pet;
-        }
-
-        pet = new Pet();
-        pet.petId = petId;
-        pet.loadFromDb();
-
-        pet.finishInit();
-        return pet;
+        return PetManager.get().getOrLoad(petId);
     }
 
     private Pet() {}
 
-    private void finishInit() {
-        loadedPets.put(petId, this);
-        if (alive && expiration > 0) {
-            // at this time owner is not bound yet, so an immediate expire will set expiredOffline
-            expireTimer.scheduleOrTrigger(petId, expiration);
-        }
+    Pet(int petId) {
+        this.petId = petId;
     }
 
     /** Free unneeded instance to prevent resource leak. No semantic change to the game. */
     public void dispose() {
-        expireTimer.cancel(petId);
-        hungerTimer.cancel(petId);
-        loadedPets.remove(petId);
+        if (owner != null) {
+            owner.cancelPetTimers(petId);
+        }
+        PetManager.get().unregister(petId);
         owner = null;
     }
 
     // -- Ownership --
 
     public void bind(CharacterPets toOwner) {
+        toOwner.onStrand("Pet.bind", () -> bindInternal(toOwner));
+    }
+
+    private void bindInternal(CharacterPets toOwner) {
         if (owner != toOwner) {
             if (owner != null) {
                 log.warn("bind called on {} from {}", this, toOwner);
@@ -156,14 +135,18 @@ public class Pet {
             owner = toOwner;
             owner.registerPet(this);
 
-            if (expiredOffline) {
-                expireInternal();
-                expiredOffline = false;
+            if (alive && expiration > 0) {
+                // 获取时判过期（原 expiredOffline 语义）：deadline 已过 → inline 走 expireInternal
+                owner.expireTimers().scheduleOrRun(petId, expiration);
             }
         }
     }
 
     public void unbind() {
+        onStrand("Pet.unbind", () -> unbindInternal());
+    }
+
+    private void unbindInternal() {
         if (owner == null) {
             log.warn("unbind called on {}", this);
             return;
@@ -172,6 +155,7 @@ public class Pet {
         if (summoned) {
             dismiss();
         }
+        owner.cancelPetTimers(petId);
         owner.unregisterPet(this);
         owner = null;
         saveToDb();
@@ -192,22 +176,13 @@ public class Pet {
 
     // -- Expire and revive --
 
-    private void onExpire() {
+    /** 到期定时回调（跨包：CharacterPets 的 expireTimers listener 专用入口） */
+    public void onExpire() {
         if (!alive) {
             log.warn("onExpire called on expired {}", this);
             return;
         }
-
-        if (owner == null) {
-            log.info("{} expired offline", this);
-            alive = false;
-            expiredOffline = true;
-            saveToDb();
-            dispose();
-
-        } else {
-            expireInternal();
-        }
+        expireInternal();
     }
 
     private void expireInternal() {
@@ -215,7 +190,14 @@ public class Pet {
             log.info("{} expired", this);
             alive = false;
             if (summoned) {
-                dismiss();
+                if (getOwner().getMap() != null) {
+                    dismiss();
+                } else {
+                    // 半加载态（角色加载期 acquire，map 未挂）：无 wire 可言，仅收敛召唤状态
+                    owner.hungerTimers().cancel(petId);
+                    summoned = false;
+                    owner.removeDismissedPet(this);
+                }
             }
             saveToDb();
             owner.getRemote().expire(this);
@@ -230,6 +212,10 @@ public class Pet {
      * This can only be called when the owner is online.
      */
     public void destroy() {
+        onStrand("Pet.destroy", () -> destroyInternal());
+    }
+
+    private void destroyInternal() {
         log.info("{} destroyed", this);
         if (summoned) {
             dismiss();
@@ -242,6 +228,10 @@ public class Pet {
 
     // todo: [refactor] wire to this
     public void revive(long durationMs) {
+        onStrand("Pet.revive", () -> reviveInternal(durationMs));
+    }
+
+    private void reviveInternal(long durationMs) {
         if (alive) {
             log.warn("revive called on live {}", this);
             return;
@@ -256,24 +246,26 @@ public class Pet {
 
         if (durationMs > 0) {
             expiration = Server.getInstance().getCurrentTime() + durationMs;
-            expireTimer.schedule(petId, expiration);
+            owner.expireTimers().schedule(petId, expiration);
         }
     }
 
     // -- Summon --
 
     public void summon(boolean atTail, Point position, int foothold) {
-        summonSilently(atTail);
-        announceSummon(position, foothold);
+        onStrand("Pet.summon", () -> {
+            summonSilently(atTail);
+            announceSummon(position, foothold);
+        });
     }
 
     public void summonSilently(boolean atTail) {
-        hungerTimer.cancel(petId);
+        owner.hungerTimers().cancel(petId);
 
         summoned = true;
 
         long now = Server.getInstance().getCurrentTime();
-        hungerTimer.schedule(petId, now + PetWzHelper.getHungryInterval(itemId));
+        owner.hungerTimers().schedule(petId, now + PetWzHelper.getHungryInterval(itemId));
 
         owner.addSummonedPet(this, atTail);
     }
@@ -290,11 +282,11 @@ public class Pet {
     }
 
     public void dismiss() {
-        dismissInternal(false);
+        onStrand("Pet.dismiss", () -> dismissInternal(false));
     }
 
     private void dismissInternal(boolean starve) {
-        hungerTimer.cancel(petId);
+        owner.hungerTimers().cancel(petId);
 
         summoned = false;
 
@@ -310,6 +302,10 @@ public class Pet {
     // -- Interactions --
 
     public void addTameness(int delta) {
+        onStrand("Pet.addTameness", () -> addTamenessInternal(delta));
+    }
+
+    private void addTamenessInternal(int delta) {
         tameness = Math.max(0, tameness + delta);
         int oldLevel = level;
         recalcLevel();
@@ -326,6 +322,10 @@ public class Pet {
     }
 
     public void addFullness(int delta) {
+        onStrand("Pet.addFullness", () -> addFullnessInternal(delta));
+    }
+
+    private void addFullnessInternal(int delta) {
         fullness = Math.clamp(fullness + delta, 0, 100);
         owner.getRemote().updatePanel(this, false);
     }
@@ -338,7 +338,7 @@ public class Pet {
                 dismissInternal(true);
                 fullness = 5;
             } else {
-                hungerTimer.schedule(petId, timestamp + PetWzHelper.getHungryInterval(itemId));
+                owner.hungerTimers().schedule(petId, timestamp + PetWzHelper.getHungryInterval(itemId));
             }
 
             owner.getCharacter().dropMessage(6, I18nUtil.getMessage("Character.runFullnessSchedule"));
@@ -356,8 +356,10 @@ public class Pet {
     // }
 
     public void setName(String name) {
-        this.name = name;
-        saveToDb();  // major change, be conservative
+        onStrand("Pet.setName", () -> {
+            this.name = name;
+            saveToDb();  // major change, be conservative
+        });
     }
 
     // -- Evolve --
@@ -368,16 +370,20 @@ public class Pet {
      * NOTE: This method does not consume the evolve stone or validate the level requirement.
      */
     public int evolve() {
-        itemId = owner.evolvePetItem(this, getEvolveItemPool());
-        saveToDb();
-        return itemId;
+        return onStrandResult("Pet.evolve", () -> {
+            itemId = owner.evolvePetItem(this, getEvolveItemPool());
+            saveToDb();
+            return itemId;
+        });
     }
 
     /** Evolve the pet to a fixed result and replace its item. */
     public void evolveTo(int newItemId) {
-        owner.evolvePetItem(this, newItemId);
-        itemId = newItemId;
-        saveToDb();
+        onStrand("Pet.evolveTo", () -> {
+            owner.evolvePetItem(this, newItemId);
+            itemId = newItemId;
+            saveToDb();
+        });
     }
 
     public boolean isEgg() {
@@ -445,9 +451,20 @@ public class Pet {
 
     /** 用指定连接保存：角色保存主事务内调用，消除第二写者（SQLite 单写者下避免 SQLITE_BUSY） */
     public void saveToDb(Connection con) {
+        saveToDb(con, toData());
+    }
+
+    /** 状态快照（在 owner strand 上采集，随后任意线程写库）；序列化载荷 */
+    public PetData snapshot() {
+        return toData();
+    }
+
+    /** 用指定连接写入既有快照：快照在 strand 上采集（纯内存读），落库在保存线程的事务内，
+     * 避免"持 DB 事务等 strand"的死锁/BUSY 配方（见 CharacterPets.savePetsToDb）。 */
+    public static void saveToDb(Connection con, PetData snapshot) {
         try (PreparedStatement ps = con.prepareStatement("INSERT INTO pets_json (petid, data) VALUES (?, ?) ON CONFLICT(petid) DO UPDATE SET data = excluded.data")) {
-            ps.setInt(1, petId);
-            ps.setString(2, toData().serialize());
+            ps.setInt(1, snapshot.petId);
+            ps.setString(2, snapshot.serialize());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -476,7 +493,6 @@ public class Pet {
         data.fullness = fullness;
         data.expiration = expiration;
         data.alive = alive;
-        data.expiredOffline = expiredOffline;
         data.flags = flags;
         return data;
     }
@@ -490,7 +506,6 @@ public class Pet {
         fullness = data.fullness;
         expiration = data.expiration;
         alive = data.alive;
-        expiredOffline = data.expiredOffline;
         flags = data.flags;
     }
 
@@ -564,11 +579,33 @@ public class Pet {
     }
 
     public void setFlag(PetFlag flag) {
-        this.flags |= flag.getValue();
-        saveToDb();
-        if (owner != null) {
-            owner.getRemote().updatePanel(this, false);
+        onStrand("Pet.setFlag", () -> {
+            this.flags |= flag.getValue();
+            saveToDb();
+            if (owner != null) {
+                owner.getRemote().updatePanel(this, false);
+            }
+        });
+    }
+
+    // -- Strand confinement --
+
+    /** 在 owner 的 strand 上执行（已在其上则 inline）；无主时原地执行（后续操作自行暴露缺主问题） */
+    private void onStrand(String name, Runnable task) {
+        CharacterPets o = owner;
+        if (o != null) {
+            o.onStrand(name, task);
+        } else {
+            task.run();
         }
+    }
+
+    private <T> T onStrandResult(String name, java.util.function.Supplier<T> task) {
+        CharacterPets o = owner;
+        if (o != null) {
+            return o.onStrandResult(name, task);
+        }
+        return task.get();
     }
 
     // -- Debug --

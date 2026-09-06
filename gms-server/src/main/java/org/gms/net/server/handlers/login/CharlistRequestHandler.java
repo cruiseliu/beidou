@@ -32,6 +32,12 @@ import org.gms.util.PacketCreator;
 public final class CharlistRequestHandler extends AbstractPacketHandler {
 
     @Override
+    public boolean queued() {
+        return true;   // strand 迁移 M2-2a：登录/世界入口链路（charlist 装载、世界入口派发）
+    }
+
+
+    @Override
     public final void handlePacket(InPacket p, Client c) {
         p.readByte();
         int world = p.readByte();

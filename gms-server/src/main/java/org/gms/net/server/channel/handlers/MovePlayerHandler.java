@@ -26,7 +26,16 @@ import org.gms.net.packet.InPacket;
 import org.gms.util.PacketCreator;
 import org.gms.exception.EmptyMovementException;
 
+/**
+ * strand canary：全服流量最高的包，常绿 queued() 使每次 probe 都真实走一遍 strand 通路
+ * （串行、ThreadLocal 播种、异常兜底），为队列化迁移提供持续验证信号。
+ */
 public final class MovePlayerHandler extends AbstractMovementPacketHandler {
+    @Override
+    public boolean queued() {
+        return true;
+    }
+
     @Override
     public final void handlePacket(InPacket p, Client c) {
         p.skip(9);

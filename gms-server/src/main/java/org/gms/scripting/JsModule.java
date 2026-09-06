@@ -1,252 +1,54 @@
 package org.gms.scripting;
 
-import com.oracle.truffle.js.scriptengine.GraalJSScriptEngine;
 import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * GraalJS ES module 加载工具（单例缓存）。
+ * ESM 模块句柄（per-client，M1.5）：一个模块文件在一个 client context 内的装载结果。
+ * Context 归各角色脚本宿主（CharacterScriptRunner）所有——模块注册表/单例缓存/互斥锁
+ * 均已上移：同 context 的进入串行由 strand 单线程构造性保证，本类只负责取导出与执行。
  *
- * 对应 ESM 语义：
- *   <pre>
- *   JsModule m = JsModule.importModule("lib/add.js");   // 相当于 import * as m from "scripts/lib/add.js"
- *   Object  add = m.get("add");                         // 相当于 import { add } from ...
- *   Object  def = m.getDefault();                       // 相当于 import default from ...
- *   Map     all = m.getAll();                           // 相当于 import * from ...
- *   Object  r   = m.call("add", 1, 2);                  // 取导出函数并调用
- *   m.destroy();                                        // 释放引擎（模拟卸载模块）
- *   </pre>
+ * <p>对应 ESM 语义：
+ * <pre>
+ * JsModule m = runner.moduleFor("item/pet.js");  // import * as m from "scripts/item/pet.js"
+ * Object fn  = m.get("onEnterInventory");        // import { onEnterInventory } from ...
+ * Object r   = m.call("add", 1, 2);              // 取导出函数并调用
+ * </pre>
  *
- * <h3>泛型返回</h3>
- * {@link #get(String)} 与 {@link #call(String, Object...)} 返回类型由泛型决定：
- * 不写泛型参数（默认 Object）返回原始 polyglot {@link Value}（可继续 execute/getMember）；
- * 指定具体类型则按该类型转换，如 {@code String s = m.get("name")}。
- * 标量返回 Java 原生类型；JS 里绑定的 Java 对象（host object）还原为原 Java 对象。
+ * <p><b>线程模型</b>：所有方法必须在 owning strand 上调用（moduleFor 经宿主 run/call
+ * 保证）；无锁——polyglot Context 的并发禁入由 strand 串行满足。
  *
- * <h3>单例语义</h3>
- * 与 JS 引擎一致：多次 {@link #importModule(String)} 同一路径返回同一个实例（模块只初始化一次）。
- * 路径按规范化后的相对 scripts/ 路径作为缓存键，"lib/add.js" 与 "./lib/add.js" 命中同一实例。
- * {@link #destroy()} 把该路径从缓存移除并关闭引擎，此后再次 import 同路径会创建全新实例（干净上下文）。
- *
- * <h3>线程安全</h3>
- * 缓存 map 由 {@link ReentrantReadWriteLock} 保护（读多写少：import 命中走读锁，destroy 走写锁）。
- * 实际访问（get/call 等）用实例锁 synchronized 保护——polyglot Context 不支持多线程并发
- * （实测多线程并发 execute 抛 "Multi threaded access requested but is not allowed for language(s) js"），
- * 同一模块的所有调用串行执行；模块内为纯计算，串行无副作用问题。
+ * <p><b>状态作用域变化（M1.5）</b>：模块级状态（全局变量）作用域从"全服共享"收敛为
+ * "per-client"——依赖跨角色共享模块状态的脚本（如 coupon.js 的 pendingTimers）在
+ * 多客户端版本需要迁 Java 侧共享存储。
  */
-public final class JsModule implements AutoCloseable {
+public final class JsModule {
 
     private static final String SCRIPT_DIRECTORY = "scripts";
     private static final String MODULE_MIME_TYPE = "application/javascript+module";
 
-    /** 共享底层 GraalVM Engine（只共享编译产物与解析器，模块状态仍在各自 Context 内隔离） */
-    private static final Engine SHARED_ENGINE = Engine.create();
-
-    /** 路径 → 模块实例 缓存（键为规范化相对路径，如 "lib/add.js"） */
-    private static final Map<String, JsModule> CACHE = new HashMap<>();
-    private static final ReentrantReadWriteLock CACHE_LOCK = new ReentrantReadWriteLock();
-
     private final String key;
-    private final GraalJSScriptEngine engine;
     private final Value exports;
     private boolean destroyed;
 
-    /** 正在本线程执行脚本的模块（脚本内经 bind 发起的 Java→JS 回呼据此定位 context 锁） */
-    private static final ThreadLocal<JsModule> CURRENT = new ThreadLocal<>();
-
-    /** 当前线程正在执行的模块；不在任何脚本执行内返回 null */
-    public static JsModule current() {
-        return CURRENT.get();
-    }
-
-    private JsModule(String key) throws IOException {
+    public JsModule(Context context, String key) throws IOException {
         this.key = key;
-        this.engine = GraalJSScriptEngine.create(SHARED_ENGINE, Context.newBuilder("js")
-                .option("js.ecmascript-version", "2022")
-                // eval 直接返回模块的 exports 命名空间（默认是 undefined）
-                .option("js.esm-eval-returns-exports", "true")
-                // 允许相对 import 读取磁盘上的依赖文件
-                .allowIO(true)
-                .allowAllAccess(true));
         // File 重载 + module MIME：相对 import（./lib/xxx.js）按入口文件所在目录解析
-        this.exports = engine.getPolyglotContext().eval(
+        this.exports = context.eval(
                 Source.newBuilder("js", Path.of(SCRIPT_DIRECTORY, key).toFile())
                         .mimeType(MODULE_MIME_TYPE)
                         .build());
     }
 
-    /**
-     * 加载（或取缓存）scripts/ 下的 ES module。
-     *
-     * @param path "lib/add.js" 或 "./lib/add.js"，均解析为 $PWD/scripts/lib/add.js；同一路径返回同一实例
-     * @return JsModule 实例
-     * @throws IllegalArgumentException 文件不存在或路径越出 scripts/ 目录
-     */
-    public static JsModule importModule(String path) {
-        String key = normalizeKey(path);
-
-        // 先读锁查缓存（命中即返回，不竞争写锁）
-        CACHE_LOCK.readLock().lock();
-        try {
-            JsModule cached = CACHE.get(key);
-            if (cached != null) {
-                return cached;
-            }
-        } finally {
-            CACHE_LOCK.readLock().unlock();
-        }
-
-        // 未命中：升级写锁 double-check 后创建
-        CACHE_LOCK.writeLock().lock();
-        try {
-            JsModule cached = CACHE.get(key);
-            if (cached == null) {
-                try {
-                    cached = new JsModule(key);
-                } catch (IOException e) {
-                    throw new UncheckedIOException("Failed to load JS module: " + key, e);
-                }
-                CACHE.put(key, cached);
-            }
-            return cached;
-        } finally {
-            CACHE_LOCK.writeLock().unlock();
-        }
-    }
-
-    /**
-     * 获取命名导出（import { name } from path）。
-     *
-     * <p>返回类型由泛型决定：
-     * <ul>
-     *   <li>不写泛型参数（默认 Object）→ 返回原始 polyglot {@link Value}，可继续 execute/getMember；
-     *   <li>指定具体类型 → 按该类型转换（如 {@code String s = m.get("name")}、{@code Value f = m.get("fn")}）。
-     * </ul>
-     * 导出不存在时返回 null。
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T get(String name) {
-        synchronized (this) {
-            ensureAlive();
-            return (T) toJava(exports.getMember(name));
-        }
-    }
-
-    /** 获取默认导出（import default from path）。返回 null 表示没有默认导出。 */
-    public Object getDefault() {
-        synchronized (this) {
-            ensureAlive();
-            return toJava(exports.getMember("default"));
-        }
-    }
-
-    /** 获取全部导出（import * from path），键为导出名。 */
-    public Map<String, Object> getAll() {
-        synchronized (this) {
-            ensureAlive();
-            Map<String, Object> all = new LinkedHashMap<>();
-            for (String name : exports.getMemberKeys()) {
-                all.put(name, toJava(exports.getMember(name)));
-            }
-            return all;
-        }
-    }
-
-    /**
-     * 调用命名导出函数并返回其结果（函数参数按顺序透传给 JS）。
-     * 返回类型由泛型决定：不写泛型参数返回原始 {@link Value}，指定具体类型则按该类型转换。
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T call(String functionName, Object... args) {
-        synchronized (this) {
-            ensureAlive();
-            Value fn = exports.getMember(functionName);
-            if (fn == null || !fn.canExecute()) {
-                throw new IllegalArgumentException("JS module has no callable export: " + functionName);
-            }
-            return (T) toJava(fn.execute(args == null ? new Object[0] : args));
-        }
-    }
-
-    /**
-     * 在本模块锁内执行任意闭包（polyglot Value），返回原始执行结果。
-     *
-     * <p>供"持有闭包延迟执行"的派发方共用（定时器回调、容器事件经 ItemScript 等）：
-     * polyglot Context 默认禁止并发进入，所有进入同一 context 的路径必须共用同一把锁
-     * （本实例监视器）——"context 内无并行"契约的落点。执行期间登记
-     * {@link #current()}，脚本内嵌套的 setTimeout 据此归属同一模块。
-     */
-    public Object execute(Value fn, Object... args) {
-        synchronized (this) {
-            ensureAlive();
-            CURRENT.set(this);
-            try {
-                return fn.execute(args == null ? new Object[0] : args);
-            } finally {
-                CURRENT.set(null);
-            }
-        }
-    }
-
-    /**
-     * 调用具名导出（取导出、可执行检查、执行同在一个锁区域内——任何 polyglot Value
-     * 操作都不得在锁外触碰 context）；导出不存在/不可执行返回 null。
-     * 返回值经 {@link #toJava} 转换（标量还原 Java 原生类型），与 {@link #call} 一致。
-     */
-    public Object callExport(String name, Object... args) {
-        synchronized (this) {
-            ensureAlive();
-            Value fn = exports.getMember(name);
-            if (fn == null || !fn.canExecute()) {
-                return null;
-            }
-            CURRENT.set(this);
-            try {
-                return toJava(fn.execute(args == null ? new Object[0] : args));
-            } finally {
-                CURRENT.set(null);
-            }
-        }
-    }
-
-    /**
-     * 卸载本模块：从缓存移除并释放脚本引擎，此后再次 import 同路径会创建全新实例。
-     * 调用后本实例所有 get/call 抛 IllegalStateException。
-     */
-    public void destroy() {
-        synchronized (this) {
-            if (destroyed) {
-                return;
-            }
-            destroyed = true;
-            engine.close();
-        }
-        CACHE_LOCK.writeLock().lock();
-        try {
-            CACHE.remove(key, this);
-        } finally {
-            CACHE_LOCK.writeLock().unlock();
-        }
-    }
-
-    @Override
-    public void close() {
-        destroy();
-    }
-
     /** 规范化缓存键：统一为相对 scripts/ 的路径（"lib/add.js"），并做越界校验。 */
-    private static String normalizeKey(String path) {
+    public static String normalizeKey(String path) {
         Path base = Path.of(SCRIPT_DIRECTORY);
         Path resolved = base.resolve(path).normalize();
         if (!resolved.startsWith(base)) {
@@ -256,6 +58,67 @@ public final class JsModule implements AutoCloseable {
             throw new IllegalArgumentException("JS module not found: " + resolved.toAbsolutePath());
         }
         return base.relativize(resolved).toString().replace('\\', '/');
+    }
+
+    /**
+     * 获取命名导出（import { name } from path）。返回类型由泛型决定：
+     * 不写泛型返回原始 polyglot {@link Value}；指定类型则转换。导出不存在返回 null。
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T get(String name) {
+        ensureAlive();
+        return (T) toJava(exports.getMember(name));
+    }
+
+    /** 获取默认导出（import default from path）。返回 null 表示没有默认导出。 */
+    public Object getDefault() {
+        ensureAlive();
+        return toJava(exports.getMember("default"));
+    }
+
+    /** 获取全部导出（import * from path），键为导出名。 */
+    public Map<String, Object> getAll() {
+        ensureAlive();
+        Map<String, Object> all = new LinkedHashMap<>();
+        for (String name : exports.getMemberKeys()) {
+            all.put(name, toJava(exports.getMember(name)));
+        }
+        return all;
+    }
+
+    /** 调用命名导出函数并返回其结果。返回类型由泛型决定（同 {@link #get}）。 */
+    @SuppressWarnings("unchecked")
+    public <T> T call(String functionName, Object... args) {
+        ensureAlive();
+        Value fn = exports.getMember(functionName);
+        if (fn == null || !fn.canExecute()) {
+            throw new IllegalArgumentException("JS module has no callable export: " + functionName);
+        }
+        return (T) toJava(fn.execute(args == null ? new Object[0] : args));
+    }
+
+    /** 执行持有的 polyglot 闭包（定时器回调等"持有 Value 延迟执行"的路径共用）。 */
+    public Object execute(Value fn, Object... args) {
+        ensureAlive();
+        return fn.execute(args == null ? new Object[0] : args);
+    }
+
+    /**
+     * 调用具名导出（取导出、可执行检查、执行一气呵成）；导出不存在/不可执行返回 null。
+     * 返回值经 {@link #toJava} 转换，与 {@link #call} 一致。
+     */
+    public Object callExport(String name, Object... args) {
+        ensureAlive();
+        Value fn = exports.getMember(name);
+        if (fn == null || !fn.canExecute()) {
+            return null;
+        }
+        return toJava(fn.execute(args == null ? new Object[0] : args));
+    }
+
+    /** 标记失效（context 归宿主所有，关闭由宿主负责；本方法只阻断后续访问） */
+    void destroy() {
+        destroyed = true;
     }
 
     private void ensureAlive() {
@@ -268,16 +131,15 @@ public final class JsModule implements AutoCloseable {
      * 把 polyglot Value 转成 Java 友好类型：
      * <ul>
      *   <li>null/undefined → null；
-     *   <li>Java 对象绑定（host object，如 JS 里通过 Java.type/传入的 Java 对象）→ 还原为原 Java 对象；
-     *   <li>标量（string/boolean/number）→ Java 原生类型（String/Boolean/int/long/double）；
-     *   <li>函数、对象、数组等 → 保留 polyglot {@link Value}，可继续 execute/getMember。
+     *   <li>Java 对象绑定（host object）→ 还原为原 Java 对象；
+     *   <li>标量（string/boolean/number）→ Java 原生类型；
+     *   <li>函数、对象、数组等 → 保留 polyglot {@link Value}。
      * </ul>
      */
     private static Object toJava(Value v) {
         if (v == null || v.isNull()) {
             return null;
         }
-        // Java 对象绑定：JS 值直接是宿主对象（如 new (Java.type("java.util.ArrayList"))()），还原原对象
         if (v.isHostObject()) {
             return v.asHostObject();
         }
@@ -296,7 +158,6 @@ public final class JsModule implements AutoCloseable {
             }
             return v.asDouble();
         }
-        // 函数、对象、数组等保留 polyglot Value，可继续 execute/getMember
         return v;
     }
 }

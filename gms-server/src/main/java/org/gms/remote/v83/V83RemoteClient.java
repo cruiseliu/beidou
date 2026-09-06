@@ -183,6 +183,9 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
         List<FrozenInventoryEvent.Element> elements = changes.stream().map(c -> {
             if (c instanceof SlotChange.Added a && a.item().getPetId() > -1) {
                 Pet pet = resolvePet(a.item().getPetId());
+                if (pet == null) {
+                    return (FrozenInventoryEvent.Element) new FrozenInventoryEvent.Element.Passthrough(c);
+                }
                 return (FrozenInventoryEvent.Element) new FrozenInventoryEvent.Element.PetBody(
                         (short) a.position(), a.item().getItemId(),
                         new PetSnap(pet.getPetId(), pet.getName(), pet.getLevel(),
@@ -194,10 +197,18 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
         return new FrozenInventoryEvent(elements);
     }
 
-    /** 宠物解析（沿用 forceUpdateItem 的自愈语义：驻留位查无则 DB 兜底） */
+    /** 宠物解析（沿用 forceUpdateItem 的自愈语义：驻留位查无则 DB 兜底）；行缺失（desync）→ null，冻结侧按无宠物处理 */
     private Pet resolvePet(int petId) {
         Pet pet = client.getPlayer().getPetById(petId);
-        return pet != null ? pet : Pet.load(petId);
+        if (pet != null) {
+            return pet;
+        }
+        try {
+            return Pet.load(petId);
+        } catch (RuntimeException e) {
+            log.warn("宠物 {} 行缺失，按无宠物处理（desync 容忍）", petId, e);
+            return null;
+        }
     }
 
     /** 语义事件/冻结记录 → 域翻译（多对多映射的唯一维护点） */

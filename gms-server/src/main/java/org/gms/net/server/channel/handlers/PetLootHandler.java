@@ -39,6 +39,12 @@ import java.util.List;
  * @author Ronan
  */
 public final class PetLootHandler extends AbstractPacketHandler {
+
+    @Override
+    public boolean queued() {
+        return true;   // strand 迁移 M1-S1：宠物域入口（见 doc 设计，宠物子系统 strand 独占）
+    }
+
     private static final Logger log = LoggerFactory.getLogger(PetLootHandler.class);
 
     @Override

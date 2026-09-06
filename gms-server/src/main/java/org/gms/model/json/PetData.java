@@ -15,7 +15,6 @@ public class PetData {
     public int flags;
     public long expiration;
     public boolean alive;
-    public boolean expiredOffline;
     public List<Integer> ignoreItems;
 
     public String serialize() {

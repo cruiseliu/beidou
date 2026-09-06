@@ -34,6 +34,12 @@ import org.gms.util.Randomizer;
 public final class PetCommandHandler extends AbstractPacketHandler {
 
     @Override
+    public boolean queued() {
+        return true;   // strand 迁移 M1-S1：宠物域入口（见 doc 设计，宠物子系统 strand 独占）
+    }
+
+
+    @Override
     public final void handlePacket(InPacket p, Client c) {
         Character chr = c.getPlayer();
         int petId = p.readInt();

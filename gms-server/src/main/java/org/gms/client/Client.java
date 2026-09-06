@@ -44,6 +44,7 @@ import org.gms.net.server.coordinator.session.SessionCoordinator;
 import org.gms.net.server.coordinator.session.SessionCoordinator.AntiMulticlientResult;
 import org.gms.net.server.guild.Guild;
 import org.gms.client.character.Character;
+import org.gms.infra.Strand;
 import org.gms.remote.RemoteClient;
 import org.gms.remote.v83.V83RemoteClient;
 import org.gms.net.server.guild.GuildCharacter;
@@ -119,6 +120,7 @@ public class Client extends ChannelInboundHandlerAdapter {
 
     private io.netty.channel.Channel ioChannel;
     private volatile RemoteClient remote;
+    private volatile Strand strand;
     private Character player;
     private int channel = 1;
     private int accId = -4;
@@ -184,6 +186,14 @@ public class Client extends ChannelInboundHandlerAdapter {
         return new Client(null, -1, null, null, -123, -123);
     }
 
+    /** 本连接的串行执行队列（惰性创建；mock/未连接的 client 首次用到才建，避免泄漏） */
+    public synchronized Strand getStrand() {
+        if (strand == null) {
+            strand = Strand.create(Long.toString(sessionId));
+        }
+        return strand;
+    }
+
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         final io.netty.channel.Channel channel = ctx.channel();
@@ -222,21 +232,36 @@ public class Client extends ChannelInboundHandlerAdapter {
         }
 
         if (handler != null && handler.validateState(this)) {
-            try {
-                ThreadLocalUtil.setCurrentClient(this);
-                MonitoredChrLogger.logPacketIfMonitored(this, opcode, packet.getBytes());
-                handler.handlePacket(packet, this);
-            } catch (final Throwable t) {
-                final String chrInfo = player != null ? player.getName() + " 地图 [" + player.getMap().getMapName() + "] (" + player.getMapId() + ")" : "?";
-                log.warn("封包处理器 {} 出错. 账号 {}, 玩家 {}. 封包: {}", handler.getClass().getSimpleName(),
-                        getAccountName(), chrInfo, packet, t);
-                enableActions();//解除客户端假死
-            } finally {
-                ThreadLocalUtil.removeCurrentClient();
+            Runnable dispatch = () -> dispatch(handler, packet, opcode);
+            if (handler.queued()) {
+                // 队列化迁移的 handler 跑在本连接 strand 上（与未迁移 handler 的混跑期
+                // 由各组件自身的锁兜底；全量迁移后 strand 串行取代锁）
+                getStrand().post(handler.getClass().getSimpleName(), dispatch);
+            } else {
+                dispatch.run();
             }
         }
 
         updateLastPacket();
+    }
+
+    /**
+     * 包处理模板：ThreadLocal 上下文播种、监控日志、异常兜底（enableActions 解假死）。
+     * 事件循环路径与 strand 路径共用，保证行为一致。
+     */
+    private void dispatch(PacketHandler handler, InPacket packet, short opcode) {
+        try {
+            ThreadLocalUtil.setCurrentClient(this);
+            MonitoredChrLogger.logPacketIfMonitored(this, opcode, packet.getBytes());
+            handler.handlePacket(packet, this);
+        } catch (final Throwable t) {
+            final String chrInfo = player != null ? player.getName() + " 地图 [" + player.getMap().getMapName() + "] (" + player.getMapId() + ")" : "?";
+            log.warn("封包处理器 {} 出错. 账号 {}, 玩家 {}. 封包: {}", handler.getClass().getSimpleName(),
+                    getAccountName(), chrInfo, packet, t);
+            enableActions();//解除客户端假死
+        } finally {
+            ThreadLocalUtil.removeCurrentClient();
+        }
     }
 
     @Override
@@ -293,6 +318,9 @@ public class Client extends ChannelInboundHandlerAdapter {
     }
 
     public void closeSession() {
+        if (strand != null) {
+            strand.close();         // 排空已入队任务；finalizer（角色收尾）由后续里程碑接入
+        }
         ioChannel.close();
     }
 

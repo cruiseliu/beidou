@@ -71,6 +71,12 @@ import java.util.*;
 import java.util.Map.Entry;
 
 public final class PlayerLoggedinHandler extends AbstractPacketHandler {
+
+    @Override
+    public boolean queued() {
+        return true;   // strand 迁移 M2-2a：登录/世界入口链路（charlist 装载、世界入口派发）
+    }
+
     private static final Logger log = LoggerFactory.getLogger(PlayerLoggedinHandler.class);
     private static final Set<Integer> attemptingLoginAccounts = new HashSet<>();
 

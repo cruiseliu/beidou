@@ -28,6 +28,7 @@ import org.gms.client.BuddyList;
 import org.gms.client.BuddylistEntry;
 import org.gms.client.EffectType;
 import org.gms.client.Client;
+import org.gms.infra.Strand;
 import org.gms.client.Disease;
 import org.gms.client.Family;
 import org.gms.client.FamilyEntry;
@@ -66,6 +67,7 @@ import org.gms.manager.ServerManager;
 import org.gms.model.dto.InventorySearchReqDTO;
 import org.gms.model.dto.InventorySearchRtnDTO;
 import org.gms.model.json.CharacterData;
+import org.gms.model.json.CharacterPetsData;
 import org.gms.model.pojo.NewYearCardRecord;
 import org.gms.model.pojo.SkillEntry;
 import org.gms.net.packet.Packet;
@@ -133,7 +135,7 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterJob job = new CharacterJob(this);
     final CharacterMap map = new CharacterMap(this);
     final CharacterRates rates = new CharacterRates(this);
-    final CharacterScriptRunner scriptRunner = new CharacterScriptRunner();
+    final CharacterScriptRunner scriptRunner = new CharacterScriptRunner(this::strand);
     final CharacterAntiCheat antiCheat = new CharacterAntiCheat(this);
     final CharacterMarket market = new CharacterMarket(this);
     final CharacterQuests quests = new CharacterQuests(this);
@@ -1621,13 +1623,18 @@ public class Character extends AbstractAnimatedMapObject {
     //    持久化代码（JDBC）只接触 CharacterData，不直接看到 CharacterStatsData 等域类型 ──
 
     public CharacterData toData() {
+        return toData(pets.toData());
+    }
+
+    /** 信封组装（pets 段可由调用方注入预采集快照——保存路径经 strand 统一采集，见 CharacterPets.collectSaveBundle） */
+    public CharacterData toData(CharacterPetsData petsData) {
         CharacterData data = new CharacterData(stats.toData());
         data.skills = skills.toData();
         data.ap = ap.toData();
         data.sp = sp.toData();
         data.debuffs = debuffs.toData();
         data.antiCheat = antiCheat.toData();
-        data.pets = pets.toData();
+        data.pets = petsData;
         data.inventory = inventory.toData();
         data.jobId = job.getId();
         data.mapId = getMapId();
@@ -1957,7 +1964,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     //ItemFactory saveItems and monsterbook.saveCards are the most time consuming here.
-    public synchronized void saveCharToDB(boolean notAutosave) {
+    public void saveCharToDB(boolean notAutosave) {
         if (!loggedIn) {
             // 如果已经退出登录，取消自动保存当前角色任务
             CharacterSaveService service = getCharacterSaveService();
@@ -1965,6 +1972,17 @@ public class Character extends AbstractAnimatedMapObject {
             return;
         }
 
+        // 采集与落库分离（M2-2b 死锁修复）：数据采集在 strand 上纯内存读取，等待期间不持任何
+        // 监视器（strand 上的 synchronized Character 成员——如 markRegularMove——不被阻塞）；
+        // 落库段持 this/DB 事务，零 strand 等待。
+        CharacterPets.SaveBundle petBundle = pets.collectSaveBundle();
+
+        synchronized (this) {
+            saveCharToDbInternal(notAutosave, petBundle);
+        }
+    }
+
+    private void saveCharToDbInternal(boolean notAutosave, CharacterPets.SaveBundle petBundle) {
         log.info(I18nUtil.getLogMessage(notAutosave ? "Character.saveCharToDB.info1" : "Character.saveCharToDB.info2"), name);
 
         Server.getInstance().updateCharacterEntry(this);
@@ -1981,7 +1999,7 @@ public class Character extends AbstractAnimatedMapObject {
                     ps.setInt(2, fame.getFame());
 
                     try (var ignored = Locks.acquire(stats.wLock)) {   // 仅序列化 stats + 读原子字段
-                        statsJson = toData().serialize();
+                        statsJson = toData(petBundle.petsData()).serialize();
 
                         ps.setInt(3, Math.abs(level.getExp()));
                         ps.setInt(4, Math.abs(level.getGachaExp()));
@@ -2063,14 +2081,15 @@ public class Character extends AbstractAnimatedMapObject {
                     }
                 }
 
-                // CharacterStats 持久化为 JSON（str/dex/int/luk/hp/mp/maxHp/maxMp 已从 characters 表移除）
+                pets.savePetsToDb(con, petBundle.snapshots());   // 并入主事务连接，消除第二写者（SQLITE_BUSY）
+
+                // 落库顺序约定：被引用表（pets_json）先于引用表（character_json 信封）——
+                // 最终一致性模型下 kill 竞态的撕裂面落在可修复一侧
                 try (PreparedStatement ps = con.prepareStatement("INSERT INTO character_json (id, data) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET data = excluded.data")) {
                     ps.setInt(1, id);
                     ps.setString(2, statsJson);
                     ps.executeUpdate();
                 }
-
-                pets.savePetsToDb(con);   // 并入主事务连接，消除第二写者（SQLITE_BUSY）
 
                 // Key config
                 deleteWhereCharacterId(con, "DELETE FROM keymap WHERE characterid = ?");
@@ -2411,6 +2430,14 @@ public class Character extends AbstractAnimatedMapObject {
     /** 远端客户端门面（跨包公开；背包域等组件用） */
     public RemoteClient getRemote() {
         return remote();
+    }
+
+    /**
+     * 本角色的串行执行队列（挂在连接上）；无连接时返回 null，调用方判空
+     * （对齐 sendPacket 的 client==null 容忍风格）。
+     */
+    public Strand strand() {
+        return client != null ? client.getStrand() : null;
     }
 
     @Override

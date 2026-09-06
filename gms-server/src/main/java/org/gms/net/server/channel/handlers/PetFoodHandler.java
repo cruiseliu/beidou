@@ -38,6 +38,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class PetFoodHandler extends AbstractPacketHandler {
+
+    @Override
+    public boolean queued() {
+        return true;   // strand 迁移 M1-S1：宠物域入口（见 doc 设计，宠物子系统 strand 独占）
+    }
+
     private static final Logger log = LoggerFactory.getLogger(UseCashItemHandler.class);
 
     @Override
@@ -76,7 +82,7 @@ public final class PetFoodHandler extends AbstractPacketHandler {
         int itemId = p.readInt();
 
         ItemScript script = ItemScript.forItem(itemId);
-        if (script == null || !script.hasHook(ItemScript.HOOK_USE)) {
+        if (script == null || !script.hasHook(chr, ItemScript.HOOK_USE)) {
             log.error("Pet food {} missing onUse script", itemId);
             c.enableActions();
             return;

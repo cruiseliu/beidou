@@ -262,8 +262,9 @@ public class InventoryTransaction {
             return false;
         }
 
+        List<SlotChange> changes = List.of();
         if (!testMode) {
-            List<SlotChange> changes = new ArrayList<>();
+            changes = new ArrayList<>();
             for (InventoryType type : TX_TYPES) {
                 InventoryTab real = inventory.getTab(type);
                 InventoryTab sh = shadow.get(type);
@@ -274,20 +275,22 @@ public class InventoryTransaction {
             if (!changes.isEmpty()) {
                 character.getRemote().inventory().updateInventory(changes);
             }
-            // 钩子事件经 diff 派发（adopt 不经过 addSlot/removeSlot）：Added/Removed 即"进入/离开背包"
-            for (SlotChange change : changes) {
-                if (change instanceof SlotChange.Added added) {
-                    added.item().onEnterInventory(character, false);
-                } else if (change instanceof SlotChange.Removed removed) {
-                    removed.item().onLeaveInventory(character, false);
-                }
-            }
         }
         if (packetScope != null) {
             packetScope.commit();
         }
 
         end();
+        // 钩子事件经 diff 派发（adopt 不经过 addSlot/removeSlot）：Added/Removed 即"进入/离开背包"。
+        // 必须在 end() 释放背包锁之后：钩子同步执行（状态迁移型，调用方须等待完成），可能阻塞
+        // 调用方线程等 strand——持背包锁等待会让 strand 上的背包操作反向等锁，死锁配方（M1.5）。
+        for (SlotChange change : changes) {
+            if (change instanceof SlotChange.Added added) {
+                added.item().onEnterInventory(character, false);
+            } else if (change instanceof SlotChange.Removed removed) {
+                removed.item().onLeaveInventory(character, false);
+            }
+        }
         return true;
     }
 

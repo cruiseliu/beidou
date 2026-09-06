@@ -46,7 +46,17 @@ public final class ApAssignerScript {
             return new int[4];
         }
 
-        JsModule module = JsModule.importModule(SCRIPT_PATH);
+        // 脚本在 owner strand 上执行并等待结论（M1.5：per-client 宿主；异常/closed → null → 全 0）
+        int[] out = chr.getScriptRunner().call(() ->
+                assignInternal(chr, key, level, remainingAp, eqpStrList, eqpDexList, eqpLukList,
+                        eqpStr, eqpDex, eqpLuk));
+        return out != null ? out : new int[4];
+    }
+
+    private static int[] assignInternal(Character chr, String key, int level, int remainingAp,
+                                        List<Short> eqpStrList, List<Short> eqpDexList, List<Short> eqpLukList,
+                                        int eqpStr, int eqpDex, int eqpLuk) {
+        JsModule module = chr.getScriptRunner().moduleFor(SCRIPT_PATH);
         Object def = module.getDefault();
         if (!(def instanceof Value assigner)) {
             return new int[4];

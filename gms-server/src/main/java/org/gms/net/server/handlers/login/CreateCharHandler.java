@@ -37,6 +37,12 @@ import org.gms.util.PacketCreator;
 public final class CreateCharHandler extends AbstractPacketHandler {
 
     @Override
+    public boolean queued() {
+        return true;   // strand 迁移 M2-2a：建角与 charlist 共用 addCharEntry 展示路径（登录族）
+    }
+
+
+    @Override
     public void handlePacket(InPacket p, Client c) {
         String name = p.readString();
         int job = p.readInt();

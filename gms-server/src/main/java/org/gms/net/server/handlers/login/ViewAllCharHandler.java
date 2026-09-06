@@ -36,6 +36,12 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 public final class ViewAllCharHandler extends AbstractPacketHandler {
+
+    @Override
+    public boolean queued() {
+        return true;   // strand 迁移 M2-2a：登录/世界入口链路（charlist 装载、世界入口派发）
+    }
+
     private static final int CHARACTER_LIMIT = 60; // Client will crash if sending 61 or more characters
 
     @Override
