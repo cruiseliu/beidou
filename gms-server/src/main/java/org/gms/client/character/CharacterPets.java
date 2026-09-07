@@ -12,6 +12,7 @@ import org.gms.infra.Strand;
 import org.gms.model.json.CharacterPetsData;
 import org.gms.model.json.PetData;
 import org.gms.remote.PetModule;
+import org.gms.remote.in.events.SummonPetEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,8 @@ import java.util.function.Supplier;
  * </ul>
  * 跨角色读（其他玩家视角）phase 2 经 host 快照收口后，本模型即角色逻辑无锁化。
  */
-public class CharacterPets {
+public class CharacterPets implements PetModule.In {
+
     private static final Logger log = LoggerFactory.getLogger(CharacterPets.class);
 
     /** 召唤槽位上限 */
@@ -98,6 +100,43 @@ public class CharacterPets {
         if (s != null && !s.isClosed()) {
             s.checkOnStrand(what);
         }
+    }
+
+    // -- In（收包入口：PetModule.In）--
+
+    /**
+     * SPAWN_PET：召唤/下阵/孵化（原 SpawnPetProcessor 的 gameplay 半边）。
+     * 在 player strand 上执行（in 管线回调），读自己的背包与宠物状态。
+     */
+    @Override
+    public void summonPet(SummonPetEvent e) {
+        Character chr = owner;
+        Pet pet = chr.getPetById(chr.getInventory(InventoryType.CASH).getItem(e.slot()).getPetId());
+        if (pet == null) {
+            return;
+        }
+        if (pet.isEgg()) {
+            pet.evolve();
+            chr.getRemote().basic().unlockActions();
+            return;
+        }
+        if (!pet.isAlive()) {
+            chr.getRemote().basic().unlockActions();   // 失活宠物不可召唤
+            return;
+        }
+        if (chr.getPetIndex(pet) != -1) {
+            pet.dismiss();
+            return;
+        }
+        if (chr.getSkillLevel(8) == 0 && chr.getPet(0) != null) {
+            chr.getPet(0).dismiss();
+        }
+        java.awt.Point pos = chr.getPosition();
+        pos.y -= 12;
+        int fh = chr.getMap().getFootholds().findBelow(pet.getPos()).getId();
+        pet.summon(!e.lead(), pos, fh);
+        chr.getRemote().basic().unlockActions();
+        chr.getRemote().pet().updateIgnoreList(chr);
     }
 
     // -- Ownership --

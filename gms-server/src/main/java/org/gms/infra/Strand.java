@@ -14,7 +14,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 角色级串行执行队列（actor mailbox）：归属同一 client 的全部操作（包处理、定时器回调、
- * 保存、脚本）顺序执行，是角色逻辑无锁化的基础设施。迁移路线见 doc 内设计讨论，
+ * 保存、脚本）顺序执行，是角色逻辑无锁化的基础设施。
+ * 可派生以携带类型化上下文（唯一派生类 {@link org.gms.client.PlayerStrand} 携带 Player
+ * actor 上下文）；infra 不感知派生语义。迁移路线见 doc 内设计讨论，
  * 语义契约如下。
  *
  * <ul>
@@ -29,7 +31,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *   <li><b>诊断</b>：慢任务（&gt;5s）完成时告警；卡死任务（&gt;30s）由共享看门狗周期告警并 dump 栈。</li>
  * </ul>
  */
-public final class Strand implements AutoCloseable {
+public class Strand implements AutoCloseable {
     private static final Logger log = LoggerFactory.getLogger(Strand.class);
 
     private static final long SLOW_TASK_WARN_MS = 5_000;
@@ -59,21 +61,25 @@ public final class Strand implements AutoCloseable {
     private final Object stateLock = new Object();
 
     private boolean accepting = true;
+    private boolean started = false;
     private boolean closed = false;
     private volatile Task currentTask;
     private volatile long currentTaskStartNanos;
 
-    private Strand(String name) {
-        this.name = name;
-        this.worker = Thread.ofVirtual().name("strand-" + name).unstarted(this::workLoop);
+    protected Strand(String name) {
+        this.name = name + "-" + SEQ.incrementAndGet();
+        this.worker = Thread.ofVirtual().name("strand-" + this.name).unstarted(this::workLoop);
+        LIVE.add(this);
     }
 
-    /** 创建并启动 strand；name 用于线程命名与日志关联（建议 clientSessionId） */
+    /** 创建裸 strand（无 Player 上下文）；worker 惰性启动（首个任务入队或 close 时），name 用于线程命名与日志关联 */
     public static Strand create(String name) {
-        Strand strand = new Strand(name + "-" + SEQ.incrementAndGet());
-        LIVE.add(strand);
-        strand.worker.start();
-        return strand;
+        return new Strand(name);
+    }
+
+    /** 当前线程正在执行的 strand；不在任何 strand 任务内返回 null */
+    public static Strand current() {
+        return CURRENT.get();
     }
 
     private record Task(String name, Runnable body, CountDownLatch done) {
@@ -135,11 +141,19 @@ public final class Strand implements AutoCloseable {
         return result.get();
     }
 
+    private void ensureStarted() {
+        if (!started) {
+            started = true;
+            worker.start();
+        }
+    }
+
     private void enqueue(Task task) {
         synchronized (stateLock) {
             if (!accepting) {
                 throw new IllegalStateException("strand [" + name + "] 已关闭，拒绝任务: " + task.name());
             }
+            ensureStarted();   // 构造期不启动：避免 worker 观察到未构造完的派生类（this 逃逸）
             queue.add(task);
         }
     }
@@ -204,6 +218,7 @@ public final class Strand implements AutoCloseable {
             closed = true;
             accepting = false;
             queue.add(END);
+            ensureStarted();   // 未曾启动的 strand 也要排空 END（finalizer 语义统一）
         }
         LIVE.remove(this);
         // 不 join worker：finalizer 可能长时间运行，且 close 可能就在本 strand 任务内被调用

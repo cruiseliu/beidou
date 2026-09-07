@@ -8,35 +8,48 @@ import org.gms.client.character.Character;
 import org.gms.constants.string.CharsetConstants;
 import org.gms.net.packet.Packet;
 import org.gms.remote.BasicModule;
-import org.gms.remote.BasicUpdate;
 import org.gms.remote.CooldownModule;
 import org.gms.remote.InventoryModule;
 import org.gms.remote.PetModule;
+import org.gms.remote.PetSnap;
 import org.gms.remote.RemoteClient;
 import org.gms.remote.RemoteUpdate;
 import org.gms.remote.ScopeLog;
-import org.gms.remote.SemanticEvent;
-import org.gms.remote.SkillUpdate;
+import org.gms.remote.ScopeRecord;
 import org.gms.remote.SkillsModule;
-import org.gms.remote.SpUpdate;
 import org.gms.remote.StatsModule;
+import org.gms.remote.SlotChange;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.EquipFlag;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.Item;
 import org.gms.client.inventory.ItemFlag;
-import org.gms.client.inventory.ItemSlot;
 import org.gms.client.pet.Pet;
-import org.gms.remote.PetSnap;
-import org.gms.remote.ScopeRecord;
-import org.gms.remote.SlotChange;
-import org.gms.remote.StatsUpdate;
-import org.gms.remote.v83.packet.V83Packet;
-import org.gms.remote.v83.translate.CooldownTranslator;
-import org.gms.remote.v83.translate.SkillsTranslator;
-import org.gms.remote.v83.translate.StatsTranslator;
-import org.gms.remote.v83.translate.InventoryTranslator;
-import org.gms.remote.v83.translate.PetTranslator;
+import org.gms.remote.out.events.BasicEvent;
+import org.gms.remote.out.events.CooldownClearEvent;
+import org.gms.remote.out.events.InventoryFullEvent;
+import org.gms.remote.out.events.InventoryModsEvent;
+import org.gms.remote.out.events.PetIgnoreListEvent;
+import org.gms.remote.out.events.PetPanelEvent;
+import org.gms.remote.out.events.SemanticEvent;
+import org.gms.remote.out.events.SkillEvent;
+import org.gms.remote.out.events.SkillRemoveEvent;
+import org.gms.remote.out.events.SpEvent;
+import org.gms.remote.out.events.StatsEvent;
+import org.gms.remote.out.events.UnlockActionsEvent;
+import org.gms.remote.v83.out.FrozenInventoryEvent;
+import org.gms.remote.v83.out.packet.V83Packet;
+import org.gms.remote.v83.out.route.BasicRoute;
+import org.gms.remote.v83.out.route.CooldownRoute;
+import org.gms.remote.v83.out.route.InventoryRoute;
+import org.gms.remote.v83.out.route.PetRoute;
+import org.gms.remote.v83.out.route.SkillsRoute;
+import org.gms.remote.v83.out.route.StatsRoute;
+import org.gms.remote.v83.out.translate.CooldownTranslator;
+import org.gms.remote.v83.out.translate.InventoryTranslator;
+import org.gms.remote.v83.out.translate.PetTranslator;
+import org.gms.remote.v83.out.translate.SkillsTranslator;
+import org.gms.remote.v83.out.translate.StatsTranslator;
 import org.gms.util.HexTool;
 import org.gms.util.ThreadLocalUtil;
 import org.slf4j.Logger;
@@ -46,13 +59,15 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 /**
- * route 层：语义模块调用 → 作用域段 → 按域分发 translate → packet record → 统一
+ * route 门面：语义模块调用 → 作用域段 → 按域分发 translate → packet record → 统一
  * encode + 日志 + 传输适配（BytesPacket）。
+ * 模块调用面拆分在各域 route（org.gms.remote.v83.out.route，事件 sink 与 wire 适配经
+ * 构造注入）；本类承载版本协作机器：事务作用域（ScopeLog/Handle）、事件入口冻结
+ * （freeze/resolvePet）、多对多映射（deliver，唯一维护点）、固定冲刷序与传输适配。
  * 对参数不做理解、只透传；固定冲刷序 stats → skills → cooldown → inventory。
- * 分层与原则见 gms-server/doc/package-client.md §4/§5；多对多落点注释保留在 deliver。
+ * 分层与原则见 gms-server/doc/package-client.md §4–§7。
  */
-public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsModule,
-        BasicModule, CooldownModule, InventoryModule, PetModule {
+public final class V83RemoteClient implements RemoteClient {
 
     private static final Logger log = LoggerFactory.getLogger(V83RemoteClient.class);
 
@@ -92,6 +107,13 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
     private final InventoryTranslator inventoryT;
     private final PetTranslator petT;
 
+    private final StatsRoute statsRoute;
+    private final SkillsRoute skillsRoute;
+    private final BasicRoute basicRoute;
+    private final CooldownRoute cooldownRoute;
+    private final InventoryRoute inventoryRoute;
+    private final PetRoute petRoute;
+
     /** 当前书写段（null = 无作用域）；嵌套经 parent 链接 */
     private ScopeLog active;
 
@@ -101,6 +123,12 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
         this.cooldownT = new CooldownTranslator();
         this.inventoryT = new InventoryTranslator(charset);
         this.petT = new PetTranslator(charset);
+        this.statsRoute = new StatsRoute(this::dispatch);
+        this.skillsRoute = new SkillsRoute(this::dispatch);
+        this.basicRoute = new BasicRoute(this::dispatch);
+        this.cooldownRoute = new CooldownRoute(this::dispatch);
+        this.inventoryRoute = new InventoryRoute(this::dispatch);
+        this.petRoute = new PetRoute(client, petT, this::dispatch, this::wire);
     }
 
     @Override
@@ -109,52 +137,21 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
         return new Handle(active);
     }
 
-    // ── 语义模块：写事件进当前段（无作用域则即时分发并冲刷）──
+    // ── 模块访问器（RemoteClient 面）──
 
-    @Override
-    public synchronized void updateStats(StatsUpdate update) {
-        dispatch(new SemanticEvent.Stats(update));
-    }
+    @Override public StatsModule stats() { return statsRoute; }
 
-    @Override
-    public synchronized void updateSp(SpUpdate update) {
-        dispatch(new SemanticEvent.Sp(update));
-    }
+    @Override public SkillsModule skills() { return skillsRoute; }
 
-    @Override
-    public synchronized void updateBasic(BasicUpdate update) {
-        dispatch(new SemanticEvent.Basic(update));
-    }
+    @Override public BasicModule basic() { return basicRoute; }
 
-    @Override
-    public synchronized void unlockActions() {
-        dispatch(new SemanticEvent.UnlockActions());
-    }
+    @Override public CooldownModule cooldown() { return cooldownRoute; }
 
-    @Override
-    public synchronized void updateSkill(SkillUpdate update) {
-        dispatch(new SemanticEvent.Skill(update));
-    }
+    @Override public InventoryModule inventory() { return inventoryRoute; }
 
-    @Override
-    public synchronized void removeSkill(int skillId) {
-        dispatch(new SemanticEvent.SkillRemove(skillId));
-    }
+    @Override public PetModule pet() { return petRoute; }
 
-    @Override
-    public synchronized void clearSkillCooldown(int skillId) {
-        dispatch(new SemanticEvent.CooldownClear(skillId));
-    }
-
-    @Override
-    public synchronized void updateInventory(java.util.List<org.gms.remote.SlotChange> changes) {
-        dispatch(new SemanticEvent.InventoryMods(changes));
-    }
-
-    @Override
-    public synchronized void announceInventoryFull() {
-        dispatch(new SemanticEvent.InventoryFull());
-    }
+    // ── 版本协作机器：事件入域 / 冻结 / 多对多映射 / 冲刷 / 传输 ──
 
     private synchronized void dispatch(SemanticEvent e) {
         ScopeRecord r = freeze(e);
@@ -172,7 +169,7 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
      * 无活引用的事件原样透传。
      */
     private ScopeRecord freeze(SemanticEvent e) {
-        if (!(e instanceof SemanticEvent.InventoryMods(var changes))) {
+        if (!(e instanceof InventoryModsEvent(var changes))) {
             return e;
         }
         boolean hasPet = changes.stream().anyMatch(c ->
@@ -221,30 +218,30 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
     }
 
     private void deliver(SemanticEvent e) {
-        if (e instanceof SemanticEvent.Stats(var u)) {
+        if (e instanceof StatsEvent(var u)) {
             statsT.onStats(u);
-        } else if (e instanceof SemanticEvent.Sp(var u)) {
+        } else if (e instanceof SpEvent(var u)) {
             statsT.onSp(u);
-        } else if (e instanceof SemanticEvent.Basic(var u)) {
+        } else if (e instanceof BasicEvent(var u)) {
             statsT.onBasic(u);
-        } else if (e instanceof SemanticEvent.UnlockActions) {
+        } else if (e instanceof UnlockActionsEvent) {
             statsT.onUnlockActions();
-        } else if (e instanceof SemanticEvent.Skill(var u)) {
+        } else if (e instanceof SkillEvent(var u)) {
             skillsT.onSkill(u);
-        } else if (e instanceof SemanticEvent.SkillRemove(int skillId)) {
+        } else if (e instanceof SkillRemoveEvent(int skillId)) {
             skillsT.onSkillRemove(skillId);
-        } else if (e instanceof SemanticEvent.CooldownClear(int skillId)) {
+        } else if (e instanceof CooldownClearEvent(int skillId)) {
             cooldownT.onCooldownClear(skillId);
-        } else if (e instanceof SemanticEvent.InventoryMods(var changes)) {
+        } else if (e instanceof InventoryModsEvent(var changes)) {
             inventoryT.onInventoryMods(changes);
-        } else if (e instanceof SemanticEvent.InventoryFull) {
+        } else if (e instanceof InventoryFullEvent) {
             inventoryT.onInventoryFull();
-        } else if (e instanceof SemanticEvent.PetIgnoreList l) {
+        } else if (e instanceof PetIgnoreListEvent l) {
             for (Pet pet : client.getPlayer().getSummonedPets()) {
                 byte petIndex = client.getPlayer().getPetIndex(pet);
                 send(petT.ignoreList(l.cid(), petIndex, pet.getPetId(), l.itemIds()));
             }
-        } else if (e instanceof SemanticEvent.PetPanel snap) {
+        } else if (e instanceof PetPanelEvent snap) {
             inventoryT.onPetPanel(snap);
             if (snap.levelUp()) {
                 // 升级演出：commit 时刻即时广播（先于 flushAll 的 inventory 帧 = legacy 演出→状态时序）。
@@ -278,7 +275,7 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
     }
 
     /** debug 级 JSON + encode + trace 级 hex，产出传输帧；广播路径复用同一出口保证日志齐全 */
-    private BytesPacket wire(V83Packet packet) {
+    private Packet wire(V83Packet packet) {
         if (log.isDebugEnabled()) {
             log.debug("[remote] {} {}", packet.opcode(), JSON.toJSONString(packet));
         }
@@ -345,109 +342,19 @@ public final class V83RemoteClient implements RemoteClient, StatsModule, SkillsM
             }
         }
 
-        // 会话内书写与 RemoteClient 快捷通道是同一批模块单例（route 自身）：
+        // 会话内书写与 RemoteClient 快捷通道是同一批 route 单例：
         // 事件去向由作用域状态决定，句柄不参与路由。
 
-        @Override public StatsModule stats() { return V83RemoteClient.this; }
+        @Override public StatsModule stats() { return statsRoute; }
 
-        @Override public SkillsModule skills() { return V83RemoteClient.this; }
+        @Override public SkillsModule skills() { return skillsRoute; }
 
-        @Override public BasicModule basic() { return V83RemoteClient.this; }
+        @Override public BasicModule basic() { return basicRoute; }
 
-        @Override public CooldownModule cooldown() { return V83RemoteClient.this; }
+        @Override public CooldownModule cooldown() { return cooldownRoute; }
 
-        @Override public InventoryModule inventory() { return V83RemoteClient.this; }
+        @Override public InventoryModule inventory() { return inventoryRoute; }
 
-        @Override public org.gms.remote.PetModule pet() { return V83RemoteClient.this; }
-    }
-
-    // ── 模块访问器（RemoteClient 面）：同上，返回自身 ──
-
-    @Override public synchronized StatsModule stats() { return this; }
-
-    @Override public synchronized SkillsModule skills() { return this; }
-
-    @Override public synchronized BasicModule basic() { return this; }
-
-    @Override public synchronized CooldownModule cooldown() { return this; }
-
-    @Override public synchronized InventoryModule inventory() { return this; }
-
-    @Override public synchronized org.gms.remote.PetModule pet() { return this; }
-
-    // ── PetModule（org.gms.remote.PetModule）：PetTranslator 即时编码；广播机制属 map 模块（临时豁免）──
-
-    @Override
-    public synchronized void summonPet(Pet pet, int fh) {
-        Character chr = pet.getOwner();
-        chr.getMap().broadcastMessage(chr, wire(petT.spawnPet(chr, pet, false, false, fh)), true);
-        send(petT.petStatUpdate(chr));
-    }
-
-    @Override
-    public synchronized void dismissPet(Pet pet, boolean hunger) {
-        Character chr = pet.getOwner();
-        chr.getMap().broadcastMessage(chr, wire(petT.spawnPet(chr, pet, true, hunger, 0)), true);
-        send(petT.petStatUpdate(chr));
-    }
-
-    /**
-     * 面板推送入口：入口即冻结快照（pet 引用不出本方法），只记录不发送——
-     * 一切 wire 后果（body 刷新与升级演出）都发生在 commit 边界之后，drop 才能整体弃段。
-     */
-    /** 到期/复活的 wire 同为面板物品体刷新（alive 位决定 EXPIRED/活态映射），故共用同一通路。 */
-    @Override
-    public void expire(Pet pet) {
-        dispatchPetPanel(pet, false);
-    }
-
-    @Override
-    public void revive(Pet pet) {
-        dispatchPetPanel(pet, false);
-    }
-
-    @Override
-    public synchronized void updatePanel(Pet pet, boolean levelUp) {
-        dispatchPetPanel(pet, levelUp);
-    }
-
-    /** 面板/生命周期共同通路：入口冻结快照并 dispatch（PetPanel），发送时机由作用域决定。 */
-    private synchronized void dispatchPetPanel(Pet pet, boolean levelUp) {
-        Character chr = pet.getOwner();
-        if (chr == null) {
-            return;
-        }
-        ItemSlot host = chr.findPetItemSlot(pet.getPetId());
-        if (host == null) {
-            return;   // 无宿主物品（理论不可达）：面板无从承载
-        }
-        dispatch(new SemanticEvent.PetPanel(chr.getId(), chr.getPetIndex(pet),
-                (short) host.getPosition(), pet.getPetId(), pet.getItemId(), pet.getName(),
-                pet.getLevel(), pet.getTameness(), pet.getFullness(), pet.getFlags(), pet.isAlive(), pet.getExpiration(),
-                levelUp));
-    }
-
-    public synchronized void petLevelUp(Character chr, int slot) {
-        chr.sendPacket(wire(petT.petLevelUpOwn(slot)));
-        chr.getMap().broadcastMessage(wire(petT.petLevelUpForeign(chr, slot)));
-    }
-
-    /**
-     * 拾取过滤列表下发入口：入口即冻结快照（槽位随取随冻——左移会改变槽位）。
-     * petIndex < 0（未召唤）时 wire 无从定位，静默跳过。commit 时刻本人下发。
-     */
-    @Override
-    public void updateIgnoreList(Character chr) {
-        dispatch(new SemanticEvent.PetIgnoreList(chr.getId(), List.copyOf(chr.getExcludedItems())));
-    }
-
-    @Override
-    public synchronized void petFoodResponse(Character chr, int slot, boolean enjoyed, boolean hasChatBalloon) {
-        chr.getMap().broadcastMessage(wire(petT.petFoodResponse(chr, slot, enjoyed, hasChatBalloon)));
-    }
-
-    @Override
-    public synchronized void petNameChange(Character chr, String newName, int slot) {
-        chr.getMap().broadcastMessage(chr, wire(petT.petNameChange(chr, newName, slot)), true);
+        @Override public PetModule pet() { return petRoute; }
     }
 }

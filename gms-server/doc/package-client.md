@@ -27,8 +27,16 @@
   语义层对 pet 盲，由版本实现在 freeze 时解析补齐）。
 - **无需快照的事件**：不经过冻结，原样通过，翻译按语义事件正常消费。
 - **事件基类**：`ScopeRecord` 为事务段（`ScopeLog`）可存储记录的最高类型；
-  `SemanticEvent` 是其封闭子接口（语义事件词表，版本不得伪造语义事件）；
-  版本派生的冻结事件单独实现 `ScopeRecord`。
+  `SemanticEvent`（`org.gms.remote.out.events`）是其封闭子接口（S→C 语义事件词表，
+  版本不得伪造语义事件）；版本派生的冻结事件单独实现 `ScopeRecord`。事件 record 与
+  接口同包，类型名带 Event 后缀。
+- **收包（C→S，迁移中）**：管线 `shim → in/packet decode → in/translate（包→ClientEvent）
+  → ModuleInDispatch → ModuleIn 入口（gameplay 实现）`，全程单 strand（shim 投递，
+  约束：decode→callback 不跨线程）。no-peek：v83.in 各层只读包与语义接口，角色状态
+  读取全部在 gameplay In 实现内（例：PET_FOOD 包内无目标宠物，选宠是 gameplay 的事）。
+  事件 record 在 `org.gms.remote.in.events`（`ClientEvent` 封闭基接口）；模块接口嵌套
+  `In` 子接口（default 空实现，gameplay 部分实现合法）；`ModuleIn` 聚合由 Character
+  装配（组件 wiring 唯一落点），v83.in 经 strand 惰性导航取用（无注册，转换免疫）。
 
 ## 2. 事务（合并域）
 
@@ -54,13 +62,17 @@ wire 上怎么合并、拆分、搭载是实现私事。地图决定"发给谁"�
 
 ## 4. 版本实现包结构
 
-版本实现放 `org.gms.remote.<VERSION>`（现为 `v83`），内部三层：
+版本实现放 `org.gms.remote.<VERSION>`（现为 `v83`）。direction（out/in）紧跟版本根，
+kind 在后（`<scope>.<direction>.<kind>`）；模块调用面拆分在各域 route，门面承载版本协作机器：
 
 ```
 org.gms.remote.v83
-├── V83RemoteClient        // route
-├── translate/XxxTranslator
-└── packet/XxxPacket
+├── V83RemoteClient        // route 门面：事务作用域/入口冻结/多对多映射(deliver)/冲刷/传输
+└── out/
+    ├── route/XxxRoute           // 模块调用面（每语义模块一个，事件 sink 构造注入）
+    ├── translate/XxxTranslator
+    ├── packet/XxxPacket
+    └── FrozenInventoryEvent     // 版本派生的冻结事件
 ```
 
 ## 5. route 层
@@ -69,13 +81,16 @@ org.gms.remote.v83
 `SemanticEvent` 并 dispatch（开域入段 / 无域即时翻译冲刷），commit 时按固定域序
 （stats → skills → cooldown → inventory）发送各 translator 的帧。
 
-- 对参数**不做理解、只透传**：语义调用与合并域书写共用同一批模块单例，
+- **模块调用面已按模块拆分**（`out/route/XxxRoute`，每语义模块一个）：route 只把
+  模块调用构造成事件并交付 sink；事件 sink 与即时 wire 适配由门面构造注入，
+  route 不感知作用域状态。
+- 对参数**不做理解、只透传**：语义调用与合并域书写共用同一批 route 单例，
   事件去向由作用域状态决定，句柄（`Handle`）不参与路由。
-- 现状是一个大类；应按模块拆开。
+- 多对多映射（deliver）与冲刷序留驻门面，是唯一维护点。
 
 ## 6. translate 层
 
-`XxxTranslator` 把 **gameplay 使用的数据表示**翻译成 **packet 携带的数据表示**：
+`XxxTranslator`（`out/translate`）把 **gameplay 使用的数据表示**翻译成 **packet 携带的数据表示**：
 语义查表与规范化（cash 序列号三选一、成长经验 nibble、到期 wire 映射
 EXPIRED/PERMANENT/日期、tameness min(30000) 截断、名字 -> 会话编码字节）。
 
@@ -83,7 +98,7 @@ EXPIRED/PERMANENT/日期、tameness min(30000) 截断、名字 -> 会话编码�
 
 ## 7. packet 层
 
-- **每种 opcode 一个树状 record**，实现 `V83Packet` 接口（`opcode()` 返回 `SendOpcode`
+- **每种 opcode 一个树状 record**（`out/packet`），实现 `V83Packet` 接口（`opcode()` 返回 `SendOpcode`
   枚举常量，实例 `encode()` 编出整帧）；一个 opcode 内的多种形态
   用嵌套 sealed body 表达（如 `InventoryOperationPacket.ItemBody`、
   `StatChangedPacket.Body.Stats/PetIds`）。

@@ -186,10 +186,11 @@ public class Client extends ChannelInboundHandlerAdapter {
         return new Client(null, -1, null, null, -123, -123);
     }
 
-    /** 本连接的串行执行队列（惰性创建；mock/未连接的 client 首次用到才建，避免泄漏） */
+    /** 本连接的串行执行队列（惰性创建；mock/未连接的 client 首次用到才建，避免泄漏）。
+     *  产物为携带 {@link Player} 上下文的 {@link PlayerStrand}——actor 上下文经 Player.current() 环境获取，不经本方法导航。 */
     public synchronized Strand getStrand() {
         if (strand == null) {
-            strand = Strand.create(Long.toString(sessionId));
+            strand = new PlayerStrand(this, Long.toString(sessionId));
         }
         return strand;
     }

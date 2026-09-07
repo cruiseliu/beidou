@@ -2,6 +2,7 @@ package org.gms.remote;
 
 import org.gms.client.character.Character;
 import org.gms.client.pet.Pet;
+import org.gms.remote.in.events.SummonPetEvent;
 
 /**
  * 语义模块：宠物域（召唤/下阵/成长反馈）。wire 组装归后端私有；
@@ -42,4 +43,8 @@ public interface PetModule {
      * （槽位随取随冻：dismiss/召唤的左移会改变槽位）；遵循入口只记录不发送。
      */
     void updateIgnoreList(Character chr);
+
+    interface In {
+        default void summonPet(SummonPetEvent e) {}
+    }
 }
