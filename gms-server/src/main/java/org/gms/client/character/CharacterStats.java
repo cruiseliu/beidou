@@ -18,8 +18,8 @@ import org.gms.constants.skills.Marauder;
 import org.gms.constants.skills.ThunderBreaker;
 import org.gms.model.json.CharacterStatsData;
 
-import org.gms.remote.RemoteUpdate;
-import org.gms.remote.StatsUpdate;
+import org.gms.remote.RemoteClientBatch;
+import org.gms.remote.modules.stats.server.StatsUpdate;
 import org.gms.server.BuffEffectData;
 import org.gms.server.ItemInformationProvider;
 import org.gms.util.Locks;
@@ -129,15 +129,15 @@ public class CharacterStats {
             }
         }
         if (!silent && !statUpdates.isEmpty()) {
-            try (var u = owner.remote().update()) {
-                u.stats().updateStats(statUpdates);
-                u.basic().unlockActions();
+            try (var _b = owner.remote().batch()) {
+                owner.remote().stats().updateStats(statUpdates);
+                owner.remote().basic().unlockActions();
             }
         }
     }
 
     /** 应用变更并写入外部事务（调用方负责后续 updateSp 等与最终 commit） */
-    void updateInternal(RemoteUpdate tx, Change... changes) {
+    void updateInternal(RemoteClientBatch tx, Change... changes) {
         StatsUpdate statUpdates;
         try (var ignored = Locks.acquire(wLock)) {
             StatsSnapshot old = snapshot;
@@ -148,7 +148,7 @@ public class CharacterStats {
             }
         }
         if (!statUpdates.isEmpty()) {
-            tx.stats().updateStats(statUpdates);
+            owner.remote().stats().updateStats(statUpdates);
         }
     }
 

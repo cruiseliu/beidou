@@ -2,7 +2,7 @@ package org.gms.client.inventory;
 
 import org.gms.client.character.Character;
 import org.gms.constants.inventory.ItemConstants;
-import org.gms.remote.SlotChange;
+import org.gms.remote.modules.inventory.server.SlotChange;
 
 import java.util.List;
 

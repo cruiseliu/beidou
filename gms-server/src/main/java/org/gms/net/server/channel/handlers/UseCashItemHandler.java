@@ -132,7 +132,7 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
         // 合并域包住 hook + 消耗：一次使用的全部语义更新（脚本内多次 mutation、消耗、pet 域事件）一次 flush
         ItemScript script = ItemScript.forItem(itemId);
         if (script != null && script.hasHook(player, ItemScript.HOOK_USE)) {
-            try (var update = player.getRemote().update()) {
+            try (var _b = player.getRemote().batch()) {
                 if (script.invokeUse(player, toUse.getItem())) {
                     remove(c, position, itemId);
                 }

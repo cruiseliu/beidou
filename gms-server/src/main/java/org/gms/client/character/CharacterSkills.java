@@ -6,8 +6,8 @@ import org.gms.constants.game.GameConstants;
 import org.gms.model.pojo.SkillEntry;
 import org.gms.net.server.PlayerCoolDownValueHolder;
 import org.gms.net.server.Server;
+import org.gms.remote.modules.skills.server.SkillUpdate;
 import org.gms.util.Locks;
-import org.gms.remote.SkillUpdate;
 import org.gms.model.json.CharacterSkillsData;
 import org.gms.util.TimeoutHelper;
 

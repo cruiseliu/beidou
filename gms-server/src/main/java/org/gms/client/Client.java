@@ -46,7 +46,7 @@ import org.gms.net.server.guild.Guild;
 import org.gms.client.character.Character;
 import org.gms.infra.Strand;
 import org.gms.remote.RemoteClient;
-import org.gms.remote.v83.V83RemoteClient;
+import org.gms.remote.gms083.Gms083;
 import org.gms.net.server.guild.GuildCharacter;
 import org.gms.net.server.guild.GuildPackets;
 import org.gms.net.server.world.MessengerCharacter;
@@ -1536,7 +1536,7 @@ public class Client extends ChannelInboundHandlerAdapter {
         if (r == null) {
             synchronized (this) {
                 if (remote == null) {
-                    remote = new V83RemoteClient(this);
+                    remote = new Gms083(this);
                 }
                 r = remote;
             }

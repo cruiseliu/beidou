@@ -13,29 +13,37 @@ const ALL_PETS = -1;
 
 export function onUse(character, item) {
     const pets = character.getPets();
+    if (!pets.hasSummonedPet()) {
+        return false;
+    }
 
     const scriptData = getItemDefinition(item.getItemId()).scriptData;
     const { consumers, fullness, tameness, alwaysEnjoy } = scriptData;
 
+    let targetPet = null;
     for (const pet of pets.getSummonedPets()) {
-        if (!consumers.includes(pet.getItemId()) && !consumers.includes(ALL_PETS)) {
-            continue;
+        if (consumers.includes(pet.getItemId()) || consumers.includes(ALL_PETS)) {
+            if (targetPet == null || pet.getFullness() < targetPet.getFullness()) {
+                targetPet = pet;
+            }
         }
-
-        const previousFullness = pet.getFullness();
-        pet.addFullness(fullness);
-
-        if (alwaysEnjoy || previousFullness <= 75) {
-            pet.addTameness(tameness);
-        }
-
-        pet.announceFeedResult(alwaysEnjoy || previousFullness < 100);
-
-        pet.saveToDb();
-        return true;
     }
 
-    // todo: [refactor] make a better api
-    character.dropMessage(1, getMessage("UseCashItemHandler.handlePacket.message10"));
-    return false;
+    if (targetPet == null) {
+        // todo: [refactor] make a better api
+        character.dropMessage(1, getMessage("UseCashItemHandler.handlePacket.message10"));
+        return false;
+    }
+
+    const previousFullness = targetPet.getFullness();
+    targetPet.addFullness(fullness);
+
+    if (alwaysEnjoy || previousFullness <= 75) {
+        targetPet.addTameness(tameness);
+    }
+
+    targetPet.announceFeedResult(alwaysEnjoy || previousFullness < 100);
+
+    targetPet.saveToDb();
+    return true;
 }

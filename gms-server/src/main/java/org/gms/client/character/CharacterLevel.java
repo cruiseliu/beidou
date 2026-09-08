@@ -1,7 +1,5 @@
 package org.gms.client.character;
 
-import org.gms.remote.BasicUpdate;
-
 import org.gms.client.Disease;
 import org.gms.client.FamilyEntry;
 import org.gms.client.PacketStat;
@@ -17,6 +15,7 @@ import org.gms.server.ExpLogger;
 import org.gms.server.ExpLogger.ExpLogRecord;
 import org.gms.server.life.PlayerNPC;
 import org.gms.net.server.world.PartyCharacter;
+import org.gms.remote.modules.basic.server.BasicUpdate;
 import org.gms.util.I18nUtil;
 import org.gms.util.Locks;
 import org.gms.util.PacketCreator;
@@ -200,7 +199,7 @@ class CharacterLevel {
     public synchronized void levelUp(boolean takeexp) {
         // 一个语义域（升级）：全程变更（授予/自动分配/满血满蓝/等级/经验）的公告自动合并为
         // 一个净 diff 包，未变化字段不出现——替代旧的全量 statup 拼装
-        try (var _u = owner.remote().update()) {
+        try (var _u = owner.remote().batch()) {
             // 职业强相关授予（新手自动分配 / maxHp·maxMp·AP·SP / 技能加成 / INT 加成）全在 CharacterJob
             owner.job.applyLevelUpRewards(level + 1);
 

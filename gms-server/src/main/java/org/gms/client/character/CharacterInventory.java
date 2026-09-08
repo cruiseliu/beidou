@@ -6,18 +6,17 @@ import org.gms.model.json.ItemData;
 import org.gms.client.Client;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryTab;
-import org.gms.client.inventory.InventoryProof;
 import org.gms.client.inventory.InventoryType;
+import org.gms.client.inventory.Item;
 import org.gms.client.inventory.ItemSlot;
-import org.gms.remote.SlotChange;
 import org.gms.server.CashShop;
 import org.gms.server.maps.MapItem;
 import org.gms.server.maps.MapObject;
+import org.gms.scripting.item.ItemScript;
 import org.gms.scripting.item.ItemScriptManager;
 
 import java.util.LinkedList;
 
-import org.gms.client.pet.Pet;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.ItemId;
@@ -25,11 +24,16 @@ import org.gms.constants.inventory.ItemConstants;
 import org.gms.server.ItemInformationProvider;
 import org.gms.constants.id.MapId;
 import org.gms.net.packet.Packet;
+import org.gms.remote.modules.inventory.InventoryModule;
+import org.gms.remote.modules.inventory.client.UseItemEvent;
+import org.gms.remote.modules.inventory.server.SlotChange;
 import org.gms.server.ItemInformationProvider.ScriptedItem;
 import org.gms.server.TimerManager;
 import org.gms.util.I18nUtil;
 import org.gms.util.PacketCreator;
 import org.gms.util.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +53,9 @@ import org.gms.client.inventory.ItemStack;
  * 持久化 SQL（inventoryitems/inventoryequipment、slots 列）留在 Character.saveCharToDB；
  * 依赖经 owner 门面调用（sendPacket/getMap/gainMeso/dropMessage/...）。
  */
-class CharacterInventory {
+class CharacterInventory implements InventoryModule.Handler {
+    private static final Logger log = LoggerFactory.getLogger(CharacterInventory.class);
+
     private final Character owner;
 
     /** 背包集合（持有全部 InventoryTab；重构期直接暴露内部数组） */
@@ -70,11 +76,37 @@ class CharacterInventory {
         useCS = false;
         inventory = new Inventory(owner);
         this.equips = new CharacterEquips(owner, inventory.tabs[InventoryType.EQUIPPED.ordinal()]);
+
+        owner.clientEventHandlers().registerInventory(this);
     }
 
     /** 装备域子模块（对齐 CharacterBuffs.getActive() 的暴露方式） */
     CharacterEquips getEquips() {
         return equips;
+    }
+
+    public void useItem(int slotIndex, int itemId) {
+        InventoryTab tab = inventory.getTab(Item.getInventoryTab(itemId));
+        ItemSlot slot = tab.getItem(slotIndex);
+
+        if (slot == null || slot.getItemId() != itemId) {
+            log.error("useItem bad item id {} (slotIndex:{} slot:{})", itemId, slotIndex, slot);
+            return;
+        }
+
+        ItemScript script = ItemScript.forItem(itemId);
+        if (script == null || !script.hasHook(owner, ItemScript.HOOK_USE)) {
+            log.error("useItem {} missing onUse script", itemId);
+            return;
+        }
+
+        // 合并域包住 hook + 消耗：一次使用的全部语义更新一次 flush
+        try (var batch = owner.remote().batch()) {
+            boolean consumed = script.invokeUse(owner, slot.getItem());
+            if (consumed) {
+                tab.removeItem(slotIndex, 1, false);
+            }
+        }
     }
 
     // ── 持久化数据转换（inventory 域；信封组装在 Character.toData） ──

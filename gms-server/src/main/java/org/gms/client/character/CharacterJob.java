@@ -1,7 +1,5 @@
 package org.gms.client.character;
 
-import org.gms.remote.BasicUpdate;
-
 import org.gms.client.Client;
 import org.gms.client.EffectType;
 import org.gms.client.Family;
@@ -24,6 +22,7 @@ import org.gms.client.SkillFactory;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
 import org.gms.net.server.world.PartyCharacter;
+import org.gms.remote.modules.basic.server.BasicUpdate;
 import org.gms.model.pojo.SkillEntry;
 import org.gms.server.BuffEffectData;
 import org.gms.server.TimerManager;
@@ -160,7 +159,7 @@ class CharacterJob {
         }
 
         // 一个语义域（转职）：SP/AP/成长各自正常公告，域收口合并为净 diff 包
-        try (var _u = owner.remote().update()) {
+        try (var _u = owner.remote().batch()) {
             if (spGain > 0) {
                 owner.gainSp(spGain, def.jobId(), false);
             }

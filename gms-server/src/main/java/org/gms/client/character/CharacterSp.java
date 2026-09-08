@@ -3,7 +3,7 @@ package org.gms.client.character;
 import org.gms.client.JobEnum;
 import org.gms.client.job.JobRegistry;
 import org.gms.model.json.CharacterSpData;
-import org.gms.remote.SpUpdate;
+import org.gms.remote.modules.skills.server.SpUpdate;
 import org.gms.util.Locks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,9 +86,9 @@ class CharacterSp {
     }
 
     private void announceSpLocked() {
-        try (var u = owner.remote().update()) {
-            u.skills().updateSp(new SpUpdate(owner.job.def().jobId(), remainingSp));
-            u.basic().unlockActions();
+        try (var _b = owner.remote().batch()) {
+            owner.remote().skills().updateSp(new SpUpdate(owner.job.def().jobId(), remainingSp));
+            owner.remote().basic().unlockActions();
         }
     }
 

@@ -11,8 +11,7 @@ import org.gms.infra.KeyedTimers;
 import org.gms.infra.Strand;
 import org.gms.model.json.CharacterPetsData;
 import org.gms.model.json.PetData;
-import org.gms.remote.PetModule;
-import org.gms.remote.in.events.SummonPetEvent;
+import org.gms.remote.modules.pet.PetModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +40,7 @@ import java.util.function.Supplier;
  * </ul>
  * 跨角色读（其他玩家视角）phase 2 经 host 快照收口后，本模型即角色逻辑无锁化。
  */
-public class CharacterPets implements PetModule.In {
+public class CharacterPets implements PetModule.Handler {
 
     private static final Logger log = LoggerFactory.getLogger(CharacterPets.class);
 
@@ -62,6 +61,7 @@ public class CharacterPets implements PetModule.In {
 
     CharacterPets(Character owner) {
         this.owner = owner;
+        owner.clientEventHandlers().registerPet(this);
     }
 
     /** Free unused resources. 登出 5 分钟后的延迟清理（届时 strand 已关闭、对象图静止，直接操作安全） */
@@ -102,27 +102,26 @@ public class CharacterPets implements PetModule.In {
         }
     }
 
-    // -- In（收包入口：PetModule.In）--
+    // -- In（收包入口：PetModule.Handler）--
 
     /**
      * SPAWN_PET：召唤/下阵/孵化（原 SpawnPetProcessor 的 gameplay 半边）。
      * 在 player strand 上执行（in 管线回调），读自己的背包与宠物状态。
+     * unlock 回包由收包管线统一负责（按 event 类型判定），本方法不写。
      */
     @Override
-    public void summonPet(SummonPetEvent e) {
+    public void summonPet(int slot, boolean lead) {
         Character chr = owner;
-        Pet pet = chr.getPetById(chr.getInventory(InventoryType.CASH).getItem(e.slot()).getPetId());
+        Pet pet = chr.getPetById(chr.getInventory(InventoryType.CASH).getItem(slot).getPetId());
         if (pet == null) {
             return;
         }
         if (pet.isEgg()) {
             pet.evolve();
-            chr.getRemote().basic().unlockActions();
             return;
         }
         if (!pet.isAlive()) {
-            chr.getRemote().basic().unlockActions();   // 失活宠物不可召唤
-            return;
+            return;   // 失活宠物不可召唤
         }
         if (chr.getPetIndex(pet) != -1) {
             pet.dismiss();
@@ -134,8 +133,7 @@ public class CharacterPets implements PetModule.In {
         java.awt.Point pos = chr.getPosition();
         pos.y -= 12;
         int fh = chr.getMap().getFootholds().findBelow(pet.getPos()).getId();
-        pet.summon(!e.lead(), pos, fh);
-        chr.getRemote().basic().unlockActions();
+        pet.summon(!lead, pos, fh);
         chr.getRemote().pet().updateIgnoreList(chr);
     }
 

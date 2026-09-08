@@ -54,6 +54,7 @@ public final class Player {
         return client;
     }
 
+
     /** 角色实体（派生视图）；登录前/charlist 阶段为 null */
     public Character character() {
         return client.getPlayer();

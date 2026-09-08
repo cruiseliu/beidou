@@ -26,8 +26,8 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.constants.inventory.ItemConstants;
+import org.gms.remote.modules.inventory.server.SlotChange;
 import org.gms.server.ItemInformationProvider;
-import org.gms.remote.SlotChange;
 import org.gms.util.Pair;
 
 import java.util.ArrayList;

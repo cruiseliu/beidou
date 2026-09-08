@@ -31,7 +31,7 @@ import org.gms.client.inventory.ItemSlot;
 import org.gms.client.pet.Pet;
 import org.gms.client.inventory.ModifyInventory;
 import org.gms.model.pojo.NewYearCardRecord;
-import org.gms.remote.SlotChange;
+import org.gms.remote.modules.inventory.server.SlotChange;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.inventory.ItemConstants;

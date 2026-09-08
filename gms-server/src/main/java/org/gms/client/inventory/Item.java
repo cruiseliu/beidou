@@ -227,6 +227,10 @@ public class Item implements Comparable<Item> {
         return base;
     }
 
+    public static InventoryType getInventoryTab(int itemId) {
+        return ItemConstants.getInventoryType(itemId);
+    }
+
     public InventoryType getInventoryTab() {
         return ItemConstants.getInventoryType(id);
     }
@@ -309,7 +313,7 @@ public class Item implements Comparable<Item> {
      *  服务端判定禁止再读它。 */
     public int getLegacyFlags() {
         // 组装唯一实现见 remote 层工具方法；此处仅为存档列兼容的过渡出口
-        return org.gms.remote.v83.V83RemoteClient.assembleClientFlagBits(this);
+        return org.gms.remote.gms083.Gms083.assembleClientFlagBits(this);
     }
 
     public long getExpiration() {

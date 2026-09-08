@@ -42,10 +42,10 @@ import org.gms.client.SkillFactory;
 import org.gms.client.SkillMacro;
 import org.gms.client.SkinColor;
 import org.gms.client.PacketStat;
-import org.gms.remote.InventoryModule;
-import org.gms.remote.ModuleIn;
-import org.gms.remote.PetModule;
+import org.gms.remote.ClientEventHandlerRegistry;
 import org.gms.remote.RemoteClient;
+import org.gms.remote.modules.inventory.InventoryModule;
+import org.gms.remote.modules.pet.PetModule;
 import org.gms.client.autoban.AutobanManager;
 import org.gms.client.creator.CharacterFactoryRecipe;
 import org.gms.client.pet.Pet;
@@ -67,8 +67,6 @@ import org.gms.constants.skills.*;
 import org.gms.constants.string.ExtendKey;
 import org.gms.dao.entity.*;
 import org.gms.manager.ServerManager;
-import org.gms.model.dto.InventorySearchReqDTO;
-import org.gms.model.dto.InventorySearchRtnDTO;
 import org.gms.model.json.CharacterData;
 import org.gms.model.json.CharacterPetsData;
 import org.gms.model.pojo.NewYearCardRecord;
@@ -132,6 +130,7 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterSp sp = new CharacterSp(this);
     // ActiveBuffs 实例由 CharacterBuffs 内部组合创建（见 CharacterBuffs 构造器）
     final CharacterBuffs buffs = new CharacterBuffs(this);
+    final ClientEventHandlerRegistry clientEventHandlers = new ClientEventHandlerRegistry();
     final CharacterPets pets = new CharacterPets(this);
     final CharacterDebuffs debuffs = new CharacterDebuffs(this);
     final CharacterChair chair = new CharacterChair(this);
@@ -147,19 +146,6 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterPartyQuest pq = new CharacterPartyQuest(this);
     final CharacterGuild guild = new CharacterGuild(this);
     final CharacterInventory inventory = new CharacterInventory(this);
-    private final UseItemIn useItemIn = new UseItemIn(this);
-    /** 收包入口聚合：模块 In 面 → 组件的装配点（v83.in 管线经 strand 导航至此分派） */
-    private final ModuleIn in = new ModuleIn() {
-        @Override
-        public PetModule.In pet() {
-            return pets;
-        }
-
-        @Override
-        public InventoryModule.In inventory() {
-            return useItemIn;
-        }
-    };
     final CharacterFamily family = new CharacterFamily(this);
     final CharacterMarriage marriage = new CharacterMarriage(this);
     final CharacterMiniGame miniGame = new CharacterMiniGame(this);
@@ -355,7 +341,6 @@ public class Character extends AbstractAnimatedMapObject {
     private static final WorldTransferService worldTransferService = ServerManager.getApplicationContext().getBean(WorldTransferService.class);
     static final AccountService accountService = ServerManager.getApplicationContext().getBean(AccountService.class);    // 包内可见：CharacterAntiCheat.ban/block 调用
     static final HpMpAlertService hpMpAlertService = ServerManager.getApplicationContext().getBean(HpMpAlertService.class);    // 包内可见：CharacterStats.applyHpMpChange 调用
-    private static final InventoryService inventoryService = ServerManager.getApplicationContext().getBean(InventoryService.class);
 
     public int getClientMaxHp() {
         return stats.getClientMaxHp();
@@ -1783,7 +1768,7 @@ public class Character extends AbstractAnimatedMapObject {
 
             if (tap >= 0) {
                 // 一个语义域（重置属性）：stats 与 sp 各自正常公告，域收口合并为一个包
-                try (var _u = remote().update()) {
+                try (var _u = remote().batch()) {
                     stats.update()
                             .set(STR, tstr)
                             .set(DEX, tdex)
@@ -3075,10 +3060,8 @@ public class Character extends AbstractAnimatedMapObject {
     /** 脚本回调调度器（容器事件/定时器回调的唯一执行通道） */
     public CharacterScriptRunner getScriptRunner() { return scriptRunner; }
 
-    /** 收包入口聚合（语义层 ModuleIn）；v83.in 管线经 strand 导航至此分派 */
-    public ModuleIn in() {
-        return in;
-    }
+    /** 收包入口聚合（per-module Handler 槽位表）：组件构造期自注册，跨转换稳定 */
+    public ClientEventHandlerRegistry clientEventHandlers() { return clientEventHandlers; }
 
     // ── skills 门面 ──
 

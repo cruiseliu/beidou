@@ -1,8 +1,8 @@
 package org.gms.client.inventory;
 
 import org.gms.client.character.Character;
-import org.gms.remote.RemoteUpdate;
-import org.gms.remote.SlotChange;
+import org.gms.remote.RemoteClientBatch;
+import org.gms.remote.modules.inventory.server.SlotChange;
 import org.gms.constants.inventory.ItemConstants;
 
 import java.util.ArrayList;
@@ -57,7 +57,7 @@ public class InventoryTransaction {
     private boolean failed = false;
 
     /** P2 事务信封：prepare 起缓冲全部通知；成功随 commit 冲刷，failed → drop 弃段 */
-    private RemoteUpdate packetScope;
+    private RemoteClientBatch packetScope;
 
     InventoryTransaction(Inventory inventory, Character character, boolean testMode) {
         this.inventory = inventory;
@@ -85,7 +85,7 @@ public class InventoryTransaction {
             end();
             throw e;
         }
-        packetScope = character.getRemote().update();   // 事务信封：段从现在起收集一切通知
+        packetScope = character.getRemote().batch();   // 事务信封：段从现在起收集一切通知
     }
 
     private void end() {
