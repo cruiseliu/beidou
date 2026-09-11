@@ -29,6 +29,12 @@ import org.gms.server.life.Monster;
 public final class MobBanishPlayerHandler extends AbstractPacketHandler {
 
     @Override
+    public boolean queued() {
+        // strand 迁移 M2-batch3：怪物驱赶换图入口（纯 self-warp，体审计干净，doc/13 §10）
+        return true;
+    }
+
+    @Override
     public final void handlePacket(InPacket p, Client c) {
         int mobid = p.readInt();     // mob banish handling detected thanks to MedicOP
 

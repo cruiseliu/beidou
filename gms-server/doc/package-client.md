@@ -30,13 +30,17 @@
   `SemanticEvent`（`org.gms.remote.out.events`）是其封闭子接口（S→C 语义事件词表，
   版本不得伪造语义事件）；版本派生的冻结事件单独实现 `ScopeRecord`。事件 record 与
   接口同包，类型名带 Event 后缀。
-- **收包（C→S，迁移中）**：管线 `shim → in/packet decode → in/translate（包→ClientEvent）
-  → ModuleInDispatch → ModuleIn 入口（gameplay 实现）`，全程单 strand（shim 投递，
-  约束：decode→callback 不跨线程）。no-peek：v83.in 各层只读包与语义接口，角色状态
-  读取全部在 gameplay In 实现内（例：PET_FOOD 包内无目标宠物，选宠是 gameplay 的事）。
-  事件 record 在 `org.gms.remote.in.events`（`ClientEvent` 封闭基接口）；模块接口嵌套
-  `In` 子接口（default 空实现，gameplay 部分实现合法）；`ModuleIn` 聚合由 Character
-  装配（组件 wiring 唯一落点），v83.in 经 strand 惰性导航取用（无注册，转换免疫）。
+- **收包（C→S，迁移中）**：管线 `shim（queued，投会话 strand）→ per-module pipeline
+  （decode 产出 GMS083 事件 → translate 拓宽为版本无关事件）→ Handler 裸参数直调 →
+  unlock（按事件类型由 pipeline 负责）`。dispatch 分模块（无中央 switch）；gameplay 不见
+  ClientEvent/unlock。no-peek：v83 各层只读包与语义接口，角色状态读取全部在 gameplay
+  Handler 实现内（例：PET_FOOD 包内无目标宠物，选宠是 gameplay 的事）。
+  GMS083 事件 record 在 `gms083/client/packets`（byte/short 版本词汇）；语义事件 record 在
+  `modules/<域>/client`（int 词汇，`ClientEvent` 封闭基接口）。
+  **Handler 槽位表 `ClientEventHandlerRegistry` 挂 Player**（actor 的收包插座，会话级寿命）：
+  构造期不自注册（构造上下文无 actor 可达：autosave/charlist 装载）——角色入场绑定时经
+  `Character.bindClientHandlers` 聚合接线（register 调用在各组件内，角色内部组成不外泄给
+  handler），on strand 执行；pipeline 经 `Player.current()` 环境取用（doc/12 权责语义）。
 
 ## 2. 事务（合并域）
 

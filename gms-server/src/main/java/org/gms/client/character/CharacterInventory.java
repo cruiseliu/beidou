@@ -24,6 +24,7 @@ import org.gms.constants.inventory.ItemConstants;
 import org.gms.server.ItemInformationProvider;
 import org.gms.constants.id.MapId;
 import org.gms.net.packet.Packet;
+import org.gms.remote.ClientEventHandlerRegistry;
 import org.gms.remote.modules.inventory.InventoryModule;
 import org.gms.remote.modules.inventory.client.UseItemEvent;
 import org.gms.remote.modules.inventory.server.SlotChange;
@@ -76,8 +77,12 @@ class CharacterInventory implements InventoryModule.Handler {
         useCS = false;
         inventory = new Inventory(owner);
         this.equips = new CharacterEquips(owner, inventory.tabs[InventoryType.EQUIPPED.ordinal()]);
+        // 不在构造期自注册：构造上下文无 actor 可达（autosave/charlist 装载，doc/12）
+    }
 
-        owner.clientEventHandlers().registerInventory(this);
+    /** 收包 Handler 接插（角色入场绑定时由 Character 聚合调用，on strand，doc/12） */
+    void bindClientHandlers(ClientEventHandlerRegistry registry) {
+        registry.registerInventory(this);
     }
 
     /** 装备域子模块（对齐 CharacterBuffs.getActive() 的暴露方式） */

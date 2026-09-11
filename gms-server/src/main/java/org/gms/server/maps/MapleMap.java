@@ -36,6 +36,7 @@ import org.gms.constants.game.GameConstants;
 import org.gms.constants.id.MapId;
 import org.gms.constants.id.MobId;
 import org.gms.constants.inventory.ItemConstants;
+import org.gms.infra.ActorShim;
 import org.gms.net.packet.Packet;
 import org.gms.net.server.Server;
 import org.gms.net.server.channel.Channel;
@@ -188,6 +189,8 @@ public class MapleMap {
     private final Lock chrWLock;
     private final Lock objectRLock;
     private final Lock objectWLock;
+    /** player→map 调用边界（doc/13）：FIFO 派发、池执行、不串行化——构造器内创建（field initializer 拿不到 mapid） */
+    private ActorShim shim;
 
     private final Lock lootLock = new ReentrantLock(true);
 
@@ -213,10 +216,21 @@ public class MapleMap {
         objectWLock = objectLock.writeLock();
 
         aggroMonitor = new MonsterAggroCoordinator();
+        this.shim = ActorShim.create("map-" + mapid + "@c" + channel);
     }
 
     public void setEventInstance(EventInstanceManager eim) {
         event = eim;
+    }
+
+    /** player→map 通知类调用：经 shim 异步执行（FIFO 派发序，不串行化，doc/13 §1） */
+    public void post(String task, Runnable r) {
+        shim.post(task, r);
+    }
+
+    /** player→map 排序敏感缝合点：经 shim 同步完成（返回后本线程还要发自己的包/依赖其效果时用） */
+    public void runIn(String task, Runnable r) {
+        shim.run(task, r);
     }
 
     public EventInstanceManager getEventInstance() {
@@ -2409,24 +2423,62 @@ public class MapleMap {
         }
     }
 
-    public void addPlayer(final Character chr) {
-        cleanupGhostPlayers();   // 被动清理：进图前先清掉图上"已断线未正常移除"的幽灵玩家，避免其他人仍看到他
+    /**
+     * 玩家进图登记。{@code summonedPets} 为进图者宠物召唤快照——由调用方在<b>其 strand 上</b>
+     * 经 {@code chr.getPets().getSummonedPets()}（List.copyOf）采集后随边界传入（doc/13 §5.2
+     * 快照过界）：本方法未来在 map shim 任务体（池线程）执行，此处禁止对 player actor 的
+     * 跨线程读/阻塞回询（addPlayer 是 player strand `run` 的缝合点，回询 = 环死锁）。
+     */
+    /**
+     * 进图登记（shim 任务体，run 语义——调用方阻塞至完成）：图侧登记 + 他人广播。
+     * run 缝合点审计通过：无脚本入口/无 pet 阻塞回询/无自发包（doc/13 §4）。
+     *
+     * @return firstEnter（chrSize==1，登记动作的产物）：finishEnter 的 onFirstUserEnter 触发条件
+     */
+    public boolean registerPlayer(final Character chr, final List<Pet> summonedPets) {
+        return shim.supply("map-registerPlayer", () -> {
+            cleanupGhostPlayers();   // 被动清理：进图前先清掉图上"已断线未正常移除"的幽灵玩家，避免其他人仍看到他
 
-        int chrSize;
-        Party party = chr.getParty();
-        chrWLock.lock();
-        try {
-            characters.add(chr);
-            chrSize = characters.size();
+            int chrSize;
+            Party party = chr.getParty();
+            chrWLock.lock();
+            try {
+                characters.add(chr);
+                chrSize = characters.size();
 
-            if (party != null && party.getMemberById(chr.getId()) != null) {
-                addPartyMemberInternal(chr, party.getId());
+                if (party != null && party.getMemberById(chr.getId()) != null) {
+                    addPartyMemberInternal(chr, party.getId());
+                }
+                itemMonitorTimeout = 1;
+            } finally {
+                chrWLock.unlock();
             }
-            itemMonitorTimeout = 1;
-        } finally {
-            chrWLock.unlock();
-        }
 
+            final boolean firstEnter = chrSize == 1;
+            if (firstEnter && !hasItemMonitor()) {
+                startItemMonitor();
+                aggroMonitor.startAggroCoordinator();
+            }
+
+            // 他人流（对进图者不可见）：自 addPlayer 尾段前移，内部相对顺序保持；单机 probe 不可观测
+            if (chr.isHidden()) {
+                broadcastGMSpawnPlayerMapObjectMessage(chr, chr, true);
+
+                List<Pair<EffectType, Integer>> dsstat = Collections.singletonList(new Pair<>(EffectType.DARKSIGHT, 0));
+                broadcastGMMessage(chr, PacketCreator.giveForeignBuff(chr.getId(), dsstat), false);
+            } else {
+                broadcastSpawnPlayerMapObjectMessage(chr, chr, true);
+            }
+            return firstEnter;
+        });
+    }
+
+    /**
+     * 进图通知（player strand 直调，紧随 {@link #registerPlayer}）：脚本 + self 流 + 尾部登记，
+     * 语句相对顺序与切分前完全一致（doc/13 §4）。
+     * 进图脚本原位执行（§5.4：不得入 shim 任务体）；将来拆 map 侧/player 侧分离（§4 定稿）。
+     */
+    public void finishEnter(final Character chr, final boolean firstEnter, final List<Pet> summonedPets) {
         chr.setMapId(mapid);
         chr.updateActiveEffects();
 
@@ -2437,12 +2489,7 @@ public class MapleMap {
         }
 
         MapScriptManager msm = MapScriptManager.getInstance();
-        if (chrSize == 1) {
-            if (!hasItemMonitor()) {
-                startItemMonitor();
-                aggroMonitor.startAggroCoordinator();
-            }
-
+        if (firstEnter) {
             if (onFirstUserEnter.length() != 0) {
                 msm.runMapScript(chr.getClient(), "onFirstUserEnter/" + onFirstUserEnter, true);
             }
@@ -2517,7 +2564,7 @@ public class MapleMap {
             chr.sendPacket(PacketCreator.getClock(pqTimer / 1000));
         }
 
-        for (Pet pet : chr.getPets().getSummonedPets()) {
+        for (Pet pet : summonedPets) {
             Point pos = getGroundBelow(chr.getPosition());
             int fh = getFootholds().findBelow(pos).getId();
             pet.announceSummon(pos, fh);
@@ -2553,14 +2600,9 @@ public class MapleMap {
         }
 
         if (chr.isHidden()) {
-            broadcastGMSpawnPlayerMapObjectMessage(chr, chr, true);
             chr.sendPacket(PacketCreator.getGMEffect(0x10, (byte) 1));
-
-            List<Pair<EffectType, Integer>> dsstat = Collections.singletonList(new Pair<>(EffectType.DARKSIGHT, 0));
-            broadcastGMMessage(chr, PacketCreator.giveForeignBuff(chr.getId(), dsstat), false);
-        } else {
-            broadcastSpawnPlayerMapObjectMessage(chr, chr, true);
         }
+        // 他人广播（spawn/DARKSIGHT foreign buff）已前移至 registerPlayer（shim 任务体）
 
         sendObjectPlacement(chr.getClient());
 
@@ -3363,32 +3405,55 @@ public class MapleMap {
         }
     }
 
-    public void movePlayer(Character player, Point newPosition) {
-        player.setPosition(newPosition);
+    /**
+     * 移动消息（player actor → map actor，doc/13 §12）：携带差集计算与广播所需的全部事实，
+     * map 任务体零 player 状态读。
+     */
+    public record MoveMsg(org.gms.infra.Strand strand, Character chr, Client client, Point newPos,
+                          Packet relayPacket, boolean gmOnly, List<MapObject> visible) {
+    }
+    // relayPacket == null：同图内传送等无中继广播的位移（仅可见性差集）
 
-        try {
-            MapObject[] visibleObjects = player.getVisibleMapObjects();
-
-            Map<Integer, MapObject> mapObjects = getCopyMapObjects();
-            for (MapObject mo : visibleObjects) {
-                if (mo != null) {
-                    if (mapObjects.get(mo.getObjectId()) == mo) {
-                        updateMapObjectVisibility(player, mo);
-                    } else {
-                        player.removeVisibleMapObject(mo);
-                    }
-                }
+    /**
+     * move 事件（map actor 任务体，串行执行）：可见性差集（编码直发）+ 他人流广播 +
+     * 回程 post（可见集应用归 player actor，幂等）。
+     * 快照过期（apply 回程与新 move 竞态 <1ms 窗口）→ 重复 spawn 包：oid 寻址自愈，已知中间态。
+     */
+    public void onMove(MoveMsg msg) {
+        List<MapObject> addRefs = new ArrayList<>();
+        List<MapObject> removeRefs = new ArrayList<>();
+        Map<Integer, MapObject> mapObjects = getCopyMapObjects();
+        for (MapObject mo : msg.visible()) {
+            if (mo == null) {
+                continue;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            if (mapObjects.get(mo.getObjectId()) != mo) {
+                // 对象已不在图上：现状语义为静默移除（无包）
+                removeRefs.add(mo);
+            } else if (mo.getType() != MapObjectType.SUMMON
+                    && mo.getPosition().distanceSq(msg.newPos()) > getRangedDistance()) {
+                mo.sendDestroyData(msg.client());
+                removeRefs.add(mo);
+            }
+        }
+        for (MapObject mo : getMapObjectsInRange(msg.newPos(), getRangedDistance(), rangedMapobjectTypes)) {
+            if (!msg.visible().contains(mo)) {
+                mo.sendSpawnData(msg.client());
+                addRefs.add(mo);
+            }
         }
 
-        for (MapObject mo : getMapObjectsInRange(player.getPosition(), getRangedDistance(), rangedMapobjectTypes)) {
-            if (!player.isMapObjectVisible(mo)) {
-                mo.sendSpawnData(player.getClient());
-                player.addVisibleMapObject(mo);
+        // 他人流广播（source 引用排除；gmOnly 时 source.gmLevel 为登录期不变字段容忍读）
+        if (msg.relayPacket() != null) {
+            if (msg.gmOnly()) {
+                broadcastGMPacket(msg.chr(), msg.relayPacket());
+            } else {
+                broadcastPacket(msg.chr(), msg.relayPacket());
             }
         }
+
+        msg.strand().post("apply-visibility",
+                () -> msg.chr().applyVisibleMapObjects(addRefs, removeRefs));
     }
 
     public final void toggleEnvironment(final String ms) {

@@ -21,7 +21,7 @@ public final class PetInPipeline implements ClientInPipeline {
 
     public void handle(InPacket p, Player player) {
         var e = PetTranslator.toEvent(PetPacket.decodeSpawnPet(p));
-        player.character().clientEventHandlers().pet().summonPet(e.slot(), e.lead());
+        player.clientEventHandlers().pet().summonPet(e.slot(), e.lead());
         player.remote().basic().unlockActions();
     }
 }

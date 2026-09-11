@@ -1,0 +1,44 @@
+{
+  "id": "warrior_female",
+  "jobId": 100,
+  "level": 30,
+  "mapId": 102000000,
+  "ap": 123,
+  "sp": 61,
+  "meso": 100000,
+  "novice": false,
+  "noviceJobCode": -1,
+  "mapleLifeJobCode": 0,
+  "candidates": {
+    "male": null,
+    "female": "Info/CharFemale"
+  },
+  "mapleLifeEnhance": {
+    "hpGain": [0, 72, 144, 212, 280, 348, 412, 476, 540, 600, 660],
+    "mpGain": null,
+    "spCost": 5,
+    "enhanceSkill": 1000000,
+    "overflowSkill": 1000001
+  },
+  "baseData": {
+    "stats": { "str": 35, "dex": 5, "int_": 4, "luk": 4, "hp": 905, "mp": 208, "maxHp": 905, "maxMp": 208 },
+    "inventory": {
+      "EQUIP": [
+        { "itemId": 1072039, "position": -7, "quantity": 1 },
+        { "itemId": 1302008, "position": -11, "quantity": 1 },
+        { "itemId": 1051010, "position": 0, "quantity": 1 },
+        { "itemId": 1442001, "position": 0, "quantity": 1 },
+        { "itemId": 1422001, "position": 0, "quantity": 1 },
+        { "itemId": 1312005, "position": 0, "quantity": 1 }
+      ],
+      "USE": [
+        { "itemId": 2000002, "position": 0, "quantity": 100 },
+        { "itemId": 2000003, "position": 0, "quantity": 100 }
+      ],
+      "SETUP": [
+        { "itemId": 3010000, "position": 0, "quantity": 1 }
+      ]
+    },
+    "skills": {}
+  }
+}

@@ -29,6 +29,7 @@ import org.gms.client.Client;
 import org.gms.client.Family;
 import org.gms.client.FamilyEntry;
 import org.gms.client.Mount;
+import org.gms.client.Player;
 import org.gms.client.SkillFactory;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.InventoryTab;
@@ -44,7 +45,9 @@ import org.gms.net.packet.InPacket;
 import org.gms.net.server.Server;
 import org.gms.net.server.channel.Channel;
 import org.gms.net.server.channel.CharacterIdChannelPair;
+import org.gms.server.maps.MapleMap;
 import org.gms.net.server.coordinator.session.Hwid;
+import org.gms.net.server.coordinator.session.PlayerSession;
 import org.gms.net.server.coordinator.session.SessionCoordinator;
 import org.gms.net.server.coordinator.world.EventRecallCoordinator;
 import org.gms.net.server.guild.Alliance;
@@ -173,7 +176,10 @@ public final class PlayerLoggedinHandler extends AbstractPacketHandler {
                     return;
                 }
             } else {
-                hwid = player.getClient().getHwid();
+                // 过渡重入：旧连接可能已死（悬挂引用）——优先从会话协调器的 hwid 缓存拾取
+                // （CharSelected 时登记），缓存未命中再回退悬挂旧 Client（过渡分支不清理 hwid，仍可读）
+                Hwid cached = SessionCoordinator.getInstance().getGameSessionHwid(player.getAccountId());
+                hwid = cached != null ? cached : player.getClient().getHwid();
             }
 
             c.setHwid(hwid);
@@ -224,9 +230,52 @@ public final class PlayerLoggedinHandler extends AbstractPacketHandler {
             }
 
             if (!newcomer) {
+                // 过渡重入：读悬挂旧 Client 的账号级不可变设置（language/slots，过渡分支不清理）
                 c.setLanguage(player.getClient().getLanguage());
                 c.setCharacterSlots((byte) player.getClient().getCharacterSlots());
-                player.newClient(c);
+            }
+
+            // —— 会话建立（doc/12 §3.4）：attach 决定 fresh/adopt/顶号等待；入场流程（含
+            // rebind）作为单个任务投递到会话 strand，FIFO 排在该会话既有任务之后——旧连接
+            // 收尾与新连接进入在此获得全序。newClient 依赖会话 strand（strandSlot 安装），
+            // 故一并移入入场任务。
+            PlayerSession session = SessionCoordinator.getInstance().attach(c, accId);
+            c.attachTo(session);
+            final Character entered = player;
+            final boolean firstEntry = newcomer;
+            session.strand().post("loggedin-enter", () -> {
+                if (!c.tryacquireClient()) {   // 与前半段的并发保护对齐（MedicOP）
+                    c.sendPacket(PacketCreator.getAfterLoginError(10));
+                    return;
+                }
+                try {
+                    session.strand().rebindTo(c);   // 跨 actor 写：跑在 actor 上（doc/12 权责语义）
+                    // 收包插座接线：角色把组件接插到 actor 的 Handler 槽位（on strand 写；
+                    // 角色内部组成不外泄，接线知识在 Character.bindClientHandlers）
+                    entered.bindClientHandlers(Player.current().clientEventHandlers());
+                    enterWorld(c, entered, firstEntry);
+                } finally {
+                    c.releaseClient();
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            c.releaseClient();
+        }
+    }
+
+    /**
+     * 入场流程：原 handlePacket 的入场段原样迁移，改在会话 strand 上执行（doc/12）。
+     * 入口前置条件：rebind 已完成（Player.client == c）。
+     */
+    private void enterWorld(Client c, Character player, boolean newcomer) {
+        final Server server = Server.getInstance();
+        final World wserv = c.getWorldServer();
+        final Channel cserv = c.getChannelServer();
+        try {
+            if (!newcomer) {
+                player.newClient(c);   // 过渡重入：重绑 + 出生点重定位（newcomer 的位置由 DB 装载决定，不走此路径）
             }
 
             // 增加参数判断，避免给客户端发未知包导致异常
@@ -264,7 +313,11 @@ public final class PlayerLoggedinHandler extends AbstractPacketHandler {
             KeyBinding autompPot = player.getKeymap().get(92);
             player.sendPacket(PacketCreator.sendAutoMpPot(autompPot != null ? autompPot.getAction() : 0));
 
-            player.getMap().addPlayer(player);
+            // 宠物召唤快照：本 strand（会话 strand）上采集后随边界传入（doc/13 §5.2）
+            final List<Pet> pets = player.getPets().getSummonedPets();
+            final MapleMap entryMap = player.getMap();
+            final boolean firstEnter = entryMap.registerPlayer(player, pets);   // shim run：登记段缝合点
+            entryMap.finishEnter(player, firstEnter, pets);                     // player strand：脚本 + self 流
             player.visitMap(player.getMap());
 
             BuddyList bl = player.getBuddylist();
@@ -437,7 +490,7 @@ public final class PlayerLoggedinHandler extends AbstractPacketHandler {
             }
 
             if (newcomer) {
-                EventInstanceManager eim = EventRecallCoordinator.getInstance().recallEventInstance(cid);
+                EventInstanceManager eim = EventRecallCoordinator.getInstance().recallEventInstance(player.getId());
                 if (eim != null) {
                     eim.registerPlayer(player);
                 }
@@ -462,9 +515,8 @@ public final class PlayerLoggedinHandler extends AbstractPacketHandler {
             }
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            c.releaseClient();
         }
+        // releaseClient 归调用方（入场任务）的 try/finally；此处不再持有 client 锁
     }
 
     private static void showDueyNotification(Client c, Character player) {

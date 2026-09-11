@@ -51,6 +51,8 @@ import org.gms.net.server.handlers.login.ViewAllCharSelectedHandler;
 import org.gms.net.server.handlers.login.ViewAllCharSelectedWithPicHandler;
 import org.gms.remote.gms083.client.V83RemoteClientHandler;
 import org.gms.remote.gms083.client.pipelines.InventoryInPipeline;
+import org.gms.remote.gms083.client.pipelines.MoveInPipeline;
+import org.gms.remote.gms083.client.pipelines.NPCActionInPipeline;
 import org.gms.remote.gms083.client.pipelines.PetInPipeline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -191,7 +193,7 @@ public final class PacketProcessor {
         registerHandler(RecvOpcode.RANGED_ATTACK, new RangedAttackHandler());
         registerHandler(RecvOpcode.MAGIC_ATTACK, new MagicDamageHandler());
         registerHandler(RecvOpcode.TAKE_DAMAGE, new TakeDamageHandler());
-        registerHandler(RecvOpcode.MOVE_PLAYER, new MovePlayerHandler());
+        registerHandler(RecvOpcode.MOVE_PLAYER, new V83RemoteClientHandler(new MoveInPipeline()));
         registerHandler(RecvOpcode.USE_CASH_ITEM, new UseCashItemHandler(channelDeps.noteService()));
         registerHandler(RecvOpcode.USE_ITEM, new UseItemHandler());
         registerHandler(RecvOpcode.USE_RETURN_SCROLL, new UseItemHandler());
@@ -232,7 +234,7 @@ public final class PacketProcessor {
         registerHandler(RecvOpcode.BBS_OPERATION, new BBSOperationHandler());
         registerHandler(RecvOpcode.SKILL_EFFECT, new SkillEffectHandler());
         registerHandler(RecvOpcode.MESSENGER, new MessengerHandler());
-        registerHandler(RecvOpcode.NPC_ACTION, new NPCAnimationHandler());
+        registerHandler(RecvOpcode.NPC_ACTION, new V83RemoteClientHandler(new NPCActionInPipeline()));
         registerHandler(RecvOpcode.CHECK_CASH, new TouchingCashShopHandler());
         registerHandler(RecvOpcode.CASHSHOP_OPERATION, new CashOperationHandler(channelDeps.noteService()));
         registerHandler(RecvOpcode.COUPON_CODE, new CouponCodeHandler());

@@ -26,11 +26,9 @@ import org.gms.client.Client;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.client.SkillMacro;
-import org.gms.client.creator.veteran.BowmanCreator;
-import org.gms.client.creator.veteran.MagicianCreator;
-import org.gms.client.creator.veteran.PirateCreator;
-import org.gms.client.creator.veteran.ThiefCreator;
-import org.gms.client.creator.veteran.WarriorCreator;
+import org.gms.client.creator.CharacterFactory;
+import org.gms.client.creator.CharacterTemplate;
+import org.gms.client.creator.CharacterTemplateRegistry;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Equip.ScrollResult;
 import org.gms.client.inventory.InventoryTab;
@@ -532,19 +530,17 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
             int gender = p.readInt();
             int jobid = p.readInt();
             int improveSp = p.readInt();
-            if (ItemConstants.notValidHairColor(haircolor)) {
-                log.warn("{} want to create a character with a not valid hair color {}", player.getName(), haircolor);
+
+            // 职业路由数据化（doc/14）：老兵卡职业码 → CharacterTemplate（外观校验合并进
+            // CharacterFactory，模板候选集唯一门；原 default=海盗 的兜底改为未知码拒绝）
+            CharacterTemplate template = CharacterTemplateRegistry.byMapleLifeJobCode(jobid, gender == 1);
+            if (template == null) {
+                log.warn("MapleLife 卡使用了未知职业码 {}", jobid);
                 c.enableActions();
                 return;
             }
-
-            int createStatus = switch (jobid) {
-                case 0 -> WarriorCreator.createCharacter(c, name, face, hair + haircolor, skin, gender, improveSp);
-                case 1 -> MagicianCreator.createCharacter(c, name, face, hair + haircolor, skin, gender, improveSp);
-                case 2 -> BowmanCreator.createCharacter(c, name, face, hair + haircolor, skin, gender, improveSp);
-                case 3 -> ThiefCreator.createCharacter(c, name, face, hair + haircolor, skin, gender, improveSp);
-                default -> PirateCreator.createCharacter(c, name, face, hair + haircolor, skin, gender, improveSp);
-            };
+            int createStatus = CharacterFactory.createNewCharacter(c, name, gender,
+                    new CharacterFactory.NewCharacterAppearance(face, hair + haircolor, skin, 0, 0, 0, 0), template, improveSp);
 
             if (createStatus == 0) {
                 c.sendPacket(PacketCreator.sendMapleLifeError(0));   // success!

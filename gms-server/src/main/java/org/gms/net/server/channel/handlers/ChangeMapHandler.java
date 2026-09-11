@@ -51,6 +51,15 @@ public final class ChangeMapHandler extends AbstractPacketHandler {
     private static final Logger log = LoggerFactory.getLogger(ChangeMapHandler.class);
 
     @Override
+    public boolean queued() {
+        // strand 迁移 M2-batch3：portal 换图入口（换图链路此前跑在 netty 事件循环，
+        // 是地图 shim 缝合点"从 player actor 发起"的最后断点，doc/13 §10）。
+        // 体审计：isChangingMaps 过渡守卫内建；脚本经 finishEnter 在 strand（合规）；
+        // 地图 shim run/supply 为注册缝合方向；无跨 strand 阻塞。
+        return true;
+    }
+
+    @Override
     public void handlePacket(InPacket p, Client c) {
         Character chr = c.getPlayer();
         if (chr.isChangingMaps() || chr.isBanned()) {

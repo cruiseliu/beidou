@@ -14,6 +14,7 @@ import org.gms.client.inventory.ItemFlag;
 import org.gms.remote.modules.basic.BasicModule;
 import org.gms.remote.modules.cooldown.CooldownModule;
 import org.gms.remote.modules.inventory.InventoryModule;
+import org.gms.remote.modules.map.client.MapModule;
 import org.gms.remote.modules.pet.PetModule;
 import org.gms.remote.RemoteClient;
 import org.gms.remote.gms083.server.packets.V83Packet;
@@ -136,4 +137,6 @@ public final class Gms083 extends RemoteClient {
     @Override public InventoryModule inventory() { return routers.inventory; }
 
     @Override public PetModule pet() { return routers.pet; }
+
+    @Override public MapModule map() { return routers.map; }
 }

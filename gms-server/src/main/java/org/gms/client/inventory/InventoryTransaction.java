@@ -211,7 +211,7 @@ public class InventoryTransaction {
         InventoryType type = tabTypeOf(itemId);
         InventoryTab tab = shadow.get(type);
 
-        int stackLimit = stack.item.getStackLimit();
+        int stackLimit = stack.getItem().getStackLimit();
 
         int freeSlots = tab.getNumFreeSlot();
         if (freeSlots * stackLimit >= stack.quantity) {

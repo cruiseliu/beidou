@@ -40,6 +40,7 @@ import org.gms.net.server.Server;
 import org.gms.net.server.channel.Channel;
 import org.gms.net.server.coordinator.login.LoginBypassCoordinator;
 import org.gms.net.server.coordinator.session.Hwid;
+import org.gms.net.server.coordinator.session.PlayerSession;
 import org.gms.net.server.coordinator.session.SessionCoordinator;
 import org.gms.net.server.coordinator.session.SessionCoordinator.AntiMulticlientResult;
 import org.gms.net.server.guild.Guild;
@@ -120,7 +121,10 @@ public class Client extends ChannelInboundHandlerAdapter {
 
     private io.netty.channel.Channel ioChannel;
     private volatile RemoteClient remote;
+    /** 连接级临时引导 strand（惰性；attach 会话后闲置，连接关闭时排空） */
     private volatile Strand strand;
+    /** 所属客户端进程会话（attach 后非空；过渡/终结后保留引用，用于代际校验，doc/12） */
+    private volatile PlayerSession session;
     private Character player;
     private int channel = 1;
     private int accId = -4;
@@ -186,13 +190,45 @@ public class Client extends ChannelInboundHandlerAdapter {
         return new Client(null, -1, null, null, -123, -123);
     }
 
-    /** 本连接的串行执行队列（惰性创建；mock/未连接的 client 首次用到才建，避免泄漏）。
-     *  产物为携带 {@link Player} 上下文的 {@link PlayerStrand}——actor 上下文经 Player.current() 环境获取，不经本方法导航。 */
-    public synchronized Strand getStrand() {
-        if (strand == null) {
-            strand = new PlayerStrand(this, Long.toString(sessionId));
+    /**
+     * 本连接的串行执行队列。attach 会话后返回会话 strand（寿命 = 客户端进程会话，跨
+     * 过渡性重连存活，doc/12）；attach 前（登录/引导阶段）惰性创建连接级临时 strand。
+     * 产物为携带 {@link Player} 上下文的 {@link PlayerStrand}——actor 上下文经
+     * Player.current() 环境获取，不经本方法导航。 */
+    public Strand getStrand() {
+        PlayerSession s = session;
+        if (s != null) {
+            return s.strand();
         }
-        return strand;
+        synchronized (this) {
+            if (strand == null) {
+                strand = PlayerStrand.create("conn-" + sessionId);
+            }
+            return strand;
+        }
+    }
+
+    /** 所属客户端进程会话；attach 前（登录/引导阶段）为 null */
+    public PlayerSession getSession() {
+        return session;
+    }
+
+    /** 绑定到会话（PlayerLoggedinHandler attach 成功后调用） */
+    public void attachTo(PlayerSession s) {
+        this.session = s;
+    }
+
+    /**
+     * 代际守卫（doc/12 §3.6）：本连接仍是其会话的当前传输，且 actor 已换绑到本连接。
+     * 会话 strand 上执行的任务以此判定去留——过渡窗口的迟到包整包丢弃。
+     */
+    public boolean isCurrentTransport() {
+        PlayerSession s = session;
+        if (s == null) {
+            return true;   // 引导期/登录期：无会话语义，沿用组件自身守卫
+        }
+        Character chr = player;
+        return s.client() == this && chr != null && chr.getClient() == this;
     }
 
     @Override
@@ -235,9 +271,16 @@ public class Client extends ChannelInboundHandlerAdapter {
         if (handler != null && handler.validateState(this)) {
             Runnable dispatch = () -> dispatch(handler, packet, opcode);
             if (handler.queued()) {
-                // 队列化迁移的 handler 跑在本连接 strand 上（与未迁移 handler 的混跑期
-                // 由各组件自身的锁兜底；全量迁移后 strand 串行取代锁）
-                getStrand().post(handler.getClass().getSimpleName(), dispatch);
+                // 队列化迁移的 handler 跑在本连接 strand 上（attach 后为会话 strand）；
+                // 过渡窗口的迟到包按代际丢弃（doc/12 §3.6）：入队连接已非会话当前传输，
+                // 或 actor 尚未换绑到本连接时，任务体直接返回。
+                final Client cc = this;
+                getStrand().post(handler.getClass().getSimpleName(), () -> {
+                    if (!cc.isCurrentTransport()) {
+                        return;
+                    }
+                    dispatch.run();
+                });
             } else {
                 dispatch.run();
             }
@@ -299,8 +342,13 @@ public class Client extends ChannelInboundHandlerAdapter {
         }
 
         try {
-            // client freeze issues on session transition states found thanks to yolinlin, Omo Oppa, Nozphex
-            if (!inTransition) {
+            PlayerSession s = session;
+            if (s != null) {
+                // 会话已建立：detach 做代际校验并决定"解绑留守"（过渡）或"终结"（真登出），
+                // 登出收尾由 finalizer 在会话 strand 上执行（doc/12 §3.4）
+                s.detach(this, () -> disconnectInternal(false, false));
+            } else if (!inTransition) {
+                // pre-attach（登录/引导阶段）：维持旧路径
                 disconnect(false, false);
             }
         } catch (Throwable t) {
@@ -318,9 +366,10 @@ public class Client extends ChannelInboundHandlerAdapter {
         return lastPacket;
     }
 
+    /** 关闭本连接：排空引导 strand + 关 io 通道。会话 strand 的终结归 PlayerSession.finalize（doc/12） */
     public void closeSession() {
         if (strand != null) {
-            strand.close();         // 排空已入队任务；finalizer（角色收尾）由后续里程碑接入
+            strand.close();
         }
         ioChannel.close();
     }
@@ -999,14 +1048,16 @@ public class Client extends ChannelInboundHandlerAdapter {
         // 地图移除必须独立保证执行：即便上面的清理抛异常，也要把玩家从地图摘除并触发怪物 controller 重分配，
         // 否则会留下"PlayerStorage 已移除、MapleMap 仍持有"的幽灵玩家，导致该图怪物 controller 卡死、怪物不动。
         try {
-            if (player.getMap() != null) {
+            final MapleMap map = player.getMap();
+            if (map != null) {
                 int mapId = player.getMapId();
-                player.getMap().removePlayer(player);
+                // removePlayer shim 缝合点（doc/13）：与换图路径统一执行上下文；审计通过（无脚本/无回询）
+                map.runIn("map-removePlayer", () -> map.removePlayer(player));
                 if (MapId.isDojo(mapId)) {
                     this.getChannelServer().freeDojoSectionIfEmpty(mapId);
                 }
-                
-                if (player.getMap().getHPDec() > 0) {
+
+                if (map.getHPDec() > 0) {
                     getWorldServer().removePlayerHpDecrease(player);
                 }
             }
@@ -1018,18 +1069,60 @@ public class Client extends ChannelInboundHandlerAdapter {
 
     public final void disconnect(final boolean shutdown, final boolean cashshop) {
         if (canDisconnect()) {
-            ThreadManager.getInstance().newTask(() -> disconnectInternal(shutdown, cashshop));
+            PlayerSession s = session;
+            if (s != null) {
+                // 登出收尾在会话 strand 上执行（与在途任务全序，doc/12 §3.4）
+                s.finalize(shutdown ? "shutdown" : "disconnect", () -> disconnectInternal(shutdown, cashshop));
+            } else {
+                ThreadManager.getInstance().newTask(() -> disconnectInternal(shutdown, cashshop));
+            }
         }
     }
 
     public final void forceDisconnect() {
         if (canDisconnect()) {
-            disconnectInternal(true, false);
+            PlayerSession s = session;
+            if (s != null) {
+                s.finalize("force-disconnect", () -> disconnectInternal(true, false));
+                if (Strand.current() == null) {
+                    // 同步语义保留（调用方为非 strand 线程：shutdown/顶号/账号服务）；
+                    // strand 任务内调用时禁止跨 strand 互等，转 fire-and-forget
+                    s.awaitClosed();
+                }
+            } else {
+                disconnectInternal(true, false);
+            }
         }
     }
 
     public void timeoutDisconnect() {
-        disconnectInternal(false, true);
+        PlayerSession s = session;
+        if (s != null) {
+            s.finalize("timeout", () -> disconnectInternal(false, true));
+        } else {
+            disconnectInternal(false, true);
+        }
+    }
+
+    /**
+     * 发起会话终结（立即路径：封禁/协议异常/选角失败，SessionCoordinator.closeSession(immediately)
+     * 使用）。登出收尾在会话 strand 上执行；无会话（登录/引导阶段）走旧异步路径。
+     */
+    public void terminateSession(boolean shutdown) {
+        PlayerSession s = session;
+        if (s != null) {
+            s.finalize(shutdown ? "shutdown" : "terminate", () -> disconnectInternal(shutdown, false));
+        } else {
+            ThreadManager.getInstance().newTask(() -> disconnectInternal(shutdown, false));
+        }
+    }
+
+    /**
+     * 登出收尾体：由 {@link PlayerSession} 的 finalizer 在会话 strand 上调用（doc/12 §3.4）。
+     * 逻辑与迁移前一致（disconnectInternal 原样），仅执行线程从 ThreadManager 换为会话 strand。
+     */
+    public void logoutFinalizer(boolean shutdown, boolean cashshop) {
+        disconnectInternal(shutdown, cashshop);
     }
 
     private synchronized boolean canDisconnect() {
@@ -1150,6 +1243,10 @@ public class Client extends ChannelInboundHandlerAdapter {
         this.updateLoginState(Client.LOGIN_SERVER_TRANSITION);
         this.inTransition = true;
         Server.getInstance().setCharacteridInTransition(this, cid);
+        PlayerSession s = session;
+        if (s != null) {
+            s.markTransition();   // 会话进入过渡（换频道/出商城/跨世界，doc/12 §3.5）
+        }
     }
 
     public int getChannel() {
@@ -1586,7 +1683,8 @@ public class Client extends ChannelInboundHandlerAdapter {
         //Cancelling mounts? Noty
 
         player.getInventory(InventoryType.EQUIPPED).checked(false); //test
-        player.getMap().removePlayer(player);
+        final MapleMap currentMap = player.getMap();
+        currentMap.runIn("map-removePlayer", () -> currentMap.removePlayer(player));   // 换频道离图，与换图路径同缝合点（doc/13）
         player.clearBanishPlayerData();
         player.getClient().getChannelServer().removePlayer(player);
 

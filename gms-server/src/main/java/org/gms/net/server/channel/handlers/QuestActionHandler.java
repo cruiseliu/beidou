@@ -41,6 +41,17 @@ import java.awt.*;
  */
 public final class QuestActionHandler extends AbstractPacketHandler {
     private static final Logger log = LoggerFactory.getLogger(QuestActionHandler.class);
+
+    @Override
+    public boolean queued() {
+        // strand 迁移 M2-batch3（范围：quest.log 实测触发的 case 1 接取 / case 2 完成直连路径，
+        // doc/13）：任务状态/背包/exp 均为 chr actor 自身状态；出 actor 的仅 forceComplete 的
+        // showForeignEffect 地图广播（他人流直调 = 容忍模式）。
+        // 未触发分支（case 0/3/4/5、脚本子路径 QuestScriptManager.start/end、带 selection 完成、
+        // 白精华特例）随 queued 化一并上 strand，但正确性审计增量补做；其共享存储
+        // （QuestScriptManager 的 HashMap）存在存量竞态，脚本分支迁移时一并修复。
+        return true;
+    }
     private static final short LOST_WHITE_ESSENCE_QUEST = 4522;
     private static final short CAPTAIN_LATANICA_RETURN_QUEST = 4523;
     private static final int WHITE_ESSENCE = 4000381;

@@ -34,12 +34,22 @@ import org.gms.server.ItemInformationProvider;
 import org.gms.util.PacketCreator;
 
 /**
- * @author RonanLana
+ * 角色创建服务：{@link CharacterTemplate}（data/character_template/*.json，唯一数据真相）
+ * + 本类的纯逻辑（校验/装配/持久化编排），doc/14。
+ *
+ * <p>外观校验为唯一一道门：提交参数 ∈ 模板候选集（Etc.wz/MakeCharInfo.img，路径随模板）。
+ * novice 提交全量 8 项外观并穿戴；veteran（老兵卡）外观仅 4 项、装备由模板携带
+ * （improveSp 为客户端提交的强化档位，修正规则在模板 mapleLifeEnhance 数据上执行）。
  */
-public abstract class CharacterFactory {
+public final class CharacterFactory {
     private static final Logger log = LoggerFactory.getLogger(CharacterFactory.class);
 
-    protected synchronized static int createNewCharacter(Client c, String name, int face, int hair, int skin, int gender, CharacterFactoryRecipe recipe) {
+    /** 创建提交的外观参数（novice：8 项全量；veteran：top/bottom/shoes/weapon 恒 0，装备由模板携带） */
+    public record NewCharacterAppearance(int face, int hair, int skin, int top, int bottom, int shoes, int weapon) {
+    }
+
+    public synchronized static int createNewCharacter(Client c, String name, int gender, NewCharacterAppearance app,
+                                                      CharacterTemplate template, int improveSp) {
         if (GameConfig.getServerBoolean("collective_chr_slot") ? c.getAvailableCharacterSlots() <= 0 : c.getAvailableCharacterWorldSlots() <= 0) {
             return -3;
         }
@@ -48,53 +58,35 @@ public abstract class CharacterFactory {
             return -1;
         }
 
-        Character newCharacter = Character.getDefault(c);
-        newCharacter.setWorld(c.getWorld());
-        newCharacter.setSkinColor(SkinColor.getById(skin));
-        newCharacter.setGender(gender);
-        newCharacter.setName(name);
-        newCharacter.setHair(hair);
-        newCharacter.setFace(face);
-
-        newCharacter.setLevel(recipe.getLevel());
-        newCharacter.setJob(recipe.getJob());
-        newCharacter.setMapId(recipe.getMap());
-
-        InventoryTab equipped = newCharacter.getInventory(InventoryType.EQUIPPED);
-        ItemInformationProvider ii = ItemInformationProvider.getInstance();
-
-        int top = recipe.getTop(), bottom = recipe.getBottom(), shoes = recipe.getShoes(), weapon = recipe.getWeapon();
-
-        if (top > 0) {
-            ItemSlot eq_top = ii.getEquipById(top);
-            eq_top.setPosition((byte) -5);
-            equipped.addItemFromDB(eq_top);
-        }
-
-        if (bottom > 0) {
-            ItemSlot eq_bottom = ii.getEquipById(bottom);
-            eq_bottom.setPosition((byte) -6);
-            equipped.addItemFromDB(eq_bottom);
-        }
-
-        if (shoes > 0) {
-            ItemSlot eq_shoes = ii.getEquipById(shoes);
-            eq_shoes.setPosition((byte) -7);
-            equipped.addItemFromDB(eq_shoes);
-        }
-
-        if (weapon > 0) {
-            ItemSlot eq_weapon = ii.getEquipById(weapon);
-            eq_weapon.setPosition((byte) -11);
-            equipped.addItemFromDB(eq_weapon.copy());
-        }
-
-        if (!MakeCharInfoValidator.isNewCharacterValid(newCharacter)) {
+        if (!validateAppearance(template, gender, app)) {
             log.warn("Owner from account {} tried to packet edit in character creation", c.getAccountName());
             return -2;
         }
 
-        if (!newCharacter.insertNewChar(recipe)) {
+        Character newCharacter = Character.getDefault(c);
+        newCharacter.setWorld(c.getWorld());
+        newCharacter.setSkinColor(SkinColor.getById(app.skin()));
+        newCharacter.setGender(gender);
+        newCharacter.setName(name);
+        newCharacter.setHair(app.hair());
+        newCharacter.setFace(app.face());
+
+        newCharacter.applyCharacterTemplate(template);
+
+        InventoryTab equipped = newCharacter.getInventory(InventoryType.EQUIPPED);
+        if (template.novice()) {
+            // novice 初始穿戴来自客户端提交；veteran 穿戴位已在模板 baseData.inventory（position<0）
+            wear(equipped, app.top(), (byte) -5);
+            wear(equipped, app.bottom(), (byte) -6);
+            wear(equipped, app.shoes(), (byte) -7);
+            wear(equipped, app.weapon(), (byte) -11);
+        }
+
+        if (improveSp > 0 && template.mapleLifeEnhance() != null) {
+            newCharacter.applyMapleLifeEnhance(template.mapleLifeEnhance(), improveSp);
+        }
+
+        if (!newCharacter.insertNewChar()) {
             return -2;
         }
         c.sendPacket(PacketCreator.addNewCharEntry(newCharacter));
@@ -104,5 +96,33 @@ public abstract class CharacterFactory {
         log.info("账号 {} 创建了角色 {}", c.getAccountName(), name);
 
         return 0;
+    }
+
+    private static void wear(InventoryTab equipped, int itemId, byte position) {
+        if (itemId > 0) {
+            ItemSlot eq = ItemInformationProvider.getInstance().getEquipById(itemId);
+            eq.setPosition(position);
+            equipped.addItemFromDB(eq);
+        }
+    }
+
+    /** 外观门（唯一一道，doc/14 §5.1）：提交参数 ∈ 模板候选集；veteran 不校验装备（装备由模板携带） */
+    private static boolean validateAppearance(CharacterTemplate template, int gender, NewCharacterAppearance app) {
+        String path = template.candidatesFor(gender == 1);
+        if (path == null) {
+            return false;
+        }
+        MakeCharInfo info = MakeCharInfo.of(path);
+        if (!info.verifyFaceId(app.face())) return false;
+        if (!info.verifyHairId(app.hair())) return false;
+        if (!info.verifyHairColorId(app.hair())) return false;
+        if (!info.verifySkinId(app.skin())) return false;
+        if (template.novice()) {
+            if (!info.verifyTopId(app.top())) return false;
+            if (!info.verifyBottomId(app.bottom())) return false;
+            if (!info.verifyShoeId(app.shoes())) return false;
+            if (!info.verifyWeaponId(app.weapon())) return false;
+        }
+        return true;
     }
 }

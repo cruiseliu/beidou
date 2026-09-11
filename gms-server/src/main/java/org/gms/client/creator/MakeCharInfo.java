@@ -3,13 +3,18 @@ package org.gms.client.creator;
 import org.gms.client.character.Character;
 import org.gms.client.JobEnum;
 import org.gms.client.inventory.InventoryType;
+import org.gms.client.inventory.ItemSlot;
+import org.gms.provider.Data;
+import org.gms.provider.DataProviderFactory;
+import org.gms.provider.DataTool;
+import org.gms.provider.wz.WZFiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.gms.provider.Data;
-import org.gms.provider.DataTool;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MakeCharInfo {
     private static final Logger log = LoggerFactory.getLogger(MakeCharInfo.class);
@@ -30,6 +35,20 @@ public class MakeCharInfo {
     private final Set<Integer> charBottoms = new HashSet<>();
     private final Set<Integer> charShoes = new HashSet<>();
     private final Set<Integer> charWeapons = new HashSet<>();
+
+    /** 按路径缓存加载（路径来自 CharacterTemplate.candidates，doc/14） */
+    public static MakeCharInfo of(String path) {
+        return CACHE.computeIfAbsent(path, p -> {
+            Data data = DataProviderFactory.getDataProvider(WZFiles.ETC).getData("MakeCharInfo.img");
+            Data child = data.getChildByPath(p);
+            if (child == null) {
+                throw new IllegalArgumentException("MakeCharInfo.img 无此候选集路径: " + p);
+            }
+            return new MakeCharInfo(child);
+        });
+    }
+
+    private static final Map<String, MakeCharInfo> CACHE = new java.util.concurrent.ConcurrentHashMap<>();
 
     public MakeCharInfo(Data charInfoData) {
         for (Data data : charInfoData.getChildren()) {

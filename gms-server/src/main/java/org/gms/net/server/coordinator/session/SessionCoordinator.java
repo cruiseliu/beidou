@@ -66,7 +66,11 @@ public class SessionCoordinator {
 
     private final SessionInitialization sessionInit = new SessionInitialization();
     private final LoginStorage loginStorage = new LoginStorage();
-    private final Map<Integer, Client> onlineClients = new HashMap<>(); // Key: account id
+    /** 登录阶段（选角前）的会话条目，Key: account id —— 摘除按 sessionId 比对 */
+    private final Map<Integer, Client> loginClients = new HashMap<>();
+    /** 游戏会话 registry（doc/12），Key: account id —— 写入 attach、摘除 finalize */
+    private final Map<Integer, PlayerSession> sessions = new HashMap<>();
+    private final Object sessionLock = new Object();
     private final Set<Hwid> onlineRemoteHwids = new HashSet<>(); // Hwid/nibblehwid
     private final Map<String, Client> loginRemoteHosts = new ConcurrentHashMap<>(); // Key: Ip (+ nibblehwid)
     private final HostHwidCache hostHwidCache = new HostHwidCache();
@@ -110,20 +114,80 @@ public class SessionCoordinator {
     }
 
     /**
-     * Overwrites any existing online client for the account id, making sure to disconnect it as well.
+     * 登录成功（updateLoginState(LOGIN_LOGGEDIN)）时的会话簿记：顶掉同账号的在玩旧会话
+     * （新客户端进程登录 = 顶号），并登记登录阶段条目。游戏会话的 registry 写入归
+     * {@link #attach}（PlayerLoggedinHandler），不走此路径。
      */
     public void updateOnlineClient(Client client) {
         if (client != null) {
             int accountId = client.getAccID();
-            disconnectClientIfOnline(accountId);
-            onlineClients.put(accountId, client);
+            PlayerSession s = getSession(accountId);
+            if (s != null) {
+                Client ingameClient = s.client();
+                // 同会话的重入（adopt 场景旧连接尚未 inactive）：不顶——过渡收尾不落到此连接
+                if (ingameClient != null && ingameClient != client && ingameClient.getSession() == s) {
+                    ingameClient.forceDisconnect();
+                }
+            }
+            synchronized (sessionLock) {
+                loginClients.put(accountId, client);
+            }
         }
     }
 
-    private void disconnectClientIfOnline(int accountId) {
-        Client ingameClient = onlineClients.get(accountId);
-        if (ingameClient != null) {     // thanks MedicOP for finding out a loss of loggedin account uniqueness when using the CMS "Unstuck" feature
-            ingameClient.forceDisconnect();
+    /**
+     * 建立游戏会话（PlayerLoggedinHandler 前半段调用；调用线程为该连接的临时引导 strand）。
+     * - registry 无会话/已终态 → fresh（新会话）；
+     * - TRANSITION → adopt（同进程过渡重入，actor 状态存活）；
+     * - ATTACHED（顶号）/CLOSING → forceDisconnect 旧传输并等待其终态后 fresh
+     *   （顶号不遗传旧进程的 actor 状态）。
+     * 等待发生在本连接的引导 strand 上：该 strand 是一次性登录队列，阻塞它即"登录等待
+     * 旧登出"的语义本身，不违反跨 strand 互等纪律（doc/12 §3.10）。
+     */
+    public PlayerSession attach(Client client, int accountId) {
+        while (true) {
+            PlayerSession existing = getSession(accountId);
+            if (existing == null || existing.state() == PlayerSession.State.CLOSED) {
+                PlayerSession created = new PlayerSession(accountId);
+                synchronized (sessionLock) {
+                    PlayerSession race = sessions.get(accountId);
+                    if (race != null && race.state() != PlayerSession.State.CLOSED) {
+                        continue;   // 并发 attach 抢先，重查
+                    }
+                    sessions.put(accountId, created);
+                }
+                created.attachClient(client);
+                return created;
+            }
+
+            if (existing.state() == PlayerSession.State.TRANSITION) {
+                if (existing.adoptClient(client)) {
+                    return existing;
+                }
+                continue;   // reaper 抢先终结，重查
+            }
+
+            // ATTACHED（顶号）/ CLOSING：终结旧会话 → 等终态 → fresh
+            Client ingameClient = existing.client();
+            if (ingameClient != null && ingameClient != client && ingameClient.getSession() == existing) {
+                ingameClient.forceDisconnect();
+            }
+            existing.awaitClosed();
+        }
+    }
+
+    /** 会话终结时从 registry 摘除（PlayerSession.finalize 调用） */
+    void removeSession(PlayerSession session) {
+        synchronized (sessionLock) {
+            if (sessions.get(session.accountId()) == session) {
+                sessions.remove(session.accountId());
+            }
+        }
+    }
+
+    private PlayerSession getSession(int accountId) {
+        synchronized (sessionLock) {
+            return sessions.get(accountId);
         }
     }
 
@@ -164,11 +228,16 @@ public class SessionCoordinator {
             onlineRemoteHwids.remove(nibbleHwid);
 
             if (client != null) {
-                Client loggedClient = onlineClients.get(client.getAccID());
+                Client loggedClient;
+                synchronized (sessionLock) {
+                    loggedClient = loginClients.get(client.getAccID());
+                }
 
                 // do not remove an online game session here, only login session
                 if (loggedClient != null && loggedClient.getSessionId() == client.getSessionId()) {
-                    onlineClients.remove(client.getAccID());
+                    synchronized (sessionLock) {
+                        loginClients.remove(client.getAccID());
+                    }
                 }
             }
         }
@@ -289,17 +358,25 @@ public class SessionCoordinator {
 
         final boolean isGameSession = hwid != null;
         if (isGameSession) {
-            onlineClients.remove(client.getAccID());
+            // 游戏会话的 registry 摘除由 PlayerSession.finalize 负责（doc/12）
         } else {
-            Client loggedClient = onlineClients.get(client.getAccID());
+            Client loggedClient;
+            synchronized (sessionLock) {
+                loggedClient = loginClients.get(client.getAccID());
+            }
 
             // do not remove an online game session here, only login session
             if (loggedClient != null && loggedClient.getSessionId() == client.getSessionId()) {
-                onlineClients.remove(client.getAccID());
+                synchronized (sessionLock) {
+                    loginClients.remove(client.getAccID());
+                }
             }
         }
 
         if (immediately != null && immediately) {
+            // 立即终结（封禁/协议异常/选角失败）：有会话走会话终结（登出收尾在会话 strand 上
+            // 执行，含保存——修复旧路径"不保存直接断"的数据丢失）；无会话走旧异步路径
+            client.terminateSession(false);
             client.closeSession();
         }
     }
@@ -322,15 +399,28 @@ public class SessionCoordinator {
     }
 
     public void printSessionTrace() {
-        if (!onlineClients.isEmpty()) {
-            List<Entry<Integer, Client>> elist = new ArrayList<>(onlineClients.entrySet());
-            String commaSeparatedClients = elist.stream()
-                    .map(Entry::getKey)
-                    .sorted(Integer::compareTo)
-                    .map(Object::toString)
-                    .collect(Collectors.joining(", "));
+        synchronized (sessionLock) {
+            if (!sessions.isEmpty()) {
+                List<Entry<Integer, PlayerSession>> elist = new ArrayList<>(sessions.entrySet());
+                String commaSeparatedClients = elist.stream()
+                        .map(Entry::getKey)
+                        .sorted(Integer::compareTo)
+                        .map(Object::toString)
+                        .collect(Collectors.joining(", "));
 
-            log.debug("Current online clients: {}", commaSeparatedClients);
+                log.debug("Current game sessions: {}", commaSeparatedClients);
+            }
+
+            if (!loginClients.isEmpty()) {
+                List<Entry<Integer, Client>> elist = new ArrayList<>(loginClients.entrySet());
+                elist.sort(Entry.comparingByKey());
+                String commaSeparatedClients = elist.stream()
+                        .map(Entry::getKey)
+                        .map(Object::toString)
+                        .collect(Collectors.joining(", "));
+
+                log.debug("Current login clients: {}", commaSeparatedClients);
+            }
         }
 
         if (!onlineRemoteHwids.isEmpty()) {
@@ -356,13 +446,25 @@ public class SessionCoordinator {
     public void printSessionTrace(Client c) {
         String str = "Opened server sessions:\r\n\r\n";
 
-        if (!onlineClients.isEmpty()) {
-            List<Entry<Integer, Client>> elist = new ArrayList<>(onlineClients.entrySet());
-            elist.sort(Entry.comparingByKey());
+        synchronized (sessionLock) {
+            if (!sessions.isEmpty()) {
+                List<Entry<Integer, PlayerSession>> elist = new ArrayList<>(sessions.entrySet());
+                elist.sort(Entry.comparingByKey());
 
-            str += ("Current online clients:\r\n");
-            for (Entry<Integer, Client> e : elist) {
-                str += ("  " + e.getKey() + "\r\n");
+                str += ("Current game sessions:\r\n");
+                for (Entry<Integer, PlayerSession> e : elist) {
+                    str += ("  " + e.getKey() + " " + e.getValue().state() + "\r\n");
+                }
+            }
+
+            if (!loginClients.isEmpty()) {
+                List<Entry<Integer, Client>> elist = new ArrayList<>(loginClients.entrySet());
+                elist.sort(Entry.comparingByKey());
+
+                str += ("Current login clients:\r\n");
+                for (Entry<Integer, Client> e : elist) {
+                    str += ("  " + e.getKey() + "\r\n");
+                }
             }
         }
 

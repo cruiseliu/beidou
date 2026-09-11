@@ -1,6 +1,7 @@
 package org.gms.client;
 
 import org.gms.client.character.Character;
+import org.gms.remote.ClientEventHandlerRegistry;
 import org.gms.remote.RemoteClient;
 
 /**
@@ -11,21 +12,23 @@ import org.gms.remote.RemoteClient;
  * {@link #current()} 零参数取得；strand 之外不可获取（无任何可导航出口：从 Client、从
  * strand 引用钻取均不可达）。跑在其他线程/strand 的代码放别的包，不得使用本类。
  *
- * <p><b>视图语义</b>：character/remote 为派生视图（从 {@link Client} 现取，不存槽）——
- * 商城/换频道转换期间 strand 死亡重建、Character 经 newClient 重绑到新 client，派生视图
- * 零成本自动跟随，无双槽陈旧引用问题。
+ * <p><b>视图语义</b>：character/remote 为派生视图（从 {@link Client} 现取，不存槽）。
+ * client 本身是可换绑的传输附件——换频道/出商城等过渡性重连时 strand 与本对象存活，
+ * 由会话管理器（org.gms.net.server.coordinator.session.PlayerSession）在 actor 上
+ * 执行 rebind 换绑到新 Client；派生视图零成本自动跟随，无双槽陈旧引用问题。
  *
- * <p>放置规则：org.gms.client.** 的新代码执行期必须满足 {@code Player.current() != null}
+ * <p><b>放置规则</b>：org.gms.client.** 的新代码执行期必须满足 {@code Player.current() != null}
  * （入口处 {@link #require} 断言）；{@link #current()} 的语义边界是"本线程正在作为该
  * actor 执行"，不是"本线程在为该 actor 等待"——阻塞在 strand.run 上的等待者拿到 null。
  */
 public final class Player {
 
-    private final Client client;
     private final PlayerStrand strand;
+    private volatile Client client;
+    /** 收包入口聚合（per-module Handler 槽位表）：actor 的收包插座，角色入场绑定时接插组件 */
+    private final ClientEventHandlerRegistry clientEventHandlers = new ClientEventHandlerRegistry();
 
-    Player(Client client, PlayerStrand strand) {
-        this.client = client;
+    Player(PlayerStrand strand) {
         this.strand = strand;
     }
 
@@ -52,6 +55,26 @@ public final class Player {
     /** 传输/会话所有者（netty handler、登录态、hwid 等的原住地） */
     public Client client() {
         return client;
+    }
+
+    /**
+     * 收包 Handler 槽位表（remote 客户端事件的 actor 侧插座）。组件在角色入场绑定时
+     * 接插（PlayerLoggedinHandler 入场任务，on strand）；会话与角色同寿命（换角色 =
+     * 完整重登 = 新会话），会话期内不换插。
+     */
+    public ClientEventHandlerRegistry clientEventHandlers() {
+        return clientEventHandlers;
+    }
+
+    /**
+     * 换绑传输附件（过渡性重连时由会话管理器在本 strand 上调用——对 actor 的一切写
+     * 必须走 actor 调度器，见 doc/12 权责语义）。
+     */
+    void rebind(Client c) {
+        if (!strand.onStrand()) {
+            throw new IllegalStateException("rebind 必须在本 actor strand 上执行（跨 actor 访问纪律）");
+        }
+        this.client = c;
     }
 
 

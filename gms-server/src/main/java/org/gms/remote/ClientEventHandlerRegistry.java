@@ -1,11 +1,13 @@
 package org.gms.remote;
 
 import org.gms.remote.modules.inventory.InventoryModule;
+import org.gms.remote.modules.map.client.MapModule;
 import org.gms.remote.modules.pet.PetModule;
 
 public class ClientEventHandlerRegistry {
     PetModule.Handler pet = null;
     InventoryModule.Handler inventory = null;
+    MapModule.Handler map = null;
 
     public void registerPet(PetModule.Handler petHandler) {
         pet = petHandler;
@@ -21,5 +23,13 @@ public class ClientEventHandlerRegistry {
 
     public InventoryModule.Handler inventory() {
         return inventory;
+    }
+
+    public void registerMap(MapModule.Handler mapHandler) {
+        map = mapHandler;
+    }
+
+    public MapModule.Handler map() {
+        return map;
     }
 }

@@ -44,10 +44,8 @@ import org.gms.client.SkinColor;
 import org.gms.client.PacketStat;
 import org.gms.remote.ClientEventHandlerRegistry;
 import org.gms.remote.RemoteClient;
-import org.gms.remote.modules.inventory.InventoryModule;
-import org.gms.remote.modules.pet.PetModule;
 import org.gms.client.autoban.AutobanManager;
-import org.gms.client.creator.CharacterFactoryRecipe;
+import org.gms.client.creator.CharacterTemplate;
 import org.gms.client.pet.Pet;
 import org.gms.client.inventory.*;
 import org.gms.client.job.WeaponRule;
@@ -69,6 +67,8 @@ import org.gms.dao.entity.*;
 import org.gms.manager.ServerManager;
 import org.gms.model.json.CharacterData;
 import org.gms.model.json.CharacterPetsData;
+import org.gms.model.json.CharacterStatsData;
+import org.gms.model.json.ItemData;
 import org.gms.model.pojo.NewYearCardRecord;
 import org.gms.model.pojo.SkillEntry;
 import org.gms.net.packet.Packet;
@@ -130,7 +130,6 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterSp sp = new CharacterSp(this);
     // ActiveBuffs 实例由 CharacterBuffs 内部组合创建（见 CharacterBuffs 构造器）
     final CharacterBuffs buffs = new CharacterBuffs(this);
-    final ClientEventHandlerRegistry clientEventHandlers = new ClientEventHandlerRegistry();
     final CharacterPets pets = new CharacterPets(this);
     final CharacterDebuffs debuffs = new CharacterDebuffs(this);
     final CharacterChair chair = new CharacterChair(this);
@@ -629,6 +628,7 @@ public class Character extends AbstractAnimatedMapObject {
         this.loggedIn = true;
         c.setAccountName(this.client.getAccountName());  // No null's for accountName
         this.setClient(c);
+        this.strandSlot = c.getStrand();   // 会话 strand（doc/12 §3.8）；c 已 attach，此调用在会话 strand 上
         setMap(c.getChannelServer().getMapFactory().getMap(getMapId()));
         Portal portal = getMap().findClosestPlayerSpawnpoint(getPosition());
         if (portal == null) {
@@ -1300,6 +1300,22 @@ public class Character extends AbstractAnimatedMapObject {
         return script.equals(e);
     }
 
+    /**
+     * 移动可见性差集应用（map actor 回程消息；player strand 上执行，幂等，doc/13 §12）。
+     */
+    public void applyVisibleMapObjects(List<MapObject> addRefs, List<MapObject> removeRefs) {
+        for (MapObject mo : addRefs) {
+            if (!isMapObjectVisible(mo)) {
+                addVisibleMapObject(mo);
+            }
+        }
+        for (MapObject mo : removeRefs) {
+            if (isMapObjectVisible(mo)) {
+                removeVisibleMapObject(mo);
+            }
+        }
+    }
+
     public boolean isMapObjectVisible(MapObject mo) {
         return visibleMapObjects.contains(mo);
     }
@@ -1816,39 +1832,81 @@ public class Character extends AbstractAnimatedMapObject {
         savedLocations[SavedLocationType.fromString(type).ordinal()] = new SavedLocation(getMapId(), closest != null ? closest.getId() : 0);
     }
 
-    public final boolean insertNewChar(CharacterFactoryRecipe recipe) {
+    /**
+     * 模板装配（doc/14）：把 {@link CharacterTemplate} 的 baseData 落到本角色
+     * （stats/level/job/mapId/ap/sp/meso/skills/inventory）。装备位 position &lt; 0 视为
+     * 穿戴（addItemFromDB 保位），其余走背包自动定位。
+     */
+    public void applyCharacterTemplate(CharacterTemplate t) {
+        CharacterStatsData s = t.baseData().stats();
         stats.update()
-                .set(STR, recipe.getStr())
-                .set(DEX, recipe.getDex())
-                .set(INT, recipe.getInt())
-                .set(LUK, recipe.getLuk())
-                .set(MAX_HP, recipe.getMaxHp())
-                .set(MAX_MP, recipe.getMaxMp())
-                .setHp(recipe.getMaxHp())
-                .setMp(recipe.getMaxMp())
-                .setAp(recipe.getRemainingAp())
+                .set(Stat.STR, s.str)
+                .set(Stat.DEX, s.dex)
+                .set(Stat.INT, s.int_)
+                .set(Stat.LUK, s.luk)
+                .set(Stat.MAX_HP, s.maxHp)
+                .set(Stat.MAX_MP, s.maxMp)
+                .setHp(s.hp)
+                .setMp(s.mp)
+                .setAp(t.ap())
                 .commitSilently();
-        level.setLevel(recipe.getLevel());
-        sp.setRemainingSp(recipe.getRemainingSp(), job.getId());
-        setMapId(recipe.getMap());
-        meso.set(recipe.getMeso());
+        level.setLevel(t.level());
+        setJob(JobEnum.getById(t.jobId()));
+        setMapId(t.mapId());
+        sp.setRemainingSp(t.sp(), job.getId());
+        meso.set(t.meso());
 
-        // 建角自动获得初始职业（新手）的 acquiredSkills（等级 0）；
-        // recipe 的 startingSkills（老兵角色卡带等级）随后覆盖，先获得后设级顺序无关（幂等跳过）
-        job.acquireAdvancementSkills(job.getId());
-        List<Pair<Skill, Integer>> startingSkills = recipe.getStartingSkillLevel();
-        for (Pair<Skill, Integer> skEntry : startingSkills) {
-            Skill skill = skEntry.getLeft();
-            this.changeSkillLevel(skill.getId(), skEntry.getRight().byteValue(), skill.getMaxLevel(), -1);
+        t.baseData().skills().forEach((skillId, lvl) -> {
+            Skill skill = SkillFactory.getSkill(skillId);
+            if (skill == null) {
+                log.warn("模板 {} 携带未知技能 {}，跳过", t.id(), skillId);
+                return;
+            }
+            changeSkillLevel(skillId, lvl.byteValue(), skill.getMaxLevel(), -1);
+        });
+
+        t.baseData().inventory().forEach((typeName, items) -> {
+            InventoryTab tab = getInventory(InventoryType.valueOf(typeName));
+            for (ItemData d : items) {
+                ItemSlot item = ItemSlot.fromData(d);
+                if (d.position < 0) {
+                    tab.addItemFromDB(item);
+                } else {
+                    tab.addItem(item);
+                }
+            }
+        });
+    }
+
+    /** 老兵卡 SP 强化（规则数据见 {@link CharacterTemplate.MapleLifeEnhance}，doc/14） */
+    public void applyMapleLifeEnhance(CharacterTemplate.MapleLifeEnhance e, int improveSp) {
+        int eff = improveSp + e.spCost();
+        sp.setRemainingSp(sp.getRemainingSp(job.getId()) - eff, job.getId());
+
+        if (e.hpGain() != null) {
+            int newMaxHp = getMaxHp() + e.hpGain()[improveSp];
+            stats.update().set(Stat.MAX_HP, newMaxHp).setHp(newMaxHp).commitSilently();
+        }
+        if (e.mpGain() != null) {
+            int newMaxMp = getMaxMp() + e.mpGain()[improveSp];
+            stats.update().set(Stat.MAX_MP, newMaxMp).setMp(newMaxMp).commitSilently();
         }
 
-        List<Pair<ItemSlot, InventoryType>> itemsWithType = recipe.getStartingItems();
-        for (Pair<ItemSlot, InventoryType> itEntry : itemsWithType) {
-            this.getInventory(itEntry.getRight()).addItem(itEntry.getLeft());
+        Skill primary = SkillFactory.getSkill(e.enhanceSkill());
+        if (primary != null) {
+            changeSkillLevel(e.enhanceSkill(), (byte) e.spCost(), primary.getMaxLevel(), -1);
         }
+        int overflow = eff - e.spCost();
+        if (overflow > 0) {
+            Skill secondary = SkillFactory.getSkill(e.overflowSkill());
+            if (secondary != null) {
+                changeSkillLevel(e.overflowSkill(), (byte) overflow, secondary.getMaxLevel(), -1);
+            }
+        }
+    }
 
-        this.events.put("rescueGaga", new RescueGaga(0));
-
+    /** 持久化新建角色（装配已由 {@link #applyCharacterTemplate} 完成，本方法只写库） */
+    public final boolean insertNewChar() {
         try (Connection con = DatabaseConnection.getConnection()) {
             con.setAutoCommit(false);
             con.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
@@ -2434,10 +2492,21 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     /**
-     * 本角色的串行执行队列（挂在连接上）；无连接时返回 null，调用方判空
+     * 会话 strand 槽位（doc/12 §3.8）：{@link #newClient} 安装（on strand）、登出收尾清除
+     * （on strand）——权责语义下零 off-strand 写。过渡窗口内 client 悬挂/换绑期间，
+     * 实体定时器经此路由到存活的会话 strand。
+     */
+    private volatile Strand strandSlot;
+
+    /**
+     * 本角色的串行执行队列；无连接且无会话槽位时返回 null，调用方判空
      * （对齐 sendPacket 的 client==null 容忍风格）。
      */
     public Strand strand() {
+        Strand s = strandSlot;
+        if (s != null) {
+            return s;
+        }
         return client != null ? client.getStrand() : null;
     }
 
@@ -2630,6 +2699,8 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public final void empty(final boolean remove) {
+        this.strandSlot = null;   // 会话已终结，路由槽位清除（登出收尾在会话 strand 上执行，doc/12）
+
         if (dragonBloodSchedule != null) {
             dragonBloodSchedule.cancel(true);
         }
@@ -2691,6 +2762,9 @@ public class Character extends AbstractAnimatedMapObject {
                 family.setFamilyEntry(null);
             }
 
+            // FIXME(doc/12 权责语义)：对已终结 actor 的 post-mortem 写——收尾时 strand 已终结、
+            // 无调度器可走，只能在 world 定时线程上延迟清理。已登记"5 分钟 dispose 块重构（2c+）"
+            // 债务，届时随该债务一并处理。
             getWorldServer().registerTimedMapObject(() -> {
                 client = null;  // clients still triggers handlers a few times after disconnecting
         setMap((MapleMap) null);
@@ -3060,8 +3134,15 @@ public class Character extends AbstractAnimatedMapObject {
     /** 脚本回调调度器（容器事件/定时器回调的唯一执行通道） */
     public CharacterScriptRunner getScriptRunner() { return scriptRunner; }
 
-    /** 收包入口聚合（per-module Handler 槽位表）：组件构造期自注册，跨转换稳定 */
-    public ClientEventHandlerRegistry clientEventHandlers() { return clientEventHandlers; }
+    /**
+     * 角色入场绑定：把收包组件接插到 actor 的 Handler 槽位（PlayerLoggedinHandler 入场任务
+     * 调用，on strand，doc/12）。角色内部组成不外泄——接线知识收敛在本方法与各组件。
+     */
+    public void bindClientHandlers(ClientEventHandlerRegistry registry) {
+        pets.bindClientHandlers(registry);
+        inventory.bindClientHandlers(registry);
+        map.bindClientHandlers(registry);
+    }
 
     // ── skills 门面 ──
 

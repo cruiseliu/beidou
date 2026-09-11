@@ -1,11 +1,14 @@
 package org.gms.remote;
 
 import org.gms.client.character.Character;
+import org.gms.net.packet.Packet;
 import org.gms.client.pet.Pet;
 import org.gms.remote.modules.basic.BasicModule;
 import org.gms.remote.modules.basic.server.BasicUpdate;
 import org.gms.remote.modules.cooldown.CooldownModule;
 import org.gms.remote.modules.inventory.InventoryModule;
+import org.gms.remote.modules.map.client.MapModule;
+import org.gms.remote.modules.map.client.movement.MoveElement;
 import org.gms.remote.modules.inventory.server.SlotChange;
 import org.gms.remote.modules.pet.PetModule;
 import org.gms.remote.modules.skills.SkillsModule;
@@ -24,7 +27,8 @@ final class DummyClient extends RemoteClient implements
         BasicModule,
         CooldownModule,
         InventoryModule,
-        PetModule {
+        PetModule,
+        MapModule {
 
     static final DummyClient INSTANCE = new DummyClient();
 
@@ -67,6 +71,16 @@ final class DummyClient extends RemoteClient implements
     @Override
     public PetModule pet() {
         return this;
+    }
+
+    @Override
+    public MapModule map() {
+        return this;
+    }
+
+    @Override
+    public Packet movePlayer(int charId, List<MoveElement> elements) {
+        return null;   // 无连接：静默
     }
 
     // ── 模块面：全部静默 ──

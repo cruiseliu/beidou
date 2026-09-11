@@ -10,6 +10,7 @@ import org.gms.constants.inventory.ItemConstants;
 import org.gms.infra.KeyedTimers;
 import org.gms.infra.Strand;
 import org.gms.model.json.CharacterPetsData;
+import org.gms.remote.ClientEventHandlerRegistry;
 import org.gms.model.json.PetData;
 import org.gms.remote.modules.pet.PetModule;
 import org.slf4j.Logger;
@@ -61,7 +62,12 @@ public class CharacterPets implements PetModule.Handler {
 
     CharacterPets(Character owner) {
         this.owner = owner;
-        owner.clientEventHandlers().registerPet(this);
+        // 不在构造期自注册：构造上下文无 actor 可达（autosave/charlist 装载，doc/12）
+    }
+
+    /** 收包 Handler 接插（角色入场绑定时由 Character 聚合调用，on strand，doc/12） */
+    void bindClientHandlers(ClientEventHandlerRegistry registry) {
+        registry.registerPet(this);
     }
 
     /** Free unused resources. 登出 5 分钟后的延迟清理（届时 strand 已关闭、对象图静止，直接操作安全） */

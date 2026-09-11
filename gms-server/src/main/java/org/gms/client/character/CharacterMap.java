@@ -9,9 +9,21 @@ import org.gms.constants.inventory.ItemConstants;
 import org.gms.net.packet.Packet;
 import org.gms.net.server.world.Party;
 import org.gms.net.server.world.PartyOperation;
+import org.gms.client.pet.Pet;
 import org.gms.scripting.event.EventInstanceManager;
 import org.gms.server.Trade;
+import org.gms.infra.Strand;
 import org.gms.server.maps.MapleMap;
+import org.gms.server.maps.MapObject;
+import org.gms.remote.modules.map.client.movement.AbsoluteMove;
+import org.gms.remote.modules.map.client.movement.ChangeEquipMove;
+import org.gms.remote.modules.map.client.movement.ChairMove;
+import org.gms.remote.modules.map.client.movement.JumpDownMove;
+import org.gms.remote.modules.map.client.movement.LegacyMove3;
+import org.gms.remote.modules.map.client.movement.LegacyMove9;
+import org.gms.remote.modules.map.client.movement.MoveElement;
+import org.gms.remote.modules.map.client.movement.RelativeMove;
+import org.gms.remote.modules.map.client.movement.TeleportMove;
 import org.gms.server.maps.Portal;
 import org.gms.util.I18nUtil;
 import org.gms.util.Locks;
@@ -41,10 +53,98 @@ import org.gms.client.inventory.EquipFlag;
  * 换图流程中编排的其他模块（party/Trade/chair/event/summons 等）经 owner 门面调用；
  * partyOperationUpdate（组队地图协作）属 party 语义，留在 Character。
  */
-class CharacterMap {
+class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handler {
     private static final Logger log = LoggerFactory.getLogger(CharacterMap.class);
 
     private final Character owner;
+
+    /** 收包 Handler 接插（角色入场绑定时由 Character 聚合调用，on strand，doc/12）。 */
+    void bindClientHandlers(org.gms.remote.ClientEventHandlerRegistry registry) {
+        registry.registerMap(this);
+    }
+
+    /**
+     * MOVE_PLAYER 语义入口（player strand 上执行，doc/13 §12）：应用元素序列（chr 写）→
+     * 编码中继成品 → map actor 异步（可见性差集/广播/回程 apply）。
+     */
+    @Override
+    public void movePlayer(List<MoveElement> elements) {
+        applyMovement(elements);
+
+        final Point newPos = owner.getPosition();
+        final Packet relay = owner.getRemote().map().movePlayer(owner.getId(), elements);
+        final boolean gmOnly = owner.isHidden();
+        final List<MapObject> visible = List.of(owner.getVisibleMapObjects());
+        final Strand strand = owner.strand();
+        if (strand == null) {
+            return;   // 无会话 strand（理论不可达：本入口在 strand 上执行）
+        }
+        final MapleMap map = this.map;
+        map.post("move", () -> map.onMove(new MapleMap.MoveMsg(strand, owner, owner.getClient(), newPos, relay, gmOnly, visible)));
+    }
+
+    /**
+     * 元素应用（chr 写：位置/姿态/反作弊上下文）——自 AbstractMovementPacketHandler.updatePosition
+     * 的 player 分支迁移（character 域；相对移动按 delta 估算绝对落点，瞬移记录双坐标供攻击距离校验）。
+     */
+    private void applyMovement(List<MoveElement> elements) {
+        for (MoveElement e : elements) {
+            switch (e) {
+                case AbsoluteMove m -> {
+                    Point before = snapshotPosition();
+                    Point after = new Point(m.x(), m.y());
+                    owner.setPosition(after);
+                    owner.setStance(m.stance());
+                    owner.markRegularMove(before, after);
+                }
+                case RelativeMove m -> {
+                    Point before = snapshotPosition();
+                    Point after = estimateRelativeMovePosition(before, m.x(), m.y());
+                    if (after != null) {
+                        owner.setPosition(after);
+                    }
+                    owner.setStance(m.stance());
+                    owner.markRegularMove(before, after);
+                }
+                case TeleportMove t -> {
+                    Point before = snapshotPosition();
+                    Point after = new Point(t.x(), t.y());
+                    owner.setPosition(after);
+                    owner.setStance(t.stance());
+                    if (t.command() == 3 || t.command() == 4) {
+                        // 瞬移前后坐标记录，供攻击距离双坐标校验使用
+                        owner.markTeleportLikeMove(before, after);
+                    }
+                }
+                case ChairMove c -> owner.setStance(c.stance());
+                case JumpDownMove j -> {
+                    Point before = snapshotPosition();
+                    Point after = new Point(j.x(), j.y());
+                    owner.setPosition(after);
+                    owner.setStance(j.stance());
+                    owner.markRegularMove(before, after);
+                }
+                case ChangeEquipMove c -> {
+                }
+                case LegacyMove9 l -> {
+                }
+                case LegacyMove3 l -> {
+                }
+            }
+        }
+    }
+
+    private Point snapshotPosition() {
+        Point currentPos = owner.getPosition();
+        return currentPos != null ? new Point(currentPos) : null;
+    }
+
+    private Point estimateRelativeMovePosition(Point beforePos, int deltaX, int deltaY) {
+        if (beforePos == null) {
+            return null;
+        }
+        return new Point(beforePos.x + deltaX, beforePos.y + deltaY);
+    }
 
     /** 当前地图对象 */
     MapleMap map;
@@ -318,11 +418,19 @@ class CharacterMap {
         final Party k = e;
 
         owner.sendPacket(warpPacket);
-        map.removePlayer(owner);
+        // 局部捕获旧图：lambda 读字段是执行时取值，下方 map = to 重赋值后会串图
+        final MapleMap from = map;
+        // removePlayer 缝合点（doc/13 §4）：审计过无脚本入口/无 pet 阻塞回询/无自发包；
+        // 同步完成以保证同图传送时 remove 先于 add 的 destroy→spawn 包序（幽灵玩家防线）
+        from.runIn("map-removePlayer", () -> from.removePlayer(owner));
         if (owner.getClient().getChannelServer().getPlayerStorage().getCharacterById(owner.getId()) != null) {
             map = to;
             owner.setPosition(pos);
-            map.addPlayer(owner);
+            // 宠物召唤快照：本 strand 上采集后随边界传入（doc/13 §5.2；map shim 后 map 任务体
+            // 内禁止 actor 回询 = 环死锁）
+            final List<Pet> pets = owner.getPets().getSummonedPets();
+            final boolean firstEnter = map.registerPlayer(owner, pets);   // shim run：登记段缝合点
+            map.finishEnter(owner, firstEnter, pets);                     // player strand：脚本 + self 流
             visitMap(map);
 
             try (var ignored = Locks.acquire(owner.party.lock)) {

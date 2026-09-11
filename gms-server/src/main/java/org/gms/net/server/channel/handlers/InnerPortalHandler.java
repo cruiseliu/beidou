@@ -29,6 +29,7 @@ import org.gms.server.maps.MapleMap;
 import org.gms.server.maps.Portal;
 
 import java.awt.Point;
+import java.util.List;
 
 /**
  * @author BubblesDev
@@ -116,7 +117,14 @@ public final class InnerPortalHandler extends AbstractPacketHandler {
     }
 
     private static void movePlayerInMap(Character player, Point afterPos) {
+        player.setPosition(afterPos);
+        // 可见性差集经 map actor（doc/13 §12；同图内传送无中继广播 → relayPacket = null）
         MapleMap map = player.getMap();
-        map.movePlayer(player, afterPos);
+        org.gms.infra.Strand strand = player.strand();
+        if (strand == null) {
+            return;
+        }
+        map.post("move", () -> map.onMove(new MapleMap.MoveMsg(strand, player, player.getClient(),
+                afterPos, null, false, List.of(player.getVisibleMapObjects()))));
     }
 }

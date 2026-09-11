@@ -20,7 +20,7 @@ public final class InventoryInPipeline implements ClientInPipeline {
 
     public void handle(InPacket p, Player player) {
         var e = PetTranslator.toEvent(InventoryPacket.decodePetFood(p));
-        player.character().clientEventHandlers().inventory().useItem(e.slot(), e.itemId());
+        player.clientEventHandlers().inventory().useItem(e.slot(), e.itemId());
         player.remote().basic().unlockActions();
     }
 }
