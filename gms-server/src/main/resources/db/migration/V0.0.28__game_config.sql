@@ -13,9 +13,9 @@ CREATE TABLE game_config
 );
 INSERT INTO `game_config` (`id`, `config_type`, `config_sub_type`, `config_clazz`, `config_code`, `config_value`, `config_desc`, `update_time`) VALUES
 (1, 'world', '0', 'java.lang.Integer', 'flag', '0', 'flag', NULL),
-(2, 'world', '0', 'java.lang.String', 'server_message', 'Welcome to Scania!', 'server_message', NULL),
-(3, 'world', '0', 'java.lang.String', 'event_message', 'Scania', 'event_message', NULL),
-(4, 'world', '0', 'java.lang.String', 'recommend_message', 'Welcome to Scania!', 'recommend_message', NULL),
+(2, 'world', '0', 'java.lang.String', 'server_message', '', 'server_message', NULL),
+(3, 'world', '0', 'java.lang.String', 'event_message', '', 'event_message', NULL),
+(4, 'world', '0', 'java.lang.String', 'recommend_message', '', 'recommend_message', NULL),
 (5, 'world', '0', 'java.lang.Integer', 'channel_size', '3', 'channel_size', NULL),
 (6, 'world', '0', 'java.lang.Float', 'exp_rate', '1.0', 'exp_rate', NULL),
 (7, 'world', '0', 'java.lang.Float', 'meso_rate', '1.0', 'meso_rate', NULL),

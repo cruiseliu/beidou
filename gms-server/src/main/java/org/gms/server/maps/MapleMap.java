@@ -38,8 +38,8 @@ import org.gms.constants.id.MobId;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.infra.ActorShim;
 import org.gms.net.packet.Packet;
+import org.gms.remote.RemoteClient;
 import org.gms.net.server.Server;
-import org.gms.net.server.channel.handlers.AbstractDealDamageHandler;
 import org.gms.net.server.channel.Channel;
 import org.gms.net.server.coordinator.world.MonsterAggroCoordinator;
 import org.gms.net.server.services.task.channel.MobMistService;
@@ -3495,7 +3495,7 @@ public class MapleMap {
      * 事实（gms083 纯解码产出）。player 事实只剩不可变身份（chr 引用仅作 id 比较/广播
      * source），map 任务体零 player 可变状态读。
      */
-    public record MoveLifeMsg(Character chr, Client client, MoveLife life) {
+    public record MoveLifeMsg(Character chr, Client client, RemoteClient remote, MoveLife life) {
     }
 
     /**
@@ -3578,13 +3578,13 @@ public class MapleMap {
             return;
         }
 
-        msg.client().getRemote().map().ackMoveMonster(life.oid(), life.moveid(), mobMp, aggro, nextSkillId, nextSkillLevel);
+        msg.remote().map().ackMoveMonster(life.oid(), life.moveid(), mobMp, aggro, nextSkillId, nextSkillLevel);
 
         // 位置应用（updatePosition monster 分支语义）→ 他人流中继 → 可见性维护
         Point serverStartPos = new Point(monster.getPosition());
         applyLifeMovement(monster, life.elements());
 
-        Packet relay = msg.client().getRemote().map().relayMoveMonster(life.oid(), nextMovementCouldBeSkill,
+        Packet relay = msg.remote().map().relayMoveMonster(life.oid(), nextMovementCouldBeSkill,
                 rawActivity, useSkillId, useSkillLevel, pOption, life.startPos(), life.elements());
         broadcastMessage(player, relay, serverStartPos);
         moveMonster(monster, monster.getPosition());
@@ -3623,17 +3623,6 @@ public class MapleMap {
         return !(pVal < pMin) || (pVal > pMax);
     }
 
-    /**
-     * 近战攻击事件（map actor 任务体，doc/13 §19）：中继广播（成品已在 player strand
-     * 编码）+ 伤害应用（AbstractDealDamageHandler.applyAttack verbatim——含死亡分支/
-     * exp/quest；mob 侧照旧并发语义；player 侧写为接受的 off-strand 盘点项，随攻击
-     * 家族其余 handler 迁移与阶段二收编消解）。
-     */
-    public void onCloseRangeAttack(Character chr, AbstractDealDamageHandler.AttackInfo attack,
-                                   int attackCount, Packet relay) {
-        broadcastMessage(chr, relay, false, true);
-        AbstractDealDamageHandler.applyAttack(attack, chr, attackCount);
-    }
 
     public final void toggleEnvironment(final String ms) {
         Map<String, Integer> env = getEnvironment();

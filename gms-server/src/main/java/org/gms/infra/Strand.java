@@ -116,6 +116,20 @@ public class Strand implements AutoCloseable {
     }
 
     /**
+     * 跨 actor 消息投递（doc/12 opaque handler 纪律）：已在本 strand 则 inline（等价
+     * 同步调用）；否则异步投递、不等待。与 {@link #run} 的区别：run 跨线程阻塞等待
+     * （禁止跨 strand 互等的场景不可用），本方法用于调用方视角"对时序不敏感的写"
+     * （如 map 任务体的击杀经验发放）——调用方只持调度句柄，载荷在目标 actor 域内执行。
+     */
+    public void execute(String taskName, Runnable body) {
+        if (onStrand()) {
+            body.run();
+            return;
+        }
+        post(taskName, body);
+    }
+
+    /**
      * 在本 strand 上执行并取回结果：已在本 strand 上则 inline；否则入队并阻塞等待。
      * 等待方不得持有 strand 任务可能需要的锁/事务（如持有 DB 写事务等 strand 结果 = 死锁配方）。
      */

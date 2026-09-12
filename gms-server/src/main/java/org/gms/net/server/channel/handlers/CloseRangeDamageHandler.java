@@ -201,12 +201,15 @@ public final class CloseRangeDamageHandler extends AbstractDealDamageHandler {
             chr.cancelBuffStats(EffectType.WIND_WALK);
         }
 
-        // 中继成品 strand 编码（MoveMsg 同款）；广播 + 伤害应用在 map actor 任务体内串行
+        // 伤害应用（player 域写复合体：buff/stats/弹药/装备经验）在 player strand 串行；
+        // 内部 mob 写（Monster.damage）为既有跨界语义（与迁移前等价，阶段二收编）。
+        // 中继广播异步交 map（可见性/他人流归 map 域；中继相对伤害包的跨线程序为
+        // 接受的渲染级偏差，solo 无观察者）。
+        AbstractDealDamageHandler.applyAttack(attack, chr, attackCount);
         final Packet relay = PacketCreator.closeRangeAttack(chr, attack.skill, attack.skilllevel, attack.stance,
                 attack.numAttackedAndDamage, attack.allDamage, attack.speed, attack.direction, attack.display);
         final MapleMap map = chr.getMap();
-        final int finalAttackCount = attackCount;
-        map.post("close-range-attack", () -> map.onCloseRangeAttack(chr, attack, finalAttackCount, relay));
+        map.post("close-range-relay", () -> map.broadcastMessage(chr, relay, false, true));
     }
 
     private boolean isBambooRain(int skillId) {

@@ -60,6 +60,7 @@ import org.gms.server.BuffEffectData;
 import org.gms.server.TimerManager;
 import org.gms.server.life.LifeFactory.BanishInfo;
 import org.gms.server.loot.LootManager;
+import org.gms.infra.Strand;
 import org.gms.server.maps.AbstractAnimatedMapObject;
 import org.gms.server.maps.MapObjectType;
 import org.gms.server.maps.MapleMap;
@@ -764,7 +765,14 @@ public class Monster extends AbstractLoadedLife {
 
             int _partyExp = expValueToInteger(partyExp);
 
-            attacker.gainExp(_personalExp, _partyExp, true, false, white);
+            // exp 对时序不敏感（用户裁定）：写经 strand 消息接口异步投递到 player actor
+            // （opaque handler 纪律——map 任务体只持调度句柄，载荷在 actor 域内执行）
+            Strand s = attacker.strand();
+            if (s != null) {
+                s.execute("gain-exp", () -> attacker.gainExp(_personalExp, _partyExp, true, false, white));
+            } else {
+                attacker.gainExp(_personalExp, _partyExp, true, false, white);
+            }
             attacker.increaseEquipExp(_personalExp);
             attacker.raiseQuestMobCount(getId());
             VeteranHunterMedal.onMonsterKilled(attacker, this);

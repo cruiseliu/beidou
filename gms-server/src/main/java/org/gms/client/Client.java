@@ -47,6 +47,7 @@ import org.gms.net.server.guild.Guild;
 import org.gms.client.character.Character;
 import org.gms.infra.Strand;
 import org.gms.remote.RemoteClient;
+import org.gms.remote.RemoteClientBase;
 import org.gms.remote.gms083.Gms083;
 import org.gms.net.server.guild.GuildCharacter;
 import org.gms.net.server.guild.GuildPackets;
@@ -120,7 +121,7 @@ public class Client extends ChannelInboundHandlerAdapter {
     private volatile boolean inTransition;
 
     private io.netty.channel.Channel ioChannel;
-    private volatile RemoteClient remote;
+    private volatile RemoteClientBase remote;
     /** 连接级临时引导 strand（惰性；attach 会话后闲置，连接关闭时排空） */
     private volatile Strand strand;
     /** 所属客户端进程会话（attach 后非空；过渡/终结后保留引用，用于代际校验，doc/12） */
@@ -192,9 +193,10 @@ public class Client extends ChannelInboundHandlerAdapter {
 
     /**
      * 本连接的串行执行队列。attach 会话后返回会话 strand（寿命 = 客户端进程会话，跨
-     * 过渡性重连存活，doc/12）；attach 前（登录/引导阶段）惰性创建连接级临时 strand。
-     * 产物为携带 {@link Player} 上下文的 {@link PlayerStrand}——actor 上下文经
-     * Player.current() 环境获取，不经本方法导航。 */
+     * 过渡性重连存活，doc/12）；attach 前（登录/引导阶段，跳板域）惰性创建**裸 strand**
+     * （无 Player 上下文）——真正的 player actor 只在世界域入场时诞生
+     * （SessionCoordinator.attach → PlayerSession，跳板/世界分域的部署模拟见 doc/12）。
+     * actor 上下文经 Player.current() 环境获取，不经本方法导航。 */
     public Strand getStrand() {
         PlayerSession s = session;
         if (s != null) {
@@ -202,7 +204,7 @@ public class Client extends ChannelInboundHandlerAdapter {
         }
         synchronized (this) {
             if (strand == null) {
-                strand = PlayerStrand.create("conn-" + sessionId);
+                strand = Strand.create("login-conn-" + sessionId);
             }
             return strand;
         }
@@ -262,7 +264,9 @@ public class Client extends ChannelInboundHandlerAdapter {
         }
 
         short opcode = packet.readShort();
-        final PacketHandler handler = packetProcessor.getHandler(opcode);
+        // C→S 分派归语义层（RemoteClient 按连接域装配，doc/12 跳板/世界分域）；
+        // 管道机制（ThreadLocal 播种/queued 排队/异常兜底）留在本类。
+        final PacketHandler handler = remoteViewBase().resolveHandler(opcode);
 
         if (GameConfig.getServerBoolean("use_debug_show_rcvd_packet") && !LoggingUtil.isIgnoredRecvPacket(opcode)) {
             log.info("收到封包 包头ID [{}] 内容： {}", String.format("0x%02X", opcode),packet);
@@ -1624,16 +1628,26 @@ public class Client extends ChannelInboundHandlerAdapter {
         }
     }
 
-    /** 版本无关的远端客户端门面（隔离层）。连接建立前/mock 客户端返回空实现。 */
-    public RemoteClient getRemote() {
+    /**
+     * 语义层视图（世界域模块面）。<b>Client 不在公共面暴露语义层概念</b>（doc/12）——
+     * 世界域代码经 {@code Player.remote()}（strand 抽象）获取；本方法仅供同包
+     * {@link Player} 派生视图消费。按连接域装配（登录/世界端口共用 Gms083 实现类，
+     * 注入各自域的 handler 表）；连接建立前/mock 客户端返回空实现。
+     */
+    RemoteClient remoteView() {
         if (ioChannel == null) {
-            return RemoteClient.DISCONNECTED;
+            return (RemoteClient) RemoteClientBase.DISCONNECTED;
         }
-        RemoteClient r = remote;
+        return (RemoteClient) remoteViewBase();
+    }
+
+    /** 语义层实例（基类：分派 + 合并域机器）；惰性装配 */
+    private RemoteClientBase remoteViewBase() {
+        RemoteClientBase r = remote;
         if (r == null) {
             synchronized (this) {
                 if (remote == null) {
-                    remote = new Gms083(this);
+                    remote = new Gms083(this, packetProcessor);
                 }
                 r = remote;
             }

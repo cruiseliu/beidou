@@ -28,6 +28,12 @@ import org.gms.net.packet.InPacket;
 
 public final class DistributeSPHandler extends AbstractPacketHandler {
     @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20）：SP 分配是 player 域写（stats/batch）。
+        return true;
+    }
+
+    @Override
     public final void handlePacket(InPacket p, Client c) {
         p.readInt();
         int skillid = p.readInt();

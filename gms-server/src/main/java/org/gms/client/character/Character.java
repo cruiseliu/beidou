@@ -21,6 +21,8 @@
  */
 package org.gms.client.character;
 
+import org.gms.client.Player;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -2483,12 +2485,14 @@ public class Character extends AbstractAnimatedMapObject {
         }
     }
 
-    /** 版本无关的远端客户端门面（隔离层）；无连接时返回空实现，调用方无需判空。 */
+    /** 远端客户端语义层门面（过渡形态，doc/12：获取收口 Player.remote()）。仅在
+     * player strand 上下文可用；跨域调用（map 任务体/半加载态/跳板域）响亮暴露，
+     * 调用方迁移（exp post 化等）后门面退役。 */
     RemoteClient remote() {
-        return client != null ? client.getRemote() : RemoteClient.DISCONNECTED;
+        return Player.require("character remote").remote();
     }
 
-    /** 远端客户端门面（跨包公开；背包域等组件用） */
+    /** 远端客户端语义层门面（跨包公开；背包域等组件用，调用点迁移 Player.remote() 后退役） */
     public RemoteClient getRemote() {
         return remote();
     }

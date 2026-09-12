@@ -39,6 +39,13 @@ public final class InnerPortalHandler extends AbstractPacketHandler {
     private static final double INNER_PORTAL_TRIGGER_DISTANCE_SQ = 90000.0; // 约 300 像素
 
     @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20 全量收口）：player 域读写，经 queued 通道归会话 strand。
+        return true;
+    }
+
+
+    @Override
     public final void handlePacket(InPacket p, Client c) {
         Character player = c.getPlayer();
         if (!isPlayerReady(player) || p.available() <= 0) {

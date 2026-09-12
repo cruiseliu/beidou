@@ -68,6 +68,11 @@ public final class SummonDamageHandler extends AbstractDealDamageHandler {
     }
 
     @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20）：召唤兽攻击是 player 域读写。
+        return true;
+    }
+
     public void handlePacket(InPacket p, Client c) {
         int oid = p.readInt();
         Character player = c.getPlayer();

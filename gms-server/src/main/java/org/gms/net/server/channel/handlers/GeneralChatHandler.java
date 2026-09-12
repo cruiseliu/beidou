@@ -36,6 +36,12 @@ public final class GeneralChatHandler extends AbstractPacketHandler {
     private static final Logger log = LoggerFactory.getLogger(GeneralChatHandler.class);
 
     @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20）：聊天与 GM 命令链是 player 域读写（buff/技能/传送）；2c 批次的 queued 化由 off-strand 断言提前触发。
+        return true;
+    }
+
+    @Override
     public void handlePacket(InPacket p, Client c) {
         String s = p.readString();
         Character chr = c.getPlayer();

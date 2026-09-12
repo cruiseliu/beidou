@@ -42,6 +42,13 @@ import java.sql.Timestamp;
 public final class TransferWorldHandler extends AbstractPacketHandler {
 
     @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20 全量收口）：player 域读写，经 queued 通道归会话 strand。
+        return true;
+    }
+
+
+    @Override
     public final void handlePacket(InPacket p, Client c) {
         p.readInt(); //cid
         int birthday = p.readInt();

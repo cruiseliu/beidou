@@ -22,7 +22,7 @@ import java.util.List;
 
 /** 无连接实现：全部语义调用静默容忍（对齐 Character.sendPacket 对 client==null 的行为）；
  *  模块访问器自指（本类即全部模块面），机器钩子（flushAll/dispatch）为空操作。 */
-final class DummyClient extends RemoteClient implements
+final class DummyClient extends RemoteClientBase implements RemoteClient,
         StatsModule,
         SkillsModule,
         BasicModule,
@@ -38,6 +38,11 @@ final class DummyClient extends RemoteClient implements
     }
 
     // ── 机器钩子：空操作 ──
+
+    @Override
+    public org.gms.net.PacketHandler resolveHandler(short opcode) {
+        return null;   // 无连接：静默
+    }
 
     @Override
     protected void flushAll() {

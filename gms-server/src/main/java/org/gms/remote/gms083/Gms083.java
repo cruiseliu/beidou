@@ -5,6 +5,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import org.gms.client.Client;
 import org.gms.constants.string.CharsetConstants;
+import org.gms.net.PacketHandler;
+import org.gms.net.PacketProcessor;
 import org.gms.net.packet.Packet;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.EquipFlag;
@@ -18,6 +20,7 @@ import org.gms.remote.modules.map.client.MapModule;
 import org.gms.remote.modules.npc.client.NpcModule;
 import org.gms.remote.modules.pet.PetModule;
 import org.gms.remote.RemoteClient;
+import org.gms.remote.RemoteClientBase;
 import org.gms.remote.gms083.server.packets.V83Packet;
 import org.gms.remote.modules.skills.SkillsModule;
 import org.gms.remote.modules.stats.StatsModule;
@@ -35,7 +38,7 @@ import java.nio.charset.Charset;
  * （stats → skills → cooldown → inventory，业务序显式书写）、wire/传输适配。
  * 本类不出现任何具体事件类型。分层与原则见 gms-server/doc/package-client.md。
  */
-public final class Gms083 extends RemoteClient {
+public final class Gms083 extends RemoteClientBase implements RemoteClient {
 
     private static final Logger log = LoggerFactory.getLogger(Gms083.class);
 
@@ -69,16 +72,24 @@ public final class Gms083 extends RemoteClient {
     }
 
     private final Client client;
+    private final PacketProcessor processor;
     private Gms083Routers routers;
     private Gms083Translators translators;
 
-    public Gms083(Client client) {
+    public Gms083(Client client, PacketProcessor processor) {
         this.client = client;
+        this.processor = processor;
 
         Charset charset = CharsetConstants.getCharset(ThreadLocalUtil.getClientLang());
         translators = new Gms083Translators(charset);
 
         routers = new Gms083Routers(this);
+    }
+
+    /** 世界域 C→S 分派（opcode → 世界 handler 表；表外 op 返回 null 由管道丢弃）。 */
+    @Override
+    public PacketHandler resolveHandler(short opcode) {
+        return processor.getHandler(opcode);
     }
 
     public Gms083Translators translators() {

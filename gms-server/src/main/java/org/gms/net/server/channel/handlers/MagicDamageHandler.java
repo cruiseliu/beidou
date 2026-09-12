@@ -41,6 +41,11 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 public final class MagicDamageHandler extends AbstractDealDamageHandler {
     @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20）：魔法攻击是 player 域读写（MP/buff 链）。
+        return true;
+    }
+
     public final void handlePacket(InPacket p, Client c) {
         Character chr = c.getPlayer();
 

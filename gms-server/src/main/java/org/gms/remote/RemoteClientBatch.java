@@ -5,10 +5,10 @@ package org.gms.remote;
  * 事务/回滚语义见 gms-server/doc/package-client.md §2。
  */
 public class RemoteClientBatch implements AutoCloseable {
-    private RemoteClient client;
+    private RemoteClientBase client;
     private EventLog log;
 
-    public RemoteClientBatch(RemoteClient client, EventLog log) {
+    public RemoteClientBatch(RemoteClientBase client, EventLog log) {
         this.client = client;
         this.log = log;
     }

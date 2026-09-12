@@ -42,6 +42,13 @@ import org.gms.util.PacketCreator;
  */
 public final class UseItemHandler extends AbstractPacketHandler {
     @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20）：道具使用是 player 域写（背包消耗/HP/卷轴换图）。
+        return true;
+    }
+
+
+    @Override
     public final void handlePacket(InPacket p, Client c) {
         Character chr = c.getPlayer();
 

@@ -28,6 +28,11 @@ import org.gms.net.packet.InPacket;
 
 public final class TouchMonsterDamageHandler extends AbstractDealDamageHandler {
     @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20）：触碰伤害是 player 域读写。
+        return true;
+    }
+
     public final void handlePacket(InPacket p, Client c) {
         Character chr = c.getPlayer();
         if (chr.getEnergyBar() == 15000 || chr.getBuffedValue(EffectType.BODY_PRESSURE) != null) {

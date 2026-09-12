@@ -95,7 +95,8 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
             return;
         }
         final MapleMap map = this.map;
-        map.post("move-life", () -> map.onMoveLife(new MapleMap.MoveLifeMsg(owner, owner.getClient(), life)));
+        final org.gms.remote.RemoteClient remote = owner.remote();   // 语义层引用快照过界（map 任务体零导航）
+        map.post("move-life", () -> map.onMoveLife(new MapleMap.MoveLifeMsg(owner, owner.getClient(), remote, life)));
     }
 
     /**

@@ -30,6 +30,13 @@ import org.gms.util.PacketCreator;
  * @author Jay Estrella
  */
 public final class UseHammerHandler extends AbstractPacketHandler {
+    @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20 全量收口）：player 域读写，经 queued 通道归会话 strand。
+        return true;
+    }
+
+
     public final void handlePacket(InPacket p, Client c) {
         c.sendPacket(PacketCreator.sendHammerMessage());
     }

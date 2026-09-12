@@ -4,6 +4,7 @@ import org.gms.client.EffectType;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.config.GameConfig;
+import org.gms.infra.Strand;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.skills.DarkKnight;
 import org.gms.server.BuffEffectData;
@@ -74,6 +75,34 @@ class ActiveBuffs {
     }
 
     /** 就地修改槽位值（如能量条 ENERGY_CHARGE），值字段 volatile 安全发布给无锁读者 */
+    /** buff 伴侣任务投递（定时线程 → strand）；登出竞态（strand 已关闭）静默丢弃——
+     * 迟到任务语义对齐 CharacterScriptRunner.runResult。 */
+    private void executeCompanion(Strand strand, Runnable body) {
+        try {
+            strand.execute("buff-companion", body);
+        } catch (IllegalStateException e) {
+            // strand 已关闭：登出竞态
+        }
+    }
+
+    /** RECOVERY buff 的恢复拍（strand 上执行，buff-companion 定时任务投递的载荷） */
+    private void recoveryTick(byte heal) {
+        if (getBuffSource(EffectType.RECOVERY) == -1) {
+            try (var ignored2 = Locks.acquire(owner.chrLock)) {
+                if (owner.recoveryTask != null) {
+                    owner.recoveryTask.cancel(false);
+                    owner.recoveryTask = null;
+                }
+            }
+
+            return;
+        }
+
+        owner.addHP(heal);
+        owner.sendPacket(PacketCreator.showOwnRecovery(heal));
+        owner.getMap().broadcastMessage(owner, PacketCreator.showRecovery(owner.id, heal), false);
+    }
+
     void setBuffedValue(EffectType effect, int value) {
         EffectStatus mbsvh = effects.get(effect);
         if (mbsvh != null) {
@@ -272,11 +301,17 @@ class ActiveBuffs {
                     if (owner.awayFromWorld.get()) {
                         return;
                     }
-
-                    owner.addHP(healEffect.getHp());
-                    owner.sendPacket(PacketCreator.showOwnBuffEffect(beholder, 2));
-                    owner.getMap().broadcastMessage(owner, PacketCreator.summonSkill(owner.getId(), beholder, 5), true);
-                    owner.getMap().broadcastMessage(owner, PacketCreator.showOwnBuffEffect(beholder, 2), false);
+                    // 定时线程 → strand 投递（doc/13 §20：载荷在 player actor 域内执行）
+                    Strand strand = owner.strand();
+                    if (strand == null) {
+                        return;
+                    }
+                    executeCompanion(strand, () -> {
+                        owner.addHP(healEffect.getHp());
+                        owner.sendPacket(PacketCreator.showOwnBuffEffect(beholder, 2));
+                        owner.getMap().broadcastMessage(owner, PacketCreator.summonSkill(owner.getId(), beholder, 5), true);
+                        owner.getMap().broadcastMessage(owner, PacketCreator.showOwnBuffEffect(beholder, 2), false);
+                    });
                 }, healInterval, healInterval);
             }
             Skill bBuff = SkillFactory.getSkill(DarkKnight.HEX_OF_BEHOLDER);
@@ -287,11 +322,16 @@ class ActiveBuffs {
                     if (owner.awayFromWorld.get()) {
                         return;
                     }
-
-                    buffEffect.applyTo(owner);
-                    owner.sendPacket(PacketCreator.showOwnBuffEffect(beholder, 2));
-                    owner.getMap().broadcastMessage(owner, PacketCreator.summonSkill(owner.getId(), beholder, (int) (Math.random() * 3) + 6), true);
-                    owner.getMap().broadcastMessage(owner, PacketCreator.showBuffEffect(owner.getId(), beholder, 2), false);
+                    Strand strand = owner.strand();
+                    if (strand == null) {
+                        return;
+                    }
+                    executeCompanion(strand, () -> {
+                        buffEffect.applyTo(owner);
+                        owner.sendPacket(PacketCreator.showOwnBuffEffect(beholder, 2));
+                        owner.getMap().broadcastMessage(owner, PacketCreator.summonSkill(owner.getId(), beholder, (int) (Math.random() * 3) + 6), true);
+                        owner.getMap().broadcastMessage(owner, PacketCreator.showBuffEffect(owner.getId(), beholder, 2), false);
+                    });
                 }, buffInterval, buffInterval);
             }
         } else if (effect.isRecovery()) {
@@ -304,6 +344,11 @@ class ActiveBuffs {
                 }
 
                 owner.recoveryTask = TimerManager.getInstance().register(() -> {
+                    Strand strand = owner.strand();
+                    if (strand != null && !strand.onStrand()) {
+                        executeCompanion(strand, () -> recoveryTick(heal));
+                        return;
+                    }
                     if (getBuffSource(EffectType.RECOVERY) == -1) {
                         try (var ignored2 = Locks.acquire(owner.chrLock)) {
                             if (owner.recoveryTask != null) {

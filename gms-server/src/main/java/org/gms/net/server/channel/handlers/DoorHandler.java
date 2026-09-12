@@ -34,6 +34,13 @@ import org.gms.util.PacketCreator;
  */
 public final class DoorHandler extends AbstractPacketHandler {
     @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20 全量收口）：player 域读写，经 queued 通道归会话 strand。
+        return true;
+    }
+
+
+    @Override
     public final void handlePacket(InPacket p, Client c) {
         int ownerid = p.readInt();
         p.readByte(); // specifies if backwarp or not, 1 town to target, 0 target to town

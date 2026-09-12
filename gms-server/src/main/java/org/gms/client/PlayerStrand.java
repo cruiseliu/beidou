@@ -11,8 +11,8 @@ import org.gms.infra.Strand;
  *
  * <p><b>生命周期</b>：由会话管理器（org.gms.net.server.coordinator.session.PlayerSession）
  * 持有，寿命 = 客户端进程会话（跨换频道/出商城等过渡性重连存活），不再随单条 TCP 连接
- * 生死（doc/12）。连接级的临时引导 strand 也用本类型（Player.client 为 null，attach 后
- * 由 rebind 赋值），保证登录期 handler 的 Player 上下文语义与迁移前一致。
+ * 生死（doc/12）。actor 诞生点唯一 = 世界域入场（SessionCoordinator.attach）；连接级的
+ * 登录/引导 strand 是裸 Strand（跳板域无 actor，Player.current() 为 null）。
  */
 public final class PlayerStrand extends Strand {
 
@@ -24,8 +24,8 @@ public final class PlayerStrand extends Strand {
     }
 
     /**
-     * 创建携带 Player 上下文的 strand（会话管理器建会话 strand、Client 建引导 strand）。
-     * Player.client 初始为 null，attach 后经 {@link #rebindTo} 赋值。
+     * 创建携带 Player 上下文的 strand。<b>唯一合法调用点 = {@code PlayerSession} 构造</b>
+     * （世界域入场）；跳板域（登录/引导连接）一律裸 Strand——Player 上下文不越过世界门槛。
      */
     public static PlayerStrand create(String name) {
         return new PlayerStrand(name);

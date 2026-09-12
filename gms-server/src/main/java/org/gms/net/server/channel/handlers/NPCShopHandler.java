@@ -36,6 +36,13 @@ public final class NPCShopHandler extends AbstractPacketHandler {
     private static final Logger log = LoggerFactory.getLogger(NPCShopHandler.class);
 
     @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20）：商店买卖是 player 域写（背包/金币）。
+        return true;
+    }
+
+
+    @Override
     public void handlePacket(InPacket p, Client c) {
         byte bmode = p.readByte();
         switch (bmode) {

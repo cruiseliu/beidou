@@ -90,6 +90,12 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
     }
 
     @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20）：商城道具使用是 player 域读写（宠物/背包/batch）。
+        return true;
+    }
+
+    @Override
     public void handlePacket(InPacket p, Client c) {
         final Character player = c.getPlayer();
 

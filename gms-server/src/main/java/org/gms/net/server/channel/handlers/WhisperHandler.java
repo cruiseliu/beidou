@@ -45,6 +45,13 @@ public final class WhisperHandler extends AbstractPacketHandler {
     public static final byte RT_DIFFERENT_CHANNEL = 0x03;
 
     @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20 全量收口）：player 域读写，经 queued 通道归会话 strand。
+        return true;
+    }
+
+
+    @Override
     public void handlePacket(InPacket p, Client c) {
         byte request = p.readByte();
         String name = p.readString();

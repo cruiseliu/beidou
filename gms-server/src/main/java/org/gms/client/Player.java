@@ -83,9 +83,9 @@ public final class Player {
         return client.getPlayer();
     }
 
-    /** 远端客户端门面（派生视图；惰性） */
+    /** 远端客户端语义层（世界域模块面视图；派生视图，惰性）。世界域代码获取语义层的唯一出口。 */
     public RemoteClient remote() {
-        return client.getRemote();
+        return client.remoteView();
     }
 
     @Override

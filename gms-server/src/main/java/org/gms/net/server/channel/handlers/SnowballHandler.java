@@ -33,6 +33,13 @@ import org.gms.server.maps.MapleMap;
  */
 public final class SnowballHandler extends AbstractPacketHandler {
 
+    @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20 全量收口）：player 域读写，经 queued 通道归会话 strand。
+        return true;
+    }
+
+
     public void handlePacket(InPacket p, Client c) {
         //D3 00 02 00 00 A5 01
         Character chr = c.getPlayer();

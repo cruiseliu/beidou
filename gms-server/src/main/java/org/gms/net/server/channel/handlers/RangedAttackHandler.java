@@ -61,6 +61,11 @@ public final class RangedAttackHandler extends AbstractDealDamageHandler {
     private static final Logger log = LoggerFactory.getLogger(RangedAttackHandler.class);
 
     @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20）：远程攻击是 player 域读写（弹药背包/MP/buff 链）。
+        return true;
+    }
+
     public void handlePacket(InPacket p, Client c) {
         Character chr = c.getPlayer();
         

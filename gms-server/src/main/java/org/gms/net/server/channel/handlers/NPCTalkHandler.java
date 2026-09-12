@@ -41,6 +41,13 @@ public final class NPCTalkHandler extends AbstractPacketHandler {
     private static final Logger log = LoggerFactory.getLogger(NPCTalkHandler.class);
 
     @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20 全量收口）：player 域读写，经 queued 通道归会话 strand。
+        return true;
+    }
+
+
+    @Override
     public void handlePacket(InPacket p, Client c) {
         if (c.getPlayer().getMapId() == MapId.JAIL) {   //监狱地图不可使用脚本
             c.getPlayer().dropMessage(1,I18nUtil.getMessage("ActionHandler.map.message1"));

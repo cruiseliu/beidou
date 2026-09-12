@@ -38,6 +38,13 @@ import org.gms.util.Randomizer;
 public final class UseSummonBagHandler extends AbstractPacketHandler {
 
     @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20 全量收口）：player 域读写，经 queued 通道归会话 strand。
+        return true;
+    }
+
+
+    @Override
     public final void handlePacket(InPacket p, Client c) {
         //[4A 00][6C 4C F2 02][02 00][63 0B 20 00]
         if (!c.getPlayer().isAlive()) {

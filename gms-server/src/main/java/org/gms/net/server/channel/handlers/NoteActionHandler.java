@@ -42,6 +42,13 @@ public final class NoteActionHandler extends AbstractPacketHandler {
     }
 
     @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20 全量收口）：player 域读写，经 queued 通道归会话 strand。
+        return true;
+    }
+
+
+    @Override
     public void handlePacket(InPacket p, Client c) {
         int action = p.readByte();
         if (action == 0 && c.getPlayer().getCashShop().getAvailableNotes() > 0) { // Reply to gift in cash shop

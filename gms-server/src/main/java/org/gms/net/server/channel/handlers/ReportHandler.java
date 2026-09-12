@@ -40,6 +40,13 @@ import java.time.Instant;
  * @author BubblesDev
  */
 public final class ReportHandler extends AbstractPacketHandler {
+    @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20 全量收口）：player 域读写，经 queued 通道归会话 strand。
+        return true;
+    }
+
+
     public final void handlePacket(InPacket p, Client c) {
         int type = p.readByte(); //00 = Illegal program claim, 01 = Conversation claim
         String victim = p.readString();

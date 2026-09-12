@@ -63,6 +63,13 @@ public final class TakeDamageHandler extends AbstractPacketHandler {
     private static final Logger log = LoggerFactory.getLogger(TakeDamageHandler.class);
 
     @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20）：受伤/死亡是 player 域写（HP stats/回城）。
+        return true;
+    }
+
+
+    @Override
     public void handlePacket(InPacket p, Client c) {
         List<Character> banishPlayers = new ArrayList<>();
 

@@ -200,7 +200,11 @@ public class Pet {
                 }
             }
             saveToDb();
-            owner.getRemote().expire(this);
+            // wire 只对进过世界的连接有意义（角色加载期的过期无任何客户端见过此宠物，
+            // 与上方半加载态分支同语义；发到跳板连接曾是静默错递，LoginRemoteClient 暴露）
+            if (getOwner().isLoggedInWorld()) {
+                getOwner().getRemote().pet().expire(this);
+            }
 
         } else {
             destroy();

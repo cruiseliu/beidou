@@ -31,6 +31,13 @@ import org.gms.server.maps.Reactor;
  */
 public final class ReactorHitHandler extends AbstractPacketHandler {
     @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20 全量收口）：player 域读写，经 queued 通道归会话 strand。
+        return true;
+    }
+
+
+    @Override
     public final void handlePacket(InPacket p, Client c) {
         //System.out.println(slea); //To see if there are any differences with packets
         //[CD 00] [6B 00 00 00] [01 00 00 00] [03 00] [00 00 20 03] [F7 03 00 00]
