@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="classic_item_coupon">
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_0$" value="其他栏请至少留出5个空位后再试一次。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_1$" value="形影不离套装（男）"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_10$" value="道具已发放，请确认背包。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_11$" value="是否立即领取以下道具？"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_12$" value="请至少预留1个消耗栏空位后重试。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_13$" value="当前使用人数较多，系统处理延迟，请稍后再试。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_14$" value="发生未知错误，请稍后再试。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_15$" value="道具已发放，请确认背包。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_16$" value="请至少预留1个消耗栏空位后再试一次。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_17$" value="当前使用人数较多，系统处理延迟，请稍后再试。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_18$" value="发生未知错误，请稍后再试。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_19$" value="道具已发放，请确认背包。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_2$" value="形影不离套装（女）"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_20$" value="请至少预留1个消耗栏空位后再试一次。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_21$" value="当前使用人数较多，系统处理延迟，请稍后再试。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_22$" value="发生未知错误，请稍后再试。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_23$" value="道具已发放，请确认背包。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_24$" value="个#k"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_3$" value="请选择所需性别的套装。&#13;&#10;&#13;&#10;#b#L0#"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_4$" value="确定立即领取以下道具吗？&#13;&#10;&#13;&#10;#b#e#i"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_5$" value=":##n#k&#13;&#10;&#13;&#10;#r※ 注意：无法装备与角色性别不符的道具。#k"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_6$" value="由于未知原因发放失败，请稍后再试。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_7$" value="请留出至少1个装备栏空位、2个现金栏空位、5个装饰栏空位后再试一次。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_8$" value="当前使用人数较多，系统处理延迟，请稍后再试。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_ITEM_COUPON_9$" value="发生未知错误，请稍后再试。"/>
+</imgdir>

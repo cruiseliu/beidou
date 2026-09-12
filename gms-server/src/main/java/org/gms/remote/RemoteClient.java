@@ -7,6 +7,7 @@ import org.gms.remote.modules.basic.BasicModule;
 import org.gms.remote.modules.cooldown.CooldownModule;
 import org.gms.remote.modules.inventory.InventoryModule;
 import org.gms.remote.modules.map.client.MapModule;
+import org.gms.remote.modules.npc.client.NpcModule;
 import org.gms.remote.modules.pet.PetModule;
 import org.gms.remote.modules.skills.SkillsModule;
 import org.gms.remote.modules.stats.StatsModule;
@@ -51,6 +52,8 @@ public abstract class RemoteClient {
     public abstract PetModule pet();
 
     public abstract MapModule map();
+
+    public abstract NpcModule npc();
 
     // ── 合并域机器 ──
 

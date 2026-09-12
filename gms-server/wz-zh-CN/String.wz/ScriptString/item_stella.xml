@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="item_stella">
+  <string name="$SCRIPTSTRING_ITEM_STELLA_0$" value="当前无法使用道具。&#13;&#10;请稍后再次尝试。"/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_1$" value="永久"/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_10$" value="##k道具。&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_11$" value="你要交换什么道具？&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_12$" value="&#13;&#10;&#13;&#10;但是， 目前没有可兑换的道具。"/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_13$" value="持有的#t"/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_14$" value="#数量不足，无法交换。"/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_15$" value="使用#b"/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_16$" value="个#i"/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_17$" value="##k，&#13;&#10;交换了#r#e#i"/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_18$" value="##n。#k"/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_19$" value="因不明原因交换失败。&#13;&#10;请再次尝试。"/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_2$" value="天"/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_20$" value="目前由于用户过多，出现延迟现象。请稍后再试。"/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_21$" value="因未知错误失败，烦请重试。"/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_22$" value="获得了道具。请到背包中确认一下。"/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_3$" value="个[交换"/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_4$" value="个]#k#l"/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_5$" value="个]#k"/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_6$" value="&#13;&#10;#r#L999##b不兑换，结束对话#k#l"/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_7$" value="#持有数量："/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_8$" value="个]#n#k&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ITEM_STELLA_9$" value="正在交换#b#i"/>
+</imgdir>

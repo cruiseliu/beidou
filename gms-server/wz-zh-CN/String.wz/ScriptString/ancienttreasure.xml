@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="ancienttreasure">
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_0$" value="被当成盗墓贼，大会点数已初始化。只有在佳佳那里获得许可证的人才能进行发掘。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_1$" value=" &lt;盗墓贼: "/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_10$" value="遗物大会点数(+"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_100$" value="你的级别太低，还不能去神木村……没办法，你去太危险了，还是我自己送去吧。&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_101$" value="还没决定交给谁去办？别发愁了，交给我吧。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_102$" value="那我就联系玛加提亚的吉欧了，你不会食言吧？"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_103$" value="不会～我会送去给玛加提亚的吉欧～"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_104$" value="&lt;足球鞋支线-吉欧&gt;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_105$" value="你的级别太低，还不能去神木村……没办法，你去太危险了，还是我自己送去吧。&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_106$" value="还没决定交给谁去办？别发愁了，交给我吧。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_107$" value="要不我先拿着？"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_108$" value="也行，不管给拉玛人、威尔斯，还是吉欧，都会有些问题。东西我先保管着吧。我也不想挑起那三个人之间的矛盾～&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_109$" value="&lt;不足球鞋支线&gt;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_11$" value="[2倍]"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_110$" value="还没决定交给谁去办？别发愁了，交给我吧。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_111$" value="听说你找到了足球鞋？没有吗？要不再去找找看？"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_112$" value="哎呀～你在哪里找到的？我正想找这东西呢，太谢谢了～最近做任务的人越来越多，书都不够用了～这是我的心意，收下吧！&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_113$" value="听说你找到了头绳？难道是谣传？你不想再找找看吗？"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_114$" value="&lt;麦吉绳遗失&gt;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_115$" value="谁呀……忙死了，别烦我！！&#13;&#10;&#13;&#10;#b#L0# #b（拿出女孩子的头绳）在那……那边捡到了这个……#l"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_116$" value="!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!&#13;&#10;&#13;&#10;#b#L0# #b（很惊讶，很慌张的样子！） #l"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_117$" value="嗯……嗯……这不是我的东西。你……你干嘛要拿给我？&#13;&#10;&#13;&#10;#b#L0# #b这里写着[麦吉]……#l&#13;&#10;#L1# #b有什么好不好意思的呢？#l&#13;&#10;#L2# #b好吧。（拿着东西转身要走。）#l"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_118$" value="写……写着我的名字……没……没错！！那是带有邪恶气息的东西……你想不到我还敢带着这种东西吧？那个东西的邪气很重，快……快还给我！ &#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_119$" value="不好意思？你……你难道想说我堂堂麦……麦吉居然有收集女孩子头绳的癖好吗？那干脆就别拿来找我呀！真是的！！&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_12$" value="运营员嘭～]"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_120$" value="等……等等！这上面写的不是我的名字！！这似乎是个很特别的东西……先给我再说。&#13;&#10;&#13;&#10;#b#L0# #b（给他。）#l&#13;&#10;#L1# #b（不给他。）#l"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_121$" value="写……写着我的名字……没……没错！！那是带有邪恶气息的东西……你想不到我还敢带着这种东西吧？谢谢了。 &#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_122$" value="哼！！既然不想给我，那还来找我干嘛？"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_123$" value="听说你找到了我的鞋？啊？没有？不想再去找找看吗？"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_124$" value="&lt;运营者鞋子遗失&gt;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_125$" value="哎呦！这个？前不久我发现了一个非法程序使用者，那家伙跑得真快。我一阵猛追，好不容易才抓住他，连路上跑丢了鞋都没发现。哈哈，这就是我当时跑掉的鞋，谢谢你了！&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_126$" value="&lt;1000点: point = "/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_127$" value="#k你的能力果然很出众。都已经超过1000点了。让我来悄悄帮你一把，加快遗物点数的上升速度吧，说不定能让你一下子升到3000点，点数翻一番。虽然我的这个附加效果和周末的2倍效果是不能同时生效的……但也算是能够帮点小忙吧。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_128$" value="&lt;2500点: point = "/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_129$" value="啊呀～遗物大会都已经达到2500点了，真够快的啊？#b"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_13$" value="&lt;point溢出危险&gt;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_130$" value="#k，让我来给你加点增强攻击力的魔法吧，助你早日实现目标。请继续向4000点大关挑战吧。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_131$" value="&lt;4000点: point = "/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_132$" value="哇噻～遗物大会4000点都达到了！真是厉害。希望我的魔法对你多少有点帮助。现在距离获得参与奖只差1000点了！！超过5000点，就颁发参与奖给你。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_133$" value="我听……听说足……足球鞋在你那里？原来……原来是谣传啊。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_134$" value="&lt;足球鞋遗失&gt;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_135$" value="这……这不是……很久以……前和威尔斯、吉欧一……一起做的足……足球鞋吗？我……我倾注了很……很多心血的……谢……谢谢你拿来给……给我……这是我……我的谢礼。&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_136$" value="我听说你找到了足球鞋？怎么好像不是你？"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_137$" value="啊！！这不是我的心血结晶吗？这个足球鞋是我一手做出来的。有些人做的时候不肯帮忙，做完了以后却争着邀功……你说是不是太无耻？看来你是认可我的，谢谢！&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_138$" value="我听说你找到了足球鞋？怎么好像不是你？你不想再找找看吗？"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_139$" value="嗯？这不是和拉玛人、吉欧一起尝试着做出来的足球鞋吗？真怀念那个时候啊。当然，那个时候属我干活最多……要不是威尔斯那家伙的臭脾气，这鞋做起来可用不了多少时间……无论如何，谢谢你了。这是我的谢礼。 &#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_14$" value="怀疑使用非法程序，点数统计已终止。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_140$" value="听说你要把手表带给我，怎么没有呢？"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_141$" value="&lt;手表遗失&gt;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_142$" value="这不是我的手表吗？呵呵，年轻的时候，我的人气也是很旺的……看到这个，又想起了当年的自己……谢谢了。这是我的一点心意！&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_143$" value="&lt;自动开始: point = "/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_144$" value="哎呦？我还没说，你就开始行动了？真是热情高涨啊。不过，从现在开始你也可能被当作盗墓贼哦。以后要想积累更多的点数，这个许可证就必不可少。&#13;&#10;&#13;&#10;#L0# #b你说什么？#l"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_145$" value="哎呦？真的是偶然找到的吗？简直太巧了！哈哈，我是说遗物大会。我现在对古代遗物超级着迷。不过，你要是在没有获得许可证的状态下挖掘的话，是得不到任何点数的。&#13;&#10;&#13;&#10;#L0# #b所谓遗物是不是就是这些发光的石头？#l"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_146$" value="啊！可别这么说～谁都不知道其中会有什么～通过猎捕怪兽获得发光的石头，这样就能获得点数，点数达到一定程度，还能得到不错的奖品。&#13;&#10;&#13;&#10;#L0# #b怎样的奖品呢？#l"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_147$" value="嗯……奖品啊，超过5000点，就能获得#v01022088:#、#v01002980:#中的任意一个。如果在周末颁奖的时候进入了Top10，则能获得#v01022089:# #v01002981:#，#r不受期限限制地#k～"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_148$" value="好了～前10名的颁奖为每周日的5点～6点，在此之前一定要多多积累点数哦。对了！周末期间获得的点数会翻倍上升的～所以就算平时积累了很多点数，但也很可能在周末的时候被逆转！还需要许可证的话，随时可以来找我。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_149$" value="在其他栏看看有没有空格～遗物大会许可证需要足够的空格才能放下。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_15$" value="没有佳佳发放的发掘许可证。盗掘点数达到100点，会被认为是盗墓贼，大会点数初始化为0。当前盗掘点数："/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_150$" value="哎呦？你没找到卡珊德拉的相册吗？"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_151$" value="&lt;相册遗失&gt;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_152$" value="嗯……好像是卡珊德拉的相册吧？不过……这个相册……怎么都是卡珊德拉小时候的照片？噗哧，卡珊德拉小时候的样子实在不敢恭维。拿去给佳佳看，说不定能够改善一下两个人之间的关系呢。怎么样？呵呵！&#13;&#10;&#13;&#10;#b#L0# #b交给佳佳。#l&#13;&#10;#b#L1# #b交给卡珊德拉。#l"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_153$" value="&lt;相册，选择佳佳&gt;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_154$" value="哈哈！好期待啊，那我就拿去给佳佳看了。她肯定会很喜欢的～"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_155$" value="&lt;相册，选择卡珊德拉&gt;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_156$" value="嗯，还给主人比较好些，那我就去还给卡珊德拉了。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_16$" value="点"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_17$" value="&lt;达到500点&gt;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_18$" value="&lt;达到1000点&gt;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_19$" value="&lt;达到2000点&gt;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_2$" value="&lt;一周时间未登录"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_20$" value="&lt;达到3000点&gt;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_21$" value="有&lt;追加任务&gt;。去问问佳佳。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_22$" value="&lt;达到6000点&gt;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_23$" value="&lt;达到10000点&gt;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_24$" value="&lt;达到20000点&gt;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_25$" value="发现卡珊德拉的相册。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_26$" value="[ 1 / 8 ]发现了第一个神秘的遗物。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_27$" value="[ 2 / 8 ]发现了第二个神秘的遗物。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_28$" value="[ 3 / 8 ]发现了第三个神秘的遗物。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_29$" value="[ 4 / 8 ]发现了第四个神秘的遗物。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_3$" value="遗物点数超过一周，已初始化。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_30$" value="[ 5 / 8 ]发现了第五个神秘的遗物。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_31$" value="[ 6 / 8 ]发现了第六个神秘的遗物。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_32$" value="[ 7 / 8 ]发现了第七个神秘的遗物。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_33$" value="[ 8 / 8 ]发现了第八个神秘的遗物。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_34$" value="可能会发现神秘的遗物。请清空其他栏。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_35$" value="#r&lt;追加任务！！&gt;#k&#13;&#10;#L5# #超过了b6000点！！#l&#13;&#10;#L6# #b超过了10000点！！#l&#13;&#10;#L7# #b超过了20000点！！#l"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_36$" value="遗物大会已结束。请中奖者领取礼物。礼物只能在8月7日前领取，请一定要及时领取。&#13;&#10;&#13;&#10;#b#L1# #b我想知道中奖者。#l&#13;&#10;#L2# #b我想领取礼物。#l"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_37$" value="#k点( "/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_38$" value=" )点&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_39$" value="还没有任何人超过5000点。#b"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_4$" value="周日下午5点到6点之间为统计排名时间。稍后从6点开始可以参加大会。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_40$" value="#k，你想挑战一下吗？"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_41$" value="#b&lt;统计方法&gt;&#13;&#10;5000点以上玩家中的前10名&#13;&#10;遗物大会Top 10&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_42$" value="以上"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_43$" value="名"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_44$" value="上周未举行大会，或没有任何中奖者～这周请继续努力#b"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_45$" value="#k，你想挑战一下吗？"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_46$" value="#b&lt;统计方法&gt;&#13;&#10;5000点以上玩家中的前10名&#13;&#10;上周遗物大会Top 10&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_47$" value="名 &#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_48$" value="请选择喜欢的奖励。 &#13;&#10;&#13;&#10;#b#L0# #b #v01022089:# #v01142124:# #l&#13;&#10;#b#L1# #b#v01002981:# #v01142124:# #l"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_49$" value="你已经拥有遗物大会Top10勋章，这种勋章无法拥有2个以上。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_5$" value="超过一周，遗物点数已初始化。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_50$" value="选择有误。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_51$" value="请确认装备栏是否有2个以上的空格。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_52$" value="奇怪，你的状态显示已经得到了礼物。请问你是否已经接收过礼物了？"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_53$" value="很抱歉，是不是你弄错了？？上周的中奖者名单里没有#b"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_54$" value="#k的名字。现在正在颁发7月19日～26日Top 10使用者的礼物。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_55$" value="#b#e&lt;遗物大会参与奖 - 5000点以上 #r有效期3天#k&gt;#n#k&#13;&#10; #v1022088:# #t1022088# &#13;&#10;#v1002980:# #t1002980# &#13;&#10;&#13;&#10;&#13;&#10;#b#e&lt;遗物大会 Top 10 #r无期限限制#k&gt;#n#k&#13;&#10;#v1022089:# #t1022089#  &#13;&#10; #v1002981:# #t1002981#"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_56$" value="需要遗物大会的许可证？这里有1个小时的遗物大会许可证出售！想知道为什么要按小时来卖？因为现在有些盗墓贼太贪心了，想独吞所有遗物大会的奖品！为了避免无辜受害者的出现，特别推出了这种制度！来，这是你的许可证。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_57$" value="剩下的空格似乎不够用来放遗物大会许可证。请确认其他栏中有没有多余的空格。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_58$" value="哎呦？已经超过6000点了？你真厉害！！这就为你兑换宝贵的经验值！哈哈……好像有点不够？要不你看这样行不行？要是你能超过10000点，就多给你一次选择帽子和眼镜的机会。挑战一下试试吧~&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_59$" value="哎呦？已经超过6000点了？你真厉害！！这就为您兑换宝贵的经验值……咦？你前不久刚兑换过了！！等下周的遗物大会再试试吧。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_6$" value="超过遗物点数统计时间，已初始化。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_60$" value="你的点数好像还不足6000点。达到6000点再来吧。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_61$" value="哎呦？都超过10000点了？哇塞～真够牛的！！稍等，给你礼物。&#13;&#10;&#13;&#10;请选择你喜欢的奖品。 &#13;&#10;&#13;&#10;#b#L0# #b #v01022088:# 考古学家眼镜1个 #l&#13;&#10;#b#L1# #b#v01002980:# 考古学家帽子1顶#l"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_62$" value="嗯……你已经有眼镜了。领过的东西是不能重复领取的。你只能选择帽子了。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_63$" value="看，#b考古学家眼镜#k已经给过你了～请在装备栏中确认。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_64$" value="嗯……你已经有帽子了。领过的东西是不能重复领取的。你只能选择眼镜了。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_65$" value="请将装备栏腾空1格。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_66$" value="哎呦？都超过10000点了？哇塞～真够牛的！！稍等，给你礼物……啊？？你已经领取过礼物了！！等下周的遗物大会再试试吧。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_67$" value="似乎还没到10000点。等达到10000点再来找我吧。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_68$" value="我的天～居然都20000点了……看来你真的很拼命啊！！这就为你兑换宝贵的经验值。你可以挑战Top10了！&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_69$" value="我的天～居然都20000点了……看来你真的很拼命啊！！这就为你兑换宝贵的经验值……咦？前不久你刚刚兑换过！！等下周的遗物大会再试试吧。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_7$" value="周日统计时间(5点~6点)之前获得的点数已初始化。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_70$" value="似乎还没到20000点。到了20000点再来找我吧。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_71$" value="我听说石化老鼠在你手里？怎么好像没有？再去找一找吧？"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_72$" value="哎呦？这！！你怎么找到这个的？#b"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_73$" value="#k真是让我刮目相看啊啊！? 过去有不少使用这种非法程序的人。最后，只能终止了他们的冒险历程。总有一天他们会发现亲身参与游戏也是一种享受的。我也会继续努力，加大对非法程序的监控。 #b"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_74$" value="#k，请接受我的一片心意。&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_75$" value="听说你有眼镜的，怎么好像不是？再去找找遗物试试？"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_76$" value="哎……哎呦？怎么找到这眼镜的？这是不久前我被绑架到太空船时丢掉的……唉，别提了。我就不断地被人救又被人绑架，又被人救，有被人绑架的……自己都快疯了～不过，后来我才知道，原来救我的人只是因为觊觎月妙老爷爷给的宇宙飞船技术才救我的……那人该不会就是#b"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_77$" value="#k你吧？哈哈，总之谢谢你了。这是我的一点心意。&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_78$" value="听说水晶球在你手上？怎么好像不对呢？要不要再去找找看？"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_79$" value="啊！！这不就是能够预测未来的水晶球吗～这么珍贵的东西怎么找到的？只要稍稍修复一下，就能完好如新。谢谢你了，我要给你一些经验值！&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_8$" value="遗物大会点数(+"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_80$" value="我听说克鲁巴的手表在你那里？难道是谣言？要不再去找找遗物？"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_81$" value="啊！这不就是#b克鲁巴#k一直在找的手表吗？这东西很贵的说！ &#13;&#10;&#13;&#10;#b#L0# #b我继续去打猎，请运营者代为转交。#l&#13;&#10;#b#L1# #b我直接转交给克鲁巴，行吗？#l"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_82$" value="好吧，我就替你把手表转交给克鲁巴～&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_83$" value="&lt;不进入手表支线&gt;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_84$" value="啊，那就麻烦你去交给神木村的克鲁巴吧。&#13;&#10;&#13;&#10;#b#L0# #b明白了～我会转交给他的。#l"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_85$" value="我会事先跟神木村的克鲁巴联系好的。你肯定会去找克鲁巴的吧？"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_86$" value="&lt;进入手表支线&gt;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_87$" value="你的等级太低，还无法去神木村……不行，这样太危险了，不能拜托你去。还是我自己转交吧，&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_88$" value="还在为应该给谁而烦恼？别烦了，交给我吧。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_89$" value="听说你找到了足球鞋？怎么，难道是谣传？不想再找找看吗？"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_9$" value="点)："/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_90$" value="啊！这不是玛加提亚的物品制作者#b拉玛人#k、#b威尔斯#k、#b吉欧#k年轻时候一起制作的足球鞋……不过由于意见分歧，三个人最后变成各做各的了。问题是这个鞋应该送去给谁呢？三个人肯定都觉得是自己做的。 #b"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_91$" value="#k觉得给谁比较好呢？&#13;&#10;&#13;&#10;#b#L0# #b给拉玛人吧。#l&#13;&#10;#b#L1# 给威尔斯吧。#l&#13;&#10;#b#L2# 给吉欧吧。#l&#13;&#10;#b#L3# 我也不知道，运营者看着办吧。#l"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_92$" value="那我就联系玛加提亚的拉玛人了，你一定会送去的吧？"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_93$" value="没问题～我会送去给玛加提亚的拉玛人的～"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_94$" value="&lt;足球鞋支线-拉玛人&gt;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_95$" value="你的级别太低，还不能去玛加提亚……没办法，你去太危险了，还是我自己送去吧。&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_96$" value="还没决定交给谁去办？别发愁了，交给我吧。"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_97$" value="那我就联系玛加提亚的威尔斯，说你会直接送过去？"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_98$" value="没问题～我会转交给玛加提亚的威尔斯～"/>
+  <string name="$SCRIPTSTRING_ANCIENTTREASURE_99$" value="&lt;足球鞋支线-威尔斯&gt;"/>
+</imgdir>

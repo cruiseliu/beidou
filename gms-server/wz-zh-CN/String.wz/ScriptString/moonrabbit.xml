@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="moonrabbit">
+  <string name="$SCRIPTSTRING_MOONRABBIT_0$" value="哈啰~我叫达尔利。这里面是充满圆月神秘力量的地方。 因此你无法独自进入喔！"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_1$" value="若想要进入里面，需由你所隶属队伍的队长，与我进行对话喔！快去找你的队长吧~^^"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_10$" value="谢谢你帮饥饿的兴儿找到了年糕。现在，这里好像没有什么需要你帮忙的了。你要出去吗？&#13;&#10;#b#L1# 想把剩下的年糕给你。#l&#13;&#10;#L0# 是的，请把我送出去。#l"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_11$" value="我给你的帽子戴着合适吗？多亏了你，现在肚子吃饱了，不需要更多的年糕了。"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_12$" value="谢谢你的好意。不过没关系。之前你给我的年糕已经足够了。为了表示感谢，我为你准备了一件小礼物。你愿意收下吗？"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_13$" value="现在太忙的话，请以后再来找我。"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_14$" value="请确认装备窗口中是否有一个以上的空格。"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_15$" value="真的很适合你。"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_16$" value="啊！你给我送来了月妙的年糕？你带来了几个呢？"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_17$" value="你真的把年糕带来了吗？别跟我开玩笑。"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_18$" value="你给我的第"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_19$" value="块年糕！谢谢你～"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_2$" value="哈啰~我叫达尔利。这里面是开满月花的美丽山丘。听说…里面有一个叫做兴儿的老虎，好像四处在寻找可以填饱肚子的食物… "/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_20$" value="有好好教训那些猪猪吗？ 看来你来这里的任务已达成…要不要让我将你送到外面？&#13;&#10;#b#L0#好！请把我送往外面。#l"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_21$" value="你好~我的名字叫达尔米。这附近有一个猪猪村庄，住在里面的猪猪不但性格凶暴，而且贪得无厌，会抢夺许多勇士的武器，并且将人们逐出村庄之外，因此我也只好偷偷藏身在这里…"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_22$" value="你愿意与你的队员，一同前往那里教训那些贪心的猪猪吗？&#13;&#10;#b#L0#好！请将我送往猪猪村庄。"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_23$" value="因不明原因，无法将各位送往猪猪村庄！请稍后重新再试喔！"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_24$" value="这里是无法单独进入喔！若想要进去的话，需由你所隶属#b队伍的队长#k，与我进行对话！"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_25$" value="你所隶属的队伍，人数未达3人以上因此无法进入！须有三位队友，才可以进入猪猪村庄喔！"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_26$" value="你所隶属的队伍，人数未达3人以上因此无法进入！须有三位队友，且等级达10级才可以进入喔！"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_27$" value="你的组队队员里有等级不到10 的成员。等级在10 以上，并且人员在3名以上才可以入场。请你确认以后再跟我谈."/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_28$" value="若想要好好教训猪猪，请通过队长进行！"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_29$" value="你要结束打怪，离开这里吗？ &#13;&#10;#b#L0#是，请将我送往外面。#l"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_3$" value="勇士…你愿意前往月花山丘，集结队员的力量，一起帮助兴儿吗？&#13;&#10;#b#L0# 好的！我愿意。#l"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_30$" value="看来你已完成在这里的任务！你要离开这里吗？&#13;&#10;#b#L0# 好！请让我离开这里。#l"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_31$" value="那..下次若有机会，也请你再来帮我忙喔#b#t4001101##k吧~一路顺风喔！后会有期啰~"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_32$" value="请让队长来与我对话！"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_33$" value="我是看守这个月花山丘的兴儿，你有什么事吗？&#13;&#10;#b#L0# 请告诉我关于这里的事情。#l&#13;&#10;#L2#我想离开这里。#l"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_34$" value="我是看守这个月花山丘的兴儿，你有什么事吗？&#13;&#10;#b#L0#请告诉我关于这里的事情。#l&#13;&#10;#L1#我把 #t4001101#拿来了。#l&#13;&#10;#L2#我想离开这里。#l"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_35$" value="在这里啊...每当圆月高照时，就可以尝到月妙所做的美味年糕喔！简直就是人间极品呢~"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_36$" value="可从散布在各地的月花草中取得月花的种子后，将种子放到悬月周围的小踏板上，就可以种出月花喔！月花一共有六种，开出每种月花的踏板都不相同，因此必须要将正确的种子放到指定的踏板上…"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_37$" value="当月花开时，圆月就会高挂在夜空中，而月妙也会出现踪迹并且开始捣米。这时候…就要从怪物的攻击中保护月妙，让他顺利地完成捣米制作年糕。这就是你的任务啰~"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_38$" value="那就麻烦你结合队友们的力量，在限定的时机内取得10个年糕后，再把东西拿给我吧~"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_39$" value="喔喔喔~这不就是月妙所制作出的年糕吗？快快~快把年糕交给我吧！"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_4$" value="因不明原因，无法将各位送往月花山丘！请稍后重新再试喔！"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_40$" value="&lt;2009组队任务活动&gt;组队任务清除时会支付追加经验值。"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_41$" value="好吃好吃~真是美味啊！下次若有机会，也请你再来找我，帮忙搜集#b#t4001101##k给我吧！那祝你一路顺风喔~"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_42$" value="你该不会是把年糕给弄丢了吧？"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_43$" value="你再确认一下10个#b#t4001101##k是否搜集齐全！"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_44$" value="若现在放弃，就无法完成任务啦！这样也无所谓？"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_45$" value="没错…做人可不能半途而废呢！就请你加油啰~"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_46$" value="好吧~那还是祝你一路顺风…"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_47$" value="守护打年糕的月妙，收集10个月妙的年糕！"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_5$" value="哈啰~我叫达尔利。这里面是充满圆月神秘力量的地方喔！因此你无法独自进入喔！若想要进入里面，需由你所隶属#b队伍的队长#k，与我进行对话喔！"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_6$" value="你所属的组队队员不足3名不能入场。等级在10 以上，并且人员在3名以上才可以入场。请你确认以后再跟我谈."/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_7$" value="你的组队队员里有等级不到10 的成员。等级在10 以上，并且人员在3名以上才可以入场。请你确认以后再跟我谈."/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_8$" value="里面已经有其他队伍在进行任务，请稍后再来找我喔！"/>
+  <string name="$SCRIPTSTRING_MOONRABBIT_9$" value="把迎月花种子种在月亮的周围！圆月升上来的时候，月妙就会开始打年糕。"/>
+</imgdir>

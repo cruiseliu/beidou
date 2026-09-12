@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="taxi">
+  <string name="$SCRIPTSTRING_TAXI_0$" value="看来这里的事情你已经办完了嘛。你确定要去#b#m"/>
+  <string name="$SCRIPTSTRING_TAXI_1$" value="##k吗？票价是#b"/>
+  <string name="$SCRIPTSTRING_TAXI_10$" value="请你选择目的地吧。按照目的地不同，车费也有所不同。&#13;&#10;#b#L0# #m104000000#(800 金币)#l&#13;&#10;#L1# #m102000000#(1000 金币)#l&#13;&#10;#L2# #m101000000#(1000 金币)#l&#13;&#10;#L3# #m103000000#(1200 金币)#l&#13;&#10;#L4# #m120000000#(1000 金币)#l"/>
+  <string name="$SCRIPTSTRING_TAXI_11$" value="您好~！是#p1052016#。你想不想又快捷又安全的到其他地方去？那么请使用我们的出租车吧。它会马上将你送到你想去的地方，价格很便宜哦!"/>
+  <string name="$SCRIPTSTRING_TAXI_12$" value="对新手我们特别进行1折优惠。请你选择目的地吧。按照目的地不同，车费也有所不同。&#13;&#10;#b#L0# #m104000000#(100 金币)#l&#13;&#10;#L1# #m102000000#(80 金币)#l&#13;&#10;#L2# #m101000000#(120 金币)#l&#13;&#10;#L3# #m100000000#(100 金币)#l&#13;&#10;#L4# #m120000000#(100 金币)#l"/>
+  <string name="$SCRIPTSTRING_TAXI_13$" value="请你选择目的地吧。按照目的地不同，车费也有所不同。&#13;&#10;#b#L0# #m104000000#(1000 金币)#l&#13;&#10;#L1# #m102000000#(800 金币)#l&#13;&#10;#L2# #m101000000#(1200 金币)#l&#13;&#10;#L3# #m100000000#(1000 金币)#l&#13;&#10;#L4# #m120000000#(1000 金币)#l"/>
+  <string name="$SCRIPTSTRING_TAXI_14$" value="您好~！是#p1032000#。你想不想又快捷又安全的到其他地方去？那么请使用我们的出租车吧。它会马上将你送到你想去的地方，价格很便宜哦!"/>
+  <string name="$SCRIPTSTRING_TAXI_15$" value="啊，这是#t4032288#？你是从圣地来的冒险骑士团的人吧？按照和南哈特的约定，持有#t4032288#的人可以免费传送到射手村，但仅限1次。您现在就想到射手村去吗？"/>
+  <string name="$SCRIPTSTRING_TAXI_16$" value="啊……看来你不想去射手村啊。那就算了。"/>
+  <string name="$SCRIPTSTRING_TAXI_17$" value="对新手我们特别进行1折优惠。请你选择目的地吧。按照目的地不同，车费也有所不同。&#13;&#10;#b#L0# #m104000000#(120 金币)#l&#13;&#10;#L1# #m102000000#(100 金币)#l&#13;&#10;#L2# #m100000000#(100 金币)#l&#13;&#10;#L3# #m103000000#(120 金币)#l&#13;&#10;#L4# #m120000000#(100 金币)#l"/>
+  <string name="$SCRIPTSTRING_TAXI_18$" value="请你选择目的地吧。按照目的地不同，车费也有所不同。&#13;&#10;#b#L0# #m104000000#(1200 金币)#l&#13;&#10;#L1# #m102000000#(1000 金币)#l&#13;&#10;#L2# #m100000000#(1000 金币)#l&#13;&#10;#L3# #m103000000#(1200 金币)#l&#13;&#10;#L4# #m120000000#(1000 金币)#l"/>
+  <string name="$SCRIPTSTRING_TAXI_19$" value="您好~！是#p1092014#。你想不想又快捷又安全的到其他地方去？那么请使用我们的出租车吧。它会马上将你送到你想去的地方，价格很便宜哦!"/>
+  <string name="$SCRIPTSTRING_TAXI_2$" value=" 金币#k。"/>
+  <string name="$SCRIPTSTRING_TAXI_20$" value="对新手我们特别进行1折优惠。请你选择目的地吧。按照目的地不同，车费也有所不同。&#13;&#10;#b#L0# #m104000000#(120 金币)#l&#13;&#10;#L1# #m102000000#(100 金币)#l&#13;&#10;#L2# #m100000000#(100 金币)#l&#13;&#10;#L3# #m103000000#(120 金币)#l&#13;&#10;#L4# #m101000000#(100 金币)#l"/>
+  <string name="$SCRIPTSTRING_TAXI_21$" value="请你选择目的地吧。按照目的地不同，车费也有所不同。&#13;&#10;#b#L0# #m104000000#(1200 金币)#l&#13;&#10;#L1# #m102000000#(1000 金币)#l&#13;&#10;#L2# #m100000000#(1000 金币)#l&#13;&#10;#L3# #m103000000#(1200 金币)#l&#13;&#10;#L4# #m101000000#(1000 金币)#l"/>
+  <string name="$SCRIPTSTRING_TAXI_22$" value="你好～！我是明珠港中型出租车。你想快速并安全地移动到其他村庄吗？那样的话，请乘坐出租车。我们会以低廉的价格将您送到想去的地方。"/>
+  <string name="$SCRIPTSTRING_TAXI_23$" value="咦？这不是出租车使用券吗？持有出租车使用券的顾客，可以免费乘坐出租车到使用券上标明的地方去～你的使用券的目的地是……是#b射手村#k！"/>
+  <string name="$SCRIPTSTRING_TAXI_24$" value="你想马上出发去射手村吗？"/>
+  <string name="$SCRIPTSTRING_TAXI_25$" value="嗯……看样子你在明珠港还有事情要做。"/>
+  <string name="$SCRIPTSTRING_TAXI_26$" value="咦～奇怪。请稍候重新尝试。"/>
+  <string name="$SCRIPTSTRING_TAXI_27$" value="对于新手，我们特别提供90%的折扣。请选择目的地。每个村庄的费用都不同。&#13;&#10;#b#L0# #m120000000#(120金币)#l&#13;&#10;#L1# #m102000000#(120金币)#l&#13;&#10;#L2# #m100000000#(80金币)#l&#13;&#10;#L3# #m103000000#(100金币)#l&#13;&#10;#L4# #m101000000#(120金币)#l"/>
+  <string name="$SCRIPTSTRING_TAXI_28$" value="请选择目的地。每个村庄的费用都不同。&#13;&#10;#b#L0# #m120000000#(1200金币)#l&#13;&#10;#L1# #m102000000#(1200金币)#l&#13;&#10;#L2# #m100000000#(800金币)#l&#13;&#10;#L3# #m103000000#(1000金币)#l&#13;&#10;#L4# #m101000000#(1200金币)#l"/>
+  <string name="$SCRIPTSTRING_TAXI_29$" value="您好~! 我们是星级出租车。不同于村落之间来往的一般的中巴我们给您提供更高级的服务。因此车费有点贵…您只要支付10000金币，我们就会将您安全迅速的送到#b蚂蚁洞广场#k。但是等级太低进去会很危险是否要进去呢？"/>
+  <string name="$SCRIPTSTRING_TAXI_3$" value="对不起，你的金币不够支付车费。"/>
+  <string name="$SCRIPTSTRING_TAXI_30$" value="对新手我们特别进行1折优惠，机会难得。蚂蚁洞广场是位于金银岛中间的迷宫深处。在那里有#p1061001#。你愿意支付#b1000金币#k去蚂蚁洞广场吗？"/>
+  <string name="$SCRIPTSTRING_TAXI_31$" value="蚂蚁洞广场是位于金银岛中间的迷宫深处。在那里有#p1061001#。你是否要付10000金币后去蚂蚁洞广场？"/>
+  <string name="$SCRIPTSTRING_TAXI_32$" value="在这个村子里还有许多漂亮的景点，如果你想去蚂蚁洞广场，欢迎随时使用我们的出租车服务。"/>
+  <string name="$SCRIPTSTRING_TAXI_33$" value="对不起，你的金币不够支付车费。"/>
+  <string name="$SCRIPTSTRING_TAXI_34$" value="全世界的海都是相连的。陆路会很远，但是利用水路会很近。怎么样？要乘坐 #b海豚出租车#k移动吗？使用&#13;&#10;#b#L0# #t4031242##k向矩形地带移动。#l&#13;&#10;#L1# "/>
+  <string name="$SCRIPTSTRING_TAXI_35$" value=" 向  #m251000100#移动#l。"/>
+  <string name="$SCRIPTSTRING_TAXI_36$" value="你好像没有#b#t4031242##k。可能射手村的卡米拉会给你海豚TAXI使用券..."/>
+  <string name="$SCRIPTSTRING_TAXI_37$" value="看来你没有足够的金币。"/>
+  <string name="$SCRIPTSTRING_TAXI_38$" value="全世界的海都是相连的。陆路会很远，但是利用水路会很近。怎么样？要乘坐#b海豚出租车#k移动吗？初学者只需90%的价钱。出&#13;&#10;#b#L0# "/>
+  <string name="$SCRIPTSTRING_TAXI_39$" value="向矩形地带移动。#l&#13;&#10;#L1# "/>
+  <string name="$SCRIPTSTRING_TAXI_4$" value="在这个村子里还有许多漂亮的景点，如果你想去其他地方，欢迎随时使用我们的出租车服务。"/>
+  <string name="$SCRIPTSTRING_TAXI_40$" value="向#m251000100#移动#l"/>
+  <string name="$SCRIPTSTRING_TAXI_41$" value="全世界的海都是相连的。陆路会很远，但是利用水路会很近。怎么样？要乘坐#b海豚出租车#k移动吗？只需一点费用，您就可以到达想去的地方。出&#13;&#10;#b#L0# "/>
+  <string name="$SCRIPTSTRING_TAXI_42$" value=" 金币向矩形地带移动。#l&#13;&#10;#L1# "/>
+  <string name="$SCRIPTSTRING_TAXI_43$" value=" 金币向#m251000100#移动。#l"/>
+  <string name="$SCRIPTSTRING_TAXI_44$" value="要乘坐#b#p2060009##k向 #b#m230000000##k移动吗？初学者只需10%的价钱。价钱是 #b"/>
+  <string name="$SCRIPTSTRING_TAXI_45$" value=" 金币#k。"/>
+  <string name="$SCRIPTSTRING_TAXI_46$" value="要乘坐#b#p2060009##k向美丽的水下世界#b#m230000000##k移动吗？价钱是 #b"/>
+  <string name="$SCRIPTSTRING_TAXI_47$" value=" 金币#k 。"/>
+  <string name="$SCRIPTSTRING_TAXI_48$" value="想好了再跟我搭话吧。"/>
+  <string name="$SCRIPTSTRING_TAXI_49$" value="想骑#b#p2110005##k移动到 #b#m261000000##k吗? 新手打折90%，价格为 #b"/>
+  <string name="$SCRIPTSTRING_TAXI_5$" value="您好~！是#p1022001#。你想不想又快捷又安全的到其他地方去？那么请使用我们的出租车吧。它会马上将你送到你想去的地方，价格很便宜哦!"/>
+  <string name="$SCRIPTSTRING_TAXI_50$" value=" 金币#k．"/>
+  <string name="$SCRIPTSTRING_TAXI_51$" value="想骑#b#p2110005##k移动到村庄 #b#m261000000##k吗? 价格为 #b"/>
+  <string name="$SCRIPTSTRING_TAXI_52$" value=" 金币#k ."/>
+  <string name="$SCRIPTSTRING_TAXI_53$" value="请考虑好后再与我对话吧．"/>
+  <string name="$SCRIPTSTRING_TAXI_54$" value="好像金币不够．"/>
+  <string name="$SCRIPTSTRING_TAXI_55$" value="想骑#b#p2110005##k移动到#b#m260000000##k吗? 新手打折90%，价格为 #b"/>
+  <string name="$SCRIPTSTRING_TAXI_56$" value=" 金币#k."/>
+  <string name="$SCRIPTSTRING_TAXI_57$" value="想骑#b#p2110005##k移动到绿洲村庄 #b#m260000000##k吗? 价格为 #b"/>
+  <string name="$SCRIPTSTRING_TAXI_58$" value=" 金币#k."/>
+  <string name="$SCRIPTSTRING_TAXI_59$" value="请考虑好后再与我对话吧."/>
+  <string name="$SCRIPTSTRING_TAXI_6$" value="对新手我们特别进行1折优惠。请你选择目的地吧。按照目的地不同，车费也有所不同。&#13;&#10;#b#L0# #m104000000#(120 金币)#l&#13;&#10;#L1# #m100000000#(100 金币)#l&#13;&#10;#L2# #m101000000#(100 金币)#l&#13;&#10;#L3# #m103000000#(80 金币)#l&#13;&#10;#L4# #m120000000#(100 金币)#l"/>
+  <string name="$SCRIPTSTRING_TAXI_60$" value="好像金币不够."/>
+  <string name="$SCRIPTSTRING_TAXI_61$" value="你好！这是能开往任何神秘岛地区的危险地区快速出租车！ 从#m211000000#开往 #b#m211040200##k！原价是45000金币，如果是初学者可以提供90%折扣服务！"/>
+  <string name="$SCRIPTSTRING_TAXI_62$" value="想乘坐危险地区子弹出租车前往#b#m211040200##k吗？价格按初学者折扣是 #b"/>
+  <string name="$SCRIPTSTRING_TAXI_63$" value=" 金币#k。"/>
+  <string name="$SCRIPTSTRING_TAXI_64$" value="你好！这是能开往任何神秘岛地区的危险地区子弹出租车！ 从#m211000000#开往 #b#m211040200##k！价格是 #b "/>
+  <string name="$SCRIPTSTRING_TAXI_65$" value=" 金币#k有点贵，但既然能够通过危险地区，也算物有所值了！"/>
+  <string name="$SCRIPTSTRING_TAXI_66$" value="支付 金币#k之后移动到#b#m211040200##k吗？"/>
+  <string name="$SCRIPTSTRING_TAXI_67$" value="嗯... 再考虑一下吧。是物有所值的出租车！使用这个服务你不会后悔的！"/>
+  <string name="$SCRIPTSTRING_TAXI_68$" value="看来您带的金币不够啊。很抱歉，不过不支付金币就无法使用出租车服务。努力打猎攒足够的金币之后再使用这个服务吧。"/>
+  <string name="$SCRIPTSTRING_TAXI_69$" value="你好！这是能开往任何神秘岛地区的危险地区快速出租车！从#m220000000#开往 #b#m220050300##k！原价是25000金币，如果是初学者可以提供90%折扣服务！"/>
+  <string name="$SCRIPTSTRING_TAXI_7$" value="请你选择目的地吧。按照目的地不同，车费也有所不同。&#13;&#10;#b#L0# #m104000000#(1200 金币)#l&#13;&#10;#L1# #m100000000#(1000 金币)#l&#13;&#10;#L2# #m101000000#(1000 金币)#l&#13;&#10;#L3# #m103000000#(800 金币)#l&#13;&#10;#L4# #m120000000#(1000 金币)#l"/>
+  <string name="$SCRIPTSTRING_TAXI_70$" value="想乘坐危险地区子弹出租车前往#b#m220050300##k吗？价格按初学者折扣是 #b"/>
+  <string name="$SCRIPTSTRING_TAXI_71$" value=" 金币#k。"/>
+  <string name="$SCRIPTSTRING_TAXI_72$" value="你好！这是能开往任何神秘岛地区的危险地区子弹出租车！从#m220000000#开往 #b#m220050300##k！价格是 #b"/>
+  <string name="$SCRIPTSTRING_TAXI_73$" value="支付金币#k之后移动到#b#m220050300##k吗？"/>
+  <string name="$SCRIPTSTRING_TAXI_74$" value="你好！这是能开往任何神秘岛地区的危险地区快速出租车！从#m240000000#开往#b#m240030000##k！原价是55000金币，如果是初学者可以提供90%折扣服务！"/>
+  <string name="$SCRIPTSTRING_TAXI_75$" value="想乘坐危险地区子弹出租车前往#b#m240030000##k吗？价格按初学者折扣是 #b"/>
+  <string name="$SCRIPTSTRING_TAXI_76$" value=" 金币#k。"/>
+  <string name="$SCRIPTSTRING_TAXI_77$" value="你好！这是能开往任何神秘岛地区的危险地区子弹出租车！从#m240000000#开往#b#m240030000##k！价格是 #b"/>
+  <string name="$SCRIPTSTRING_TAXI_78$" value="支付金币#k之后移动到#b#m240030000##k吗？"/>
+  <string name="$SCRIPTSTRING_TAXI_79$" value="啊，您要乘坐出租车吗？很抱歉，您级别较低，无法乘坐此出租车前往危险地区。级别提高之后再使用这项服务！"/>
+  <string name="$SCRIPTSTRING_TAXI_8$" value="您好~！是#p1012000#。你想不想又快捷又安全的到其他地方去？那么请使用我们的出租车吧。它会马上将你送到你想去的地方，价格很便宜哦!"/>
+  <string name="$SCRIPTSTRING_TAXI_80$" value="对冒险岛会员用户限定免费提供，请尽情使用。请选择目的地。&#13;&#10;#b#L0# #m104000000##l&#13;&#10;#L1# #m100000000##l&#13;&#10;#L2# #m101000000##l&#13;&#10;#L3# #m103000000##l&#13;&#10;#L4# #m120000000##l"/>
+  <string name="$SCRIPTSTRING_TAXI_81$" value="对冒险岛会员用户限定免费提供，请尽情使用。请选择目的地。&#13;&#10;#b#L0# #m104000000##l&#13;&#10;#L1# #m102000000##l&#13;&#10;#L2# #m101000000##l&#13;&#10;#L3# #m103000000##l&#13;&#10;#L4# #m120000000##l"/>
+  <string name="$SCRIPTSTRING_TAXI_82$" value="对冒险岛会员用户限定免费提供，请尽情使用。请选择目的地。&#13;&#10;#b#L0# #m104000000##l&#13;&#10;#L1# #m102000000##l&#13;&#10;#L2# #m101000000##l&#13;&#10;#L3# #m100000000##l&#13;&#10;#L4# #m120000000##l"/>
+  <string name="$SCRIPTSTRING_TAXI_83$" value="对冒险岛会员用户限定免费提供，请尽情使用。请选择目的地。&#13;&#10;#b#L0# #m104000000##l&#13;&#10;#L1# #m102000000##l&#13;&#10;#L2# #m100000000##l&#13;&#10;#L3# #m103000000##l&#13;&#10;#L4# #m120000000##l"/>
+  <string name="$SCRIPTSTRING_TAXI_84$" value="对冒险岛会员用户限定免费提供，请尽情使用。请选择目的地。&#13;&#10;#b#L0# #m104000000##l&#13;&#10;#L1# #m102000000##l&#13;&#10;#L2# #m100000000##l&#13;&#10;#L3# #m103000000##l&#13;&#10;#L4# #m101000000##l"/>
+  <string name="$SCRIPTSTRING_TAXI_85$" value="对冒险岛会员用户限定免费提供，请尽情使用。请选择目的地。&#13;&#10;#b#L0# #m120000000##l&#13;&#10;#L1# #m102000000##l&#13;&#10;#L2# #m100000000##l&#13;&#10;#L3# #m103000000##l&#13;&#10;#L4# #m101000000##l"/>
+  <string name="$SCRIPTSTRING_TAXI_86$" value="对冒险岛会员用户限定免费提供，请尽情使用。蚂蚁洞广场位于金银岛中央的副本深处#p1061001#。是否前往蚂蚁洞广场？"/>
+  <string name="$SCRIPTSTRING_TAXI_87$" value="##k 要移动到村庄吗？"/>
+  <string name="$SCRIPTSTRING_TAXI_9$" value="对新手我们特别进行1折优惠。请你选择目的地吧。按照目的地不同，车费也有所不同。&#13;&#10;#b#L0# #m104000000#(80 金币)#l&#13;&#10;#L1# #m102000000#(100 金币)#l&#13;&#10;#L2# #m101000000#(100 金币)#l&#13;&#10;#L3# #m103000000#(120 金币)#l&#13;&#10;#L4# #m120000000#(100 金币)#l"/>
+</imgdir>

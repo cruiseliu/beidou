@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="event10">
+  <string name="$SCRIPTSTRING_EVENT10_0$" value="现在还不是活动时间。"/>
+  <string name="$SCRIPTSTRING_EVENT10_1$" value="活动时间已结束。"/>
+  <string name="$SCRIPTSTRING_EVENT10_10$" value="个"/>
+  <string name="$SCRIPTSTRING_EVENT10_11$" value="嗯……出发之前我也说过了，我需要10个#b#t4001268#和10个#t4001269##k。虽然不是很多，但应该可以用来阻止外星人的进攻了。我就收下了。&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT10_12$" value="你想尽快救出佳佳，你的心情我也可以理解，但你还是太年轻了。请达到13级之后再来找我。"/>
+  <string name="$SCRIPTSTRING_EVENT10_13$" value="你有话要和我说吗……&#13;&#10;&#13;&#10;#b#L0#我想救出佳佳。#l"/>
+  <string name="$SCRIPTSTRING_EVENT10_14$" value="你为了救出佳佳而积累的疲劳还没解开。你再休息"/>
+  <string name="$SCRIPTSTRING_EVENT10_15$" value="分钟。"/>
+  <string name="$SCRIPTSTRING_EVENT10_16$" value="欢迎光临。我已经听小月妙说了。我正想向你请求帮助，谢谢你特地过来找我。佳佳的面子好像还挺大的。他曾经在中秋的时候帮我做过糕，之后也经常过来看望我……谁知道在从月亮回去的路上被外星人劫持了。"/>
+  <string name="$SCRIPTSTRING_EVENT10_17$" value="如果坐视不管，佳佳一定会在外星人那里发生什么可怕的事。我把月妙们乘坐的宇宙船借给你，请你去把佳佳救出来。#b虽然他人看上去有点优柔寡断，又有点笨，有时又有点不懂事#k，但是他的心地非常善良。你愿意现在就去救他吗？"/>
+  <string name="$SCRIPTSTRING_EVENT10_18$" value="如果继续拖下去，他的安全就无法保障。"/>
+  <string name="$SCRIPTSTRING_EVENT10_19$" value="宇宙船好像发生了什么问题。我再找一艘其他的宇宙船，请稍等一下。"/>
+  <string name="$SCRIPTSTRING_EVENT10_2$" value="在限制时间内救出佳佳叔叔。"/>
+  <string name="$SCRIPTSTRING_EVENT10_20$" value="你现在去做这种危险的事情好像太早了。请你在达到15级之后再来找我。虽然事情很紧急，但我也不能派你这样没经验的人过去。"/>
+  <string name="$SCRIPTSTRING_EVENT10_21$" value="好像没有剩余的宇宙船了。我去仓库看看有没有剩余的宇宙船。请稍等一下。"/>
+  <string name="$SCRIPTSTRING_EVENT10_22$" value="宇宙船的出航准备好像还没结束。请稍等一下。"/>
+  <string name="$SCRIPTSTRING_EVENT10_23$" value="如果你能救回佳佳，我将破例允许你乘坐月妙们乘坐的#b宇宙船#k。乘坐宇宙船，移动起来就会方便得多。这样的奖励，你应该满意了吧？"/>
+  <string name="$SCRIPTSTRING_EVENT10_24$" value="听说宇宙矿山那里有拥有神秘力量的#b氪晶体#k。#b氪晶体#k平时为绿色，但受到宇宙船的#b#q1015##k的照射之后，就会变成黄色。你要记住，要想粉碎外星人的阴谋，需要10个#b#t4001268#和10个#t4001269##k。但是，即使只有1个#b氪晶体#k也会有用，你先尽自己的能力搜集把。还有一件事，那里有可怕的#o9300339#守护着。那些家伙吸收了#b氪晶体#k的力量，非常的厉害。所以不要贸然进入，集中精力采集矿石。"/>
+  <string name="$SCRIPTSTRING_EVENT10_25$" value="在出发之前，你最好做好充分的准备。"/>
+  <string name="$SCRIPTSTRING_EVENT10_26$" value="矿山那里好像发生了什么问题。请稍等一下。"/>
+  <string name="$SCRIPTSTRING_EVENT10_27$" value="你现在还太弱，还不能到矿山那里去。因为矿山那里经常会有外星人出现。"/>
+  <string name="$SCRIPTSTRING_EVENT10_28$" value="矿山那里人好像太多了。请稍等一下。"/>
+  <string name="$SCRIPTSTRING_EVENT10_29$" value="现在无法使用矿山。因为有宇宙风暴。请稍等一下。"/>
+  <string name="$SCRIPTSTRING_EVENT10_3$" value="喂～你仔细看一下天空。也许会有UFO突然出现。外星人是很可怕的东西。虽然你还没有遇到。必须达到13级，才能见到外星人吗？"/>
+  <string name="$SCRIPTSTRING_EVENT10_30$" value="宇宙矿山每15分钟只能入场一次。请稍候重新尝试。"/>
+  <string name="$SCRIPTSTRING_EVENT10_31$" value="宇宙矿山每15分钟只能入场一次。你在 "/>
+  <string name="$SCRIPTSTRING_EVENT10_32$" value="分钟之后可以再次进入。"/>
+  <string name="$SCRIPTSTRING_EVENT10_33$" value="即使挑战失败，还有3次可以重新开始的机会。你真的想放弃离开吗？"/>
+  <string name="$SCRIPTSTRING_EVENT10_34$" value="请不要放弃拯救佳佳。"/>
+  <string name="$SCRIPTSTRING_EVENT10_35$" value="好不容易救出了佳佳，又变成了泡影。在救出佳佳之前，绝对不能放弃。你还需要努力"/>
+  <string name="$SCRIPTSTRING_EVENT10_36$" value="次，就可以乘坐#b宇宙船#k了。"/>
+  <string name="$SCRIPTSTRING_EVENT10_37$" value="好不容易救出了佳佳，又变成了泡影。在救出佳佳之前，绝对不能放弃。这段时间辛苦你了。作为报答，我给你一艘旧宇宙船。虽然有点旧，但还能用。你去#b技能窗口#k确认一下吧。"/>
+  <string name="$SCRIPTSTRING_EVENT10_38$" value="次，就可以乘坐#b宇宙船#k了。"/>
+  <string name="$SCRIPTSTRING_EVENT10_39$" value="好不容易救出了佳佳，又变成了泡影。在救出佳佳之前，绝对不能放弃。这段时间辛苦你了。作为报答，我会帮你把宇宙船的性能提高一点。你就能感受到更高的速度感了。你去#b技能窗口#k确认一下吧。"/>
+  <string name="$SCRIPTSTRING_EVENT10_4$" value="啊！刚才你看到那个了吗？没看到？刚才有UFO出现……啊！看那边。好像有人被UFO抓走了……啊！是佳佳叔叔！#r佳佳叔叔被UFO劫持了！"/>
+  <string name="$SCRIPTSTRING_EVENT10_40$" value="好不容易救出了佳佳，又变成了泡影。好了，我们回去吧。"/>
+  <string name="$SCRIPTSTRING_EVENT10_41$" value="矿石全部挖到了吗？那我们回去吧。"/>
+  <string name="$SCRIPTSTRING_EVENT10_42$" value="你好像没有#b氪晶体#k。请你先去宇宙矿山挖掘#b氪晶体#k。"/>
+  <string name="$SCRIPTSTRING_EVENT10_43$" value="哦～你挖到拥有神秘宇宙的力量的#b氪晶体#k了吗？你愿意把#b氪晶体#k交给我，领取奖励物品吗？"/>
+  <string name="$SCRIPTSTRING_EVENT10_44$" value="你能再考虑一下吗？会对你有好处的。"/>
+  <string name="$SCRIPTSTRING_EVENT10_45$" value="[CN]무슨 일이야? 무엇을 도와줄까?&#13;&#10;&#13;&#10;#b#L0#당첨된 상품을 받고 싶어.#l&#13;&#10;#L1##t4001270#를 주웠어.#l&#13;&#10;#L2#몬스터 초상화를 돌려주고 싶어.#l&#13;&#10;#L3#달나라로 가고 싶어.#l"/>
+  <string name="$SCRIPTSTRING_EVENT10_46$" value="[CN]무슨 일이야? 무엇을 도와줄까?&#13;&#10;&#13;&#10;#b#L0#당첨된 상품을 받고 싶어.#l&#13;&#10;#L1##t4001270#를 주웠어.#l&#13;&#10;#L2#몬스터 초상화를 돌려주고 싶어.#l"/>
+  <string name="$SCRIPTSTRING_EVENT10_47$" value="[CN]무슨 일이야? 무엇을 도와줄까?&#13;&#10;&#13;&#10;#b#L3#달나라로 가고 싶어.#l&#13;&#10;#L4#우수 테스터 포인트를 확인하고 싶어.#l"/>
+  <string name="$SCRIPTSTRING_EVENT10_48$" value="[CN]러블리파티베어"/>
+  <string name="$SCRIPTSTRING_EVENT10_49$" value="[CN]고성능순간이동돌"/>
+  <string name="$SCRIPTSTRING_EVENT10_5$" value="怎么办呢？我听别人说……被外星人劫持之后，会发生可怕的事情……不知道佳佳叔叔会不会出事！旅行家，请你一定要救救佳佳叔叔～&#13;&#10;#b虽然佳佳叔叔有时看上去有点优柔寡断，又有点笨，有时又有点不懂事#k，但是他的心地非常善良。我不能让他在外星人手里发生什么可怕的事。对了！月亮里的老爷爷一定知道救出佳佳叔叔的方法！我把你送到月亮上去，请你一定要把佳佳叔叔救出来。"/>
+  <string name="$SCRIPTSTRING_EVENT10_50$" value="[CN]보따리상인묘묘"/>
+  <string name="$SCRIPTSTRING_EVENT10_51$" value="[CN]엘릭서"/>
+  <string name="$SCRIPTSTRING_EVENT10_52$" value="[CN]파워엘릭서"/>
+  <string name="$SCRIPTSTRING_EVENT10_53$" value="[CN]무슨 문제가 있는 것 같아. 나중에 다시 찾아와 주겠어?"/>
+  <string name="$SCRIPTSTRING_EVENT10_54$" value="[CN]선물은 잘 받았니? 선물에 당첨되다니 요새 운이 좋은가 보구나!"/>
+  <string name="$SCRIPTSTRING_EVENT10_55$" value="[CN]소비창에 빈 칸이 있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_EVENT10_56$" value="[CN]당첨된 적이 없는 것 같은데 다시 한번 확인해줘."/>
+  <string name="$SCRIPTSTRING_EVENT10_57$" value="[CN]#t4001270#가 어디에 있다는거야? 아무리 봐도 없는데?"/>
+  <string name="$SCRIPTSTRING_EVENT10_58$" value="[CN]#t4001270#을 주웠구나? 나에게 주면 다이어리를 받을 수 있는 이벤트에 응모시켜 줄게. #t4001270#을 많이 가져올 수록 당첨될 확률은 더욱 높아지니까 #t4001270#을 모으는대로 나에게 가져오도록 해.&#13;&#10;#i4001270# #t4001270#"/>
+  <string name="$SCRIPTSTRING_EVENT10_59$" value="[CN]다이어리가 탐나지 않아?"/>
+  <string name="$SCRIPTSTRING_EVENT10_6$" value="在你磨磨蹭蹭的时候，要是佳佳叔叔遇到什么危险该怎么办？"/>
+  <string name="$SCRIPTSTRING_EVENT10_60$" value="[CN]#t4001270#이 어디에 있다는거야? 아무리 봐도 없는데?"/>
+  <string name="$SCRIPTSTRING_EVENT10_61$" value="[CN]참 성실한 아이구나? 성실한 사람은 언젠가 그 보답을 받게 될거야!"/>
+  <string name="$SCRIPTSTRING_EVENT10_62$" value="[CN]참 다정한 아이구나? 다정한 사람은 어딜가나 인기 만발이지 !"/>
+  <string name="$SCRIPTSTRING_EVENT10_63$" value="[CN]참 따뜻한 아이구나? 마음이 따뜻한 사람은 언젠가 보답을 받게 되있어!"/>
+  <string name="$SCRIPTSTRING_EVENT10_64$" value="[CN]참 똑똑한 아이구나? 똑똑한 사람들은 어딜가나 티가 난다니까!"/>
+  <string name="$SCRIPTSTRING_EVENT10_65$" value="[CN]카산드라 : "/>
+  <string name="$SCRIPTSTRING_EVENT10_66$" value="[CN]#t4001270#는 잘 받았어. "/>
+  <string name="$SCRIPTSTRING_EVENT10_67$" value="[CN]&#13;&#10;이로써 네가 당첨될 확률이 더 높아졌어. 끝까지 기대해 봐!"/>
+  <string name="$SCRIPTSTRING_EVENT10_68$" value="[CN]정말 초상화를 반납하려구? 좋아 어떤 초상화를 그리고 있었지?&#13;&#10;&#13;&#10;#b#L0##t4220148# 반납하기#l&#13;&#10;#L1##t4220149# 반납하기#l&#13;&#10;#L2##t4220150#  반납하기#l"/>
+  <string name="$SCRIPTSTRING_EVENT10_69$" value="[CN]먼저 #b&lt;#y"/>
+  <string name="$SCRIPTSTRING_EVENT10_7$" value="真是谢谢你。请你一定要救出佳佳叔叔！月宫里的老爷爷会帮助你的。"/>
+  <string name="$SCRIPTSTRING_EVENT10_70$" value="[CN]#&gt;#k 퀘스트를 포기하고 와줘."/>
+  <string name="$SCRIPTSTRING_EVENT10_71$" value="[CN]너 #b#t"/>
+  <string name="$SCRIPTSTRING_EVENT10_72$" value="[CN]##k를 가지고 있지 않은데? 인벤토리의 기타창을 한번 확인해 볼래?"/>
+  <string name="$SCRIPTSTRING_EVENT10_73$" value="[CN]#b미완성 #t"/>
+  <string name="$SCRIPTSTRING_EVENT10_74$" value="[CN]##k 잘 받았어. 언제든 생각이 바뀌면 다시 나에게 말을 걸어서 #b&lt;#y"/>
+  <string name="$SCRIPTSTRING_EVENT10_75$" value="[CN]#&gt;#k 퀘스트를 수락해 줘. 새로운 초상화 아이템을 다시 줄게."/>
+  <string name="$SCRIPTSTRING_EVENT10_76$" value="[CN]일단 메이플 아일랜드를 벗어나야 이벤트를 진행할 수 있답니다."/>
+  <string name="$SCRIPTSTRING_EVENT10_77$" value="[CN]추석맞이 달나라 여행이 시작되었습니다~ 월묘들과 함께 어울려 놀 수 있는 달나라로 여행을 떠나보시는 건 어떤가요? 달이 가까이 다가와 있는 이 시기에만 점프를 통해 달까지 갈 수 있답니다. 원하신다면 바로 점프대가 있는 놀이마당으로 보내드릴게요."/>
+  <string name="$SCRIPTSTRING_EVENT10_78$" value="[CN]아직 달나라에 갈 레벨이 안 되시는 것 같네요. 적어도 13쯤은 되야 하지 않을까요?"/>
+  <string name="$SCRIPTSTRING_EVENT10_79$" value="[CN]월묘들과 함께 즐거운 추석을 보내고 싶다면 다시 말을 걸어 주세요"/>
+  <string name="$SCRIPTSTRING_EVENT10_8$" value="请确认背包的消费栏、装备栏是否有1个以上的空格。"/>
+  <string name="$SCRIPTSTRING_EVENT10_80$" value="[CN]현재 당신의 우수 테스터 포인트는 "/>
+  <string name="$SCRIPTSTRING_EVENT10_81$" value="[CN]점 입니다.&#13;&#10;활발한 테스트 활동 감사드립니다.(__)&gt;"/>
+  <string name="$SCRIPTSTRING_EVENT10_9$" value="辛苦你了。你交给我的#b氪晶体#k，我会交给地球防御本部的#b金博士#k，用于阻止外星人的进攻。&#13;&#10;"/>
+</imgdir>

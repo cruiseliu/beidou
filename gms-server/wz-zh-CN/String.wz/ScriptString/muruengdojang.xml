@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="muruengdojang">
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_0$" value="喂！你看不起我们师父吗？师父是大忙人呢！！你这种小角色也想要挑战？至少要到#b"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_1$" value="等级#k吧。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_10$" value="自己要以组队的摸式挑战吗？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_100$" value="#e&lt; 公告 &gt;#n&#13;&#10;凡是有勇气挑战武陵道场者，欢迎你前来武陵道场！-武公-&#13;&#10;&#13;&#10;#b#L0# 挑战武陵道场！#l&#13;&#10;#L1# 详细阅读公告#l"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_101$" value="#b(用手碰到公告书时，身体开始被神秘的气息包围着)#k&#13;&#10;&#13;&#10; 要移动到武陵道场吗?"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_102$" value="#b(从公告书上挪开手时，神秘的气息消失无踪)"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_103$" value="#e&lt; 公告：挑战吧！ &gt;#n&#13;&#10;我是武陵道场的主人名叫武公。很久以前我是在武陵山开始修练仙术，现在我的内功已达到快超越极限的阶段。以前武陵道场的主人懦弱到不象样的程度。所以今天开始以我接管武陵道场。只有强者可以拥有武陵道场的资格。&#13;&#10;想要得到武术指点的人尽管来挑战！或着想要挑战我的人也无妨。我会让你知道你的无知！！"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_104$" value="备注：欢迎你来挑战。如果没有勇气的话，找其他伙伴一起也无妨。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_105$" value="萧公：哈哈哈！无法打赢我就要跑嘛！但不会轻易放过你！"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_11$" value="队伍里有队友等级较低。进去会撑不过几分钟的。换个队友吧！"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_12$" value="队伍里所有队员的等级差距不得超过30级！"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_13$" value="你不是队长。请你们队长来说话吧！"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_14$" value="&#13;&#10;    #v1132000# #t1132000# (获得)"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_15$" value="&#13;&#10;    #i1132001# #t1132001# (获得)"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_16$" value="&#13;&#10;    #i1132002# #t1132002# (获得)"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_17$" value="&#13;&#10;    #i1132003# #t1132003# (获得)"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_18$" value="&#13;&#10;    #i1132004# #t1132004# (获得)"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_19$" value="已经拿走所有腰带。不是吗？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_2$" value="师父是这里的第一强者。像你这种家伙也敢挑战？你会后悔的！ #b&#13;&#10;#L0# 个人挑战#l&#13;&#10;#L1# 团队挑战#l&#13;&#10;#L2# 换取腰带#l&#13;&#10;#L5# 想初始化修练点数#l&#13;&#10;#L3# 武陵道场是什么？#l"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_20$" value="你的修练点数为 #b"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_21$" value="#k。师父喜欢有才能的人。当获得一定的修炼点数。就可以根据修练点数来获得腰带。&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_22$" value="错误讯息。再来一次。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_23$" value="##k时#b"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_24$" value="等级一定要#k以上。需要#k累计修炼 #b"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_25$" value=" 点数…&#10;以我看你已具备所有的条件。现在想要获得腰带吗？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_26$" value="下次再来吗？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_27$" value="装备字段不够。空出一个字段之后再来说话吧。真是麻烦！"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_28$" value="有够歹毒的家伙…师父已允许你可以下山了。你还早的很…不要得意！你觉得已拥有所有东西，但你没有拿到这绿腰带？对吧！只有师父最喜爱的徒弟才能拿到的东西。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_29$" value="我会记住你的名字。但不要得意。记住！只有绿腰带是最好的！"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_3$" value="就是你！就是你！！你应该是外地人吧…我们师父可不是闲闲没事的人！默默无名的人是不能见面的。以现在你的程度由我来对付已绰绰有余了。只要打败我就给你挑战师父的机会！如何？虽然可以预测的结果是…"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_30$" value="等级一定要#k以上.需要#k累计修炼 #b"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_31$" value=" 点数。&#13;&#10;&#13;&#10; 你想要获得这腰带的话还需要更多 #r"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_32$" value="#k修练点数。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_33$" value="你不是已经得到吗？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_34$" value="武道讲求顺序。要白色开始以黄色、蓝色、红色、黑色的顺序获得。如果还没拿到前段颜色建议你以顺序获得腰带。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_35$" value="尽管你的能力多好只要没有达到"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_36$" value="等级我是不会认同你。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_37$" value="我的师父在武陵是最强的一位。因此武陵印章只有在此这个地方才能制作出来。武陵具有约38楼之高的建筑。若慢慢的往上同时也会提升训练指数。当然以你的实力去爬完是有些困难。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_38$" value="还没挑战勋章？ 在武陵道场打到#b100次#k次一只怪兽的时候可以获得 修行着#bxx称号。连 #b红蜗牛王勋章#k都没拿到…要挑战#b红蜗牛王勋章#k吗？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_39$" value="不喜欢就算啦。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_4$" value="像你这种一拳就被击倒的家伙也敢挑战我们？回去过你的生活吧！"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_40$" value="已获得所有勋章。你要再式一次吗？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_41$" value="总于抓到100只了？ 可以获得#b#t"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_42$" value="##k称号。现在要勋章吗？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_43$" value="想要等到下次再拿吗？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_44$" value="卸除身上的勋章之后再来吧。若你已带着勋章时我无法再给你勋章。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_45$" value="我怕你会一边哭一边抱怨！所以我先跟你说，现在取得勋章会消除之前你已拿过的武陵勋章。你觉得无所谓的话就拿吧。现在要拿吗？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_46$" value="对了，如果你已取得更好的勋章何必要其他旧的…对吧？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_47$" value="发生不明得错误无法给你勋章。麻烦你确认道具栏是否有空间和是否已拥有相同的道具。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_48$" value="获得所有的勋章。很满意吗？欢迎随时再来挑战。所以想要再次挑战就来找我！"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_49$" value="好了。再来是更高的一层楼。不会满足于现在吧？现在要挑战的勋章是#b#t"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_5$" value="为什么那么多无知的冒险者都来挑战呢？你应该庆幸还没轮到你。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_50$" value="##k。加油吧！"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_51$" value="想要勋章的话空出2个字段吧。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_52$" value="##k，还剩#b"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_53$" value="#k只！再加油啰！就如我之前所说，只限在武陵道场打倒我师父所指定的召换怪物才能获得认可。对了！你该不会只打倒怪物就出来了吧？#r若不是打倒怪物并前进下一阶段，就不算获得胜利！#k"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_54$" value="训练分数若初始化则会变为0分喔 。相信你已应该明白？但是未必不好。 训练分数若初始化时 之前的记录会删除。但还会拥有腰带。请问把训练分数要初始化吗？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_55$" value="需要准备吗？那做个深呼吸。下次再来挑战~~"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_56$" value="修练点数已初始化。调整心态重新出发吧！"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_57$" value="好像哪里出了问题？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_58$" value="你的实力只有这一点程度。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_59$" value="哇 真是厉害！可以轻松的来这。但是后面就不会这么简单！ 请问要继续挑战吗？#b&#13;&#10;#L0# 继续挑战。#l&#13;&#10;\#L1# 我要离开。#l&#13;&#10;#L2# 我将记录当前你的记录#l"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_6$" value="自己挑战时，上次挑战到"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_60$" value="最后还是要放弃吗？真的要出去吗？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_61$" value="只要记录好你的成绩！这样下次你就可以轻松的直接来到这里。请问要记录你的成绩吗？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_62$" value="你不挑战更高的楼层吗？好好加油吧~"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_63$" value="已经累积好你的成绩。若下次在再要挑战时。请说一声吧！会马上传送到这里。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_64$" value="好像哪里出了问题？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_65$" value="什么！还剩下几个阶段就快结束了！？你真的要放弃离开吗？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_66$" value="什么嘛！出尔反尔…但是应该不用几天，你应该会哭着说想要回家！"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_67$" value="还真固执。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_68$" value="什么！还剩下几个阶段就快结束了！？你真的要放弃离开吗？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_69$" value="哇 真是厉害！可以轻松的来这。但是后面就不会这么简单！ 请问要继续挑战吗？#b&#13;&#10;#L0# 继续挑战。#l&#13;&#10;\#L1# 我要离开。#l"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_7$" value="阶层，可以直接移动到上次挑战过的阶层，你要移动吗？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_70$" value="好像哪里有问题的样子？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_71$" value="就算没有其他组队成员也要挑战吗？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_72$" value="你自己要挑战组队？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_73$" value="队伍成员中有人等级差距过大，这样进去挑战会非常可怜唷！"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_74$" value="好像哪里有问题的样子？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_75$" value="想要一起挑战也不能这样吧！队伍里面成员的等级差距不可超过30级唷。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_76$" value="你并不是队长！请队长来说话吧。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_77$" value="就这样放弃了吗？确定要离开了吗？？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_78$" value="你不挑战更高的楼层吗？好好加油吧~"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_79$" value="什么！这么快就要放弃？所以我就跟你说不要骄傲嘛！真的要放弃离开这里？？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_8$" value="好像出了些问题？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_80$" value="还不到25等级就想要挑战师父？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_81$" value="知道#b武陵#k吗？ 我师父就是里面最强大的存在。当然你的实力太低了！若不想挑战。我可以帮你传回武陵。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_82$" value="原来如此。你的实力应该有机会可以打倒！"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_83$" value="还剩几只怪物."/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_84$" value="没有任何怪物的痕迹。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_85$" value="超过了今天可以获得的修炼点数，无法获得更多。请在明天00点以后再来领取修炼点数。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_86$" value="获得了"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_87$" value="点修炼点数。总修炼点数为"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_88$" value="点。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_89$" value="请先把测谎仪拿下来。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_9$" value="队友都还没到齐的情况下，竟然还想要挑战？"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_90$" value="还没有打开门。"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_91$" value="真是胆大包天！ 勇敢和无知请不要搞混了！！"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_92$" value="想被称呼为失败者吗？欢迎来挑战！"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_93$" value="想挑战武陵道场…还真有勇气！"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_94$" value="我等你！ 还有勇气的话，欢迎再来挑战！"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_95$" value="挑战武陵道场的家伙，我一定会让他(她)后悔！！"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_96$" value="哈哈哈！年轻小伙子！ 想尝试一下粉身碎骨的感觉吗 ？！"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_97$" value="呼呼！连我都打不赢！还想挑战我的师父！！"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_98$" value="哇勒！师父竟然快输了？！太不可思议 了…"/>
+  <string name="$SCRIPTSTRING_MURUENGDOJANG_99$" value="来打倒我吧！ 除非你赢过我不然休想离开这里！！"/>
+</imgdir>

@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="hair">
+  <string name="$SCRIPTSTRING_HAIR_0$" value="您好！我是美发店的店长钱老板！你有#b#t5150003##k或#b#t5151003##k吗？想做什么？交给我吧。&#13;&#10;#b#L0#换发型（用高级会员卡）#l&#13;&#10;#L1#染头发（用高级会员卡）#l&#13;&#10;#L2#超级明星头发#l"/>
+  <string name="$SCRIPTSTRING_HAIR_1$" value="我可以给你换新的发型。是不是对现在的发型感到厌倦了？如果你有#b#t5150003##k。我就给你换发型。慢慢选你喜欢的发型吧。"/>
+  <string name="$SCRIPTSTRING_HAIR_10$" value="对不起，在染发方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_100$" value="嗯… 看来你没有我们美发店的会员卡嘛！不好意思，如果没有会员卡，我们不可以给你修剪头发。"/>
+  <string name="$SCRIPTSTRING_HAIR_101$" value="不好意思。我的美发店出了一点小问题，现在不能为你换发型，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_102$" value="不好意思，在换发型方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_103$" value="我们可以为你改变头发的颜色。你是不是已经厌倦了现在的颜色？如果你有#b#t5151007##k，我们就可以给你染发。慢慢挑选你喜欢的颜色吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_104$" value="头发染好了，来~ 照照镜子吧！觉得怎么样？虽然不是很熟练，但效果还是不错吧！哈哈哈~ 如果你不喜欢这个颜色了就再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_105$" value="嗯… 看来你没有我们美发店的会员卡嘛！不好意思，如果没有会员卡，我们不可以给你染头发。"/>
+  <string name="$SCRIPTSTRING_HAIR_106$" value="对不起。我的美容店出了一点小问题，现在不能为你染头发，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_107$" value="对不起，在染头发方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_108$" value="头发染好了，来~ 照照镜子吧！觉得怎么样？我做得完美无缺吧！哈哈哈~ 如果你不喜欢这个颜色了就再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_109$" value="呃... 你没有 #b#t5150038##k？实在是抱歉，没有会员卡我无法帮你理发哦."/>
+  <string name="$SCRIPTSTRING_HAIR_11$" value="您的发型已经是超级明星美发了。"/>
+  <string name="$SCRIPTSTRING_HAIR_110$" value="对不起。我的美容店出了一点小问题，现在不能为你染头发，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_111$" value="对不起，在染发方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_112$" value="您好！我是美容室助理！ 如果你有#b#t5150006##k，就放心把头发交给我处理吧。怎么样？您想什么？&#13;&#10;#b#L0#换发型（用一般会员卡）#l&#13;&#10;#L1#染头发（用一般会员卡）#l"/>
+  <string name="$SCRIPTSTRING_HAIR_113$" value="如果使用一般会员卡，您就不能指定发型，怎么样？你真的想用#b#t5150006##k换发型吗？"/>
+  <string name="$SCRIPTSTRING_HAIR_114$" value="这样，你好好想想，决定之后再告诉我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_115$" value="嗯… 不会是你没有我们美发店的会员卡吧！不好意思，如果没有会员卡，我们不可以给你修剪头发。"/>
+  <string name="$SCRIPTSTRING_HAIR_116$" value="对不起。我的美容店出了一点小问题，现在不能为你换发型，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_117$" value="对不起，在换发型方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_118$" value="如果使用一般会员卡，你就不能指定你喜欢的颜色，怎么样？你真的想用#b#t5151006##k换头发颜色吗？"/>
+  <string name="$SCRIPTSTRING_HAIR_119$" value="是的。你思考思考，决定之后再告诉我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_12$" value="我们可以为你改变发型。你是不是已经厌倦了现在的发型？如果你有#b#t5150038##k，我们就可以给你换新的发型。我会让你满意的。怎么样？"/>
+  <string name="$SCRIPTSTRING_HAIR_120$" value="头发染好了，来~ 照照镜子吧！觉得怎么样？虽然不是很熟练，但效果还是不错吧！哈哈哈~ 如果你不喜欢这个颜色了就再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_121$" value="嗯… 不会是你没有我们美发店的会员卡吧！不好意思，如果没有会员卡，我们不可以给你修剪头发。"/>
+  <string name="$SCRIPTSTRING_HAIR_122$" value="对不起。我们美发店出了一点小问题，现在不能为你换发型，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_123$" value="对不起，在换发型方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_124$" value="欢迎光临！这里是豫园美发店！如果你有#b#t5150015##k或#b#t5151011##k，就放心把头发交给我处理吧。怎么样？你想做什么？请选择吧。&#13;&#10;#b#L0#换发型（用高级会员卡）#l&#13;&#10;#L1#染头发（用高级会员卡）#l&#13;&#10;#L2#超级明星头发#l"/>
+  <string name="$SCRIPTSTRING_HAIR_125$" value="我们可以为你改变发型。你是不是已经厌倦了现在的发型？如果你有#b#t5150015##k，我们就可以给你换新的发型。慢慢挑选你喜欢的发型吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_126$" value="头发修剪好了，来~ 照照镜子吧！觉得怎么样？我做得完美无缺吧！哈哈哈~ 如果你不喜欢这个发型,那时候再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_127$" value="嗯… 看来你没有我们美发店的会员卡嘛！不好意思，如果没有会员卡，我们不可以给你修剪头发。"/>
+  <string name="$SCRIPTSTRING_HAIR_128$" value="不好意思。我的美发店出了一点小问题，现在不能为你换发型，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_129$" value="不好意思，在换发型方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_13$" value="头发染好了，来~ 照照镜子吧！觉得怎么样？我做得完美无缺吧！哈哈哈~ 如果你不喜欢这个颜色了就再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_130$" value="我们可以为你改变头发的颜色。你是不是已经厌倦了现在的颜色？如果你有#b#t5151011##k，我们就可以给你染发。慢慢挑选你喜欢的颜色吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_131$" value="头发染好了，来~ 照照镜子吧！觉得怎么样？虽然不是很熟练，但效果还是不错吧！哈哈哈~ 如果你不喜欢这个颜色了就再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_132$" value="嗯… 看来你没有我们美发店的会员卡嘛！不好意思，如果没有会员卡，我们不可以给你染头发。"/>
+  <string name="$SCRIPTSTRING_HAIR_133$" value="对不起。我的美容店出了一点小问题，现在不能为你染头发，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_134$" value="对不起，在染头发方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_135$" value="头发染好了，来~ 照照镜子吧！觉得怎么样？我做得完美无缺吧！哈哈哈~ 如果你不喜欢这个颜色了就再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_136$" value="嗯… 看来你没有#b#t5150038##k。如果你没有会员卡，我们不能为你染头发！"/>
+  <string name="$SCRIPTSTRING_HAIR_137$" value="对不起。我的美容店出了一点小问题，现在不能为你染头发，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_138$" value="对不起，在染发方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_139$" value="您好！我是美容室助理！ 如果你有#b#t5150014##k或#b#t5151010##k，就放心把头发交给我处理吧。怎么样？您想什么？&#13;&#10;#b#L0#换发型（用一般会员卡）#l&#13;&#10;#L1#染头发（用一般会员卡）#l"/>
+  <string name="$SCRIPTSTRING_HAIR_14$" value="嗯… 看来你没有#b#t5151003##k。如果你没有会员卡，我们不能为你染头发！"/>
+  <string name="$SCRIPTSTRING_HAIR_140$" value="如果使用一般会员卡，您就不能指定发型，怎么样？你真的想用#b#t5150014##k换发型吗？"/>
+  <string name="$SCRIPTSTRING_HAIR_141$" value="这样，你好好想想，决定之后再告诉我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_142$" value="头发修剪好了，来~ 照照镜子吧！觉得怎么样？虽然不是很熟练，但效果还是不错吧！哈哈哈~ 如果你不喜欢这个发型了，那个时候再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_143$" value="嗯… 不会是你没有我们美发店的会员卡吧！不好意思，如果没有会员卡，我们不可以给你修剪头发。"/>
+  <string name="$SCRIPTSTRING_HAIR_144$" value="对不起。我的美容店出了一点小问题，现在不能为你换发型，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_145$" value="对不起，在换发型方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_146$" value="如果使用一般会员卡，你就不能指定你喜欢的颜色，怎么样？你真的想用#b#t5151010##k换头发颜色吗？"/>
+  <string name="$SCRIPTSTRING_HAIR_147$" value="是的。你思考思考，决定之后再告诉我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_148$" value="头发染好了，来~ 照照镜子吧！觉得怎么样？虽然不是很熟练，但效果还是不错吧！哈哈哈~ 如果你不喜欢这个颜色了就再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_149$" value="嗯… 不会是你没有我们美发店的会员卡吧！不好意思，如果没有会员卡，我们不可以给你修剪头发。"/>
+  <string name="$SCRIPTSTRING_HAIR_15$" value="对不起。我的美容店出了一点小问题，现在不能为你染头发，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_150$" value="对不起。我们美发店出了一点小问题，现在不能为你换发型，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_151$" value="对不起，在换发型方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_152$" value="欢迎光临，这里是武陵的美发店！如果你有#b#t5150025##k或#b#t5151020##k，你就放心把头交给我，我会让您满意的。你要作什么？请选择吧&#13;&#10;#b#L0#换发型（用高级会员卡）#l&#13;&#10;#L1#染头发（用高级会员卡）#l&#13;&#10;#L2#超级明星头发#l"/>
+  <string name="$SCRIPTSTRING_HAIR_153$" value="我的手艺在这行是出了名的。如果你有 #b#t5150025##k就可以让换一个发型.请选择喜欢的发型吧."/>
+  <string name="$SCRIPTSTRING_HAIR_154$" value="呵呵…怎么样?还满意吗?我觉得，很适合你. "/>
+  <string name="$SCRIPTSTRING_HAIR_155$" value="嗯…看来你没有我美容店的会员卡。如果你没有会员卡，我们不能为你修剪头发."/>
+  <string name="$SCRIPTSTRING_HAIR_156$" value="美发店还没有开工，请过一会儿再来！"/>
+  <string name="$SCRIPTSTRING_HAIR_157$" value="对不起，好像出了点问题，欢迎你下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_158$" value="怎么样，换一个头发颜色，换一种心情。如果有 #b#t5151020##k会员卡就可以随心所欲挑一种颜色."/>
+  <string name="$SCRIPTSTRING_HAIR_159$" value="头发染好了，来~ 照照镜子吧！觉得怎么样？我做得完美无缺吧！哈哈哈~ 如果你不喜欢这个颜色了就再来找我吧?"/>
+  <string name="$SCRIPTSTRING_HAIR_16$" value="对不起，在染发方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_160$" value="嗯…看来你没有我美容店的会员卡。如果你没有会员卡，我们不能为你染头发."/>
+  <string name="$SCRIPTSTRING_HAIR_161$" value="对不起，好像出了点问题，欢迎你下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_162$" value="头发染好了，来~ 照照镜子吧！觉得怎么样？我做得完美无缺吧！哈哈哈~ 如果你不喜欢这个颜色了就再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_163$" value="嗯… 看来你没有#b#t5150038##k。如果你没有会员卡，我们不能为你染头发！"/>
+  <string name="$SCRIPTSTRING_HAIR_164$" value="对不起。我的美容店出了一点小问题，现在不能为你染头发，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_165$" value="对不起，在染发方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_166$" value="您好！我是美容店的助手丽秀秀，我的技术比起老爹爹得一点儿都不逊色。如果你有#b#t5150024##k，你的头发就交给我处理吧。我会让你满意的。怎么样？&#13;&#10;#b#L0#换发型（一般会员卡）#l&#13;&#10;#L1#染头发（一般会员卡）#l"/>
+  <string name="$SCRIPTSTRING_HAIR_167$" value="如果使用一般会员卡，你就不能自己选择发型，你真的想用#b#t5150024##k换发型吗?"/>
+  <string name="$SCRIPTSTRING_HAIR_168$" value="这样，你好好想想，决定了再告诉我."/>
+  <string name="$SCRIPTSTRING_HAIR_169$" value="怎么样？我的实力也还可以吧。下次你还想换个发型，再来找我."/>
+  <string name="$SCRIPTSTRING_HAIR_17$" value="您好！我是美容店的助手安德里亚，不过大家都叫我杨迪，这是我的昵称。如果你有#b#t5150002##k，你的头发就交给我处理吧。我会让你满意的。怎么样？&#13;&#10;#b#L0#换发型（一般会员卡）#l&#13;&#10;#L1#染头发（一般会员卡）#l"/>
+  <string name="$SCRIPTSTRING_HAIR_170$" value="嗯…看来你没有我美容店的会员卡。如果你没有会员卡，我们不能为你染头发."/>
+  <string name="$SCRIPTSTRING_HAIR_171$" value="对不起。我的美容店出了一点小问题，现在不能为你换发型，欢迎下次光临."/>
+  <string name="$SCRIPTSTRING_HAIR_172$" value="唔唔...对不起，好像出了点问题，欢迎你下次光临."/>
+  <string name="$SCRIPTSTRING_HAIR_173$" value="如果使用一般会员卡，你不能指定你想要的发型，你真的想用#b#t5151019##k换发型吗?"/>
+  <string name="$SCRIPTSTRING_HAIR_174$" value="这样，你好好想想，决定了再告诉我."/>
+  <string name="$SCRIPTSTRING_HAIR_175$" value="怎么样？我的实力也还可以吧。下次你还想换个发型，再来找我."/>
+  <string name="$SCRIPTSTRING_HAIR_176$" value="嗯…看来你没有我美容店的会员卡。如果你没有会员卡，我们不能为你染头发."/>
+  <string name="$SCRIPTSTRING_HAIR_177$" value="对不起。我的美容店出了一点小问题，现在不能为你换发型，欢迎下次光临."/>
+  <string name="$SCRIPTSTRING_HAIR_178$" value="呵呵呵，这么热的天还要换发型，你真是爱美啊．要是有#b#t5150027##k或 #b#t5151022##k的话我就帮你弄个造型. &#13;&#10;#b#L0# 换发型(使用高级会员卡)#l&#13;&#10;#L1# 染发(使用高级会员卡)#l&#13;&#10;#L2#超级明星头发#l"/>
+  <string name="$SCRIPTSTRING_HAIR_179$" value="呼呼呼~ 只要有#b#t5150027##k就可以换想换的发型噢，慢慢挑选吧."/>
+  <string name="$SCRIPTSTRING_HAIR_18$" value="如果使用一般会员卡，你就不能自己选择发型，你真的想用#b#t5150002##k换发型吗？"/>
+  <string name="$SCRIPTSTRING_HAIR_180$" value="呼呼呼~ 只要有#b#t5150027##k就可以换想换的发型，慢慢挑选吧．"/>
+  <string name="$SCRIPTSTRING_HAIR_181$" value="完成了，照镜子看看吧，肯定会吓一跳的，呵呵~ 太好看了..."/>
+  <string name="$SCRIPTSTRING_HAIR_182$" value="你没有会员卡噢，请再确认看看."/>
+  <string name="$SCRIPTSTRING_HAIR_183$" value="美发店还没有开门就来了．．．请稍后再来噢，呵呵，真勤快..."/>
+  <string name="$SCRIPTSTRING_HAIR_184$" value="好像出了点问题，请稍后再来啊。"/>
+  <string name="$SCRIPTSTRING_HAIR_185$" value="有时换换发色就能换心情…呼呼.. 我来帮你换，你有 #b#t5151022##k的话选选看你想要的颜色吧。"/>
+  <string name="$SCRIPTSTRING_HAIR_186$" value="你的发质很好染色。嘿嘿... 颜色真的很鲜艳很好看呢。去照照镜子吧。"/>
+  <string name="$SCRIPTSTRING_HAIR_187$" value="美发店还没有开门就来了… 请稍后再来噢，呵呵，真勤快…"/>
+  <string name="$SCRIPTSTRING_HAIR_188$" value="头发染好了，来~ 照照镜子吧！觉得怎么样？我做得完美无缺吧！哈哈哈~ 如果你不喜欢这个颜色了就再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_189$" value="嗯… 看来你没有#b#t5150038##k。如果你没有会员卡，我们不能为你染头发！"/>
+  <string name="$SCRIPTSTRING_HAIR_19$" value="这样，你好好想想，决定了再告诉我！"/>
+  <string name="$SCRIPTSTRING_HAIR_190$" value="对不起。我的美容店出了一点小问题，现在不能为你染头发，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_191$" value="对不起，在染发方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_192$" value="我是专门研究发型的夏特。 是玛兹拉的助手。 要是您有 #b#t5150026##k的话，我可以帮你做做头发噢。&#13;&#10;#b#L0# 换发型(使用普通会员卡)#l&#13;&#10;#L1# 染色(使用普通会员卡)#l"/>
+  <string name="$SCRIPTSTRING_HAIR_193$" value="使用普通会员卡就可以随机换发型。 真的要使用#b#t5150026##k换发型么?"/>
+  <string name="$SCRIPTSTRING_HAIR_194$" value="看来还没有做好心理准备。那决定好后再来找我吧。"/>
+  <string name="$SCRIPTSTRING_HAIR_195$" value="我的发型这样是为了做漂亮的头发，我实验了自己的头发。不过实验后很有成就感，呵呵。"/>
+  <string name="$SCRIPTSTRING_HAIR_196$" value="拿会员卡才可以帮你做头发．忘记了么?"/>
+  <string name="$SCRIPTSTRING_HAIR_197$" value="不好意思，目前美发店出了些状况，暂时不能为你做头发。请以后再来找我吧。"/>
+  <string name="$SCRIPTSTRING_HAIR_198$" value="嗯… 好像出问题了。下次再来试一下吧。"/>
+  <string name="$SCRIPTSTRING_HAIR_199$" value="使用一般会员卡的话会随机换发色。 真的要使用#b#t5151021##k换换么？"/>
+  <string name="$SCRIPTSTRING_HAIR_2$" value="头发修剪好了，来～照照镜子吧！觉得怎么样？我的手艺是不是很完美呀！哈哈哈～如果你不喜欢这个发型了，就再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_20$" value="头发修剪好了，来～照照镜子吧！觉得怎么样？虽然不是很熟练，但效果还是不错吧！哈哈哈～如果你不喜欢这个发型了，那时候再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_200$" value="好，知道了。那下好决心后再来找我吧。"/>
+  <string name="$SCRIPTSTRING_HAIR_201$" value="虽然我的发型不怎么样…但是多次试验后诞生了如此完美的发型。怎么样，喜欢吗?"/>
+  <string name="$SCRIPTSTRING_HAIR_202$" value="不好意思，目前美发店出了些状况，暂时不能为你做头发。请以后再来找我吧。"/>
+  <string name="$SCRIPTSTRING_HAIR_203$" value="嗯。。。 好像出问题了。下次再来试一下吧。"/>
+  <string name="$SCRIPTSTRING_HAIR_204$" value="你好，我是大头国的#b#p1012117##k。如果你有#b#t05150040##k，那就把头发交给我吧？&#13;&#10;#b#L0#更换发型（使用皇家理发券）#l &#13;&#10;#b#L1#更换发型（使用特殊皇家理发券）#l"/>
+  <string name="$SCRIPTSTRING_HAIR_205$" value="使用皇家理发券后，随机变换发型。确定使用#b#t05150040##k变换发型吗？"/>
+  <string name="$SCRIPTSTRING_HAIR_206$" value="还没有做好心理准备吗？决定好了再来找我吧。"/>
+  <string name="$SCRIPTSTRING_HAIR_207$" value="怎么样？这是最新类型风格的#b#t"/>
+  <string name="$SCRIPTSTRING_HAIR_208$" value="##k！在你身上就很帅！哈哈哈，也是，也不看看出自何人之手~有需要的话，欢迎再来，哈哈。"/>
+  <string name="$SCRIPTSTRING_HAIR_209$" value="##k。哇哦~真是优雅又漂亮！哈哈哈，也是，也不看看出自何人之手~有需要的话，欢迎再来，哈哈。"/>
+  <string name="$SCRIPTSTRING_HAIR_21$" value="嗯…不会是你没有我们美发店的会员卡吧？不好意思，如果没有会员卡，我们不可以给你修剪头发。"/>
+  <string name="$SCRIPTSTRING_HAIR_210$" value="你要有皇家理发券，才能让我来负责你的发型。"/>
+  <string name="$SCRIPTSTRING_HAIR_211$" value="对不起，当前美容室似乎出问题了，无法为您打理头发。下次再来吧、"/>
+  <string name="$SCRIPTSTRING_HAIR_212$" value="唔……出了点问题，请稍后再试。"/>
+  <string name="$SCRIPTSTRING_HAIR_213$" value="使用#t05150044#后，随机变换发型。确定使用#b#t05150044##k变换发型吗？"/>
+  <string name="$SCRIPTSTRING_HAIR_214$" value="你要有特殊皇家理发券，才能让我来负责你的发型。"/>
+  <string name="$SCRIPTSTRING_HAIR_215$" value="对不起，当前美容室似乎出问题了，无法为您打理头发。下次再来吧、"/>
+  <string name="$SCRIPTSTRING_HAIR_22$" value="对不起。我的美容店出了一点小问题，现在不能为你换发型，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_23$" value="对不起，在换发型方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_24$" value="如果使用一般会员卡，你不能指定你想要的发型，你真的想用#b#t5151002##k换发型吗？"/>
+  <string name="$SCRIPTSTRING_HAIR_25$" value="头发染好了，来~ 照照镜子吧！觉得怎么样？虽然不是很熟练，但效果还是不错吧！哈哈哈~ 如果你不喜欢这个颜色了，那时候再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_26$" value="嗯…你不会使没有我们美发店的会员卡吧？不好意思，如果没有会员卡，我们不可以给你染头发。"/>
+  <string name="$SCRIPTSTRING_HAIR_27$" value="对不起。我的美容店出了一点小问题，现在不能为你染头发，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_28$" value="对不起，在染发方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_29$" value="使用活动券后，会随机变换发型……确定使用#b#t4055001##k更换发型吗？"/>
+  <string name="$SCRIPTSTRING_HAIR_3$" value="嗯…看来你没有我美容店的会员卡。如果你没有会员卡，我们不能为你修剪头发！"/>
+  <string name="$SCRIPTSTRING_HAIR_30$" value="头发染好了，来~ 照照镜子吧！觉得怎么样？虽然不是很熟练，但效果还是不错吧！哈哈哈~ 如果你不喜欢这个颜色了，那时候再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_31$" value="嗯…你不会使没有我们美发店的会员卡吧？不好意思，如果没有会员卡，我们不可以给你染头发。"/>
+  <string name="$SCRIPTSTRING_HAIR_32$" value="对不起。我的美容店出了一点小问题，现在不能为你染头发，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_33$" value="对不起，在染发方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_34$" value="您好！我是美发店的店长娜塔丽！如果你有#b#t5150001##k或#b#t5151001##k，你就放心把头交给我，我会让您满意的。你要作什么？请选择吧&#13;&#10;#b#L0#换发型（用高级会员卡）#l&#13;&#10;#L1#染头发（用高级会员卡）#l&#13;&#10;#L2#超级明星头发#l"/>
+  <string name="$SCRIPTSTRING_HAIR_35$" value="我们可以为你改变发型。你喜欢你现在的发型吗？如果不喜欢，请选择#b#t5150001##k，我们就为你重新换发型。请挑选你要换的发型吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_36$" value="头发修剪好了，来~ 照照镜子吧！觉得怎么样？我做得完美无缺吧！哈哈哈~ 如果你不喜欢这个发型了，那时候再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_37$" value="嗯… 看来你没有我美容店的会员卡。如果你没有会员卡，我们不能为你修剪头发！"/>
+  <string name="$SCRIPTSTRING_HAIR_38$" value="对不起。我的美容店出了一点小问题，现在不能为你换发型，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_39$" value="对不起，在换发型方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_4$" value="对不起。美容店出了一点小问题，现在不能为你修剪头发，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_40$" value="我们可以为你改变头发的颜色。是不是已经厌倦了头发的颜色啊？如果你有#b#t5151001##k，我就可以给你染发，慢慢挑选你喜欢的颜色吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_41$" value="头发染好了，来~ 照照镜子吧！觉得怎么样？我做得完美无缺吧！哈哈哈~ 如果你不喜欢这个颜色了，那时候再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_42$" value="嗯… 看来你没有我们美发店的会嘛！不好意思，如果没有会员卡，我们不可以给你染头发。"/>
+  <string name="$SCRIPTSTRING_HAIR_43$" value="对不起。我的美容店出了一点小问题，现在不能为你染头发，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_44$" value="对不起，在染发方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_45$" value="头发染好了，来~ 照照镜子吧！觉得怎么样？我做得完美无缺吧！哈哈哈~ 如果你不喜欢这个颜色了就再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_46$" value="嗯… 看来你没有#b#t5150038##k。如果你没有会员卡，我们不能为你染头发！"/>
+  <string name="$SCRIPTSTRING_HAIR_47$" value="对不起。我的美容店出了一点小问题，现在不能为你染头发，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_48$" value="对不起，在染发方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_49$" value="您好！我是美容店的助手伯丽特。如果你有#b#t5150000##k，就把头发交给我处理吧。怎么样？&#13;&#10;#b#L0#换发型（用一般会员卡）#l&#13;&#10;#L1#染头发（用一般会员卡）#l"/>
+  <string name="$SCRIPTSTRING_HAIR_5$" value="对不起，好像出了点问题，欢迎你下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_50$" value="如果使用一般会员卡，你就不能指定发型，怎么样？你真的想用#b#t5150000##k换发型吗？"/>
+  <string name="$SCRIPTSTRING_HAIR_51$" value="这样，你好好想想，决定了再告诉我！"/>
+  <string name="$SCRIPTSTRING_HAIR_52$" value="头发修剪好了，来~ 照照镜子吧！觉得怎么样？虽然不是很熟练，但效果还是不错吧！哈哈哈~ 如果你不喜欢这个发型了，那时候再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_53$" value="嗯… 你不会是没有我们美发店的会员卡吧？不好意思，如果没有会员卡，我们不可以给你修剪头发。"/>
+  <string name="$SCRIPTSTRING_HAIR_54$" value="对不起。我的美容店出了一点小问题，现在不能为你换发型，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_55$" value="对不起，在换发型方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_56$" value="如果使用一般会员卡，你就不能指定你喜欢的颜色，怎么样？你真的想用#b#t5151000##k换发型吗？"/>
+  <string name="$SCRIPTSTRING_HAIR_57$" value="这样，你好好想想，决定了再告诉我！"/>
+  <string name="$SCRIPTSTRING_HAIR_58$" value="头发染好了，来~ 照照镜子吧！觉得怎么样？虽然不是很熟练，但效果还是不错吧！哈哈哈~ 如果你不喜欢这个颜色了就再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_59$" value="嗯… 你不会是没有我们美发店的会员卡吧！不好意思，如果没有会员卡，我们不可以给你修剪头发。"/>
+  <string name="$SCRIPTSTRING_HAIR_6$" value="我们可以为你改变头发的颜色。是不是已经厌倦了头发的颜色啊？如果你有#b#t5151003##k，我就可以给你染发，慢慢挑选你喜欢的颜色吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_60$" value="对不起。我的美容店出了一点小问题，现在不能为你染头发，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_61$" value="对不起，在染头发方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_62$" value="您好！我是美发店的院长#p2010001#！如果你有#b#t5150005##k或#b#t5151005##k，就放心把头发交给我处理吧。怎么样？你想做什么？请选择吧。&#13;&#10;#b#L0#换发型（用高级会员卡）#l&#13;&#10;#L1#染头发（用高级会员卡）#l&#13;&#10;#L3# 超级明星美发 #l"/>
+  <string name="$SCRIPTSTRING_HAIR_63$" value="我们可以为你改变发型。你是不是已经厌倦了现在的发型？如果你有#b#t5150005##k，我们就可以给你换新的发型。慢慢挑选你喜欢的发型吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_64$" value="头发修剪好了，来~ 照照镜子吧！觉得怎么样？我做得完美无缺吧！哈哈哈~ 如果你不喜欢这个发型,那时候再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_65$" value="嗯… 看来你没有我们美发店的会员卡嘛！不好意思，如果没有会员卡，我们不可以给你修剪头发。"/>
+  <string name="$SCRIPTSTRING_HAIR_66$" value="对不起。我的美发店出了一点小问题，现在不能为你换发型，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_67$" value="对不起，在换发型方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_68$" value="我们可以为你改变头发的颜色。你是不是已经厌倦了现在的颜色？如果你有#b#t5151005##k，我们就可以给你染发。慢慢挑选你喜欢的颜色吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_69$" value="头发染好了，来~ 照照镜子吧！觉得怎么样？虽然不是很熟练，但效果还是不错吧！哈哈哈~ 如果你不喜欢这个颜色了就再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_7$" value="头发染好了，来~ 照照镜子吧！觉得怎么样？我做得完美无缺吧！哈哈哈~ 如果你不喜欢这个颜色了就再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_70$" value="嗯… 看来你没有我们美发店的会员卡嘛！不好意思，如果没有会员卡，我们不可以给你染头发。"/>
+  <string name="$SCRIPTSTRING_HAIR_71$" value="对不起。我的美容店出了一点小问题，现在不能为你染头发，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_72$" value="对不起，在染头发方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_73$" value="您想用#b#t5154000##k吗？但是您的发型已经是散发了。还是以后再来用吧。"/>
+  <string name="$SCRIPTSTRING_HAIR_74$" value="你有#b#t5154000##k吗？那张卡是女性散发专用会员卡。你要用#b#t5154000##k换发型吗？"/>
+  <string name="$SCRIPTSTRING_HAIR_75$" value="这样，你好好想想，决定之后再告诉我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_76$" value="头发修剪好了，来~ 照照镜子吧！觉得怎么样？虽然不是很熟练，但效果还是不错吧！哈哈哈~ 如果厌倦了这个发型，那时再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_77$" value="嗯… 不会是你没有我们美发店的会员卡吧！不好意思，如果没有会员卡，我们不可以给你修剪头发。"/>
+  <string name="$SCRIPTSTRING_HAIR_78$" value="对不起。我们美发店出了一点小问题，现在不能为你染头发，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_79$" value="对不起，在换发型方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_8$" value="嗯… 看来你没有我们美容店的会员卡。如果你没有会员卡，我们不能为你染头发！"/>
+  <string name="$SCRIPTSTRING_HAIR_80$" value="头发染好了，来~ 照照镜子吧！觉得怎么样？我做得完美无缺吧！哈哈哈~ 如果你不喜欢这个颜色了就再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_81$" value="嗯… 看来你没有#b#t5150038##k。如果你没有会员卡，我们不能为你染头发！"/>
+  <string name="$SCRIPTSTRING_HAIR_82$" value="对不起。我的美容店出了一点小问题，现在不能为你染头发，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_83$" value="对不起，在染发方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_84$" value="您好！我是美容室助理#p2012007#! 如果你有#b#t5150004##k，就放心把头发交给我处理吧。怎么样？您想什么？&#13;&#10;#b#L0#换发型（用一般会员卡）#l&#13;&#10;#L1#染头发（用一般会员卡）#l"/>
+  <string name="$SCRIPTSTRING_HAIR_85$" value="如果使用一般会员卡，您就不能指定发型，怎么样？你真的想用#b#t5150004##k换发型吗？"/>
+  <string name="$SCRIPTSTRING_HAIR_86$" value="这样，你好好想想，决定之后再告诉我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_87$" value="头发修剪好了，来~ 照照镜子吧！觉得怎么样？虽然不是很熟练，但效果还是不错吧！哈哈哈~ 如果你不喜欢这个发型了，那个时候再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_88$" value="嗯… 不会是你没有我们美发店的会员卡吧！不好意思，如果没有会员卡，我们不可以给你修剪头发。"/>
+  <string name="$SCRIPTSTRING_HAIR_89$" value="对不起。我的美容店出了一点小问题，现在不能为你换发型，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_9$" value="对不起。我的美容店出了一点小问题，现在不能为你染头发，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_90$" value="对不起，在换发型方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_91$" value="如果使用一般会员卡，你就不能指定你喜欢的颜色，怎么样？你真的想用#b#t5151004##k换头发颜色吗？"/>
+  <string name="$SCRIPTSTRING_HAIR_92$" value="是的。你思考思考，决定之后再告诉我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_93$" value="头发染好了，来~ 照照镜子吧！觉得怎么样？虽然不是很熟练，但效果还是不错吧！哈哈哈~ 如果你不喜欢这个颜色了就再来找我吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_94$" value="嗯… 不会是你没有我们美发店的会员卡吧！不好意思，如果没有会员卡，我们不可以给你修剪头发。"/>
+  <string name="$SCRIPTSTRING_HAIR_95$" value="对不起。我们美发店出了一点小问题，现在不能为你换发型，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_96$" value="对不起，在换发型方面出了点小问题，欢迎下次光临！"/>
+  <string name="$SCRIPTSTRING_HAIR_97$" value="欢迎光临！这里是玩具城美发店！如果你有#b#t5150007##k或#b#t5151007##k，就放心把头发交给我处理吧。怎么样？你想做什么？请选择吧。&#13;&#10;#b#L0#换发型（用高级会员卡）#l&#13;&#10;#L1#染头发（用高级会员卡）#l&#13;&#10;#L2#超级明星头发#l"/>
+  <string name="$SCRIPTSTRING_HAIR_98$" value="我们可以为你改变发型。你是不是已经厌倦了现在的发型？如果你有#b#t5150007##k，我们就可以给你换新的发型。慢慢挑选你喜欢的发型吧！"/>
+  <string name="$SCRIPTSTRING_HAIR_99$" value="头发修剪好了，来~ 照照镜子吧！觉得怎么样？我做得完美无缺吧！哈哈哈~ 如果你不喜欢这个发型,那时候再来找我吧！"/>
+</imgdir>

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="pc">
+  <string name="$SCRIPTSTRING_PC_0$" value="你该不会是在指定网吧连上来的吧？是的话，请进这里吧…应该可以到你熟悉的地方去吧。如何？要进去一次看看吗？"/>
+  <string name="$SCRIPTSTRING_PC_1$" value="现在很忙？不过，在网吧的话，进去里头看看，是很不错的选择喔。里面好像还可以通往奇怪的地方。"/>
+  <string name="$SCRIPTSTRING_PC_10$" value="真的要去 #b玩具城#k吗？在玩具城里，会碰到各式各样的怪物。在进入之后，可以通过入口，再次回到网吧来。"/>
+  <string name="$SCRIPTSTRING_PC_100$" value="[CN]$$#b넥슨 제휴 PC방을 이용하시는 당신만을 위한 서비스!#k&#13;&#10;지금 사용하시는 무기에 불만은 없으신가요? 공격력에 부족함을 느껴보신 적은 없으신가요? #b넥슨 제휴 PC방#k에서만 즐길 수 있는 짜릿한 기쁨! 무기 대여 서비스를 개시했습니다!!"/>
+  <string name="$SCRIPTSTRING_PC_101$" value="[CN]$$흔히 보던 무기들이라고 실망하기엔 이르답니다. 확~ 내려간 제한으로 이제 당신의 무기도 업그레이드! #b넥슨 제휴 PC방#k에서만 즐길 수 있는 놀라운 혜택이랍니다~ &#13;&#10;#r단， 접속을 종료하면 대여하신 무기는 자동 반납된다는 점 잊지마세요.#k"/>
+  <string name="$SCRIPTSTRING_PC_102$" value="[CN]$$저희 무기 대여 서비스는 #b넥슨 제휴 PC방#k에서 접속하신 분들을 위한 서비스입니다. 지금 곧 가까운 #b넥슨 제휴 PC방#k을 방문해 보시는건 어떠세요?"/>
+  <string name="$SCRIPTSTRING_PC_103$" value="[CN]$$이미 대여한 아이템을 가지고 계시네요. 한번에 하나만 대여할 수 있습니다."/>
+  <string name="$SCRIPTSTRING_PC_104$" value="[CN]$$대여하실 직업을 선택해 주세요.&#13;&#10;#b#L0#전사#l &#13;&#10;#b#L1#마법사#l&#13;&#10;#b#L2#궁수#l&#13;&#10;#b#L3#도적#l&#13;&#10;#b#L4#해적#l"/>
+  <string name="$SCRIPTSTRING_PC_105$" value="[CN]$$초보자는 대여하실 수 있는 무기가 없습니다."/>
+  <string name="$SCRIPTSTRING_PC_106$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1302050# #t1302050##l &#13;&#10;#b#L1##v1402030# #t1402030##l&#13;&#10;#b#L2##v1322046# #t1322046##l&#13;&#10;#b#L3##v1432031# #t1432031##l"/>
+  <string name="$SCRIPTSTRING_PC_107$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1312026# #t1312026##l &#13;&#10;#b#L1##v1302051# #t1302051##l&#13;&#10;#b#L2##v1322047# #t1322047##l&#13;&#10;#b#L3##v1402031# #t1402031##l&#13;&#10;#b#L4##v1412022# #t1412022##l&#13;&#10;#b#L5##v1422023# #t1422023##l&#13;&#10;#b#L6##v1432032# #t1432032##l&#13;&#10;#b#L7##v1442040# #t1442040##l"/>
+  <string name="$SCRIPTSTRING_PC_108$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1302052 ##t1302052##l&#13;&#10;#b#L1##v1312027# #t1312027##l&#13;&#10;#b#L2##v1322048# #t1322048##l&#13;&#10;#b#L3##v1402032# #t1402032##l&#13;&#10;#b#L4##v1412023# #t1412023##l&#13;&#10;#b#L5##v1422024# #t1422024##l&#13;&#10;#b#L6##v1432033# #t1432033##l&#13;&#10;#b#L7##v1442041# #t1442041##l"/>
+  <string name="$SCRIPTSTRING_PC_109$" value="[CN]$$대여하실 수 있는 무기가 없습니다."/>
+  <string name="$SCRIPTSTRING_PC_11$" value="真的要去 #b冰峰雪域#k吗？在冰峰雪域里，会碰到各式各样的怪物。在进入之后，可以通过入口，再次回到网吧来。"/>
+  <string name="$SCRIPTSTRING_PC_110$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1462033# #t1462033##l"/>
+  <string name="$SCRIPTSTRING_PC_111$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1452038# #t1452038##l&#13;&#10;#b#L1##v1462033# #t1462033##l"/>
+  <string name="$SCRIPTSTRING_PC_112$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1452039# #t1452039##l&#13;&#10;#b#L1##v1462034# #t1462034##l"/>
+  <string name="$SCRIPTSTRING_PC_113$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1452040# #t1452040##l&#13;&#10;#b#L1##v1462035# #t1462035##l"/>
+  <string name="$SCRIPTSTRING_PC_114$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1372027# #t1372027##l"/>
+  <string name="$SCRIPTSTRING_PC_115$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1382030# #t1382030##l"/>
+  <string name="$SCRIPTSTRING_PC_116$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1382030# #t1382030##l&#13;&#10;#b#L1##v1372028# #t1372028##l"/>
+  <string name="$SCRIPTSTRING_PC_117$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1382031# #t1382031##l&#13;&#10;#b#L1##v1372028# #t1372028##l"/>
+  <string name="$SCRIPTSTRING_PC_118$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1382031# #t1382031##l&#13;&#10;#b#L1##v1372029# #t1372029##l"/>
+  <string name="$SCRIPTSTRING_PC_119$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1382032# #t1382032##l&#13;&#10;#b#L1##v1372029# #t1372029##l"/>
+  <string name="$SCRIPTSTRING_PC_12$" value="快点来唷～我们网吧的设备是传说中最好的，请尽情享用喔～咦？这个计算机里没有 #t4000047#是吗？嗯…那真是糟糕啊…其实在之前，有个奇怪的家伙，把这间网吧的 #t4000047#全部偷走了啊…这该怎么办才好…"/>
+  <string name="$SCRIPTSTRING_PC_120$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1472045# #t1472045##l &#13;&#10;#b#L1##v1332043# #t1332043##l"/>
+  <string name="$SCRIPTSTRING_PC_121$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1472046# #t1472046##l &#13;&#10;#b#L1##v1332044# #t1332044##l"/>
+  <string name="$SCRIPTSTRING_PC_122$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1472047# #t1472047##l &#13;&#10;#b#L1##v1332045# #t1332045##l"/>
+  <string name="$SCRIPTSTRING_PC_123$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1482015# #t1482015##l &#13;&#10;#b#L1##v1492015# #t1492015##l"/>
+  <string name="$SCRIPTSTRING_PC_124$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1482016# #t1482016##l &#13;&#10;#b#L1##v1492016# #t1492016##l"/>
+  <string name="$SCRIPTSTRING_PC_125$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1482017# #t1482017##l &#13;&#10;#b#L1##v1492017# #t1492017##l"/>
+  <string name="$SCRIPTSTRING_PC_13$" value="就是说啊！这位客人，一定把东西找回来才行吧？只要能帮忙找回东西，就可以登记成为本网吧的会员，还可以积点喔。累积了足够点数之后，还可以兑换成奖品喔。你绝对不会后悔的。怎么样啊？要试试看吗？"/>
+  <string name="$SCRIPTSTRING_PC_14$" value="嗯…现在很忙吗？不过，这位客人，你一定能帮上我的忙，所以，如果你回心转意的话，请再来我们网吧喔～"/>
+  <string name="$SCRIPTSTRING_PC_15$" value="好！那么，这位客人，我就帮你登记成为我们网吧的会员了喔。二楼右边有台计算机，看见了吗？用那台计算机，就可以进入我们网吧所提供的地域了。把在那边的 #b怪物打倒了之后，可以把#k #t4000047#给弄到手也说不定。"/>
+  <string name="$SCRIPTSTRING_PC_16$" value="遗失的 #t4000047#相当的多，一定要用心才能找回来。找到 #t4000047#一个，回来就可以得到10点的点数。想要积点，或是确认自己的点数，或是要把点数换成奖品，请随时告诉我吧!"/>
+  <string name="$SCRIPTSTRING_PC_17$" value="对了！万一 #t4000047# 收集得不顺利，也请别忘了要常常过来我们网吧。每天来一次的话，就会帮你追加50点的点数。一天只有一回，随时在这里向我说一声，我就会帮你追加了，请常常过来。那么，就请多多惠顾了～"/>
+  <string name="$SCRIPTSTRING_PC_18$" value="谢谢你今天也来光顾我们网吧。因为你的惠顾，我们网吧再帮你追加 #b50点#k在你的点数里头。#b"/>
+  <string name="$SCRIPTSTRING_PC_19$" value="#k的点数，现在共有 #r"/>
+  <string name="$SCRIPTSTRING_PC_2$" value="喂喂…你不是在指定网吧的吧？那么你是绝对不能到里面去的啦…"/>
+  <string name="$SCRIPTSTRING_PC_20$" value="点#k 。继续集点，就可以兑换我们网吧所提供的奖品，请多多集点。"/>
+  <string name="$SCRIPTSTRING_PC_21$" value="这是会员专用区域。请在选单中选择～&#13;&#10;#b#L0# 关于点数的说明#l&#13;&#10;#b#L1# 确认我的点数#l&#13;&#10;#b#L2# 累积点数#l&#13;&#10;#b#L3# 兑换奖品#l"/>
+  <string name="$SCRIPTSTRING_PC_22$" value="现在为你说明我们网吧的点数。要是找到网吧所遗失的 #b#t4000047##k并且带来的话，每一个可以累积10点的点数。只要累积点数之后，就可以交换奖品。想要换到好的奖品，就请多多累积点数."/>
+  <string name="$SCRIPTSTRING_PC_23$" value="要取得 #t4000047#，可以藉由我们网吧二楼右边的计算机，连接到地城而取得。打倒怪物之后，就可以找得到。因为网吧遗失的 #t4000047#非常多，只要多多打怪物，一定很容易的收集到。"/>
+  <string name="$SCRIPTSTRING_PC_24$" value="另外，还有一个累积点数的方法。一天一次，为了感谢光临我们网吧，会将 #b50点#k累积到你的点数里面。请注意，一天只有一次而已～这样的说明，你还满意吗？"/>
+  <string name="$SCRIPTSTRING_PC_25$" value="现在为你确认点数。 #b"/>
+  <string name="$SCRIPTSTRING_PC_26$" value="#k的点数，现在有 #r"/>
+  <string name="$SCRIPTSTRING_PC_27$" value="点#k 。这些累积的点数，可以兑换我们网吧所提供的奖品，请多多集点。"/>
+  <string name="$SCRIPTSTRING_PC_28$" value="你似乎还没有能找到我们网吧所遗失的 #t4000047#吧。之后如果有找到 #t4000047#的话，请一定要来我这边，交换点数喔～"/>
+  <string name="$SCRIPTSTRING_PC_29$" value="已经收集到很多 #t4000047#了吗？每增加一个 #t4000047#，就可以帮你累积 #b10点#k的点数。这些点数以后可以换成奖品。请注意，能累积点数的鼠标，我也会一起回收。"/>
+  <string name="$SCRIPTSTRING_PC_3$" value="请选择你要接连的地方。&#13;&#10;#b#L0# 草原#l&#13;&#10;#L1# 森林#l&#13;&#10;#L2# 高原#l&#13;&#10;#L3# 蚂蚁洞#l#l&#13;&#10;#L4# 玩具城#l&#13;&#10;#L5# 冰峰雪域#l"/>
+  <string name="$SCRIPTSTRING_PC_30$" value="总共 #b"/>
+  <string name="$SCRIPTSTRING_PC_31$" value="件#k的 #t4000047#在你身上吧。要把多少个换成点数呢？请输入想要换成点数的 #t4000047#个数数字。"/>
+  <string name="$SCRIPTSTRING_PC_32$" value="件的 #b#t4000047##k要换成点数是吗？总共有 #r"/>
+  <string name="$SCRIPTSTRING_PC_33$" value="点#k 加入，你在我们网吧的会员点数，已经累积成为 #r"/>
+  <string name="$SCRIPTSTRING_PC_34$" value="点#k了。"/>
+  <string name="$SCRIPTSTRING_PC_35$" value="那明明就是我们网吧掉的 #t4000047#啊…以后如果想要累积点数的话，请把 #t4000047#还给我们啊～"/>
+  <string name="$SCRIPTSTRING_PC_36$" value="你的 #b#t4000047##k，真的有 "/>
+  <string name="$SCRIPTSTRING_PC_37$" value="件吗？请再次确认看看～"/>
+  <string name="$SCRIPTSTRING_PC_38$" value="点已经加入到累计点数了，现在的会员点数已经累积到 #r"/>
+  <string name="$SCRIPTSTRING_PC_39$" value="点#k。请继续收集 #t4000047#喔～"/>
+  <string name="$SCRIPTSTRING_PC_4$" value="真的要去 #b草原#k吗？在草原里，会碰到各式各样的怪物。在进入之后，可以通过入口，再次回到网吧来。"/>
+  <string name="$SCRIPTSTRING_PC_40$" value="现在在我们网吧累积的点数是 #r"/>
+  <string name="$SCRIPTSTRING_PC_41$" value="#k点。请选择要交换的奖品。参考下面的奖品，有一部分的奖品会是随机提供，请慎重的选择～"/>
+  <string name="$SCRIPTSTRING_PC_42$" value="现在累积点数： "/>
+  <string name="$SCRIPTSTRING_PC_43$" value="点&#13;&#10;#b#L0#随机的药水类 10个(扣150点)#l&#13;&#10;#b#L1#随机的食物类 10个(扣300点)#l&#13;&#10;#b#L2# 随机的能力提升类 10个(扣500点)#l&#13;&#10;#b#L3# 随机的回城卷轴 10个(扣500点)#l&#13;&#10;#b#L4# 随机的冶炼矿石 1个(扣1500点)#l&#13;&#10;#b#L5# 随机的冶炼宝石 1个(扣2000点)#l&#13;&#10;#b#L6# #t4003000# 10个(扣2500点)#l&#13;&#10;#b#L7# 随机的夏天食物类 10个(扣2800点)"/>
+  <string name="$SCRIPTSTRING_PC_44$" value="你的点数不足。 #b随机的药水类 10个#k必须至少要 "/>
+  <string name="$SCRIPTSTRING_PC_45$" value="点的点数，才能交换。"/>
+  <string name="$SCRIPTSTRING_PC_46$" value="真的要用 #r"/>
+  <string name="$SCRIPTSTRING_PC_47$" value="点#k交换 #b随机的药水类 10个#k吗？那么，会在 #t"/>
+  <string name="$SCRIPTSTRING_PC_48$" value="# 之中任意选定一种药水，换给你10个。在交换之前，请你查看消耗窗的空间，是没有问题的。"/>
+  <string name="$SCRIPTSTRING_PC_49$" value="你的会员点数是否超过 #r"/>
+  <string name="$SCRIPTSTRING_PC_5$" value="我们还准备了其他的场景，请慢慢的挑选。"/>
+  <string name="$SCRIPTSTRING_PC_50$" value="点#，或是道具的消耗窗的空间是否足够，请再次确认～"/>
+  <string name="$SCRIPTSTRING_PC_51$" value="点数里的 #r"/>
+  <string name="$SCRIPTSTRING_PC_52$" value="点#k已经换成 #b随机的药水类 10个#k 的奖品了，这里是 #b#t"/>
+  <string name="$SCRIPTSTRING_PC_53$" value="# 10个#k要给送你。你剩余的点数是 #r"/>
+  <string name="$SCRIPTSTRING_PC_54$" value="点#k。觉得兑换的奖品还满意吗？欢迎再来兑换～"/>
+  <string name="$SCRIPTSTRING_PC_55$" value="会员的道具的消耗窗似乎已经满了。请把消耗窗腾出空间之后，再来兑换～"/>
+  <string name="$SCRIPTSTRING_PC_56$" value="你的点数不足。 #b随机的食物类 10个#k必须至少要 "/>
+  <string name="$SCRIPTSTRING_PC_57$" value="点#k交换 #b随机的食物类 10个#k吗？那么，会在 #t"/>
+  <string name="$SCRIPTSTRING_PC_58$" value="# 之中任意选定一种食物，换给你10个。在交换之前，请你查看消耗窗的空间，是没有问题的。"/>
+  <string name="$SCRIPTSTRING_PC_59$" value="你的会员点数是否超过 #r300点#k，或是道具的消耗窗的空间是否足够，请再次确认～"/>
+  <string name="$SCRIPTSTRING_PC_6$" value="只有在指定网吧登陆，才可以进入。"/>
+  <string name="$SCRIPTSTRING_PC_60$" value="点#k已经换成 #b随机的食物类 10个#k 的奖品了，这里是 #b#t"/>
+  <string name="$SCRIPTSTRING_PC_61$" value="你的点数不足。 #b随机的能力提升类 10个#k必须至少要 "/>
+  <string name="$SCRIPTSTRING_PC_62$" value="点#k交换 #b随机的能力提升 10个#k吗？那么，会在  #t"/>
+  <string name="$SCRIPTSTRING_PC_63$" value="# 之中任意选定一种道具，换给你10个。在交换之前，请你查看消耗窗的空间，是没有问题的。"/>
+  <string name="$SCRIPTSTRING_PC_64$" value="点#k，或是道具的消耗窗的空间是否足够，请再次确认～"/>
+  <string name="$SCRIPTSTRING_PC_65$" value="点#k已经换成 #b随机的10个能力提升类#k的奖品了，这里是 #b#t"/>
+  <string name="$SCRIPTSTRING_PC_66$" value="你的点数不足。 #b随机的回城卷轴类 10个#k必须至少要 "/>
+  <string name="$SCRIPTSTRING_PC_67$" value="点#k交换 #b随机的回城卷轴类 10个#k吗？那么，会在 #t"/>
+  <string name="$SCRIPTSTRING_PC_68$" value="# 之中任意选定一种卷轴，换给你10个。在交换之前，请你查看消耗窗的空间，是没有问题的。"/>
+  <string name="$SCRIPTSTRING_PC_69$" value="点#k，或是道具的消耗窗的空间是否足够，请再次确认～"/>
+  <string name="$SCRIPTSTRING_PC_7$" value="真的要去 #b森林#k吗？在森林里，会碰到各式各样的怪物。在进入之后，可以通过入口，再次回到网吧来。"/>
+  <string name="$SCRIPTSTRING_PC_70$" value="点#k已经换成 #b随机的回城卷轴类 10个#k 的奖品了，这里是 #b#t"/>
+  <string name="$SCRIPTSTRING_PC_71$" value="会员道具的消耗窗似乎已经满了。请把消耗窗腾出空间之后，再来兑换～"/>
+  <string name="$SCRIPTSTRING_PC_72$" value="你的点数不足。 #b随机的冶炼矿石 1个#k必须至少要 "/>
+  <string name="$SCRIPTSTRING_PC_73$" value="点#k交换 #b随机的冶炼矿石 1个#k吗？那么，会在 #t"/>
+  <string name="$SCRIPTSTRING_PC_74$" value="# 之中任意选定一种冶炼矿石，换给你1个。在交换之前，请检查你的道具其他窗之中的空间，是没有问题的。"/>
+  <string name="$SCRIPTSTRING_PC_75$" value="点#k，或是道具其他窗的空间是否足够，请再次确认～"/>
+  <string name="$SCRIPTSTRING_PC_76$" value="点#k已经换成 #b随机的冶炼矿石 1个#k 的奖品了，这里是 #b#t"/>
+  <string name="$SCRIPTSTRING_PC_77$" value="# 1个#k要给送你。你剩余的点数是 #r"/>
+  <string name="$SCRIPTSTRING_PC_78$" value="会员的道具其他窗似乎已经满了。请把其他窗腾出空间之后，再来兑换～"/>
+  <string name="$SCRIPTSTRING_PC_79$" value="你的点数不足。 #b随机的冶炼宝石 1个#k必须至少要 "/>
+  <string name="$SCRIPTSTRING_PC_8$" value="真的要去 #b高原#k吗？在高原里，会碰到各式各样的怪物。在进入之后，可以通过入口，再次回到网吧来。"/>
+  <string name="$SCRIPTSTRING_PC_80$" value="点#k交换 #b随机的冶炼宝石 1个#k吗？那么，会在 #t"/>
+  <string name="$SCRIPTSTRING_PC_81$" value="# 之中任意选定一种冶炼宝石，换给你1个。在交换之前，请检查你的道具其他窗之中的空间，是没有问题的。"/>
+  <string name="$SCRIPTSTRING_PC_82$" value="点#k已经换成 #b随机的冶炼宝石 1个#k 的奖品了，这里是 #b#t"/>
+  <string name="$SCRIPTSTRING_PC_83$" value="会员道具其他窗似乎已经满了。请把其他窗腾出空间之后，再来兑换～"/>
+  <string name="$SCRIPTSTRING_PC_84$" value="你的点数不足。 #b螺丝钉10个#k必须至少要 "/>
+  <string name="$SCRIPTSTRING_PC_85$" value="点#k交换 #b螺丝钉10个#k吗？在交换之前，请检查你的道具其他窗之中的空间，是没有问题的。"/>
+  <string name="$SCRIPTSTRING_PC_86$" value="点#k已经换成 #b#t4003000# 10个#k 的奖品了，这里是 #b#t4003000# 10个#k要给送你。你剩余的点数是 #r"/>
+  <string name="$SCRIPTSTRING_PC_87$" value="会员道具其他窗似乎已经满了。请把其他窗腾出空间之后，再来兑换～"/>
+  <string name="$SCRIPTSTRING_PC_88$" value="你的点数不足。 #b随机的夏天食物类 10个#k必须至少要 "/>
+  <string name="$SCRIPTSTRING_PC_89$" value="点#k交换 #b随机的夏天食物 10个#k吗？那么，会在 #t"/>
+  <string name="$SCRIPTSTRING_PC_9$" value="真的要去 #b蚂蚁洞#k吗？在蚂蚁洞里，会碰到各式各样的怪物。在进入之后，可以通过入口，再次回到网吧来。"/>
+  <string name="$SCRIPTSTRING_PC_90$" value="点#k已经换成 #b随机的夏天食物类 10个#k 的奖品了，这里是 #b#t"/>
+  <string name="$SCRIPTSTRING_PC_91$" value="会员道具的消耗窗似乎已经满了。请你在消耗窗保证一个以上的空间之后，再来兑换～"/>
+  <string name="$SCRIPTSTRING_PC_92$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1302050# #t1302050##l &#13;&#10;#b#L1##v1402030# #t1402030##l&#13;&#10;#b#L2##v1322046# #t1322046##l&#13;&#10;#b#L3##v1432031# #t1432031##l&#13;&#10;#b#L4##v1312026# #t1312026##l &#13;&#10;#b#L5##v1302051# #t1302051##l&#13;&#10;#b#L6##v1322047# #t1322047##l&#13;&#10;#b#L7##v1402031# #t1402031##l&#13;&#10;#b#L8##v1412022# #t1412022##l&#13;&#10;#b#L9##v1422023# #t1422023##l&#13;&#10;#b#L10##v1432032# #t1432032##l&#13;&#10;#b#L11##v1442040# #t1442040##l&#13;&#10;#b#L12##v1302052 ##t1302052##l&#13;&#10;#b#L13##v1312027# #t1312027##l&#13;&#10;#b#L14##v1322048# #t1322048##l&#13;&#10;#b#L15##v1402032# #t1402032##l&#13;&#10;#b#L16##v1412023# #t1412023##l&#13;&#10;#b#L17##v1422024# #t1422024##l&#13;&#10;#b#L18##v1432033# #t1432033##l&#13;&#10;#b#L19##v1442041# #t1442041##l&#13;&#10;#b#L20##v1302053# #t1302053##l &#13;&#10;#b#L21##v1312028# #t1312028##l&#13;&#10;#b#L22##v1322049# #t1322049##l&#13;&#10;#b#L23##v1402033# #t1402033##l&#13;&#10;#b#L24##v1412024# #t1412024##l&#13;&#10;#b#L25##v1422025# #t1422025##l&#13;&#10;#b#L26##v1432034# #t1432034##l&#13;&#10;#b#L27##v1442042# #t1442042##l&#13;&#10;#b#L28##v1302054# #t1302054##l &#13;&#10;#b#L29##v1312029# #t1312029##l&#13;&#10;#b#L30##v1322050# #t1322050##l&#13;&#10;#b#L31##v1402034# #t1402034##l&#13;&#10;#b#L32##v1412025# #t1412025##l"/>
+  <string name="$SCRIPTSTRING_PC_93$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1462033# #t1462033##l&#13;&#10;#b#L1##v1452038# #t1452038##l&#13;&#10;#b#L2##v1452039# #t1452039##l&#13;&#10;#b#L3##v1462034# #t1462034##l&#13;&#10;#b#L4##v1452040# #t1452040##l&#13;&#10;#b#L5##v1462035# #t1462035##l&#13;&#10;#b#L6##v1452041# #t1452041##l&#13;&#10;#b#L7##v1462036# #t1462036##l&#13;&#10;#b#L8##v1452042# #t1452042##l&#13;&#10;#b#L9##v1462037# #t1462037##l"/>
+  <string name="$SCRIPTSTRING_PC_94$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1372027# #t1372027##l&#13;&#10;#b#L1##v1382030# #t1382030##l&#13;&#10;#b#L2##v1372028# #t1372028##l&#13;&#10;#b#L3##v1382031# #t1382031##l&#13;&#10;#b#L4##v1372029# #t1372029##l&#13;&#10;#b#L5##v1382032# #t1382032##l&#13;&#10;#b#L6##v1372030# #t1372030##l&#13;&#10;#b#L7##v1382033# #t1382033##l&#13;&#10;#b#L8##v1382034# #t1382034##l"/>
+  <string name="$SCRIPTSTRING_PC_95$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1472045# #t1472045##l &#13;&#10;#b#L1##v1332043# #t1332043##l&#13;&#10;#b#L2##v1472046# #t1472046##l &#13;&#10;#b#L3##v1332044# #t1332044##l&#13;&#10;#b#L4##v1472047# #t1472047##l &#13;&#10;#b#L5##v1332045# #t1332045##l&#13;&#10;#b#L6##v1472048# #t1472048##l &#13;&#10;#b#L7##v1332046# #t1332046##l&#13;&#10;#b#L8##v1472049# #t1472049##l &#13;&#10;#b#L9##v1332047# #t1332047##l"/>
+  <string name="$SCRIPTSTRING_PC_96$" value="[CN]$$대여하실 아이템을 선택해 주세요, &#13;&#10;#b#L0##v1482015# #t1482015##l &#13;&#10;#b#L1##v1492015# #t1492015##l&#13;&#10;#b#L2##v1482016# #t1482016##l &#13;&#10;#b#L3##v1492016# #t1492016##l&#13;&#10;#b#L4##v1482017# #t1482017##l &#13;&#10;#b#L5##v1492017# #t1492017##l&#13;&#10;#b#L6##v1482018# #t1482018##l &#13;&#10;#b#L7##v1492018# #t1492018##l&#13;&#10;#b#L8##v1482019# #t1482019##l &#13;&#10;#b#L9##v1492019# #t1492019##l"/>
+  <string name="$SCRIPTSTRING_PC_97$" value="[CN]$$오류가 발생했습니다. 잠시 후 다시 시도해 주세요."/>
+  <string name="$SCRIPTSTRING_PC_98$" value="[CN]$$장비창에 빈칸이 부족하네요. 빈칸 1개를 만들고 다시 말을 걸어 주세요."/>
+  <string name="$SCRIPTSTRING_PC_99$" value="[CN]$$대여하신 아이템은 접속 종료시 사라진다는 걸 잊지마세요. 하지만 #b넥슨 제휴 PC방#k이라면 언제라도 다시 대여하실 수 있습니다."/>
+</imgdir>

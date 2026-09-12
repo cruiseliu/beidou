@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="lv200">
+  <string name="$SCRIPTSTRING_LV200_0$" value="要把分身的样子变身成当前的样貌吗？每天只能变身1次。"/>
+  <string name="$SCRIPTSTRING_LV200_1$" value="你再好好考虑一下再来找我吧。"/>
+  <string name="$SCRIPTSTRING_LV200_10$" value="我是达到200级的#b"/>
+  <string name="$SCRIPTSTRING_LV200_11$" value="#k。"/>
+  <string name="$SCRIPTSTRING_LV200_12$" value="我是达到120级的#b"/>
+  <string name="$SCRIPTSTRING_LV200_13$" value="#k。"/>
+  <string name="$SCRIPTSTRING_LV200_14$" value="我是达到200级的#b"/>
+  <string name="$SCRIPTSTRING_LV200_15$" value="#k。"/>
+  <string name="$SCRIPTSTRING_LV200_2$" value="由于未知原因，未能变换形象。请稍候再试。"/>
+  <string name="$SCRIPTSTRING_LV200_3$" value="已变身成你当前的样子。每天只能变身一次。"/>
+  <string name="$SCRIPTSTRING_LV200_4$" value="一天只能变身1次。请明天再来。"/>
+  <string name="$SCRIPTSTRING_LV200_5$" value="你再好好考虑一下再来找我吧。"/>
+  <string name="$SCRIPTSTRING_LV200_6$" value="由于未知原因，未能变换形象。请稍候再试。"/>
+  <string name="$SCRIPTSTRING_LV200_7$" value="已变身成你当前的样子。每天只能变身一次。"/>
+  <string name="$SCRIPTSTRING_LV200_8$" value="我是达到120级的#b"/>
+  <string name="$SCRIPTSTRING_LV200_9$" value="#k。"/>
+</imgdir>

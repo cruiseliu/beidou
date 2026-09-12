@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="cash3">
+  <string name="$SCRIPTSTRING_CASH3_0$" value="点击接受后，即可扩展美容室的1格发型屋栏位。&#13;&#10;&#13;&#10;#e是否要立刻使用1个#t5680531#，扩展1格发型屋栏位？#r#n&#13;&#10;&#13;&#10;（包括最初开放的1格，最多可扩展到10格。）"/>
+  <string name="$SCRIPTSTRING_CASH3_1$" value="如果你改变心意了，欢迎随时回来。"/>
+  <string name="$SCRIPTSTRING_CASH3_10$" value="你还没用过模型呢，不如先试着保管一下模型吧？"/>
+  <string name="$SCRIPTSTRING_CASH3_11$" value="你已经在使用全部整容栏了。整容栏最多可使用10格~！"/>
+  <string name="$SCRIPTSTRING_CASH3_12$" value="现在无法使用。"/>
+  <string name="$SCRIPTSTRING_CASH3_13$" value="哎呀？这是怎么回事？请稍后再试好吗？"/>
+  <string name="$SCRIPTSTRING_CASH3_14$" value="#e我会告诉你美容室的所有事情~！#n#b"/>
+  <string name="$SCRIPTSTRING_CASH3_15$" value="&#13;&#10;#L0# 美容室是什么？#l"/>
+  <string name="$SCRIPTSTRING_CASH3_16$" value="&#13;&#10;#L1#请告诉我美容保存法。#l"/>
+  <string name="$SCRIPTSTRING_CASH3_17$" value="&#13;&#10;#L2# 请告诉我注意事项。#l"/>
+  <string name="$SCRIPTSTRING_CASH3_18$" value="#e#b&lt;什么是美容室？&gt;#k#n &#13;&#10;一个存放可以保存自身角色美容并可以再次取出使用的空间，分为#b[发型]、[整容]#k标签。&#13;&#10;默认提供1格发型栏、1格整容栏。"/>
+  <string name="$SCRIPTSTRING_CASH3_19$" value="可在标签右上方查看&lt;栏位使用情况&gt;。&#13;&#10;#b当前栏位显示“扩展的栏位 / 最大可扩展栏位”#k。&#13;&#10;&#13;&#10;已使用“最大可扩展栏位”数量的标签则无法继续扩展栏位。"/>
+  <string name="$SCRIPTSTRING_CASH3_2$" value="已扩展1格发型栏，可额外保存模特形象啦~！"/>
+  <string name="$SCRIPTSTRING_CASH3_20$" value="如果准备了空栏位，那么现在就可以保管#b美容#k了。"/>
+  <string name="$SCRIPTSTRING_CASH3_21$" value="#e#b&lt;保存美容&gt;#k#n&#13;&#10;点击[发型]、[整容]标签内栏位的保存按钮，可在空栏位中保存美容信息。&#13;&#10;&#13;&#10;空栏位指的是一开始免费提供的1格（发型、整容）或通过扩展券扩展的栏位。"/>
+  <string name="$SCRIPTSTRING_CASH3_22$" value="在#n#b发型#k标签中点击保存后保存角色的发型和发色，在#b整容#k标签中点击保存后保存角色的整容和颜色。&#13;&#10;&#13;&#10;#r※1个栏位中只能保存1个美容，所有栏位内模型的服装和发型/整容/皮肤为任意指定，无关当前我的角色的状态。"/>
+  <string name="$SCRIPTSTRING_CASH3_23$" value="保存的美容颜色通过栏位内模型#b左下方颜色标记#k显示。如果保存的美容为混合染色状态，颜色标记#b从下往上按照底色、混合色#k的顺序提供。&#13;&#10;如果想要查看更具体的信息，可以用鼠标悬浮在名称部分上方得知。但如果是皮肤模型，则不单独显示颜色标记。"/>
+  <string name="$SCRIPTSTRING_CASH3_24$" value="#e#b&lt;应用&gt;#k#n&#13;&#10;点击#b应用#k键后，栏位内模型和角色的美容可#b互换使用#k。会再提供一次#b变更结果示例#k，请在确认后变更。"/>
+  <string name="$SCRIPTSTRING_CASH3_25$" value="保存的美容对应的性别显示在左上方，可以便利区分。"/>
+  <string name="$SCRIPTSTRING_CASH3_26$" value="#e#b&lt;删除&gt;#k#n&#13;&#10;你想从栏位中删除保存的美容，保存其他美容吗？那么，点击栏位右上方的删除按钮可删除保存的美容。#r美容一旦删除就无法恢复，请慎重选择。#k"/>
+  <string name="$SCRIPTSTRING_CASH3_27$" value="#e#b&lt;注意事项&gt;#k#n&#13;&#10;&#13;&#10;1. 美容室与其他角色（包括冒险家）#b不共享#k。&#13;&#10;&#13;&#10;2. 1个栏位只能保存1个美容。&#13;&#10;&#13;&#10;3. 保存的美容之外，栏位内模型状态全部为任意指定，无关当前我的角色的状态。（所有模型的服装、发型、整容、皮肤）"/>
+  <string name="$SCRIPTSTRING_CASH3_3$" value="你还没用过模型呢，不如先试着保管一下模型吧？"/>
+  <string name="$SCRIPTSTRING_CASH3_4$" value="你已经在使用全部发型栏了。发型栏最多可使用10格~！"/>
+  <string name="$SCRIPTSTRING_CASH3_5$" value="现在无法使用。"/>
+  <string name="$SCRIPTSTRING_CASH3_6$" value="哎呀？这是怎么回事？请稍后再试好吗？"/>
+  <string name="$SCRIPTSTRING_CASH3_7$" value="点击接受后，即可扩展美容室的1格整容室栏位。&#13;&#10;&#13;&#10;#e是否要立刻使用1个#t5680733#，扩展1格整容室栏位？#r#n&#13;&#10;&#13;&#10;（包括最初开放的1格，最多可扩展到10格。）"/>
+  <string name="$SCRIPTSTRING_CASH3_8$" value="如果你改变心意了，欢迎随时回来。"/>
+  <string name="$SCRIPTSTRING_CASH3_9$" value="已扩展1格整形栏，可额外保存模特形象啦~！"/>
+</imgdir>

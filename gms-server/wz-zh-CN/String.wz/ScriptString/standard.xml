@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="standard">
+  <string name="$SCRIPTSTRING_STANDARD_0$" value="优秀测试员积分 "/>
+  <string name="$SCRIPTSTRING_STANDARD_1$" value=" 已增加。累计积分为 "/>
+  <string name="$SCRIPTSTRING_STANDARD_2$" value="。"/>
+</imgdir>

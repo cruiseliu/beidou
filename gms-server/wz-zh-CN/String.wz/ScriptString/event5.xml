@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="event5">
+  <string name="$SCRIPTSTRING_EVENT5_0$" value="#b#h0##k！我一直在等着和你联系。#b(环顾四周，小声地说)#k现在的情况很紧急。我先把这个存储芯片交给你。里面装有我通过秘密途径获得的#r头目M的相关情报#k。现在有人正在跟踪我，想把它抢走。你帮我保管好它，直到那些人的注意力转移到别的地方为止。"/>
+  <string name="$SCRIPTSTRING_EVENT5_1$" value="因为有人想要抢走存储芯片，所以一时都不能松懈。这个存储芯片设置了高级的保安装置。#b如果不退出登录或每小时输入1次密码#k的话，它就会自动爆炸。你每隔一小时过来找我，我会帮你输入密码。如果你能顺利完成任务，我就发给你#b优秀工作人员徽章#k。那就辛苦你了。"/>
+  <string name="$SCRIPTSTRING_EVENT5_10$" value="今天一共搜集到了#b"/>
+  <string name="$SCRIPTSTRING_EVENT5_100$" value="你已经完成了组队用特别强化项目#b怪物对决！#k第4阶段。你想挑战第5阶段吗？ &#13;&#10;#b#L0#挑战。#l&#13;&#10;#b#L1#我要出去。#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_101$" value="由于未知原因，无法入场喵。"/>
+  <string name="$SCRIPTSTRING_EVENT5_102$" value="你已经完成了组队用特别强化项目#b怪物对决！#k第5阶段。你想挑战第6阶段吗？ &#13;&#10;#b#L0#挑战。#l&#13;&#10;#b#L1#我要出去。#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_103$" value="由于未知原因，无法入场喵。"/>
+  <string name="$SCRIPTSTRING_EVENT5_104$" value="你在怪物被打败之后才入场，未能获得经验值和点数。"/>
+  <string name="$SCRIPTSTRING_EVENT5_105$" value="工作人员点数"/>
+  <string name="$SCRIPTSTRING_EVENT5_106$" value="获得点数。工作人员点数一共是"/>
+  <string name="$SCRIPTSTRING_EVENT5_107$" value="未能完成训练项目，无法移动到下一阶段。请先把怪物打败。"/>
+  <string name="$SCRIPTSTRING_EVENT5_108$" value="任务完成得很出色。工作人员#b#h0##k回收的徽章我会交给情报处理组处理。"/>
+  <string name="$SCRIPTSTRING_EVENT5_109$" value="有什么问题吗？到了现在才说，这叫什么事？这些情报是非常重要的。请你想一下自己的责任。"/>
+  <string name="$SCRIPTSTRING_EVENT5_11$" value="#k个优秀工作人员徽章。.&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT5_110$" value="#t4031988#在你身上吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_111$" value="请确认装备窗口是否有一个以上的空格。"/>
+  <string name="$SCRIPTSTRING_EVENT5_112$" value="到目前为止你回收到的徽章一共是#b"/>
+  <string name="$SCRIPTSTRING_EVENT5_113$" value="个#k。了不起的成果。多亏了你，我们离揭开#b头目M#k的真正身份又近了一步。现在要揭开他的面目，应该只是时间问题了。我给你的手套和之前给你的其他手套不同。对执行任务应该会很有帮助。"/>
+  <string name="$SCRIPTSTRING_EVENT5_114$" value="请确认装备窗口是否有一个以上的空格。"/>
+  <string name="$SCRIPTSTRING_EVENT5_115$" value="个#k。了不起的成果。多亏了你，我们离揭开#b头目M#k的真正身份又近了一步。现在要揭开他的面目，应该只是时间问题了。我给你的手套和之前给你的其他手套不同。对执行任务应该会很有帮助。"/>
+  <string name="$SCRIPTSTRING_EVENT5_116$" value="个#k。今后请你再接再厉。每搜集到10个时，我会把本部发放的支援物品送给你。"/>
+  <string name="$SCRIPTSTRING_EVENT5_117$" value="请你在装备栏有一个以上的空格的时候，再来和我说话。"/>
+  <string name="$SCRIPTSTRING_EVENT5_118$" value="你好。我负责工作人员本部的通信移动工作。如果你想移动到工作人员的基地工作人员本部，或者了解工作人员们目前所在的位置，或者确认特别任务的奖励的话，可以向我询问。我能帮你什么吗？&#13;&#10;&#13;&#10;#b#L2#我想查看工作人员们目前的位置。#l&#13;&#10;#L0#我想移动到工作人员本部。#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_119$" value="你好。我是负责和本部之间的联系的工作人员E。在工作人员本部，#b工作人员W#k和#b工作人员P#k正在执行任务。你现在要移动到本部去吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_12$" value="这么快一小时就过去了。存储芯片的保安装置好像已经发动了。把它给我看看。我得输入密码。#b(工作人员W用熟练的手法输入了密码。)#k不知道有没有人在跟踪我。你帮我好好看好存储芯片。按照约定……哦！你今天已经得到5个#b优秀工作人员徽章#k了。一天之内是不允许发放5个以上的。那我把这个送给你吧。好了，再见。"/>
+  <string name="$SCRIPTSTRING_EVENT5_120$" value="你好像还有未完成的任务。请小心是否有追踪者。"/>
+  <string name="$SCRIPTSTRING_EVENT5_121$" value="对不起。我什么都不能告诉你。"/>
+  <string name="$SCRIPTSTRING_EVENT5_122$" value="没有中奖内容。请重新确认你是否中奖。，"/>
+  <string name="$SCRIPTSTRING_EVENT5_123$" value="高级瞬移之石"/>
+  <string name="$SCRIPTSTRING_EVENT5_124$" value="护身符1日"/>
+  <string name="$SCRIPTSTRING_EVENT5_125$" value="三排高性能喇叭"/>
+  <string name="$SCRIPTSTRING_EVENT5_126$" value="道具喇叭"/>
+  <string name="$SCRIPTSTRING_EVENT5_127$" value="高性能喇叭"/>
+  <string name="$SCRIPTSTRING_EVENT5_128$" value="包袱商人妙妙"/>
+  <string name="$SCRIPTSTRING_EVENT5_129$" value="商店搜索器"/>
+  <string name="$SCRIPTSTRING_EVENT5_13$" value="我知道你还想获得优秀工作人员徽章，但我不能无视规则。这一点你应该可以理解吧。"/>
+  <string name="$SCRIPTSTRING_EVENT5_130$" value="高级瞬移之石"/>
+  <string name="$SCRIPTSTRING_EVENT5_131$" value="可爱天使熊"/>
+  <string name="$SCRIPTSTRING_EVENT5_132$" value="你好，#b#h0##k。"/>
+  <string name="$SCRIPTSTRING_EVENT5_133$" value="祝贺你中奖获得  。你现在就要领取吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_134$" value="在你领取奖品之前，我会帮你保管。"/>
+  <string name="$SCRIPTSTRING_EVENT5_135$" value="奖品发放完成。现在应该可以在先进商店中查看到了。"/>
+  <string name="$SCRIPTSTRING_EVENT5_136$" value="由于位置原因，奖品发放失败。请稍候重新尝试。"/>
+  <string name="$SCRIPTSTRING_EVENT5_137$" value="你想知道哪个工作人员的位置呢？&#13;&#10;&#13;&#10;#b#L0#工作人员W#l&#13;&#10;#b#L1#工作人员C#l&#13;&#10;#b#L2#工作人员O#l&#13;&#10;#b#L3#工作人员P#l&#13;&#10;#L4#工作人员咪咪和工作人员喵喵#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_138$" value="工作人员W现在在#b工作人员本部#k。工作人员W正在执行的任务是#b代号MS-07#k，#b对朴大爷的西瓜进行调查#k。他虽然爱吹牛，但却是个很有能力的工作人员。想见工作人员W的话，移动到工作人员本部就可以找到他。"/>
+  <string name="$SCRIPTSTRING_EVENT5_139$" value="工作人员C现在在#b第一次同行奖励地区#k执行派遣任务。想要见到工作人员C的话，必须参加第一次同行。现在他所在的地区是#b&lt;月妙的年糕&gt;、&lt;第一次同行&gt;、&lt;时空裂缝&gt;、&lt;女神之塔&gt;、&lt;老海盗&gt;、&lt;罗密欧和朱丽叶&gt;和&lt;毒雾森林&gt;#k。参加并完成第一次同行后，就能在奖励地区见到工作人员C。"/>
+  <string name="$SCRIPTSTRING_EVENT5_14$" value="请确认一下消费窗口中是否有空格。"/>
+  <string name="$SCRIPTSTRING_EVENT5_140$" value="工作人员O现在被派遣到了#b迷你副本入口地区#k。工作人员O工作的地区如下。&#13;&#10;.&#13;&#10;#b- 金银岛：#m100020000##k&#13;&#10;#b- 迷宫：#m105040304##k&#13;&#10;#b- 迷宫：#m105050100##k&#13;&#10;#b- 玩具塔：#m221023400##k&#13;&#10;#b- 莎翁小镇：#m260020600##k&#13;&#10;#b- 卡帕莱特研究所：#m261020300##k&#13;&#10;#b- 米纳尔森林：#m240020500##k&#13;&#10;#b- 米纳尔森林：#m240040511##k&#13;&#10;#b- 米纳尔森林：#m240040520##k"/>
+  <string name="$SCRIPTSTRING_EVENT5_141$" value="工作人员P现在在#b工作人员本部#k。工作人员P负责情报处理工作，可以提供和各种任务有关的情报。想要见工作人员P的话，请通过我移动到本部。"/>
+  <string name="$SCRIPTSTRING_EVENT5_142$" value="工作人员咪咪和工作人员喵喵正在进行工作人员强化项目“对决怪物！”。想要移动到工作人员咪咪和工作人员喵喵所在的地方的话，请你去找#b工作人员佳佳#k。"/>
+  <string name="$SCRIPTSTRING_EVENT5_143$" value="你好。欢迎来到 工作人员本部～所有的情报都经由我处理。也有#b工作人员#h0##k你的有关情报。我的职责就是为各位工作人员提供帮助。你需要什么帮助呢？&#13;&#10;#b#L0#我想浏览我的任务执行记录。#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_144$" value="你的任务执行记录如下。&#13;&#10;&#13;&#10;- #i4031988# 特殊工作人员徽章回收：共 "/>
+  <string name="$SCRIPTSTRING_EVENT5_145$" value="次&#13;&#10;- #i4001191# 优秀工作人员徽章获得次数：共 "/>
+  <string name="$SCRIPTSTRING_EVENT5_146$" value="次&#13;&#10;- #i4001192# 碟报文件回收：共"/>
+  <string name="$SCRIPTSTRING_EVENT5_147$" value="次&#13;&#10;&#13;&#10;- 快速问答累计点数：共"/>
+  <string name="$SCRIPTSTRING_EVENT5_148$" value="点&#13;&#10;&#13;&#10;- 特别强化训练点数：共"/>
+  <string name="$SCRIPTSTRING_EVENT5_149$" value="点"/>
+  <string name="$SCRIPTSTRING_EVENT5_15$" value="这是本部送来的支援物品。每次都装着不同的东西。无法预测装着什么东西是最大的问题。"/>
+  <string name="$SCRIPTSTRING_EVENT5_150$" value="次&#13;&#10;- #i4001192# 优秀工作人员徽章获得次数：共 "/>
+  <string name="$SCRIPTSTRING_EVENT5_151$" value="你好！工作人员#h0#。根据本部的联络，说你会把碟报文件交给我。你把碟报文件带来了吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_152$" value="你要是忘了自己的任务的话，这就难办了。"/>
+  <string name="$SCRIPTSTRING_EVENT5_153$" value="你是带来了5个碟报文件吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_154$" value="请确认装备窗口是否有一个以上的空格。"/>
+  <string name="$SCRIPTSTRING_EVENT5_155$" value="目前为止你回收到的碟报文件一共是#b"/>
+  <string name="$SCRIPTSTRING_EVENT5_156$" value="个#k。干得不错。很好。这样就足够了。祝贺你，你终于搜集到了100张碟报文件。这是新出的最新型钛质收信器。以后每搜集到100张碟报文件，我都会给你最新型的装备，希望你能努力地执行任务。"/>
+  <string name="$SCRIPTSTRING_EVENT5_157$" value="请确认装备窗口是否有一个以上的空格。"/>
+  <string name="$SCRIPTSTRING_EVENT5_158$" value="很好。这样就足够了。你完成了任务，我把支援物品送给你。虽然有点旧，但这是其他前辈工作人员用过的东西，你应该感到光荣！如果你搜集到的碟报文件累计满100张的话，就可以获得更新式的收信器。所以希望你好好努力！"/>
+  <string name="$SCRIPTSTRING_EVENT5_159$" value="请你在装备栏有一个以上的空格的时候再来和我说话。"/>
+  <string name="$SCRIPTSTRING_EVENT5_16$" value="#b#h0##k你现在一共有#b"/>
+  <string name="$SCRIPTSTRING_EVENT5_160$" value="你终于回来啦。一直没收到联系，我还以为你被UFO劫持走了呢。快把指示书交给我吧。"/>
+  <string name="$SCRIPTSTRING_EVENT5_161$" value="你确定带来了20个指示书吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_162$" value="啊！这确实是头目M的指示书！作为答谢，我把本部支援给我们的现金道具送给你。如果你想获取现金道具的话，请再来和我说话。"/>
+  <string name="$SCRIPTSTRING_EVENT5_163$" value="啊！这确实是头目M的指示书！但是好像加了密。没办法看懂。看来必须找一份印刷得比较清楚的指示书来分析一下。"/>
+  <string name="$SCRIPTSTRING_EVENT5_164$" value="你终于回来啦。一直没收到联系，我还以为你被UFO劫持走了呢。快把命令书交给我吧。"/>
+  <string name="$SCRIPTSTRING_EVENT5_165$" value="你确定带来了20个命令书吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_166$" value="啊！这确实是头目M的命令书！作为答谢，我把本部支援给我们的现金道具送给你。如果你想获取现金道具的话，请再来和我说话。"/>
+  <string name="$SCRIPTSTRING_EVENT5_167$" value="啊！这确实是头目M的命令书！但是好像加了密。没办法看懂。看来必须找一份印刷得比较清楚的命令书来分析一下。"/>
+  <string name="$SCRIPTSTRING_EVENT5_168$" value="你终于回来啦。一直没收到联系，我还以为你被UFO劫持走了呢。快把指令书交给我吧。"/>
+  <string name="$SCRIPTSTRING_EVENT5_169$" value="你确定带来了20个指令书吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_17$" value="#k点。你需要什么呢？#b&#13;&#10;#L1#我需要一样东西。#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_170$" value="啊！这确实是头目M的指令书！作为答谢，我把本部支援给我们的现金道具送给你。如果你想获取现金道具的话，请再来和我说话。"/>
+  <string name="$SCRIPTSTRING_EVENT5_171$" value="啊！这确实是头目M的指令书！但是好像加了密。没办法看懂。看来必须找一份印刷得比较清楚的指令书来分析一下。"/>
+  <string name="$SCRIPTSTRING_EVENT5_172$" value="你好。你的名字是……#b(翻找文件)#k &#10;啊！工作人员#b#h0##k。我正在等你。今天的任务到了。你要查看一下吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_173$" value="之后再查看吗？我明白了。那我就那么处理了。"/>
+  <string name="$SCRIPTSTRING_EVENT5_174$" value="今天的任务是#b#y"/>
+  <string name="$SCRIPTSTRING_EVENT5_175$" value="##k。要想获得#b特殊工作人员徽章#k，必须进入迷你副本。如果你帮过#b工作人员O#k，就直接去找#b工作人员O#k。如果没帮过他，就去找#b工作人员佳佳#k。希望你今天继续为揭开#r头目M#k#n的真实身份而努力。"/>
+  <string name="$SCRIPTSTRING_EVENT5_176$" value="##k。根据可信的情报员的情报，帮助#b工作人员W#k执行#b代号MS-07#k任务的话，就可以获得优秀工作人员徽章。&#10;据说到时候，#b工作人员W#k会来找你。希望你今天继续为揭开#r头目M#k#n的真实身份而努力。"/>
+  <string name="$SCRIPTSTRING_EVENT5_177$" value="##k。在#b工作人员星缘#k那里，可以参加有关冒险岛世界的物品和怪物的快速问答。每个问题得1分，每30分钟可以挑战1次。必须在今天一天内总共获得#b50分#k。希望你今天继续为揭开#r头目M#k#n的真实身份而努力。"/>
+  <string name="$SCRIPTSTRING_EVENT5_178$" value="##k。今天的任务是获取朴大爷的西瓜。据情报显示，朴大爷的西瓜田里的西瓜被#r头目M#k安装了炸弹。所以现在瓜田由#b冒险岛运营员#k在管理。通过冒险岛运营员去西瓜田摘西瓜，然后交给工作人员本部的#b工作人员W#k。希望你今天继续为揭开#r头目M#k#n的真实身份而努力。"/>
+  <string name="$SCRIPTSTRING_EVENT5_179$" value="为了即时搜集到#b头目M#k的有关情报，我正在向工作人员下达特别命令。如果你想接受我的特别命令的话，请过来找我。我会在你要去的所有的村庄里。希望你今天继续为揭开#r头目M#k#n的真实身份而努力。"/>
+  <string name="$SCRIPTSTRING_EVENT5_18$" value="你要给我什么样的鱼呢？#b&#13;&#10;#L0##t4001187##l&#13;&#10;#L1##t4001188##l&#13;&#10;#L2##t4001189##l"/>
+  <string name="$SCRIPTSTRING_EVENT5_180$" value="你好。#b#h0##k！你听过#r人间最美食月圆～#k的话吗？现在已经是中秋了！在民族的节日里，冒险岛世界里也在举行活动。"/>
+  <string name="$SCRIPTSTRING_EVENT5_181$" value="除了#e#b制作美味的节日食物#k和#b搜集字母拼单词#k#n之外，听说这次中秋月妙还特别准备了#e#b月宫旅行#k#n。#b#h0##k你也可以去看看。怎么样？"/>
+  <string name="$SCRIPTSTRING_EVENT5_182$" value="听说每年月亮最近的时候，跳起来可以前往月宫。如果你想去的话，我现在就可以把你送到安装了跳台的游乐园去。你要到#b月妙的游乐园#k去吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_183$" value="如果你想和月妙一起度过一个愉快的中秋，可以再到村里来和我说话。"/>
+  <string name="$SCRIPTSTRING_EVENT5_184$" value="库存中的东西太多了吧？如果你想获得月妙准备的月宫旅行特别版门票，请把其他窗口清出来。"/>
+  <string name="$SCRIPTSTRING_EVENT5_185$" value="请重新确认消费窗口是否有一个以上的空格。"/>
+  <string name="$SCRIPTSTRING_EVENT5_186$" value="当前所在的地图无法移动到游乐园。不过我可以给你一张可以移动到游乐园的入场券。你到别的地方去使用入场券，就可以移动到游乐园。"/>
+  <string name="$SCRIPTSTRING_EVENT5_187$" value="冒险岛运营员：祝你中秋愉快～"/>
+  <string name="$SCRIPTSTRING_EVENT5_188$" value="必须离开彩虹岛，才能参加活动。"/>
+  <string name="$SCRIPTSTRING_EVENT5_189$" value="迎中秋月宫旅行活动开始了～你想和月妙们一起去月宫旅行吗？据说只有在月亮最近的时候，才可以跳过去。如果你想去的话，我马上可以把你送到装有跳台的游乐园去。"/>
+  <string name="$SCRIPTSTRING_EVENT5_19$" value="切！明明一条鱼都没有……"/>
+  <string name="$SCRIPTSTRING_EVENT5_190$" value="你好～我们为你准备了快乐的迎中秋#e#r月宫旅行#k#n和打猎暗黑龙王、打猎品克缤的活动。为了对新引进的称号进行测试，暗黑龙王和品克缤被削弱到了1/3，希望你积极参加远征队。&#13;&#10;#b#L1#我想去月宫旅行。#l&#13;&#10;#L2#我想参加暗黑龙王远征。#l&#13;&#10;#L3#我想参加品克缤远征。#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_191$" value="你好像还没达到可以前往月宫的等级。至少需要13级，才能过去。"/>
+  <string name="$SCRIPTSTRING_EVENT5_192$" value="打倒暗黑龙王次数最多的勇士，会被赐予#b#e暗黑龙王击败者#k#n的称号！但是名誉神官#b达利尔#k只认可在执行“#e称号挑战 - 暗黑龙王击败者#n”任务的过程中击败暗黑龙王的次数。"/>
+  <string name="$SCRIPTSTRING_EVENT5_193$" value="为了本次测试，特地将暗黑龙王的血量减少为1/3，请你趁这次机会打倒暗黑龙王，成为称号的主人吧。啊，我会帮你先完成“#e暗黑龙王的末日#n”任务。如果你是第一次参加，请在完成称号挑战之后再来找我。你做好挑战的准备了吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_194$" value="如果你做好了面对暗黑龙王的准备，请重新和我说话。你确定要向达利尔挑战称号吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_195$" value="请你到达利尔那里接受“'#b称号挑战 - 暗黑龙王击败者#k”任务，然后再来找我。"/>
+  <string name="$SCRIPTSTRING_EVENT5_196$" value="打倒品克缤次数最多的勇士，会被赐予#b#e品克缤击败者#k#n的称号！但是名誉神官#b达利尔#k只认可在执行“#e称号挑战 - 品克缤击败者#n”任务的过程中击败品克缤的次数。"/>
+  <string name="$SCRIPTSTRING_EVENT5_197$" value="为了本次测试，特地将品克缤的的血量减少为1/3，请你趁这次机会打倒品克缤的，成为称号的主人吧。啊，我会帮你先完成“#e结界#n”任务。如果你是第一次参加，请在完成称号挑战之后再来找我。你做好挑战的准备了吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_198$" value="如果你做好了面对品克缤的准备，请重新和我说话。你确定要向达利尔挑战称号吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_199$" value="你已经获得了测试用高性能喇叭。请你到现金商店中查看。"/>
+  <string name="$SCRIPTSTRING_EVENT5_2$" value="准备好了吗#b#h0##k！我一直等待着能和你联手的这一天～#b(环顾四周，小声地说)#k很高兴见到你，但是现在情况非常紧急。"/>
+  <string name="$SCRIPTSTRING_EVENT5_20$" value="你捕到了几条鱼？r&#10;#b&lt;当前拥有的#t4001187#的数量： "/>
+  <string name="$SCRIPTSTRING_EVENT5_200$" value="物品发放完成。现在你可以去现金商店中查看。"/>
+  <string name="$SCRIPTSTRING_EVENT5_201$" value="由于未知原因，物品发放失败。请稍候重新尝试。"/>
+  <string name="$SCRIPTSTRING_EVENT5_202$" value="你已经获得了测试用喇叭。请你到现金商店中查看。"/>
+  <string name="$SCRIPTSTRING_EVENT5_203$" value="如果你想和月妙们一起度过一个快乐的中秋，请重新和我说话。"/>
+  <string name="$SCRIPTSTRING_EVENT5_204$" value="你要离开游乐园吗？我会把你送到离原来所在位置最近的村庄。你现在就要出去吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_205$" value="是啊。再玩一会儿再走吧。一年难得有这么一次机会～"/>
+  <string name="$SCRIPTSTRING_EVENT5_206$" value="老窜 皋捞敲 酒老罚靛甫 哈绢唱具 捞亥飘甫 柳青且 荐 乐翠聪促."/>
+  <string name="$SCRIPTSTRING_EVENT5_207$" value="力啊 混带 镑篮夸. 广窍疵俊 喊甸捞 醚醚洒 冠囚乐绰 崔唱扼俊夸. 咯青磊丛膊辑 盔窍脚促搁 备版矫难靛副 荐档 乐绢夸. 崔唱扼俊 啊焊矫摆绢夸?"/>
+  <string name="$SCRIPTSTRING_EVENT5_208$" value="酒流 崔唱扼俊 哎 饭骇捞 救 登矫绰 巴 鞍匙夸. 利绢档 13码篮 登具 窍瘤 臼阑鳖夸?"/>
+  <string name="$SCRIPTSTRING_EVENT5_209$" value="犁拐阑刨单夸. 付澜捞 官差矫搁 富靖秦 林技夸."/>
+  <string name="$SCRIPTSTRING_EVENT5_21$" value="没有#t4001187#的话，我就唱不好歌……"/>
+  <string name="$SCRIPTSTRING_EVENT5_210$" value="哇！你拿着的是月宫旅行门票特别版吗？！我们给持有特别版门票的贵宾准备了5次月花糕。你要领取月花糕吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_211$" value="如果你还想吃月花糕的话，请再来找我！"/>
+  <string name="$SCRIPTSTRING_EVENT5_212$" value="消费窗口没有空间，我无法把礼物给你。"/>
+  <string name="$SCRIPTSTRING_EVENT5_213$" value="现在你已经有了"/>
+  <string name="$SCRIPTSTRING_EVENT5_214$" value="次月花糕。"/>
+  <string name="$SCRIPTSTRING_EVENT5_215$" value="你已经获得了5次月花糕。免费的糕每天只能领取5个。请你明天再来。"/>
+  <string name="$SCRIPTSTRING_EVENT5_216$" value="好吃的月花糕～"/>
+  <string name="$SCRIPTSTRING_EVENT5_217$" value="多亏了星缘，我才能到月宫来旅行～但是跳过来的时候，不小心把身上的东西全弄丢了。为了凑齐回去的旅费，现在只好在这里打工……啊，不过并不都是坏事情！我发现了开满了美丽的花的月花庭院。你不想去看看吗？&#13;&#10;#b#L0#我想去月花庭院。#l &#13;&#10;#b#L1#我把月花摘回来了。#l &#13;&#10;#b#L2#我想领取月花发卡。#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_218$" value="佳佳：你可以在月花庭院享受月光，采摘美丽的月花～"/>
+  <string name="$SCRIPTSTRING_EVENT5_219$" value="哦……已经有人进入了。请稍候再来。"/>
+  <string name="$SCRIPTSTRING_EVENT5_22$" value="哇！我现在好像可以把歌唱好了。作为谢意，我会给你累积点数。这次你获得了#b"/>
+  <string name="$SCRIPTSTRING_EVENT5_220$" value="哇，你真的摘了不少月花嘛。所以消费窗口好像不够了……请你清空消费窗口之后，再来和我说话。"/>
+  <string name="$SCRIPTSTRING_EVENT5_221$" value="哇，你真的摘了不少月花嘛！收到月花之后，月妙们一定会很高兴的！如果你能给我摘更多的月花的话，我会把月宫的纪念品月花发卡送给你。如果想要月花发卡的话，请你去多搜集一些月花回来。现在你已经帮了我"/>
+  <string name="$SCRIPTSTRING_EVENT5_222$" value="次。达到5次之后，请你跟我说#b“我想领取月花发卡。”#k。"/>
+  <string name="$SCRIPTSTRING_EVENT5_223$" value="月花？月妙们说需要用月花来做年糕……好像说有5个左右就够了。"/>
+  <string name="$SCRIPTSTRING_EVENT5_224$" value="哇，你已经帮我摘了五次月花了吧？作为你帮着摘月花的报答，月妙们说要送你一个月花发卡～但是……你身上的东西太多了？你能清空装备窗口之后再来和我说话吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_225$" value="作为帮着摘月花的报答，月妙们把这个月花发卡送给你。说是月宫的纪念品～希望你能喜欢。&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT5_226$" value="月妙们只把月花发卡送给帮助他们最多的人。大概……需要帮助他们五次？你已经去摘了"/>
+  <string name="$SCRIPTSTRING_EVENT5_227$" value="次了。再继续努力一下的话，应该就能得到月花发卡了。"/>
+  <string name="$SCRIPTSTRING_EVENT5_228$" value="你要从月花庭院出去吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_229$" value="月花很美吧？请好好欣赏吧。"/>
+  <string name="$SCRIPTSTRING_EVENT5_23$" value="点#k，累计一共是#b"/>
+  <string name="$SCRIPTSTRING_EVENT5_230$" value="等一下。你现在身上还带着月亮照片信封，对吧？这说明你还没放弃寻找月亮照片任务，所以我不能再给你任务。如果想接受任务的话，请先跟我说#b“我要放弃寻找月亮照片任务。”#k，放弃之前的任务。"/>
+  <string name="$SCRIPTSTRING_EVENT5_231$" value="月亮长什么样？是和人脸一样圆圆的、黄色的，就像面包一样吗？月妙们虽然生活在月亮上，但从来没见过月亮真正的样子。我们知道月亮的表面长成什么样，但却不了解月亮整体的形状。你知道月亮长什么样吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_232$" value="到月宫来的人都说满月很漂亮。漂亮得让人会对着它祈愿……但是我却看不到。看不到月亮长成什么样。我拜托住在地上的月妙叔叔给我寄点照片来……但在照片跳台上被撕碎了。"/>
+  <string name="$SCRIPTSTRING_EVENT5_233$" value="碎成三块的照片散落到了什么地方。喂，冒险家。你能帮我去找到散落的照片，把照片拼好吗？你应该知道月亮长成什么样，知道怎么把碎掉的照片拼起来。"/>
+  <string name="$SCRIPTSTRING_EVENT5_234$" value="原来如此……你也不知道月亮长什么样啊。看来人们果然都是在说谎。"/>
+  <string name="$SCRIPTSTRING_EVENT5_235$" value="你都带了些什么东西啊。你的其他窗口好像没有存放照片碎片的空间。"/>
+  <string name="$SCRIPTSTRING_EVENT5_236$" value="我不知道照片碎片都到哪儿去了。#b有可能被谁捡走了，或者被怪物拿走了。也有可能混在花瓣中间，没办法找到了#k……为了防止再把照片弄坏，我特别准备了一个信封。请你一定要帮我找到照片的碎片。月亮到底长什么样呢……"/>
+  <string name="$SCRIPTSTRING_EVENT5_237$" value="你搜集到所有的照片碎片了吗？月亮照片拼好了吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_238$" value="你带了些什么东西啊？好像你得先把消费窗口清理一下才行。"/>
+  <string name="$SCRIPTSTRING_EVENT5_239$" value="……哇……真漂亮。月亮原来长成这个样子啊。没想到看上去这么温暖。月妙们原来就是生活在这里，生活在这个美丽得让人禁不住会向它祈愿的月亮上面。 &#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT5_24$" value="#k点。点数可以用来交换自己想要的物品。"/>
+  <string name="$SCRIPTSTRING_EVENT5_240$" value="你好像还没搜集齐照片碎片吧？我不知道照片碎片都到哪儿去了。#b有可能被谁捡走了，或者被怪物拿走了。也有可能混在花瓣中间，没办法找到了#k。"/>
+  <string name="$SCRIPTSTRING_EVENT5_241$" value="你放弃寻找了吗？那请你先放弃正在执行的#b月亮长成什么样#k任务。然后再把月亮照片信封还给我。"/>
+  <string name="$SCRIPTSTRING_EVENT5_242$" value="你把月亮照片信封弄丢了吗？这可不行啊……"/>
+  <string name="$SCRIPTSTRING_EVENT5_243$" value="啊……月亮照片太难找了吗？那样的话，就没办法了……那我就当你放弃了#b月亮长成什么样#k任务。你能把之前给你的月亮照片信封还给我吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_244$" value="照片已经还回来了。如果你想重新开始搜集照片碎片的话，需要从头开始接受任务。"/>
+  <string name="$SCRIPTSTRING_EVENT5_245$" value="月亮到底长成什么样呢……？"/>
+  <string name="$SCRIPTSTRING_EVENT5_246$" value="现在是中秋，中秋！好歹得尝一样节日的食物吧！美味的#b#t2022037##k和 #b#t2022038##k，或者#b#t2022352##k都很不错。"/>
+  <string name="$SCRIPTSTRING_EVENT5_247$" value="你把节日食物带来了吗？然我看看。是什么食物呢……？&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT5_248$" value="嗯……你必须把#t2022037#给我，我才会把月亮照片给你……"/>
+  <string name="$SCRIPTSTRING_EVENT5_249$" value="节日就应该吃节日的食物。啊，我把月亮照片交给你吧。让我看看……"/>
+  <string name="$SCRIPTSTRING_EVENT5_25$" value="你捕到了几条鱼？r&#10;#b&lt;当前拥有的 #t4001188#的数量："/>
+  <string name="$SCRIPTSTRING_EVENT5_250$" value="来，这是月亮照片碎片。呵呵，不久之前从天上掉下来，被我捡到了。没想到还会有这种好处。谢谢你，东西很好吃！"/>
+  <string name="$SCRIPTSTRING_EVENT5_251$" value="佳佳一定爽死了～他现在一定在月宫尽情地吃月妙的年糕。"/>
+  <string name="$SCRIPTSTRING_EVENT5_252$" value="嗯……你必须把#t2022038#给我，我才会把月亮照片给你……"/>
+  <string name="$SCRIPTSTRING_EVENT5_253$" value="节日就应该吃节日的食物。啊，我把月亮照片交给你吧。让我看看……"/>
+  <string name="$SCRIPTSTRING_EVENT5_254$" value="来，这是月亮照片碎片。呵呵，不久之前从天上掉下来，被我捡到了。没想到还会有这种好处。谢谢你，东西很好吃！"/>
+  <string name="$SCRIPTSTRING_EVENT5_255$" value="佳佳一定爽死了～他现在一定在月宫尽情地吃月妙的年糕。"/>
+  <string name="$SCRIPTSTRING_EVENT5_256$" value="嗯……你必须把 #t2022352#给我，我才会把月亮照片给你……"/>
+  <string name="$SCRIPTSTRING_EVENT5_257$" value="节日就应该吃节日的食物。啊，我把月亮照片交给你吧。让我看看……"/>
+  <string name="$SCRIPTSTRING_EVENT5_258$" value="来，这是月亮照片碎片。呵呵，不久之前从天上掉下来，被我捡到了。没想到还会有这种好处。谢谢你，东西很好吃！"/>
+  <string name="$SCRIPTSTRING_EVENT5_259$" value="佳佳一定爽死了～他现在一定在月宫尽情地吃月妙的年糕。"/>
+  <string name="$SCRIPTSTRING_EVENT5_26$" value="没有#t4001188#的话，我就唱不好歌……"/>
+  <string name="$SCRIPTSTRING_EVENT5_260$" value="为了纪念快乐的中秋节，只要登陆，就可以得到礼物箱和我的对打猎有帮助的魔法。你之前一次都没领过礼物啊？到9月25日为止，我一直会发放礼物，希望你每天都来领取！&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT5_261$" value="为了纪念快乐的中秋节，只要登陆，就可以得到礼物箱和我的对打猎有帮助的魔法。你已经从我这里领了#b"/>
+  <string name="$SCRIPTSTRING_EVENT5_262$" value="次#k礼物了吧？到9月25日为止，我一直会发放礼物，希望你每天都来领取！&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT5_263$" value="请确认其他窗口、消费窗口和设置窗口是否有空格。"/>
+  <string name="$SCRIPTSTRING_EVENT5_264$" value="请确认其他窗口、消费窗口和设置窗口是否有空格。"/>
+  <string name="$SCRIPTSTRING_EVENT5_265$" value="拌例捞 官差搁辑 皋捞敲 岿靛俊档 枚货甸捞 朝酒甸菌绢夸... 弊繁单 枚货甸 吝俊 穿焙啊 舅阑 汝府绊 啊滚啡瘤 构抗夸! 啊坎篮 舅篮 倒毫临 荤恩档 绝捞 寇酚霸 嫡瘤俊 初咯 乐绢夸... 弊贰辑 富捞俊夸， 舅阑 倒毫林扁肺 搬沥沁绢夸!"/>
+  <string name="$SCRIPTSTRING_EVENT5_266$" value="蝶舵茄 寝混苞 脚急茄 傍扁甫 罐阑 荐 乐档废 酒扁货狼 嫡瘤甫 父甸绢辑 舅阑 持绢 滴菌绢夸. 弊繁单 舅捞 蚕 目辑... 捞巴父栏肺绰 何练茄 巴 鞍酒夸. 弊矾聪 嫡瘤甫 蝶舵窍霸 且 标钱阑 葛酒 嫡瘤狼 柯档甫 歹 棵妨拎具 且 巴 鞍酒夸."/>
+  <string name="$SCRIPTSTRING_EVENT5_267$" value="弊贰辑 富牢单...  寸脚档 档客林瘤 臼栏矫摆绢夸? 焊恩乐绊 亮篮 老捞垒酒夸? 舅俊辑 绢恫 蓖咯款 酒扁货啊 唱棵瘤档 泵陛窍绊... 档客林角 积阿捞 乐栏矫促搁 官肺 酒扁货狼 嫡瘤肺 焊郴辑 绢痘霸 积变 舅牢瘤 焊咯 靛副霸夸!"/>
+  <string name="$SCRIPTSTRING_EVENT5_268$" value="饺栏矫搁 绢驴 荐 绝瘤父夸..."/>
+  <string name="$SCRIPTSTRING_EVENT5_269$" value="绢... 了价秦夸. 酒扁货狼 嫡瘤肺 官肺 捞悼且 荐 绝绢夸. 措脚 酒扁货狼 嫡瘤肺 哎 荐 乐绰 酒捞袍阑 靛府妨绊 沁绰单， 家厚芒俊 磊府啊 绝匙夸. 家厚芒阑 茄 沫父 厚况林矫摆绢夸?"/>
+  <string name="$SCRIPTSTRING_EVENT5_27$" value="哇！我现在好像可以把歌唱好了。作为谢意，我会给你累积点数。这次你获得了#b"/>
+  <string name="$SCRIPTSTRING_EVENT5_270$" value="瘤陛 乐绰 镑俊辑绰 酒扁货狼 嫡瘤肺 官肺 捞悼矫难 临 荐 绝绢夸. 措脚 酒扁货狼 嫡瘤肺 哎 荐 乐绰 酒捞袍阑 靛副霸夸."/>
+  <string name="$SCRIPTSTRING_EVENT5_271$" value="了价钦聪促父 皋捞敲 酒老罚靛俊辑绰 捞悼捞 奖瘤 臼酒夸. 候配府酒 酒老罚靛肺 坷矫霸 登搁 档客林技夸."/>
+  <string name="$SCRIPTSTRING_EVENT5_272$" value="枚货甸捞 滚妨滴绊 埃 目促鄂 舅阑 林奎绢夸. 目促鄂 舅阑 肋 倒毫 林搁 蓖咯款 酒扁货啊 怕绢朝 巴 鞍篮单 泵陛窍瘤 臼栏技夸? 酒扁货狼 嫡瘤肺 啊辑 窃膊 舅阑 倒毫夸~"/>
+  <string name="$SCRIPTSTRING_EVENT5_273$" value="澜... 饭骇捞 13捞 救登搁 酒扁货焊促档 距且 巴 鞍篮单... 老窜 饭骇诀阑 窍矫绰 霸 绢冻鳖夸?"/>
+  <string name="$SCRIPTSTRING_EVENT5_274$" value="栏澜... 悼拱焊龋俊 喊肺 包缴捞 绝栏脚 葛剧捞匙夸. 付澜捞 官差搁 促矫 茫酒客 林技夸."/>
+  <string name="$SCRIPTSTRING_EVENT5_275$" value="皋捞敲 岿靛俊 朝酒甸菌带 枚货甸捞 舅阑 滴绊 啊滚啡绢夸. 啊坎霸档 倒毫临 荤恩捞 绝翠聪促. 弊贰辑 绢固货 措脚 舅阑 倒焊扁肺 沁绢夸. 舅捞 呈公 目辑 前绢临 鉴 绝瘤父... 标钱阑 儡多 葛酒 舅阑 蝶舵窍霸 秦林搁 盒疙 何拳且 芭抗夸. 寸脚膊辑档 舅 倒焊绰 老阑 档客林矫摆绢夸? &#13;&#10;&#13;&#10;#b#L0#标钱阑 啊廉吭绢夸#l &#13;&#10;#L1#舅狼 柯档 犬牢窍扁#l &#13;&#10;#L2#切鞭措亲傈 : 快府馆 犬牢窍扁#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_276$" value="快客， 标钱阑 备秦 坷脚 扒啊夸? 标钱阑 林矫摆绢夸? ...狙! 弊繁单 趣矫 瘤陛 切鞭 措亲傈 捞亥飘啊 柳青吝牢 扒 舅绊 拌矫唱夸? 切鞭 措亲傈阑 柳青窍绰 措钎 某腐磐甫 殿废窍继促搁， 殿废茄 某腐磐肺 标钱阑 林寂具 秦夸. 救弊矾搁 啊廉坷脚 标钱捞 切鞭 措亲傈 捞亥飘俊 殿废登瘤 臼酒夸. 弊贰档 宝满栏矫搁 标钱阑 林技夸. &#13;&#10;#b&lt; 泅犁 啊瘤绊 乐绰 标钱 荐 :"/>
+  <string name="$SCRIPTSTRING_EVENT5_277$" value="舅捞 何拳窍妨搁 标钱捞 鞘夸窍翠聪促..."/>
+  <string name="$SCRIPTSTRING_EVENT5_278$" value="标钱阑 面盒洒 啊瘤绊 拌脚 霸 嘎唱夸?"/>
+  <string name="$SCRIPTSTRING_EVENT5_279$" value="瘤陛鳖瘤 标钱阑 醚"/>
+  <string name="$SCRIPTSTRING_EVENT5_28$" value="#k点。点数可以用来交换自己想要的物品。"/>
+  <string name="$SCRIPTSTRING_EVENT5_280$" value="俺 林菌嚼聪促."/>
+  <string name="$SCRIPTSTRING_EVENT5_281$" value="绊缚嚼聪促. 舅 加狼 酒扁货档 扁坏且 芭抗夸."/>
+  <string name="$SCRIPTSTRING_EVENT5_282$" value="俺 |"/>
+  <string name="$SCRIPTSTRING_EVENT5_283$" value="标钱阑 面盒洒 啊瘤绊 拌脚啊夸? 磊脚捞 啊瘤绊 乐绰 父怒父 林角 荐 乐翠聪促."/>
+  <string name="$SCRIPTSTRING_EVENT5_284$" value="磊~ 焊技夸. 咯矾盒狼 包缴栏肺 嫡瘤甫 蝶舵窍霸 秦林绊 乐绢夸. 柯档拌俊 7锅掳 沫鳖瘤 瞒搁 酒扁货啊 柄绢朝 芭抗夸.&#13;&#10;#B"/>
+  <string name="$SCRIPTSTRING_EVENT5_285$" value="咯矾盒狼 包缴苞 荤尔栏肺 酒扁货啊 怕绢车绢夸... 窍瘤父 酒流 何拳窍瘤 臼篮 舅甸篮 腹酒夸. 葛电 舅俊辑 酒扁货甸捞 柄绢朝 锭鳖瘤， 拌加 档客林技夸."/>
+  <string name="$SCRIPTSTRING_EVENT5_286$" value="绢扼... 弊货 标判阑 酪绢滚府继唱夸?"/>
+  <string name="$SCRIPTSTRING_EVENT5_287$" value="焊价焊价茄 酒扁货狼 标判! 镜镜茄 扁盒捞 甸搁 捞 标判阑 焊哥 捍酒府甫 眠撅秦具摆绢夸. 弊烦 弊 酒捞档 啊阐 捞镑阑 栋棵妨 林摆烈."/>
+  <string name="$SCRIPTSTRING_EVENT5_288$" value="皑荤钦聪促. 弊烦， 促澜 酒扁货甫 困秦 嫡瘤甫 沥捣秦具摆匙夸."/>
+  <string name="$SCRIPTSTRING_EVENT5_289$" value="档客林矫绰 扒啊夸? 弊烦 #b档框摧扁 惯魄#k栏肺 鞍捞 啊夸! 弊 饶俊 老篮 芭扁辑 促矫 汲疙秦 靛副霸夸!"/>
+  <string name="$SCRIPTSTRING_EVENT5_29$" value="你捕到了几条鱼？r&#10;#b&lt;当前拥有的 #t4001189# 的数量："/>
+  <string name="$SCRIPTSTRING_EVENT5_290$" value="栏酒居~  档客林矫摆促绊 秦初绊..."/>
+  <string name="$SCRIPTSTRING_EVENT5_291$" value="狙. 穿焙啊 捞固 档框摧扁 惯魄栏肺 啊绰 辨俊 甸绢啊 滚啡绢夸. 泪矫 饶俊 促矫 富阑 吧绢 林技夸."/>
+  <string name="$SCRIPTSTRING_EVENT5_292$" value="老窜 涅胶飘甫 肯丰秦 林技夸."/>
+  <string name="$SCRIPTSTRING_EVENT5_293$" value="栏酒居~ 档框摧扁 惯魄阑 刁绊 朝酒啊妨绊 沁绰单... 弊父 朝俺窿俊 角菩窍绊 富疽绢夸. 力惯 茄 锅父 歹 档客林技夸~ &#13;&#10;&#13;&#10;#b#L0#档夸货甫 档框摧扁 惯魄鳖瘤 单妨促 霖促#l &#13;&#10;#L1#割 锅捞唱 档客玲绰瘤 犬牢茄促#l &#13;&#10;#L2#贿距贿距#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_294$" value="狙. 穿焙啊 捞固 档框摧扁 惯魄栏肺 啊绰 辨俊 甸绢啊 滚啡绢夸. 泪矫 饶俊 促矫 富阑 吧绢 林技夸."/>
+  <string name="$SCRIPTSTRING_EVENT5_295$" value="锅 档客林继匙夸. 弊 富篮 朝俺窿俊"/>
+  <string name="$SCRIPTSTRING_EVENT5_296$" value="锅 角菩沁促绰 芭烈... 惹陆. 10锅鳖瘤 档框阑 罐疽绰单档 朝瘤 给窍搁 荤苞狼 狼固肺 构扼档 靛妨具摆绢夸."/>
+  <string name="$SCRIPTSTRING_EVENT5_297$" value="惹陆. 焊翠阑 靛府妨绊 沁绰单 购啊 呈公 腹捞 爱绊 拌技夸. 厘厚芒阑 茄 沫 厚况林矫搁 焊翠阑 靛副霸夸."/>
+  <string name="$SCRIPTSTRING_EVENT5_298$" value="惹陆. 寸脚膊 档框阑 呈公 腹捞 罐疽绢夸. 焊翠窍绰 狼固俊辑 捞 贿距贿距阑 靛副霸夸. 菊栏肺档 腹捞 档客 林技夸. &#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT5_299$" value="贿距贿距? 趣矫 货贸烦 富秦焊绊 酵栏脚 扒啊夸? #b10锅#k鳖瘤 档客林脚促搁 焊翠栏肺 贿距贿距阑 靛副霸夸."/>
+  <string name="$SCRIPTSTRING_EVENT5_3$" value="请你先帮我保管好这个存储芯片～这是装有我通过秘密途径获得的#r头目M的相关情报#k的芯片。在有人想把它抢走的情况下交给你，可能会很辛苦。但是任务就是任务！我会把他们的注意力引到其他地方去，这段时间你能帮我保管它吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_30$" value="没有#t4001189#的话，我就唱不好歌……"/>
+  <string name="$SCRIPTSTRING_EVENT5_300$" value="栏酒居~ 模备甸篮 葛滴 蝶舵茄 镑阑 茫酒 朝酒艾绰单... 绢痘霸 窍瘤?"/>
+  <string name="$SCRIPTSTRING_EVENT5_301$" value="快客居~ 惹陆惹陆... 档框摧扁 惯魄 菊鳖瘤 单妨促 林技夸坷... 惯魄 菊俊 辨 酪篮 档夸货甫 靛酚秦辑 郴妨初栏矫搁 蹬夸."/>
+  <string name="$SCRIPTSTRING_EVENT5_302$" value="快客居~ 惹陆惹陆... 弊父 档框摧扁俊 角菩窍绊 富疽绢夸... 惹陆. 老窜 鞍捞 观栏肺 唱啊夸"/>
+  <string name="$SCRIPTSTRING_EVENT5_303$" value="咙捞 呈公 腹酒辑 单妨促 林矫扁 绢妨匡 巴 鞍酒夸. 扁鸥芒阑 茄 沫父 厚况林矫搁 绢痘霸电 瞪 巴 鞍篮单..."/>
+  <string name="$SCRIPTSTRING_EVENT5_304$" value="历 困率俊 档框摧扁 惯魄捞 乐绢夸. 困率鳖瘤 单妨啊 林技夸.  惯魄 菊俊 档馒窍搁 靛酚窍咯 郴妨 林矫搁 蹬夸. 肋 何殴钦聪促!"/>
+  <string name="$SCRIPTSTRING_EVENT5_305$" value="绢扼， 焊翠阑 靛府妨绊 沁绰单... 家厚芒俊 后 沫捞 绝绰 扒 酒囱瘤 犬牢秦 林技夸."/>
+  <string name="$SCRIPTSTRING_EVENT5_306$" value="单妨促 林寂辑 皑荤钦聪促! 捞力 档框摧扁 惯魄阑 刁绊 岗瘤霸 朝酒杭霸夸! ...己傍且 荐 乐阑柳 葛福摆瘤父... 青款阑 呼绢林技夸!"/>
+  <string name="$SCRIPTSTRING_EVENT5_307$" value="绢扼， 焊翠阑 靛府妨绊 沁绰单... 家厚芒俊 后 沫捞 绝绰 扒 酒囱瘤 犬牢秦 林技夸."/>
+  <string name="$SCRIPTSTRING_EVENT5_308$" value=" 绢扼， 焊翠阑 靛府妨绊 沁绰单... 家厚芒俊 后 沫捞 绝绰 扒 酒囱瘤 犬牢秦 林技夸."/>
+  <string name="$SCRIPTSTRING_EVENT5_309$" value="单妨促 林寂辑 皑荤钦聪促! 捞力 档框摧扁 惯魄阑 刁绊 岗瘤霸 朝酒杭霸夸! ...己傍且 荐 乐阑柳 葛福摆瘤父... 青款阑 呼绢林技夸!"/>
+  <string name="$SCRIPTSTRING_EVENT5_31$" value="哇！我现在好像可以把歌唱好了。作为谢意，我会给你累积点数。这次你获得了#b"/>
+  <string name="$SCRIPTSTRING_EVENT5_310$" value="绢扼， 焊翠阑 靛府妨绊 沁绰单... 家厚芒俊 后 沫捞 绝绰 扒 酒囱瘤 犬牢秦 林技夸."/>
+  <string name="$SCRIPTSTRING_EVENT5_311$" value="[CN]&#13;&#10;#L3#만지씨의 이야기를 가져왔어요.#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_312$" value="[CN]&#13;&#10;#L4#그윈씨의 이야기를 가져왔어요.#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_313$" value="[CN]&#13;&#10;#L5#에릭손씨의 이야기를 가져왔어요.#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_314$" value="[CN]지금까지 #b#h0##k님이 모으신 이야기는 총 #b"/>
+  <string name="$SCRIPTSTRING_EVENT5_315$" value="[CN] 개#k 입니다. &#13;&#10;이야기를 모아 오셨나요?&#13;&#10;&#13;&#10;#L0#아니요. 이야기는 어떻게 모을 수 있죠?#l&#13;&#10;#L1#네.이야기를 모아왔어요.#l&#13;&#10;#L2#추억의 이야기가 담긴 장비를 가져왔어요.#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_316$" value="[CN]이야기를 모을 수 있는 방법은 여러가지가 있어요.&#13;&#10;첫째로 #e#b몬스터를 사냥#n#k하면 얻을 수 있습니다. 몬스터들을 상대하면서 모험가들이 성장했던 것을 기억하시나요? 그런 몬스터들에게는 모험가들의 이야기가 남아있답니다. 그 이야기를 가져오시면 되요."/>
+  <string name="$SCRIPTSTRING_EVENT5_317$" value="[CN]둘째로 #b#e영웅들의 이야기를 듣고 오는 방법#k#n이 있답니다. 메이플 월드에는 처음 그 순간부터 모험을 시작한 영웅들이 많이 있답니다. 페리온의 만지씨， 슬리피우드 던전의 그윈씨 그리고 오르비스의 에릭손씨같은 분들이 있지요. 그 분들의 이야기를 잘 듣고 적어오시면 됩니다."/>
+  <string name="$SCRIPTSTRING_EVENT5_318$" value="[CN]셋째로 #b#e특별한 추억이 담긴 물건을 찾아오는 것#k#n입니다. 특별한 추억이 담긴 물건이라고 하면 막연하겠지만， 메이플 스토리와 함께한 추억이 담긴 물건이면 된답니다. 힌트를 드리자면...단풍잎이 그려진 깃발같은 것들이 있겠죠?"/>
+  <string name="$SCRIPTSTRING_EVENT5_319$" value="[CN]얼마나 모아왔나요?"/>
+  <string name="$SCRIPTSTRING_EVENT5_32$" value="#k点。点数可以用来交换自己想要的物品。"/>
+  <string name="$SCRIPTSTRING_EVENT5_320$" value="[CN]그만큼 가지고 있는것 같지는 않군요."/>
+  <string name="$SCRIPTSTRING_EVENT5_321$" value="[CN]아이템이 있는지 확인하시오."/>
+  <string name="$SCRIPTSTRING_EVENT5_322$" value="[CN]이야기를 가지고 있지 않으신것 같은데요?"/>
+  <string name="$SCRIPTSTRING_EVENT5_323$" value="[CN]괜찮습니다. 이미 이야기를 많이 모아주셨는걸요. 이 정도면 충분할 것 같아요."/>
+  <string name="$SCRIPTSTRING_EVENT5_324$" value="[CN]메이플 1000일 깃발에 대한 보상은 이미 해드렸잖아요. 기억나지 않으세요"/>
+  <string name="$SCRIPTSTRING_EVENT5_325$" value="[CN]어머! 메이플 1000일 깃발을 가지고 계시다니! 메이플 1000일에도 함께 하셨던 분이군요. 정말 이야깃 거리가 가득하죠~ 메이플 1000일 깃발에는 이야기가 가득 깃들어 있으니까요! 이야기 500개정도의 가치가 있죠. 이야기 500개를 모아온셈 쳐드릴게요. 어떠세요?"/>
+  <string name="$SCRIPTSTRING_EVENT5_326$" value="[CN]에?! 싫으시다구요?"/>
+  <string name="$SCRIPTSTRING_EVENT5_327$" value="[CN]메이플 1500일 깃발에 대한 보상은 이미 해드렸잖아요. 기억나지 않으세요"/>
+  <string name="$SCRIPTSTRING_EVENT5_328$" value="[CN]어머! 메이플 1500일 깃발을 가지고 계시다니! 메이플 1500일에도 함께 하셨던 분이군요. 정말 이야깃 거리가 가득하죠~ 메이플 1500일 깃발에는 이야기가 가득 깃들어 있으니까요! 이야기 500개정도의 가치가 있죠. 이야기 200개를 모아온셈 쳐드릴게요. 어떠세요?"/>
+  <string name="$SCRIPTSTRING_EVENT5_329$" value="[CN]무엇을 가지고 오셨다는거죠? 추억이 담긴 특별한 물건은...음...예를 들어 메이플 1000일 깃발이나 1500일 깃발같은거라고 할 수 있죠. 그런 물건이 있으시다면 착용한 모습을 보여주세요."/>
+  <string name="$SCRIPTSTRING_EVENT5_33$" value="我也想成为帅气的偶像明星。"/>
+  <string name="$SCRIPTSTRING_EVENT5_330$" value="[CN]만지씨의 노트를 가지고 있군요. 포인트 100점으로 바꿔드릴게요. 좋죠?"/>
+  <string name="$SCRIPTSTRING_EVENT5_331$" value="[CN]싫어요?"/>
+  <string name="$SCRIPTSTRING_EVENT5_332$" value="[CN]이상이 있습니다."/>
+  <string name="$SCRIPTSTRING_EVENT5_333$" value="[CN]그윈씨의 노트를 가지고 있군요. 포인트 100점으로 바꿔드릴게요. 좋죠?"/>
+  <string name="$SCRIPTSTRING_EVENT5_334$" value="[CN]에릭손씨의 노트를 가지고 있군요. 포인트 100점으로 바꿔드릴게요. 좋죠?"/>
+  <string name="$SCRIPTSTRING_EVENT5_335$" value="[CN]#b#h0##k님 덕분에 재밌는 모험책이 만들어 질 것 같아요. 도움을 주셔서 감사합니다."/>
+  <string name="$SCRIPTSTRING_EVENT5_336$" value="[CN]앗! 제가 이야기를 모은다고 말씀드린 적이 없는 것 같은데 어떻게 아셨죠? 물론 이야기를 주시면 고맙지만...그러면 제가 드리는 선물을 받으실 수가 없잖아요. 제 설명을 들어 보신 후에 이야기를 모아다 주셔도 늦지 않답니다."/>
+  <string name="$SCRIPTSTRING_EVENT5_337$" value="[CN]음...1997일， 1998일， 1999일 그러니까... 헉! #b#h0##k님， 이것보세요. 다가오는 #r10월 18일#k이면 메이플 월드에 모험자들이 모험의 첫 발을 내딛은지 정확히 #b#e2000일#k#n이 돼요! 정말 정말 굉장하지 않나요?"/>
+  <string name="$SCRIPTSTRING_EVENT5_338$" value="[CN]이렇게 뜻깊은 날을 그냥 보낼 순 없죠. 무슨 재밌는 일이 없을까요? 아! 그래요! 2000일의 이야기를 기록으로 남기는 건 어떨까요? 메이플스토리를 사랑하는 모험자 한 분 한 분의 이야기를 모아서 책으로 만드는 거죠! 정말 뜻 깊은 일이 되겠죠?"/>
+  <string name="$SCRIPTSTRING_EVENT5_339$" value="[CN]별로 좋은 생각이 아니라고 생각하시는 건가요? 전 분명히 좋아하실 거라고 생각했는데 말이죠...#b(풀이 죽은 모습이다.)"/>
+  <string name="$SCRIPTSTRING_EVENT5_34$" value="#b#h0##k现在一共有#b "/>
+  <string name="$SCRIPTSTRING_EVENT5_340$" value="[CN]이 계획이 성공하기 위해서는 2000개의 이야기가 필요하답니다. 메이플 월드를 여행하면서 2000개의 이야기를 모아와 주세요. 우선 #b#e#h0##n#k님 당신의 이야기부터 시작하는 것이 좋겠죠?"/>
+  <string name="$SCRIPTSTRING_EVENT5_341$" value="[CN]자， 벌써 1개의 이야기가 모였네요? 지금부터는 당신의 노력이 필요해요. #b몬스터를 사냥#k하거나， 메이플의 유명한 영웅들을 찾아가면 이야기를 얻을 수 있을거에요. 아! 혹은 다른 방법으로도 이야기를 얻을 수 있어요. 예를 들어 특별한 추억이 담긴 장비라던가..."/>
+  <string name="$SCRIPTSTRING_EVENT5_342$" value="[CN]여러가지 방법으로 이야기를 얻게될 때마다 저에게 가져다 주세요. 2000개의 이야기를 다 모아주시면 특별한 선물을 드리도록 할게요. 바로 #b#t1002517##k! 이랍니다. 그럼 힘내세요!&#13;&#10;#i1002517:# #t1002517#"/>
+  <string name="$SCRIPTSTRING_EVENT5_343$" value="[CN]아앗! 그건 내가 너무나도 가지고 싶어하던 #b아이돌 히트곡 Top10!!#k 그거 나에게 주지 않겠어? 응?응? 너무너무 가지고 싶던 테이프야! 아이돌 스타가 되는 건 포기했지만 아직도 노래는 좋아한다고 나한테 줘 응?"/>
+  <string name="$SCRIPTSTRING_EVENT5_344$" value="[CN]아...정말 구하기 어려운 건데...꼭 가지고 싶었는데..."/>
+  <string name="$SCRIPTSTRING_EVENT5_345$" value="[CN]응? 테이프는 어딨어? 응?"/>
+  <string name="$SCRIPTSTRING_EVENT5_346$" value="[CN]야~호! 드디어 구했다. 정말 고마워!"/>
+  <string name="$SCRIPTSTRING_EVENT5_35$" value="#k点。请挑选需要的商品。#b&#13;&#10;#L0##i1072360:挑选##t1072360##l&#13;&#10;#L1##i2049103:##t2049103##l"/>
+  <string name="$SCRIPTSTRING_EVENT5_36$" value="要想得到#t1072360#，一共需要#b300#k点。你确定吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_37$" value="不愿意的话，就没办法了……"/>
+  <string name="$SCRIPTSTRING_EVENT5_38$" value="很遗憾，你的点数不足。"/>
+  <string name="$SCRIPTSTRING_EVENT5_39$" value="装备窗口空间不足。"/>
+  <string name="$SCRIPTSTRING_EVENT5_4$" value="因为有人想要抢走存储芯片，所以一时都不能松懈。当然你自己的安全是最重要的。这个存储芯片设置了高级的保安装置。#b如果不退出登录或每小时输入1次密码#k的话，它就会自动爆炸。你每隔一小时过来找我，我会帮你输入密码。如果你能顺利完成任务，我就发给你#b优秀工作人员徽章#k。在下次见面之前，你一定要保重～?"/>
+  <string name="$SCRIPTSTRING_EVENT5_40$" value="剩余点数是#b"/>
+  <string name="$SCRIPTSTRING_EVENT5_41$" value="#k。祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT5_42$" value="要想获得#t2049103#，需要b100#k点。你确定吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_43$" value="不行，你的点数不足。"/>
+  <string name="$SCRIPTSTRING_EVENT5_44$" value="消费窗口空间不足。"/>
+  <string name="$SCRIPTSTRING_EVENT5_45$" value="如果你需要的话，请在7月20日之前来找我。"/>
+  <string name="$SCRIPTSTRING_EVENT5_46$" value="如果你改变了主意的话，请在7月20日之前来找我。"/>
+  <string name="$SCRIPTSTRING_EVENT5_47$" value="你好。找我有事吗？&#13;&#10;&#13;&#10;#L0#我想参加工作人员咪咪和喵喵的工作人员强化项目#b怪物对决！#k。#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_48$" value="工作人员咪咪和喵喵的工作人员强化项目#b怪物对决！#k正在进行……但是你的等级太低，无法参加。你先得练满10级才行……"/>
+  <string name="$SCRIPTSTRING_EVENT5_49$" value="工作人员咪咪和喵喵的工作人员强化项目#b怪物对决！#k正在进行。听说只要参加他们的训练，就能成为最好的工作人员！很棒吧？你也想参加特别强化项目#b怪物对决！#k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_5$" value="看来你好像正在执行其他的任务。那么再见吧。我得去找找别的工作人员了。#b(工作人员W不等我说什么就消失了。)#k"/>
+  <string name="$SCRIPTSTRING_EVENT5_50$" value="嗯？…… 你真的不想参加吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_51$" value="活动时间已经结束。"/>
+  <string name="$SCRIPTSTRING_EVENT5_52$" value="要想进去，必须要达到10级以上。"/>
+  <string name="$SCRIPTSTRING_EVENT5_53$" value="没错！我的梦想是成为能唱会跳的偶像明星。不久前卡珊德拉告诉了我一个别人不知道的秘密～她说到她的海边去捕音痴、舞痴和拍痴吃，就能唱好歌，跳好舞。#b#h0##k，你能帮我去捕捉#b音痴、舞痴和拍痴#k吗？ &#13;&#10;&#13;&#10;#L0##b好的，我来帮你。#k#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_54$" value="要想捕到这些珍贵的鱼，需要有#b#t2270008##k，对吧？它应该可以从附近的怪物那里搜集。"/>
+  <string name="$SCRIPTSTRING_EVENT5_55$" value="如果你改变了主意的话，请在7月20日之前来找我。"/>
+  <string name="$SCRIPTSTRING_EVENT5_56$" value="旨在让工作人员变强的特别强化项目#b怪物对决！#k正在进行喵。不断地和逐渐增强的首领级怪物战斗，可以提高自己的战斗能力喵。看上去瘦弱的你，结束训练之后就能成为最好的工作人员喵。为了安全起见，死亡之后经验值也不会减少喵。你想参加吗？&#13;&#10;#b#L0#参加。#l&#13;&#10;#b#L1#我想确认工作人员点数。#l&#13;&#10;#b#L2#我想获得工作人员装备。#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_57$" value="特别强化项目怪物对决！开始。."/>
+  <string name="$SCRIPTSTRING_EVENT5_58$" value="喵呜，好像已经有其他工作人员正在参加训练。请稍候再来找我，喵。"/>
+  <string name="$SCRIPTSTRING_EVENT5_59$" value="你的工作人员点数是#b"/>
+  <string name="$SCRIPTSTRING_EVENT5_6$" value="看来你好像正在执行其他的任务。真遗憾……我再找找其他的工作人员吧。不过只要你召唤我，我随时会回来。#b(工作人员W带着遗憾的表情消失了。)#k"/>
+  <string name="$SCRIPTSTRING_EVENT5_60$" value="#k点喵。工作人员点数是单人项目和组队项目获得点数的总和，如果你想获得更多的点数，就去参加训练吧喵。"/>
+  <string name="$SCRIPTSTRING_EVENT5_61$" value="请确认装备窗口是否有一个以上的空格喵。"/>
+  <string name="$SCRIPTSTRING_EVENT5_62$" value="到目前为止，你在特别强化项目#b怪物对决！#k中表现得很出色喵。真让人吃惊！给你看完了成果，接下去我要给你奖励喵！"/>
+  <string name="$SCRIPTSTRING_EVENT5_63$" value="工作人员点数很不错嘛喵！我会根据这段时间的成果，发放工作人员装备喵！继续努力的话，可以获得更好的装备喵！"/>
+  <string name="$SCRIPTSTRING_EVENT5_64$" value="就你那点工作人员点数，太勉强了喵。只有"/>
+  <string name="$SCRIPTSTRING_EVENT5_65$" value="点。工作人员点数至少要在200点以上，才能获得一次性#工作人员N的接收器#k喵。搜集满5次可以获得#b真接收器#k一个喵。"/>
+  <string name="$SCRIPTSTRING_EVENT5_66$" value="特别强化项目#b怪物对决！#k第1阶段完成喵。要开始2阶段吗？ &#13;&#10;#b#L0#开始。#l&#13;&#10;#b#L1#我要出去。#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_67$" value="出去的话，就必须从头开始训练喵。你确定吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_68$" value="很好。继续努力，喵。"/>
+  <string name="$SCRIPTSTRING_EVENT5_69$" value="特别强化项目#b怪物对决！#k第2阶段完成喵。要开始3阶段吗？ &#13;&#10;#b#L0#开始。#l&#13;&#10;#b#L1#我要出去。#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_7$" value="你身上好像带满了东西，请确认一下设置窗口中有没有一个以上的空格。"/>
+  <string name="$SCRIPTSTRING_EVENT5_70$" value="特别强化项目怪物对决！开始。"/>
+  <string name="$SCRIPTSTRING_EVENT5_71$" value="特别强化项目#b怪物对决！#k第3阶段完成喵。要开始4阶段吗？ &#13;&#10;#b#L0#开始。#l&#13;&#10;#b#L1#我要出去。#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_72$" value="特别强化项目#b怪物对决！#k第4阶段完成喵。要开始5阶段吗？ &#13;&#10;#b#L0#开始。#l&#13;&#10;#b#L1#我要出去。#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_73$" value="特别强化项目#b怪物对决！#k第5阶段完成喵。要开始最后的阶段吗？ &#13;&#10;#b#L0#开始。#l&#13;&#10;#b#L1#我要出去。#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_74$" value="真的要出去吗？出去的话，就必须从头开始喵。"/>
+  <string name="$SCRIPTSTRING_EVENT5_75$" value="很好。请你继续挑战吧喵。"/>
+  <string name="$SCRIPTSTRING_EVENT5_76$" value="旨在让工作人员变强的特别强化项目#b怪物对决！#k正在进行喵。不断地和逐渐增强的首领级怪物战斗，可以提高自己的战斗能力喵。看上去瘦弱的你，结束训练之后就能成为最好的工作人员喵。为了安全起见，死亡之后经验值也不会减少喵。你想参加吗？&#13;&#10;#b#L0#参加。#l&#13;&#10;#b#L1#我想确认工作人员点数。#l&#13;&#10;#b#L2#我想获得工作人员装备。#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_77$" value="由于未知原因，无法进入喵。请稍候重新尝试喵。"/>
+  <string name="$SCRIPTSTRING_EVENT5_78$" value="你没有加入组队喵。必须加入组队才能进入喵。"/>
+  <string name="$SCRIPTSTRING_EVENT5_79$" value="队员人数不符，无法进入喵。请组成3～6人的组队喵。"/>
+  <string name="$SCRIPTSTRING_EVENT5_8$" value="这么快一小时就过去了。存储芯片的保安装置好像已经发动了。把它给我看看。我得输入密码。#b(工作人员W用熟练的手法输入了密码。)#k不知道有没有人在跟踪我。你帮我好好看好存储芯片。我把说好的#b优秀工作人员徽章#k给你。那么，再见。"/>
+  <string name="$SCRIPTSTRING_EVENT5_80$" value="你所在的组队中可能有10级以下的人喵。那么低的等级参加这种项目太危险了喵。请换个其他的工作人员再过来喵。"/>
+  <string name="$SCRIPTSTRING_EVENT5_81$" value="已经有其他工作人员正在挑战中喵。请稍候再来喵。"/>
+  <string name="$SCRIPTSTRING_EVENT5_82$" value="由于未知原因，无法入场喵。"/>
+  <string name="$SCRIPTSTRING_EVENT5_83$" value="组队成员中如果有等级差异在30级以上的队员的话，无法参加本项目喵。"/>
+  <string name="$SCRIPTSTRING_EVENT5_84$" value="让队长来和我说话喵。如果想一个人挑战的话，请你去找工作人员喵喵。"/>
+  <string name="$SCRIPTSTRING_EVENT5_85$" value="你的工作人员点数是#b"/>
+  <string name="$SCRIPTSTRING_EVENT5_86$" value="#k点喵。工作人员点数是单人项目和组队项目获得点数的总和，如果你想获得更多的点数，就去参加训练吧喵。"/>
+  <string name="$SCRIPTSTRING_EVENT5_87$" value="请确认装备窗口是否有一个以上的空格。"/>
+  <string name="$SCRIPTSTRING_EVENT5_88$" value="到目前为止，你在特别强化项目#b怪物对决！#k中表现得很出色喵。真让人吃惊！给你看完了成果，接下去我要给你奖励喵！"/>
+  <string name="$SCRIPTSTRING_EVENT5_89$" value="到目前为止，你在特别强化项目#b怪物对决！#k中表现得很出色喵。真让人吃惊！给你看完了成果，接下去我要给你奖励喵！"/>
+  <string name="$SCRIPTSTRING_EVENT5_9$" value="你不想得到优秀工作人员徽章吗？这可是和你的名誉有关的事情啊。真奇怪……"/>
+  <string name="$SCRIPTSTRING_EVENT5_90$" value="以你的工作人员点数，太勉强了喵。只有 "/>
+  <string name="$SCRIPTSTRING_EVENT5_91$" value="点。工作人员点数至少要在200点以上，才能获得一次性#工作人员N的接收器#k喵。搜集满5次可以获得#b真接收器#k一个喵。"/>
+  <string name="$SCRIPTSTRING_EVENT5_92$" value="你已经完成了组队用特别强化项目#b怪物对决！#k第1阶段。你想挑战第2阶段吗？&#13;&#10;#b#L0#挑战。#l&#13;&#10;#b#L1#我要出去。#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_93$" value="由于未知原因，无法入场喵。"/>
+  <string name="$SCRIPTSTRING_EVENT5_94$" value="出去的话，就必须从头开始挑战喵。你确定吗？"/>
+  <string name="$SCRIPTSTRING_EVENT5_95$" value="很好。请你继续努力。"/>
+  <string name="$SCRIPTSTRING_EVENT5_96$" value="你已经完成了组队用特别强化项目#b怪物对决！#k第2阶段。你想挑战第3阶段吗？&#13;&#10;#b#L0#挑战。#l&#13;&#10;#b#L1#我要出去。#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_97$" value="由于未知原因，无法入场喵。"/>
+  <string name="$SCRIPTSTRING_EVENT5_98$" value="你已经完成了组队用特别强化项目#b怪物对决！#k第3阶段。你想挑战第4阶段吗？&#13;&#10;#b#L0#挑战。#l&#13;&#10;#b#L1#我要出去。#l"/>
+  <string name="$SCRIPTSTRING_EVENT5_99$" value="由于未知原因，无法入场喵。"/>
+</imgdir>

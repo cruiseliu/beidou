@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="item_coupon">
+  <string name="$SCRIPTSTRING_ITEM_COUPON_0$" value="请清出1格消耗栏后再回来。"/>
+  <string name="$SCRIPTSTRING_ITEM_COUPON_1$" value="使用道具后，可以获得#r#e处于无法交换（获得后可使用7天）#k#n状态的角色栏增加券（消耗），要现在使用吗？&#13;&#10;&#13;&#10;如果要获取的信息无误，请输入#r#e领取#n#k。"/>
+  <string name="$SCRIPTSTRING_ITEM_COUPON_2$" value="领取"/>
+  <string name="$SCRIPTSTRING_ITEM_COUPON_3$" value="输入不准确，已取消使用道具。"/>
+  <string name="$SCRIPTSTRING_ITEM_COUPON_4$" value="目前由于用户过多，出现延迟现象。请稍后再试。"/>
+  <string name="$SCRIPTSTRING_ITEM_COUPON_5$" value="因已超出可持有道具数量或不明原因无法发放礼物，请稍后重试。"/>
+  <string name="$SCRIPTSTRING_ITEM_COUPON_6$" value="奖励已发放，请查看道具栏。"/>
+</imgdir>

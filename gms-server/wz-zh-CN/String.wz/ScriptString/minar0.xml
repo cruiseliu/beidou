@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="minar0">
+  <string name="$SCRIPTSTRING_MINAR0_0$" value="不能进入喷火龙栖息地。"/>
+  <string name="$SCRIPTSTRING_MINAR0_1$" value="不能进入格瑞芬多森林。"/>
+  <string name="$SCRIPTSTRING_MINAR0_10$" value="您并未拥有该物品。"/>
+  <string name="$SCRIPTSTRING_MINAR0_11$" value="你有什么话要对我说吗？&#13;&#10;#b#L0# 购买魔法种子#l&#13;&#10;#L1# 为了神木村#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_MINAR0_12$" value="不像是我们村子的人，找我什么事?&#13;&#10;#b#L0#想得到魔法的种子。#l"/>
+  <string name="$SCRIPTSTRING_MINAR0_13$" value="#b魔法的种子#k是贵重物品，不能白送给你。付出一定的代价可以吗?一个#b魔法的种子#k#b30000金币#k&#13;&#10;买吗?要几个?"/>
+  <string name="$SCRIPTSTRING_MINAR0_14$" value="不能购买0个。"/>
+  <string name="$SCRIPTSTRING_MINAR0_15$" value="购买#b魔法的种子"/>
+  <string name="$SCRIPTSTRING_MINAR0_16$" value="个#k，需要#b"/>
+  <string name="$SCRIPTSTRING_MINAR0_17$" value="金币#k。购买吗?"/>
+  <string name="$SCRIPTSTRING_MINAR0_18$" value="请考虑清楚后再来找我~。"/>
+  <string name="$SCRIPTSTRING_MINAR0_19$" value="请确认有无足够的金币购买，或道具栏的其他窗口有没有足够的空间。"/>
+  <string name="$SCRIPTSTRING_MINAR0_2$" value="要捐赠几个#b#t"/>
+  <string name="$SCRIPTSTRING_MINAR0_20$" value="欢迎再来。"/>
+  <string name="$SCRIPTSTRING_MINAR0_21$" value="以前来找过我吧?觉得有些眼熟。呵呵&#13;&#10;今天找我有什么事?&#13;&#10;#b#L0#我想得到魔法的种子#l。"/>
+  <string name="$SCRIPTSTRING_MINAR0_22$" value="啊~想起来了。我曾经给过你#b魔法的种子#k吧。怎么样?是不是很好用?"/>
+  <string name="$SCRIPTSTRING_MINAR0_23$" value="#b魔法的种子#k是贵重物品，不能白送给你。付出一定的代价可以吗?一个#b魔法的种子#k#b27000金币#k。&#13;&#10;要几个?"/>
+  <string name="$SCRIPTSTRING_MINAR0_24$" value="请考虑清楚后再来找我~。"/>
+  <string name="$SCRIPTSTRING_MINAR0_25$" value="今天也是个好天气。这样的天气应该到树林里游玩。开始时因为我是外地人有些生疏，现在与你聊天，觉得很舒服..&#13;&#10;今天找我什么事?&#13;&#10;#b#L0#我想得到魔法的种子。#l"/>
+  <string name="$SCRIPTSTRING_MINAR0_26$" value="#b魔法的种子#k虽然很贵重，但看在我们的交情份上给你便宜一点。1个#b魔法的种子#k#b24000金币#k如何?这要比乘坐飞行船还要合算。要几个?"/>
+  <string name="$SCRIPTSTRING_MINAR0_27$" value="请考虑清楚后再来找我~。"/>
+  <string name="$SCRIPTSTRING_MINAR0_28$" value="欢迎再来。"/>
+  <string name="$SCRIPTSTRING_MINAR0_29$" value="今天邪恶绵羊的哭声好像格外的近。邪恶绵羊的哭声说明幼龙的孵化期快到了。你现在跟我们村里人关系蛮好的，幼龙出生时一定要来看啊。&#13;&#10;今天也有事求我吗?&#13;&#10;#b#L0#我想得到魔法的种子..#l"/>
+  <string name="$SCRIPTSTRING_MINAR0_3$" value="##k?&#13;&#10;#b&lt;拥有数量："/>
+  <string name="$SCRIPTSTRING_MINAR0_30$" value="看来是#b魔法的种子#k用没了。虽然我们之间不应该要求代价，但是#b魔法的种子#k实在太贵重了。1个#b魔法的种子#k#b18000金币#k如何?这个价格应该还可以吧?要几个?"/>
+  <string name="$SCRIPTSTRING_MINAR0_31$" value="金币#k。购买吗?"/>
+  <string name="$SCRIPTSTRING_MINAR0_32$" value="请考虑清楚后再来找我~。"/>
+  <string name="$SCRIPTSTRING_MINAR0_33$" value="请确认有无足够的金币购买，或道具栏的其他窗口有没有足够的空间。"/>
+  <string name="$SCRIPTSTRING_MINAR0_34$" value="欢迎再来。"/>
+  <string name="$SCRIPTSTRING_MINAR0_35$" value="我正想着你今天会不会来呢。&#13;&#10;你听说过不久前在龙的领地龙之神殿有过一场大战争吗?"/>
+  <string name="$SCRIPTSTRING_MINAR0_36$" value="惊天动地的轰隆声覆盖着整个树林…幼龙在恐惧中颤抖。到底发生了什么事…今天也是来救它们的吧?我&#13;&#10;#b#L0#我想得到魔法的种子。#l"/>
+  <string name="$SCRIPTSTRING_MINAR0_37$" value="就知道会是这样。现在我只要看你的眼神就知道你要干嘛。呵呵。我知道你一直在为我们村里的人努力。虽然#b魔法的种子#k很贵重但我以每个#b12000金币的#k给你。要几个?"/>
+  <string name="$SCRIPTSTRING_MINAR0_38$" value="金币#k。购买吗?"/>
+  <string name="$SCRIPTSTRING_MINAR0_39$" value="请考虑清楚后再来找我~~"/>
+  <string name="$SCRIPTSTRING_MINAR0_4$" value="个&gt;#k"/>
+  <string name="$SCRIPTSTRING_MINAR0_40$" value="请确认有无足够的金币购买，或道具栏的其他窗口有没有足够的空间。"/>
+  <string name="$SCRIPTSTRING_MINAR0_41$" value="欢迎再来。"/>
+  <string name="$SCRIPTSTRING_MINAR0_42$" value="今天也是来要魔法的种子的吧?我们已经认识很久了。跟你聊天我觉得很舒服。村里的人们也很喜欢你，我也不把你当外人。&#13;&#10;#b#L0#谢谢你对我的关心。今天我也想带走一些魔法的种子。#l"/>
+  <string name="$SCRIPTSTRING_MINAR0_43$" value="那个东西已经准备好了。1个给#b8000金币#k就可以了。我们是老朋友嘛。要几个。"/>
+  <string name="$SCRIPTSTRING_MINAR0_44$" value="不能购买0个"/>
+  <string name="$SCRIPTSTRING_MINAR0_45$" value="个#k需要#b"/>
+  <string name="$SCRIPTSTRING_MINAR0_46$" value="金币#k。购买吗?"/>
+  <string name="$SCRIPTSTRING_MINAR0_47$" value="请考虑清楚后再来找我~~"/>
+  <string name="$SCRIPTSTRING_MINAR0_48$" value="请确认有无足够的金币购买，或道具栏的其他窗口有没有足够的空间。"/>
+  <string name="$SCRIPTSTRING_MINAR0_49$" value="听到消息了吗?听说守护树林结界的龙头目消失了。有一种不详之兆。邪恶的树蜂的哭声都传到这儿了，看来要发生什么事。真担心啊。"/>
+  <string name="$SCRIPTSTRING_MINAR0_5$" value="真的要捐赠#b#t"/>
+  <string name="$SCRIPTSTRING_MINAR0_50$" value="更好的建设村落是村长的职责。所以需要更多更好的道具。你能为了村落捐献出在神木村附近收集到的道具吗？"/>
+  <string name="$SCRIPTSTRING_MINAR0_51$" value="你想捐献出那种道具呢？&#13;&#10;#b#L0# #t4000226##l&#13;&#10;#L1# #t4000229##l&#13;&#10;#L2# #t4000236##l&#13;&#10;#L3# #t4000237##l&#13;&#10;#L4# #t4000260##l&#13;&#10;#L5# #t4000261##l&#13;&#10;#L6# #t4000231##l&#13;&#10;#L7# #t4000238##l&#13;&#10;#L8# #t4000239##l&#13;&#10;#L9# #t4000241##l&#13;&#10;#L10# #t4000242##l&#13;&#10;#L11# #t4000234##l&#13;&#10;#L12# #t4000232##l&#13;&#10;#L13# #t4000233##l&#13;&#10;#L14# #t4000235#&#13;&#10;#L15# #t4000243##l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_MINAR0_52$" value="你是上次捐献出很多好道具的那位好心人吧。托你的福帮了我们很多。在神木村，你又收集到了很多道具吗？你能为了村落捐献出道具吗？"/>
+  <string name="$SCRIPTSTRING_MINAR0_53$" value="你又来访了。很感谢你的帮助，我们村落蒸蒸日上。村民们都在感激你的善行。在神木村，你又收集到了很多道具吗？你能为了村落捐献出道具吗？"/>
+  <string name="$SCRIPTSTRING_MINAR0_54$" value="又是你！多亏你村落充满了活力。已经变得非常好了，还能在锦上添花吗？在神木村，你又收集到了很多道具吗？你能为了村落捐献出道具吗？"/>
+  <string name="$SCRIPTSTRING_MINAR0_55$" value="你想捐献出那种道具呢？&#13;&#10;#b#L0# #t4000226##l&#13;&#10;#L1# #t4000229##l&#13;&#10;#L2# #t4000236##l&#13;&#10;#L3# #t4000237##l&#13;&#10;#L4# #t4000260##l&#13;&#10;#L5# #t4000261##l&#13;&#10;#L6# #t4000231##l&#13;&#10;#L7# #t4000238##l&#13;&#10;#L8# #t4000239##l&#13;&#10;#L9# #t4000241##l&#13;&#10;#L10# #t4000242##l&#13;&#10;#L11# #t4000234##l&#13;&#10;#L12# #t4000232##l&#13;&#10;#L13# #t4000233##l&#13;&#10;#L14# #t4000235#&#13;&#10;#L15# #t4000243##l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_MINAR0_56$" value="呵呵，神木村的好朋友来了。每次你来到村里，总会带来好运。在神木村，你又收集到了很多道具吗？你能为了村落捐献出道具吗 ？"/>
+  <string name="$SCRIPTSTRING_MINAR0_57$" value="你想捐献出那种道具呢？&#13;&#10;#b#L0# #t4000226##l&#13;&#10;#L1# #t4000229##l&#13;&#10;#L2# #t4000236##l&#13;&#10;#L3# #t4000237##l&#13;&#10;#L4# #t4000260##l&#13;&#10;#L5# #t4000261##l&#13;&#10;#L6# #t4000231##l&#13;&#10;#L7# #t4000238##l&#13;&#10;#L8# #t4000239##l&#13;&#10;#L9# #t4000241##l&#13;&#10;#L10# #t4000242##l&#13;&#10;#L11# #t4000234##l&#13;&#10;#L12# #t4000232##l&#13;&#10;#L13# #t4000233##l&#13;&#10;#L14# #t4000235#&#13;&#10;#L15# #t4000243##l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_MINAR0_58$" value="你不是#b"/>
+  <string name="$SCRIPTSTRING_MINAR0_59$" value="#k嘛！很高兴又见到你。多亏你帮助我建设村落，我才能这样悠闲。村民们都很尊敬你，还能帮助我们吗？在神木村，你又收集到了很多道具吗？你能为了村落捐献出道具吗 ？"/>
+  <string name="$SCRIPTSTRING_MINAR0_6$" value="个#k吗?"/>
+  <string name="$SCRIPTSTRING_MINAR0_60$" value="你想捐献出那种道具呢？&#13;&#10;#b#L0# #t4000226##l&#13;&#10;#L1# #t4000229##l&#13;&#10;#L2# #t4000236##l&#13;&#10;#L3# #t4000237##l&#13;&#10;#L4# #t4000260##l&#13;&#10;#L5# #t4000261##l&#13;&#10;#L6# #t4000231##l&#13;&#10;#L7# #t4000238##l&#13;&#10;#L8# #t4000239##l&#13;&#10;#L9# #t4000241##l&#13;&#10;#L10# #t4000242##l&#13;&#10;#L11# #t4000234##l&#13;&#10;#L12# #t4000232##l&#13;&#10;#L13# #t4000233##l&#13;&#10;#L14# #t4000235#&#13;&#10;#L15# #t4000243##l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_MINAR0_61$" value="必须持有九灵龙的蛋才可以入场。"/>
+  <string name="$SCRIPTSTRING_MINAR0_62$" value="其他玩家正在执行任务。请稍候尝试。"/>
+  <string name="$SCRIPTSTRING_MINAR0_63$" value="请稍后再试。"/>
+  <string name="$SCRIPTSTRING_MINAR0_64$" value="紧抱在怀里的九灵龙卵，发出耀眼的光芒飞回了巢穴。"/>
+  <string name="$SCRIPTSTRING_MINAR0_65$" value="如果有翅膀，就可以到达那个地方。但是仅仅有翅膀是不够的，如要在比刀还锋利的风中飞行，还需要有坚硬的鳞片。知道回来的方法的只有我一个……你如果要到那里去，只要交100万游戏币我会帮你变身。不管你现在的样子是什么，在这一瞬间都会变成#b龙#k……&#13;&#10;&#13;&#10;#L0##b我想交100万游戏币，变身为龙。#k#l"/>
+  <string name="$SCRIPTSTRING_MINAR0_7$" value="请考虑清楚后再来找我~。"/>
+  <string name="$SCRIPTSTRING_MINAR0_8$" value="确认物品是否足够。"/>
+  <string name="$SCRIPTSTRING_MINAR0_9$" value="非常感谢"/>
+</imgdir>

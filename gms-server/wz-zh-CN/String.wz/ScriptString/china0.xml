@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="china0">
+  <string name="$SCRIPTSTRING_CHINA0_0$" value="为了拯救处于危急之中的上海，必须尽快把#b#t4031227##k交给警察处长周。"/>
+  <string name="$SCRIPTSTRING_CHINA0_1$" value="原来是上次执行过秘密任务的人啊。那我就可以放心地把任务交给你了。我马上把你送到里面去。"/>
+  <string name="$SCRIPTSTRING_CHINA0_10$" value="你是上次击退大王蜈蚣的人吧。那我就可以放心地把任务交给你了。我马上把你送到大王蜈蚣所在的地方去。"/>
+  <string name="$SCRIPTSTRING_CHINA0_11$" value="你是来击退大王蜈蚣的人吧。为了执行任务，我马上把你送到大王蜈蚣所在的地方去。"/>
+  <string name="$SCRIPTSTRING_CHINA0_12$" value="请你一定要击退大王蜈蚣。搜集#b#t04031227##k，然后带回来。"/>
+  <string name="$SCRIPTSTRING_CHINA0_13$" value="现在无法过去。请稍候重新尝试。"/>
+  <string name="$SCRIPTSTRING_CHINA0_14$" value="这里很危险，请不要随意靠近。"/>
+  <string name="$SCRIPTSTRING_CHINA0_15$" value="你好！我是警察江。我能帮你什么吗？&#13;&#10;#b#L0#我想离开这里。#l"/>
+  <string name="$SCRIPTSTRING_CHINA0_2$" value="你好！我是警察林。这里禁止随意出入。但你好像正在执行秘密任务。我把你送到里面，你去见见那里的#b警察郑#k。"/>
+  <string name="$SCRIPTSTRING_CHINA0_3$" value="你有#b#t4031289##k吗？没有#b#t4031289##k的话，就无法证明你正在执行秘密任务。"/>
+  <string name="$SCRIPTSTRING_CHINA0_4$" value="你好像正在执行秘密任务。希望你这次一定要完成任务。"/>
+  <string name="$SCRIPTSTRING_CHINA0_5$" value="现在我正在执行公务，请不要妨碍我。"/>
+  <string name="$SCRIPTSTRING_CHINA0_6$" value="你击退大王蜈蚣了吗？里面的道路非常复杂，请不要迷路。"/>
+  <string name="$SCRIPTSTRING_CHINA0_7$" value="有其他角色正在执行任务，无法进入。请稍候重新尝试。"/>
+  <string name="$SCRIPTSTRING_CHINA0_8$" value="为了执行秘密任务，我会把你送进通道。"/>
+  <string name="$SCRIPTSTRING_CHINA0_9$" value="如果你不协助我执行公务，即使是正在执行任务的人，我也不能把你送进去。"/>
+</imgdir>

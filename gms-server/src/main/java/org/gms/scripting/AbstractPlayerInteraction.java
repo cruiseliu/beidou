@@ -381,12 +381,7 @@ public class AbstractPlayerInteraction {
     }
 
     public boolean isQuestCompleted(int id) {
-        try {
-            return getQuestStat(id) == QuestStatus.Status.COMPLETED;
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-            return false;
-        }
+        return getPlayer().isQuestCompleted(id);
     }
 
     public boolean isQuestActive(int id) {
@@ -510,21 +505,11 @@ public class AbstractPlayerInteraction {
     }
 
     public boolean startQuest(int id, int npc) {
-        try {
-            return Quest.getInstance(id).forceStart(getPlayer(), npc);
-        } catch (NullPointerException ex) {
-            ex.printStackTrace();
-            return false;
-        }
+        return getPlayer().forceStartQuest(id, npc);
     }
 
     public boolean completeQuest(int id, int npc) {
-        try {
-            return Quest.getInstance(id).forceComplete(getPlayer(), npc);
-        } catch (NullPointerException ex) {
-            ex.printStackTrace();
-            return false;
-        }
+        return getPlayer().forceCompleteQuest(id, npc);
     }
 
     /**

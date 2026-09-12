@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.LinkedHashMap;
 import org.gms.model.json.ItemData;
 import org.gms.client.Client;
+import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
@@ -174,7 +175,50 @@ class CharacterInventory implements InventoryModule.Handler {
     }
 
     boolean canHold(int itemid, int quantity) {
-        return owner.client.getAbstractPlayerInteraction().canHold(itemid, quantity);
+        // 可放置探针直连 InventoryTab.checkSpots（原经 APII.canHoldAll 的绕道收拢，doc/13 §16）
+        List<Pair<ItemSlot, InventoryType>> probes = List.of(
+                new Pair<>(new ItemSlot(itemid, (short) 0, (short) quantity), ItemConstants.getInventoryType(itemid)));
+        return InventoryTab.checkSpots(owner, probes);
+    }
+
+    /**
+     * 发放/扣除道具（正数发放、负数扣除；showMessage 恒开）——自
+     * AbstractPlayerInteraction.gainItem 终端实现按本组件用到的重载归位
+     * （randomStats/expires/pet-from 通路未被脚本使用，留在 legacy，doc/13 §16）。
+     */
+    public ItemSlot gainItem(int itemId, int quantity) {
+        Client client = owner.getClient();
+        ItemSlot item = null;
+        if (quantity >= 0) {
+            ItemInformationProvider ii = ItemInformationProvider.getInstance();
+            if (ItemConstants.getInventoryType(itemId).equals(InventoryType.EQUIP)) {
+                item = ii.getEquipById(itemId);
+                if (item != null) {
+                    Equip it = item.getEquipInfo();
+                    if (ItemConstants.isAccessory(itemId) && it.getEnhancementSlots() <= 0) {
+                        it.setEnhancementSlots(3);
+                    }
+                    if (GameConfig.getServerBoolean("use_enhanced_crafting") && owner.isUseCS()) {
+                        Equip eqp = item.getEquipInfo();
+                        if (!(owner.isGM() && GameConfig.getServerBoolean("use_perfect_gm_scroll"))) {
+                            eqp.setEnhancementSlots((byte) (eqp.getEnhancementSlots() + 1));
+                        }
+                        item = ii.scrollEquipWithId(item, ItemId.CHAOS_SCROll_60, true, ItemId.CHAOS_SCROll_60, owner.isGM());
+                    }
+                }
+            } else {
+                item = new ItemSlot(itemId, (short) 0, quantity, -1);
+            }
+            if (!InventoryManipulator.checkSpace(client, itemId, quantity, "")) {
+                owner.dropMessage(1, "您的背包已满，请从" + ItemConstants.getInventoryType(itemId).name() + "栏移除一件物品。");
+                return null;
+            }
+            InventoryManipulator.addFromDrop(client, item, false, -1);
+        } else {
+            InventoryManipulator.removeById(client, ItemConstants.getInventoryType(itemId), itemId, (short) -quantity, true, false);
+        }
+        client.sendPacket(PacketCreator.getShowItemGain(itemId, (short) quantity, true));
+        return item;
     }
 
     boolean canHoldUniques(List<Integer> itemids) {

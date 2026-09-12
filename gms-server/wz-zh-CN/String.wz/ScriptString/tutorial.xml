@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="tutorial">
+  <string name="$SCRIPTSTRING_TUTORIAL_0$" value="按#e#b[←],[→]#k#n 键就可以移动。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_0_MOBILE$" value="点击#e#b方向键#k#n可移动。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_1$" value="双击&#13;&#10;&#13;&#10;#e#b&lt;希娜&gt;#k#n"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_10$" value="你好，#b#h0##k。你马上就可以转职了。为了向#b#h0##k推荐好的职业，我需要了解一些东西，所以我想问你一些问题。#b你是第一次接触冒险岛吗？#k&#13;&#10;#b#L0#是的，是第一次。#l&#13;&#10;#L1#虽然接触过几次，但还不是很清楚。#l&#13;&#10;#L2#稍微有点熟悉。#l&#13;&#10;#L3#所有的都知道了。#l"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_11$" value="哦，你是头一次接触啊。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_12$" value="哦，你好像还需要我的帮助。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_13$" value="你已经有点熟悉了，真是太好了。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_14$" value="哦，看来你玩冒险岛已经很长时间了。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_15$" value="在今后的游戏过程中，你会体验到很多不同的东西。虽然这是件好事，但偶尔也会遇到难以解决的事情。如果#b你在游戏过程中遇到了困难，你会怎么办呢？#k&#13;&#10;#b#L0#我可以自己解决。#l&#13;&#10;#L1#不管做什么事情都需要互相帮助。#l&#13;&#10;#L2#我想请求帮助，但是我不好意思开口……#l"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_16$" value="看来你喜欢独自应付困难的事情。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_17$" value="对，互相帮助很好。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_18$" value="需要帮助的时候，可以试着说出来。一定会有人帮助你的。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_19$" value="在各地旅行的时候，会遇到各种各样的怪物。#b如果出现怪物，你会怎么做？#k&#13;&#10;#b#L0#避开怪物，躲得远远的。#l&#13;&#10;#L1#会在远处帮助同伴进行攻击。#l&#13;&#10;#L2#不避开，冲上去战斗。#l"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_1_MOBILE$" value="点击&#13;&#10;&#13;&#10;#e#b&lt;希娜&gt;#k#n"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_2$" value="按#e#b[Alt]#k#n键 &#13;\\ 跳跃。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_20$" value="不要逃跑，你可以试着在远处进行攻击。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_21$" value="对，能够相互帮助，一起击败怪物非常好。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_22$" value="别忘了在攻击怪物的时候带上药水。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_23$" value="现在你马上就要转职了。转职之后，可以使用各种各样的技能。在众多的技能之中，#b你喜欢什么样的技能呢？#k#b&#13;&#10;#L0#喜欢华丽的技能。#l&#13;&#10;#L1#喜欢攻击力强的技能。#l&#13;&#10;#L2#我不怎么关心。#l"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_24$" value="有很多华丽的技能正在等待着#b#h0##k你。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_25$" value="转职之后，你会变得比现在强得多。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_26$" value="转职之后，你会喜欢上那些技能的。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_27$" value="魔法师"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_28$" value="战士"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_29$" value="飞侠"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_2_MOBILE$" value="请点击#e#b跳跃#k#n键&#13;\\跳跃。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_3$" value="按#e#b[↑]#k#n键可使用爬梯或绳子移动。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_30$" value="弓箭手"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_31$" value="海盗"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_32$" value="谢谢你回答我的问题。#b#h0##k，我向你推荐的职业是#r"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_33$" value="#k。希望转职之后你能变得更强。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_34$" value="你好，#b#h0##k。这段时间你还好吧？现在你可以在勇士部落转职成为战士了。你要移动到#r勇士部落#k去吗？不过，去了之后就没办法回冒险岛来了。#b&#13;&#10;#L0#是的，请把我送过去。#l&#13;&#10;#L1#不，我不需要。#l"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_35$" value="好的，我这就把你送到#b勇士部落#k的#r战士圣殿#k去。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_36$" value="如果还未前往金银岛的话，可在南港乘船过去。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_37$" value="你好，#b#h0##k。这段时间你还好吧？现在你可以在魔法密林转职成为魔法师了。你要移动到#r魔法密林#k去吗？不过，去了之后就没办法回冒险岛来了。#b&#13;&#10;#L0#是的，请把我送过去。#l&#13;&#10;#L1#不，我不需要。#l"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_38$" value="好的，我这就把你送到#b魔法密林#k的#r魔法密林图书馆#k去。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_39$" value="你好，#b#h0##k。这段时间你还好吧？现在你可以在射手村转职成为弓箭手了。你要移动到#r射手村#k去吗？不过，去了之后就没办法回冒险岛来了。#b&#13;&#10;#L0#是的，请把我送过去。#l&#13;&#10;#L1#不，我不需要。#l"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_3_MOBILE$" value="点击#e#b[↑]方向键#k#n可以沿着梯子或绳子移动。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_4$" value="双击&#13;&#10;&#13;&#10;#e#b&lt;莎丽&gt;#k#n"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_40$" value="好的，我这就把你送到#b射手村#k的#r弓箭手培训中心#k去。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_41$" value="你好，#b#h0##k。这段时间你还好吧？现在你可以在废都转职成为飞侠了。你要移动到#r废都#k去吗？不过，去了之后就没办法回冒险岛来了。#b&#13;&#10;#L0#是的，请把我送过去。#l&#13;&#10;#L1#不，我不需要。#l"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_42$" value="好的，我这就把你送到#b废都#k的#r废都酒吧#k去。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_43$" value="你好，#b#h0##k。这段时间你还好吧？现在你可以在诺特勒斯转职成为海盗了。你要移动到#r诺特勒斯#k去吗？不过，去了之后就没办法回冒险岛来了。#b&#13;&#10;#L0#是的，请把我送过去。#l&#13;&#10;#L1#不，我不需要。#l"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_44$" value="好的，我这就把你送到#b诺特勒斯#k的#r航海室#k去。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_45$" value="按#e#b[↑]#k#n键就可以通过传送口移动到其他地图。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_45_MOBILE$" value="点击#e#b[↑]方向键#k#n可乘坐传送口前往下一个地图。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_46$" value="按#e#b[↑]#k#n键就可以通过传送口移动到有 #e#b?#k#n的地图。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_46_MOBILE$" value="点击#e#b[↑]方向键#k#n可乘坐传送口前往#e#b珊#k#n所在的地图。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_47$" value="可移动到#e#b#m40001##k#n"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_48$" value="可移动到#e#b#m40002##k#n"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_49$" value="可移动到#e#b#m50000##k#n"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_4_MOBILE$" value="点击&#13;&#10;&#13;&#10;#e#b&lt;莎丽&gt;#k#n"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_5$" value="按#e#b[Q]#k#n键可以看到任务信息窗口。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_50$" value="可移动到#e#b#m1000000##k#n"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_51$" value="可移动到#e#b#m50001##k#n"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_52$" value="可移动到#e#b#m1010000##k#n"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_53$" value="可移动到#e#b#m1020000##k#n"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_54$" value="可移动到#e#b#m60000##k#n"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_55$" value="与#e#b桑克斯#k#n对话就可以移动到金银岛"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_56$" value="战士拥有很强的攻击力和体力，因此在战斗中处于非常重要的地位.因为基本攻击很强，所以学习高级技能的话可以发挥超强的力量."/>
+  <string name="$SCRIPTSTRING_TUTORIAL_57$" value="怎么样,想体验战士么?"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_58$" value="想体验战士的话，再来找我吧."/>
+  <string name="$SCRIPTSTRING_TUTORIAL_59$" value="魔法师可以使用华丽效果的属性魔法，并可以在组队打猎中使用非常有用的辅助魔法.2转后学习的属性魔法可以给相反属性的敌人致命的伤害哦."/>
+  <string name="$SCRIPTSTRING_TUTORIAL_5_MOBILE$" value="点击#e#b任务#k#n键后，可查看任务信息窗。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_6$" value="按#e#b[ I ]#k#n键可以看到&#13;\\ 储物箱窗口。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_60$" value="怎么样,想体验法师么?"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_61$" value="想体验法师的话，再来找我吧。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_62$" value="弓箭手拥有高敏捷及力量，在战斗中负责远距离攻击，假如弓箭手职业能巧妙地运用地势的话，打猎可是非常轻松厉害."/>
+  <string name="$SCRIPTSTRING_TUTORIAL_63$" value="怎么样,想体验弓箭手么?"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_64$" value="想体验弓箭手的话，再来找我吧."/>
+  <string name="$SCRIPTSTRING_TUTORIAL_65$" value="飞侠 拥有运气和一些敏捷及力量，在战场中可以突袭敌人或者使用隐身等特殊技能.飞侠拥有非常敏捷的移动及回避，配合自身的多样化技能可以充分享受操作的乐趣."/>
+  <string name="$SCRIPTSTRING_TUTORIAL_66$" value="怎么样,想体验飞侠么?"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_67$" value="想体验飞侠的话，再来找我吧."/>
+  <string name="$SCRIPTSTRING_TUTORIAL_68$" value="海盗凭借高敏捷及力量给与敌人发射百发百中的短枪或者可以使用瞬间制约敌人的格斗术.使用短枪的海盗可以选择属性子弹更有效地攻击敌人或者坐在船上攻击敌人，使用格拳甲的海盗可以变身后发挥更强的力量."/>
+  <string name="$SCRIPTSTRING_TUTORIAL_69$" value="怎么样,想体验海盗么?"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_6_MOBILE$" value="点击#e#b道具栏#k#n键&#13;\\ 打开道具栏窗口。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_7$" value="按#e#b[W]#k#n键可以看到世界地图。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_70$" value="想体验海盗的话，再来找我吧."/>
+  <string name="$SCRIPTSTRING_TUTORIAL_71$" value="想跳过新手介绍,直接移动到明珠港么?"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_72$" value=" 祝你冒险愉快哦!"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_73$" value="接受麦加的修炼的冒险家才可以入场."/>
+  <string name="$SCRIPTSTRING_TUTORIAL_7_MOBILE$" value="点击#e#b世界#k#n按钮可查看世界地图。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_8$" value="按#e#b[S]#k#n键可以看到角色信息。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_8_MOBILE$" value="点击#e#b属性#k#n按钮可查看角色信息。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_9$" value="同时按下#e#b[↓]#k#n键和&#13;\#e#b[Alt]#k#n键，可以跳到下面。"/>
+  <string name="$SCRIPTSTRING_TUTORIAL_9_MOBILE$" value="同时按下#e#b[↓]方向键#k#n和#e#b跳跃#k#n键可向下移动。"/>
+</imgdir>

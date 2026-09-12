@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="quiz4">
+  <string name="$SCRIPTSTRING_QUIZ4_0$" value="你好厉害，所有的题目都搞定了…但是这可怎么办呢…头目M的痕迹一个都没留，但是还是辛苦你了。给你这个吧。&#13;&#10;#b#i1052166:##t1052166##k"/>
+  <string name="$SCRIPTSTRING_QUIZ4_1$" value="你总共答对了"/>
+  <string name="$SCRIPTSTRING_QUIZ4_10$" value="今天已挑战5次了。明天再来挑战吧。"/>
+  <string name="$SCRIPTSTRING_QUIZ4_11$" value="还没过30分钟。"/>
+  <string name="$SCRIPTSTRING_QUIZ4_12$" value="分钟后再来吧。"/>
+  <string name="$SCRIPTSTRING_QUIZ4_13$" value="题目 : qn"/>
+  <string name="$SCRIPTSTRING_QUIZ4_14$" value=", 代码 : "/>
+  <string name="$SCRIPTSTRING_QUIZ4_15$" value="下个题目的正确答案是 #p"/>
+  <string name="$SCRIPTSTRING_QUIZ4_16$" value="#.$$"/>
+  <string name="$SCRIPTSTRING_QUIZ4_17$" value="题目 : qm"/>
+  <string name="$SCRIPTSTRING_QUIZ4_18$" value="下个题目的正确答案是 #o"/>
+  <string name="$SCRIPTSTRING_QUIZ4_19$" value="题目 : qi"/>
+  <string name="$SCRIPTSTRING_QUIZ4_2$" value="个题目。错误率这么高啊，还太嫩了！30分钟后再来挑战吧。"/>
+  <string name="$SCRIPTSTRING_QUIZ4_20$" value="下个题目的正确答案是 #t"/>
+  <string name="$SCRIPTSTRING_QUIZ4_21$" value="居然中途放弃，还早着呢！30分钟后再来挑战吧。"/>
+  <string name="$SCRIPTSTRING_QUIZ4_22$" value="居然中途放弃，还早着呢！明天再来挑战吧。"/>
+  <string name="$SCRIPTSTRING_QUIZ4_23$" value="请确认包裹内是否有空间。"/>
+  <string name="$SCRIPTSTRING_QUIZ4_24$" value="#b&#13;&#10;#L1# #i1052165:##t1052165# (可使用7天)#l#k"/>
+  <string name="$SCRIPTSTRING_QUIZ4_25$" value="#r&#13;&#10;      #i1052165:##t1052165# (可使用7天)#k"/>
+  <string name="$SCRIPTSTRING_QUIZ4_26$" value="#r&#13;&#10;      #i1052165:##t1052165# (已经获得)#k"/>
+  <string name="$SCRIPTSTRING_QUIZ4_27$" value="#b&#10;&#13;&#10;#L2# #i1052167:##t1052167# (没有时间限制)#l#k"/>
+  <string name="$SCRIPTSTRING_QUIZ4_28$" value="#r&#10;&#13;&#10;      #i1052167:##t1052167# (没有时间限制)#k"/>
+  <string name="$SCRIPTSTRING_QUIZ4_29$" value="#r&#10;&#13;&#10;      #i1052167:##t1052167# (已经获得)#k"/>
+  <string name="$SCRIPTSTRING_QUIZ4_3$" value="个题目。错误率这么高啊，还太嫩了！30分钟后再来挑战吧。"/>
+  <string name="$SCRIPTSTRING_QUIZ4_30$" value="你今天获得了"/>
+  <string name="$SCRIPTSTRING_QUIZ4_31$" value="个点，总共获得了"/>
+  <string name="$SCRIPTSTRING_QUIZ4_32$" value="点。一天获得100点以上就可以获得#b#t1052165##k，累积点数超过1000点就可以获得#b#t1052167##k。"/>
+  <string name="$SCRIPTSTRING_QUIZ4_33$" value="可以获得点数获得#r#i1052165##k.现在马上给你吧？过了今天就不能再拿了。"/>
+  <string name="$SCRIPTSTRING_QUIZ4_34$" value="不喜欢就没办法咯。"/>
+  <string name="$SCRIPTSTRING_QUIZ4_35$" value="可以获得点数获得 #r#i1052167##k。现在马上给你吧？"/>
+  <string name="$SCRIPTSTRING_QUIZ4_36$" value="别太有负担。"/>
+  <string name="$SCRIPTSTRING_QUIZ4_4$" value="你还没有成为工作人员？先成为工作人员再来找我吧！"/>
+  <string name="$SCRIPTSTRING_QUIZ4_5$" value="等级到达10级以上再来找我吧！"/>
+  <string name="$SCRIPTSTRING_QUIZ4_6$" value="想知道水晶球会告诉我们发生了什么有趣的事情么?&#13;&#10;#b#L0# 是!告诉我吧!#l"/>
+  <string name="$SCRIPTSTRING_QUIZ4_7$" value="最近因为头目M导致冒险岛世界沸沸扬扬，你是工作人员应该也知道吧？我的水晶球知道一些事情，所以我出的题目都解决的话就可以找到头目M的痕迹。怎么样？想不想挑战？"/>
+  <string name="$SCRIPTSTRING_QUIZ4_8$" value="没有兴趣？再考虑看看嘛！"/>
+  <string name="$SCRIPTSTRING_QUIZ4_9$" value="到底有没有找到头目M嘛？别偷懒赶紧好好找找看嘛！ #b&#13;&#10;#L1#我想重新挑战. #l&#13;&#10;#L2#我想确认点数.#l"/>
+</imgdir>

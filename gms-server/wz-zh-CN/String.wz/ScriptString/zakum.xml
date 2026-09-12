@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="zakum">
+  <string name="$SCRIPTSTRING_ZAKUM_0$" value="管理员你好。为了帮你的工作。我会让你通过扎昆任务的各阶段。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_1$" value="测试服务器运营员模式。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_10$" value="府赴"/>
+  <string name="$SCRIPTSTRING_ZAKUM_11$" value="矾喉府惯废"/>
+  <string name="$SCRIPTSTRING_ZAKUM_12$" value="欧饭坷葱"/>
+  <string name="$SCRIPTSTRING_ZAKUM_13$" value="惯肺啊"/>
+  <string name="$SCRIPTSTRING_ZAKUM_14$" value="想做什么？&#13;&#10;#b#L0# 扎昆任务第一阶段#l&#13;&#10;#L1# 扎昆任务第二阶段#l&#13;&#10;#L2# 扎昆任务第一阶段及道具获得#l&#13;&#10;#L3# 回到开始状态#l&#13;&#10;#L4# 任务进行#l"/>
+  <string name="$SCRIPTSTRING_ZAKUM_15$" value="很好…你看起来具备了条件.你想挑战哪一个阶段?&#13;&#10;#b#L0#出发去调查废矿洞穴. (第一阶段)#l&#13;&#10;#b#L1# 探查扎昆训练场. (第二阶段)#l&#13;&#10;#b#L2# 邀请炼钢. (第三阶段)#l&#13;&#10;#b#L3# 查看任务介绍.#l&#13;&#10;#L4# 进入熔岩的中区.#l"/>
+  <string name="$SCRIPTSTRING_ZAKUM_16$" value="很好…你看起来具备了条件.你想挑战哪一个阶段?&#13;&#10;#b#L0#出发去调查废矿洞穴. (第一阶段)#l&#13;&#10;#b#L1# 探查扎昆训练场. (第二阶段)#l&#13;&#10;#b#L2# 邀请炼钢. (第三阶段)#l&#13;&#10;#b#L3# 查看任务介绍.#l"/>
+  <string name="$SCRIPTSTRING_ZAKUM_17$" value="这里面是必须组队才能进入的迷宫。如果你想挑战，去冰峰雪域的长老公馆，跟各职业的长老说一下。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_18$" value="他将给你一个任务，接到任务后一定要组队，然后由队长来向我报告，我能给你们几个安排任务。准备完成后让队长来跟我说。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_19$" value="今天已经把废矿调查了三次，无法再做。明天再来吧。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_2$" value="想做什么？&#13;&#10;#b#L0# 扎昆任务第一阶段#l&#13;&#10;#L1# 扎昆任务第二阶段#l&#13;&#10;#L2# 扎昆任务第一阶段及道具获得#l&#13;&#10;#L3# 回到开始状态#l&#13;&#10;#L4# 任务进行#l&#13;&#10;#L5# 设定其他的角色#l&#13;&#10;#L6# 取消设定功能#l"/>
+  <string name="$SCRIPTSTRING_ZAKUM_20$" value="现在你们不能进去，稍等一会儿再来吧。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_21$" value="你没参加组队，一个人不能挑战这个任务。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_22$" value="你的组队中有人没接到长老公馆的长老给的任务，所有的队员都要得到长老给的任务，才可以挑战。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_23$" value="现在别的组队已经在调查迷宫，你们稍后再来吧。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_24$" value="你们终于完成了第一阶段任务！但是为了遇到扎昆的大怪物还有许多难关。怎么样？你想不想挑战第二阶段？"/>
+  <string name="$SCRIPTSTRING_ZAKUM_25$" value="哼...你可能以前中途放弃过吧？怎么样？你想再次挑战第二阶段吗？"/>
+  <string name="$SCRIPTSTRING_ZAKUM_26$" value="哼...你可能以前完成过第二阶段的任务，但如果你愿意，你可以在此挑战这第二阶段。怎么样？你想再次挑战第二阶段吗?"/>
+  <string name="$SCRIPTSTRING_ZAKUM_27$" value="是吗?...但是如果以后你改变想法，就再来找我吧。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_28$" value="今天已经把扎昆任务做了三次，无法再挑战。明天再来吧。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_29$" value="好!我送你一个有许多陷阱的地点,"/>
+  <string name="$SCRIPTSTRING_ZAKUM_3$" value="通过了第一阶段。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_30$" value="你好像正在进行第一阶段的任务。为了挑战第二阶段必须完成第一阶段。你要先解决第一阶段。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_31$" value="你们还没完成上一阶段的任务。必须完成上一阶段任务，然后才可以挑战。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_32$" value="哈哈哈，我会在一瞬间帮你做好。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_33$" value="嗯……需要的东西你拿来了吗？如果全部拿来了，那请你确认一下其他栏里是不是没有空格了。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_34$" value="这里有，好。要是这个门打开，你们能进去。只要有这个[扎昆树的种子]你们才可以进去。嗯...听说有人员限制..."/>
+  <string name="$SCRIPTSTRING_ZAKUM_35$" value="#b30个#t4000051##k好像还没全部搜集到啊。要是能搜集到，我就可以对之前你们搜集到的东西进行提炼，制作成特殊的东西……"/>
+  <string name="$SCRIPTSTRING_ZAKUM_36$" value="哼...你是以前冶炼#b#t4001017##k的那个人吧？跟我有什么事情？你要再次组合#b#t4031061##k和#b#t4031062##k做#b#t4001017##k吗？"/>
+  <string name="$SCRIPTSTRING_ZAKUM_37$" value="是吗？但是你应该知道没有#b#t4001017##k的话，你绝对不能挑战大怪物。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_38$" value="嗯，将#b#t4031061##k和#b#t4031062##k组合起来，可以制作成用来召唤首领的祭品#b#t4001017##k。但是……咳咳……！你也看到了，我身体不好，没办法弄到那些东西。你能帮我去搜集#b30个#t4000051##k吗？请别问我是用来干什么的……咳咳……"/>
+  <string name="$SCRIPTSTRING_ZAKUM_39$" value="你还不知道怎么进行这个任务吧？要是你要挑战这个任务，你先要获得长老的允许。如果没有允许他们肯定责怪我。被允许的人必须组队，才可以进行任务。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_4$" value="通过了第二阶段。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_40$" value="按照顺序进行任务，你会见到扎昆的大怪物。要是你收集我说的所有材料来，我能给你做一个祭物。把那祭物在祭台奉献，你能看到你盼望的东西。但为了到这一阶段，你先要调查废矿的洞穴后把#b#t4001018##k拿来这里。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_41$" value="在那里你可能#b#t4001018##k 以外也可以找到废矿卷轴。把那个东西给#b#p2032002##k的话，他会给你做很有用的东西。下一阶段是通过岩浆地带后获取#b#t4031062##k的任务。这个任务很不容易的...但是为制作祭物，必需这个东西。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_42$" value="如果你得到#b#t4031062##k，那么你要冶炼在第一，二阶段的任务得到的#b#t4031061##k和#b#t4031062##k。幸亏我能帮你冶炼那些东西。结束了所有的过程，你能遇到扎昆的大怪物，这个怪物听说很危险的。那么加油！"/>
+  <string name="$SCRIPTSTRING_ZAKUM_43$" value="其他玩家已经进入任务，请稍等在尝试。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_44$" value="没有#b#t4001109##k无法进入熔岩的中区。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_45$" value="你好像没有理由去那里。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_46$" value="你们已经给我好了#b#t4001018##k。那么你们进去旁边的门口里全组队人员都会受到冶炼#b#t4001018##k的#b#t4031061##k。而且你们收集完了30张#b#t4001015##k，所以你们也可以收到#b#t2030007##k. 那么你们快点儿进去那门口里吧。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_47$" value="你们已经给我好了#b#t4001018##k。那么你们进去旁边的门口里全组队人员都会受到冶炼#b#t4001018##k的#b#t4031061##k。那么你们快点儿进去那门口里吧。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_48$" value="你们是为了调查洞穴来的吧？为了与扎昆的大怪物见面必要一个东西。为得到那个东西你们先要收集材料。在这里你们能获取那材料之一。那就是#b#t4001018##k。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_49$" value="在这里有很多洞穴的入口。在洞穴里面有一个箱子。打破箱子后收集来#b7个#t4001016##k。当然不是所有的箱子里有#t4001018#。有时候也可以发生想不到的事情。你们应该小心点儿。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_5$" value="虽然任务都通过了，但是包裹没有足够空间无法获得道具。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_50$" value="但是调查箱子的时候，有时候可以发现#t4001015#。这个东西是很有用的。听说#t4001015#一共有30张，收集越多越好。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_51$" value="你还想知道什么？&#13;&#10;#b#L0#收集好了#b#t4001018##k#l&#13;&#10;#b#L1#我想放弃任务。#l"/>
+  <string name="$SCRIPTSTRING_ZAKUM_52$" value="洞穴里巨大的箱子里放下7个#b#t4001016##k后得到#b#t4001018的话，那么你们要把那个东西给队长。队长带着#b#t4001018##k后跟我说吧。队长带着#b#t4001018跟我说就结束第一阶段的任务。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_53$" value="你终于拿来了#b一个#t4001018##k。但#b#t4001015#一张也没有。这些是组队员收集的全东西吗？"/>
+  <string name="$SCRIPTSTRING_ZAKUM_54$" value="你终于收集好了#b一个#t4001018##k和#b "/>
+  <string name="$SCRIPTSTRING_ZAKUM_55$" value="个#t4001015##k。这些是组队员收集的全部吗？"/>
+  <string name="$SCRIPTSTRING_ZAKUM_56$" value="队长要收集给我所有队员在洞穴里得到的东西。请你再次确认一下。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_57$" value="你确定有#b一个#t4001018##k吗？请你再确认一下。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_58$" value="请你再确认是否确定有#b一个#t4001018##k和#b "/>
+  <string name="$SCRIPTSTRING_ZAKUM_59$" value="个#t4001015##k。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_6$" value="请输入想设定通过状态的角色名称。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_60$" value="祝贺你们成功完成第一阶段任务。通过那边出现的门点，你们能去阿杜比斯所在的地点。通过门点时，我将用你给我的#b#t4001018##k做#b#t4031061##k，给所有队员。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_61$" value="你可能还没得到了#b#t4001018##k吧？在规定时间内你们要调查这里的许多宝箱，然后要找#b7个#t4001016##k。在最里面位置的最大的宝箱里掉下#b#t4001016##k，就能获得#b#t4001018##k，你要给我那个东西。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_62$" value="如果你放弃，你要重新开始...而且你一个人放弃，将影响到你组队的所有队员。你想真的出去吗？"/>
+  <string name="$SCRIPTSTRING_ZAKUM_63$" value="好的。我送你去一个地点。在那里跟#b#p2030011##k说吧。通过他你能出去。那么再见..."/>
+  <string name="$SCRIPTSTRING_ZAKUM_64$" value="你居然能通过如此艰难的过程？真了不起。这里有#b#t4031062##k。把这个东西送给我哥哥。你马上会遇到你们想要见的东西。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_65$" value="好像你背包的其他窗里没有空间，必需保证一个以上的空格才可以收到道具。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_66$" value="] 磊鸟 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM_67$" value="盒"/>
+  <string name="$SCRIPTSTRING_ZAKUM_68$" value="你完成任务花费时间太短，都来不及准备报酬了。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_69$" value="背包的消耗窗或其他窗已满，你不能进入下一张地图。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_7$" value="#k你有五分钟的时间可以设定."/>
+  <string name="$SCRIPTSTRING_ZAKUM_70$" value="背包的其他窗已满，你不能进入下一张地图。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_71$" value="现在门点关闭了，先要完成第一阶段任务。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_72$" value="你完成任务花费时间太短，都来不及准备报酬了。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_73$" value="现在缩地门是关闭状态的。你要先做完第一阶段。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_74$" value="你们终于完成了第一阶段任务！好...我把你送到有#b#p2030008##k的地方。但是，你不能拿着在这里得到的所有特殊道具出去。那么再见！"/>
+  <string name="$SCRIPTSTRING_ZAKUM_75$" value="你中途放弃了。好...我把你送到外边。但是你不能拿着在这里得到的所有特殊道具出去。那么再见！"/>
+  <string name="$SCRIPTSTRING_ZAKUM_76$" value="里面已经开始对抗大怪物的战斗。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_77$" value="和扎昆的战斗已经开始了。你无法进去。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_78$" value="扎昆的祭坛每天只能入场2次。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_79$" value="$$[CN]3단계를 모두 완료하고 불의 눈을 가지고 있어야 입장이 가능합니다."/>
+  <string name="$SCRIPTSTRING_ZAKUM_8$" value="磊鸟test"/>
+  <string name="$SCRIPTSTRING_ZAKUM_80$" value="扎昆大怪物只有在第一频道召唤"/>
+  <string name="$SCRIPTSTRING_ZAKUM_81$" value="扎昆大怪物只有在第四、五、六频道召唤"/>
+  <string name="$SCRIPTSTRING_ZAKUM_82$" value="和进阶扎昆的战斗已经开始，无法进入。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_83$" value="进阶扎昆祭坛每天只能入场2次。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_84$" value="本频道无法挑战，普通扎昆在4/5/6频道，进阶扎昆在7频道挑战。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_85$" value="本频道无法挑战，普通扎昆在4/5/6频道，进阶扎昆在7频道挑战。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_86$" value="本频道无法挑战，普通扎昆在4/5/6频道，进阶扎昆在7频道挑战。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_87$" value="你想从这里出去吗?"/>
+  <string name="$SCRIPTSTRING_ZAKUM_88$" value="你想离开这里吗？扎昆的祭坛每天只能入场2次，退出后，可入场次数将减少1次。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_89$" value="你想离开这里吗？扎昆的祭坛每天只能入场2次，今天已经无法继续入场了。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_9$" value="措氛咯快"/>
+  <string name="$SCRIPTSTRING_ZAKUM_90$" value="你想离开这里吗？扎昆的祭坛每天只能入场2次，现在退出的话，今天就无法继续入场了。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_91$" value="你想从这里出去吗？下次还想入场，请重新尝试。"/>
+  <string name="$SCRIPTSTRING_ZAKUM_92$" value="感觉到了未知的阴森气息。"/>
+</imgdir>

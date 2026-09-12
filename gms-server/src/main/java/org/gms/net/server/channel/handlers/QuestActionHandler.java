@@ -27,6 +27,7 @@ import org.gms.constants.id.MapId;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
 import org.gms.scripting.quest.QuestScriptManager;
+import org.gms.scripting.quest.esm.EsmQuests;
 import org.gms.server.life.NPC;
 import org.gms.server.quest.Quest;
 import org.gms.util.I18nUtil;
@@ -166,7 +167,12 @@ public final class QuestActionHandler extends AbstractPacketHandler {
                     return;
                 }
                 if (quest.canStart(player, npc)) {
-                    QuestScriptManager.getInstance().start(c, questid, npc);
+                    String entry = quest.getQuestScriptName(false);
+                    if (entry != null && EsmQuests.exists(questid)) {
+                        EsmQuests.start(player, questid, npc, entry);   // ESM 新系统：入口名来自 WZ startscript（doc/13 §15）
+                    } else if (entry == null) {
+                        QuestScriptManager.getInstance().start(c, questid, npc);
+                    }
                 }
                 break;
             }
@@ -176,7 +182,12 @@ public final class QuestActionHandler extends AbstractPacketHandler {
                     return;
                 }
                 if (quest.canComplete(player, npc)) {
-                    QuestScriptManager.getInstance().end(c, questid, npc);
+                    String entry = quest.getQuestScriptName(true);
+                    if (entry != null && EsmQuests.exists(questid)) {
+                        EsmQuests.end(player, questid, npc, entry);     // ESM 新系统：入口名来自 WZ endscript
+                    } else if (entry == null) {
+                        QuestScriptManager.getInstance().end(c, questid, npc);
+                    }
                 } else {
                     log.warn("QUEST_ACTION 拒绝: 玩家 {} 不满足任务 {} 的脚本完成条件 (NPC {}), 地图 {}",
                             player.getName(), questid, npc, player.getMapId());

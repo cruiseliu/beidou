@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="ariantmatch">
+  <string name="$SCRIPTSTRING_ARIANTMATCH_0$" value="你的级别太低了，无法参加阿里安特竞技赛。只有20级以上的用户才可以参加。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_1$" value="你的级别不适合参加阿里安特竞技赛。竞技赛只有#b20~30 级别#k的用户才能参加。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_10$" value="如果是#b诺特勒斯#k的勇敢的斗士，参加阿里安特竞技赛如何？！&#13;&#10;#b#L0# 我想参加阿里安特竞技赛。#l"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_11$" value="竞技赛最多可以参加多少人？（2～6名）"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_12$" value="其他斗士已经开设了竞技场。请另开设竞技场或加入已经开设的竞技场。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_13$" value="您的竞技场（"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_14$" value="名）已经开设。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_15$" value="您成为竞技场的房主。请在3分钟之内开始游戏。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_16$" value="房主退出时，游戏无法正常进行，请注意。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_17$" value="竞技场的状态已经修改。请重新搭话。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_18$" value="加入到您开设的竞技场。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_19$" value="选择的竞技场已满。请选择其他的竞技场。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_2$" value="这次阿里安特为了冒险岛的勇士们准备了一个大的庆祝活动。这就是#b阿里安特竞技赛#k。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_20$" value="无法再入场。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_21$" value="级别在20～30的斗士才能参加竞技赛。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_22$" value="&#13;&#10;#L0# 第一个竞技场( 空房 )#l"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_23$" value="&#13;&#10;#L0# 第一个竞技场( ["/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_24$" value="]名/"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_25$" value="&#13;&#10;#L1# 第二个竞技场( 空房 )#l"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_26$" value="&#13;&#10;#L1# 第二个竞技场( ["/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_27$" value="&#13;&#10;#L2# 第三个竞技场( 空房 )#l"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_28$" value="&#13;&#10;#L2# 第三个竞技场( ["/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_29$" value="没有可以加入的竞技场。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_3$" value="阿里安特竞技赛是较量与怪兽的打斗能力的大会。不仅仅是简单的打猎，还需#b减少一定体力，吸收宝石#k才行。#b获得最多宝石的斗士可以获得胜利#k。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_30$" value="你想了解什么？#b"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_31$" value="&#13;&#10;#L3# 想了解竞技赛。#l"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_32$" value="第一个竞技场已满。请选择其他竞技场。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_33$" value="您的级别不适合进入第一个竞技场。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_34$" value="第二个竞技场已满。请选择其他竞技场。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_35$" value="您的级别不适合进入第二个竞技场。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_36$" value="第三个竞技场已满。请选择其他竞技场。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_37$" value="您的级别不适合进入第三个竞技场。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_38$" value="需要做什么？看来你还是初学者。我来告诉你吧。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_39$" value="方法很简单。从我这儿拿#b#t2270002##k，减少怪兽的体力，利用#b#t2270002##k，吸收力量就可以了。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_4$" value="想不想参加阿里安特竞技赛啊？！&#13;&#10;#b#L0# 我想参加阿里安特竞技赛。#l"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_40$" value="#b#t2270002##k吸收怪兽力量，可以制作阿烈达王妃喜欢的#b#t4031868##k。制作最多的斗士可以获得胜利，妨碍其他斗士的进程也是很有帮助的。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_41$" value="但是，#r不能使用宠物#k，要注意～！"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_42$" value="想开始竞技赛吗？&#13;&#10;#b#L3# 竞技场入场准备！！#l&#13;&#10;#L1# 要让其他角色退出。#l&#13;&#10;#L2# 从这儿退出。#l"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_43$" value="想开始竞技赛吗？&#13;&#10;#b#L3# 竞技场入场准备！！#l&#13;&#10;#L1# 要让其他角色退出。#l&#13;&#10;#L2# 从这儿退出。#l"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_44$" value="你想做什么？&#13;&#10;#b#L2# 让我从这儿离开吧。#l"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_45$" value="可能竞技场上有其他斗士。请待会儿再试。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_46$" value="阿里安特竞技赛开始！！"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_47$" value="人数超过竞技赛指定人数，无法开始游戏。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_48$" value="竞技赛需要2名以上的玩家才能开始。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_49$" value="你要让哪个角色退出？#b"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_5$" value="好，那我把你送到竞技场。你一定要凯旋！"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_50$" value="已被踢出竞技场。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_51$" value="没有可以踢出的角色。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_52$" value="只有房主才能把其他斗士踢出房间。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_53$" value="真的要出去吗？你是房主，出去的话，这个房间将被取消。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_54$" value="请再考虑一下。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_55$" value="已退出，此竞技房间自动终止。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_56$" value="真的要出去吗？"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_57$" value="已退出。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_58$" value="已准备完毕。其他角色不能再进入了。要开始游戏吗？"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_59$" value="下定决心之后再和我搭话吧。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_6$" value="作为战士的故乡#b勇士部落#k里的勇敢的斗士，参加阿里安特竞技赛如何？！&#13;&#10;#b#L0# 我想参加阿里安特竞技赛。#l"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_60$" value="最少需要2名角色。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_61$" value="有什么事需要我帮忙吗？给我&#13;&#10;#b#L0# #t2270002#和 #t2100067#。#l&#13;&#10;#L1# 需要做什么吗？#l&#13;&#10;#L2# 我想离开这里。#l"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_62$" value="有什么事需要我帮忙吗？给我&#13;&#10;#b#L3# #t2270002#。#l&#13;&#10;#L1# 需要做什么吗？#l&#13;&#10;#L2# 我想离开这里。#l"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_63$" value="请确认消费窗是否有空位。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_64$" value="降低怪兽体力，用#b#t2270002##k吸收力量。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_65$" value="请确认消费窗是否有空位。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_66$" value="你已拥有#b#t2270002##k。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_67$" value="你说什么？能再说一遍吗？想说什么的话就要说清楚一点。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_68$" value="方法很简单。从我这儿拿#b#t2270002##k，降低怪兽的体力，使用#b#t2270002##k，吸收其力量就可以了。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_69$" value="用#b#t2270002##k吸收怪兽的力量，就可以制作阿烈达王妃喜欢的#b#t4031868##k。制作最多的斗士可以获得胜利，妨碍其他斗士的进程也是很有帮助的。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_7$" value="作为弓箭手的故乡#b射手村#k的勇敢的斗士，参加阿里安特竞技赛如何？！&#13;&#10;#b#L0# 我想参加阿里安特竞技赛。#l"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_70$" value="要离开这里吗？离开的话，不能获得任何报酬。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_71$" value="请考虑一下再和我搭话。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_72$" value="已退出。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_73$" value="请确认消费窗是否有空位。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_74$" value="去参加竞技打会，拿宝石给我！！如果没有宝石，我不能给你任何东西。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_75$" value="游戏在3分钟内结束时，无法提供报酬。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_76$" value="经验值 : "/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_77$" value="/得分 : "/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_78$" value="让我看一下…… 排名是 #b"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_79$" value="位#k 拿来我喜欢的宝石#b"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_8$" value="阿里安特竞技赛是较量与怪兽的打斗能力的大会。不仅仅是简单的打猎，还需要#b减少一定体力，吸收宝石#k才行。#b获得最多宝石的斗士可以获得胜利#k。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_80$" value="个#k啊。竞技赛结束了，给你竞技场得分#b"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_81$" value="分#k。想了解竞技场得分系统的话，去问#b阿卜杜拉 8世#k吧。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_82$" value="什么？为什么传令告诉我的个数和你拥有的个数不一样呢？你想骗我？！这样的话，不能给你报酬！！"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_83$" value="好啊～！下次也要为我制作宝石啊～ 呼呼呼呼呼～！！"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_84$" value="有点奇怪啊？结果有些奇怪，以后再来吧。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_85$" value="个#k啊。给你报酬。如果能努力坚持到竞技赛结束的话，可以得分。要多努力噢。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_86$" value="什么，才拿到这点宝石啊？没凑齐#b5个#k就不能给你报酬。下次要多准备一些！"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_87$" value="要设置报酬数值吗？&#13;&#10;#b#L0# 游戏成绩记录#l&#13;&#10;#L1# 竞技场得分记录#l&#13;&#10;#L2# 删除全部#l&#13;&#10;#L3# 查看现状态#l&#13;&#10;#L4# 一般进行#l"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_88$" value="我的个数/整体个数/排名/参与人数(例： 0010/0030/3/5 )"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_89$" value="消耗时间(480秒为止)"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_9$" value="如果是#b玩具城#k的勇敢的斗士，参加阿里安特竞技赛如何？！&#13;&#10;#b#L0# 我想参加阿里安特竞技赛。#l"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_90$" value="竞技场分数"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_91$" value="现在的状态："/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_92$" value="你的竞技场得分是#b"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_93$" value="#k分。超过#b"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_94$" value="分#k才能给你#b#t3010018##k。很烦哦，得到充足的分数之后再来吧。"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_95$" value="设置窗是不是没有空位了？"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_96$" value="给你#b#t3010018##k。在椰树树荫下好好休息一下吧～"/>
+  <string name="$SCRIPTSTRING_ARIANTMATCH_97$" value="请确认设置窗是否有空位。"/>
+</imgdir>

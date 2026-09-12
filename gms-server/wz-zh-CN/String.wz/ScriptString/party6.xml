@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="party6">
+  <string name="$SCRIPTSTRING_PARTY6_0$" value="必须拯救被怪人污染的森林！但是阿尔泰营地的勇士们全都忙于生计而分不开身。你能帮帮忙吗？只要你是#b45级～55级的冒险家#k，就应该能帮我！&#13;&#10;#b&#13;&#10;#L0#进入毒素森林。#l&#13;&#10;#b#L1#听听艾琳的话。#l&#13;&#10;#L2#询问有关阿尔泰碎片的事情。"/>
+  <string name="$SCRIPTSTRING_PARTY6_1$" value="你或者队员中有人是骑士团职业。请确认队员的职业。"/>
+  <string name="$SCRIPTSTRING_PARTY6_10$" value="但是阿尔泰营地的勇士们说因为要守护营地和开拓新的地区，所以没有时间。你能帮帮我们吗？代替勇士们，你变成他们……"/>
+  <string name="$SCRIPTSTRING_PARTY6_11$" value="用送给拯救毒雾森林的人的#t4001198#，可以制作只有在阿尔泰营地才能得到的珍贵的耳环。组队任务排名必须在B级以上，同时必须拥有阿尔泰碎片20个以上。"/>
+  <string name="$SCRIPTSTRING_PARTY6_12$" value="组队任务排名达到了B。用20个#t4001198#可以制作#b#i1032060:##t1032060##k。你现在想制作吗？"/>
+  <string name="$SCRIPTSTRING_PARTY6_13$" value="那么再见。"/>
+  <string name="$SCRIPTSTRING_PARTY6_14$" value="装备栏空间不足。"/>
+  <string name="$SCRIPTSTRING_PARTY6_15$" value="辛苦了。继续努力，你一定可以得到#b#i1032061:##t1032061##k的。"/>
+  <string name="$SCRIPTSTRING_PARTY6_16$" value="没有20个#t4001198#的话，就无法制作#b#i1032060:##t1032060##k。"/>
+  <string name="$SCRIPTSTRING_PARTY6_17$" value="&#13;&#10;#b#L0##i1032060:##t1032060# (需要20个#t4001198#)#l&#13;&#10;#L1##i1032061:##t1032061# (需要30个#t4001198#)"/>
+  <string name="$SCRIPTSTRING_PARTY6_18$" value="&#13;&#10;#b#L0##i1032060:##t1032060# (需要20个#t4001198#)#l&#13;&#10;#r#L1##i1032061:##t1032061# (需要30个#t4001198#)"/>
+  <string name="$SCRIPTSTRING_PARTY6_19$" value="组队任务排名是"/>
+  <string name="$SCRIPTSTRING_PARTY6_2$" value="由于未知原因无法让你进入。请稍候重新尝试。"/>
+  <string name="$SCRIPTSTRING_PARTY6_20$" value="啊。用20个#t4001198#可以制作出#b#i1032060:##t1032060##k，30个的话可以制作#b#i1032061:##t1032061##k。你想制作哪个呢？"/>
+  <string name="$SCRIPTSTRING_PARTY6_21$" value="辛苦了。谢谢你帮助我。"/>
+  <string name="$SCRIPTSTRING_PARTY6_22$" value="#t4001198#好像不够啊？"/>
+  <string name="$SCRIPTSTRING_PARTY6_23$" value="必须有20个以上的#t4001198#。"/>
+  <string name="$SCRIPTSTRING_PARTY6_24$" value="请你在组队任务排名达到B级以上后再来找我。"/>
+  <string name="$SCRIPTSTRING_PARTY6_25$" value="好了，接下去你要到怪人所在的森林里去，但是首先要把你变成阿尔泰营地的勇士之一。通过传送点进入森林之后，你马上就会变身。一定要记住这一点。&#13;&#10;#b#L0#怎样才能变身呢？#l&#13;&#10;#L1#为什么要变身啊？#l&#13;&#10;#L2#进入毒雾森林。#l"/>
+  <string name="$SCRIPTSTRING_PARTY6_26$" value="变身魔法会把你变成和你最相配的人。很可能会根据职业的取向变身。战士的话也许会变身成坎泰伦，魔法师也许就是菲尔，弓箭手也许就是赫雷娜，飞侠就是罗德……海盗就是友里索。"/>
+  <string name="$SCRIPTSTRING_PARTY6_27$" value="这样的话，你就不再是#b其他时空的人#k了。你以为我不知道吗？从你身上强烈的时间的气味，一眼就能看出来！其他时空的人是不能介入我们的历史的，所以必须变身成勇士中的一个人。"/>
+  <string name="$SCRIPTSTRING_PARTY6_28$" value="不管你在这里做出了什么事情，都会以勇士的名义被记录在历史中……所以不要担心。至少我艾琳会记得你的。而且妖精可以活很久，所以我会在很长时间里一直记得你的。"/>
+  <string name="$SCRIPTSTRING_PARTY6_29$" value="你真的要到森林去吗？"/>
+  <string name="$SCRIPTSTRING_PARTY6_3$" value="你还没有加入组队，不是吗？必须加入组队才能进入。"/>
+  <string name="$SCRIPTSTRING_PARTY6_30$" value="再考虑一下。"/>
+  <string name="$SCRIPTSTRING_PARTY6_31$" value="变身完成！你先看看自己的样子，看看自己变成了谁！也许你会搞不清楚本人到底是哪个！等你稍微适应一下，就通过传送门前往毒雾森林吧！"/>
+  <string name="$SCRIPTSTRING_PARTY6_32$" value="在森林的入口处有很多中毒的怪物。必须把怪物们全部清除掉，才能前往更深处。好了，快去把怪物清除掉吧！ &#13;&#10;#b#L0#我想从这里出去。#l#k"/>
+  <string name="$SCRIPTSTRING_PARTY6_33$" value="你真的要从森林中出去吗？"/>
+  <string name="$SCRIPTSTRING_PARTY6_34$" value="这里长满了荆棘，挡住了路。必须先把荆棘除掉！荆棘只能用毒除掉，从石头虫身上获得的毒素太猛烈，无法用手拿。所以必须&#10;#b1. 捕捉石头虫，把毒滴到水坑里。&#10;2.然后把稀释的毒素带到荆棘那里。 &#10;3.把稀释的毒素洒到荆棘上，把荆棘清除掉。#k&#10;好了，应该能办到吧？#b#l&#13;&#10;#L0#我想从这里出去。#l#k"/>
+  <string name="$SCRIPTSTRING_PARTY6_35$" value="你真的要从森林中出去吗？"/>
+  <string name="$SCRIPTSTRING_PARTY6_36$" value="呼……还好你来了。因为雾气太大找不到你，我正在着急呢。你要到森林更深的地方去吗？你要去的话，我可以用魔法把你和队员们送过去。"/>
+  <string name="$SCRIPTSTRING_PARTY6_37$" value="不想去的话，你呆在这里干嘛？是觉得这里很好，不想走了吗？"/>
+  <string name="$SCRIPTSTRING_PARTY6_38$" value="由于未知原因失败。"/>
+  <string name="$SCRIPTSTRING_PARTY6_39$" value="你把森林矮人全都装在净化之珠中带回来啦！很好，让我来唤醒一个净化了的森林矮人！他们对森林深处的情况更熟悉，你要按他们说的去做！"/>
+  <string name="$SCRIPTSTRING_PARTY6_4$" value="你所属的组队人数不是3~5名。请确认数量。"/>
+  <string name="$SCRIPTSTRING_PARTY6_40$" value="森林矮人现在虽然中毒了，但他们原来是森林的主人。用我制作的净化之珠，可以将他们净化！请你帮我把20个森林矮人装到净化之珠里！&#13;&#10;#b#L0#请你把净化之珠给我。#l&#13;&#10;#L1#怎么才能把怪物装进去？#l &#13;&#10;#L2#我想从这里出去。#l#k"/>
+  <string name="$SCRIPTSTRING_PARTY6_41$" value="好，我给你10个净化之珠。不够的话可以再来找我要。"/>
+  <string name="$SCRIPTSTRING_PARTY6_42$" value="你不是还有净化之珠吗？用完了还不够的话，我再给你。"/>
+  <string name="$SCRIPTSTRING_PARTY6_43$" value="不是击败森林矮人，而是#b消费#k净化之珠，把他们装进去。森林矮人的体力太强的话，是无法把他们装进去的，因此需要让他们的体力下降到一定程度。"/>
+  <string name="$SCRIPTSTRING_PARTY6_44$" value="你真的要从森林中出去吗？"/>
+  <string name="$SCRIPTSTRING_PARTY6_45$" value="搜集满20个净化之珠后，由队长拿来交给我。如果还需要净化之珠，请先用完手里的之后再来找我。"/>
+  <string name="$SCRIPTSTRING_PARTY6_46$" value="好，我给你10个净化之珠。不够的话可以再来找我要。"/>
+  <string name="$SCRIPTSTRING_PARTY6_47$" value="你不是还有净化之珠吗？用完了还不够的话，我再给你。"/>
+  <string name="$SCRIPTSTRING_PARTY6_48$" value="你真的要从森林中出去吗？"/>
+  <string name="$SCRIPTSTRING_PARTY6_49$" value="马上就是森林的最深处了。那里有一个怪人的祭坛。要想知道怪人到底在进行什么研究，就必须先做点什么……被怪人抓住的森林矮人应该知道怎么做！"/>
+  <string name="$SCRIPTSTRING_PARTY6_5$" value="你或者队员中有不在45~55级之内的角色。请确认角色等级。"/>
+  <string name="$SCRIPTSTRING_PARTY6_50$" value="这里就是怪人所在的#r毒雾森林#k！但是……现在没看到怪人？太好了。按照森林矮人说的那样，把魔力石放到祭坛上面就应该会有反应，对吧？快试试吧？&#13;&#10;#b#L0#我想从这里出去。#l#k"/>
+  <string name="$SCRIPTSTRING_PARTY6_51$" value="你真的要从森林中出去吗？"/>
+  <string name="$SCRIPTSTRING_PARTY6_52$" value="谢谢你帮助我！虽然没有弄清怪人的身份……但是我们阻止了他的研究。什么时候他一定又会出来的。不过也不是完全没有收获，现在这样我就很满足了。"/>
+  <string name="$SCRIPTSTRING_PARTY6_53$" value="其他窗口空间不足，我无法把#t4001198#给你。请清空后再来和我说话。"/>
+  <string name="$SCRIPTSTRING_PARTY6_54$" value="谢谢你救了我！之前我中了毒，所以成为了怪人的手下！但是我也因此看到了怪人的行动，才能给各位带路！好了，我把你们送到森林的更深处去吧！"/>
+  <string name="$SCRIPTSTRING_PARTY6_55$" value="谢谢你救了我！之前我中了毒，所以成为了怪人的手下！但是我也因此看到了怪人的行动，才能给各位带路！好了，请队长和我说话！"/>
+  <string name="$SCRIPTSTRING_PARTY6_56$" value="你找到紫色魔力石了啊！怪人把它放到了祭坛上，好像在进行什么研究！你们也可以那样做，不是吗？我这就把你们送到怪人进行研究的#b毒雾森林#k去！"/>
+  <string name="$SCRIPTSTRING_PARTY6_57$" value="怪人好像在用旁边有毒的树上生成的魔力石进行什么研究！魔力石应该在怪人的桌子上！请你去把紫色魔力石带回来！"/>
+  <string name="$SCRIPTSTRING_PARTY6_58$" value="艾琳的变身魔法渗透到了全身。"/>
+  <string name="$SCRIPTSTRING_PARTY6_59$" value="只有除掉所有的怪物，才能从森林出去。"/>
+  <string name="$SCRIPTSTRING_PARTY6_6$" value="已有其他组队正在尝试完成任务。请稍候重新尝试。"/>
+  <string name="$SCRIPTSTRING_PARTY6_60$" value="由于荆棘的妨碍，无法通过。"/>
+  <string name="$SCRIPTSTRING_PARTY6_61$" value="你可以通过中央的传送点过去。我现在就给你施变身魔法。"/>
+  <string name="$SCRIPTSTRING_PARTY6_62$" value="请你确认好自己的外貌，不要搞混了！"/>
+  <string name="$SCRIPTSTRING_PARTY6_63$" value="除掉所有的怪物！"/>
+  <string name="$SCRIPTSTRING_PARTY6_64$" value="在中央的水坑击败怪物后，用水坑里稀释的毒素清除掉荆棘！"/>
+  <string name="$SCRIPTSTRING_PARTY6_65$" value="大家都去哪儿了？快通过传送点到这里来！"/>
+  <string name="$SCRIPTSTRING_PARTY6_66$" value="从我这里拿到净化之珠后，捕捉怪物，然后由队长把20个怪物之珠带给我！"/>
+  <string name="$SCRIPTSTRING_PARTY6_67$" value="打开怪人桌子前的箱子，把紫色魔力石带回来！"/>
+  <string name="$SCRIPTSTRING_PARTY6_68$" value="把紫色魔力石放到怪人的祭坛上！"/>
+  <string name="$SCRIPTSTRING_PARTY6_69$" value="在清除掉所有怪物之前，无法通过森林。"/>
+  <string name="$SCRIPTSTRING_PARTY6_7$" value="进入毒雾森林。"/>
+  <string name="$SCRIPTSTRING_PARTY6_70$" value="你要从毒雾森林出去吗？-赫雷娜-"/>
+  <string name="$SCRIPTSTRING_PARTY6_71$" value="这里很危险，请你一定要注意……"/>
+  <string name="$SCRIPTSTRING_PARTY6_8$" value="让队长过来和我说话。"/>
+  <string name="$SCRIPTSTRING_PARTY6_9$" value="本来这是一个妖精们生活的干净安逸的森林。但是不久前来了一些#r穿着黑色长袍的怪人#k，赶走了精灵，开始进行一些奇怪的研究。好像是因为他们的研究，森林渐渐被毒素污染。我们必须马上着手拯救森林！"/>
+</imgdir>

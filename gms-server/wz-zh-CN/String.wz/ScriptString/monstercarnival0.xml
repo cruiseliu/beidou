@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="monstercarnival0">
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_0$" value="新手"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_1$" value="战士"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_10$" value="黑骑士"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_100$" value="请参加怪物嘉年华!!"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_101$" value="嘉年华战斗地图的房主变更。 请重新申请入场。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_102$" value="参加怪物嘉年华的两队人数要一致。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_103$" value="别的队伍正在申请中，请稍后再试。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_104$" value="嘉年华战斗地图1是只能开设2~4名的组队。请确认好组队成员数。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_105$" value="嘉年华战斗地图2是只能开设2~4名的组队。请确认好组队成员数。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_106$" value="嘉年华战斗地图3是只能开设2~4名的组队。请确认好组队成员数。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_107$" value="嘉年华战斗地图4是只能开设2~4名的组队。请确认好组队成员数。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_108$" value="嘉年华战斗地图5是只能开设3~6名的组队。请确认好组队成员数。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_109$" value="嘉年华战斗地图6是只能开设3~6名的组队。请确认好组队成员数。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_11$" value="魔法师"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_110$" value="组队长可以申请参加怪物嘉年华。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_111$" value="申请入场的队伍有变更。 请等待其他队伍的申请。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_112$" value="队伍变更，无法入场。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_113$" value="#k&#13;&#10;&#13;&#10;与该队伍进行怪物嘉年华吗?"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_114$" value="对方队伍拒绝入场。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_115$" value="拒绝了与"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_116$" value="的对战。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_117$" value="招待对方队伍失败了。 请稍后再试。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_118$" value="10秒后开始怪物嘉年华!"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_119$" value="组队长变更所以无法进行战斗。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_12$" value="法师(火/毒)"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_120$" value="请选择想要交换的物品。&#13;&#10;#b#L0##t1122007#(纪念币"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_121$" value="个)#l&#13;&#10;#L1##t2041211#(纪念币"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_122$" value="个)#l&#13;&#10;#L2#战士武器#l&#13;&#10;#L3#魔法师武器#l&#13;&#10;#L4#弓箭手武器#l&#13;&#10;#L5#飞侠武器#l&#13;&#10;#L6#海盗武器#l"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_123$" value="&#13;&#10;#b#L7##t1122058#(闪光的冒险岛纪念币"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_124$" value="个)#l"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_125$" value="是不是#b#t4001254##k不足，或者装备栏没有空格？"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_126$" value="#b#t4001129##k不足或者, 请确认您的装备栏是否有空余空间?"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_127$" value="#b#t4001129##k不足或者, 请确认您的消耗栏是否有空余空间?"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_128$" value="选择想交换的武器吧。我给的武器比基本武器好很多。&#13;&#10;#b#L0# #z1302004#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_129$" value="个)#l&#13;&#10;#L1# #z1402006#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_13$" value="巫师(火/毒)"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_130$" value="个)#l&#13;&#10;#L2# #z1302009#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_131$" value="个)#l&#13;&#10;#L3# #z1402007#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_132$" value="个)#l&#13;&#10;#L4# #z1302010#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_133$" value="个)#l&#13;&#10;#L5# #z1402003#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_134$" value="个)#l&#13;&#10;#L6# #z1312006#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_135$" value="个)#l&#13;&#10;#L7# #z1412004#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_136$" value="个)#l&#13;&#10;#L8# #z1312007#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_137$" value="个)#l&#13;&#10;#L9# #z1412005#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_138$" value="个)#l&#13;&#10;#L10# #z1312008#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_139$" value="个)#l&#13;&#10;#L11# #z1412003#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_14$" value="魔导师(火/毒)"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_140$" value="个)#l#k&#13;&#10;#L12# 下一页(1/2)#l"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_141$" value="选择想交换的武器吧。我给的武器比基本武器好很多。&#13;&#10;#b#L0# #z1322015#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_142$" value="个)#l&#13;&#10;#L1# #z1422008#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_143$" value="个)#l&#13;&#10;#L2# #z1322016#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_144$" value="个)#l&#13;&#10;#L3# #z1422007#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_145$" value="个)#l&#13;&#10;#L4# #z1322017#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_146$" value="个)#l&#13;&#10;#L5# #z1422005#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_147$" value="个)#l&#13;&#10;#L6# #z1432003#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_148$" value="个)#l&#13;&#10;#L7# #z1442003#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_149$" value="个)#l&#13;&#10;#L8# #z1432005#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_15$" value="法师(冰/雷)"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_150$" value="个)#l&#13;&#10;#L9# #z1442009#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_151$" value="个)#l&#13;&#10;#L10# #z1442005#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_152$" value="个)#l&#13;&#10;#L11# #z1432004#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_153$" value="个)#l&#13;&#10;#L12# 回到首页(2/2)#l"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_154$" value="选择想交换的武器吧。我给的武器比基本武器好很多。&#13;&#10;#b#L0# #z1372001#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_155$" value="个)#l&#13;&#10;#L1# #z1382018#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_156$" value="个)#l&#13;&#10;#L2# #z1372012#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_157$" value="个)#l&#13;&#10;#L3# #z1382019#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_158$" value="个)#l&#13;&#10;#L4# #z1382001#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_159$" value="个)#l&#13;&#10;#L5# #z1372007#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_16$" value="巫师(冰/雷)"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_160$" value="选择想交换的武器吧。我给的武器比基本武器好很多。&#13;&#10;#b#L0# #z1452006#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_161$" value="个)#l&#13;&#10;#L1# #z1452007#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_162$" value="个)#l&#13;&#10;#L2# #z1452008#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_163$" value="个)#l&#13;&#10;#L3# #z1462005#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_164$" value="个)#l&#13;&#10;#L4# #z1462006#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_165$" value="个)#l&#13;&#10;#L5# #z1462007#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_166$" value="选择想交换的武器吧。我给的武器比基本武器好很多。&#13;&#10;#b#L0# #z1472013#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_167$" value="个)#l&#13;&#10;#L1# #z1472017#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_168$" value="个)#l&#13;&#10;#L2# #z1472021#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_169$" value="个)#l&#13;&#10;#L3# #z1332014#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_17$" value="魔导师(冰/雷)"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_170$" value="个)#l&#13;&#10;#L4# #z1332031#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_171$" value="个)#l&#13;&#10;#L5# #z1332011#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_172$" value="个)#l&#13;&#10;#L6# #z1332016#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_173$" value="个)#l&#13;&#10;#L7# #z1332003#(硬币 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_174$" value="请选择想交换的武器。我给你的武器比一般的武器好。&#13;&#10;#b#L0# #z1482005#"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_175$" value="&#13;&#10;#b#L1# #z1482006#金币"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_176$" value="&#13;&#10;#b#L2# #z1482007#金币"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_177$" value="&#13;&#10;#b#L3# #z1492005#金币"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_178$" value="&#13;&#10;#b#L4# #z1492006#金币"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_179$" value="&#13;&#10;#b#L5# #z1492007#金币"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_18$" value="牧师"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_180$" value="会不会是#b#t4001129##k不足或是装备栏没有空间了？"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_181$" value="会不会是#b#t4001129##k不足或是装备栏没有空间了？"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_182$" value="会不会是#b#t4001129##k不足或是装备栏没有空间了？"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_183$" value="会不会是#b#t4001129##k不足或是装备栏没有空间了？"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_184$" value="会不会是#b#t4001129##k不足或是装备栏没有空间了？"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_185$" value="会不会是#b#t4001129##k不足或是装备栏没有空间了？"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_186$" value="想干嘛呢? 要是没有尝试过怪物嘉年华的话，最好还是先听一听说明再玩。&#13;&#10;#b#L0# 移动到怪物嘉年华地图。#l&#13;&#10;#L1# 听有关怪物嘉年华说明。#l&#13;&#10;#L2# #t4001129#交换。#l"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_187$" value="怪物嘉年华目前是30级以上，50级以下的玩家才能参加。 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_188$" value="当然这个不是我说的这么单纯。 妨碍对方队伍打猎的方法有很多种，怎么妨碍取决于你的选择哦。 怎么样啊? 是不是很想试试啊?"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_189$" value="进入嘉年华战斗地图打猎#b对方队伍的怪物获取嘉年华点数，利用该嘉年华点数的话就可以妨碍#k对方队伍的打猎。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_19$" value="祭司"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_190$" value="妨碍对方打猎的方法有#b召唤兽，技能，召唤物三种方法#k 。更详细的内容在游戏方法中介绍给你们吧。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_191$" value="但，切记不要随意消耗嘉年华点数! 你#b使用的嘉年华点数也包括在决定胜败的时候#k哦。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_192$" value="进入怪物嘉年华地图的话，你会发现从未见过的嘉年华窗口。 使用很简单。#b选择想使用的再确定#k即可。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_193$" value="习惯了的话在再#b使用快捷键TAB和F1~F12#k。 #bTAB键是移动召唤兽/技能/召唤物的快捷键，#bF1~ F12是直接选择各个窗口的菜单的快捷键#k哦。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_194$" value="#b召唤物#k是指提高对目前已经召唤过的我军怪物的能力值的人工物。 对对方队伍打碎之前一直会有效果，所以召唤出较多的召唤兽之后使用的话，很有效果。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_195$" value="最后在怪物嘉年华中#b不能使用原来携带着的回复用道具。#k 但，从怪物那边#b掉落的道具拣去的瞬间会有效果#k。 所以什么时候拣去那些道具也是很重要的。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_196$" value="你想干什么呢？&#13;&#10;#b#L0#查看胜局排名#l&#13;&#10;#L1#查看胜率排名#l&#13;&#10;#L2#什么都不做。#l"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_197$" value="还没有胜局排名。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_198$" value="位："/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_199$" value="胜)&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_2$" value="剑客"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_20$" value="主教"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_200$" value="还没有胜率排名。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_201$" value="(胜率"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_202$" value="你想干什么？如果你没有参加过怪物嘉年华，最好还是听一下说明。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_203$" value="&#13;&#10;#b#L0#移动到第二届怪物嘉年华区域。#l&#13;&#10;#L1#查看怪物嘉年华的说明。#l&#13;&#10;#L2#交换#t4001129#。#l"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_204$" value="&#13;&#10;#b#L3#查看第二届怪物嘉年华排名。#l"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_205$" value="&#13;&#10;&#13;&#10;#b#L4#领取嘉年华勋章。#l"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_206$" value="第二届怪物嘉年华只有51级以上、70级以下的玩家可以参加。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_207$" value="你想干什么？&#13;&#10;#b#L0#什么是怪物嘉年华？#l&#13;&#10;#L1#基本游戏方法#l&#13;&#10;#L2#详细游戏方法#l&#13;&#10;#L3#什么都不做。#l"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_208$" value="呵呵……我是嘉年华马戏团的主人休彼德蔓。我举办了第二届#b怪物嘉年华#k，欢迎像你这样的冒险家参加。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_209$" value="#b怪物嘉年华#k是什么？呵呵呵……我可以保证，一定比你现在想象的更好。因为可以#b和其他冒险家对决#k！"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_21$" value="弓箭手"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_210$" value="但是直接用武器比拼太危险了。我可是和平主义者，呵呵。你的组队和对方的组队#b各自召唤怪物，目标是击败对方召唤的怪物。这就是怪物嘉年华。#k"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_211$" value="当然并不像我说的这么简单。可以用很多方法来妨碍对方，使用哪种方法全都取决于各自的选择。怎么样？你不觉得很有趣吗？"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_212$" value="#b怪物嘉年华#k是由1个组队参加，各自攻击对方召唤的怪物，#b获得更多嘉年华点数(嘉年华点数)的一方获胜的竞争性任务#k。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_213$" value="进入嘉年华区域之后，#b可以打猎对方组队的怪物，获得嘉年华点数。使用嘉年华点数，可以妨碍对方组队进行打猎#k。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_214$" value="妨碍对方组队的方法有#b召唤兽、技能、守护物#k三种方法。详细的内容，我会在游戏方法中说明。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_215$" value="一定要记住，不要吝惜嘉年华点数！因为#b你使用的嘉年华点数和胜负息息相关#k。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_216$" value="进入嘉年华区域后，可以看到全新的#b怪物嘉年华窗口#k。使用方法非常简单。#b只要选择想要使用的东西，然后点击确定#k就可以了。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_217$" value="但熟悉之后，还可以使用#b快捷键TAB和F1～F12键#k。#bTAB键是在召唤兽/技能/守护物窗口之间切换的快捷键#k，#bF1～F12是选择各个窗口的菜单的键#k。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_218$" value="所谓#b召唤兽#k，是指按照你们的意志攻击对方的怪物。消耗嘉年华点数召唤召唤兽，可以用来攻击对方。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_219$" value="所谓#b技能#k，是指暗黑、虚弱等可以直接向对方组队使用的用于妨碍的技能。虽然会消费很多嘉年华点数，但效果很好。不过缺点是持续时间比较短。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_22$" value="猎人"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_220$" value="所谓#b守护物#k是指可以大幅提高当前我方召唤的怪物的能力值的人工物体。守护物会一直持续到对方将其破坏时为止，在召唤大量召唤兽的时候使用，会有很好的效果。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_221$" value="最后，怪物嘉年华中，#b无法使用原来拥有的物品。#k但是可以使用怪物身上掉落#b的物品。因此什么时候获得掉落物品也非常重要。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_222$" value="你不是已经拿到活动勋章了吗？"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_223$" value="请确认装备栏中是否有一格以上的空格。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_224$" value="活动还没结束。请尽情享受～"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_225$" value="嗯……还不够。对于在怪物嘉年华期间参加#b第二届怪物嘉年华#k100次以上的人，可以获得#b热血嘉年华勋章#k。不过你……只参加了#r"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_226$" value="次#k。无论胜负，只要在活动期间参加#r"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_227$" value="次#k，就可以获得勋章。&#13;&#10;&#13;&#10;- 活动奖品：#i1142080:# #t1142080# (时间制)"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_228$" value="达到50级以上，就能参加第二届怪物嘉年华。但是在这里不能参加。必须到天空之城或玩具城来。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_229$" value="祝贺胜利!但是，不知道这么赢算不算赢。 希望下次再积极地参加怪物嘉年华哟!&#13;&#10;&#13;&#10;#b怪物嘉年华排名 : "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_23$" value="射手"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_230$" value="祝贺胜利! 虽然是很努力地在打，但是这不能算是很完美地胜利。期待你们以后更漂亮的表现。&#13;&#10;&#13;&#10;#b怪物嘉年华排名 : "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_231$" value="祝贺胜利! 嗷嗷， 真是精彩的战斗啊。下次再努力获取排名A吧。 &#13;&#10;&#13;&#10;#b怪物嘉年华排名 : "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_232$" value="祝贺胜利! 真是让人佩服的实力啊!!把对方打的落花流水!!下次也保持那个实力吧!&#13;&#10;&#13;&#10;#b怪物嘉年华排名 : "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_233$" value="真可惜平手或者输了。 玩的很失望。下次再奋斗吧。&#13;&#10;&#13;&#10;#b怪物嘉年华排名 : "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_234$" value="真可惜平手或者输了。 胜利属于奋斗者。 我可以感受到你们的努力，相信胜利不再遥远，加油吧!&#13;&#10;&#13;&#10;#b怪物嘉年华排名 : "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_235$" value="真可惜平手或者输了。 实力挺不错的。 要是发挥地稍微更好地话也许胜利就属于你们了。&#13;&#10;&#13;&#10;#b怪物嘉年华排名 : "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_236$" value="真可惜平手或者输了。 真的太可惜了~ 这种水平的话应该可以赢的啊。期待下次的胜利吧! &#13;&#10;&#13;&#10;#b怪物嘉年华排名 : "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_237$" value="把你们送到外面。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_238$" value="祝贺你获得了胜利！但是不知道这样的胜利能不能叫做胜利。希望你今后能更积极地参加怪物嘉年华！&#13;&#10;&#13;&#10;#b怪物嘉年华排名："/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_239$" value="祝贺你获得了胜利！虽然你付出了很多努力，但还是很难获得像样的胜利。希望下次你能胜得更漂亮些。&#13;&#10;&#13;&#10;#b怪物嘉年华排名："/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_24$" value="神射手"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_240$" value="祝贺你获得了胜利！哦哦，干得很不错。你出色地压制住了对方。希望你继续努力，向着排名A努力。&#13;&#10;&#13;&#10;#b怪物嘉年华排名："/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_241$" value="祝贺你获得了胜利！真是了不起！！你出色地压制住了对方！希望你下次能表现得同样出色！&#13;&#10;&#13;&#10;#b怪物嘉年华排名："/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_242$" value="额外获得了嘉年华经验值。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_243$" value="很遗憾，最后输了或者打平了。你的表现也让人很失望。希望下次更加努力。&#13;&#10;&#13;&#10;#b怪物嘉年华排名："/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_244$" value="很遗憾，最后输了或者打平了。只有付出努力的人，才能获得胜利。我看到了你的努力，离胜利应该不遥远了。加油！&#13;&#10;&#13;&#10;#b怪物嘉年华排名："/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_245$" value="很遗憾，最后输了或者打平了。你的能力很强。只要做得更好一些，就一定能获得胜利。&#13;&#10;&#13;&#10;#b怪物嘉年华排名："/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_246$" value="很遗憾，最后输了或者打平了。真可惜～以你的水平，明明应该获胜的。希望你下次能取得胜利。&#13;&#10;&#13;&#10;#b怪物嘉年华排名："/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_247$" value="我来把你送出去。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_248$" value="你想开设#b嘉年华区域#k吗？区域开设后，#b3分钟内#k可以接受其他组队的入场申请。接受入场申请后，对方组队会自动进入。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_249$" value="请重新考虑一下，然后再和我说话。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_25$" value="弓箭手"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_250$" value="区域已满，无法继续开始。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_251$" value="奇怪……请重新尝试。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_252$" value="由于未知原因，无法开设房间。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_253$" value="你没有结成组队。必须结成组队，才可以进行挑战。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_254$" value="你所属的组队队员人数不符，无法参加任务。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_255$" value="你自己或队员中有不是51～70级的角色。请确认等级。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_256$" value="当前地图没有可以进入的房间。请稍候重新尝试，或选择其他地图。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_257$" value="有点奇怪……请稍候重新尝试。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_258$" value="你好像没有结成组队。只有组队可以入场。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_259$" value="现在所有队员都在同一张地图里吗？"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_26$" value="游侠"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_260$" value="10秒后怪物嘉年华开始！"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_261$" value="只有51级以上、70级以下的玩家可以参加第二届怪物嘉年华。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_262$" value="你的组队中有超过70级的冒险家。超过70级的冒险家无法参加怪物嘉年华。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_263$" value="&#13;&#10;#b#L0#开设嘉年华区域1(2～4人)#l &#13;&#10;#b#L1#开设嘉年华区域2(2～4人)#l &#13;&#10;#b#L2#开设嘉年华区域3(3～6人)#l "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_264$" value="&#13;&#10;#b#L3#嘉年华区域1(2~4人)入场#l &#13;&#10;#b#L4#嘉年华区域2(2~4人)入场#l &#13;&#10;#b#L5#嘉年华区域3(3~6人)入场#l "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_265$" value="&#13;&#10;#b#L6#游戏方法#l#k"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_266$" value="请参加第二届怪物嘉年华！！"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_267$" value="嘉年华区域1只有队员在2～4人之间的组队才能开设。请确认队员人数。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_268$" value="嘉年华区域2只有队员在2～4人之间的组队才能开设。请确认队员人数。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_269$" value="嘉年华区域3只有队员在3～6人之间的组队才能开设。请确认队员人数。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_27$" value="箭神"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_270$" value="嘉年华区域1只有队员在2～4人之间的组队才能入场。请确认队员人数。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_271$" value="嘉年华区域2只有队员在2～4人之间的组队才能入场。请确认队员人数。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_272$" value="嘉年华区域3只有队员在3～6人之间的组队才能入场。请确认队员人数。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_273$" value="队长可以申请参加怪物嘉年华。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_28$" value="飞侠"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_29$" value="刺客"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_3$" value="勇士"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_30$" value="无影人"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_31$" value="隐士"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_32$" value="侠客"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_33$" value="独行客"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_34$" value="侠盗"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_35$" value="海盗"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_36$" value="拳手"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_37$" value="斗士"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_38$" value="冲锋队长"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_39$" value="火枪手"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_4$" value="英雄"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_40$" value="大副"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_41$" value="船长"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_42$" value="初心者"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_43$" value="魂骑士"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_44$" value="炎术士"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_45$" value="风灵使者"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_46$" value="夜行者"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_47$" value="奇袭者"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_48$" value="传说职业"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_49$" value="战神"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_5$" value="准骑士"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_50$" value=" / 等级 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_51$" value="平均等级差超过10级的组队无法进行怪物嘉年华。双方势力差距太大了。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_52$" value="目前与其他队伍进行胜负判断中，或者是过了3分钟后怪物嘉年华地图已关闭， 请稍后再试。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_53$" value="#k&#13;&#10;&#13;&#10;上的队伍进行怪物嘉年华吗?"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_54$" value="什么? 害怕? 那就去找更弱的战队吧。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_55$" value="您选择的战斗地图上，其他战队正在进行入场手续。 请稍后再试。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_56$" value="对方战队正在确认是否入场。 组队要是有变更的话无法入场，请注意。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_57$" value="想开设#b嘉年华战斗地图#k吗? 开设战斗地图的话有 #b3分钟#k可以接受其他队伍的入场申请。接受入场的话，对方队伍就会自动入场。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_58$" value="想好后再对话。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_59$" value="由于无法得知的原因,无法开设房间。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_6$" value="骑士"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_60$" value="您还没组队。组队后才能进行挑战。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_61$" value="您的组队人数不对，无法进行任务。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_62$" value="您或者组队成员中有等级不符合30级 ~ 50级的角色。 请再次确认组队成员的等级。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_63$" value="其他队伍已经开设了嘉年华战斗地图。请稍后再试。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_64$" value="想干嘛呢?&#13;&#10;#b#L0# 怪物嘉年华是?#l&#13;&#10;#L1# 基本游戏方法#l&#13;&#10;#L2# 详细游戏方法#l&#13;&#10;#L3# 什么都不做。#l"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_65$" value="嘎嘎... 我是嘉年华的主人休彼德蔓。 这次开办了第一回#b怪物嘉年华#b，招募像你们这样的冒险家们..."/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_66$" value="嘎嘎… 我是嘉年华的主人休彼德蔓。这次开办了第二回#b怪物嘉年华#b,招募像你们这样的冒险家们。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_67$" value="你问#b怪物嘉年华#k是什么? 嘎嘎嘎...这是比你想像中还要有意思还要伟大的东东。 就是与#b其他冒险家们的对战#k!"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_68$" value="但是直接使用武器对战貌似太危险了。我可是和平主义者呢。嘎嘎 你们队伍和对方队伍#b各自召唤怪物，并击退对方的怪物，这个就是怪物嘉年华。击退对方召唤的怪物。这就叫怪物嘉年华。#k"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_69$" value="当然这个不是我说的这么单纯。 妨碍对方队伍打猎的方法有很多种，怎么妨碍取决于你的选择哦。 怎么样啊? 是不是很想试试啊?"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_7$" value="圣骑士"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_70$" value="#b怪物嘉年华#k是两个队伍入场后， 打猎对方召唤的怪物后获取#b更多的嘉年华点(嘉年华点数)的队伍获胜的竞争性任务#k。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_71$" value="进入嘉年华战斗地图打猎#b对方队伍的怪物获取嘉年华点数,利用该嘉年华点数的话就可以妨碍#k对方队伍的打猎"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_72$" value="妨碍对方打猎的方法有#b召唤兽，技能，召唤物三种方法#k。更详细的内容在游戏方法中介绍给你们吧。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_73$" value="但，切记不要可惜消耗嘉年华点数! 你#b使用的嘉年华点数也包括在决定胜败的时候#k哦。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_74$" value="嘿，还有不要害怕成为幽灵哦。 在怪物嘉年华#b死了也不会扣经验值#k。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_75$" value="进入怪物嘉年华地图的话，你会发现从未见过的嘉年华窗口。 使用很简单。#b选择想使用的再确定#k即可。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_76$" value="习惯了的话在再#b使用快捷键TAB和F1~F12#k。 #bTAB键是移动召唤兽/技能/召唤物的快捷键，#bF1~ F12是直接选择各个窗口的菜单的快捷键#k哦。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_77$" value="#b召唤兽#k是根据你们的意志来攻击对方的怪物。 消耗嘉年华点数召唤召唤兽的话，它会出现在那个地方并持续性攻击对方。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_78$" value="#b技能#k是指黑暗，虚弱等，直接使用在对方队伍的妨碍用技能。 虽然消耗很多嘉年华点数但是很有效果。但是持续时间短是弱点。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_79$" value="#b召唤物#k是指提高对目前已经召唤过的我军怪物的能力值的人工物。 对对方队伍打碎之前一直会有效果，所以召唤更多的召唤兽的时候使用的话，很有效果。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_8$" value="枪骑士"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_80$" value="最后在怪物嘉年华中#b不能使用原来携带着的回复用道具。#k 但，从怪物那边#b掉落的道具拣去的瞬间会有效果#k。 所以什么时候拣去那些道具也是很重要的。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_81$" value="怪物嘉年华测试区只能参加#b30级以上的玩家#k。 在本服务器有可能限制条件变更，请注意。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_82$" value="怪物嘉年华只能参加30级以上， 50级以下的玩家。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_83$" value="您的队伍中超过50级的角色。 超过50级的角色不能参加怪物嘉年华。"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_84$" value="&#13;&#10;#b#L0# 嘉年华战斗地图1("/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_85$" value="名/平均等级"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_86$" value="&#13;&#10;#b#L0# 嘉年华战斗地图1(2~4名)#l#k"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_87$" value="&#13;&#10;#b#L1# 嘉年华战斗地图2("/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_88$" value="&#13;&#10;#b#L1# 嘉年华战斗地图2(2~4名)#l#k"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_89$" value="&#13;&#10;#b#L2# 嘉年华战斗地图3("/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_9$" value="龙骑士"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_90$" value="名/平均等级 "/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_91$" value="&#13;&#10;#b#L2# 嘉年华战斗地图3(2~4名)#l#k"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_92$" value="&#13;&#10;#b#L3# 嘉年华战斗地图4("/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_93$" value="&#13;&#10;#b#L3# 嘉年华战斗地图4(2~4名)#l"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_94$" value="&#13;&#10;#b#L4# 嘉年华战斗地图5("/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_95$" value="&#13;&#10;#b#L4# 嘉年华战斗地图5(3~6名)#l#k"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_96$" value="&#13;&#10;#b#L5# 嘉年华战斗地图6("/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_97$" value="&#13;&#10;#b#L5# 嘉年华战斗地图6(3~6名)#l"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_98$" value="&#13;&#10;#b#L6# 游戏方法#l#k"/>
+  <string name="$SCRIPTSTRING_MONSTERCARNIVAL0_99$" value="目前所有的嘉年华战斗地图都在进行战斗中。 请稍后再申请。"/>
+</imgdir>

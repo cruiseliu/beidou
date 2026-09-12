@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="event2">
+  <string name="$SCRIPTSTRING_EVENT2_0$" value="$$[CN]우와와~ 벌써 온거야? 내가 형과 화해를 할 수 있게， 어서 재료들을 줘. "/>
+  <string name="$SCRIPTSTRING_EVENT2_1$" value="$$[CN]자~ 내 부탁을 들어줬으니 약속대로 선물을 줄게~&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT2_10$" value="从#b冒险岛#k无法到达西瓜田。请尝试从其他地方前往。"/>
+  <string name="$SCRIPTSTRING_EVENT2_11$" value="西瓜田只有10级以上的玩家可以前往。"/>
+  <string name="$SCRIPTSTRING_EVENT2_12$" value="没有等级成工作人员的人无法进入西瓜田地。"/>
+  <string name="$SCRIPTSTRING_EVENT2_13$" value="请输入想入场的样本号码.&#13;&#10;#r(但， 3次输入时， 不运行)#k"/>
+  <string name="$SCRIPTSTRING_EVENT2_14$" value="冒险岛运营员 : 请躲避虎精爬到上面吧！"/>
+  <string name="$SCRIPTSTRING_EVENT2_15$" value="3次输入时不运行。"/>
+  <string name="$SCRIPTSTRING_EVENT2_16$" value="其他冒险家找西瓜去了。"/>
+  <string name="$SCRIPTSTRING_EVENT2_17$" value="捞亥飘 扁埃捞 辆丰登菌嚼聪促."/>
+  <string name="$SCRIPTSTRING_EVENT2_18$" value="西瓜被抢的虎精们边哭泣边消失了。"/>
+  <string name="$SCRIPTSTRING_EVENT2_19$" value="我把你从这里送出去。"/>
+  <string name="$SCRIPTSTRING_EVENT2_2$" value="$$[CN]내가 말한 아이템들을 모두 가지고 왔는지， 또 장비창에 빈 칸이 있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_EVENT2_20$" value="您好. 我是工作人员W. 您找来的西瓜是设置了炸弹的西瓜。我把您送到外面。"/>
+  <string name="$SCRIPTSTRING_EVENT2_21$" value="每天上线就可以获得礼物箱子和帮你打猎时增强角色属性的魔法哦。 你已经获得了#b"/>
+  <string name="$SCRIPTSTRING_EVENT2_22$" value="次#k 我的礼物嘛。 9月 26日为止一直获得我的礼物的朋友，可有机会获得冒险岛官方送出的精美实物奖励 #b如限量版冒险T恤等等#k 哦， #r每天都参与的话#k 被当选的几率更高，还等什么，快加油哦！&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT2_23$" value="请确认其他窗或消费窗是否有空间。"/>
+  <string name="$SCRIPTSTRING_EVENT2_24$" value="想成为海盗得去哪里？说说海盗们坐的潜水艇名字吧，四个字哦。"/>
+  <string name="$SCRIPTSTRING_EVENT2_25$" value="诺特勒斯"/>
+  <string name="$SCRIPTSTRING_EVENT2_26$" value="诺特勒斯号船长的名字叫什么捏？我给你提示吧，她可是大美女哦！"/>
+  <string name="$SCRIPTSTRING_EVENT2_27$" value="凯琳"/>
+  <string name="$SCRIPTSTRING_EVENT2_28$" value="使用地球防御部的技术制作的枪的海盗叫什么呢？"/>
+  <string name="$SCRIPTSTRING_EVENT2_29$" value="火枪手"/>
+  <string name="$SCRIPTSTRING_EVENT2_3$" value="$$[CN]우리 형은 콜라를 아주 좋아하니까 재료들을 가져다 주는 것은 언제든 환영이야. 시간이 되면 다시 날 찾아와 도와줘. 그럼 잘가~"/>
+  <string name="$SCRIPTSTRING_EVENT2_30$" value="受武陵仙人的影响，使用拳甲，进行肉弹攻击的海盗统称为什么呢？"/>
+  <string name="$SCRIPTSTRING_EVENT2_31$" value="拳手"/>
+  <string name="$SCRIPTSTRING_EVENT2_32$" value="答对了！哟，对海盗还蛮了解的嘛？好吧！给你超人变形药水吧。这可是经过很长时间通过反复修炼的人才可以使用的技能，去体验看看吧!&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT2_33$" value="4/0#&#13;&#10;#v2210010# #t2210010# 3个"/>
+  <string name="$SCRIPTSTRING_EVENT2_34$" value="请确认道具栏中有没有空间。"/>
+  <string name="$SCRIPTSTRING_EVENT2_35$" value="呼呼! 使用拳甲的海盗叫 # Q S#k. 有感觉的时候再来挑战吧。"/>
+  <string name="$SCRIPTSTRING_EVENT2_36$" value="呼呼！使用枪的海盗叫#b H Q S#k。感觉的时候再来挑战吧。"/>
+  <string name="$SCRIPTSTRING_EVENT2_37$" value="呼呼!她的名字叫 #b K L#k哦。感觉的时候再来挑战吧。"/>
+  <string name="$SCRIPTSTRING_EVENT2_38$" value="呼呼！那个潜水艇名字就叫 #b　N T L S#k哦。感觉的时候再来挑战吧。"/>
+  <string name="$SCRIPTSTRING_EVENT2_39$" value="4/0#&#13;&#10;#v2210010# #t2210011# 3个"/>
+  <string name="$SCRIPTSTRING_EVENT2_4$" value="$$[CN]내가 말한 아이템들을 모두 가지고 왔는지， 또 장비창이나 소비칸에 빈 칸이 있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_EVENT2_5$" value="$$[CN]장비창이나 소비창에 빈 칸이 있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_EVENT2_6$" value="$$[CN]우리 형은 콜라를 아주 좋아하니까 재료들을 가져다 주는 것은 언제든 환영이야. 또 나를 도와 줄 생각이 있다면 다시 날 찾아오도록 해. 그럼 잘가~"/>
+  <string name="$SCRIPTSTRING_EVENT2_7$" value="$$[CN]우와!우와! 벌써 재료를 구한거야? 어서 시원한 콜라를 만들 수 있게 재료들을 줘."/>
+  <string name="$SCRIPTSTRING_EVENT2_8$" value="$$[CN]난 콕 쏘는 맛이 일품인 코-카 콜라를 아주 좋아하니까 재료들을 가져다 주는 것은 언제든 환영이야. 시간이 되면 다시 날 찾아와 도와줘. 그럼 잘가~"/>
+  <string name="$SCRIPTSTRING_EVENT2_9$" value="$$[CN]난 콕 쏘는 맛이 일품인 코-카 콜라를 아주 좋아하니까 재료들을 가져다 주는 것은 언제든 환영이야. 또 나를 도와 줄 생각이 있다면 다시 날 찾아오도록 해. 그럼 잘가~"/>
+</imgdir>

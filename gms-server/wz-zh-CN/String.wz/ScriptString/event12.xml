@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="event12">
+  <string name="$SCRIPTSTRING_EVENT12_0$" value="必须达到13级以上才可以参加。"/>
+  <string name="$SCRIPTSTRING_EVENT12_1$" value="宝物应该给其他人留一点～"/>
+  <string name="$SCRIPTSTRING_EVENT12_10$" value="大家都来寻找宝物，所有的通道都很忙……你要不试着挑战其他难度？"/>
+  <string name="$SCRIPTSTRING_EVENT12_11$" value="对你来说太危险了，你还不能进入。只有13级以上才能进入！"/>
+  <string name="$SCRIPTSTRING_EVENT12_12$" value="大家都在忙着寻找宝物。没有位置了。你要不试着挑战其他难度？"/>
+  <string name="$SCRIPTSTRING_EVENT12_13$" value="错误，无法进入。"/>
+  <string name="$SCRIPTSTRING_EVENT12_14$" value="你是谁？不……不会是来偷宝物的间谍吧？&#13;&#10;&#13;&#10;#L0#宝物？#l&#13;&#10;#L1##b(偷偷地)移动到魔女塔#k#l"/>
+  <string name="$SCRIPTSTRING_EVENT12_15$" value="宝……宝物？是谁告诉你，我魔女还活着的时候，用捕捉到的品克缤制作成了#v01002971:#只要在普通和困难模式下通关5次，就可以获得品克缤帽子。在获得品克缤帽子之后，通过魔女塔入口右上方的传送点前往坟墓……就可以获得品克缤套服#v01052202:#。你以为我会告诉你吗？你快回去吧！"/>
+  <string name="$SCRIPTSTRING_EVENT12_16$" value="选择的门出现错误。"/>
+  <string name="$SCRIPTSTRING_EVENT12_17$" value="别进来！！"/>
+  <string name="$SCRIPTSTRING_EVENT12_18$" value="无法读取区域地图信息。"/>
+  <string name="$SCRIPTSTRING_EVENT12_19$" value="程序错误。请咨询管理人员。"/>
+  <string name="$SCRIPTSTRING_EVENT12_2$" value="分钟吧。"/>
+  <string name="$SCRIPTSTRING_EVENT12_20$" value="获得了第"/>
+  <string name="$SCRIPTSTRING_EVENT12_21$" value="把钥匙。"/>
+  <string name="$SCRIPTSTRING_EVENT12_22$" value="区域地图信息错误。"/>
+  <string name="$SCRIPTSTRING_EVENT12_23$" value="你被怀疑有不正常的动作，移动到魔女塔入口。"/>
+  <string name="$SCRIPTSTRING_EVENT12_24$" value="守护塔的守护者的力量变弱了。今天好像不会出现了。"/>
+  <string name="$SCRIPTSTRING_EVENT12_25$" value="&lt;超过每天最大通关次数[每天30次]，无法获得奖励。"/>
+  <string name="$SCRIPTSTRING_EVENT12_26$" value="发现魔女的宝物仓库 + 获得钥匙["/>
+  <string name="$SCRIPTSTRING_EVENT12_27$" value="]把。获得经验值："/>
+  <string name="$SCRIPTSTRING_EVENT12_28$" value="已到达每天最大通关次数[30次]。之后将无法获得经验值和奖励。"/>
+  <string name="$SCRIPTSTRING_EVENT12_29$" value="到下一个增益为止的剩余点数："/>
+  <string name="$SCRIPTSTRING_EVENT12_3$" value="你真是个有耐心的冒险家！你知道吗？史诗物品在这里出现的最多！如果你有钥匙，可以点击下面的宝物箱！&#13;&#10;请出去继续挑战。"/>
+  <string name="$SCRIPTSTRING_EVENT12_30$" value="次"/>
+  <string name="$SCRIPTSTRING_EVENT12_31$" value=" #b(看上去很普通的箱子。但也许会有好东西出来！！好像需要一把钥匙。)#k打开看看吗？&#13;&#10;&#13;&#10;持有钥匙数量：#b"/>
+  <string name="$SCRIPTSTRING_EVENT12_32$" value="个#k"/>
+  <string name="$SCRIPTSTRING_EVENT12_33$" value="请在消费栏和装备栏各留出一格空间。"/>
+  <string name="$SCRIPTSTRING_EVENT12_34$" value=" #b(看上去很普通的箱子。但也许会有好东西出来！！但是钥匙没有了……)#k &#13;&#10;&#13;&#10;需要钥匙数量：#b1个#k&#13;&#10;持有钥匙数量：#b"/>
+  <string name="$SCRIPTSTRING_EVENT12_35$" value="#b(嗯……看上去很不错的箱子。听说里面会有好东西出来。好像需要3把钥匙。)#k打开看看吗？&#13;&#10;&#13;&#10;持有钥匙数量：#b"/>
+  <string name="$SCRIPTSTRING_EVENT12_36$" value="个"/>
+  <string name="$SCRIPTSTRING_EVENT12_37$" value="#b(嗯……看上去很不错的箱子。听说里面会有好东西出来。但是钥匙不够……)#k&#13;&#10;&#13;&#10;需要钥匙数量：#b1个#k&#13;&#10;持有钥匙数量：#b"/>
+  <string name="$SCRIPTSTRING_EVENT12_38$" value="#b(看上去很不错的箱子。锁得非常牢固，好像需要6把钥匙。)#k&#13;&#10;打开看看吗？&#13;&#10;&#13;&#10;持有钥匙数量："/>
+  <string name="$SCRIPTSTRING_EVENT12_39$" value="#b(看上去很不错的箱子。锁得非常牢固，好像需要6把钥匙。但是钥匙不够……)#k&#13;&#10;&#13;&#10;需要钥匙数量：6&#13;&#10;#b持有钥匙数量："/>
+  <string name="$SCRIPTSTRING_EVENT12_4$" value="点击宝物箱，可以将它打开。"/>
+  <string name="$SCRIPTSTRING_EVENT12_40$" value="必须装备品克缤帽子才可以进入。"/>
+  <string name="$SCRIPTSTRING_EVENT12_41$" value="请在背包的装备栏中清理出1格以上的空格，然后再来和我说话。"/>
+  <string name="$SCRIPTSTRING_EVENT12_42$" value="我不是明明让你带20个#b#t"/>
+  <string name="$SCRIPTSTRING_EVENT12_43$" value="#过来的吗？"/>
+  <string name="$SCRIPTSTRING_EVENT12_44$" value="嗯，很不错的稻草。你给了我#b"/>
+  <string name="$SCRIPTSTRING_EVENT12_45$" value="次#k稻草。只要给我5次稻草，我就把品克缤套服#v1052202:#给你。但如果不在#r5月18日#k之前给我5次稻草，就什么用都没有。"/>
+  <string name="$SCRIPTSTRING_EVENT12_46$" value="请确认背包的装备栏中是否有1格以上的空格。"/>
+  <string name="$SCRIPTSTRING_EVENT12_47$" value="祝贺你获得了品克缤物品。"/>
+  <string name="$SCRIPTSTRING_EVENT12_48$" value="哇！你到顶上了！&#10;&#13;&#10;#r#L0#我想出去。#l#k"/>
+  <string name="$SCRIPTSTRING_EVENT12_49$" value="魔女的宝物箱上的魔力变弱了。魔女施加的封印还剩"/>
+  <string name="$SCRIPTSTRING_EVENT12_5$" value="你能来到这里，真让人吃惊！！我知道一定不容易！我来为你施加一个强力的增益。请出去继续挑战。"/>
+  <string name="$SCRIPTSTRING_EVENT12_50$" value="个。"/>
+  <string name="$SCRIPTSTRING_EVENT12_51$" value="魔女的箱子终于打开了。"/>
+  <string name="$SCRIPTSTRING_EVENT12_52$" value="魔女设置的保护膜全部消失了。现在可以打开箱子了。"/>
+  <string name="$SCRIPTSTRING_EVENT12_6$" value="你能来到这里，真让人吃惊！！我知道一定不容易！"/>
+  <string name="$SCRIPTSTRING_EVENT12_7$" value="再打开  次，我就给你施加强力的增益。请出去继续挑战。"/>
+  <string name="$SCRIPTSTRING_EVENT12_8$" value="#b(碰到移动的饼干墙和上升的巧克力原液，就会出去……哼……)#k啊！！你是谁啊？是哪个嘴巴不牢的家伙告诉你这里有宝物的？哼……好吧，既然来了，就挑战一下吧。你想挑战哪个难度呢？&#13;&#10;&#13;&#10;#b#L0# #v03994115##l #L1# #v03994116##l #L2# #v03994117##l "/>
+  <string name="$SCRIPTSTRING_EVENT12_9$" value="选择了不可能进入的门。"/>
+</imgdir>

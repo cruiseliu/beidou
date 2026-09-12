@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="classic_membership">
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_0$" value="维护期间（23:45~00:15）无法使用兑换所。&#13;&#10;请稍后再试。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_1$" value="发生未知错误。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_10$" value="格以上的空位。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_11$" value="，今天"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_12$" value="，本月"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_13$" value="持有的扭蛋币#b"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_14$" value="&#13;&#10;#b#e【扭蛋币使用期限说明】#n#k"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_15$" value="&#13;&#10;请选择要兑换的商品。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_16$" value="&#13;&#10;#b#e【限购商品】#n#k"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_17$" value="&#13;&#10;#b#e【不限购商品】#n#k"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_18$" value="&#13;&#10;硬币不足，无法兑换。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_19$" value="&#13;&#10;#b- 持有扭蛋币数："/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_2$" value="&#13;&#10;当前未持有硬币。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_20$" value="&#13;&#10;#b- 所需扭蛋币数："/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_21$" value="今日已达最大可购买数量。&#13;&#10;请明天再来。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_22$" value="本月已达最大可购买数量。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_23$" value="请输入兑换数量。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_24$" value="&#13;&#10;#b- 持有扭蛋币数："/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_25$" value="&#13;&#10;#b- 空余栏位数："/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_26$" value="&#13;&#10;#b- 可兑换数量："/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_27$" value="&#13;&#10;#b- 每次兑换时："/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_28$" value="&#13;&#10;#b- 今日剩余限度："/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_29$" value="&#13;&#10;#b- 本月剩余限度："/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_3$" value="装备"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_30$" value="&#13;&#10;&#13;&#10;兑换时#e#bb扭蛋币"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_31$" value="发生未知错误。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_32$" value="日期已变更，无法继续兑换。&#13;&#10;请重新打开兑换所。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_33$" value="扭蛋币不足，无法兑换。&#13;&#10;请重新打开兑换所。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_34$" value="已超过今日可购买数量。&#13;&#10;请重新打开兑换所。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_35$" value="已超过本月可购买数量。&#13;&#10;请重新打开兑换所。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_36$" value="发生未知错误。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_37$" value="&#13;&#10;兑换完成。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_38$" value="&#13;&#10;请查看背包。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_39$" value="年"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_4$" value="消耗"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_40$" value="月"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_41$" value="个#k：#r"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_42$" value="截至月末#k"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_43$" value="个#k"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_44$" value="（硬币"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_45$" value="个"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_46$" value="（已购买"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_47$" value="个#k。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_48$" value="个#k（单次最多可兑换"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_49$" value="个）"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_5$" value="设置"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_50$" value="个发放#k"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_51$" value="个#k（每日限购"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_52$" value="个）"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_53$" value="个#k（每月限购"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_54$" value="个#k进行兑换吗 ？"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_55$" value="个#k#n被扣除。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_56$" value="格#k"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_6$" value="其他"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_7$" value="现金"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_8$" value="装饰"/>
+  <string name="$SCRIPTSTRING_CLASSIC_MEMBERSHIP_9$" value="栏需要至少"/>
+</imgdir>

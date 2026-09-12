@@ -110,6 +110,23 @@ class CharacterQuests {
         }
     }
 
+    /**
+     * 强制开始任务（脚本/对话入口；原 AbstractPlayerInteraction.startQuest 的实现归位）。
+     */
+    boolean forceStartQuest(int questId, int npc) {
+        return Quest.getInstance(questId).forceStart(owner, npc);
+    }
+
+    /** 强制完成任务（同上归位）。 */
+    boolean forceCompleteQuest(int questId, int npc) {
+        return Quest.getInstance(questId).forceComplete(owner, npc);
+    }
+
+    /** 任务是否已完成（未接取视为未完成；原 APII.isQuestCompleted 的 NPE 捕获语义显式化）。 */
+    boolean isQuestCompleted(int questId) {
+        return getQuest(questId).getStatus() == QuestStatus.Status.COMPLETED;
+    }
+
     QuestStatus getQuest(final int quest) {
         return getQuest(Quest.getInstance(quest));
     }

@@ -1,5 +1,6 @@
 package org.gms.client.character;
 
+import org.gms.client.Player;
 import org.gms.infra.DeadlineTimer;
 import org.gms.infra.Strand;
 import org.gms.scripting.JsModule;
@@ -49,6 +50,7 @@ public class CharacterScriptRunner implements ScriptTimers.Host {
     private final AtomicLong timerIds = new AtomicLong();
     private volatile Context context;
     private volatile boolean closed;
+    private volatile boolean playerBound;
 
     public CharacterScriptRunner(Supplier<Strand> strandSupplier) {
         this.strandSupplier = strandSupplier;
@@ -95,6 +97,7 @@ public class CharacterScriptRunner implements ScriptTimers.Host {
         if (closed) {
             return;
         }
+        ensurePlayerBound();
         ScriptTimers.Host prev = ScriptTimers.currentHost();
         ScriptTimers.currentHost(this);
         try {
@@ -103,6 +106,17 @@ public class CharacterScriptRunner implements ScriptTimers.Host {
             log.error("脚本执行异常（宿主存活）", e);
         } finally {
             ScriptTimers.currentHost(prev);
+        }
+    }
+
+    /** player 全局绑定补投（context 创建于无 strand 路径时此处的 Player.current() 为 null，顺延到下次任务） */
+    private void ensurePlayerBound() {
+        if (context != null && !playerBound) {
+            Player p = Player.current();
+            if (p != null) {
+                context.getBindings("js").putMember("player", p);
+                playerBound = true;
+            }
         }
     }
 
@@ -134,6 +148,11 @@ public class CharacterScriptRunner implements ScriptTimers.Host {
                     .allowIO(true)
                     .allowAllAccess(true)
                     .build();
+            // player actor 全局绑定（doc/13 §15 二步走：任务脚本经 player 直调 Character API）
+            Player p = Player.current();
+            if (p != null) {
+                c.getBindings("js").putMember("player", p);
+            }
             context = c;
         }
         return c;

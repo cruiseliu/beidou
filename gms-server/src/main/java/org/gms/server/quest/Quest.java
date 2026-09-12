@@ -47,6 +47,7 @@ import org.gms.server.quest.actions.PetTamenessAction;
 import org.gms.server.quest.actions.QuestAction;
 import org.gms.server.quest.actions.SkillAction;
 import org.gms.server.quest.requirements.AbstractQuestRequirement;
+import org.gms.server.quest.requirements.ScriptRequirement;
 import org.gms.server.quest.requirements.BuffExceptRequirement;
 import org.gms.server.quest.requirements.BuffRequirement;
 import org.gms.server.quest.requirements.CompletedQuestRequirement;
@@ -655,12 +656,20 @@ public class Quest {
         }
     }
 
+    /** WZ Check.img 指定的脚本入口名（doc/13 §15）：接取侧 startscript / 完成侧 endscript，未声明返回 null */
+    public String getQuestScriptName(boolean checkEnd) {
+        Map<QuestRequirementType, AbstractQuestRequirement> reqs = !checkEnd ? startReqs : completeReqs;
+        AbstractQuestRequirement mqr = reqs.get(QuestRequirementType.SCRIPT);
+        return mqr instanceof ScriptRequirement sr ? sr.get() : null;
+    }
+
     public boolean hasScriptRequirement(boolean checkEnd) {
         Map<QuestRequirementType, AbstractQuestRequirement> reqs = !checkEnd ? startReqs : completeReqs;
         AbstractQuestRequirement mqr = reqs.get(QuestRequirementType.SCRIPT);
 
-        if (mqr != null) {
-            return ((ScriptRequirement) mqr).get();
+        if (mqr instanceof ScriptRequirement sr) {
+            String name = sr.get();
+            return name != null && !name.isEmpty();
         } else {
             return false;
         }

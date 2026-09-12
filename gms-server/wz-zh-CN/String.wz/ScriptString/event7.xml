@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="event7">
+  <string name="$SCRIPTSTRING_EVENT7_0$" value="小女皇在冒险岛世界出现后，黑魔法师的气息好像变得更强了。听说已经出现了因为黑魔法师的气息而变质的物质。吃了变质的物质之后，怪物也许会变的更强。必须尽快对变质的物质进行分析才行……你能帮我吗？"/>
+  <string name="$SCRIPTSTRING_EVENT7_1$" value="你是害怕了吧？没办法，看来只能找别人了。"/>
+  <string name="$SCRIPTSTRING_EVENT7_10$" value="现在搜集的#b#t4001238##k和你的等级不符。请执行下一个任务。"/>
+  <string name="$SCRIPTSTRING_EVENT7_11$" value="#b#t4001239##k可以从50级以上的怪物身上获得。可以交给我，也可以交给佳佳或星缘。每个人都在进行不同的研究，所以报酬也会有所不同。那就拜托你了。"/>
+  <string name="$SCRIPTSTRING_EVENT7_12$" value="现在搜集的#b#t4001239##k和你的等级不符。请执行下一个任务。"/>
+  <string name="$SCRIPTSTRING_EVENT7_13$" value="搜集#b#t4001240##k应该会好一点。#b#t4001240##k可以从80级以上的怪物身上获得。可以交给我，也可以交给佳佳或星缘。每个人都在进行不同的研究，所以报酬也会有所不同。那就拜托你了。"/>
+  <string name="$SCRIPTSTRING_EVENT7_14$" value="包裹空间不足20格。请重新确认。"/>
+  <string name="$SCRIPTSTRING_EVENT7_15$" value="嗯……你带的东西太多了。请清空消费窗口。"/>
+  <string name="$SCRIPTSTRING_EVENT7_16$" value="4/0#&#13;&#10;#t2022465# 1个&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT7_17$" value="4/0#&#13;&#10;#t02022466# 1个&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT7_18$" value="4/0#&#13;&#10;#t02022467# 1个&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT7_19$" value="嗯……你带的东西太多了。请清空消费窗口。"/>
+  <string name="$SCRIPTSTRING_EVENT7_2$" value="谢谢。变质的物质上的黑暗气息，有可能会对你产生影响。你……去搜集"/>
+  <string name="$SCRIPTSTRING_EVENT7_20$" value="4/0#&#13;&#10;#t02022468# 1个&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT7_21$" value="消灭魔女猫咪，获取得分吧！（提示! 魔女猫咪只受普通攻击伤害。）"/>
+  <string name="$SCRIPTSTRING_EVENT7_22$" value="祝贺你的暗影双刀角色达到"/>
+  <string name="$SCRIPTSTRING_EVENT7_23$" value="级！为了纪念暗影双刀发布，目前正在举行#b升级活动！！#k。达到20级、30级、40级、50级、60级、70级、80级、90级、100级时，可以获得1个#b猫头鹰图标#k。&#13;&#10;在20级、30级、50级、70级和100级，还可以获得#b面具#k。你想现在领取奖品吗？"/>
+  <string name="$SCRIPTSTRING_EVENT7_24$" value="获得的猫头鹰图标可以找冒险岛运营员领回，并竞标自己想要的奖品。如果你想最先获得心仪的奖品，请抓紧时间！！"/>
+  <string name="$SCRIPTSTRING_EVENT7_25$" value="请在装备栏中留出一格以上的空格。"/>
+  <string name="$SCRIPTSTRING_EVENT7_26$" value="[面具发放错误]"/>
+  <string name="$SCRIPTSTRING_EVENT7_27$" value="为了到下一个阶段，需要2人以上的队伍...你是要弃队而逃了吗?"/>
+  <string name="$SCRIPTSTRING_EVENT7_28$" value="获得的猫头鹰图标可以找冒险岛运营员领回，并竞标自己想要的奖品。如果你想最先获得心仪的奖品，请抓紧时间！！获得第#b&#13;&#10;#i3800008# #e"/>
+  <string name="$SCRIPTSTRING_EVENT7_29$" value="个#n猫头鹰图标！"/>
+  <string name="$SCRIPTSTRING_EVENT7_3$" value="应该会好一点。"/>
+  <string name="$SCRIPTSTRING_EVENT7_30$" value="你把耀眼的羽毛带来啦。你想获得什么增益呢？&#13;&#10;#b#L0# #i2022694# #t2022694##l&#13;&#10;#L1# #i2450018# #t2450018##l"/>
+  <string name="$SCRIPTSTRING_EVENT7_31$" value="你获得了掉落率2倍增益。在接下去的30分钟内，打猎时的战利品掉落率将提高为2倍。退出游戏或角色死亡时，增益效果消失。敬请注意。"/>
+  <string name="$SCRIPTSTRING_EVENT7_32$" value="你获得了经验值2倍增益。在接下去的30分钟内，打猎时获得的经验值提高为2倍。退出游戏或角色死亡时，增益效果消失。敬请注意。"/>
+  <string name="$SCRIPTSTRING_EVENT7_33$" value="一级秘密全部搜集到啦！很好！很好！我要的就是这些情报。辛苦你了。卡珊德拉大人我来送件好东西给你吧。"/>
+  <string name="$SCRIPTSTRING_EVENT7_34$" value="如果你想获得奖励，就在消耗栏和其他栏中各留出一格的空格，表明你的诚意！"/>
+  <string name="$SCRIPTSTRING_EVENT7_35$" value="你再确认一下消耗栏、其他栏或装备栏中是否有一格以上的空格。"/>
+  <string name="$SCRIPTSTRING_EVENT7_36$" value="怎么样？喜欢吗？如果你搜集到了新的一级秘密，希望你能尽快交给我。我想#b每30分钟搜集一次#k，如果你想帮我的话，就来找我。"/>
+  <string name="$SCRIPTSTRING_EVENT7_37$" value="[CN]#b&#13;&#10;&lt;허리띠 획득 조건&gt; : 유효기간 3일#k&#13;&#10;#i1132009:# #t1132009# : 350점 이상&#13;&#10;#i1132008:# #t1132008# : 230점 이상&#13;&#10;#i1132007:# #t1132007# : 160점 이상&#13;&#10;#i1132006:# #t1132006# : 90점 이상&#13;&#10;#i1132005:# #t1132005# : 50점 이상"/>
+  <string name="$SCRIPTSTRING_EVENT7_38$" value="[CN]점수에 따라 다양한 허리띠를 받을 수 있어.. 단， 한판이 끝나면 반드시 받을 수 있는 허리띠를 확인해 줘! 어디 보자 이번에 너의 점수는 #b"/>
+  <string name="$SCRIPTSTRING_EVENT7_39$" value="[CN]점#k 이군! &#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT7_4$" value="谢谢帮我搜集到了贵重的材料。我送你一个碰碰跳的礼物箱。不过我也不知道里面装的是什么。材料越多越好……请你继续帮我搜集～"/>
+  <string name="$SCRIPTSTRING_EVENT7_40$" value="[CN]장비창에 빈칸이 없어. 허리띠를 안받아도 된다는거야?"/>
+  <string name="$SCRIPTSTRING_EVENT7_41$" value="[CN]오오~#b"/>
+  <string name="$SCRIPTSTRING_EVENT7_42$" value="[CN]점#k을 넘었구만..너에게 멋진 선물을 주지."/>
+  <string name="$SCRIPTSTRING_EVENT7_43$" value="[CN]허리띠를 벗고 말을 걸어봐. 새로운 허리띠로 교환을 해줄게!"/>
+  <string name="$SCRIPTSTRING_EVENT7_44$" value="[CN]방금 게임의 #b"/>
+  <string name="$SCRIPTSTRING_EVENT7_45$" value="[CN]점#k 으로는 니가 가진 #b&lt;#t"/>
+  <string name="$SCRIPTSTRING_EVENT7_46$" value="[CN]# &gt;#k보다 좋은 것을 얻을 수 없어. 한판이 끝나면 반드시 받을 수 있는 허리띠를 확인해 줘! "/>
+  <string name="$SCRIPTSTRING_EVENT7_47$" value="[CN]새로운 허리띠를 너에게 주지!"/>
+  <string name="$SCRIPTSTRING_EVENT7_48$" value="[CN]당신 짐이 너무 많은 것 같군요. 장비 창을 확인해 주세요."/>
+  <string name="$SCRIPTSTRING_EVENT7_49$" value="[CN]방금 게임의 점수 #b"/>
+  <string name="$SCRIPTSTRING_EVENT7_5$" value="哦～我正在等你。谢谢你。为了表示感谢，我来给你施加魔法！材料越多越好，请你再帮我搜集一些～"/>
+  <string name="$SCRIPTSTRING_EVENT7_50$" value="[CN]# &gt;#k 보다 좋은 것을 얻을 수 없어. 조금 더 노력해봐~  한판이 끝나면 반드시 받을 수 있는 허리띠를 확인해 줘!"/>
+  <string name="$SCRIPTSTRING_EVENT7_51$" value="[CN]불가능 한 상황입니다."/>
+  <string name="$SCRIPTSTRING_EVENT7_52$" value="[CN]바로 옆에 큰 동화책이 보이지? 동화책에 가까이 다가가면 동화 속으로 들어가는 입구가 열릴거야. 마녀의 부하는 어렵지 않은 상대니까 혼자서 도전해 봐."/>
+  <string name="$SCRIPTSTRING_EVENT7_53$" value="[CN]여기는 하늘 나라야. 콩나무가 다시 열리지 않으면 들어오지 못하는 곳이지. 설사 들어온다고 해도 100명 밖에 못 들어와. 그래도 그냥 나갈거야?"/>
+  <string name="$SCRIPTSTRING_EVENT7_54$" value="[CN]콩나무가 자라나려면 나에게 따뜻한 햇살을 주면 돼.&#13;&#10;&#13;&#10;#b#L0# 따뜻한 햇살 주기#l&#13;&#10;#L1# 콩나무 진행 상황#l"/>
+  <string name="$SCRIPTSTRING_EVENT7_55$" value="[CN]콩나무가 모두 크면 100명만이 하늘 나라로 갈 수 있어. 하늘 나라 고양이에게 누군가가 쫓겨나야 들어갈 수 있지.따뜻한 햇살을 몇개나 줄건데? &#13;&#10;#b&lt; 현재 가지고 있는 따뜻한 햇살 수 : "/>
+  <string name="$SCRIPTSTRING_EVENT7_56$" value="[CN]0개라고? 장난 하는거야?"/>
+  <string name="$SCRIPTSTRING_EVENT7_57$" value="[CN]따뜻한 햇살을 가지고 있는 개수 만큼만 입력을 해야지!"/>
+  <string name="$SCRIPTSTRING_EVENT7_58$" value="[CN]이야~ 이제 조금 자라고 있으려나? 니가 보기에는 어때? 좀 큰거 같아? 고마움에 의미에서 내가 경험치를 조금 줄게."/>
+  <string name="$SCRIPTSTRING_EVENT7_59$" value="[CN]개 |"/>
+  <string name="$SCRIPTSTRING_EVENT7_6$" value="全部搜集到啦。谢谢。分析资料越多越好，请你继续搜集～对了！你去见过佳佳和星缘了吗？我能给你的只有经验值，他们应该会给你其他的东西。"/>
+  <string name="$SCRIPTSTRING_EVENT7_60$" value="[CN]자 어디보자 얼마나 자랐지?&#13;&#10;#B"/>
+  <string name="$SCRIPTSTRING_EVENT7_61$" value="[CN]&#13;&#10;&#13;&#10;&#13;&#10;조금만 더 보살펴 주면 잘 자라겠는걸? 따뜻한 햇살을 조금 더 모아와줘."/>
+  <string name="$SCRIPTSTRING_EVENT7_62$" value="[CN]콩나무가 다 컷네! 선착순 100명은 하늘 나라로 들어갈 수 있어! 어서빨리 들어가봐."/>
+  <string name="$SCRIPTSTRING_EVENT7_63$" value="[CN]혹시 못 들어갔다고 해도 걱정 마. 시간내에 누군가가 쫓겨나면 기회는 또 들어갈 기회는 있으니까."/>
+  <string name="$SCRIPTSTRING_EVENT7_64$" value="[CN]#e&lt;콩나무와 잭&gt;#n 이야기를 한번 들어보겠어?&#13;&#13;&#10;#b#L0# 어떤 이야기 인가요?#l#k&#13;&#10;#b#L1# 황금알을 바꾸고 싶습니다，.#l#k"/>
+  <string name="$SCRIPTSTRING_EVENT7_65$" value="[CN]이 동화를 완성하기 위해서는 우선 콩나무를 꼭대기까지 키워야 해. 콩나무를 키우기 위해선 #b'따뜻한 햇살'#k이란 아이템이 필요하지. 따뜻한 햇살을 가지고 이 안으로 들어가서 콩나무를 키워보는 것이 어때? #b따뜻한 햇살#k은 일반 몬스터에게서 얻을 수 있어."/>
+  <string name="$SCRIPTSTRING_EVENT7_66$" value="[CN]몇개를 바꾸겠어? &#13;&#13;&#10;#b#L0# 30개#l&#13;&#10;#L1# 50개#l&#13;&#10;#L2# 100개#l#k"/>
+  <string name="$SCRIPTSTRING_EVENT7_67$" value="[CN]소비창이 한칸 이상 비워져있어야 합니다."/>
+  <string name="$SCRIPTSTRING_EVENT7_68$" value="[CN]30개를 교환한다고 하지 않았어?개수를 다시 확인해봐."/>
+  <string name="$SCRIPTSTRING_EVENT7_69$" value="[CN]소비창이 한칸 이상 비워져있어야 합니다."/>
+  <string name="$SCRIPTSTRING_EVENT7_7$" value="搜集到变质的物质之后，可以交给我，也可以交给佳佳或星缘。每个人都在进行不同的研究，所以报酬也会有所不同。那就拜托你了。"/>
+  <string name="$SCRIPTSTRING_EVENT7_70$" value="[CN]50개를 교환한다고 하지 않았어?개수를 다시 확인해봐."/>
+  <string name="$SCRIPTSTRING_EVENT7_71$" value="[CN]소비창이 한칸 이상 비워져있어야 합니다."/>
+  <string name="$SCRIPTSTRING_EVENT7_72$" value="[CN]100개를 교환한다고 하지 않았어?개수를 다시 확인해봐."/>
+  <string name="$SCRIPTSTRING_EVENT7_73$" value="[CN]당신은 어떤 동화가 가장 감명 깊었나요? 하늘에서 황금알을 낳는 거위를 가지고 온 이야기? 아니면 생명을 얻은 나무인형의 모험? 책으로 읽는 동화도 재밌지만 직접 동화 속을 모험할 수 있다면 더 신나지 않겠어요?&#13;&#10;자， 지금부터 제가 들려주는 이야기에 집중해 보세요. 정말 동화 속으로 빠져들 수도 있으니까요.&#13;&#10;#b&#13;&#10;#L0#가가가 들려주는 동화를 들어본다.#l"/>
+  <string name="$SCRIPTSTRING_EVENT7_74$" value="[CN]옛날 옛날 한 옛날에， 평화로운 어느 마을에..."/>
+  <string name="$SCRIPTSTRING_EVENT7_75$" value="[CN]미안하지만 15레벨 이상이 되어야만 동화나라로 갈 수 있어요. 동화나라 여행이 당신에겐 조금 무리일것 같아요."/>
+  <string name="$SCRIPTSTRING_EVENT7_76$" value="[CN]깜짝 놀라셨죠? 동화책 스튜디오에 잘 오셨어요. 이 곳은 실제 동화 속에 들어가서 재미난 모험을 할 수 있는 곳이에요.#b&#13;&#10;&#13;&#10;#L0# 어떤 모험을 할 수 있나요?#l"/>
+  <string name="$SCRIPTSTRING_EVENT7_77$" value="[CN]아래 보이는 동화책 속으로 들어가면 여행을 시작하실 수 있어요. 콩나무와 잭， 던전 대탈주， 비스킷 하우스 등 재미난 이야기가 펼쳐져 있답니다. 즐거운 동화나라 여행이 되었으면 좋겠어요."/>
+  <string name="$SCRIPTSTRING_EVENT7_78$" value="[CN]입장 정보가 명확하지 않아서 헤네시스로 이동됩니다."/>
+  <string name="$SCRIPTSTRING_EVENT7_79$" value="[CN]동화나라 여행을 시작했던 곳으로 돌아갑니다."/>
+  <string name="$SCRIPTSTRING_EVENT7_8$" value="现在搜集的#b#t4001237##k和你的等级不符。请执行下一个任务。"/>
+  <string name="$SCRIPTSTRING_EVENT7_80$" value="[CN]이미 너무 많은 사람들이 동화 속으로 들어가서 입장할 수 없습니다. 잠시만 기다려 주세요."/>
+  <string name="$SCRIPTSTRING_EVENT7_81$" value="[CN]알 수 없는 이유로 이동할 수 없습니다. 잠시 후에 다시 시도해 주세요."/>
+  <string name="$SCRIPTSTRING_EVENT7_82$" value="[CN]1인 파티를 구성해서 입장해 주세요."/>
+  <string name="$SCRIPTSTRING_EVENT7_83$" value="[CN]15레벨 이상만 동화나라로 들어갈 수 있습니다."/>
+  <string name="$SCRIPTSTRING_EVENT7_84$" value="[CN]파티를 구성해서 입장해 주세요."/>
+  <string name="$SCRIPTSTRING_EVENT7_85$" value="[CN]2인 파티를 구성해서 입장해 주세요."/>
+  <string name="$SCRIPTSTRING_EVENT7_86$" value="[CN]파티 구성원 중 15레벨 이하인 사람이 있습니다. 전원 15레벨 이상이어야만 동화나라로 들어갈 수 있습니다."/>
+  <string name="$SCRIPTSTRING_EVENT7_87$" value="[CN]파티장만 입장을 시도할 수 있습니다."/>
+  <string name="$SCRIPTSTRING_EVENT7_88$" value="[CN]뱅뱅 고양이에게 닿으면 쫓겨난다. 들키지 않게 주의하자."/>
+  <string name="$SCRIPTSTRING_EVENT7_89$" value="[CN]출구가 있는 발판에 2명 이상이 모여야만 이동할 수 있습니다."/>
+  <string name="$SCRIPTSTRING_EVENT7_9$" value="#b#t4001238##k可以从25级以上的怪物身上获得。可以交给我，也可以交给佳佳或星缘。每个人都在进行不同的研究，所以报酬也会有所不同。那就拜托你了。"/>
+  <string name="$SCRIPTSTRING_EVENT7_90$" value="[CN]포탈이 닫혀있습니다. 표지판을 찾아서 조작해 주세요."/>
+  <string name="$SCRIPTSTRING_EVENT7_91$" value="[CN]벽 너머로 갈 수있는 포탈이 열렸습니다."/>
+  <string name="$SCRIPTSTRING_EVENT7_92$" value="[CN]이미 포탈이 열려있습니다."/>
+  <string name="$SCRIPTSTRING_EVENT7_93$" value="[CN]너무 멀어서 표지판이 잘 보이지 않습니다. 더 가까이 다가가세요."/>
+  <string name="$SCRIPTSTRING_EVENT7_94$" value="[CN]동굴속에 신비한 기운이 퍼지면서 이동속도와 점프력이 증가하였습니다."/>
+  <string name="$SCRIPTSTRING_EVENT7_95$" value="[CN]제페토만 가까이 다가갈 수 있습니다."/>
+  <string name="$SCRIPTSTRING_EVENT7_96$" value="[CN]너무 멀리 떨어져 있습니다. 더 가까이 다가가세요."/>
+  <string name="$SCRIPTSTRING_EVENT7_97$" value="[CN]제페토만 이동할 수 있습니다."/>
+  <string name="$SCRIPTSTRING_EVENT7_98$" value="[CN]입장정원이 찼습니다. 더 이상 입장 하실 수 없습니다."/>
+  <string name="$SCRIPTSTRING_EVENT7_99$" value="[CN]마녀 고양이를 퇴치하고 스코어를 획득하라! (Tip! 마녀 고양이는 일반 공격만 받습니다.)"/>
+</imgdir>

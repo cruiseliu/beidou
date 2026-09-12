@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="12thbreak">
+  <string name="$SCRIPTSTRING_12THBREAK_0$" value="呜? 你的"/>
+  <string name="$SCRIPTSTRING_12THBREAK_1$" value="呜?  你该不会是不想扩展"/>
+  <string name="$SCRIPTSTRING_12THBREAK_10$" value="栏扩展4格. 要选择其他栏位吗? "/>
+  <string name="$SCRIPTSTRING_12THBREAK_11$" value="栏可以扩展4格空间. 需要扩展"/>
+  <string name="$SCRIPTSTRING_12THBREAK_12$" value="栏吗? 确定是"/>
+  <string name="$SCRIPTSTRING_12THBREAK_13$" value="栏吗? "/>
+  <string name="$SCRIPTSTRING_12THBREAK_14$" value="栏吧? "/>
+  <string name="$SCRIPTSTRING_12THBREAK_15$" value="栏扩展成"/>
+  <string name="$SCRIPTSTRING_12THBREAK_16$" value="格啦! "/>
+  <string name="$SCRIPTSTRING_12THBREAK_17$" value="栏扩充失败咯. 再试试?"/>
+  <string name="$SCRIPTSTRING_12THBREAK_18$" value="装备"/>
+  <string name="$SCRIPTSTRING_12THBREAK_19$" value="消耗"/>
+  <string name="$SCRIPTSTRING_12THBREAK_2$" value="成功了!  "/>
+  <string name="$SCRIPTSTRING_12THBREAK_20$" value="设置"/>
+  <string name="$SCRIPTSTRING_12THBREAK_21$" value="其他"/>
+  <string name="$SCRIPTSTRING_12THBREAK_22$" value="仓库"/>
+  <string name="$SCRIPTSTRING_12THBREAK_3$" value="哦呀? 未知错误导致 "/>
+  <string name="$SCRIPTSTRING_12THBREAK_4$" value="你已经有好几张选所选栏位的4格扩展券了. 在此种情况下, 与有效期无关, 位于最前面的道具将被使用, 这样也没有关系吗? "/>
+  <string name="$SCRIPTSTRING_12THBREAK_5$" value="如果想要确认有效期, 请打开背包. 在道具信息中确认. "/>
+  <string name="$SCRIPTSTRING_12THBREAK_6$" value="好了!  用我的扩展券, 可以把栏位扩展#b#e4格#n#k. 想要扩展哪种栏位呢?  呜? &#13;&#10;&#13;&#10;#L0# #e#b装备栏! #n#k#l&#13;&#10;#L1# #e#b消耗栏! #n#k#l&#13;&#10;#L2# #e#b设置栏! #n#k#l&#13;&#10;#L3# #e#b其他栏! #n#k#l&#13;&#10;#L4# #e#b仓库栏! #n#k#l&#13;&#10;&#13;&#10;#L5# #e#b…还得再考虑一下. #n#l"/>
+  <string name="$SCRIPTSTRING_12THBREAK_7$" value="呜? 知道了. 另外, 这个道具是有#e#r有效期#n#k的. 如果时间太久, 道具有可能会消失, 还请注意. 唔呵呵..."/>
+  <string name="$SCRIPTSTRING_12THBREAK_8$" value="栏中有"/>
+  <string name="$SCRIPTSTRING_12THBREAK_9$" value="格空间啊! 无法再将 "/>
+</imgdir>

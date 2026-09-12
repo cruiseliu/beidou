@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="nautilus">
+  <string name="$SCRIPTSTRING_NAUTILUS_0$" value="我正在等待你的到来...前几天，我从冰封雪域的#b费德罗#k的口中得知有关你的事情。好！就由我来测试一下你的力量吧！火独眼兽洞穴的某处有一个通往另一个次元的裂缝，一般人是无法进入，但我已经做好准备让你可以进到那里。当你进入裂缝里面，就会见到我的分身，把他打倒之后，把#b#t4031059##k拿给我！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_1$" value="毕竟是我的分身，他的力量可不能小看。他可以自由操控各种高难度的技术，而且你需要一对一对付他。所以这将会是一场相当难的考验。那里是不同于这个世界的异次元，不适合一般人长时间逗留。要尽快将对手打倒，你要做好准备，那我等你的好消息。希望你能尽快将#b#t4031059##k取回来。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_10$" value="好！你现在起就是 #b拳手#k了！拳手是以赤手空拳制服敌人的职业，所以要比别人更需要训练。如果在修炼的过程中有什么问题，欢迎你随时来找我。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_11$" value="我刚刚把记载着拳手相关技能的书交给你了，里面有许多拳手可以修行的技能。此外消耗栏的空格也有增加，此外最大血量和魔量也增多了，你再一一确认看看吧！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_12$" value="#b[消耗窗口]#k"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_13$" value="你的  "/>
+  <string name="$SCRIPTSTRING_NAUTILUS_14$" value="我没办法全部放大。你之前放大的部分，我也没办法。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_15$" value="我有给你一些 #b技能点#k，打开 #b技能窗口#k后确认看看吧！你可以把点数分配到二转技能上，但无法一开始就全部设完，因为有些技能需要前置技能的等级提升到某个阶段后才能学习。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_16$" value="拳手必须要变得很强！但如果自身的力量发挥在弱者身上，这并不是正确的方法。将自己所拥有的力量用在正确的事情上，这是比变得更强更为重要的课题。好了！相信你不断自我修炼，过不多久就会再与我相见的，我期待那天的到来。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_17$" value="果然不出我所料，你果真顺利通过测试了！我发现你在修炼场身手不凡。真厉害！就如当初的约定，我就让你转职成为 #b火枪手#k吧！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_18$" value="嗯...你拥有太多的 #b技能点#k，在拥有这么多技能点的情况下，是无法进行第二次转职。请你再多消耗一些一转技能点后再来找我！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_19$" value="好！现在起你就是 #b火枪手#k了！火枪手是可以利用火枪，连远距离的敌人也可以加以制服的职业，为了要变得更强，需要不断进行修炼。如果在修炼的过程中遇到困难，欢迎你随时来找我。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_2$" value="喔喔...你打败了我的分身，并且将 #b#t4031059##k取回来了啊！好！这样你已经证明了自己的力量，相信目前的你已经足以进行第三次转职了。以当初的约定，我将 #b#t4031057##k交给你。你拿着这个项链，回到#b费德罗#k那里，可以接受第二个测试！希望你可以顺利完成三转职。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_20$" value="我刚刚把记载着火枪手相关技能的书交给你了，里面有许多火枪手可以修行的技能。此外消耗栏的空格也有增加，此外最大血量和魔量也有增多，你再一一确认看看吧！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_21$" value="你的 "/>
+  <string name="$SCRIPTSTRING_NAUTILUS_22$" value="我给你一些 #b技能点#k，打开#b技能窗口#k后确认看看吧！你可以把点数分配到二转技能上，但是无法一开始就全部设完。因为有些技能需要前置技能的等级提升到某个阶段后才能学习。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_23$" value="火枪手必须要变得很强！但如果自身的力量发挥在弱者身上，这并不是正确的方法。将自己所拥有的力量用在正确的事情上，这是比变得更强更为重要的课题。好了！相信你不断自我修炼，过不多久就会在与我想见的，我期待那天的到来。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_24$" value="你想知道有关拳手或火枪手的事情吗？在转职前先做好事先了解是很重要喔！请你仔细听好我所说的内容，慎重地选择以后的方向。 &#13;&#10;#b#L0# 请告诉我有关拳手的信息。#k#l&#13;&#10;#b#L1# 请告诉我有关火枪手的信息。#k#l"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_25$" value="好！让我来告诉你关于拳手的事情吧！拳手是赤手空拳或利用指节来抵制敌人的海盗，因需要接近敌人后发动攻击，因此可以利用各种攻击机能让敌人陷入眩晕后发动攻击。可利用 #q5101002##k让前方的敌人陷入眩晕，或者利用  #q5101003##k来向后方敌人发动眩晕，让敌人受到伤害。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_26$" value="说到拳手的技能中的#b#q5101007##k，利用橡木桶来伪装身份，如此一来便可以避开敌人的视线，安全地逃离危险区域。虽然有时会被一些怪物发现，但只要技能等级越高，被识破的机率就会降低。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_27$" value="接下来，我来介绍 #b#q5101005##k吧！这是可让你稍稍消耗血量来恢复魔量的技能。所有职业中，除了战士外便是拳手拥有最多的血量. 所以消耗血量的压力也相对比较少，尤其是当你要是用技能而手头上又没有魔量时，就可以使用这项技能。但是！必须要先确认好自己的血量, 适当地使用喔!"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_28$" value="让我来告诉你有关火枪手的事情吧！火枪手可以利用火枪，与远距离的敌人相抗衡的海盗。可以利用 #b#q5201001##k或#b#q5201002##k，一次对付多数的敌人喔！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_29$" value="火枪手技能中的#b#q5201006##k，是可以利用发射火枪时的反动，向后跳跃并攻击敌人的技能。当你受到敌人包围时，可一边突破重围并对敌人造成伤害，但必须要先确认后方是否有怪物，不然就无法发挥效力了！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_3$" value="嗯...有点奇怪。你身上真的有 #b#t4031059##k吗？要是有的话，请你确认其他栏是否有空格。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_30$" value="接下来，我来介绍 #b#q5201005##k吧！这技能可以让你减少重力的影响而进行跳跃，可比一般跳跃更缓慢地向下降落。如果在高处一边使用 #b#q5201005##k一边攻击敌人的话，就可以向敌人发动空中攻击！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_31$" value="来！让我来送你到修炼场吧！让我再提醒你一下，你要打倒出现在里面的附子章鱼后，收集 #b#t4031856# 15个#k后拿给我吧！出现在修炼场的附子章鱼是经过特殊训练，拥有非常坚强的体魄，因此要格外小心应付。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_32$" value="你一定要记住！为了这次的拳手训练，出现在那里的章鱼们只能用#b百裂拳#k来攻击！另外当你进入修炼场时，会将你所拥有的 #t4031856#全部收回，也就是从零重新开始！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_33$" value="目前已有别人在接受训练，请你稍等一下。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_34$" value="来！让我来把你送到修炼场吧！让我再提醒你一下，请你打倒出现在那里的附子章鱼后，收集#b#t4031857# 15个#k。出现在修炼场的附子章鱼是经过特殊训练，身手非常敏捷，因此要格外小心应付。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_35$" value="为了这次火枪手训练，出现在那里的章鱼们只能用#b双弹射击#k来攻击！另外当你进入修炼场时，会将你所拥有的#t4031857#全部收回，也就是从零重新开始！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_36$" value="你对海盗有任何疑问吗？&#13;&#10;#b#L0#海盗的特色是什么？#l&#13;&#10;#L1#海盗所能使用的武器有什么？#l&#13;&#10;#L2#海盗所能使用的防具有哪些？#l&#13;&#10;#L3#海盗的技能有哪些？#l"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_37$" value="让我来介绍海盗的特色吧！海盗虽然是一种职业，但会根据自身的选择而发展成不同型态的海盗。若想要以强韧的力量来制服敌人的话，必须着重在力量上，若想要施展贯穿敌人的锐力攻击，则需要加强敏捷上。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_38$" value="可以说是…会根据自己的选择和决定，改变职业的性格吧！考虑到以后的发展，你可要仔细想好要把焦点放在力量还是敏捷上，若想要成为拳手就必须着重在力量，若是立志成为火枪手，我推荐要加强敏捷。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_39$" value="海盗不同于其他职业，就算是赤手空拳也可以对抗敌人，但若想要将攻击的力量发挥极致，也可以使用短刀或火枪。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_4$" value="金银岛的的火独眼兽洞穴的某处，有一个通往另一个次元的裂缝，放你进入裂缝的里面就会看到我的分身，你需要打倒那个分身，拿回 #b#t4031059##k给我！毕竟是我的分身，他的力量是不可以小看的，建议你要做好准备，一旦拿到 #b#t4031059##k后尽快拿给我！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_40$" value="若想要以近身攻击，让敌人晕眩后进行战斗的话，使用短刀还蛮不错喔！虽然看起来和盗贼所使用的拳套类似，但为了保护拳头并将力量发挥到最大，因此制作的比拳套来得坚固。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_41$" value="若想要应付远距离的敌人，推荐你使用火枪。当然并不是只要有火枪就可以使用，必须要有子弹才能发动攻击。若需要子弹，可在杂货商店购买。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_42$" value="根据武器的选择，战斗的模式也会大异其趣，记得要适时选择使用。此外，你加重使用哪种武器，也可能会影响到你未来的方法。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_43$" value="海盗的战斗模式着重轻巧、快速，所以…防具也必须以轻便为主，因此大多为布料所做成。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_44$" value="但可不要因为是轻薄的布料就小看它，它的防御能力可不输其他皮制装备呢！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_45$" value="海盗拥有可支援命中率与回避率的技能，而攻击技能则有使用拳头的技能以及需使用火枪的技能。因此要看自己所要使用的武器为何，适当地进行分配。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_46$" value="若是使用火枪的技能，我推荐#b双弹射击#k。双弹射击可一次发射两颗子弹，就算在远处也可制服敌人。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_47$" value="若是选择赤手空拳或使用短刀的话，建议你可使用#b半月踢#k或#b百裂拳#k技能。若适当分配这两个技能来加以使用，就可以进行迅速有效的攻击喔！虽然在使用火枪时也可以发动这些技能，但远比装备短刀时的效率来得低。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_48$" value="你想要成为海盗吗？但这可是有条件…可不能随随便便就可加入我们的行列，至少#b等级要10级以上#k，如何？要不要检查一下？"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_49$" value="不错！看来你已具备成为我们伙伴的条件。好！那就接受你成为我们海盗的一员！你做好准备了吗？"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_5$" value="糟糕...你把握交给你的 #b#t4031057##k弄丢了吗？怎么这么不小心啊？没办法，收下吧！这会可要小心喔！如果没有这个东西你就无法三转职了。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_50$" value="也对啦～决定职业可是非常重要的事情，你确实是需要时间好好考虑。若你下定决心，欢迎你随时再来找我。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_51$" value="好！从此刻起你就是我们的同伴！一开始可能要浪迹天涯经历流浪的生活，但过不久就会有天国般的日子等待我们呢！让我来把我的部分能力与你分享吧！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_52$" value="你在对能力点进行调整后，剩余的能力点太多了。你想把剩余的能力点集中进行投资吗？&#13;&#10;#b#L0# 想投资到力量上。#l&#13;&#10;#L1# 想投资到敏捷上。#l"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_53$" value="嗯..你先确认一下装备栏和消耗栏是否有空位。为了纪念你成为海盗，让我送你可在修炼时使用的武器吧！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_54$" value="你转职有点晚喔！没关系～我会把你因转职过晚而错过的技能点数补给你。只是比别人的起步稍晚一些，不需要太过在意啦！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_55$" value="你转职的时间也拖太晚了吧！其实就算转职的时间有点晚，只要是在等级29级以下新手，就会把错过的技能点数补给他，但你已经太晚了…抱歉！这部分我就帮不上忙了。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_56$" value="我帮你扩充了装备栏和其他栏的栏位，而且你的力量也更上一层楼了！你能感受到吗？欢迎你加入海盗的行列，你就尽情享受海盗自由且充满冒险的旅程吧！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_57$" value="#b[装备窗口]#k"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_58$" value="#b[其他窗口]#k"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_59$" value="你的 "/>
+  <string name="$SCRIPTSTRING_NAUTILUS_6$" value="这...有点奇怪。你的道具栏是不是已经满了？请你确认一下其他栏是否有空格！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_60$" value="我有给你一些#b技能点数#k，打开#b技能视窗#k后确认看看吧！你可以把点数配给到技能上，但无法一开始就全部使用所有技能，因为有些技能需要当前置技能的等级提升到某个阶段后才能学习。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_61$" value="还有一点需要提醒你！当你从新手变得拥有职业的冒险者，你就要小心不要轻易死掉。若当你死亡时，辛苦累积的经验值可能会削减。好不容易累积的经验值就这样遭到损失，可是相当不值得的事情呢！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_62$" value="好了，我能教你的事情也只有这些了。我送给你的武器，相信短时间会对你有不少帮助，剩下的就要靠你在修炼的旅途中，慢慢让自己茁壮成长。当你觉得已经没有其他有趣的事情时，请再来找我吧！到时候让我再告诉你其他值得让你投入的事情。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_63$" value="对了……你的能力应该已经按照海盗的需求变换了。在属性窗口(S键)中使用#b自动分配#k的话，你就会成为更出色的海盗。关于海盗如果还有什么疑问的话，请尽管问我。我虽然不能说无所不知，但我会把我知道的一切都告诉你。那就再见吧……"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_64$" value="嗯..你先确认一下装备栏和消耗栏是否有空位。为了纪念你成为海盗，让我送你可在修炼时使用的武器吧！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_65$" value="嗯…看来你的修炼还不足够喔！期待有朝一日可以看到更茁壮坚强的你。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_66$" value="喔喔～是你啊！打手的生活还有趣吗？看来你变得很不一样喔！希望你以后的路途持续会有好运相伴！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_67$" value="喔喔～是你啊！火枪手的生活还有趣吗？看来你变得很不一样喔！希望你以后的路途持续会有好运相伴！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_68$" value="喔！终于完成所有试炼成为#b斗士#k啊！我就知道你一定没问题的！现在的心情如何啊？"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_69$" value="喔！终于完成所有试炼成为#b大副#k啊！我就知道你一定没问题的！现在的心情如何啊？"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_7$" value="快拿着我教给你的 #b#t4031057##k，去见天空之城的 #b费德罗#k吧！这代表你已经完成第三次转职所需要的第一个测试，相信你也可以完成剩下的另一个测试，加油吧！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_70$" value="厉害！你终于成为究极的海盗─#b冲锋队长#k啦！我就知道你一定可以的！如何？现在的心情…？"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_71$" value="厉害！你终于成为究极的海盗─#b船长#k啦！我就知道你一定可以的！如何？现在的心情…？"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_72$" value="你想要在一望无际的海洋享受自由吗？是否想要用有力量与荣耀呢？若答案是肯定的话，成为我们的伙伴是一个不错的选择喔！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_73$" value="你已经通过试炼，不需要再前往试炼场。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_74$" value="准备好了吗？那在两分钟内试着抵御我的攻击吧！我可是不会手下留情，祝你好运罗！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_75$" value="目前有人在使用修炼场，看来你要稍稍等一下罗！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_76$" value="很好！关于这次的试炼，我们先离开这里在外面再谈吧！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_77$" value="你有什么话要说吗？&#13;&#10;#L0# 我想了解一下有关海盗。#l&#13;&#10;#L1# 我准备好了要向你挑战。#l"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_78$" value="你有什么话要说吗？&#13;&#10;#b#L0# 我想了解一下有关海盗。#l"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_79$" value="你没有‘霍夫卡’，不能使用机器。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_8$" value="好！就按照当初的约定，协助你转职成为 #b拳手#k吧！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS_9$" value="嗯...你拥有太多的 #b技能点#k，技能点数这么多是无法进行二次转职。请你再多消耗一些一转技能点后，再来找我！"/>
+</imgdir>

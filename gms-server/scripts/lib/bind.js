@@ -17,12 +17,20 @@ const I18nUtil = Java.type("org.gms.util.I18nUtil");
 
 // provider 惰性取用：WZFiles 初始化需要 Spring 容器（wz 语言配置），不在模块装载期触碰
 let itemDataProvider = null;
+let scriptStringProvider = null;
 
 function getItemDataProvider() {
     if (itemDataProvider == null) {
         itemDataProvider = DataProviderFactory.getDataProvider(WZFiles.ITEM);
     }
     return itemDataProvider;
+}
+
+function getScriptStringProvider() {
+    if (scriptStringProvider == null) {
+        scriptStringProvider = DataProviderFactory.getDataProvider(WZFiles.STRING);
+    }
+    return scriptStringProvider;
 }
 
 /** wz 道具数据缓存：itemId → 整树 JS 对象 | null（wz 数据不可变，永不失效；含缺失 id 负缓存） */
@@ -88,7 +96,46 @@ export function getItemDefinition(itemId) {
     return def;
 }
 
+/** ScriptString 文件 → 原始键表（wz 数据不可变，永不失效） */
+const scriptStringsCache = new Map();
+
+/**
+ * 官方脚本文本表（String.wz/ScriptString/&lt;file&gt;.xml 的 string 条目原文）：
+ * Map&lt;键原文, 文本&gt;（键形如 "$SCRIPTSTRING_QUEST0_5$"、"SCRIPTSTRING_QUEST_TEXT_1"）。
+ * 基础 API——不做键格式解释（序号后缀/特殊键归上层 wrapper）；文件缺失抛错（对白文本
+ * 缺失不是合法运行态）。语言维度由 provider 的目录回退决定（wz-zh-CN 优先，server
+ * config 语言；per-client 语言未来再议）。
+ */
+export function getScriptStrings(file) {
+    let table = scriptStringsCache.get(file);
+    if (table == null) {
+        const data = getScriptStringProvider().getData("ScriptString/" + file);
+        if (data == null) {
+            throw new Error("getScriptStrings: ScriptString 文件不存在: " + file);
+        }
+        table = new Map();
+        for (const entry of data.getChildren()) {
+            table.set(String(entry.getName()), String(entry.getData()));
+        }
+        scriptStringsCache.set(file, table);
+    }
+    return table;
+}
+
 /** i18n 消息文本（resources 里的 message code，如 "UseCashItemHandler.handlePacket.message10"） */
 export function getMessage(code, ...args) {
     return I18nUtil.getMessage(code, args);
 }
+
+/**
+ * 本角色的 Character 门面（任务脚本的"player"）。宿主（CharacterScriptRunner）在 context
+ * 创建时注入 player actor 全局；本导出是角色实体的派生视图——每次属性访问经 actor 现取
+ * character()，与 Java 侧派生视图同纪律（不存槽）。模块装载早于角色接绑（charlist 预览
+ * 就会触发道具钩子模块装载），导出本身必须在装载期可求值；能直接从 Character 调的 API
+ * （HP/道具/经验/任务/通知）脚本直调，不经过 QuestApi。
+ */
+export const player = new Proxy({}, {
+    get(_target, key) {
+        return globalThis.player.character()[key];
+    },
+});

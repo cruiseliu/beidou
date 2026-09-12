@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="maplepass">
+  <string name="$SCRIPTSTRING_MAPLEPASS_0$" value="维护时间（23:45~00:15）无法访问兑换所。&#13;&#10;请稍后再来。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_1$" value="发生未知错误。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_10$" value="格以上的空间。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_11$" value="，今日 "/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_12$" value="，本月 "/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_13$" value="持有的硬币#b"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_14$" value="&#13;&#10;#b#e[硬币使用期限提示]#n#k"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_15$" value="&#13;&#10;请选择要兑换的商品。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_16$" value="&#13;&#10;#b#e[限制购买商品]#n#k"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_17$" value="&#13;&#10;#b#e[无购买限制的商品]#n#k"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_18$" value="&#13;&#10;兑换处需的硬币不足。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_19$" value="&#13;&#10;#b- 持有硬币数量： "/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_2$" value="&#13;&#10;未持有硬币。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_20$" value="&#13;&#10;#b- 需要硬币数量： "/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_21$" value="今日可购买数量已达上限。&#13;&#10;明天再来吧。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_22$" value="本月可购买数量已达上限。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_23$" value="请输入要兑换的数量。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_24$" value="&#13;&#10;#b- 持有硬币数量： "/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_25$" value="&#13;&#10;#b- 空栏位数量： "/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_26$" value="&#13;&#10;#b- 可兑换数量： "/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_27$" value="&#13;&#10;#b- 兑换1次时 "/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_28$" value="&#13;&#10;#b- 今日剩余限度： "/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_29$" value="&#13;&#10;#b- 本月剩余限度： "/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_3$" value="装备"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_30$" value="&#13;&#10;&#13;&#10;兑换时#e#b硬币 "/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_31$" value="发生未知错误。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_32$" value="日期变更，无法进行交换。&#13;&#10;请重新访问兑换处。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_33$" value="兑换处需硬币不足。&#13;&#10;请重新访问兑换处。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_34$" value="今日可购买数量已达上限。&#13;&#10;请重新访问兑换处。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_35$" value="本月可购买数量已达上限。&#13;&#10;请重新访问兑换处。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_36$" value="兑换失败。&#13;&#10;请稍后再试。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_37$" value="&#13;&#10;兑换完毕。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_38$" value="&#13;&#10;请查看道具栏。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_39$" value="本月可购买数量已达上限。&#13;&#10;请重新访问兑换处。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_4$" value="消耗"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_40$" value="兑换失败。&#13;&#10;请稍后再试。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_41$" value="&#13;&#10;兑换完毕。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_42$" value="&#13;&#10;请查看道具栏。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_43$" value="年 "/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_44$" value="月"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_45$" value="个#k：#r"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_46$" value=" 最终日#k截止"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_47$" value="个#k"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_48$" value="#k #r（硬币 "/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_49$" value="个"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_5$" value="设置"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_50$" value=" （已购买"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_51$" value="#k #r（硬币 "/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_52$" value="个）#k#l"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_53$" value="个#k。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_54$" value="个#k"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_55$" value="格#k"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_56$" value="个#k（一次最多交换 "/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_57$" value="个）"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_58$" value="个发放#k"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_59$" value="个#k（每天 "/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_6$" value="其他"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_60$" value="个限制）"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_61$" value="个#k（月 "/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_62$" value="个#k进行兑换吗？"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_63$" value="个扣除#k#n。"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_64$" value="日"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_7$" value="现金"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_8$" value="装饰"/>
+  <string name="$SCRIPTSTRING_MAPLEPASS_9$" value="栏位中需要"/>
+</imgdir>

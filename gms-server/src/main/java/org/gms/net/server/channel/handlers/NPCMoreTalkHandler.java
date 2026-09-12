@@ -32,9 +32,33 @@ import org.gms.scripting.quest.QuestScriptManager;
  */
 public final class NPCMoreTalkHandler extends AbstractPacketHandler {
     @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §15）：对话重入包——ESM 会话的 more 入口必须在 player strand
+        // 上执行（polyglot Context 禁并发，strand 串行即合法）；连带旧对话脚本重入同规则
+        // （GraalJS 顺序跨线程迁移已实证）。mode=-1（结束对话）由脚本首分支 dispose 处理。
+        return true;
+    }
+
+    @Override
     public final void handlePacket(InPacket p, Client c) {
         byte lastMsg = p.readByte(); // 00 (last msg type I think)
         byte action = p.readByte(); // 00 = end chat, 01 == follow
+        // ESM 会话分流（doc/13 §15）：活跃 ESM 任务会话 → 重入其状态机（文本输入变体
+        // 未支持，1021 不涉及；mode=-1 由脚本首分支 dispose）。旧路径原样跟随。
+        if (c.getPlayer().esmQuest() != null) {
+            if (lastMsg == 2 && action == 0) {
+                c.getPlayer().esmQuest().dispose();
+            } else if (lastMsg != 2) {
+                int selection = -1;
+                if (p.available() >= 4) {
+                    selection = p.readInt();
+                } else if (p.available() > 0) {
+                    selection = p.readUnsignedByte();
+                }
+                org.gms.scripting.quest.esm.EsmQuests.more(c.getPlayer(), action, lastMsg, selection);
+            }
+            return;
+        }
         // lastMsg等于2有returnText，不等于则没有
         if (lastMsg == 2) {
             if (action != 0) {

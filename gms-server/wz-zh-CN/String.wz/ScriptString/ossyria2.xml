@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="ossyria2">
+  <string name="$SCRIPTSTRING_OSSYRIA2_0$" value="用#b#t4001019##k可以使用#b#p2012014##k。你想去有#b#p2012015##k的地方吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_1$" value="没有#b#t4001019##k，就不能使用#b#p2012014##k。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_10$" value="还要注意的是组队长就自动成为家族长。 一旦决定家族长后除非解散家族，否则不能更改。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_11$" value="你们6个人都来了? 那么需要150万金币。这是登记家族时需要的手续费。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_12$" value="好。如果你想登记一个家族，再找5个人一起来吧。至少有6个人才可以登记家族。&#13;&#10;还要注意的是6个人中不能有已经加入了其他家族的人。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_13$" value="哦！你要登记家族吗？你和你信任的朋友一起来了。&#13;&#10;好~ 你要开设家族吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_14$" value="那么请你输入想建立的家族名。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_15$" value="嗯...看来你的能力还不足以成为家族长...好好练功后再来。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_16$" value="你还没组队。要开设家族一定要6个组队成员一起来！"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_17$" value="你不是队长啊！要开设家族，你先和你的队长说吧。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_18$" value="觉得好像人员不足或有还没来。6个组队成员一起来才可以开设家族。请你再确认人数。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_19$" value="肯定有人已经加入了其他家族。一个人只能加入一个家族。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_2$" value="虽然有可以移动到#b#p2012015##k的#b#p2012014##k，但是没有卷轴不能使用。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_20$" value="好像手续费不足。你确实有足够的金钱吗？要开设家族需要手续费的！"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_21$" value="好。我帮你什么？&#13;&#10;#b#L0#我想增加家族人数上限#l&#13;&#10;#L1#我想解散家族。#l"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_22$" value="家族成长的很快，已经无法在增加家族人员了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_23$" value="你想增加家族的人数上限？嗯，看来你们的家族成长了不少嘛~要增加家族的人数上限的话，需要这里再次登记，当然它是需要收费的..."/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_24$" value="目前家族人员是 #b"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_25$" value="名#k , 增加5名需要 #b"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_26$" value="万金币#k。如何，要增加家族人数上限吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_27$" value="增加家族人数所需的金币好像不足，请重新确认一下。增加家族人数所需的手续费是#b"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_28$" value="万金币#k。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_29$" value="家族人数无法继续增加了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_3$" value="用#b#t4001019##k可以使用#b#p2012015##k。你想去有#b#p2012014##k的地方吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_30$" value="唉呀唉呀……家族事务所的业务太繁忙了，现在无法帮你处理。请以后再来吧。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_31$" value="由于未知原因家族人数无法增加。请之后再来找我。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_32$" value="你真想解散家族吗？唉哟...你这次解散家族，就不能再用现在这个家族名。啊... 。还有一件事情，为了解散家族就需要20万金币，你真想解散家族吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_33$" value="好主意...你不要轻易解散家族啊。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_34$" value="你好像金币不够。你确实有吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_35$" value="已加入家族联盟的状态下是无法解散家族的。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_36$" value="你不是家族长！！这不是你会决定的事情！"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_37$" value="您好！我是管理#b家族标志#k的#b蕾雅#k。&#13;&#10;#b#L0#我想登录家族标志。#l&#13;&#10;#L1#我想删除家族标志。#l"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_38$" value="目前已经有家族标志，若要更换必须先行删除后再重新登录。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_39$" value="设定家族标志需支付#r500万金币#k的费用。所谓的标志是各家族所能拥有的专属标示，会出现在家族名称左侧的位置上。&#13;&#10;如何？想要制作家族标志吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_4$" value="没有#b#t4001019##k，就不能使用#b#p2012015##k。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_40$" value="看来您身上的金币不足喔！一共需要#b500万金币#k！"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_41$" value="拥有家族标志，会提升成员对家族的归属感，并且对家族的团结有一定的帮助喔！您还没有准备要制作家族标志吗？没关系~等您准备好了，请务必再来找我喔！"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_42$" value="若删除现有的家族标志，便可重新进行登录。删除家族标志需要支付#r100万金币#k。您要删除家族标志吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_43$" value="看来您身上所拥有的金币，尚不足以支付删除家族标志的费用！为了删除标志需支付#b100万金币#k喔！"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_44$" value="等您准备好之后再来找我吧！"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_45$" value="咦？奇怪~没有可删除的标志耶！"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_46$" value="奇怪…看来您并不是家族长啊！家族标志相关业务，#r只限家族长#k才能处理喔！"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_47$" value="您好！我叫#b蕾那丽#k。&#13;&#10;#b#L0#请您告诉我家族联盟是什么？#l&#13;&#10;#L1#要成立家族联盟的话应该怎么做？#l&#13;&#10;#L2#我想成立家族联盟。#l&#13;&#10;#L3#我想增加家族联盟的家族数量。#l&#13;&#10;#L4#我想解散家族联盟。#l"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_48$" value="多个家族结合在一起成立的组织被称为家族联盟。我负责管理家族联盟的有关事务。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_49$" value="想要成立家族联盟的话，必须有2名家族长组成组队。其中队长会成为家族联盟的盟主。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_5$" value="虽然有可以移动到#b#p2012014##k的#b#p2012015##k，但是没有卷轴不能使用。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_50$" value="2名家族长组队之后，需要500万金币。这是创建家族联盟所必需的手续费。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_51$" value="另外还有一个！如果已经加入其他家族联盟的话，就无法建立新的家族联盟！"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_52$" value="只有还没有加入家族联盟的才可以进行创建。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_53$" value="只有家族长才能创建家族联盟。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_54$" value="只有组队队长才能创建家族联盟。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_55$" value="只有加入组队之后才能创建家族联盟。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_56$" value="只有组队成员为2人时才能创建家族联盟。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_57$" value="怎么～您想创建家族联盟吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_58$" value="请输入想要创建的家族联盟的名称。(英文12字，中文6字)"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_59$" value="名称不正确。请重新输入。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_6$" value="你…是不是想了解家族的有情况来我这里了?"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_60$" value="您确定使用"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_61$" value="作为家族联盟的名称吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_62$" value="如果您对名称不满意的话，请重新申请。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_63$" value="金币不足，无法创建家族联盟。请准备500万以上的金币。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_64$" value="只有在未加入家族联盟的情况下才能创建联盟。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_65$" value="家族联盟已成功创建。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_66$" value="金币不足。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_67$" value="有组队成员已加入家族联盟、家族联盟名称重复，或组队成员中包括非族长玩家，无法创建。请重新了解一下有关家族联盟的说明后重新申请。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_68$" value="只有家族联盟盟主才能增加家族的数量。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_69$" value="目前可以最多可以加入5个家族。无法加入更多的家族。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_7$" value="你想要什么？说出来吧。&#13;&#10;&#13;&#10;#b#L0#告诉我什么是家族#l&#13;&#10;#L1#怎样才能创建家族？#l&#13;&#10;#L2#我想创建家族#l"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_70$" value="目前最多可以有"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_71$" value="个家族加入家族联盟。要增加1个家族的话，需要100万金币。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_72$" value="您要花费100万金币来增加家族联盟的最大家族数量吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_73$" value="如果您想要增加家族联盟的最大家族数量的话，请再来找我。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_74$" value="金币不足，无法增加。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_75$" value="增加家族联盟最大家族数量失败。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_76$" value="目前最多可以有"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_77$" value="个家族加入家族联盟。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_78$" value="只有家族联盟盟主才能解散家族联盟。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_79$" value="您想要解散家族联盟吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_8$" value="家族就像一个小俱乐部，是心灵相通的一些玩家一起开设的小组，并且这个小组通过了我们的正式认证。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_80$" value="如果您想解散联盟的话请再来找我。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_81$" value="家族联盟未能解散。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_82$" value="家族联盟已经解散。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_83$" value="如果您想要创建家族联盟的话，可以随时来找我。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_84$" value="队员中有人未达到10级吧？要创建家族的话，6个队员全员要达到最低10级才可以..."/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_85$" value="你好，我是负责支援家族工作的蕾雅，&#13;&#10;为了方便工作，我正在帮助大家前往家族中心&lt;英雄公馆&gt;，&#13;&#10;你现在就要前往家族中心&lt;英雄公馆&gt;#k吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_86$" value="好，那我现在就让你过去。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_87$" value="什么时候想要前往家族中心&lt;英雄公馆&gt;，就再来找我吧。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA2_9$" value="要开设家族需要至少6个人。 6个人组队后一起来跟我说吧。 组队长的等级一定要在10级以上。"/>
+</imgdir>

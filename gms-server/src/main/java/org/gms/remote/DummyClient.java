@@ -8,6 +8,7 @@ import org.gms.remote.modules.basic.server.BasicUpdate;
 import org.gms.remote.modules.cooldown.CooldownModule;
 import org.gms.remote.modules.inventory.InventoryModule;
 import org.gms.remote.modules.map.client.MapModule;
+import org.gms.remote.modules.npc.client.NpcModule;
 import org.gms.remote.modules.map.client.movement.MoveElement;
 import org.gms.remote.modules.inventory.server.SlotChange;
 import org.gms.remote.modules.pet.PetModule;
@@ -28,7 +29,8 @@ final class DummyClient extends RemoteClient implements
         CooldownModule,
         InventoryModule,
         PetModule,
-        MapModule {
+        MapModule,
+        NpcModule {
 
     static final DummyClient INSTANCE = new DummyClient();
 
@@ -74,6 +76,11 @@ final class DummyClient extends RemoteClient implements
     }
 
     @Override
+    public NpcModule npc() {
+        return this;
+    }
+
+    @Override
     public MapModule map() {
         return this;
     }
@@ -81,6 +88,21 @@ final class DummyClient extends RemoteClient implements
     @Override
     public Packet movePlayer(int charId, List<MoveElement> elements) {
         return null;   // 无连接：静默
+    }
+
+    @Override
+    public void talk(int npc, int msgType, int speaker, String text, int... endBytes) {
+        // 无连接：静默
+    }
+
+    @Override
+    public void showInfo(String path) {
+        // 无连接：静默
+    }
+
+    @Override
+    public void dropMessage(int type, String message) {
+        // 无连接：静默
     }
 
     // ── 模块面：全部静默 ──

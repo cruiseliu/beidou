@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="title">
+  <string name="$SCRIPTSTRING_TITLE_0$" value="#k个"/>
+  <string name="$SCRIPTSTRING_TITLE_1$" value="#k次"/>
+  <string name="$SCRIPTSTRING_TITLE_10$" value="排名没什么好说的。大家都处于同一起跑线……你也可能获得第一。"/>
+  <string name="$SCRIPTSTRING_TITLE_100$" value="位："/>
+  <string name="$SCRIPTSTRING_TITLE_101$" value="胜)&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_TITLE_102$" value="请确认装备栏是否有空格。"/>
+  <string name="$SCRIPTSTRING_TITLE_103$" value="奇怪……头突然很疼。你过一会儿再来吧。"/>
+  <string name="$SCRIPTSTRING_TITLE_104$" value="绝对胜利嘉年华人勋章"/>
+  <string name="$SCRIPTSTRING_TITLE_105$" value="你成为了#b#e#t"/>
+  <string name="$SCRIPTSTRING_TITLE_106$" value="##n#k称号的唯一主人。但如果有人创造了新的纪录，他就会成为#b#e#t"/>
+  <string name="$SCRIPTSTRING_TITLE_107$" value="##n#k的主人。你一定要记住。"/>
+  <string name="$SCRIPTSTRING_TITLE_108$" value="你已经拥有了勋章。同样的东西想必你已经不需要了吧……不过希望你小心守护，别被其他人抢走了。"/>
+  <string name="$SCRIPTSTRING_TITLE_109$" value="奇怪……头突然很疼。你过一会儿再来吧。"/>
+  <string name="$SCRIPTSTRING_TITLE_11$" value="传说中的冒险家"/>
+  <string name="$SCRIPTSTRING_TITLE_110$" value="虽然你的成绩也很出色，但还有人的纪录比你更加出色。希望你继续锻炼，然后再来挑战。"/>
+  <string name="$SCRIPTSTRING_TITLE_111$" value="你不想继续挑战胜局王了吗？为了挑战胜率王，必须放弃这个任务……"/>
+  <string name="$SCRIPTSTRING_TITLE_112$" value="请继续挑战。"/>
+  <string name="$SCRIPTSTRING_TITLE_113$" value="奇怪……头突然很疼。你过一会儿再来吧。"/>
+  <string name="$SCRIPTSTRING_TITLE_114$" value="##k&#13;&#10;&#13;&#10; - 怪物嘉年华2的最高胜率纪录&#13;&#10;&#13;&#10;#n，你想看看自己有没有资格成为勋章的主人吗？"/>
+  <string name="$SCRIPTSTRING_TITLE_115$" value="请再准备一下，然后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_116$" value="那就祝你好运。没有固定的期限，只要你觉得自己够资格，可以随时来我这里接受审查。但你必须记住，挑战之后，如果你不完成挑战或放弃挑战，就无法挑战胜局王勋章。"/>
+  <string name="$SCRIPTSTRING_TITLE_117$" value="你想干什么？&#13;&#10;#b#L0#我想查看当前的胜率排名。#l&#13;&#10;#L1#我想挑战胜率王勋章。#l &#13;&#10;#L2#我想放弃挑战。#l"/>
+  <string name="$SCRIPTSTRING_TITLE_118$" value="还没有胜率排名。"/>
+  <string name="$SCRIPTSTRING_TITLE_119$" value="(胜率"/>
+  <string name="$SCRIPTSTRING_TITLE_12$" value="暗黑龙王击败者"/>
+  <string name="$SCRIPTSTRING_TITLE_120$" value="请确认装备栏是否有空格。"/>
+  <string name="$SCRIPTSTRING_TITLE_121$" value="奇怪……头突然很疼。你过一会儿再来吧。"/>
+  <string name="$SCRIPTSTRING_TITLE_122$" value="天才嘉年华人勋章"/>
+  <string name="$SCRIPTSTRING_TITLE_123$" value="##n#k的主人。你一定要记住。"/>
+  <string name="$SCRIPTSTRING_TITLE_124$" value="奇怪……头突然很疼。你过一会儿再来吧。"/>
+  <string name="$SCRIPTSTRING_TITLE_125$" value="你不想继续挑战胜率王了吗？为了挑战胜局王，必须放弃这个任务……"/>
+  <string name="$SCRIPTSTRING_TITLE_126$" value="请继续挑战。"/>
+  <string name="$SCRIPTSTRING_TITLE_127$" value="奇怪……头突然很疼。你过一会儿再来吧。"/>
+  <string name="$SCRIPTSTRING_TITLE_128$" value="你捐献了"/>
+  <string name="$SCRIPTSTRING_TITLE_129$" value="金币。你想干什么呢？&#13;&#10;#b#L0#我想查看当前排名。#l&#13;&#10;#L1#我想挑战特殊勋章。#l"/>
+  <string name="$SCRIPTSTRING_TITLE_13$" value="品克缤击败者"/>
+  <string name="$SCRIPTSTRING_TITLE_130$" value="主帐号无法登记记录。"/>
+  <string name="$SCRIPTSTRING_TITLE_131$" value="请确认装备栏是否有空格。"/>
+  <string name="$SCRIPTSTRING_TITLE_132$" value="魔法森林爱心使者"/>
+  <string name="$SCRIPTSTRING_TITLE_133$" value="魔法森林"/>
+  <string name="$SCRIPTSTRING_TITLE_134$" value="射手村爱心使者"/>
+  <string name="$SCRIPTSTRING_TITLE_135$" value="射手村"/>
+  <string name="$SCRIPTSTRING_TITLE_136$" value="勇士部落爱心使者"/>
+  <string name="$SCRIPTSTRING_TITLE_137$" value="勇士部落"/>
+  <string name="$SCRIPTSTRING_TITLE_138$" value="废弃都市爱心使者"/>
+  <string name="$SCRIPTSTRING_TITLE_139$" value="废都"/>
+  <string name="$SCRIPTSTRING_TITLE_14$" value="冒险岛偶像明星"/>
+  <string name="$SCRIPTSTRING_TITLE_140$" value="林中之城爱心使者"/>
+  <string name="$SCRIPTSTRING_TITLE_141$" value="林中之城"/>
+  <string name="$SCRIPTSTRING_TITLE_142$" value="诺特勒斯爱心使者"/>
+  <string name="$SCRIPTSTRING_TITLE_143$" value="诺特勒斯"/>
+  <string name="$SCRIPTSTRING_TITLE_144$" value="冰峰雪域爱心使者"/>
+  <string name="$SCRIPTSTRING_TITLE_145$" value="冰峰雪域"/>
+  <string name="$SCRIPTSTRING_TITLE_146$" value="水下世界爱心使者"/>
+  <string name="$SCRIPTSTRING_TITLE_147$" value="水下世界"/>
+  <string name="$SCRIPTSTRING_TITLE_148$" value="玩具城爱心使者"/>
+  <string name="$SCRIPTSTRING_TITLE_149$" value="玩具城"/>
+  <string name="$SCRIPTSTRING_TITLE_15$" value="&#13;&#10;你想挑战特殊勋章吗？"/>
+  <string name="$SCRIPTSTRING_TITLE_150$" value="地球防御本部爱心使者"/>
+  <string name="$SCRIPTSTRING_TITLE_151$" value="地球防御本部"/>
+  <string name="$SCRIPTSTRING_TITLE_152$" value="童话村爱心使者"/>
+  <string name="$SCRIPTSTRING_TITLE_153$" value="童话村"/>
+  <string name="$SCRIPTSTRING_TITLE_154$" value="神木村爱心使者"/>
+  <string name="$SCRIPTSTRING_TITLE_155$" value="神木村"/>
+  <string name="$SCRIPTSTRING_TITLE_156$" value="武陵爱心使者"/>
+  <string name="$SCRIPTSTRING_TITLE_157$" value="武陵"/>
+  <string name="$SCRIPTSTRING_TITLE_158$" value="百草堂爱心使者"/>
+  <string name="$SCRIPTSTRING_TITLE_159$" value="百草堂"/>
+  <string name="$SCRIPTSTRING_TITLE_16$" value="请你再多打点猎之后再来挑战。"/>
+  <string name="$SCRIPTSTRING_TITLE_160$" value="阿里安特爱心使者"/>
+  <string name="$SCRIPTSTRING_TITLE_161$" value="阿里安特"/>
+  <string name="$SCRIPTSTRING_TITLE_162$" value="玛加提亚爱心使者"/>
+  <string name="$SCRIPTSTRING_TITLE_163$" value="玛加提亚"/>
+  <string name="$SCRIPTSTRING_TITLE_164$" value="明珠港爱心使者"/>
+  <string name="$SCRIPTSTRING_TITLE_165$" value="明珠港"/>
+  <string name="$SCRIPTSTRING_TITLE_166$" value="天空之城爱心使者"/>
+  <string name="$SCRIPTSTRING_TITLE_167$" value="天空之城"/>
+  <string name="$SCRIPTSTRING_TITLE_168$" value="称号。"/>
+  <string name="$SCRIPTSTRING_TITLE_169$" value="##n#k称号的唯一主人。但如果有人创造了新的纪录，他就会成为#b#e#t"/>
+  <string name="$SCRIPTSTRING_TITLE_17$" value="请确认装备窗口是否有空格。"/>
+  <string name="$SCRIPTSTRING_TITLE_170$" value="##n#k的主人。你一定要记住。"/>
+  <string name="$SCRIPTSTRING_TITLE_171$" value="奇怪……头突然很疼。你过一会儿再来吧。"/>
+  <string name="$SCRIPTSTRING_TITLE_172$" value="奇怪……头突然很疼。你过一会儿再来吧。"/>
+  <string name="$SCRIPTSTRING_TITLE_173$" value="你捐献了"/>
+  <string name="$SCRIPTSTRING_TITLE_174$" value="金币……很遗憾，你处于 "/>
+  <string name="$SCRIPTSTRING_TITLE_175$" value="位。&#13;&#10;虽然不是最高的，但你也已经很了不起了。"/>
+  <string name="$SCRIPTSTRING_TITLE_176$" value="你进入了排名，你就满足吧。啊，你应该知道每月初捐献额都会重新计算吧？下个月你就可能排名第一，请重新参加挑战。"/>
+  <string name="$SCRIPTSTRING_TITLE_177$" value="金币……但还不足以成为爱心使者。&#13;&#10;&#13;&#10;虽然不是最高的，但你也已经很了不起了。"/>
+  <string name="$SCRIPTSTRING_TITLE_178$" value="啊，你应该知道每月初捐献额都会重新计算吧？下个月你就可能排名第一，请重新参加挑战。"/>
+  <string name="$SCRIPTSTRING_TITLE_179$" value="我记得你捐献的村庄是#b#m"/>
+  <string name="$SCRIPTSTRING_TITLE_18$" value="还不足以成为#b#e#t"/>
+  <string name="$SCRIPTSTRING_TITLE_180$" value="##k。要捐献这个村庄，就必须放弃捐献其他村庄。当然，已经捐献的钱是不会退还的……"/>
+  <string name="$SCRIPTSTRING_TITLE_181$" value="你是不可能欺骗名誉之神的。既然参加了挑战，就请全心全意地捐献吧。&#10;"/>
+  <string name="$SCRIPTSTRING_TITLE_182$" value="嗯？你不是这个村庄的爱心使者啊……你是不是弄错了？请重新确认一下排名。如果你拥有勋章，那一定是弄错了……"/>
+  <string name="$SCRIPTSTRING_TITLE_183$" value="请继续挑战。"/>
+  <string name="$SCRIPTSTRING_TITLE_184$" value="奇怪……头突然很疼。你过一会儿再来吧。"/>
+  <string name="$SCRIPTSTRING_TITLE_185$" value="你已经捐献了"/>
+  <string name="$SCRIPTSTRING_TITLE_186$" value="金币。村民们不会忘记你的善行。"/>
+  <string name="$SCRIPTSTRING_TITLE_187$" value="要想进行捐献，至少需要100,000金币以上。"/>
+  <string name="$SCRIPTSTRING_TITLE_188$" value="你想捐献多少呢？最低捐献金额是100,000金币。&#13;&#10;#b&lt; 当前持有金额："/>
+  <string name="$SCRIPTSTRING_TITLE_189$" value="金币 &gt;#k"/>
+  <string name="$SCRIPTSTRING_TITLE_19$" value="##n#k。请继续努力，然后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_190$" value="你捐献了"/>
+  <string name="$SCRIPTSTRING_TITLE_191$" value="金币。村里的人不会忘记你的善行。"/>
+  <string name="$SCRIPTSTRING_TITLE_192$" value="你想捐献的村庄……是#b#m"/>
+  <string name="$SCRIPTSTRING_TITLE_193$" value="##k吗？"/>
+  <string name="$SCRIPTSTRING_TITLE_194$" value="我们不想从还是新手的人那里接受捐献。下面有小字写着……至少30级以上才行。"/>
+  <string name="$SCRIPTSTRING_TITLE_195$" value="下面有小字写着……为了村庄的发展，请积极捐款！善良的你会受到祝福！"/>
+  <string name="$SCRIPTSTRING_TITLE_196$" value="你想查看哪个勋章的排名呢？#b&#10;&#13;&#10;#L0#传说中的冒险家#l&#13;&#10;#L1#冒险岛偶像明星#l&#13;&#10;#L4#村庄爱心使者#l"/>
+  <string name="$SCRIPTSTRING_TITLE_197$" value="- #r结婚(执行前)#k&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_TITLE_198$" value="- #b结婚(执行结束)#k&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_TITLE_199$" value="- #r加入公会(执行前)#k&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_TITLE_2$" value="当前排名&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_TITLE_20$" value="主帐号无法登记记录。"/>
+  <string name="$SCRIPTSTRING_TITLE_200$" value="- #b加入公会(执行结束)#k&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_TITLE_201$" value="- #r拯救同学(执行前)#k&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_TITLE_202$" value="- #b拯救同学(执行结束)#k&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_TITLE_203$" value="请在装备栏清理出一格以上的空格，然后再和我说话。"/>
+  <string name="$SCRIPTSTRING_TITLE_204$" value="已经获得了勋章，或者装备栏已满。勋章只能获得一次。"/>
+  <string name="$SCRIPTSTRING_TITLE_205$" value="&#10;现在你是#b最佳公民#k。希望你继续努力，创造更好的人际关系。"/>
+  <string name="$SCRIPTSTRING_TITLE_206$" value="你还有很多不足之处，不能成为#b最佳公民#k。等你准备好之后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_207$" value="你好！你知道一个月之后就是冒险岛的6周岁生日吗？哎呀哎呀，看你吃惊的样子，一定是忘得一干二净了吧！你和冒险岛一起走到了现在，今后还会继续走下去。我为此准备了有趣的活动，你愿意参加吗？"/>
+  <string name="$SCRIPTSTRING_TITLE_208$" value="你不想听听是什么事吗？"/>
+  <string name="$SCRIPTSTRING_TITLE_209$" value="请确认设置栏中是否有一格以上的空格。"/>
+  <string name="$SCRIPTSTRING_TITLE_21$" value="请确认装备栏中是否有空格。"/>
+  <string name="$SCRIPTSTRING_TITLE_210$" value="如果你能在一个小时之内保管好这片枫叶，我就为你升级枫叶勋章。你在一小时之后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_211$" value="如果你能在一个小时之内保管好这片枫叶，我就送你一个特别的枫叶勋章。你在一小时之后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_212$" value="很好！在5分钟内你把枫叶保管得很好，我来帮你升级勋章。"/>
+  <string name="$SCRIPTSTRING_TITLE_213$" value="请确认勋章是否在装备栏中，装备栏是否有一格以上的空格，或者勋章是否装备在身上。"/>
+  <string name="$SCRIPTSTRING_TITLE_214$" value="祝贺你获得了15天的梦想的勋章～如果一直保管到冒险岛6周年的那天为止，就会有好事发生！！"/>
+  <string name="$SCRIPTSTRING_TITLE_215$" value="你在一个小时之后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_216$" value="很好！你在一小时之内把枫叶保管得很好，我来给你施加增益。"/>
+  <string name="$SCRIPTSTRING_TITLE_217$" value="很好！你在一小时之内把枫叶保管得很好，我把枫叶勋章送给你。"/>
+  <string name="$SCRIPTSTRING_TITLE_218$" value="请确认装备栏中是否有一格以上的空格。"/>
+  <string name="$SCRIPTSTRING_TITLE_219$" value="你不想听听是什么事情吗？"/>
+  <string name="$SCRIPTSTRING_TITLE_22$" value="获得了"/>
+  <string name="$SCRIPTSTRING_TITLE_220$" value="如果你能在一个小时之内保管好这片枫叶，我就为你升级枫叶勋章。你在一小时之后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_221$" value="如果你能在一个小时之内保管好这片枫叶，我就送你一个特别的枫叶勋章。你在一小时之后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_222$" value="很好！你在一小时之内把枫叶保管得很好，我来为你升级勋章。"/>
+  <string name="$SCRIPTSTRING_TITLE_223$" value="请确认勋章是否在装备栏中，或者装备栏中是否有一格以上的空格。"/>
+  <string name="$SCRIPTSTRING_TITLE_224$" value="祝贺你获得了15天的梦想的勋章～如果一直保管到冒险岛6周年的那天为止，就会有好事发生！！"/>
+  <string name="$SCRIPTSTRING_TITLE_225$" value="你在一个小时之后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_226$" value="很好！你在一小时之内把枫叶保管得很好，我来给你施加增益。"/>
+  <string name="$SCRIPTSTRING_TITLE_227$" value="很好！你在一小时之内把枫叶保管得很好，我来给你施加增益。"/>
+  <string name="$SCRIPTSTRING_TITLE_228$" value="很好！你在一小时之内把枫叶保管得很好，我把枫叶勋章送给你。"/>
+  <string name="$SCRIPTSTRING_TITLE_229$" value="请确认装备栏中是否有一格以上的空格。"/>
+  <string name="$SCRIPTSTRING_TITLE_23$" value="的称号。"/>
+  <string name="$SCRIPTSTRING_TITLE_230$" value="你在一个小时之后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_231$" value="&lt;新手冒险家&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_232$" value="&lt;中级冒险家&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_233$" value="&lt;高级冒险家&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_234$" value="&lt;大师级冒险家&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_235$" value="请在背包的装备栏中清理出1格以上的空格，然后再来和我说话。"/>
+  <string name="$SCRIPTSTRING_TITLE_236$" value="请在背包的装备栏中清理出1格以上的空格，然后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_237$" value="光荣的冒险家，衷心祝贺你获得了#b"/>
+  <string name="$SCRIPTSTRING_TITLE_238$" value="#k称号。希望你以后继续努力，挑战更多的称号。&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_TITLE_239$" value="#1个&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_TITLE_24$" value="我达利尔代表名誉之神向世人宣布，你才是#b#e#t"/>
+  <string name="$SCRIPTSTRING_TITLE_240$" value="您获得了&lt;新手冒险家&gt;称号。请跟勋章老人对话领取勋章。"/>
+  <string name="$SCRIPTSTRING_TITLE_241$" value="您获得了&lt;中级冒险家&gt;称号。请跟勋章老人对话领取勋章。"/>
+  <string name="$SCRIPTSTRING_TITLE_242$" value="您获得了&lt;高级冒险家&gt;称号。请跟勋章老人对话领取勋章。"/>
+  <string name="$SCRIPTSTRING_TITLE_243$" value="您获得了&lt;大师级冒险家&gt;称号。请跟勋章老人对话领取勋章。"/>
+  <string name="$SCRIPTSTRING_TITLE_244$" value="&lt;高级职业&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_245$" value="&lt;修炼骑士&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_246$" value="&lt;正式骑士&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_247$" value="&lt;高级骑士&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_248$" value="&lt;战神&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_249$" value="&lt;贤者&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_25$" value="##n#k的唯一主人。但如果有人创造了新的纪录，他就会成为#b#e#t"/>
+  <string name="$SCRIPTSTRING_TITLE_250$" value="&lt;狙击之王&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_251$" value="&lt;传说中的飞侠&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_252$" value="&lt;海盗王&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_253$" value="&lt;武陵道场征服者&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_254$" value="&lt;射手村爱心使者&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_255$" value="&lt;魔法密林爱心使者&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_256$" value="&lt;勇士部落爱心使者&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_257$" value="&lt;废弃都市爱心使者&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_258$" value="&lt;林中之城爱心使者&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_259$" value="&lt;诺特勒斯爱心使者&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_26$" value="##n#k的主人。你一定要记住。"/>
+  <string name="$SCRIPTSTRING_TITLE_260$" value="&lt;勤奋冒险家&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_261$" value="&lt;传说中的冒险家&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_262$" value="&lt;苏醒的战神&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_263$" value="&lt;记忆中的战神&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_264$" value="&lt;试炼中的战神&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_265$" value="&lt;希望中的战神&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_266$" value="&lt;英雄战神&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_267$" value="&lt;明珠港爱心使者&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_268$" value="&lt;荣誉冒险勇士&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_269$" value="&lt;冒险岛爱人&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_27$" value="哦……你已经拥有了勋章。同样的东西想必你已经不需要了吧……不过希望你小心守护，别被其他人抢走了。"/>
+  <string name="$SCRIPTSTRING_TITLE_270$" value="&lt;荣誉冒险勇士2期&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_271$" value="&lt;遗物大会Top10&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_272$" value="&lt;神秘遗物发现者&gt;"/>
+  <string name="$SCRIPTSTRING_TITLE_273$" value="获得了"/>
+  <string name="$SCRIPTSTRING_TITLE_274$" value="获得了"/>
+  <string name="$SCRIPTSTRING_TITLE_275$" value="新手"/>
+  <string name="$SCRIPTSTRING_TITLE_276$" value="雪域山脉"/>
+  <string name="$SCRIPTSTRING_TITLE_277$" value="时间停止之湖"/>
+  <string name="$SCRIPTSTRING_TITLE_278$" value="海底"/>
+  <string name="$SCRIPTSTRING_TITLE_279$" value="武陵"/>
+  <string name="$SCRIPTSTRING_TITLE_28$" value="奇怪……头突然很疼。你过一会儿再来吧。"/>
+  <string name="$SCRIPTSTRING_TITLE_280$" value="尼哈沙漠"/>
+  <string name="$SCRIPTSTRING_TITLE_281$" value="神木村"/>
+  <string name="$SCRIPTSTRING_TITLE_282$" value="获得称号 - "/>
+  <string name="$SCRIPTSTRING_TITLE_283$" value="获得探险家！"/>
+  <string name="$SCRIPTSTRING_TITLE_284$" value="探险家&gt;称号已获取。请跟达利尔对话领取勋章。"/>
+  <string name="$SCRIPTSTRING_TITLE_285$" value="探险了  个地区"/>
+  <string name="$SCRIPTSTRING_TITLE_286$" value="正在挑战称号 - "/>
+  <string name="$SCRIPTSTRING_TITLE_287$" value="探险家"/>
+  <string name="$SCRIPTSTRING_TITLE_288$" value="正在挑战称号 - "/>
+  <string name="$SCRIPTSTRING_TITLE_289$" value="探险家"/>
+  <string name="$SCRIPTSTRING_TITLE_29$" value="奇怪……头突然很疼。你过一会儿再来吧。"/>
+  <string name="$SCRIPTSTRING_TITLE_290$" value="完成"/>
+  <string name="$SCRIPTSTRING_TITLE_291$" value="您获得了&lt;站在巅峰的人&gt;称号。请跟勋章老人对话领取勋章。"/>
+  <string name="$SCRIPTSTRING_TITLE_292$" value="获得称号 - 站在巅峰的人！"/>
+  <string name="$SCRIPTSTRING_TITLE_293$" value="/5 地点完成"/>
+  <string name="$SCRIPTSTRING_TITLE_294$" value="正在挑战称号 - 站在巅峰的人"/>
+  <string name="$SCRIPTSTRING_TITLE_295$" value="/5 完成"/>
+  <string name="$SCRIPTSTRING_TITLE_296$" value="称号。"/>
+  <string name="$SCRIPTSTRING_TITLE_297$" value="称号"/>
+  <string name="$SCRIPTSTRING_TITLE_3$" value="&#13;&#10;&#13;&#10;别忘了每个月初记录都会初始化。"/>
+  <string name="$SCRIPTSTRING_TITLE_30$" value="#v1142003# #e#b#t1142003##k&#13;&#10;&#13;&#10; - 限制时间30天&#13;&#10; - 人气度 "/>
+  <string name="$SCRIPTSTRING_TITLE_31$" value="上升&#13;&#10;&#13;&#10;#n你想检验一下是否有资格获得这个勋章吗？"/>
+  <string name="$SCRIPTSTRING_TITLE_32$" value="请你再准备一下，然后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_33$" value="好的，我给你30天时间，希望你能达成目标。请记住，必须在限定时间内获得我的确认，你的成绩才会得到认可。还有请记住，在完成或放弃这个挑战之前，你是无法挑战其他称号的。"/>
+  <string name="$SCRIPTSTRING_TITLE_34$" value="你的人气度提高了"/>
+  <string name="$SCRIPTSTRING_TITLE_35$" value="，看来支持你的人一定很多。你想接受#e#b#t1142003##n#k吗？"/>
+  <string name="$SCRIPTSTRING_TITLE_36$" value="请继续努力。"/>
+  <string name="$SCRIPTSTRING_TITLE_37$" value="我达利尔代表名誉之神宣布你是这一名誉称号的主人。如果你想挑战新的称号，可以随时过来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_38$" value="你已经拥有了这个勋章。应该已经不再需要了吧…….&#13;&#10;我达利尔代表名誉之神宣布你是这一名誉称号的主人。如果你想挑战新的称号，可以随时过来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_39$" value="你的人气度在这段时间内提高了"/>
+  <string name="$SCRIPTSTRING_TITLE_4$" value="排名没什么好说的。大家都处于同一起跑线……你也可能获得第一。"/>
+  <string name="$SCRIPTSTRING_TITLE_40$" value="。由于未能达成目标"/>
+  <string name="$SCRIPTSTRING_TITLE_41$" value="，所以我想很难获得这个称号……你愿意就此放弃吗？"/>
+  <string name="$SCRIPTSTRING_TITLE_42$" value="请继续挑战。"/>
+  <string name="$SCRIPTSTRING_TITLE_43$" value="如果你下次想继续挑战，可以随时过来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_44$" value="#v1142004# #e#b#t1142004##k&#13;&#10;&#13;&#10; - 限制时间30天&#13;&#10; - 打猎怪物 "/>
+  <string name="$SCRIPTSTRING_TITLE_45$" value="个&#13;&#10;#n※只有比自己等级高的怪物会被承认&#13;&#10; (120级以上的玩家只有打猎120级以上的怪物才会被承认)&#13;&#10;&#13;&#10;你想检验一下是否有资格获得这个勋章吗？"/>
+  <string name="$SCRIPTSTRING_TITLE_46$" value="请再准备一下，然后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_47$" value="好的，我给你30天时间，希望你能达成目标。请记住，必须在限定时间内获得我的确认，你的成绩才会得到认可。还有请记住，在完成或放弃这个挑战之前，你是无法挑战其他称号的。"/>
+  <string name="$SCRIPTSTRING_TITLE_48$" value="&#13;&#10;#L1#我想挑战特殊勋章。#l"/>
+  <string name="$SCRIPTSTRING_TITLE_49$" value="&#13;&#10;#L2#我想获取普通勋章。#l"/>
+  <string name="$SCRIPTSTRING_TITLE_5$" value="#k : 人气度#r"/>
+  <string name="$SCRIPTSTRING_TITLE_50$" value="&#13;&#10;#L3#我想重新获取丢失的特殊勋章。#l"/>
+  <string name="$SCRIPTSTRING_TITLE_51$" value="&#13;&#10;#L4#我想重新获取丢失的特殊勋章。#l"/>
+  <string name="$SCRIPTSTRING_TITLE_52$" value="你打猎的怪物数量是"/>
+  <string name="$SCRIPTSTRING_TITLE_53$" value="个，目标是"/>
+  <string name="$SCRIPTSTRING_TITLE_54$" value="个。你想干什么呢？#b&#13;&#10;#L0#我想查看当前排名。#l"/>
+  <string name="$SCRIPTSTRING_TITLE_55$" value="&#13;&#10;#L5#我想放弃挑战。#l"/>
+  <string name="$SCRIPTSTRING_TITLE_56$" value="你还没获得普通勋章。只有获得普通勋章的人，才有挑战特殊勋章的资格。"/>
+  <string name="$SCRIPTSTRING_TITLE_57$" value="个……达成了"/>
+  <string name="$SCRIPTSTRING_TITLE_58$" value="的目标。你展现了惊人的能力。你想获取#e#b勤奋冒险家勋章#n#k吗？"/>
+  <string name="$SCRIPTSTRING_TITLE_59$" value="请继续打猎，然后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_6$" value="&#13;&#10;&#13;&#10;这个称号每月只能挑战1次。这个月已经结束，只有到下个月才能再次挑战，因此请在挑战之前慎重考虑。"/>
+  <string name="$SCRIPTSTRING_TITLE_60$" value="嗯？你不是这个特殊勋章的主人。请重新确认一下排名。"/>
+  <string name="$SCRIPTSTRING_TITLE_61$" value="哎呦，我的头……奇怪……头突然很疼。你过一会儿再来吧。"/>
+  <string name="$SCRIPTSTRING_TITLE_62$" value="特殊勋章补发："/>
+  <string name="$SCRIPTSTRING_TITLE_63$" value="来……给你。这是你丢失的特殊勋章。这个勋章回到了主人手中，所以你不必向我道谢。但是即使重新获得了勋章，也有可能被其他人抢走。"/>
+  <string name="$SCRIPTSTRING_TITLE_64$" value="装备栏中至少需要一个空格。请确认留出空格后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_65$" value="来……给你。这是你丢失的特殊勋章。这个勋章回到了主人手中，所以你不必向我道谢。"/>
+  <string name="$SCRIPTSTRING_TITLE_66$" value="你不想继续挑战了吗？要挑战其他称号任务，就必须放弃这个任务……"/>
+  <string name="$SCRIPTSTRING_TITLE_67$" value="奇怪……头突然很疼。你过一会儿再来吧。"/>
+  <string name="$SCRIPTSTRING_TITLE_68$" value="#v1142006# #e#b#t1142006##k&#13;&#10;&#13;&#10; - 人气度第1位&#13;&#10;&#13;&#10;#n你想检验一下是否有资格获得这个勋章吗？"/>
+  <string name="$SCRIPTSTRING_TITLE_69$" value="请再准备一下，然后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_7$" value="排名没什么好说的。大家都处于同一起跑线……你也可能获得第一。"/>
+  <string name="$SCRIPTSTRING_TITLE_70$" value="那我就祝你好运。没有期限限制，只要你觉得自己具有了充分的资格，就随时可以过来找我。还有请记住，在完成或放弃这个挑战之前，你是无法挑战其他称号的。"/>
+  <string name="$SCRIPTSTRING_TITLE_71$" value="&#13;&#10;#L2#我想重新获取丢失的特殊勋章。#l"/>
+  <string name="$SCRIPTSTRING_TITLE_72$" value="你的人气度是"/>
+  <string name="$SCRIPTSTRING_TITLE_73$" value="。你想干什么呢？&#13;&#10;#b#L0#我想查看当前排名。#l&#13;&#10;#L1#我想挑战特殊勋章。#l"/>
+  <string name="$SCRIPTSTRING_TITLE_74$" value="&#13;&#10;#L3#我想放弃挑战。#l"/>
+  <string name="$SCRIPTSTRING_TITLE_75$" value="冒险岛偶像明星每月只能挑战1次。这个月你已经挑战过一次了，不是吗？请下个月再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_76$" value="奇怪……头突然很疼。你过一会儿再来吧。"/>
+  <string name="$SCRIPTSTRING_TITLE_77$" value="#v1142007# #e#b#t1142007##k&#13;&#10;&#13;&#10; - 暗黑龙王打猎次数第1位&#13;&#10;&#13;&#10;#n你想检验一下是否有资格获得这个勋章吗？"/>
+  <string name="$SCRIPTSTRING_TITLE_78$" value="请再准备一下，然后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_79$" value="你打猎暗黑龙王的次数是"/>
+  <string name="$SCRIPTSTRING_TITLE_8$" value="金币"/>
+  <string name="$SCRIPTSTRING_TITLE_80$" value="次。你想干什么呢？&#13;&#10;#b#L0#我想查看当前排名。#l&#13;&#10;#L1#我想挑战特殊勋章。#l"/>
+  <string name="$SCRIPTSTRING_TITLE_81$" value="暗黑龙王你一次都没打猎过啊。请至少打猎一次之后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_82$" value="奇怪……头突然很疼。你过一会儿再来吧。"/>
+  <string name="$SCRIPTSTRING_TITLE_83$" value="#v1142008# #e#b#t1142008##k&#13;&#10;&#13;&#10; - 品克缤打猎次数第1位&#13;&#10;&#13;&#10;#n你想检验一下是否有资格获得这个勋章吗？"/>
+  <string name="$SCRIPTSTRING_TITLE_84$" value="请再准备一下，然后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_85$" value="你击败品克缤的次数是"/>
+  <string name="$SCRIPTSTRING_TITLE_86$" value="品克缤你一次都没击败过啊。请至少击败一次之后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_87$" value="请继续挑战。"/>
+  <string name="$SCRIPTSTRING_TITLE_88$" value="奇怪……头突然很疼。你过一会儿再来吧。"/>
+  <string name="$SCRIPTSTRING_TITLE_89$" value=". #b"/>
+  <string name="$SCRIPTSTRING_TITLE_9$" value="&#13;&#10;&#13;&#10;我不能公开当前的爱心使者的捐献额数，请你理解。&#13;&#10;还有别忘了每个月初记录都会初始化。"/>
+  <string name="$SCRIPTSTRING_TITLE_90$" value="#k："/>
+  <string name="$SCRIPTSTRING_TITLE_91$" value="排名没什么好说的。大家都处于同一起跑线……你也可能获得第一。"/>
+  <string name="$SCRIPTSTRING_TITLE_92$" value="你想挑战哪个村庄的爱心使者呢？&#13;&#10;#b#L0#射手村爱心使者。#l&#13;&#10;#L1#魔法密林爱心使者。#l&#13;&#10;#L2#勇士部落爱心使者。#l&#13;&#10;#L3#废弃都市爱心使者。#l&#13;&#10;#L4#林中之城爱心使者。#l&#13;&#10;#L5#诺特勒斯爱心使者。#l&#13;&#10;#L6#明珠港爱心使者。#l"/>
+  <string name="$SCRIPTSTRING_TITLE_93$" value="##k&#13;&#10;&#13;&#10; - 限制时间1小时&#13;&#10; - 村里最高额的捐献&#13;&#10;&#13;&#10;#n你想检验一下是否有资格获得这个勋章吗？"/>
+  <string name="$SCRIPTSTRING_TITLE_94$" value="请再准备一下，然后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_95$" value="##k&#13;&#10;&#13;&#10; - 怪物嘉年华2的胜局纪录&#13;&#10;&#13;&#10;#n，你想看看自己有没有资格成为勋章的主人吗？"/>
+  <string name="$SCRIPTSTRING_TITLE_96$" value="请再准备一下，然后再来找我。"/>
+  <string name="$SCRIPTSTRING_TITLE_97$" value="那就祝你好运。没有固定的期限，只要你觉得自己够资格，可以随时来我这里接受审查。但你必须记住，挑战之后，如果你不完成挑战或放弃挑战，就无法挑战胜率王勋章。"/>
+  <string name="$SCRIPTSTRING_TITLE_98$" value="你想干什么？&#13;&#10;#b#L0#我想查看当前的胜局排名。#l&#13;&#10;#L1#我想挑战胜局王勋章。#l &#13;&#10;#L2#我想放弃挑战。#l"/>
+  <string name="$SCRIPTSTRING_TITLE_99$" value="还没有排名。"/>
+</imgdir>

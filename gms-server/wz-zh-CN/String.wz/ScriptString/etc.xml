@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="etc">
+  <string name="$SCRIPTSTRING_ETC_0$" value="[CN]] 레벨 UP "/>
+  <string name="$SCRIPTSTRING_ETC_1$" value="[CN] 영자랑 같이 와!"/>
+  <string name="$SCRIPTSTRING_ETC_10$" value="[CN]항목을 선택하세요.#b&#13;&#10;#L0#1차_아처로 전직#l&#13;&#10;#L1#2차_헌터로 전직#l&#13;&#10;#L2#2차_사수로 전직#l&#13;&#10;#L3#3차_레인저로 전직#l&#13;&#10;#L4#3차_저격수로 전직#l&#13;&#10;#L5#4차_보우마스터로 전직#l&#13;&#10;#L6#4차_신궁으로 전직#l"/>
+  <string name="$SCRIPTSTRING_ETC_100$" value="[CN]또 골라~#b&#13;&#10;#L0# 60렙 파이터#l&#13;&#10;#L1# 60렙 페이지#l&#13;&#10;#L2# 60렙 스피어맨#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_101$" value="[CN]#L12# 70렙 크루세이더#l&#13;&#10;#L13# 70렙 나이트#l&#13;&#10;#L14# 70렙 드래곤나이트#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_102$" value="[CN]#L3# 100렙 크루세이더#l&#13;&#10;#L4# 100렙 나이트#l&#13;&#10;#L5# 100렙 드래곤나이트#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_103$" value="[CN]#L6# 120렙 크루세이더#l&#13;&#10;#L7# 120렙 나이트#l&#13;&#10;#L8# 120렙 드래곤나이트#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_104$" value="[CN]#L9# 160렙 히어로#l&#13;&#10;#L10# 160렙 팔라딘#l&#13;&#10;#L11# 160렙 다크나이트#l&#13;&#10;#k"/>
+  <string name="$SCRIPTSTRING_ETC_105$" value="[CN]레벨 60이 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_106$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_107$" value="[CN]레벨 60이 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_108$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_109$" value="[CN]레벨 60이 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_11$" value="[CN]항목을 선택하세요.#b&#13;&#10;#L0#1차_로그로 전직#l&#13;&#10;#L1#2차_어쌔신로 전직#l&#13;&#10;#L2#2차_시프로 전직#l&#13;&#10;#L3#3차_허밋로 전직#l&#13;&#10;#L4#3차_시프마스터로 전직#l&#13;&#10;#L5#4차_나이트로드로 전직#l&#13;&#10;#L6#4차_섀도어로 전직#l"/>
+  <string name="$SCRIPTSTRING_ETC_110$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_111$" value="[CN]레벨 70가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_112$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_113$" value="[CN]레벨 70가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_114$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_115$" value="[CN]레벨 70가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_116$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_117$" value="[CN]레벨 120가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_118$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_119$" value="[CN]레벨 120가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_12$" value="[CN]항목을 선택하세요.#b&#13;&#10;#L0#1차_해적으로 전직#l&#13;&#10;#L1#2차_인파이터로 전직#l&#13;&#10;#L2#2차_건슬링거로 전직#l&#13;&#10;#L3#3차_버커니어로 전직#l&#13;&#10;#L4#3차_발키리로 전직#l&#13;&#10;#L5#4차_바이퍼로 전직#l&#13;&#10;#L6#4차_캡틴으로 전직#l"/>
+  <string name="$SCRIPTSTRING_ETC_120$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_121$" value="[CN]레벨 120가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_122$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_123$" value="[CN]레벨 120가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_124$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_125$" value="[CN]레벨 120가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_126$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_127$" value="[CN]레벨 120가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_128$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_129$" value="[CN]레벨 160가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_13$" value="[CN]항목을 선택하세요.#b&#13;&#10;#L0#1차_소울마스터로 전직#l&#13;&#10;#L1#2차_소울마스터로 전직#l&#13;&#10;#L2#3차_소울마스터로 전직#l"/>
+  <string name="$SCRIPTSTRING_ETC_130$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_131$" value="[CN]레벨 160가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_132$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_133$" value="[CN]레벨 160가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_134$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_135$" value="[CN]또 골라~#b&#13;&#10;#L0# 60렙 불독위자드#l&#13;&#10;#L1# 60렙 썬콜위자드#l&#13;&#10;#L2# 60렙 클레릭#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_136$" value="[CN]#L12# 70렙 불독메이지#l&#13;&#10;#L13# 70렙 썬콜메이지#l&#13;&#10;#L14# 70렙 프리스트#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_137$" value="[CN]#L3# 100렙 불독메이지#l&#13;&#10;#L4# 100렙 썬콜메이지#l&#13;&#10;#L5# 100렙 프리스트#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_138$" value="[CN]#L6# 120렙 불독메이지#l&#13;&#10;#L7# 120렙 썬콜메이지#l&#13;&#10;#L8# 120렙 프리스트#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_139$" value="[CN]#L9# 160렙 아크메이지(불독)#l&#13;&#10;#L10# 160렙 아크메이지(썬콜)#l&#13;&#10;#L11# 160렙 비숍#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_14$" value="[CN]항목을 선택하세요.#b&#13;&#10;#L0#1차_플레임위자드로 전직#l&#13;&#10;#L1#2차_플레임위자드로 전직#l&#13;&#10;#L2#3차_플레임위자드로 전직#l"/>
+  <string name="$SCRIPTSTRING_ETC_140$" value="[CN]레벨 60가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_141$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_142$" value="[CN]레벨 60가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_143$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_144$" value="[CN]레벨 60가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_145$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_146$" value="[CN]레벨 70이 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_147$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_148$" value="[CN]레벨 70이 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_149$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_15$" value="[CN]항목을 선택하세요.#b&#13;&#10;#L0#1차_윈드브레이커로 전직#l&#13;&#10;#L1#2차_윈드브레이커로 전직#l&#13;&#10;#L2#3차_윈드브레이커로 전직#l"/>
+  <string name="$SCRIPTSTRING_ETC_150$" value="[CN]레벨 70이 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_151$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_152$" value="[CN]레벨 100가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_153$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_154$" value="[CN]레벨 100가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_155$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_156$" value="[CN]레벨 100가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_157$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_158$" value="[CN]레벨 120가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_159$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_16$" value="[CN]항목을 선택하세요.#b&#13;&#10;#L0#1차_나이트워커로 전직#l&#13;&#10;#L1#2차_나이트워커로 전직#l&#13;&#10;#L2#3차_나이트워커로 전직#l"/>
+  <string name="$SCRIPTSTRING_ETC_160$" value="[CN]레벨 120가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_161$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_162$" value="[CN]레벨 120가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_163$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_164$" value="[CN]레벨 160가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_165$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_166$" value="[CN]레벨 160가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_167$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_168$" value="[CN]레벨 160가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_169$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_17$" value="[CN]항목을 선택하세요.#b&#13;&#10;#L0#1차_스트라이커로 전직#l&#13;&#10;#L1#2차_스트라이커로 전직#l&#13;&#10;#L2#3차_스트라이커로 전직#l"/>
+  <string name="$SCRIPTSTRING_ETC_170$" value="[CN]또 골라~#b&#13;&#10;#L0# 60렙 헌터#l&#13;&#10;#L1# 60렙 사수#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_171$" value="[CN]#L8# 70렙 레인저#l&#13;&#10;#L9# 70렙 저격수#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_172$" value="[CN]#L2# 100렙 레인저#l&#13;&#10;#L3# 100렙 저격수#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_173$" value="[CN]#L4# 120렙 레인저#l&#13;&#10;#L5# 120렙 저격수#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_174$" value="[CN]#L6# 160렙 보우마스터#l&#13;&#10;#L7# 160렙 신궁#l"/>
+  <string name="$SCRIPTSTRING_ETC_175$" value="[CN]레벨 60가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_176$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_177$" value="[CN]레벨 60가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_178$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_179$" value="[CN]레벨 70가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_18$" value="[CN]항목을 선택하세요.#b&#13;&#10;#L0#1차_아란으로 전직#l&#13;&#10;#L1#2차_아란으로 전직#l&#13;&#10;#L2#3차_아란으로 전직#l&#13;&#10;#L3#4차_아란으로 전직#l"/>
+  <string name="$SCRIPTSTRING_ETC_180$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_181$" value="[CN]레벨 70가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_182$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_183$" value="[CN]레벨 100가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_184$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_185$" value="[CN]레벨 100가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_186$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_187$" value="[CN]레벨 120가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_188$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_189$" value="[CN]레벨 120가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_19$" value="[CN]초보자는 줄 수 없습니다. 다른 직업으로 전직하고 다시 오세요."/>
+  <string name="$SCRIPTSTRING_ETC_190$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_191$" value="[CN]레벨 160가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_192$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_193$" value="[CN]레벨 160가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_194$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_195$" value="[CN]또 골라~#b&#13;&#10;#L0# 60렙 시프#l&#13;&#10;#L1# 60렙 어쌔신#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_196$" value="[CN]#L8# 70렙 시프마스터#l&#13;&#10;#L9# 70렙 허밋#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_197$" value="[CN]#L2# 100렙 시프마스터#l&#13;&#10;#L3# 100렙 허밋#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_198$" value="[CN]#L4# 120렙 시프마스터#l&#13;&#10;#L5# 120렙 허밋#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_199$" value="[CN]#L6# 160렙 섀도어#l&#13;&#10;#L7# 160렙 나이트로드#l"/>
+  <string name="$SCRIPTSTRING_ETC_2$" value="[CN]어떤 세팅을 원하십니까?#b&#13;&#10;#L0#운영자로 전직#l&#13;&#10;#L1#다른 직업으로 전직#l&#13;&#10;#L2#장인의 혼 배우기#l&#13;&#10;#L3#메이커 배우기&amp;스킬레벨업#l&#13;&#10;#L4#4차 스킬 배우기#l&#13;&#10;#L6#라이딩 스킬 매우기#l&#13;&#10;#L5#직업별 무기 받기#l&#13;&#10;#L7#피라미드 필살기 배우기#l"/>
+  <string name="$SCRIPTSTRING_ETC_20$" value="[CN]받고 싶은 아이템을 선택해."/>
+  <string name="$SCRIPTSTRING_ETC_200$" value="[CN]레벨 60가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_201$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_202$" value="[CN]레벨 60가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_203$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_204$" value="[CN]소비창에 남는 공간이 없어 표창을 주지 못했어. 따로 받아~ 꼭 다음을 눌러줘"/>
+  <string name="$SCRIPTSTRING_ETC_205$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_206$" value="[CN]소비창에 남는 공간이 없어 표창을 주지 못했어. 따로 받아~ 꼭 다음을 눌러줘"/>
+  <string name="$SCRIPTSTRING_ETC_207$" value="[CN]레벨 70가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_208$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_209$" value="[CN]레벨 70가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_21$" value="[CN]장비 창에 빈 칸이 있는지 확인해 봐."/>
+  <string name="$SCRIPTSTRING_ETC_210$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_211$" value="[CN]소비창에 남는 공간이 없어 표창을 주지 못했어. 따로 받아~ 그리고 꼭 다음을 눌러줘."/>
+  <string name="$SCRIPTSTRING_ETC_212$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_213$" value="[CN]소비창에 남는 공간이 없어 표창을 주지 못했어. 따로 받아~ 그리고 꼭 다음을 눌러줘."/>
+  <string name="$SCRIPTSTRING_ETC_214$" value="[CN]레벨 100가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_215$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_216$" value="[CN]레벨 100가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_217$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_218$" value="[CN]소비창에 남는 공간이 없어 표창을 주지 못했어. 따로 받아~ 그리고 꼭 다음을 눌러줘."/>
+  <string name="$SCRIPTSTRING_ETC_219$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_22$" value="[CN]매니저로 전직하시겠습니까?"/>
+  <string name="$SCRIPTSTRING_ETC_220$" value="[CN]소비창에 남는 공간이 없어 표창을 주지 못했어. 따로 받아~ 그리고 꼭 다음을 눌러줘."/>
+  <string name="$SCRIPTSTRING_ETC_221$" value="[CN]레벨 120가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_222$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_223$" value="[CN]레벨 120가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_224$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_225$" value="[CN]소비창에 남는 공간이 없어 표창을 주지 못했어. 따로 받아~그리고 꼭 다음을 눌러줘."/>
+  <string name="$SCRIPTSTRING_ETC_226$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_227$" value="[CN]소비창에 남는 공간이 없어 표창을 주지 못했어. 따로 받아~ 그리고 꼭 다음을 눌러줘."/>
+  <string name="$SCRIPTSTRING_ETC_228$" value="[CN]레벨 160가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_229$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_23$" value="[CN]다음에 다시 찾아와 주세요."/>
+  <string name="$SCRIPTSTRING_ETC_230$" value="[CN]레벨 160가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_231$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_232$" value="[CN]소비창에 남는 공간이 없어 표창을 주지 못했어. 따로 받아~그리고 꼭 다음을 눌러줘."/>
+  <string name="$SCRIPTSTRING_ETC_233$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_234$" value="[CN]소비창에 남는 공간이 없어 표창을 주지 못했어. 따로 받아~ 그리고 꼭 다음을 눌러줘."/>
+  <string name="$SCRIPTSTRING_ETC_235$" value="[CN]또 골라~#b&#13;&#10;#L0# 60렙 인파이터#l&#13;&#10;#L1# 60렙 건슬링거#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_236$" value="[CN]#L8# 70렙 인파이터#l&#13;&#10;#L9# 70렙 건슬링거#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_237$" value="[CN]#L2# 100렙 인파이터#l&#13;&#10;#L3# 100렙 건슬링거#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_238$" value="[CN]#L4# 120렙 인파이터#l&#13;&#10;#L5# 120렙 건슬링거#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_239$" value="[CN]#L6# 160렙 인파이터#l&#13;&#10;#L7# 160렙 건슬링거#l"/>
+  <string name="$SCRIPTSTRING_ETC_24$" value="[CN]장비칸을 한 칸 비워주세요."/>
+  <string name="$SCRIPTSTRING_ETC_240$" value="[CN]레벨 60가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_241$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_242$" value="[CN]레벨 60가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_243$" value="[CN]레벨 60가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_244$" value="[CN]소비창에 남는 공간이 없어 불릿을 주지 못했어. 따로 받아~ 꼭 다음을 눌러줘"/>
+  <string name="$SCRIPTSTRING_ETC_245$" value="[CN]레벨 70이 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_246$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_247$" value="[CN]레벨 70이 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_248$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_249$" value="[CN]소비창에 남는 공간이 없어 표창을 주지 못했어. 따로 받아~ 그리고 꼭 다음을 눌러줘."/>
+  <string name="$SCRIPTSTRING_ETC_25$" value="[CN]이제부터 당신의 직업은 매니저입니다."/>
+  <string name="$SCRIPTSTRING_ETC_250$" value="[CN]레벨 100가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_251$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_252$" value="[CN]레벨 100가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_253$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_254$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_255$" value="[CN]레벨 120가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_256$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_257$" value="[CN]레벨 120가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_258$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_259$" value="[CN]소비창에 남는 공간이 없어 표창을 주지 못했어. 따로 받아~ 그리고 꼭 다음을 눌러줘."/>
+  <string name="$SCRIPTSTRING_ETC_26$" value="[CN]당신은 이미 매니저입니다."/>
+  <string name="$SCRIPTSTRING_ETC_260$" value="[CN]레벨 160가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_261$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_262$" value="[CN]레벨 160가 안되잖아. 올리고 와"/>
+  <string name="$SCRIPTSTRING_ETC_263$" value="[CN]장비창과 소비창이 충분히 비어있는지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_ETC_264$" value="[CN]소비창에 남는 공간이 없어 표창을 주지 못했어. 따로 받아~ 그리고 꼭 다음을 눌러줘."/>
+  <string name="$SCRIPTSTRING_ETC_265$" value="[CN]소비창에 빈칸이 부족해서 책을 주지 못했어. 창을 비우고 다시 말을 걸어줘."/>
+  <string name="$SCRIPTSTRING_ETC_266$" value="[CN]배우고 싶은 스킬을 선택하세요&#13;&#10;#b#L3# 장인의 혼#l&#13;&#10;#L4# 몬스터 라이딩#l&#13;&#10;#L5# 영웅의 메아리#l&#13;&#10;#L7# 메이커#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_267$" value="[CN]유용하게 사용하세요."/>
+  <string name="$SCRIPTSTRING_ETC_268$" value="[CN]배우고 싶은 스킬 코드를 입력해 주세요"/>
+  <string name="$SCRIPTSTRING_ETC_269$" value="[CN]안녕하세요. 이곳은 운영자 사무실입니다. 저에게 용무가 있으시다면 운영자님과 함께 방문해 주세요."/>
+  <string name="$SCRIPTSTRING_ETC_27$" value="[CN]뭐 해줄까?&#13;&#10;#b#L0# 1차 전직하기#l&#13;&#10;#L1# 2차 전직하기#l&#13;&#10;#L2# 3차 전직하기#l&#13;&#10;#L3# 4차 전직하기#l&#13;&#10;#L4# 능력치 세팅#l&#13;&#10;#L5# 메소 얻기#l&#13;&#10;#L6# 직업별 무기 아이템 얻기#l&#13;&#10;#L7# 직업별 방어구 아이템 얻기#l&#13;&#10;#L8# 스킬(SP) 포인트 얻기#l&#13;&#10;#L9# 물약 및 기타 아이템 얻기#l&#13;&#10;#L10# 무기 전용 주문서 얻기#l&#13;&#10;#L11# 방어구 전용 주문서 얻기#l&#13;&#10;#L12# 표창 및 화살 얻기#l&#13;&#10;#L13# 남은 AP, SP 없애기#l&#13;&#10;#L14# 펫 경험치 얻기#l&#13;&#10;#L15# 인기도 얻기#l&#13;&#10;#L16# 한방세팅#l&#13;&#10;#L17# 4차 스킬 익히기#l&#13;&#10;#L18# 4차 스킬북 받기#l&#13;&#10;#L19# 공용 스킬 배우기#l&#13;&#10;#L20# 스킬 배우기(코드로)#l"/>
+  <string name="$SCRIPTSTRING_ETC_270$" value="[CN]안녕하세요. #b#h0##k님! 들으셨나요? 이번에 원활한 길드 운영을 위해 길드게시판과 길드연합 제도가 추가되었는데요. 이를 기념하기 위해서 #b우리끼리 길드스샷#k이벤트가 진행중이랍니다. 길드원들의 단합된 모습을 한 장의 스크린샷으로 남겨서 응모하시면 월드별로 한 길드를 추첨해서 선물을 드리고 있답니다."/>
+  <string name="$SCRIPTSTRING_ETC_271$" value="[CN]좀 더 멋진 사진들을 많이 찍으시라고 특별 이벤트 스튜디오를 준비했습니다. 스튜디오로 이동할 수 있는 초대권을 #b500메소#k에 나눠드리고 있는데 받으시겠어요?"/>
+  <string name="$SCRIPTSTRING_ETC_272$" value="[CN]물론 스튜디오 밖에서도 더 멋진 스크린샷을 찍을 수 있죠. 멋진 스크린샷을 찍어서 꼭 응모해 보세요."/>
+  <string name="$SCRIPTSTRING_ETC_273$" value="[CN]메이플아일랜드에서는 스튜디오맵으로 이동하실 수 없습니다. 빅토리아 아일랜드로 이동한 뒤에 초대권을 받아주세요."/>
+  <string name="$SCRIPTSTRING_ETC_274$" value="[CN]500메소는 가지고 계신가요? 아니면 소비창에 빈 칸이 한 칸 이상 있는지 확인해 주세요."/>
+  <string name="$SCRIPTSTRING_ETC_275$" value="[CN]좋은 스크린샷을 많이 찍어오시길 바래요"/>
+  <string name="$SCRIPTSTRING_ETC_276$" value="[CN]안녕하신가! 나는 30년째 패밀리의 리더로 활동하고 있는 알이라고 하네. 패밀리에 대해 궁금하지 않은가? &#13;&#10;#b#L0# 패밀리가 뭐죠?#l&#13;&#10;#L1# 명성도가 뭔가요?#l&#13;&#10;#L2# 명성도는 어디에 쓰나요? #l&#13;&#10;#L3# 훈장을 받고 싶어요. #l"/>
+  <string name="$SCRIPTSTRING_ETC_277$" value="[CN]패밀리는 말 그대로 가족과도 같은 사람들이지. 리더는 그 패밀리를 이끄는 사람이고. 한 가족을 이끄는 자라면 반드시 자기가 책임지는 가족원들을 돌보아 주어야 하네."/>
+  <string name="$SCRIPTSTRING_ETC_278$" value="[CN]응? 돌봐주지 않으면 어떻게 되냐고? 그거야... 허헛, 직접 그렇게 해보면 알게 될 것일세. 자기 밑에 있는 수 많은 패밀리원들이 머지 않아 인품이 더 훌륭한 리더를 찾아서 떠나버릴 것이란 걸..."/>
+  <string name="$SCRIPTSTRING_ETC_279$" value="[CN]명성도는 엘더가 자신의 주니어를 얼마나 잘 키웠는지 알 수 있는 척도라네. 엘더는 자신의 주니어가 잘 성장하도록 여러 가지로 도와주어야 하지. 좋은 무기를 주던, 메소를 지원해 주던, 방법은 상관이 없네."/>
+  <string name="$SCRIPTSTRING_ETC_28$" value="[CN]뭘로 1차 전직 하고 싶어?#b&#13;&#10;#L0# 초보자#l&#13;&#10;#L1# 검사(전사 1차)#l&#13;&#10;#L2# 매지션(마법사 1차)#l&#13;&#10;#L3# 아처(궁수 1차)#l&#13;&#10;#L4# 로그(도적 1차)#l&#13;&#10;#L5# 해적#l&#13;&#10;#L6# 노블레스#l&#13;&#10;#L7# 소울마스터#l&#13;&#10;#L8# 플레임위자드#l&#13;&#10;#L9# 윈드브레이커#l&#13;&#10;#L10# 나이트워커#l&#13;&#10;#L11# 스트라이커#l&#13;&#10;#L12# 무명#l&#13;&#10;#L13# 아란#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_280$" value="[CN]중요한 것은 #b내가 보살피는 주니어가 성장할수록 그들을 잘 지원해 준 내 명성도가 올라간다#k는 것이지. "/>
+  <string name="$SCRIPTSTRING_ETC_281$" value="[CN]유명해진 모험가들은 모험에 대해서 그들만의 특별한 노하우가 있다네. 자기만 알고 앞만 보고 달리는 다른 모험가들은 절대 이해할 수 없는, 자신의 주니어들을 지도하다가 깨닫게 된 비법들이지. 원래 남에게 가르쳐줄 때 더 배우는 게 많은 법이네. 그리고 이들은 자신이 익힌 비법으로 남들이 상상할 수도 없는 특별한 혜택을 누리게 되는데, 이를 #b이름난 모험가의 특권#k이라고 부른다네."/>
+  <string name="$SCRIPTSTRING_ETC_282$" value="[CN]명성도가 올라간다는 것은 그만큼 많은 특권을 누리고 있다는 의미이니 이를 잘 이해하고 이용한다면 남들보다 앞서갈 수 있는 유리한 고지를 밟는 것이라네. 하지만 그러한 특권을 사용하는 것은 결국 자신의 명성에 대한 의혹을 낳게 되지. 남들이 좋게 보지 않을 수도 있다는 뜻이네. 아, 걱정은 말게나. 다른 피해는 없고 그저 명성도가 조금 하락하는 것 뿐이니..."/>
+  <string name="$SCRIPTSTRING_ETC_283$" value="[CN]허엇~! 자네!! 정말 대단하군! 자네와 자네 주니어가 만든 이 거대한 인맥을 보게나! 자네를 따르는 하위 패밀리원이 무려 "/>
+  <string name="$SCRIPTSTRING_ETC_284$" value="[CN]명에 달하다니... 사실 난 자네가 이렇게까지 잘 해낼 줄은 진짜 몰랐다네. 자네의 놀라운 리더쉽에 고개 숙여 경의를 표하지."/>
+  <string name="$SCRIPTSTRING_ETC_285$" value="[CN]장비창에 빈 칸이 없는 건 아닌지 확인해 주시오."/>
+  <string name="$SCRIPTSTRING_ETC_286$" value="[CN]자네에게 #b대가족을 이끄는 자#k라는 칭호를 내리지. 달리어라는 양반이 이 대륙에 와 있더군... 나도 24년 전 그에게서 칭호를 내리는 것을 허락받은 몸이니 자네에게 이런 칭호를 줘도 괜찮겠지."/>
+  <string name="$SCRIPTSTRING_ETC_287$" value="[CN]아 맞다. 중요한 것을 잊을 뻔 했군. 내가 주는 이 칭호는 자격을 상실하는 순간 자동으로 잃어버리게 되네. 달리어의 말에 의하면 스페셜 훈장이라나? 하지만 하위 패밀리원의 수를 1,000명 이상으로 잘 유지만 하면 칭호를 잃는 일은 없을 것이니 너무 걱정 말게나."/>
+  <string name="$SCRIPTSTRING_ETC_288$" value="[CN]그런데 자네는 벌써 이 칭호의 주인이군. 후훗, 다음에 자네가 이 훈장을 잃었을 때 다시 도전해보도록 하시게나. 하위 패밀리원이 #r1,000명#k보다 적어지면 칭호를 잃게 되니 말일세..."/>
+  <string name="$SCRIPTSTRING_ETC_289$" value="[CN]어디보자... 자네의 하위 패밀리원은 "/>
+  <string name="$SCRIPTSTRING_ETC_29$" value="[CN]뭘로 2차 전직 하고 싶어?#b&#13;&#10;#L0# 파이터(전사 2차)#l&#13;&#10;#L1# 페이지(전사 2차)#l&#13;&#10;#L2# 스피어맨(전사 2차)#l&#13;&#10;#L3# 불, 독 위자드(마법사 2차)#l&#13;&#10;#L4# 얼음, 번개 위자드(마법사 2차)#l&#13;&#10;#L5# 클레릭(마법사 2차)#l&#13;&#10;#L6# 헌터(궁수 2차)#l&#13;&#10;#L7# 사수(궁수 2차)#l&#13;&#10;#L8# 어쌔신(도적 2차)#l&#13;&#10;#L9# 시프(도적 2차)#l&#13;&#10;#L10# 인파인터(해적 2차)#l&#13;&#10;#L11# 건슬링거(해적 2차)#l&#13;&#10;#L12# 소울마스터#l&#13;&#10;#L13# 플레임위자드#l&#13;&#10;#L14# 윈드브레이커#l&#13;&#10;#L15# 나이트워커#l&#13;&#10;#L16# 스트라이커#l&#13;&#10;#L17# 아란#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_290$" value="[CN]명이로군. 훈장이라면 칭호의 주인을 나타내는 증표와도 같은 것인데 자네가 그걸 받겠다고? 핫핫핫. 자네를 따르는 하위 패밀리원들이 #r1,000명#k이 넘어가는 일이 생기면 내가 자네에게 칭호를 주지! 뭐, 내 패밀리원을 다 합쳐도 300명도 안 됐었으니 자네가 1,000명을 달성하는 일은 절대 없을 것 같지만..."/>
+  <string name="$SCRIPTSTRING_ETC_291$" value="[CN]어이구 머리야... 나중에 다시 오게. 갑자기 웬 두통이..."/>
+  <string name="$SCRIPTSTRING_ETC_292$" value="[CN]뭔가 이상하군... 좀 이따가 다시 말 걸어 보게."/>
+  <string name="$SCRIPTSTRING_ETC_293$" value="[CN]퀘스트를 수락하겠나?"/>
+  <string name="$SCRIPTSTRING_ETC_294$" value="[CN]수락거절"/>
+  <string name="$SCRIPTSTRING_ETC_295$" value="[CN]수락완료"/>
+  <string name="$SCRIPTSTRING_ETC_296$" value="[CN]어떤 상품을 받아보시겠습니까?&#13;&#10;&#13;&#10;#b#L0# 아란의 얼음상자#l&#13;&#10;#L1# 리린의 얼음상자#l&#13;&#10;#L2# 류호의 얼음상자#l&#13;&#10;#L3# 펭펭의 얼음상자#l&#13;&#10;#L4# 오로라반지(1일)#l&#13;&#10;#L5# 마법모래시계1일#l&#13;&#10;#L6# 순간이동의 돌#l&#13;&#10;#L7# 미네르바의부엉이#l&#13;&#10;#L8# 오로라 반지(7일)#l&#13;&#10;#L9# 운명의 수레바퀴#l&#13;&#10;#L10# 마법모래시계20일#l&#13;&#10;#L11# 헤네시스성형쿠폰#l&#13;&#10;#L12# 고성능순간이동돌#l&#13;&#10;#L13# 로얄 헤어쿠폰#l&#13;&#10;#L14# 보따리상인묘묘#l"/>
+  <string name="$SCRIPTSTRING_ETC_297$" value="[CN]이 상품은 추첨현물 상품입니다. 게임에서는 지급하지 않습니다."/>
+  <string name="$SCRIPTSTRING_ETC_298$" value="[CN]암호"/>
+  <string name="$SCRIPTSTRING_ETC_299$" value="[CN]메이플6주년"/>
+  <string name="$SCRIPTSTRING_ETC_3$" value="[CN]이미 운영자 신분을 취득하고 계십니다."/>
+  <string name="$SCRIPTSTRING_ETC_30$" value="[CN]뭘로 3차 전직 하고 싶어?#b&#13;&#10;#L0# 크루세이더(전사 3차)#l&#13;&#10;#L1# 나이트(전사 3차)#l&#13;&#10;#L2# 드래곤나이트(전사 3차)#l&#13;&#10;#L3# 불, 독 메이지(마법사 3차)#l&#13;&#10;#L4# 얼음, 번개 메이지(마법사 3차)#l&#13;&#10;#L5# 프리스트(마법사 3차)#l&#13;&#10;#L6# 레인저(궁수 3차)#l&#13;&#10;#L7# 저격수(궁수 3차)#l&#13;&#10;#L8# 허밋(도적 3차)#l&#13;&#10;#L9# 시프마스터(도적 3차)#l&#13;&#10;#L10# 인파인터(해적 3차)#l&#13;&#10;#L11# 건슬링거(해적 3차)#l&#13;&#10;#L12# 소울마스터#l&#13;&#10;#L13# 플레임위자드#l&#13;&#10;#L14# 윈드브레이커#l&#13;&#10;#L15# 나이트워커#l&#13;&#10;#L16# 스트라이커#l&#13;&#10;#L17# 아란#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_300$" value="[CN]무엇을 하시겠습니까?&#13;&#10;#b#L0# 이것저것 올리기 #l&#13;&#10;#L1# 이것저것 내리기 #l&#13;&#10;#L2# 직업 전직 #l&#13;&#10;#L3# 스킬 받기 #l&#13;&#10;#L4# 아이템 받기 #l&#13;&#10;#L5# 아하하하(초보자 초기화)#l&#13;&#10;#L6# 로그 남기기#l&#13;&#10;#L7# 퀘스트 정보 세팅#l&#13;&#10;#L8# 퀘스트 정보 확인#l&#13;&#10;#L9# 퀘스트 완료 설정#l&#13;&#10;#L10# 프리미엄 캐릭터 생성#l&#13;&#10;#L11# 연출모드#l&#13;&#10;#L12# 오프닝 시작 #l&#13;&#10;#L13# 오프닝 종료#l&#13;&#10;#L14# 퀘스트 정보 변경#l&#13;&#10;#L15# 순위 출력#l&#13;&#10;#L16#토르뿔 받기#l&#13;&#10;#L17#신규 헤어 테스트#l&#13;&#10;#L18# 현물상품 받기 테스트#l &#13;&#10;#L19# 페페킹 무기를 주세요#l"/>
+  <string name="$SCRIPTSTRING_ETC_301$" value="[CN]무엇을 하시겠습니까?&#13;&#10;#b#L0# AP 올리기#l&#13;&#10;#L1# STR 변경#l&#13;&#10;#L2# DEX 변경#l&#13;&#10;#L3# INT 변경#l&#13;&#10;#L4#"/>
+  <string name="$SCRIPTSTRING_ETC_302$" value="[CN]AP를 얼마 올리시겠습니까?"/>
+  <string name="$SCRIPTSTRING_ETC_303$" value="[CN]STR을 얼마 올리시겠습니까?"/>
+  <string name="$SCRIPTSTRING_ETC_304$" value="[CN]DEX을 얼마 올리시겠습니까?"/>
+  <string name="$SCRIPTSTRING_ETC_305$" value="[CN]INT을 얼마 올리시겠습니까?"/>
+  <string name="$SCRIPTSTRING_ETC_306$" value="[CN]LUK을 얼마 올리시겠습니까?"/>
+  <string name="$SCRIPTSTRING_ETC_307$" value="[CN]EXP을 얼마나 올리시겠습니까?"/>
+  <string name="$SCRIPTSTRING_ETC_308$" value="[CN]MHP를 얼마나 올리시겠습니까?"/>
+  <string name="$SCRIPTSTRING_ETC_309$" value="[CN]MMP를 얼마나 올리시겠습니까?"/>
+  <string name="$SCRIPTSTRING_ETC_31$" value="[CN]뭘로 4차 전직 하고 싶어?#b&#13;&#10;#L0# 히어로(전사 4차)#l&#13;&#10;#L1# 팔라딘(전사 4차)#l&#13;&#10;#L2# 다크나이트(전사 4차)#l&#13;&#10;#L3# 불, 독 아크메이지(마법사 4차)#l&#13;&#10;#L4# 얼음, 번개 아크메이지(마법사 4차)#l&#13;&#10;#L5# 비숍(마법사 4차)#l&#13;&#10;#L6# 보우마스터(궁수 4차)#l&#13;&#10;#L7# 신궁(궁수 4차)#l&#13;&#10;#L8# 나이트 로드(도적 4차)#l&#13;&#10;#L9# 새도어(도적 4차)#l&#13;&#10;#L10# 인파인터(해적 4차)#l&#13;&#10;#L11# 건슬링거(해적 4차)#l&#13;&#10;#L12# 소울마스터#l&#13;&#10;#L13# 플레임위자드#l&#13;&#10;#L14# 윈드브레이커#l&#13;&#10;#L15# 나이트워커#l&#13;&#10;#L16# 스트라이커#l&#13;&#10;#L17# 아란#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_310$" value="[CN]SP를 얼마나 올리시겠습니까?"/>
+  <string name="$SCRIPTSTRING_ETC_311$" value="[CN]무엇을 하시겠습니까?&#13;&#10;#b#L0# AP 내리기#l&#13;&#10;#L1# STR 변경#l&#13;&#10;#L2# DEX 변경#l&#13;&#10;#L3# INT 변경#l&#13;&#10;#L4#"/>
+  <string name="$SCRIPTSTRING_ETC_312$" value="[CN]AP를 얼마 내리시겠습니까?"/>
+  <string name="$SCRIPTSTRING_ETC_313$" value="[CN]STR을 얼마 내리시겠습니까?"/>
+  <string name="$SCRIPTSTRING_ETC_314$" value="[CN]DEX을 얼마 내리시겠습니까?"/>
+  <string name="$SCRIPTSTRING_ETC_315$" value="[CN]INT을 얼마 내리시겠습니까?"/>
+  <string name="$SCRIPTSTRING_ETC_316$" value="[CN]LUK을 얼마 내리시겠습니까?"/>
+  <string name="$SCRIPTSTRING_ETC_317$" value="[CN]EXP을 얼마나 올리시겠습니까?"/>
+  <string name="$SCRIPTSTRING_ETC_318$" value="[CN]전직하고"/>
+  <string name="$SCRIPTSTRING_ETC_319$" value="[CN]배우고 싶은 스킬 설정"/>
+  <string name="$SCRIPTSTRING_ETC_32$" value="[CN]STR, DEX, INT, LUK만 세팅해 준다. 뭘로 세팅해 줄까?#b&#13;&#10;#L0# 30 레벨 전사 세팅#l&#13;&#10;#L1# 30 레벨 마법사 세팅#l&#13;&#10;#L2# 30 레벨 궁수 세팅#l&#13;&#10;#L3# 30 레벨 힘 단검도적 세팅#l&#13;&#10;#L4# 30 레벨 럭 단검, 표창도적 세팅#l&#13;&#10;#L5# 30 레벨 인파이터 세팅#l&#13;&#10;#L6# 30 레벨 건슬링거 세팅#l&#13;&#10;#L7# 70 레벨 전사 세팅#l&#13;&#10;#L8# 70 레벨 마법사 세팅#l&#13;&#10;#L9# 70 레벨 궁수 세팅#l&#13;&#10;#L10# 70 레벨 힘 단검도적 세팅#l&#13;&#10;#L11# 70 레벨 럭 단검, 표창도적 세팅#l&#13;&#10;#L12# 70 레벨 인파이터 세팅#l&#13;&#10;#L13# 70 레벨 건슬링거 세팅#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_320$" value="[CN]받고 싶은 아이템"/>
+  <string name="$SCRIPTSTRING_ETC_321$" value="[CN]갯수"/>
+  <string name="$SCRIPTSTRING_ETC_322$" value="[CN]어떤 퀘스트 정보를 바꾸시毛楮?"/>
+  <string name="$SCRIPTSTRING_ETC_323$" value="[CN]어떤 정보를 바꾸시毛楮?"/>
+  <string name="$SCRIPTSTRING_ETC_324$" value="[CN]얼마로 바꾸시겠어요?"/>
+  <string name="$SCRIPTSTRING_ETC_325$" value="[CN]어떤 퀘스트를 보시겠어요?"/>
+  <string name="$SCRIPTSTRING_ETC_326$" value="[CN]어떤 정보를 보시겠어요?"/>
+  <string name="$SCRIPTSTRING_ETC_327$" value="[CN]어떤 퀘스트 정보를 완료로 돌리시겠어요?"/>
+  <string name="$SCRIPTSTRING_ETC_328$" value="[CN]캐릭터 이름 입력"/>
+  <string name="$SCRIPTSTRING_ETC_329$" value="[CN]죄송합니다. 지금은 캐릭터를 만들 수 없습니다. 그냥 캐릭터 선택 화면에서 직접 만드세요."/>
+  <string name="$SCRIPTSTRING_ETC_33$" value="[CN]어떤 직업 무기 받고 싶어?#b&#13;&#10;#L0# 전사#l&#13;&#10;#L1# 마법사#l&#13;&#10;#L2# 궁수#l&#13;&#10;#L3# 도적#l&#13;&#10;#L4# 해적#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_330$" value="[CN]옳바르지 않은 이름입니다."/>
+  <string name="$SCRIPTSTRING_ETC_331$" value="[CN]캐릭터 슬롯이 부족합니다. 캐시샵에서 구입하세요."/>
+  <string name="$SCRIPTSTRING_ETC_332$" value="[CN]캐릭터 슬롯이 부족합니다. 기존 캐릭터를 삭제하고 생성하세요."/>
+  <string name="$SCRIPTSTRING_ETC_333$" value="[CN]어떤 것을 하시겠습니까?&#13;&#10;#L0##b 디렉션 모드 시작#l&#13;&#10;#L1# 디렉션 모드 종료#l&#13;&#10;#L2# 솔로 모드 시작#l&#13;&#10;#L3# 솔로 모드 종료#l"/>
+  <string name="$SCRIPTSTRING_ETC_334$" value="[CN]어떤 퀘스트를 보시겠어요?"/>
+  <string name="$SCRIPTSTRING_ETC_335$" value="[CN]어떻게 바꾸시겠음?"/>
+  <string name="$SCRIPTSTRING_ETC_336$" value="[CN]직업 내 순위 : "/>
+  <string name="$SCRIPTSTRING_ETC_337$" value="[CN]위"/>
+  <string name="$SCRIPTSTRING_ETC_338$" value="[CN]인벤토리 비워줘."/>
+  <string name="$SCRIPTSTRING_ETC_339$" value="[CN]성공"/>
+  <string name="$SCRIPTSTRING_ETC_34$" value="[CN]어떤 무기 아이템 받고 싶어?#b&#13;&#10;#L0# 30 레벨 전사 무기#l&#13;&#10;#L1# 70 레벨 전사 무기#l&#13;&#10;#L2# 80 레벨 전사 무기#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_340$" value="[CN]테스트를 원하시는 헤어코드를 입력해 주세요.&#13;&#10;(헤어테스트를 위해서는 헤네시스 헤어샵 헤어쿠폰 1개가 필요합니다.)"/>
+  <string name="$SCRIPTSTRING_ETC_341$" value="[CN]잘못된 헤어코드입니다."/>
+  <string name="$SCRIPTSTRING_ETC_342$" value="[CN]헤어스타일을 바꾸시겠습니까?"/>
+  <string name="$SCRIPTSTRING_ETC_343$" value="[CN]성공"/>
+  <string name="$SCRIPTSTRING_ETC_344$" value="[CN]헤네시스 헤어샵 헤어쿠폰이 필요합니다."/>
+  <string name="$SCRIPTSTRING_ETC_345$" value="[CN]리턴값 : "/>
+  <string name="$SCRIPTSTRING_ETC_346$" value="[CN]리턴값 : "/>
+  <string name="$SCRIPTSTRING_ETC_347$" value="[CN]들어왔다.일단은 발동"/>
+  <string name="$SCRIPTSTRING_ETC_348$" value="[CN]#e장비창#n에 빈칸을 #e41개#n 이상 만들어오세요."/>
+  <string name="$SCRIPTSTRING_ETC_349$" value="[CN]테스트"/>
+  <string name="$SCRIPTSTRING_ETC_35$" value="[CN]장비창에 빈칸 8개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_350$" value="[CN]상태 이상 선택 &#13;&#10;#L0#(그만 입력한다)#l&#13;&#10;#b#L1# PAD#l&#13;&#10;#L2# PDD#l&#13;&#10;#L3# MAD#l&#13;&#10;#L4# MDD#l&#13;&#10;#L5# ACC#l&#13;&#10;#L6# EVA#l&#13;&#10;#L7# SPEED#l&#13;&#10;#L8# 물공강화#l&#13;&#10;#L9# 마공강화#l&#13;&#10;#L10# 물방강화#l&#13;&#10;#L11# 마방강화#l&#13;&#10;#L12# 스킬 봉인#l&#13;&#10;#L13# 물리 카운터#l&#13;&#10;#L14# 마법 카운터#l&#13;&#10;#L15# 물리 이뮨#l&#13;&#10;#L16# 마법 이뮨#l&#13;&#10;#L17# 하드스킨#l"/>
+  <string name="$SCRIPTSTRING_ETC_351$" value="[CN]PAD 상태 이상 적용"/>
+  <string name="$SCRIPTSTRING_ETC_352$" value="[CN]PDD 상태 이상 적용"/>
+  <string name="$SCRIPTSTRING_ETC_353$" value="[CN]MAD 상태 이상 적용"/>
+  <string name="$SCRIPTSTRING_ETC_354$" value="[CN]MDD 상태 이상 적용"/>
+  <string name="$SCRIPTSTRING_ETC_355$" value="[CN]ACC 상태 이상 적용"/>
+  <string name="$SCRIPTSTRING_ETC_356$" value="[CN]EVA 상태 이상 적용"/>
+  <string name="$SCRIPTSTRING_ETC_357$" value="[CN]SPEED 상태 이상 적용"/>
+  <string name="$SCRIPTSTRING_ETC_358$" value="[CN]물공강화 상태 이상 적용"/>
+  <string name="$SCRIPTSTRING_ETC_359$" value="[CN]마공강화 상태 이상 적용"/>
+  <string name="$SCRIPTSTRING_ETC_36$" value="[CN]장비창에 빈칸 8개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_360$" value="[CN]물방강화 상태 이상 적용"/>
+  <string name="$SCRIPTSTRING_ETC_361$" value="[CN]마방강화 상태 이상 적용"/>
+  <string name="$SCRIPTSTRING_ETC_362$" value="[CN]스킬봉인 상태 이상 적용"/>
+  <string name="$SCRIPTSTRING_ETC_363$" value="[CN]물리카운터 상태 이상 적용"/>
+  <string name="$SCRIPTSTRING_ETC_364$" value="[CN]마법카운터 상태 이상 적용"/>
+  <string name="$SCRIPTSTRING_ETC_365$" value="[CN]물리이뮨 상태 이상 적용"/>
+  <string name="$SCRIPTSTRING_ETC_366$" value="[CN]마법이뮨 상태 이상 적용"/>
+  <string name="$SCRIPTSTRING_ETC_367$" value="[CN]하드스킨 상태 이상 적용"/>
+  <string name="$SCRIPTSTRING_ETC_368$" value="[CN]교환하고 싶은 세 개의 아이템 중 첫 번째 아이템을 고르시오.&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_369$" value="[CN]교환하고 싶은 세 개의 아이템 중 두 번째 아이템을 고르시오.&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_37$" value="[CN]장비창에 빈칸 8개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_370$" value="[CN]교환하고 싶은 세 개의 아이템 중 세 번째 아이템을 고르시오.&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_371$" value="[CN]정말 희귀한 물건이지? 껄껄껄~ 좋은 거래였네!"/>
+  <string name="$SCRIPTSTRING_ETC_372$" value="[CN]설치칸이 한 칸 이상 비어있는지 확인해 보게."/>
+  <string name="$SCRIPTSTRING_ETC_373$" value="[CN]아이템을 모두 가지고 있는지 확인해 보게."/>
+  <string name="$SCRIPTSTRING_ETC_374$" value="你手上的精灵吊坠好像远超需求量，不如卖给我吧？反正对你来说只是无用之物。每个我算你100金币。要和我做交易吗？"/>
+  <string name="$SCRIPTSTRING_ETC_375$" value="看来是纪念品吧？既然你本人不愿意，那也没办法。因为交易就需要彼此理解。"/>
+  <string name="$SCRIPTSTRING_ETC_376$" value="你确定你有精灵吊坠吗？"/>
+  <string name="$SCRIPTSTRING_ETC_377$" value="交易成立。双方成功实现交易无论何时都是一件好事。"/>
+  <string name="$SCRIPTSTRING_ETC_378$" value="如果有剩余的精灵吊坠，请一定要来找我。那对你来说应该不需要，但其他人说不定有用处。我出每个100金币收购。"/>
+  <string name="$SCRIPTSTRING_ETC_379$" value="#r&#13;&#10;&#13;&#10;&lt;通知&gt;&#13;&#10;交换时间：5月19日、21日、23日、25日上午10点~下午7点期间交换战利品和珍贵的椅子。请多多参与。&#13;&#10;交换条件：蓝色蜗牛壳、花蘑菇盖、蝴蝶结、树枝、绿液球、叶子中3种"/>
+  <string name="$SCRIPTSTRING_ETC_38$" value="[CN]어떤 무기 아이템 받고 싶어?#b&#13;&#10;#L0# 30 레벨 마법사 무기#l&#13;&#10;#L1# 70 레벨 마법사 무기#l&#13;&#10;#L2# 80 레벨 마법사 무기#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_380$" value="#r&#13;&#10;&#13;&#10;&#13;&#10;&lt;椅子交换通知&gt;&#13;&#10;交换橡皮擦和珍贵的椅子。&#13;&#10;#e- 交换日期#n：5月30日、6月6日、6月13日、6月20日&#13;&#10;#e- 交换时间#n：上午10点~下午7点&#13;&#10;#e- 交换条件#n：蘑菇王橡皮擦、绿水灵橡皮擦、猴子橡皮擦、&#13;&#10;                   三眼章鱼橡皮擦、大幽灵橡皮擦、木妖&#13;&#10;                    橡皮擦中3种"/>
+  <string name="$SCRIPTSTRING_ETC_381$" value="&#13;&#10;#L2# 我想交换椅子。#l"/>
+  <string name="$SCRIPTSTRING_ETC_382$" value="有什么事吗？&#13;&#10;&#13;&#10;#b#L0# 你是谁？#l&#13;&#10;#L1# 我想和你交易。#l"/>
+  <string name="$SCRIPTSTRING_ETC_383$" value="你不认识我？我可是世界首富金利奇！"/>
+  <string name="$SCRIPTSTRING_ETC_384$" value="我通过贸易赚了很多钱。如果想交易稀有的物品，随时可以来找我。"/>
+  <string name="$SCRIPTSTRING_ETC_385$" value="有点奇怪……过会再来找我吧。"/>
+  <string name="$SCRIPTSTRING_ETC_386$" value="[CN]오늘은 이미 고성능 확성기를 받아가셨습니다. 받아가신 확성기로 캐시교환 테스트를 활발히 해주시길 부탁드립니다. 감사합니다.^^*"/>
+  <string name="$SCRIPTSTRING_ETC_387$" value="[CN]캐시교환 테스트를 위해 고성능 확성기를 지급해 드리고 있습니다. 지금 받으시겠습니까?&#13;&#10;#b(1일 1회 지급)&#13;&#10;&#13;&#10;#i5072000# #t5072000# 5개"/>
+  <string name="$SCRIPTSTRING_ETC_388$" value="[CN]고성능 확성기는 1일 1회 지급해 드리고 있습니다. 오늘이 지나기 전에 지급받고 싶으시다면 다시 찾아와 주세요."/>
+  <string name="$SCRIPTSTRING_ETC_389$" value="[CN]활발할 테스트 활동 부탁드립니다. 감사합니다.(__)&gt;"/>
+  <string name="$SCRIPTSTRING_ETC_39$" value="[CN]장비창에 빈칸 2개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_390$" value="[CN]알 수 없는 오류로 아이템을 지급하지 못했습니다. 다시 시도해 주세요."/>
+  <string name="$SCRIPTSTRING_ETC_391$" value="[CN]어떤 걸 원하십니까?#b&#13;&#10;#L0#머리 바꾸기#l&#13;&#10;#L1#성형 하기#l&#13;&#10;#L2#염색하기#l&#13;&#10;#L3#피부바꾸기#l"/>
+  <string name="$SCRIPTSTRING_ETC_392$" value="[CN]어떤 머리? (ID 입력)"/>
+  <string name="$SCRIPTSTRING_ETC_393$" value="[CN]어떤 성형? (ID 입력)"/>
+  <string name="$SCRIPTSTRING_ETC_394$" value="[CN]어떤 염색? (ID 입력)"/>
+  <string name="$SCRIPTSTRING_ETC_395$" value="[CN]어떤 피부? (ID 입력)"/>
+  <string name="$SCRIPTSTRING_ETC_396$" value="[CN]유효하지 않은 ID 입니다."/>
+  <string name="$SCRIPTSTRING_ETC_397$" value="[CN]적용하시겠습니까?"/>
+  <string name="$SCRIPTSTRING_ETC_398$" value="[CN]어떤 직업군의 장비를 드릴까요?#b&#13;&#10;#L0#전사요#l&#13;&#10;#L1#법사요#l&#13;&#10;#L2#궁수요#l&#13;&#10;#L3#도적이요#l"/>
+  <string name="$SCRIPTSTRING_ETC_399$" value="[CN]지급 완료"/>
+  <string name="$SCRIPTSTRING_ETC_4$" value="[CN]정말 운영자로 전직하시겠습니까?"/>
+  <string name="$SCRIPTSTRING_ETC_40$" value="[CN]장비창에 빈칸 2개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_400$" value="[CN]인벤토리가 부족해요."/>
+  <string name="$SCRIPTSTRING_ETC_401$" value="#e#h0##n的#b真实之屋#k累计入场次数为 "/>
+  <string name="$SCRIPTSTRING_ETC_402$" value="次。"/>
+  <string name="$SCRIPTSTRING_ETC_403$" value="&#13;&#10;#L0#听取#b真实之屋#k的介绍。#l"/>
+  <string name="$SCRIPTSTRING_ETC_404$" value="&#13;&#10;#L1#我来到#b真实之屋#k的原因是什么？#l"/>
+  <string name="$SCRIPTSTRING_ETC_405$" value="#b真实之屋#k是在#r测谎仪中输入错误答案#k，被揭发为使用宏指令的角色后前往的空间。"/>
+  <string name="$SCRIPTSTRING_ETC_406$" value="进入#b真实之屋#k的角色必须保持登录游戏状态至画面上方计时器中显示的#r剩余时间#k归零才能离开。"/>
+  <string name="$SCRIPTSTRING_ETC_407$" value="在#b真实之屋#k内限制以下行为。&#13;&#10;#r - 使用传送和技能&#13;&#10; - 聊天&#13;&#10; - 使用道具&#13;&#10; - 前往商城/冒险岛拍卖场&#13;&#10; - 参加游戏内的内容和活动#k"/>
+  <string name="$SCRIPTSTRING_ETC_408$" value="#b真实之屋#k中，所需滞留时间将根据入场次数增加，#e同时将#r#e合计#n#k#r账号内角色的入场次数应用。"/>
+  <string name="$SCRIPTSTRING_ETC_409$" value="#b入场次数#k不会被测谎仪揭发，一定时间内消灭怪物后会在相应周的周日午夜零点后扣除1次。&#13;&#10;#r※ 只包含可使用测谎仪的地图的战斗时间。&#13;&#10;※所需战斗时长将随着累计入场次数增加。&#13;&#10;※如果在周日午夜零点之前，未能达到所需战斗时长，累计时长将会结转，可在下周继续累计。#k"/>
+  <string name="$SCRIPTSTRING_ETC_41$" value="[CN]장비창에 빈칸 1개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_410$" value="以后请注意#r测谎仪#k，不要再来#b真实之屋#k了。&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ETC_411$" value="你在#r测谎仪#k中输错了答案。"/>
+  <string name="$SCRIPTSTRING_ETC_412$" value="&#13;&#10;#L0#详细了解#r测谎仪#k的介绍。#l"/>
+  <string name="$SCRIPTSTRING_ETC_413$" value="#r测谎仪#k是其他玩家使用道具对怀疑使用宏指令的角色发动，或自动触发的宏指令探测系统。"/>
+  <string name="$SCRIPTSTRING_ETC_414$" value="#i03801369#&#13;&#10;如图所示，#r测谎仪#k发动后，需要在时限内准确输入画面中显示的语句。"/>
+  <string name="$SCRIPTSTRING_ETC_415$" value="准确输入的机会共有#e4次#n，要专心在给定的时间内输入正确答案，对吧？"/>
+  <string name="$SCRIPTSTRING_ETC_416$" value="请熟知上述内容，以后注意不要再进入#b真实之屋#k了。"/>
+  <string name="$SCRIPTSTRING_ETC_417$" value="你在宏指令探测系统#r&lt;找出化妆的碧欧蕾塔！&gt;#k中输错了答案。"/>
+  <string name="$SCRIPTSTRING_ETC_418$" value="&#13;&#10;#L0#详细了解#r&lt;找出化妆的碧欧蕾塔！&gt;#k的介绍。#l"/>
+  <string name="$SCRIPTSTRING_ETC_419$" value="#r&lt;找出化妆的碧欧蕾塔！&gt;#k是对怀疑使用宏指令的角色自动触发的测谎系统。"/>
+  <string name="$SCRIPTSTRING_ETC_42$" value="[CN]어떤 무기 아이템 받고 싶어?#b&#13;&#10;#L0# 30 레벨 궁수 무기#l&#13;&#10;#L1# 70 레벨 궁수 무기#l&#13;&#10;#L2# 80 레벨 궁수 무기#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_420$" value="掌握四名碧欧蕾塔中#b化妆的碧欧蕾塔#k的位置，在碧欧蕾塔们每次改变顺序时，需要选对改变后的#b化妆的碧欧蕾塔#k的位置。"/>
+  <string name="$SCRIPTSTRING_ETC_421$" value="#i03801370#&#13;&#10;如图所示，先展示#b化妆的碧欧蕾塔#k，"/>
+  <string name="$SCRIPTSTRING_ETC_422$" value="#i03801371#&#13;&#10;碧欧蕾塔们的顺序改变后，需要在时限内选择#b化妆的碧欧蕾塔#k。"/>
+  <string name="$SCRIPTSTRING_ETC_423$" value="这样的过程重复#e4次#n，#e4次#n全部都要选出#b化妆的碧欧蕾塔#k才能通过系统测试。&#13;&#10;想通过就要在碧欧蕾塔们改变顺序的时候专心观察，对吧？"/>
+  <string name="$SCRIPTSTRING_ETC_424$" value="请熟知上述内容，以后注意不要再来#b真实之屋#k了。"/>
+  <string name="$SCRIPTSTRING_ETC_425$" value="你在宏指令探测系统#r&lt;寻找正确语句！&gt;#k中输错了答案。"/>
+  <string name="$SCRIPTSTRING_ETC_426$" value="&#13;&#10;#L0##r详细了解&lt;寻找正确语句！&gt;#k的介绍。#l"/>
+  <string name="$SCRIPTSTRING_ETC_427$" value="#r&lt;寻找正确语句！&gt;#k是对怀疑使用宏指令的角色自动触发的测谎系统。 "/>
+  <string name="$SCRIPTSTRING_ETC_428$" value="#i03801745#&#13;&#10;需要在如图所示的5个语句中选出最为#b正确的语句#k。"/>
+  <string name="$SCRIPTSTRING_ETC_429$" value="一共有#e4次#n机会，选中#e3次#n最为#b正确的语句#k即可通过系统测试。"/>
+  <string name="$SCRIPTSTRING_ETC_43$" value="[CN]장비창에 빈칸 2개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_430$" value="请熟知上述内容，以后注意不要再来#b真实之屋#k了。"/>
+  <string name="$SCRIPTSTRING_ETC_431$" value="你在宏指令探测系统#r&lt;寻找透明图形&gt;#k中输错了答案。"/>
+  <string name="$SCRIPTSTRING_ETC_432$" value="&#13;&#10;#L0#详细了解#r&lt;寻找透明图形&gt;#k的介绍。#l"/>
+  <string name="$SCRIPTSTRING_ETC_433$" value="#r&lt;寻找透明图形&gt;#k是对怀疑使用宏指令的角色自动触发的测谎系统。 "/>
+  <string name="$SCRIPTSTRING_ETC_434$" value="#i03802036#&#13;&#10;小游戏开始后，画面中央#e带有颜色的图形会逐渐变得透明并移动。#n&#13;&#10;#b操作鼠标光标，将其放置在移动的图形上一段时间，即可通过系统。#k"/>
+  <string name="$SCRIPTSTRING_ETC_435$" value="请熟知上述内容，以后注意不要再来#b真实之屋#k了。"/>
+  <string name="$SCRIPTSTRING_ETC_436$" value="你在宏指令探测系统#r&lt;语音测谎仪&gt;#k中输错了答案。"/>
+  <string name="$SCRIPTSTRING_ETC_437$" value="&#13;&#10;#L0#详细了解#r&lt;语音测谎仪&gt;#k的介绍。#l"/>
+  <string name="$SCRIPTSTRING_ETC_438$" value="#r&lt;语音测谎仪&gt;#k是针对因视觉障碍而难以使用现有宏指令探测系统的勇士发动的测谎系统。 "/>
+  <string name="$SCRIPTSTRING_ETC_439$" value="&#13;&#10;任意的#e四位数字#n将设置为正确答案，在小游戏界面中点击播放按钮，正确答案将输出为普通音效。#b然后点击数字按钮，即可输入正确答案。#k&#13;&#10;#i03802037#"/>
+  <string name="$SCRIPTSTRING_ETC_44$" value="[CN]장비창에 빈칸 2개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_440$" value="共有#e60秒的限制时间#n和5次答案输入机会，限制时间结束或#b5次内无法输入正确答案，即为失败#k。"/>
+  <string name="$SCRIPTSTRING_ETC_441$" value="请熟知上述内容，以后注意不要再来#b真实之屋#k了。"/>
+  <string name="$SCRIPTSTRING_ETC_442$" value="#e#h0##n已被自动宏指令探测系统检测到，进入了#b真实之屋#k。"/>
+  <string name="$SCRIPTSTRING_ETC_443$" value="日后请注意不要进行有宏指令使用嫌疑的游玩行为。"/>
+  <string name="$SCRIPTSTRING_ETC_45$" value="[CN]장비창에 빈칸 2개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_46$" value="[CN]어떤 무기 아이템 받고 싶어?#b&#13;&#10;#L0# 30 레벨 도적 무기#l&#13;&#10;#L1# 70 레벨 도적 무기#l&#13;&#10;#L2# 80 레벨 도적 무기#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_47$" value="[CN]장비창에 빈칸 3개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_48$" value="[CN]장비창에 빈칸 3개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_49$" value="[CN]장비창에 빈칸 3개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_5$" value="[CN]#e장비창#n에 빈칸을 #e4개#n 이상 만들어오세요."/>
+  <string name="$SCRIPTSTRING_ETC_50$" value="[CN]어떤 무기 아이템 받고 싶어?#b&#13;&#10;#L0# 30 레벨 해적 무기#l&#13;&#10;#L1# 70 레벨 해적 무기#l&#13;&#10;#L2# 80 레벨 해적 무기#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_51$" value="[CN]장비창에 빈칸 2개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_52$" value="[CN]장비창에 빈칸 2개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_53$" value="[CN]장비창에 빈칸 2개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_54$" value="[CN]어떤 직업 방어구 받고 싶어?#b&#13;&#10;#L0# 전사 남자#l&#13;&#10;#L1# 전사 여자#l&#13;&#10;#L2# 마법사 남자#l&#13;&#10;#L3# 마법사 여자#l&#13;&#10;#L4# 궁수 남자#l&#13;&#10;#L5# 궁수 여자#l&#13;&#10;#L6# 도적 남자#l&#13;&#10;#L7# 도적 여자#l&#13;&#10;#L8# 해적#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_55$" value="[CN]어떤 전사 남자 방어구 아이템 받고 싶어?#b&#13;&#10;#L0# 30 레벨 전사 남자 방어구#l&#13;&#10;#L1# 70 레벨 전사 남자 방어구#l&#13;&#10;#L2# 80 레벨 전사 남자 방어구#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_56$" value="[CN]장비창에 빈칸 7개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_57$" value="[CN]장비창에 빈칸 8개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_58$" value="[CN]장비창에 빈칸 7개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_59$" value="[CN]어떤 전사 여자 방어구 아이템 받고 싶어?#b&#13;&#10;#L0# 30 레벨 전사 여자 방어구#l&#13;&#10;#L1# 70 레벨 전사 여자 방어구#l&#13;&#10;#L2# 80 레벨 전사 여자 방어구#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_6$" value="[CN]이제부터 당신의 직업은 운영자입니다."/>
+  <string name="$SCRIPTSTRING_ETC_60$" value="[CN]장비창에 빈칸 6개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_61$" value="[CN]장비창에 빈칸 8개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_62$" value="[CN]장비창에 빈칸 7개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_63$" value="[CN]어떤 마법사 남자 방어구 아이템 받고 싶어?#b&#13;&#10;#L0# 30 레벨 마법사 남자 방어구#l&#13;&#10;#L1# 70 레벨 마법사 남자 방어구#l&#13;&#10;#L2# 80 레벨 마법사 남자 방어구#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_64$" value="[CN]장비창에 빈칸 6개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_65$" value="[CN]장비창에 빈칸 7개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_66$" value="[CN]장비창에 빈칸 7개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_67$" value="[CN]어떤 마법사 여자 방어구 아이템 받고 싶어?#b&#13;&#10;#L0# 30 레벨 마법사 여자 방어구#l&#13;&#10;#L1# 70 레벨 마법사 여자 방어구#l&#13;&#10;#L2# 80 레벨 마법사 여자 방어구#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_68$" value="[CN]장비창에 빈칸 7개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_69$" value="[CN]장비창에 빈칸 7개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_7$" value="[CN]어떤 직업군으로 전직하시겠습니까?#b&#13;&#10;(직업만 바뀔 뿐,세부 스테이터스와 MP/HP의 수치는 바뀌지 않습니다.)#k#b&#13;&#10;#L0#검사로 전직#l&#13;&#10;#L1#마법사로 전직#l&#13;&#10;#L2#궁수로 전직#l&#13;&#10;#L3#도적으로 전직#l&#13;&#10;#L4#해적으로 전직#l&#13;&#10;#L5#초보자로 전직#l&#13;&#10;&#13;&#10;#L6#노블레스로 전직#l&#13;&#10;#L7#소울마스터로 전직#l&#13;&#10;#L8#플레임위자드로 전직#l&#13;&#10;#L9#윈드브레이커로 전직#l&#13;&#10;#L10#나이트워커로 전직#l&#13;&#10;#L11#스트라이커로 전직#l&#13;&#10;#L12#무명#l&#13;&#10;#L13#아란으로 전직#l&#13;&#10;#L14#에반으로 전직#l"/>
+  <string name="$SCRIPTSTRING_ETC_70$" value="[CN]장비창에 빈칸 7개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_71$" value="[CN]어떤 궁수 남자 방어구 아이템 받고 싶어?#b&#13;&#10;#L0# 30 레벨 궁수 남자 방어구#l&#13;&#10;#L1# 70 레벨 궁수 남자 방어구#l&#13;&#10;#L2# 80 레벨 궁수 남자 방어구#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_72$" value="[CN]장비창에 빈칸 6개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_73$" value="[CN]장비창에 빈칸 6개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_74$" value="[CN]장비창에 빈칸 6개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_75$" value="[CN]어떤 궁수 여자 방어구 아이템 받고 싶어?#b&#13;&#10;#L0# 30 레벨 궁수 여자 방어구#l&#13;&#10;#L1# 70 레벨 궁수 여자 방어구#l&#13;&#10;#L2# 80 레벨 궁수 여자 방어구#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_76$" value="[CN]장비창에 빈칸 3개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_77$" value="[CN]장비창에 빈칸 3개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_78$" value="[CN]장비창에 빈칸 3개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_79$" value="[CN]어떤 도적 남자 방어구 아이템 받고 싶어?#b&#13;&#10;#L0# 30 레벨 도적 남자 방어구#l&#13;&#10;#L1# 70 레벨 도적 남자 방어구#l&#13;&#10;#L2# 80 도적 남자 방어구#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_8$" value="[CN]항목을 선택하세요.#b&#13;&#10;#L0#1차_검사로 전직#l&#13;&#10;#L1#2차_파이터로 전직#l&#13;&#10;#L2#2차_페이지로 전직#l&#13;&#10;#L3#2차_스피어맨으로 전직#l&#13;&#10;#L4#3차_크루세이더로 전직#l&#13;&#10;#L5#3차_나이트로 전직#l&#13;&#10;#L6#3차_드래곤나이트로 전직#l&#13;&#10;#L7#4차_히어로로 전직#l&#13;&#10;#L8#4차_팔라딘로 전직#l&#13;&#10;#L9#4차_다크나이트로 전직#l"/>
+  <string name="$SCRIPTSTRING_ETC_80$" value="[CN]장비창에 빈칸 7개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_81$" value="[CN]장비창에 빈칸 8개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_82$" value="[CN]장비창에 빈칸 8개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_83$" value="[CN]어떤 도적 여자 방어구 아이템 받고 싶어?#b&#13;&#10;#L0# 30 레벨 도적 여자 방어구#l&#13;&#10;#L1# 70 레벨 도적 여자 방어구#l&#13;&#10;#L2# 80 도적 여자 방어구#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_84$" value="[CN]장비창에 빈칸 7개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_85$" value="[CN]장비창에 빈칸 8개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_86$" value="[CN]장비창에 빈칸 8개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_87$" value="[CN]어떤 해적 방어구 아이템 받고 싶어?#b&#13;&#10;#L0# 30 레벨 해적 방어구#l&#13;&#10;#L1# 70 레벨 해적 방어구#l&#13;&#10;#L2# 80 해적 방어구#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_88$" value="[CN]장비창에 빈칸 8개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_89$" value="[CN]장비창에 빈칸 4개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_9$" value="[CN]항목을 선택하세요.#b&#13;&#10;#L0#1차_매지션으로 전직#l&#13;&#10;#L1#2차_불독위자드로 전직#l&#13;&#10;#L2#2차_썬콜위자드로 전직#l&#13;&#10;#L3#2차_클레릭으로 전직#l&#13;&#10;#L4#3차_불독메이지로 전직#l&#13;&#10;#L5#3차_썬콜메이지로 전직#l&#13;&#10;#L6#3차_프리스트로 전직#l&#13;&#10;#L7#4차_불독아크메이지로 전직#l&#13;&#10;#L8#4차_썬콜아크메이지로 전직#l&#13;&#10;#L9#4차_비숍으로 전직#l"/>
+  <string name="$SCRIPTSTRING_ETC_90$" value="[CN]장비창에 빈칸 4개 이상 만들어 와라."/>
+  <string name="$SCRIPTSTRING_ETC_91$" value="[CN]얼마씩 줄까?#b&#13;&#10;#L0# SP 1 얻기#l&#13;&#10;#L1# SP 30 얻기#l&#13;&#10;#L2# SP 100 얻기#l&#13;&#10;#L3# SP 1 빼기#l"/>
+  <string name="$SCRIPTSTRING_ETC_92$" value="[CN]뭐 줄까?#b&#13;&#10;#L0# 파워 엘릭서 200개#l&#13;&#10;#L1# 만병통치약 100개#l&#13;&#10;#L2# 소환의 돌 100개#l&#13;&#10;#L3# 마법의 돌 100개#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_93$" value="[CN]60% 주문서만 준다. 골라 골라~#b&#13;&#10;#L0# #t2043001# 100장#l&#13;&#10;#L1# #t2043101# 100장#l&#13;&#10;#L2# #t2043201# 100장#l&#13;&#10;#L3# #t2043301# 100장#l&#13;&#10;#L4# #t2043701# 100장#l&#13;&#10;#L5# #t2043801# 100장#l&#13;&#10;#L6# #t2044001# 100장#l&#13;&#10;#L7# #t2044101# 100장#l&#13;&#10;#L8# #t2044201# 100장#l&#13;&#10;#L9# #t2044301# 100장#l&#13;&#10;#L10# #t2044401# 100장#l&#13;&#10;#L11# #t2044501# 100장#l&#13;&#10;#L12# #t2044601# 100장#l&#13;&#10;#L13# #t2044701# 100장#l&#13;&#10;#L14# #t2044801# 100장#l&#13;&#10;#L15# #t2044901# 100장#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_94$" value="[CN]60% 주문서만 준다. 골라 골라~#b&#13;&#10;#L0# #t2040001# 100장#l&#13;&#10;#L1# #t2040301# 100장#l&#13;&#10;#L2# #t2040401# 100장#l&#13;&#10;#L3# #t2040501# 100장#l&#13;&#10;#L4# #t2040504# 100장#l&#13;&#10;#L5# #t2040601# 100장#l&#13;&#10;#L6# #t2040704# 100장#l&#13;&#10;#L7# #t2040801# 100장#l&#13;&#10;#L8# #t2040804# 100장#l&#13;&#10;#L9# #t2040901# 100장#l&#13;&#10;#L10# #t2041013# 100장#l&#13;&#10;#L11# #t2041016# 100장#l&#13;&#10;#L12# #t2041019# 100장#l&#13;&#10;#L13# #t2041022# 100장#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_95$" value="[CN]뭐 줄까?#b&#13;&#10;#L0# 일비 표창 5세트#l&#13;&#10;#L1# 활전용 강철화살 5세트#l&#13;&#10;#L2# 석궁전용 강철화살 5세트#l&#13;&#10;#L3# 건슬링거전용 불릿 5세트#l&#13;&#10;#L4# 건실링거전용 블레이즈 캡슐 2세트#l&#13;&#10;#L5# 건슬링거전용 글레이스 캡슐 2세트#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_96$" value="[CN]뭐 해줄까?#b&#13;&#10;#L0# 남아있는 AP 없애기#l&#13;&#10;#L1# 남아있는 SP 없애기#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_97$" value="[CN]뭐 해줄까?#b&#13;&#10;#L0# 펫 친밀도 1 올리기#l&#13;&#10;#L1# 펫 친밀도 10 올리기#l&#13;&#10;#L2# 펫 친밀도 100 올리기#l&#13;&#10;#L3# 펫 친밀도 1000 올리기#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_98$" value="[CN]뭐 해줄까?#b&#13;&#10;#L0# 인기도 1 올리기#l&#13;&#10;#L1# 인기도 10 올리기#l&#13;&#10;#L2# 인기도 100 올리기#l#k"/>
+  <string name="$SCRIPTSTRING_ETC_99$" value="[CN]왠만하면 처음 셋팅할때 쓰라구~ 직업 골라~#b&#13;&#10;#L0# 전사#l&#13;&#10;#L1# 법사#l&#13;&#10;#L2# 궁수#l&#13;&#10;#L3# 도적#l&#13;&#10;#L4# 해적#l#k"/>
+</imgdir>

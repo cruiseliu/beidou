@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="event9">
+  <string name="$SCRIPTSTRING_EVENT9_0$" value="哇～祝贺你中奖获得了"/>
+  <string name="$SCRIPTSTRING_EVENT9_1$" value="！你以后过来找我的话，我就会把奖品送给你。现在派对用品还缺很多，如果你想继续帮忙，可以再来找我。&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT9_10$" value="不，我完全感觉不到你的诚意！&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT9_11$" value="好的，我再说一遍！&#13;&#10;#b衷心祝福冒险岛6周年#k"/>
+  <string name="$SCRIPTSTRING_EVENT9_12$" value="嗯，真是麻烦。为了纪念冒险岛6周年，我想给对冒险岛的发展做出贡献的人寄明信片，但是人手不够……怎么样？你愿意帮帮我吗？"/>
+  <string name="$SCRIPTSTRING_EVENT9_13$" value="我本来想送你一份大礼作为报答。既然你不愿意，就算了！"/>
+  <string name="$SCRIPTSTRING_EVENT9_14$" value="好的，#b#h0##k。你只要在我给你的#b#t"/>
+  <string name="$SCRIPTSTRING_EVENT9_15$" value=":##k上，画上怪物的肖像画就行。我会用那些肖像画制作成明信片。绘制肖像画的方法是双击#b#t"/>
+  <string name="$SCRIPTSTRING_EVENT9_16$" value=":##k，打开图画纸之后，用鼠标将打猎怪物获得的#b#t04032302:#、#t04032303:#、#t04032304:##k拖拽到魔法图画纸上。不管使用哪种颜料都可以完成肖像画，所以不管搜集到什么颜料都可以。那就拜托了。"/>
+  <string name="$SCRIPTSTRING_EVENT9_17$" value="请确认背包其他栏是否有1格以上的空格。"/>
+  <string name="$SCRIPTSTRING_EVENT9_18$" value="好了！希望你能画出漂亮的肖像画。"/>
+  <string name="$SCRIPTSTRING_EVENT9_19$" value="哦～你终于把肖像画拿来了。让我看看。"/>
+  <string name="$SCRIPTSTRING_EVENT9_2$" value="真的都搜集到啦。谢谢你。这对宴会的准备将会有很大的帮助。真的非常感谢。对了，现在派对用品还缺很多，如果你想继续帮忙，可以再来找我。&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT9_20$" value="嗯？肖像画明明还没完成嘛。请你去把它完成。"/>
+  <string name="$SCRIPTSTRING_EVENT9_21$" value="请确认背包消费栏是否有1格以上的空格。"/>
+  <string name="$SCRIPTSTRING_EVENT9_22$" value="对！就是这个。辛苦你了。我把说好的礼物送给你。祝你好运。对了，今天肖像画用完之后，我还会需要更多的肖像画，请你明天再帮我画一次。&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT9_23$" value="4/0#&#13;&#10; #v2022552:##t2022552#1个&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT9_3$" value="派对用品好像还没搜集齐啊？请确认是否是#b"/>
+  <string name="$SCRIPTSTRING_EVENT9_4$" value="20个#k。"/>
+  <string name="$SCRIPTSTRING_EVENT9_5$" value="好的，你做好衷心祝福的准备了吗？那就跟我来吧。&#13;&#10;#b衷心祝福冒险岛6周年#k"/>
+  <string name="$SCRIPTSTRING_EVENT9_6$" value="衷心祝福冒险岛6周年"/>
+  <string name="$SCRIPTSTRING_EVENT9_7$" value="呵呵呵，谢谢你。我可以感觉到你的诚意～&#13;&#10;我#b星缘#k会把你的祝福传达到冒险岛世界的各个地方。&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT9_8$" value="4/0#&#13;&#10;#v04001126:#1000个&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT9_9$" value="请确认背包其他栏是否有1格以上的空格。"/>
+</imgdir>

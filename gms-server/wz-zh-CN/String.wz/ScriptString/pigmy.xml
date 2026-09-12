@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="pigmy">
+  <string name="$SCRIPTSTRING_PIGMY_0$" value="我能帮你什么吗？&#13;&#10;#b#L0#初始化今天的领取内容#l&#13;&#10;#L1#初始化最近领取日期#l&#13;&#10;#L2#下一步#l"/>
+  <string name="$SCRIPTSTRING_PIGMY_1$" value="射手村"/>
+  <string name="$SCRIPTSTRING_PIGMY_10$" value="你想用飞天猪的蛋#k交换哪个村庄的飞天猪的蛋？&#13;&#10;#b#L0#魔法密林#l&#13;&#10;#b#L1#射手村#l&#13;&#10;#b#L2#勇士部落#l&#13;&#10;#b#L3#废弃都市#l&#13;&#10;#b#L4#林中之城#l&#13;&#10;#b#L5#冰封雪域#l&#13;&#10;#b#L6#海底世界#l&#13;&#10;#b#L7#少林寺#l&#13;&#10;#b#L8#古代神社#l&#13;&#10;#b#L9#昭和澡堂#l&#13;&#10;#b#L11#诺特勒斯#l&#13;&#10;#b#L14#新叶城#l&#13;&#10;#b#L15#新加坡#l&#13;&#10;#b#L16#马来西亚#l"/>
+  <string name="$SCRIPTSTRING_PIGMY_11$" value="无法交换同一村庄的飞天猪的蛋。"/>
+  <string name="$SCRIPTSTRING_PIGMY_12$" value="#k有 "/>
+  <string name="$SCRIPTSTRING_PIGMY_13$" value="飞天猪的蛋#b"/>
+  <string name="$SCRIPTSTRING_PIGMY_14$" value="个#k。你想交换几个？&#13;&#10;#b&lt;例如：3 &gt;#k"/>
+  <string name="$SCRIPTSTRING_PIGMY_15$" value="0个无法交换。"/>
+  <string name="$SCRIPTSTRING_PIGMY_16$" value="$$#k "/>
+  <string name="$SCRIPTSTRING_PIGMY_17$" value="没有飞天猪的蛋。"/>
+  <string name="$SCRIPTSTRING_PIGMY_18$" value="飞天猪说可以用自己生的蛋交换其他地区的蛋。你想交换哪个村庄的飞天猪的蛋呢？&#13;&#10;#b#L0#魔法密林#l&#13;&#10;#b#L1#射手村#l&#13;&#10;#b#L2#勇士部落#l&#13;&#10;#b#L3#废弃都市#l&#13;&#10;#b#L4#林中之城#l&#13;&#10;#b#L5#冰封雪域#l&#13;&#10;#b#L6#海底世界#l&#13;&#10;#b#L7#少林寺#l&#13;&#10;#b#L8#古代神社#l&#13;&#10;#b#L9#昭和澡堂#l&#13;&#10;#b#L11#诺特勒斯#l&#13;&#10;#b#L14#新叶城#l&#13;&#10;#b#L15#新加坡#l&#13;&#10;#b#L16#马来西亚#l "/>
+  <string name="$SCRIPTSTRING_PIGMY_19$" value="发生错误。请稍候重新尝试。"/>
+  <string name="$SCRIPTSTRING_PIGMY_2$" value="魔法密林"/>
+  <string name="$SCRIPTSTRING_PIGMY_20$" value="请确认背包中是否有空格。"/>
+  <string name="$SCRIPTSTRING_PIGMY_21$" value="发生错误。请稍候重新尝试。"/>
+  <string name="$SCRIPTSTRING_PIGMY_22$" value="你想让飞天猪干什么？ &#13;&#10;#b#L0#给她吃美味饲料。#l&#13;&#10;#L1#飞天猪好像有话要说。#l"/>
+  <string name="$SCRIPTSTRING_PIGMY_23$" value="飞天猪肚子饿了。你能给可爱的飞天猪买一点#b美味饲料#k吗？"/>
+  <string name="$SCRIPTSTRING_PIGMY_24$" value="飞天猪吃了好吃的东西，心情很不错，生了蛋。"/>
+  <string name="$SCRIPTSTRING_PIGMY_25$" value="飞天猪虽然吃了美味饲料，但却没有生蛋。"/>
+  <string name="$SCRIPTSTRING_PIGMY_26$" value="请确认其他栏中是否有空格。"/>
+  <string name="$SCRIPTSTRING_PIGMY_27$" value="飞天猪肚子很饿……下次记得的话，一定要给我买好吃的。"/>
+  <string name="$SCRIPTSTRING_PIGMY_28$" value="飞天猪不乱吃东西。请确认有没有#b美味饲料#k。"/>
+  <string name="$SCRIPTSTRING_PIGMY_29$" value="飞天猪吃饱了，不想再吃了。"/>
+  <string name="$SCRIPTSTRING_PIGMY_3$" value="废弃都市"/>
+  <string name="$SCRIPTSTRING_PIGMY_30$" value="飞天猪不乱吃东西。请确认有没有#b美味饲料#k。"/>
+  <string name="$SCRIPTSTRING_PIGMY_31$" value="飞天猪不乱吃东西。请确认有没有#b美味饲料#k。"/>
+  <string name="$SCRIPTSTRING_PIGMY_32$" value="飞天猪不乱吃东西。请确认有没有#b美味饲料#k。"/>
+  <string name="$SCRIPTSTRING_PIGMY_33$" value="飞天猪不乱吃东西。请确认有没有#b美味饲料#k。"/>
+  <string name="$SCRIPTSTRING_PIGMY_34$" value="飞天猪不乱吃东西。请确认有没有#b美味饲料#k。"/>
+  <string name="$SCRIPTSTRING_PIGMY_35$" value="飞天猪不乱吃东西。请确认有没有#b美味饲料#k。"/>
+  <string name="$SCRIPTSTRING_PIGMY_36$" value="飞天猪不乱吃东西。请确认有没有#b美味饲料#k。"/>
+  <string name="$SCRIPTSTRING_PIGMY_37$" value="飞天猪不乱吃东西。请确认有没有#b美味饲料#k。"/>
+  <string name="$SCRIPTSTRING_PIGMY_38$" value="#b&lt;易德的飞天猪指南&gt;#k &#13;你好！我是易德。我为大家整理了飞天猪的情报。有什么问题的话，可以看一看～&#13;&#13;&#10;#b#L0#召唤兽飞天猪是什么？#l &#13;&#10;#b#L1#召唤兽飞天猪吃什么？#l &#13;&#10;#b#L2#飞天猪的蛋是什么？#l"/>
+  <string name="$SCRIPTSTRING_PIGMY_39$" value="召唤兽飞天猪是我在做魔法实验的时候不小心制造出来的召唤兽。她是一种善良、温顺的生物。但缺点是胃口太大……"/>
+  <string name="$SCRIPTSTRING_PIGMY_4$" value="勇士部落"/>
+  <string name="$SCRIPTSTRING_PIGMY_40$" value="召唤兽飞天猪只吃杂货店里出售的#b#t2120008##k。只要去杂货店买了给召唤兽飞天猪吃就行。哦，对了！#b飞天猪每天只吃一顿饭。#k即使你多给她吃也没用。"/>
+  <string name="$SCRIPTSTRING_PIGMY_41$" value="#b飞天猪的蛋#k是飞天猪生下的蛋。给她东西吃的话，她心情好的时候就会下蛋。#b蛋里有很多神奇的东西。#k但是有一件事需要注意。蛋非常坚硬，必须使用特殊的装置才能打开。要想打开飞天猪的蛋，必须去#b商城的其他栏中购买孵化器#k，必须用那个装置才能把蛋打开。"/>
+  <string name="$SCRIPTSTRING_PIGMY_5$" value="埃尔纳斯"/>
+  <string name="$SCRIPTSTRING_PIGMY_6$" value="冰封雪域—玩具城"/>
+  <string name="$SCRIPTSTRING_PIGMY_7$" value="奥尔维斯"/>
+  <string name="$SCRIPTSTRING_PIGMY_8$" value="诺特勒斯"/>
+  <string name="$SCRIPTSTRING_PIGMY_9$" value="无名"/>
+</imgdir>

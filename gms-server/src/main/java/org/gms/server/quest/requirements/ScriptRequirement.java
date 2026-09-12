@@ -29,16 +29,16 @@ import org.gms.server.quest.QuestRequirementType;
  * @author Ronan
  */
 public class ScriptRequirement extends AbstractQuestRequirement {
-    private boolean reqScript;
+    private String scriptName;   // WZ Check.img 指定的入口函数名（startscript/endscript 值）
 
     public ScriptRequirement(Quest quest, Data data) {
-        super(QuestRequirementType.BUFF);
+        super(QuestRequirementType.SCRIPT);
         processData(data);
     }
 
     @Override
     public void processData(Data data) {
-        reqScript = !DataTool.getString(data, "").isEmpty();
+        scriptName = DataTool.getString(data, null);
     }
 
     @Override
@@ -46,7 +46,8 @@ public class ScriptRequirement extends AbstractQuestRequirement {
         return true;
     }
 
-    public boolean get() {
-        return reqScript;
+    /** WZ 指定的脚本入口名；未声明返回 null */
+    public String get() {
+        return scriptName;
     }
 }

@@ -137,6 +137,8 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterMap map = new CharacterMap(this);
     final CharacterRates rates = new CharacterRates(this);
     final CharacterScriptRunner scriptRunner = new CharacterScriptRunner(this::strand);
+    /** 活跃的 ESM 任务脚本会话（重放模型，doc/13 §15）；dispose/登出清理 */
+    private volatile org.gms.scripting.quest.esm.QuestApi esmQuest;
     final CharacterAntiCheat antiCheat = new CharacterAntiCheat(this);
     final CharacterMarket market = new CharacterMarket(this);
     final CharacterQuests quests = new CharacterQuests(this);
@@ -3134,6 +3136,17 @@ public class Character extends AbstractAnimatedMapObject {
     /** 脚本回调调度器（容器事件/定时器回调的唯一执行通道） */
     public CharacterScriptRunner getScriptRunner() { return scriptRunner; }
 
+    /** 活跃 ESM 任务脚本会话；无对话时 null（doc/13 §15） */
+    public org.gms.scripting.quest.esm.QuestApi esmQuest() { return esmQuest; }
+
+    public void setEsmQuest(org.gms.scripting.quest.esm.QuestApi session) { this.esmQuest = session; }
+
+    public void clearEsmQuest(org.gms.scripting.quest.esm.QuestApi session) {
+        if (esmQuest == session) {
+            esmQuest = null;
+        }
+    }
+
     /**
      * 角色入场绑定：把收包组件接插到 actor 的 Handler 槽位（PlayerLoggedinHandler 入场任务
      * 调用，on strand，doc/12）。角色内部组成不外泄——接线知识收敛在本方法与各组件。
@@ -3232,6 +3245,9 @@ public class Character extends AbstractAnimatedMapObject {
     public void setQuestProgress(int id, int infoNumber, String progress) { quests.setQuestProgress(id, infoNumber, progress); }
     public void announceUpdateQuest(DelayedQuestUpdate questUpdateType, Object... params) { quests.announceUpdateQuest(questUpdateType, params); }
     public void flushDelayedUpdateQuests() { quests.flushDelayedUpdateQuests(); }
+    public boolean forceStartQuest(int questId, int npc) { return quests.forceStartQuest(questId, npc); }
+    public boolean forceCompleteQuest(int questId, int npc) { return quests.forceCompleteQuest(questId, npc); }
+    public boolean isQuestCompleted(int questId) { return quests.isQuestCompleted(questId); }
     public void questTimeLimit(final Quest quest, int seconds) { quests.questTimeLimit(quest, seconds); }
     public void questTimeLimit2(final Quest quest, long expires) { quests.questTimeLimit2(quest, expires); }
     public void raiseQuestMobCount(int id) { quests.raiseQuestMobCount(id); }
@@ -3332,6 +3348,7 @@ public class Character extends AbstractAnimatedMapObject {
     public Inventory getInventory() { return inventory.getInventory(); }
     public InventoryTab getInventory(InventoryType type) { return inventory.getInventory(type); }
     public int countItem(int itemid) { return inventory.countItem(itemid); }
+    public ItemSlot gainItem(int itemId, int quantity) { return inventory.gainItem(itemId, quantity); }
     public boolean canHold(int itemid) { return inventory.canHold(itemid); }
     public boolean canHold(int itemid, int quantity) { return inventory.canHold(itemid, quantity); }
     public boolean canHoldUniques(List<Integer> itemids) { return inventory.canHoldUniques(itemids); }

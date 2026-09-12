@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="victoria0">
+  <string name="$SCRIPTSTRING_VICTORIA0_0$" value="在这儿，你好像该办的事都办完了嘛。确定要去#b#m"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_1$" value="##k村落吗？如果你付 #b"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_10$" value="村落周边都是宁静的草原。这里的怪物大多是比较弱小的，可以说这个地方是新手练习的好地方。如果你还没转职到战士，法师，弓箭手，飞侠等职业之一，不如先在这里提高你的等级。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_11$" value="村落周边都是宁静的草原。这里的怪物大多是比较弱小的，可以说这个地方是新手练习的好地方。如果你还没转职到战士，法师，弓箭手，飞侠等职业之一，不如先在这里提高你的等级。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_12$" value="听说在高原的周围有木妖、野猪、猴子等怪物，而且在幽深的山沟里还有可怕的龙，很危险的，劝你还是不要匆忙行动。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_13$" value="如果你想当#b战士#k，就去找#m102000000#村的长老#r#p1022000##k吧。如果你的等级在10级以上，而具备了较高体力的话，他说不定会让你当战士。但你的能力还不够的话，只好继续努力锻炼。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_14$" value="给你介绍介绍#b#m101000000##k吧。它是位于金银岛最东边森林里的魔法师村落。村落四周都是神秘而郁郁葱葱的森林。在那个村落里有不喜欢人类的妖精，所以到了那儿，要特别小心，千万不要惹是生非啊。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_15$" value="森林的周围有绿水灵，会走的蘑菇，猴子和无魂猴等怪物。在森林的深处，甚至还有飞天魔女。如果你还不是很强大，最好不要接近魔女。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_16$" value="如果你想当#b魔法师#k，就去#m101000000#找大魔法师#r#p1032001##k先生。如果你的等级在8级以上，而具具备一定的智力，说不定他会让你当魔法师。但你的能力还不够的话，只好自己继续努力了。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_17$" value="给你介绍介绍#b#m100000000##k吧。它是位于金银岛南部草原的弓箭手村落。村落的周围是美丽的草原和郁郁葱葱的树林。气候也不错，非常富饶。如果你还没去过，一定要去看看阿。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_18$" value="在草原的周边有蜗牛，蘑菇，猪等比较弱的怪物。但是听说村落周围有个叫猪之乐园的地方，在那里有时会出现非常强悍的叫蘑菇王的怪物…"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_19$" value="如果你想当#b弓箭手#k，就去#m100000000#找一个像守护神一样的#r#p1012100##k。要是你的等级在10级以上还有一定的敏捷度，她可能会让你当弓箭手。但如果你的能力还不够的话，只好自己继续努力了。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_2$" value=" 金币#k，我就送你到那里。怎么样？"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_20$" value="我给你介绍介绍#b#m103000000##k吧。它是位于金银岛西北方盗贼之城，城里有些大楼给人的感觉有点奇怪，而且城市上空常常被黑云笼罩着。但听在那里有时后在高处可以看到日落黄昏，听说非常漂亮。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_21$" value="在#m103000000#里有通往多个迷宫的通道。可以去鳄鱼和蛇出没的沼泽地。听说还有幽灵和蝙蝠出没的地铁。在地下数百米的地方出现的幽灵，是和恐龙一样强悍和危险的怪物。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_22$" value="如果想当#b飞侠#k，就去#m103000000#找所谓的暗黑君主#r#p1052001##k吧。要是你的等级在10级以上还有一定的敏捷度，他说不定会让你当飞侠。但你的能力还不够的话，只好自己继续努力了。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_23$" value="我来介绍一下#b#m120000000##k吧。它是金银岛上明珠港和射手村之间停泊的潜水艇。进去的看的话就是海盗的老窝。在明珠港可以看到的宽广的美丽的大海，在这个地方也可以看到。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_24$" value="因为#b#m120000000##k是在射手村和明港之间的关系，只要出去一点就可以看到周边两个村庄的美景。据说那里的海盗不管在任何时候都很快活、亲切。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_25$" value="如果想成为#b海盗#k的话，就去找#b#m120000000##k的船长#b#m1090000##k吧。级别10级以上的敏捷达到某种程度的话有可能成为海盗。不努力的话就只能通过努力打猎来锻炼了。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_26$" value="我给你介绍介绍#b#m105040300##k吧。它是位于金银岛东南方的浓密的树林之村。那里的位置大概是#m100000000#和蚂蚁洞中间。那里有个宾馆，如果你在迷宫中冒险觉得累了就可以去那个清静之地休息休息。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_27$" value="据说在宾馆的前边有一位神秘的老和尚，叫#r#p1061000##k？！。他好像专门适用冒险者收集的原料给他们做些东西，具体情况我也不太清楚。如果你有机会去那里，替我好好儿打探打探吧。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_28$" value="从#m105040300#往东走下去，是蚂蚁洞迷宫。那里连接到金银岛的最深的地下。听说那里有很多凶猛而强捍的怪物，闯入者都有去无回，所以好自为之吧。如果你一定要去那里，你得好好准备准备。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_29$" value="还有，这些是我听说的...在#m105040300#有一个到某个地方的秘密入口。进去后，可以看见黑色石头。我想有机会进去看看，确认这是不是真的。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_3$" value="怎么金币不够啊？那赚够了再来吧~ 像你这么厉害的人，怎么连那么少的金币也没有呢？"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_30$" value="对于新手我特别优惠－打1折。来，想去哪个村落呢？&#13;&#10;#b#L0# #m102000000#(120 金币)#l&#13;&#10;#L1# #m101000000#(120 金币)#l&#13;&#10;#L2# #m100000000#(80 金币)#l&#13;&#10;#L3# #m103000000#(100 金币)#l&#13;&#10;#L4# #m120000000#(100 金币)#l"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_31$" value="你不是新手吧？那就不能给你打折。来，想去哪个村落呢？&#13;&#10;#b#L0# #m102000000#(1200 金币)#l&#13;&#10;#L1# #m101000000#(1200 金币)#l&#13;&#10;#L2# #m100000000#(800 金币)#l&#13;&#10;#L3# #m103000000#(1000金币)#l&#13;&#10;#L4# #m120000000#(1000 金币)#l"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_32$" value="是你呀！上次你收集的材料对我的帮助很大。最近我整天在制造各式各样的物品。如果你需要什么，就尽管跟我说吧。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_33$" value="你想购买什么物品呢？&#13;&#10;#b#L0##t2000002#(价格 : 310 金币)#l&#13;&#10;#L1##t2022003#(价格 : 1060 金币家)#l&#13;&#10;#L2##t2022000#(价格 : 1600 金币)#l&#13;&#10;#L3##t2001000#(价格 : 3120 金币)#l"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_34$" value="你想购买#b#t2000002##k吗？#t2000002#能让你恢复300生命值。你买多少？"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_35$" value="你要买#r"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_36$" value="#k个#b#t2000002##k吗？#t2000002#的单价是310金币，总价一共#r"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_37$" value="#k 金币。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_38$" value="以前你收集来的材料还剩了不少，这里东西很多，你慢慢选吧。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_39$" value="你是不是金币不够阿？请你确认背包的消耗窗有没有空格，或有#r"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_4$" value="在这个村落里还有很多有趣的事情啊。如果你想到别的村落去，任何时候都可以跟我说。明白了吧？"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_40$" value="#k金币。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_41$" value="谢谢你光顾我们的商店。物品什么时候都能做，要是你下次还有什么需要，欢迎再次光临。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_42$" value="你想购买#b#t2022003##k吗？#t2022003#能让你恢复1000生命值。你买多少？"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_43$" value="你要买#r"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_44$" value="#k个#b#t2022003##k吗？#t2022003#的单价是1060金币，总价一共#r"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_45$" value="你想购买#b#t2022000##k吗？#t2022000#能让你恢复800魔法力。你买多少？"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_46$" value="你要买#r"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_47$" value="#k个#b#t2022000##k吗？#t2022000#的单价是1600金币，总价一共#r"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_48$" value="以前你收集来的材料还剩了不少，这里东西很多，你慢慢选吧。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_49$" value="你想购买#b#t2001000##k吗？#t2001000#能让你恢复1000生命值和1000魔法力。你买多少？"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_5$" value="你想去别的村落吗？ 要是你付一点钱，我就可以送你到别的地方... 哈哈哈~！也许你会觉得有点贵…不过对新手会打1折的。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_50$" value="你要买#r"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_51$" value="#k个#b#t2001000##k吗？#t2001000#的单价是3120金币，总价一共#r"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_52$" value="你先要都解决我给你的任务，然后才可以买药水"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_53$" value="看来你还太软弱不能够买我的药水。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_54$" value="呜呜！～我也想像你一样去冒险，但是我爸爸坚决不同意。我从小时候就偷偷地锻炼身体，所以我很有信心。但是我爸爸就是不放心，怎么办呢？"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_55$" value="好像已有人拜访尤塔的猪猪农场。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_56$" value="通往尤塔的猪猪农场的路．由于是私人地盘所以无法接近。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_57$" value="冒险岛会员特别免费送你过去。那么，想去哪个村庄看看呢？&#13;&#10;#b#L0# #m102000000##l&#13;&#10;#L1# #m101000000##l&#13;&#10;#L2# #m100000000##l&#13;&#10;#L3# #m103000000##l&#13;&#10;#L4# #m120000000##l"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_58$" value="##k 想要移动到村庄吗？"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_6$" value="你是第一次到这里来吗？你可能不太熟悉这里，你可以问我有关这里的信息。&#13;&#10;#b#L0#在金银岛里有什么样的村落？#l&#13;&#10;#L1#请你把我送到别的地方。#l"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_7$" value="在金银岛内有7个大村庄。&#13;&#10;#b#L0# #m104000000##l&#13;&#10;#L1# #m102000000##l&#13;&#10;#L2# #m101000000##l&#13;&#10;#L3# #m100000000##l&#13;&#10;#L4# #m103000000##l&#13;&#10;#L5# #m120000000##l&#13;&#10;#L6# #m105040300##l"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_8$" value="我介绍介绍#b#m104000000##k吧。从彩虹岛乘坐维多利亚号到达的就是这里...也就是说，这里就是村落#m104000000#。来自彩虹岛的很多新手就从这里开始他们的冒险生涯的。"/>
+  <string name="$SCRIPTSTRING_VICTORIA0_9$" value="我给你介绍#b#m102000000##k。它是位于金银岛最北部的高原战士村落。村落的四周都是荒凉的岩石山。而且气候也不太好，除了体力很强的战士之外没有人能在那里生存。"/>
+</imgdir>
