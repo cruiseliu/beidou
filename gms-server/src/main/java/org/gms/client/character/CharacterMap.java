@@ -15,6 +15,7 @@ import org.gms.server.Trade;
 import org.gms.infra.Strand;
 import org.gms.server.maps.MapleMap;
 import org.gms.server.maps.MapObject;
+import org.gms.remote.modules.map.client.MoveLife;
 import org.gms.remote.modules.map.client.movement.AbsoluteMove;
 import org.gms.remote.modules.map.client.movement.ChangeEquipMove;
 import org.gms.remote.modules.map.client.movement.ChairMove;
@@ -81,6 +82,20 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         }
         final MapleMap map = this.map;
         map.post("move", () -> map.onMove(new MapleMap.MoveMsg(strand, owner, owner.getClient(), newPos, relay, gmOnly, visible)));
+    }
+
+    /**
+     * MOVE_LIFE 语义入口（player strand 上执行，doc/13 §18）：player 侧仅 guard——
+     * mob 状态归地图域，语义快照（gms083 纯解码产出）post map actor 串行应用
+     * （controller 校验/aggro/位置/ack/中继/可见性）。
+     */
+    @Override
+    public void moveLife(MoveLife life) {
+        if (owner.isChangingMaps()) {
+            return;
+        }
+        final MapleMap map = this.map;
+        map.post("move-life", () -> map.onMoveLife(new MapleMap.MoveLifeMsg(owner, owner.getClient(), life)));
     }
 
     /**

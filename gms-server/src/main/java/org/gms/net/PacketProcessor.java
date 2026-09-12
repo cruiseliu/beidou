@@ -52,6 +52,7 @@ import org.gms.net.server.handlers.login.ViewAllCharSelectedWithPicHandler;
 import org.gms.remote.gms083.client.V83RemoteClientHandler;
 import org.gms.remote.gms083.client.pipelines.InventoryInPipeline;
 import org.gms.remote.gms083.client.pipelines.MoveInPipeline;
+import org.gms.remote.gms083.client.pipelines.MoveLifeInPipeline;
 import org.gms.remote.gms083.client.pipelines.NPCActionInPipeline;
 import org.gms.remote.gms083.client.pipelines.PetInPipeline;
 import org.slf4j.Logger;
@@ -188,7 +189,7 @@ public final class PacketProcessor {
         registerHandler(RecvOpcode.MESO_DROP, new MesoDropHandler());
         registerHandler(RecvOpcode.PLAYER_LOGGEDIN, new PlayerLoggedinHandler(channelDeps.noteService()));
         registerHandler(RecvOpcode.CHANGE_MAP, new ChangeMapHandler());
-        registerHandler(RecvOpcode.MOVE_LIFE, new MoveLifeHandler());
+        registerHandler(RecvOpcode.MOVE_LIFE, new V83RemoteClientHandler(new MoveLifeInPipeline()));
         registerHandler(RecvOpcode.CLOSE_RANGE_ATTACK, new CloseRangeDamageHandler());
         registerHandler(RecvOpcode.RANGED_ATTACK, new RangedAttackHandler());
         registerHandler(RecvOpcode.MAGIC_ATTACK, new MagicDamageHandler());

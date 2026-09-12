@@ -91,6 +91,17 @@ final class DummyClient extends RemoteClient implements
     }
 
     @Override
+    public void ackMoveMonster(int oid, short moveid, int currentMp, boolean useSkills, int skillId, int skillLevel) {
+        // 无连接：静默
+    }
+
+    @Override
+    public Packet relayMoveMonster(int oid, boolean skillPossible, int skill, int skillId, int skillLevel,
+                                   int pOption, java.awt.Point startPos, List<MoveElement> elements) {
+        return null;   // 无连接：静默
+    }
+
+    @Override
     public void talk(int npc, int msgType, int speaker, String text, int... endBytes) {
         // 无连接：静默
     }

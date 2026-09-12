@@ -12,6 +12,7 @@ import org.gms.client.inventory.Item;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.server.CashShop;
 import org.gms.server.maps.MapItem;
+import org.gms.server.maps.MapleMap;
 import org.gms.server.maps.MapObject;
 import org.gms.scripting.item.ItemScript;
 import org.gms.scripting.item.ItemScriptManager;
@@ -495,6 +496,25 @@ class CharacterInventory implements InventoryModule.Handler {
         pickupItem(ob, -1);
     }
 
+    /**
+     * 拾取收尾的 shim 交接（player strand 不直操作 MapleMap）：decision 时点在
+     * itemLock 下同步标记 pickedUp（防同 strand 后续拾取双捡），map 注册表移除与
+     * REMOVE_ITEM_FROM_MAP 广播 post map actor（任务体内重取 itemLock，满足
+     * pickItemDrop 的持锁契约）。
+     */
+    private void completePickup(MapItem mapitem, Packet pickupPacket) {
+        mapitem.setPickedUp(true);
+        final MapleMap map = owner.getMap();
+        map.post("pickup-drop", () -> {
+            mapitem.lockItem();
+            try {
+                map.pickItemDrop(pickupPacket, mapitem);
+            } finally {
+                mapitem.unlockItem();
+            }
+        });
+    }
+
     void pickupItem(MapObject ob, int petIndex) {     // yes, one picks the MapObject, not the MapItem     //是的，选择MapObject，而不是MapItem
         if (ob == null) {                                               // pet index refers to the one picking up the item      //宠物指数是指捡起物品的人
             return;
@@ -554,7 +574,7 @@ class CharacterInventory implements InventoryModule.Handler {
                                     owner.gainMeso(mapitem.getMeso(), true, true, false);
                                 }
 
-                                owner.getMap().pickItemDrop(pickupPacket, mapitem);
+                                completePickup(mapitem, pickupPacket);
                             } else if (ItemId.isNxCard(mapitem.getItemId())) {
                                 // Add NX to account, show effect and make item disappear   //添加点券到账户，是否展示捡到点券，并移除物品
                                 int nxGain = (mapitem.getItemId() == ItemId.NX_CARD_100 ? 100 : 250) * mItem.getQuantity(); //使点券支持按数量相乘
@@ -565,9 +585,9 @@ class CharacterInventory implements InventoryModule.Handler {
                                     //owner.showHint("捡到 #e#b" + nxGain + " NX#k#n (" + owner.getCashShop().getCash(CashShop.NX_CREDIT) + " NX)", 300);
                                 }
 
-                                owner.getMap().pickItemDrop(pickupPacket, mapitem);
+                                completePickup(mapitem, pickupPacket);
                             } else if (InventoryManipulator.addFromDrop(owner.client, mItem, true)) {
-                                owner.getMap().pickItemDrop(pickupPacket, mapitem);
+                                completePickup(mapitem, pickupPacket);
                             } else {
                                 owner.enableActions();
                                 return;
@@ -627,7 +647,7 @@ class CharacterInventory implements InventoryModule.Handler {
                         return;
                     }
 
-                    owner.getMap().pickItemDrop(pickupPacket, mapitem);
+                    completePickup(mapitem, pickupPacket);
                 } else if (!hasSpaceInventory) {
                     owner.sendPacket(PacketCreator.getInventoryFull());
                     owner.sendPacket(PacketCreator.getShowInventoryFull());

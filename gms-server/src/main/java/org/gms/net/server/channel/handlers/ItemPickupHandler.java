@@ -23,7 +23,6 @@ package org.gms.net.server.channel.handlers;
 
 import org.gms.client.character.Character;
 import org.gms.client.Client;
-import org.gms.client.autoban.AutobanFactory;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
 import org.slf4j.Logger;
@@ -40,6 +39,14 @@ public final class ItemPickupHandler extends AbstractPacketHandler {
     private static final Logger log = LoggerFactory.getLogger(ItemPickupHandler.class);
 
     @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §19）：拾取主体是 player 域（背包/meso/双检 pickedUp），
+        // 现状 netty 线程写背包——归 strand；map 域收尾（掉落移除+广播）由
+        // CharacterInventory.completePickup 经 shim actor post 交接。
+        return true;
+    }
+
+    @Override
     public void handlePacket(final InPacket p, final Client c) {
         p.readInt(); //Timestamp
         p.readByte();
@@ -54,9 +61,7 @@ public final class ItemPickupHandler extends AbstractPacketHandler {
         Point charPos = chr.getPosition();
         Point obPos = ob.getPosition();
         if (Math.abs(charPos.getX() - obPos.getX()) > 800 || Math.abs(charPos.getY() - obPos.getY()) > 600) {
-
-//            AutobanFactory.DISTANCE_HACK.alert(chr, "玩家" + chr.getName() + "地图ID：" + chr.getMapId() + "距离物品: " + Math.abs(charPos.getX() - obPos.getX()) + " " + Math.abs(charPos.getY() - obPos.getY()));
-            AutobanFactory.ITEM_VAC.addPoint(chr.getAutoBanManager(), "玩家" + chr.getName() + "地图ID：" + chr.getMapId() + "距离物品: " + Math.abs(charPos.getX() - obPos.getX()) + " " + Math.abs(charPos.getY() - obPos.getY()));
+            // 单机版：autoban 舍弃（doc/13 §19），距离守卫保留为防失步
             log.warn("玩家{}地图ID：{}距离物品: {} {}", chr.getName(), chr.getMapId(), Math.abs(charPos.getX() - obPos.getX()), Math.abs(charPos.getY() - obPos.getY()));
             return;
         }

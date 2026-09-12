@@ -39,6 +39,7 @@ import org.gms.constants.inventory.ItemConstants;
 import org.gms.infra.ActorShim;
 import org.gms.net.packet.Packet;
 import org.gms.net.server.Server;
+import org.gms.net.server.channel.handlers.AbstractDealDamageHandler;
 import org.gms.net.server.channel.Channel;
 import org.gms.net.server.coordinator.world.MonsterAggroCoordinator;
 import org.gms.net.server.services.task.channel.MobMistService;
@@ -46,6 +47,12 @@ import org.gms.net.server.services.task.channel.OverallService;
 import org.gms.net.server.services.type.ChannelServices;
 import org.gms.net.server.world.Party;
 import org.gms.net.server.world.World;
+import org.gms.remote.modules.map.client.MoveLife;
+import org.gms.remote.modules.map.client.movement.AbsoluteMove;
+import org.gms.remote.modules.map.client.movement.JumpDownMove;
+import org.gms.remote.modules.map.client.movement.MoveElement;
+import org.gms.remote.modules.map.client.movement.RelativeMove;
+import org.gms.remote.modules.map.client.movement.TeleportMove;
 import org.gms.util.NumberTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +68,10 @@ import org.gms.server.events.gm.OxQuiz;
 import org.gms.server.events.gm.Snowball;
 import org.gms.server.life.LifeFactory;
 import org.gms.server.life.LifeFactory.selfDestruction;
+import org.gms.server.life.MobSkill;
+import org.gms.server.life.MobSkillFactory;
+import org.gms.server.life.MobSkillId;
+import org.gms.server.life.MobSkillType;
 import org.gms.server.life.Monster;
 import org.gms.server.life.MonsterDropEntry;
 import org.gms.server.life.MonsterGlobalDropEntry;
@@ -3454,6 +3465,174 @@ public class MapleMap {
 
         msg.strand().post("apply-visibility",
                 () -> msg.chr().applyVisibleMapObjects(addRefs, removeRefs));
+    }
+
+    /**
+     * 切图完成确认的 mob 视图重建（map actor 任务体，doc/13 §18；PLAYER_MAP_TRANSFER
+     * 的 map 侧半段）：对视野内 mob 做 revoke 控制 → destroy → respawn → 重挂 controller，
+     * 修复客户端切图后的 mob 状态显示。chr 的 player 侧状态已在 strand 读完（isHidden
+     * 快照门在调用方）；mob 侧状态照旧并发语义。
+     */
+    public void onTransitionMobView(Character chr, Client c) {
+        for (MapObject mo : getMonsters()) {    // thanks BHB, IxianMace, Jefe for noticing several issues regarding mob statuses (such as freeze)
+            Monster m = (Monster) mo;
+            if (m.getSpawnEffect() == 0 || m.getHp() < m.getMaxHp()) {     // avoid effect-spawning mobs
+                if (m.getController() == chr) {
+                    c.sendPacket(PacketCreator.stopControllingMonster(m.getObjectId()));
+                    m.sendDestroyData(c);
+                    m.aggroRemoveController();
+                } else {
+                    m.sendDestroyData(c);
+                }
+                m.sendSpawnData(c);
+                m.aggroSwitchController(chr, false);
+            }
+        }
+    }
+
+    /**
+     * mob 控制移动消息（player actor → map actor，doc/13 §18）：MOVE_LIFE 的全部语义
+     * 事实（gms083 纯解码产出）。player 事实只剩不可变身份（chr 引用仅作 id 比较/广播
+     * source），map 任务体零 player 可变状态读。
+     */
+    public record MoveLifeMsg(Character chr, Client client, MoveLife life) {
+    }
+
+    /**
+     * move-life 事件（map actor 任务体，串行执行）：MoveLifeHandler 主体的 verbatim
+     * 迁移——活动判定/mob 技能与攻击门控/controller 校验/位置应用/ack/中继广播/可见性。
+     * FIXME: banish（BAN 技能的玩家传送，原 banishPlayers → changeMapBanish）暂不实现——
+     * 官方重启版数据一年内不会出现 banish；补齐时不得从 map 任务体阻塞等 player strand
+     * （应 post 目标 strand）。
+     */
+    public void onMoveLife(MoveLifeMsg msg) {
+        MoveLife life = msg.life();
+        MapObject mmo = getMapObject(life.oid());
+        if (mmo == null || mmo.getType() != MapObjectType.MONSTER) {
+            return;
+        }
+        Monster monster = (Monster) mmo;
+        Character player = msg.chr();
+
+        byte pNibbles = life.pNibbles();
+        byte rawActivity = life.rawActivity();
+        int skillId = life.skillId();
+        int skillLv = life.skillLv();
+        short pOption = life.pOption();
+
+        if (rawActivity >= 0) {
+            rawActivity = (byte) (rawActivity & 0xFF >> 1);
+        }
+
+        boolean isAttack = inRangeInclusive(rawActivity, 24, 41);
+        boolean isSkill = inRangeInclusive(rawActivity, 42, 59);
+
+        int useSkillId = 0;
+        int useSkillLevel = 0;
+
+        if (isSkill) {
+            useSkillId = skillId;
+            useSkillLevel = skillLv;
+
+            if (monster.hasSkill(useSkillId, useSkillLevel)) {
+                MobSkillType mobSkillType = MobSkillType.from(useSkillId).orElseThrow();
+                MobSkill toUse = MobSkillFactory.getMobSkillOrThrow(mobSkillType, useSkillLevel);
+
+                if (monster.canUseSkill(toUse, true)) {
+                    int animationTime = MonsterInformationProvider.getInstance().getMobSkillAnimationTime(toUse);
+                    if (animationTime > 0 && toUse.getType() != MobSkillType.BANISH) {
+                        toUse.applyDelayedEffect(player, monster, true, animationTime);
+                    } else {
+                        toUse.applyEffect(player, monster, true, new LinkedList<>());   // FIXME: banish 玩家传送缺位
+                    }
+                }
+            }
+        } else {
+            int castPos = (rawActivity - 24) / 2;
+            int atkStatus = monster.canUseAttack(castPos, isSkill);
+            if (atkStatus < 1) {
+                rawActivity = -1;
+                pOption = 0;
+            }
+        }
+
+        boolean nextMovementCouldBeSkill = !(isSkill || (pNibbles != 0));
+        int nextSkillId = 0;
+        int nextSkillLevel = 0;
+        int mobMp = monster.getMp();
+        if (nextMovementCouldBeSkill && monster.hasAnySkill()) {
+            MobSkillId skillToUse = monster.getRandomSkill();
+            nextSkillId = skillToUse.type().getId();
+            nextSkillLevel = skillToUse.level();
+            MobSkill nextUse = MobSkillFactory.getMobSkillOrThrow(skillToUse.type(), skillToUse.level());
+
+            if (!(nextUse != null && monster.canUseSkill(nextUse, false) && nextUse.getHP() >= (int) (((float) monster.getHp() / monster.getMaxHp()) * 100) && mobMp >= nextUse.getMpCon())) {
+                // thanks OishiiKawaiiDesu for noticing mobs trying to cast skills they are not supposed to be able
+                nextSkillId = 0;
+                nextSkillLevel = 0;
+            }
+        }
+
+        Boolean aggro = monster.aggroMoveLifeUpdate(player);
+        if (aggro == null) {
+            return;
+        }
+
+        msg.client().getRemote().map().ackMoveMonster(life.oid(), life.moveid(), mobMp, aggro, nextSkillId, nextSkillLevel);
+
+        // 位置应用（updatePosition monster 分支语义）→ 他人流中继 → 可见性维护
+        Point serverStartPos = new Point(monster.getPosition());
+        applyLifeMovement(monster, life.elements());
+
+        Packet relay = msg.client().getRemote().map().relayMoveMonster(life.oid(), nextMovementCouldBeSkill,
+                rawActivity, useSkillId, useSkillLevel, pOption, life.startPos(), life.elements());
+        broadcastMessage(player, relay, serverStartPos);
+        moveMonster(monster, monster.getPosition());
+    }
+
+    /**
+     * life 移动元素的位置应用：自 AbstractMovementPacketHandler.updatePosition 的
+     * monster 分支迁移（yOffset = -2；相对移动对 mob 不推算落点仅同步姿态；command 11
+     * 在 life 语法下是瞬移形布局、语义仅同步姿态；10/14/21 无位置效果，仅随中继重放字节）。
+     */
+    private static void applyLifeMovement(Monster monster, List<MoveElement> elements) {
+        for (MoveElement e : elements) {
+            switch (e) {
+                case AbsoluteMove m -> {
+                    monster.setPosition(new Point(m.x(), m.y() - 2));
+                    monster.setStance(m.stance());
+                }
+                case RelativeMove m -> monster.setStance(m.stance());
+                case TeleportMove t when t.command() == 11 -> monster.setStance(t.stance());
+                case TeleportMove t -> {
+                    monster.setPosition(new Point(t.x(), t.y() - 2));
+                    monster.setStance(t.stance());
+                }
+                case JumpDownMove j -> {
+                    monster.setPosition(new Point(j.x(), j.y() - 2));
+                    monster.setStance(j.stance());
+                }
+                default -> {
+                }
+            }
+        }
+    }
+
+    /** MoveLifeHandler 原样迁移的历史 quirk：`0xFF >> 1` 因优先级实为 0x7F，语义即 pVal >= pMin。 */
+    private static boolean inRangeInclusive(byte pVal, int pMin, int pMax) {
+        return !(pVal < pMin) || (pVal > pMax);
+    }
+
+    /**
+     * 近战攻击事件（map actor 任务体，doc/13 §19）：中继广播（成品已在 player strand
+     * 编码）+ 伤害应用（AbstractDealDamageHandler.applyAttack verbatim——含死亡分支/
+     * exp/quest；mob 侧照旧并发语义；player 侧写为接受的 off-strand 盘点项，随攻击
+     * 家族其余 handler 迁移与阶段二收编消解）。
+     */
+    public void onCloseRangeAttack(Character chr, AbstractDealDamageHandler.AttackInfo attack,
+                                   int attackCount, Packet relay) {
+        broadcastMessage(chr, relay, false, true);
+        AbstractDealDamageHandler.applyAttack(attack, chr, attackCount);
     }
 
     public final void toggleEnvironment(final String ms) {

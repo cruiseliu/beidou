@@ -36,7 +36,16 @@ public final class MovePacket {
         if (numCommands < 1) {
             throw new EmptyMovementException(p);
         }
+        return decodeElements(p, numCommands, false);
+    }
 
+    /**
+     * 元素序列解码（MOVE_PLAYER 与 MOVE_LIFE 共用；语法唯一分歧在 command 11：
+     * 玩家 = 椅子（x/y/fh/stance/duration），life = 瞬移形（x/y/ppsX/ppsY/stance）——
+     * 同为 9 字节，字段语义不同）。14/21 两侧都保留占位 record：updatePosition 对其
+     * 无位置效果，但中继必须重放字节。
+     */
+    static List<MoveElement> decodeElements(InPacket p, byte numCommands, boolean lifeGrammar) throws EmptyMovementException {
         List<MoveElement> res = new ArrayList<>(numCommands);
         for (byte i = 0; i < numCommands; i++) {
             byte command = p.readByte();
@@ -66,13 +75,20 @@ public final class MovePacket {
                     int stance = p.readByte();
                     res.add(new TeleportMove(command, x, y, ppsX, ppsY, stance));
                 }
-                case 11 -> { // 椅子
+                case 11 -> { // 椅子（玩家语法）/ 瞬移形（life 语法）
                     int x = p.readShort();
                     int y = p.readShort();
-                    int fh = p.readShort();
-                    int stance = p.readByte();
-                    int duration = p.readShort();
-                    res.add(new ChairMove(command, x, y, fh, stance, duration));
+                    if (lifeGrammar) {
+                        int ppsX = p.readShort();
+                        int ppsY = p.readShort();
+                        int stance = p.readByte();
+                        res.add(new TeleportMove(command, x, y, ppsX, ppsY, stance));
+                    } else {
+                        int fh = p.readShort();
+                        int stance = p.readByte();
+                        int duration = p.readShort();
+                        res.add(new ChairMove(command, x, y, fh, stance, duration));
+                    }
                 }
                 case 15 -> { // 跳下
                     int x = p.readShort();
@@ -117,14 +133,11 @@ public final class MovePacket {
             out.writeShortLE(opcode().getValue());
             out.writeIntLE(charId);
             out.writeIntLE(0);
-            out.writeByte(elements.size());
-            for (MoveElement e : elements) {
-                encodeElement(out, e);
-            }
+            encodeElements(out, elements);
             return out;
         }
 
-        private static void encodeElement(io.netty.buffer.ByteBuf out, MoveElement e) {
+        static void encodeElement(io.netty.buffer.ByteBuf out, MoveElement e) {
             switch (e) {
                 case AbsoluteMove m -> {
                     out.writeByte(m.command());
@@ -186,6 +199,14 @@ public final class MovePacket {
                     out.writeByte(m.f3());
                 }
             }
+        }
+    }
+
+    /** 元素序列对称重放（MOVE_PLAYER/MOVE_LIFE 中继共用；与历史 rebroadcastMovementList 的裸字节拷贝逐字节一致）。 */
+    static void encodeElements(io.netty.buffer.ByteBuf out, List<MoveElement> elements) {
+        out.writeByte(elements.size());
+        for (MoveElement e : elements) {
+            Relay.encodeElement(out, e);
         }
     }
 }

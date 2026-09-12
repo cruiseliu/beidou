@@ -26,7 +26,6 @@ import org.gms.client.character.Character;
 import org.gms.client.JobEnum;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
-import org.gms.client.autoban.AutobanFactory;
 import org.gms.client.status.MonsterStatus;
 import org.gms.client.status.MonsterStatusEffect;
 import org.gms.config.GameConfig;
@@ -94,7 +93,6 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
             }
             if (display > 80) { //Hmm
                 if (!mySkill.getAction()) {
-                    AutobanFactory.FAST_ATTACK.autoban(chr, "WZ编辑；为技能添加动作：" + display);
                     return null;
                 }
             }
@@ -122,7 +120,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
         }
     }
 
-    protected void applyAttack(AttackInfo attack, final Character player, int attackCount) {
+    public static void applyAttack(AttackInfo attack, final Character player, int attackCount) {
         final MapleMap map = player.getMap();
         if (map.isOwnershipRestricted(player)) {
             return;
@@ -141,10 +139,6 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                 if (attackEffect == null) {
                     player.sendPacket(PacketCreator.enableActions());
                     return;
-                }
-
-                if (player.getMp() < attackEffect.getMpCon()) {
-                    AutobanFactory.MPCON.addPoint(player.getAutoBanManager(), "技能: " + attack.skill + "; 玩家 MP: " + player.getMp() + "; MP 需要: " + attackEffect.getMpCon());
                 }
 
                 int mobCount = attackEffect.getMobCount();
@@ -175,7 +169,6 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                 }
 
                 if (attack.numAttacked > mobCount) {
-                    AutobanFactory.MOB_COUNT.autoban(player, "技能: " + attack.skill + "; Count: " + attack.numAttacked + " Max: " + attackEffect.getMobCount());
                     return;
                 }
             }
@@ -514,10 +507,6 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                     }
                     if (attack.skill != 0) {
                         if (attackEffect.getFixDamage() != -1) {
-                            if (totDamageToOneMonster != attackEffect.getFixDamage() && totDamageToOneMonster != 0) {
-                                AutobanFactory.FIX_DAMAGE.autoban(player, totDamageToOneMonster + " damage");
-                            }
-
                             int threeSnailsId = player.getJobType() * 10000000 + 1000;
                             if (attack.skill == threeSnailsId) {
                                 if (GameConfig.getServerBoolean("use_ultra_three_snails")) {
@@ -612,15 +601,6 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                         distanceHackWorstUsedTeleportContext,
                         distanceHackWorstUsedMovementContext
                 );
-                AutobanFactory.DISTANCE_HACK.addPoint(
-                        player.getAutoBanManager(),
-                        "Player: " + player.getName()
-                                + " maxDistanceSqToMob: " + distanceHackWorstDistance
-                                + " thresholdSq: " + distanceHackWorstThreshold
-                                + " SID: " + attack.skill
-                                + " MID: " + distanceHackWorstMonster.getId()
-                                + " " + bboxInfo
-                );
                 log.warn(
                         "Player: {} maxDistanceSqToMob: {} thresholdSq: {} SID: {} MID: {} {}",
                         player.getName(),
@@ -670,7 +650,6 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
         ret.ranged = ranged;
         ret.magic = magic;
 
-        detectionAttackInterval(chr, ret);
 
 
         if (ret.skill > 0) {
@@ -985,16 +964,6 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                     maxWithCrit *= 2;
                 }
 
-                // Warn if the damage is over 1.5x what we calculated above.
-                if (damage > maxWithCrit * 1.5) {
-                    AutobanFactory.DAMAGE_HACK.alert(chr, "DMG: " + damage + " MaxDMG: " + maxWithCrit + " SID: " + ret.skill + " MobID: " + (monster != null ? monster.getId() : "null") + " Map: " + chr.getMap().getMapName() + " (" + chr.getMapId() + ")");
-                }
-
-                // Add a ab point if its over 5x what we calculated.
-                if (damage > maxWithCrit * 5) {
-                    AutobanFactory.DAMAGE_HACK.addPoint(chr.getAutoBanManager(), "DMG: " + damage + " MaxDMG: " + maxWithCrit + " SID: " + ret.skill + " MobID: " + (monster != null ? monster.getId() : "null") + " Map: " + chr.getMap().getMapName() + " (" + chr.getMapId() + ")");
-                }
-
                 if (ret.skill == Marksman.SNIPE || (canCrit && damage > hitDmgMax)) {
                     // If the skill is a crit, inverse the damage to make it show up on clients.
                     damage = -Integer.MAX_VALUE + damage - 1;
@@ -1004,9 +973,6 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                     int maxattack = Math.max(effect.getBulletCount(), effect.getAttackCount());
                     if (shadowPartner) {
                         maxattack = maxattack * 2;
-                    }
-                    if (ret.numDamage > maxattack) {
-                        AutobanFactory.DAMAGE_HACK.addPoint(chr.getAutoBanManager(), "Too many lines: " + ret.numDamage + " Max lines: " + maxattack + " SID: " + ret.skill + " MobID: " + (monster != null ? monster.getId() : "null") + " Map: " + chr.getMap().getMapName() + " (" + chr.getMapId() + ")");
                     }
                 }
 
@@ -1324,76 +1290,6 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                 mobPos.y + maxY
         };
     }
-
-    /**
-     * 检测攻击间隔是否异常。
-     *
-     * 三层过滤：
-     *   ① SKIP_SET / PASSIVE_SET → 直接跳过
-     *   ② < MIN_INTERVAL 网络抖动 → 透明跳过
-     *   ③ Per-skill 滑动窗口 avg + CV → 稳定高速计分，暴发仅警告
-     *   ④ 全局间隔 → 跨技能轮换计分
-     */
-    private static void detectionAttackInterval(Character chr, AttackInfo ret) {
-        int skill = ret.skill;
-        if (SKIP_SKILL_ID_SET.contains(skill)) return;
-        if (PASSIVE_SKILL_ID_SET.contains(skill)) return;
-
-        long now = System.currentTimeMillis();
-
-        long interval = chr.getAttackInterval(skill, now);
-        if (interval == Long.MAX_VALUE || interval < Character.MIN_INTERVAL) return;
-
-        String reason = "玩家" + chr.getName() + "地图ID：" + chr.getMapId()
-                + "攻击间隔: " + interval + "技能ID：" + skill;
-
-        switch (chr.checkSkillWindow(skill, interval)) {
-            case STABLE_HACK:
-                AutobanFactory.ATTACK_INTERVAL.addPoint(chr.getAutoBanManager(), reason);
-                return;
-            case BURST:
-                AutobanFactory.ATTACK_INTERVAL.alert(chr, reason);
-                break;
-            case PASS:
-                return;
-        }
-
-        long globalInterval = chr.getGlobalInterval(now);
-        if (globalInterval < Character.NORMAL_AVG) {
-            AutobanFactory.ATTACK_INTERVAL.addPoint(chr.getAutoBanManager(), reason);
-        } else {
-            chr.updateGlobalTime(now);
-        }
-    }
-
-    /** 持续施法技能：按住时连续多包，全跳过 */
-    private static final Set<Integer> SKIP_SKILL_ID_SET = Set.of(
-            Bowmaster.HURRICANE,           // 弩弓 暴风箭雨
-            WindArcher.HURRICANE,          // 风灵 暴风箭雨
-            Corsair.RAPID_FIRE,            // 火枪 金属风暴
-            Evan.FIRE_BREATH,              // 龙 火焰喷射
-            Evan.ICE_BREATH,               // 龙 寒冰喷射
-            Hero.BRANDISH,                 // 英雄 轻舞飞扬（客户端已改为按住连发）
-            DawnWarrior.BRANDISH           // 魂骑士 轻舞飞扬（同上）
-    );
-
-    /** 被动触伤技能：频率不由玩家输入控制，全跳过 */
-    private static final Set<Integer> PASSIVE_SKILL_ID_SET = Set.of(
-            Aran.BODY_PRESSURE,            // 战神 身体压杀
-            Marauder.ENERGY_CHARGE,        // 船长 能量汇集
-            ThunderBreaker.ENERGY_CHARGE,  // 雷鸣 能量汇集
-            Fighter.FINAL_ATTACK_SWORD,    // 剑客 终极剑
-            Fighter.FINAL_ATTACK_AXE,      // 剑客 终极斧
-            Page.FINAL_ATTACK_SWORD,       // 勇士 终极剑
-            Page.FINAL_ATTACK_BW,          // 勇士 终极棍
-            Spearman.FINAL_ATTACK_SPEAR,   // 枪战士 终极枪
-            Spearman.FINAL_ATTACK_POLEARM, // 枪战士 终极矛
-            Hunter.FINAL_ATTACK,           // 猎人 终极弓
-            Crossbowman.FINAL_ATTACK,      // 弩弓手 终极弩
-            DawnWarrior.FINAL_ATTACK,      // 魂骑士 终极剑
-            WindArcher.FINAL_ATTACK        // 风灵使者 终极弓
-    );
-
 
     private static int rand(int l, int u) {
         return (int) ((Math.random() * (u - l + 1)) + l);

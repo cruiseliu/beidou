@@ -38,7 +38,9 @@ import org.gms.constants.skills.NightWalker;
 import org.gms.constants.skills.Rogue;
 import org.gms.constants.skills.WindArcher;
 import org.gms.net.packet.InPacket;
+import org.gms.net.packet.Packet;
 import org.gms.server.BuffEffectData;
+import org.gms.server.maps.MapleMap;
 import org.gms.server.partyquest.Pyramid;
 import org.gms.util.I18nUtil;
 import org.gms.util.PacketCreator;
@@ -53,14 +55,17 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 public final class CloseRangeDamageHandler extends AbstractDealDamageHandler {
 
     @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §19）：攻击解析与 player 侧状态（morph/dojo/combo/cooldown/
+        // darksight）在本会话 strand 上执行（现状 netty 线程写）；mob 伤害应用跨 map 域，
+        // 中继成品 strand 编码后 post map actor 串行广播+应用。autoban/spam 检测按
+        // 单机版裁定舍弃（doc/13 §19）。
+        return true;
+    }
+
+    @Override
     public final void handlePacket(InPacket p, Client c) {
         Character chr = c.getPlayer();
-        
-        /*long timeElapsed = currentServerTime() - chr.getAutobanManager().getLastSpam(8);
-        if(timeElapsed < 300) {
-                AutobanFactory.FAST_ATTACK.alert(chr, "Time: " + timeElapsed);
-        }
-        chr.getAutobanManager().spam(8);*/
 
         AttackInfo attack = parseDamage(p, chr, false, false);
         if (chr.getBuffEffect(EffectType.MORPH) != null) {
@@ -84,7 +89,6 @@ public final class CloseRangeDamageHandler extends AbstractDealDamageHandler {
             c.sendPacket(PacketCreator.getEnergy("energy", chr.getDojoEnergy()));
         }
 
-        chr.getMap().broadcastMessage(chr, PacketCreator.closeRangeAttack(chr, attack.skill, attack.skilllevel, attack.stance, attack.numAttackedAndDamage, attack.allDamage, attack.speed, attack.direction, attack.display), false, true);
         int numFinisherOrbs = 0;
         Integer comboBuff = chr.getBuffedValue(EffectType.COMBO);
         if (GameConstants.isFinisherSkill(attack.skill)) {
@@ -197,7 +201,12 @@ public final class CloseRangeDamageHandler extends AbstractDealDamageHandler {
             chr.cancelBuffStats(EffectType.WIND_WALK);
         }
 
-        applyAttack(attack, chr, attackCount);
+        // 中继成品 strand 编码（MoveMsg 同款）；广播 + 伤害应用在 map actor 任务体内串行
+        final Packet relay = PacketCreator.closeRangeAttack(chr, attack.skill, attack.skilllevel, attack.stance,
+                attack.numAttackedAndDamage, attack.allDamage, attack.speed, attack.direction, attack.display);
+        final MapleMap map = chr.getMap();
+        final int finalAttackCount = attackCount;
+        map.post("close-range-attack", () -> map.onCloseRangeAttack(chr, attack, finalAttackCount, relay));
     }
 
     private boolean isBambooRain(int skillId) {

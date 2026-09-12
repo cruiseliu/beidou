@@ -25,8 +25,7 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
-import org.gms.server.life.Monster;
-import org.gms.server.maps.MapObject;
+import org.gms.server.maps.MapleMap;
 import org.gms.util.PacketCreator;
 import org.gms.util.Pair;
 
@@ -38,6 +37,14 @@ import java.util.List;
  * 玩家完成切换地图触发
  */
 public final class PlayerMapTransitionHandler extends AbstractPacketHandler {
+
+    @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §18）：transitionComplete/homing beacon 是 player 状态，
+        // 须在本会话 strand 上写；mob 视图重建跨 map 域，快照过界（isHidden）后 post
+        // map shim 串行执行（mob 侧状态照旧并发语义，不属 player actor 范围）。
+        return true;
+    }
 
     @Override
     public final void handlePacket(InPacket p, Client c) {
@@ -53,21 +60,10 @@ public final class PlayerMapTransitionHandler extends AbstractPacketHandler {
             chr.sendPacket(PacketCreator.giveBuff(1, beaconid, stat));
         }
 
-        if (!chr.isHidden()) {  // thanks Lame (Conrad) for noticing hidden characters controlling mobs
-            for (MapObject mo : chr.getMap().getMonsters()) {    // thanks BHB, IxianMace, Jefe for noticing several issues regarding mob statuses (such as freeze)
-                Monster m = (Monster) mo;
-                if (m.getSpawnEffect() == 0 || m.getHp() < m.getMaxHp()) {     // avoid effect-spawning mobs
-                    if (m.getController() == chr) {
-                        c.sendPacket(PacketCreator.stopControllingMonster(m.getObjectId()));
-                        m.sendDestroyData(c);
-                        m.aggroRemoveController();
-                    } else {
-                        m.sendDestroyData(c);
-                    }
-                    m.sendSpawnData(c);
-                    m.aggroSwitchController(chr, false);
-                }
-            }
+        if (chr.isHidden()) {  // thanks Lame (Conrad) for noticing hidden characters controlling mobs
+            return;
         }
+        final MapleMap map = chr.getMap();
+        map.post("map-transitionMobView", () -> map.onTransitionMobView(chr, c));
     }
 }
