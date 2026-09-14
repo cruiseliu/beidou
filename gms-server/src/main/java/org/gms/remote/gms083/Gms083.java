@@ -7,6 +7,8 @@ import org.gms.client.Client;
 import org.gms.constants.string.CharsetConstants;
 import org.gms.net.PacketHandler;
 import org.gms.net.PacketProcessor;
+import org.gms.net.packet.InPacket;
+import org.gms.net.opcodes.RecvOpcode;
 import org.gms.net.packet.Packet;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.EquipFlag;
@@ -86,9 +88,29 @@ public final class Gms083 extends RemoteClientBase implements RemoteClient {
         routers = new Gms083Routers(this);
     }
 
-    /** 世界域 C→S 分派（opcode → 世界 handler 表；表外 op 返回 null 由管道丢弃）。 */
+    /** 世界域 C→S 分派（opcode → 世界 handler 表；表外 op 返回 null 由管道丢弃）。
+     * PLAYER_LOGGEDIN 特判：连接初始化协议不走 handler 表（doc/12 §21），分发到
+     * 基类 final 模板 clientInit（queued 裸 strand，会话建立/换绑 + 入场编舞）。 */
     @Override
     public PacketHandler resolveHandler(short opcode) {
+        if (opcode == RecvOpcode.PLAYER_LOGGEDIN.getValue()) {
+            return new PacketHandler() {
+                @Override
+                public boolean validateState(Client c) {
+                    return !c.isLoggedIn();   // 原 PlayerLoggedinHandler.validateState
+                }
+
+                @Override
+                public boolean queued() {
+                    return true;   // 裸 strand：协议前半含 loadCharFromDB（半加载态语义）
+                }
+
+                @Override
+                public void handlePacket(InPacket p, Client c) {
+                    clientInit(p.readInt(), c);
+                }
+            };
+        }
         return processor.getHandler(opcode);
     }
 
@@ -104,7 +126,17 @@ public final class Gms083 extends RemoteClientBase implements RemoteClient {
 
     public Packet toLegacyPacket(V83Packet packet) {
         if (log.isDebugEnabled()) {
-            log.debug("[remote] {} {}", packet.opcode(), JSON.toJSONString(packet));
+            // record 携带实体引用时 JSON 序列化可能撞对象图循环（fastjson2 层级上限，
+            // 循环可致 StackOverflowError）——诊断日志降级，发包不受影响；hex trace 恒可用
+            String json;
+            try {
+                json = JSON.toJSONString(packet);
+            } catch (Throwable t) {
+                // StackOverflowError 也是合法结果（实体对象图循环，如 GuildCharacter）——
+                // 诊断日志不得有任何抛出路径
+                json = "<unserializable>";
+            }
+            log.debug("[remote] {} {}", packet.opcode(), json);
         }
         ByteBuf frame = packet.encode();
         if (log.isTraceEnabled()) {

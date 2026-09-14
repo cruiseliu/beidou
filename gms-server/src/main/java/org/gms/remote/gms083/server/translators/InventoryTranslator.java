@@ -1,12 +1,9 @@
 package org.gms.remote.gms083.server.translators;
 
-import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.Item;
-import org.gms.constants.game.ExpTable;
-import org.gms.constants.inventory.ItemConstants;
-import org.gms.server.ItemInformationProvider;
 import org.gms.remote.gms083.ServerTranslator;
+import org.gms.remote.gms083.server.blocks.ItemBlock;
 import org.gms.remote.gms083.server.events.FrozenInventoryEvent;
 import org.gms.remote.gms083.server.packets.InventoryFullPacket;
 import org.gms.remote.gms083.server.packets.InventoryOperationPacket;
@@ -15,25 +12,16 @@ import org.gms.remote.modules.inventory.server.SlotChange;
 import org.gms.remote.modules.pet.server.PetPanelEvent;
 import org.gms.remote.modules.pet.server.PetSnap;
 
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * 背包域翻译：语义 SlotChange → packet record（纯字段）。
- * 语义查表在此完成：可充值 wire 数量、cash 序列号三选一（宠物=petId、戒指=ringId、
- * 其余=cashId）、成长经验 nibble（ExpTable）、到期映射。职责见 doc/package-client.md §6。
- */
-public final class InventoryTranslator implements ServerTranslator {
-    private static final ItemInformationProvider ii = ItemInformationProvider.getInstance();
-
-    private final Charset charset;
+ * 语义查表（可充值 wire 数量、cash 序列号、到期映射等）在 {@link ItemBlock} 工厂完成，
+ * 本类只做变更形状翻译。职责见 doc/package-client.md §6。
+ */public final class InventoryTranslator implements ServerTranslator {
     private final List<InventoryOperationPacket.Change> changes = new ArrayList<>();
     private boolean full = false;
-
-    public InventoryTranslator(Charset charset) {
-        this.charset = charset;
-    }
 
     public void onInventoryMods(List<SlotChange> semantic) {
         for (SlotChange c : semantic) {
@@ -48,7 +36,7 @@ public final class InventoryTranslator implements ServerTranslator {
                 changes.add(toChange(c));
             } else if (el instanceof FrozenInventoryEvent.Element.PetBody(short pos, int itemId, PetSnap snap)) {
                 changes.add(new InventoryOperationPacket.Added((byte) InventoryType.CASH.getType(), pos,
-                        petBody(itemId, snap.petId(), snap.name(), snap.level(), snap.tameness(),
+                        ItemBlock.ofPet(itemId, snap.petId(), snap.name(), snap.level(), snap.tameness(),
                                 snap.fullness(), snap.flags(), snap.alive(), snap.expiration())));
             }
         }
@@ -56,6 +44,17 @@ public final class InventoryTranslator implements ServerTranslator {
 
     public void onInventoryFull() {
         full = true;
+    }
+
+    /**
+     * 宠物面板快照 → body 刷新变更（Rem+Add，对齐 forceUpdateItem 帧序）。
+     */
+    public void onPetPanel(PetPanelEvent s) {
+        byte tab = (byte) InventoryType.CASH.getType();
+        changes.add(new InventoryOperationPacket.Removed(tab, s.pos()));
+        changes.add(new InventoryOperationPacket.Added(tab, s.pos(),
+                ItemBlock.ofPet(s.itemId(), s.petId(), s.name(), s.level(), s.tameness(),
+                        s.fullness(), s.flags(), s.alive(), s.expiration())));
     }
 
     @Override
@@ -83,10 +82,8 @@ public final class InventoryTranslator implements ServerTranslator {
 
     private InventoryOperationPacket.Change toChange(SlotChange c) {
         if (c instanceof SlotChange.Added(var item, var pos, var quantity)) {
-            // 可充值 wire 数量 = 可使用次数（charge）；语义 quantity 为组数（恒 1）
-            short wireQuantity = (short) (item.isRechargeable() ? item.getCharge() : quantity);
             return new InventoryOperationPacket.Added(
-                    tabOf(item), (short) pos, bodyOf(item, wireQuantity));
+                    tabOf(item), (short) pos, ItemBlock.of(item, quantity));
         }
         if (c instanceof SlotChange.QuantityUpdated(var item, var pos, var quantity)) {
             short wireQuantity = (short) (item.isRechargeable() ? item.getCharge() : quantity);
@@ -99,97 +96,6 @@ public final class InventoryTranslator implements ServerTranslator {
             return new InventoryOperationPacket.Removed(tabOf(item), (short) pos);
         }
         throw new IllegalStateException("未知槽位变更: " + c);
-    }
-
-    /** Item 实体 + wire 数量 → 纯字段物品体（Equip 域查表在此完成） */
-    private InventoryOperationPacket.ItemBody bodyOf(Item item, int wireQuantity) {
-        int itemId = item.getItemId();
-        boolean cash = ii.isCash(itemId);
-        long expiration = Filetimes.toWire(item.getExpiration());
-        byte type = (byte) item.getItemType();
-
-        if (type == 3) {
-            // 不变量：宠物槽位的 Added 必经 FrozenInventoryEvent.PetBody（freeze 保证），不该走到这里
-            throw new IllegalStateException("宠物物品体缺冻结快照: " + itemId);
-        }
-        long serial = 0;
-        if (cash && item.getCashInfo() != null) {
-            serial = item.getCashInfo().getCashId();
-        }
-        if (type == 1) {
-            Equip equip = item.getEquipInfo();
-            if (cash && equip.getRingId() > -1) {
-                serial = equip.getRingId();
-            }
-            var levelInfo = cash
-                    ? new InventoryOperationPacket.LevelInfo.CashPadding()
-                    : new InventoryOperationPacket.LevelInfo.Growth((byte) 0,
-                            (byte) equip.getItemLevel(),
-                            (int) (ExpTable.getExpNeededForLevel(ii.getEquipLevelReq(itemId)) * equip.getItemExp()
-                                    / ExpTable.getExpNeededForLevel(equip.getItemLevel())),
-                            equip.getVicious(), 0L);
-            return new InventoryOperationPacket.ItemBody.Equip(
-                    itemId, cash, serial, expiration,
-                    (byte) equip.getEnhancementSlots(), (byte) equip.getEnhancementLevel(),
-                    equipStats(equip), item.getOwner(), item.getLegacyFlags(),
-                    levelInfo, Filetimes.toWire(-2), -1);
-        }
-        return new InventoryOperationPacket.ItemBody.Stack(
-                itemId, cash, serial, expiration,
-                (short) wireQuantity, item.getOwner(), item.getLegacyFlags(),
-                ItemConstants.isRechargeable(itemId));
-    }
-
-    /**
-     * 宠物面板快照 → body 刷新变更（Rem+Add，对齐 forceUpdateItem 帧序）。
-     * tameness 在本层 min(30000) 截断：服务端可持有超出值，客户端只显示 30000。
-     */
-    public void onPetPanel(PetPanelEvent s) {
-        byte tab = (byte) InventoryType.CASH.getType();
-        changes.add(new InventoryOperationPacket.Removed(tab, s.pos()));
-        changes.add(new InventoryOperationPacket.Added(tab, s.pos(),
-                petBody(s.itemId(), s.petId(), s.name(), s.level(), s.tameness(),
-                        s.fullness(), s.flags(), s.alive(), s.expiration())));
-    }
-
-    /** 宠物物品体（PetModule 面板快照与 inventory SlotChange 共用）。
-     *  宠物到期归 Pet（item.expiration 恒 -1）；客户端语义（实测）：wire ≥ EXPIRED
-     *  显示"过期"，PERMANENT 显示"永久"，其余显示日期。 */
-    private InventoryOperationPacket.ItemBody.Pet petBody(int itemId, long petId, String name,
-            int level, int tameness, int fullness, int flags, boolean alive, long expiration) {
-        long wireExpiration;
-        if (!alive) {
-            wireExpiration = Filetimes.EXPIRED;              // 失活 → "过期"
-        } else if (expiration == -1) {
-            wireExpiration = Filetimes.PERMANENT;            // 永久 → "永久"
-        } else {
-            wireExpiration = Filetimes.toWire(expiration);
-        }
-        return new InventoryOperationPacket.ItemBody.Pet(
-                itemId, true, petId, wireExpiration,
-                name.getBytes(charset),
-                (byte) level, (short) Math.min(tameness, 30000), (byte) fullness,
-                (short) flags);
-    }
-
-    private short[] equipStats(Equip equip) {
-        return new short[]{
-                (short) equip.getStat(org.gms.client.character.Stat.STR),
-                (short) equip.getStat(org.gms.client.character.Stat.DEX),
-                (short) equip.getStat(org.gms.client.character.Stat.INT),
-                (short) equip.getStat(org.gms.client.character.Stat.LUK),
-                (short) equip.getStat(org.gms.client.character.Stat.MAX_HP),
-                (short) equip.getStat(org.gms.client.character.Stat.MAX_MP),
-                (short) equip.getStat(org.gms.client.character.Stat.P_ATK),
-                (short) equip.getStat(org.gms.client.character.Stat.M_ATK),
-                (short) equip.getStat(org.gms.client.character.Stat.P_DEF),
-                (short) equip.getStat(org.gms.client.character.Stat.M_DEF),
-                (short) equip.getStat(org.gms.client.character.Stat.ACCURACY),
-                (short) equip.getStat(org.gms.client.character.Stat.AVOIDABILITY),
-                (short) equip.getStat(org.gms.client.character.Stat.HANDS),
-                (short) equip.getStat(org.gms.client.character.Stat.SPEED),
-                (short) equip.getStat(org.gms.client.character.Stat.JUMP),
-        };
     }
 
     private static byte tabOf(Item item) {

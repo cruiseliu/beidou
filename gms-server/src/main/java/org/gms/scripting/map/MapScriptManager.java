@@ -46,9 +46,9 @@ public class MapScriptManager extends AbstractScriptManager {
         scripts.clear();
     }
 
-    public boolean runMapScript(Client c, String mapScriptPath, boolean firstUser) {
+    public boolean runMapScript(Character chr, String mapScriptPath, boolean firstUser) {
+        final Client c = chr.getClient();   // 脚本上下文传输；角色由调用方显式携带（不从 Client 反查）
         if (firstUser) {
-            Character chr = c.getPlayer();
             int mapid = chr.getMapId();
             if (chr.hasEntered(mapScriptPath, mapid)) {
                 return false;

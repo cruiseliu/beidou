@@ -1,10 +1,57 @@
 package org.gms.net.server.coordinator.session;
 
 import org.gms.client.Client;
+import org.gms.client.Player;
 import org.gms.client.PlayerStrand;
 import org.gms.infra.DeadlineTimer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.gms.client.BuddyList;
+import org.gms.client.BuddylistEntry;
+import org.gms.client.CharacterNameAndId;
+import org.gms.client.Family;
+import org.gms.client.FamilyEntry;
+import org.gms.client.Mount;
+import org.gms.client.SkillFactory;
+import org.gms.client.character.Character;
+import org.gms.client.inventory.Equip;
+import org.gms.client.inventory.InventoryTab;
+import org.gms.client.inventory.InventoryType;
+import org.gms.client.inventory.ItemSlot;
+import org.gms.client.keybind.KeyBinding;
+import org.gms.client.pet.Pet;
+import org.gms.config.GameConfig;
+import org.gms.constants.game.GameConstants;
+import org.gms.manager.ServerManager;
+import org.gms.net.packet.Packet;
+import org.gms.net.server.Server;
+import org.gms.net.server.channel.Channel;
+import org.gms.net.server.channel.CharacterIdChannelPair;
+import org.gms.net.server.coordinator.session.Hwid;
+import org.gms.net.server.coordinator.session.SessionCoordinator;
+import org.gms.net.server.coordinator.world.EventRecallCoordinator;
+import org.gms.net.server.guild.Alliance;
+import org.gms.net.server.guild.Guild;
+import org.gms.net.server.guild.GuildPackets;
+import org.gms.net.server.world.PartyCharacter;
+import org.gms.net.server.world.PartyOperation;
+import org.gms.net.server.world.World;
+import org.gms.remote.RemoteClient;
+import org.gms.scripting.event.EventInstanceManager;
+import org.gms.server.maps.MapleMap;
+import org.gms.service.HpMpAlertService;
+import org.gms.service.NoteService;
+import org.gms.util.DatabaseConnection;
+import org.gms.util.I18nUtil;
+import org.gms.util.PacketCreator;
+import org.gms.util.packets.WeddingPackets;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -216,4 +263,188 @@ public final class PlayerSession {
     public String toString() {
         return "session[acct-" + accountId + " " + state() + "]";
     }
+
+    // ── 世界入口（PLAYER_LOGGEDIN，doc/12 §21）：语义层初始化协议 ──
+    // 分发：Gms083.resolveHandler 对 PLAYER_LOGGEDIN 特判（queued 裸 strand）→
+    // RemoteClientBase.clientInit(characterId, legacyClient) → 本方法。handler 形态退役。
+
+    /** 账号级入场互斥（防双重 loggedin 并发错乱登录态；原 handler 静态簿记） */
+    private static final Set<Integer> ATTEMPTING_ACCOUNTS = new HashSet<>();
+
+
+    /**
+     * 绑定传输到角色会话（"创建 strand 或者换绑"，doc/12 §21）：PLAYER_LOGGEDIN 的
+     * 全部语义——协议前半（角色获取/票据/登录态翻转，裸 strand 上，半加载态语义）+
+     * 会话建立（attach：fresh 诞生/adopt 换绑/顶号终结）+ 入场编舞 post 会话 strand。
+     * 原 PlayerLoggedinHandler verbatim 迁移；体中 c 即 legacyClient。
+     *
+     * @param remote       语义层实例（分发壳捕获，未经 Client 导航）
+     * @param legacyClient 传输附件（分发壳 handlePacket 参数直传；RemoteClient 不暴露）
+     */
+    private static boolean tryAcquireAccount(int accId) {
+        synchronized (ATTEMPTING_ACCOUNTS) {
+            if (ATTEMPTING_ACCOUNTS.contains(accId)) {
+                return false;
+            }
+            ATTEMPTING_ACCOUNTS.add(accId);
+            return true;
+        }
+    }
+
+    private static void releaseAccount(int accId) {
+        synchronized (ATTEMPTING_ACCOUNTS) {
+            ATTEMPTING_ACCOUNTS.remove(accId);
+        }
+    }
+
+    public static void bindClient(int characterId, RemoteClient remote, Client legacyClient) {
+        final Client c = legacyClient;
+        final Server server = Server.getInstance();
+
+
+        if (!c.tryacquireClient()) {
+            // thanks MedicOP for assisting on concurrency protection here
+            c.sendPacket(PacketCreator.getAfterLoginError(10));
+        }
+
+        try {
+            World wserv = server.getWorld(c.getWorld());
+            if (wserv == null) {
+                c.disconnect(true, false);
+                return;
+            }
+
+            Channel cserv = wserv.getChannel(c.getChannel());
+            if (cserv == null) {
+                c.setChannel(1);
+                cserv = wserv.getChannel(c.getChannel());
+
+                if (cserv == null) {
+                    c.disconnect(true, false);
+                    return;
+                }
+            }
+
+            Character player = wserv.getPlayerStorage().getCharacterById(characterId);
+
+            boolean newcomer = false;
+            if (player == null) {
+                try {
+                    player = Character.loadCharFromDB(characterId, c, true);
+                    newcomer = true;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                if (player == null) { //If you are still getting null here then please just uninstall the game >.>, we dont need you fucking with the logs
+                    c.disconnect(true, false);
+                    return;
+                }
+            }
+
+            if (!server.validateCharacteridInTransition(c, characterId)) {
+                c.disconnect(true, false);
+                return;
+            }
+
+            c.setAccID(player.getAccountId());
+
+            final Hwid hwid;
+            if (newcomer) {
+                // 按账号拾取登录会话 hwid（原按远程 IP 取出即删，同 IP 并发登录会互相挤掉，见 doc/TODO.md）
+                hwid = SessionCoordinator.getInstance().pickLoginSessionHwid(player.getAccountId());
+                if (hwid == null) {
+                    c.disconnect(true, false);
+                    return;
+                }
+            } else {
+                // 过渡重入：旧连接可能已死（悬挂引用）——优先从会话协调器的 hwid 缓存拾取
+                // （CharSelected 时登记），缓存未命中再回退悬挂旧 Client（过渡分支不清理 hwid，仍可读）
+                Hwid cached = SessionCoordinator.getInstance().getGameSessionHwid(player.getAccountId());
+                hwid = cached != null ? cached : player.getClient().getHwid();
+            }
+
+            c.setHwid(hwid);
+
+            boolean allowLogin = true;
+
+                /*  is this check really necessary?
+                if (state == Client.LOGIN_SERVER_TRANSITION || state == Client.LOGIN_NOTLOGGEDIN) {
+                    List<String> charNames = c.loadCharacterNames(c.getWorld());
+                    if(!newcomer) {
+                        charNames.remove(player.getName());
+                    }
+
+                    for (String charName : charNames) {
+                        if(wserv.getPlayerStorage().getCharacterByName(charName) != null) {
+                            allowLogin = false;
+                            break;
+                        }
+                    }
+                }
+                */
+
+            int accId = c.getAccID();
+            if (tryAcquireAccount(accId)) { // Sync this to prevent wrong login state for double loggedin handling
+                try {
+                    int state = c.getLoginState();
+                    if (state != Client.LOGIN_SERVER_TRANSITION || !allowLogin) {
+                        c.setAccID(0);
+
+                        if (state == Client.LOGIN_LOGGEDIN) {
+                            c.disconnect(true, false);
+                        } else {
+                            c.sendPacket(PacketCreator.getAfterLoginError(7));
+                        }
+
+                        return;
+                    }
+                    c.updateLoginState(Client.LOGIN_LOGGEDIN);
+                } finally {
+                    releaseAccount(accId);
+                }
+            } else {
+                c.setAccID(0);
+                c.sendPacket(PacketCreator.getAfterLoginError(10));
+                return;
+            }
+
+            if (!newcomer) {
+                // 过渡重入：读悬挂旧 Client 的账号级不可变设置（language/slots，过渡分支不清理）
+                c.setLanguage(player.getClient().getLanguage());
+                c.setCharacterSlots((byte) player.getClient().getCharacterSlots());
+            }
+
+            // —— 会话建立（doc/12 §3.4）：attach 决定 fresh/adopt/顶号等待；入场流程（含
+            // rebind）作为单个任务投递到会话 strand，FIFO 排在该会话既有任务之后——旧连接
+            // 收尾与新连接进入在此获得全序。newClient 依赖会话 strand（strandSlot 安装），
+            // 故一并移入入场任务。
+            PlayerSession session = SessionCoordinator.getInstance().attach(c, accId);
+            c.attachTo(session);
+            final Character entered = player;
+            final boolean firstEntry = newcomer;
+            session.strand().post("loggedin-enter", () -> {
+                if (!c.tryacquireClient()) {   // 与前半段的并发保护对齐（MedicOP）
+                    c.sendPacket(PacketCreator.getAfterLoginError(10));
+                    return;
+                }
+                try {
+                    session.strand().rebindTo(c);   // 跨 actor 写：跑在 actor 上（doc/12 权责语义）
+                    // Character 从属 Player（doc/12 §21）：槽位在 actor 上绑定；Client.player 降为 legacy 镜像
+                    Player.current().bindCharacter(entered);   // 跨 actor 写：跑在 actor 上（doc/12 权责语义）
+                    // 收包插座接线：角色把组件接插到 actor 的 Handler 槽位（on strand 写；
+                    // 角色内部组成不外泄，接线知识在 Character.bindClientHandlers）
+                    entered.bindClientHandlers(Player.current().clientEventHandlers());
+                    Player.current().enterWorld(firstEntry);
+                } finally {
+                    c.releaseClient();
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            c.releaseClient();
+        }
+    }
+
 }

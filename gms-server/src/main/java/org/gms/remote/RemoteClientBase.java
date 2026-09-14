@@ -1,6 +1,8 @@
 package org.gms.remote;
 
+import org.gms.client.Client;
 import org.gms.net.PacketHandler;
+import org.gms.net.server.coordinator.session.PlayerSession;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +28,17 @@ public abstract class RemoteClientBase {
 
     /** 冲刷全部模块路由器（固定业务序，版本显式书写） */
     protected abstract void flushAll();
+
+    /**
+     * 世界入口初始化协议（PLAYER_LOGGEDIN，doc/12 §21）：连接初始化不属于任何语义
+     * 模块，直接以基类 final 模板承载（不走 pipeline/槽位）。全部分 delegate 到
+     * {@code PlayerSession.bindClient}——会话建立（strand 诞生/换绑）+ 入场编舞。
+     * 由分发壳（Gms083.resolveHandler 的特判，queued 裸 strand）调用；跳板域连接的
+     * 分发表无此 op，天然不可达。实现类须 implements RemoteClient（域视图契约）。
+     */
+    public final void clientInit(int characterId, Client legacyClient) {
+        PlayerSession.bindClient(characterId, (RemoteClient) this, legacyClient);
+    }
 
     /**
      * C→S 分派（opcode → 本域 handler；表外 op 返回 null，由连接管道丢弃）。

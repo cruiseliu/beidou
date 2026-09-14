@@ -75,7 +75,21 @@ import org.gms.model.pojo.NewYearCardRecord;
 import org.gms.model.pojo.SkillEntry;
 import org.gms.net.packet.Packet;
 import org.gms.net.server.PlayerCoolDownValueHolder;
+import org.gms.client.CharacterNameAndId;
+import org.gms.client.inventory.InventoryTab;
+import org.gms.client.inventory.InventoryType;
+import org.gms.client.inventory.ItemSlot;
+import org.gms.net.server.channel.CharacterIdChannelPair;
+import org.gms.net.server.coordinator.world.EventRecallCoordinator;
+import org.gms.net.server.guild.GuildPackets;
+import org.gms.service.HpMpAlertService;
+import org.gms.service.NoteService;
+import org.gms.util.DatabaseConnection;
+import org.gms.util.I18nUtil;
+import org.gms.util.packets.WeddingPackets;
 import org.gms.net.server.Server;
+import org.gms.net.server.world.World;
+import org.gms.net.server.channel.Channel;
 import org.gms.net.server.coordinator.world.InviteCoordinator;
 import org.gms.net.server.guild.Alliance;
 import org.gms.net.server.guild.Guild;
@@ -3555,4 +3569,296 @@ public class Character extends AbstractAnimatedMapObject {
     public void setBuddylist(BuddyList buddylist) { buddy.setBuddylist(buddylist); }
     public void deleteBuddy(int otherCid) { buddy.deleteBuddy(otherCid); }
     public void setBuddyCapacity(int capacity) { buddy.setBuddyCapacity(capacity); }
+    // ── 世界入场（doc/12 §21 追记 4）：服务端初始化 + 初始化数据发送（保序拆分）──
+
+    private static final org.gms.service.HpMpAlertService HP_MP_ALERT_SERVICE =
+            org.gms.manager.ServerManager.getApplicationContext().getBean(org.gms.service.HpMpAlertService.class);
+
+    private static final org.gms.service.NoteService NOTE_SERVICE =
+            org.gms.manager.ServerManager.getApplicationContext().getBean(org.gms.service.NoteService.class);
+
+    /**
+     * 入场服务端初始化（纯状态，无本客户端包）：过渡重入重绑、world/channel 注册、
+     * buff 恢复。spawn 包必须晚于 SET_FIELD，编舞穿插归 sendWorldEntryData 原序保留。
+     */
+    public void initWorldEntry(Client c, boolean newcomer) {
+        final World wserv = c.getWorldServer();
+        final Channel cserv = c.getChannelServer();
+        final Character player = this;
+        if (!newcomer) {
+                player.newClient(c);   // 过渡重入：重绑 + 出生点重定位（newcomer 的位置由 DB 装载决定，不走此路径）
+            }
+
+            // 增加参数判断，避免给客户端发未知包导致异常
+            cserv.addPlayer(player);
+            wserv.addPlayer(player);
+            player.setEnteredChannelWorld();
+
+            player.resumeBuffs();   // 同对象冻结恢复（换频道/商城/MTS 重入）；未冻结时空操作
+    }
+
+    /**
+     * 入场初始化数据发送（从 SET_FIELD 主包起，地图编舞/各域登记随原序 verbatim 穿插）。
+     */
+    public void sendWorldEntryData(Client c, boolean newcomer) {
+        final Character player = this;
+        final Server server = Server.getInstance();
+        final World wserv = c.getWorldServer();
+        try {
+            if (GameConfig.getServerBoolean("use_server_auto_pot")) {
+                byte hpAlert = HP_MP_ALERT_SERVICE.getHpAlert(player.getId());
+                byte mpAlert = HP_MP_ALERT_SERVICE.getMpAlert(player.getId());
+                // 仅同步给本人：该包属于客户端本地设置且不含角色标识，广播给他人可能污染其本地配置。
+                // 后续如需扩展系统设置字段，可在该包尾部追加，保持前两个字节为 HP/MP 警报。
+                player.sendPacket(PacketCreator.updateClientSettings(hpAlert, mpAlert));
+            }
+
+            getRemote().basic().initialize(player);
+            if (player.isHidden()) {
+                if (!GameConfig.getServerBoolean("use_auto_hide_gm")) {
+                    player.toggleHide(true);
+                }
+            } else {
+                if (player.isGM() && GameConfig.getServerBoolean("use_auto_hide_gm")) {
+                    player.toggleHide(true);    //设置GM角色隐身
+                }
+            }
+            player.sendKeymap();
+            player.sendQuickmap();
+            player.sendMacros();
+
+            // pot bindings being passed through other characters on the account detected thanks to Croosade dev team
+            KeyBinding autohpPot = player.getKeymap().get(91);
+            player.sendPacket(PacketCreator.sendAutoHpPot(autohpPot != null ? autohpPot.getAction() : 0));
+
+            KeyBinding autompPot = player.getKeymap().get(92);
+            player.sendPacket(PacketCreator.sendAutoMpPot(autompPot != null ? autompPot.getAction() : 0));
+
+            // 宠物召唤快照：本 strand（会话 strand）上采集后随边界传入（doc/13 §5.2）
+            final List<Pet> pets = player.getPets().getSummonedPets();
+            final MapleMap entryMap = player.getMap();
+            final boolean firstEnter = entryMap.registerPlayer(player, pets);   // shim run：登记段缝合点
+            entryMap.finishEnter(player, firstEnter, pets);                     // player strand：脚本 + self 流
+            player.visitMap(player.getMap());
+
+            BuddyList bl = player.getBuddylist();
+            int[] buddyIds = bl.getBuddyIds();
+            wserv.loggedOn(player.getName(), player.getId(), c.getChannel(), buddyIds);
+            for (CharacterIdChannelPair onlineBuddy : wserv.multiBuddyFind(player.getId(), buddyIds)) {
+                BuddylistEntry ble = bl.get(onlineBuddy.getCharacterId());
+                ble.setChannel(onlineBuddy.getChannel());
+                bl.put(ble);
+            }
+            c.sendPacket(PacketCreator.updateBuddylist(bl.getBuddies()));
+
+            c.sendPacket(PacketCreator.loadFamily(player));
+            if (player.getFamilyId() > 0) {
+                Family f = wserv.getFamily(player.getFamilyId());
+                if (f != null) {
+                    FamilyEntry familyEntry = f.getEntryByID(player.getId());
+                    if (familyEntry != null) {
+                        familyEntry.setCharacter(player);
+                        player.setFamilyEntry(familyEntry);
+
+                        c.sendPacket(PacketCreator.getFamilyInfo(familyEntry));
+                        familyEntry.announceToSenior(PacketCreator.sendFamilyLoginNotice(player.getName(), true), true);
+                    } else {
+                        log.error(I18nUtil.getLogMessage("PlayerLoggedinHandler.error.message1"), player.getName(), f.getID());
+                    }
+                } else {
+                    log.error(I18nUtil.getLogMessage("PlayerLoggedinHandler.error.message2"), player.getName(), player.getFamilyId());
+                    c.sendPacket(PacketCreator.getFamilyInfo(null));
+                }
+            } else {
+                c.sendPacket(PacketCreator.getFamilyInfo(null));
+            }
+
+            if (player.getGuildId() > 0) {
+                Guild playerGuild = server.getGuild(player.getGuildId(), player.getWorld(), player);
+                if (playerGuild == null) {
+                    player.deleteGuild(player.getGuildId());
+                    player.getMGC().setGuildId(0);
+                    player.getMGC().setGuildRank(5);
+                } else {
+                    playerGuild.getMGC(player.getId()).setCharacter(player);
+                    player.setMGC(playerGuild.getMGC(player.getId()));
+                    server.setGuildMemberOnline(player, true, c.getChannel());
+                    c.sendPacket(GuildPackets.showGuildInfo(player));
+                    int allianceId = player.getGuild().getAllianceId();
+                    if (allianceId > 0) {
+                        Alliance newAlliance = server.getAlliance(allianceId);
+                        if (newAlliance == null) {
+                            newAlliance = Alliance.loadAlliance(allianceId);
+                            if (newAlliance != null) {
+                                server.addAlliance(allianceId, newAlliance);
+                            } else {
+                                player.getGuild().setAllianceId(0);
+                            }
+                        }
+                        if (newAlliance != null) {
+                            c.sendPacket(GuildPackets.updateAllianceInfo(newAlliance, c.getWorld()));
+                            c.sendPacket(GuildPackets.allianceNotice(newAlliance.getId(), newAlliance.getNotice()));
+
+                            if (newcomer) {
+                                server.allianceMessage(allianceId, GuildPackets.allianceMemberOnline(player, true), player.getId(), -1);
+                            }
+                        }
+                    }
+                }
+            }
+            //展示服务信息
+            org.gms.server.quest.medal.OutstandingCitizenMedal.refreshEligibility(player);
+            NOTE_SERVICE.show(player);
+            //异常地图掉线信息提示
+            c.getSysRescue().showMapChangeMessage(player);
+
+            if (player.getParty() != null) {
+                PartyCharacter pchar = player.getMPC();
+
+                //Use this in case of enabling party HPbar HUD when logging in, however "you created a party" will appear on chat.
+                //c.sendPacket(PacketCreator.partyCreated(pchar));
+
+                pchar.setChannel(c.getChannel());
+                pchar.setMapId(player.getMapId());
+                pchar.setOnline(true);
+                wserv.updateParty(player.getParty().getId(), PartyOperation.LOG_ONOFF, pchar);
+                player.updatePartyMemberHP();
+            }
+
+            InventoryTab eqpInv = player.getInventory(InventoryType.EQUIPPED);
+            eqpInv.lockInventory();
+            try {
+                for (ItemSlot it : eqpInv.list()) {
+                    it.getItem().onEquip(player, true);   // 登录装载初始化
+                }
+            } finally {
+                eqpInv.unlockInventory();
+            }
+
+            c.sendPacket(PacketCreator.updateBuddylist(player.getBuddylist().getBuddies()));
+
+            CharacterNameAndId pendingBuddyRequest = player.getBuddylist().pollPendingRequest();
+            if (pendingBuddyRequest != null) {
+                c.sendPacket(PacketCreator.requestBuddylistAdd(pendingBuddyRequest.getId(), player.getId(), pendingBuddyRequest.getName()));
+            }
+
+            c.sendPacket(PacketCreator.updateGender(player));
+            player.checkMessenger();
+            c.sendPacket(PacketCreator.enableReport());
+            player.changeSkillLevel(10000000 * player.getJobType() + 12, (byte) (player.getLinkedLevel() / 10), 20, -1);
+            player.checkBerserk(player.isHidden());
+
+            if (newcomer) {
+                // 宠物饥饿注册随 adoptPet 的召唤恢复进行（adopt 异步于登录流程，此处槽位可能未就绪）
+
+                Mount mount = player.getMapleMount();   // thanks Ari for noticing a scenario where Silver Mane quest couldn't be started
+                if (mount.getItemId() != 0) {
+                    player.sendPacket(PacketCreator.updateMount(player.getId(), mount, false));
+                }
+
+                player.reloadQuestExpirations();
+
+                    /*
+                    if (!c.hasVotedAlready()){
+                        player.sendPacket(PacketCreator.earnTitleMessage("You can vote now! Vote and earn a vote point!"));
+                    }
+                    */
+                if (player.isGM()) {
+                    Server.getInstance().broadcastGMMessage(c.getWorld(), PacketCreator.earnTitleMessage((player.gmLevel() < 6 ? "GM " : "Admin ") + player.getName() + " 登录了游戏"));
+                } else {
+                    if (GameConfig.getServerBoolean("use_login_notification")) {
+                        String msg = I18nUtil.getMessage("Character.login.globalNotice", player.getName());
+                        Server.getInstance().broadcastMessage(c.getWorld(), PacketCreator.serverNotice(3, c.getChannel(), msg));
+                    }
+                }
+                // 登录展示已恢复的 debuff（applyData 已恢复，发包逻辑在 CharacterDebuffs 内部）
+                player.announceDebuffsToOwner();
+            } else {
+                if (player.isRidingBattleship()) {
+                    player.announceBattleshipHp();
+                }
+            }
+
+            player.buffExpireTask();
+            player.diseaseExpireTask();
+            player.startSkillTimers();
+            player.expirationTask();
+            player.questExpirationTask();
+            if (GameConstants.hasSPTable(player.getJob()) && player.getJob().getId() != 2001) {
+                player.createDragon();
+            }
+
+            player.getRemote().pet().updateIgnoreList(player);
+            showDueyNotification(c, player);
+
+            player.resetPlayerRates();
+            if (GameConfig.getServerBoolean("use_add_rates_by_level")) {
+                player.setPlayerRates();
+            }
+
+            player.setWorldRates();
+
+            player.receivePartyMemberHP();
+
+            if (player.getPartnerId() > 0) {
+                int partnerId = player.getPartnerId();
+                final Character partner = wserv.getPlayerStorage().getCharacterById(partnerId);
+
+                if (partner != null && !partner.isAwayFromWorld()) {
+                    player.sendPacket(WeddingPackets.OnNotifyWeddingPartnerTransfer(partnerId, partner.getMapId()));
+                    partner.sendPacket(WeddingPackets.OnNotifyWeddingPartnerTransfer(player.getId(), player.getMapId()));
+                }
+            }
+
+            if (newcomer) {
+                EventInstanceManager eim = EventRecallCoordinator.getInstance().recallEventInstance(player.getId());
+                if (eim != null) {
+                    eim.registerPlayer(player);
+                }
+            }
+
+            // Tell the client to use the custom scripts available for the NPCs provided, instead of the WZ entries.
+            if (GameConfig.getServerBoolean("use_npcs_scriptable")) {
+
+                // Create a copy to prevent always adding entries to the server's list.
+                Map<Integer, String> npcsIds = GameConfig.getServerObject("npcs_scriptable", new HashMap<>());
+
+                // Any npc be specified as the rebirth npc. Allow the npc to use custom scripts explicitly.
+                if (GameConfig.getServerBoolean("use_rebirth_system")) {
+                    npcsIds.put(GameConfig.getServerInt("rebirth_npc_id"), "Rebirth");
+                }
+
+                c.sendPacket(PacketCreator.setNPCScriptable(npcsIds));
+            }
+
+            if (newcomer) {
+                player.setLoginTime(System.currentTimeMillis());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // releaseClient 归调用方（入场任务）的 try/finally；此处不再持有 client 锁
+    
+    }
+
+    private static void showDueyNotification(Client c, Character player) {
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement("SELECT Type FROM dueypackages WHERE ReceiverId = ? AND Checked = 1 ORDER BY Type DESC")) {
+            ps.setInt(1, player.getId());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    try (PreparedStatement ps2 = con.prepareStatement("UPDATE dueypackages SET Checked = 0 WHERE ReceiverId = ?")) {
+                        ps2.setInt(1, player.getId());
+                        ps2.executeUpdate();
+
+                        c.sendPacket(PacketCreator.sendDueyParcelNotification(rs.getInt("Type") == 1));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

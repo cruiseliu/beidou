@@ -51,6 +51,11 @@ final class DummyClient extends RemoteClientBase implements RemoteClient,
     // ── 模块访问器：自指（本类即全部模块面，调用全部静默）──
 
     @Override
+    public void initialize(Character chr) {
+        // 无连接：静默
+    }
+
+    @Override
     public BasicModule basic() {
         return this;
     }

@@ -1,15 +1,20 @@
 package org.gms.remote.gms083.server.routers;
 
+import org.gms.client.Client;
+import org.gms.client.character.Character;
+import org.gms.net.server.Server;
 import org.gms.remote.ServerEventDest;
 import org.gms.remote.modules.basic.BasicModule;
 import org.gms.remote.ServerEventBase;
 import org.gms.remote.gms083.Gms083;
+import org.gms.remote.gms083.server.translators.SetFieldTranslator;
 import org.gms.remote.modules.basic.server.BasicEvent;
 import org.gms.remote.modules.basic.server.BasicUpdate;
+import org.gms.remote.modules.basic.server.InitializeEvent;
 import org.gms.remote.modules.basic.server.UnlockActionsEvent;
 
 /**
- * 基础标识域 route：出脸（updateBasic/unlockActions）+ deliver 下沉。
+ * 基础标识域 route：出脸（updateBasic/unlockActions/initialize）+ deliver 下沉。
  * Basic/UnlockActions 骑 stats 域的 STAT_CHANGED 包型（多对多映射归本类 deliver，statsT 注入）；
  * flush 为空——unlock 标志随 statsT 冲刷统一出包。
  */
@@ -31,8 +36,28 @@ public final class BasicRouter implements BasicModule, ServerEventDest {
     }
 
     @Override
+    public void initialize(Character chr) {
+        client.schedule(this, new InitializeEvent(chr));
+    }
+
+    private void onInitialize(InitializeEvent event) {
+        // 不完整 freeze：chr 活引用 + wire 事实（channel/buddy/linkedName/meso/时间）在
+        // deliver 时点派生——合并域内提交晚于构造会读到未来状态。完整冻结（入域时快照）
+        // 以后再修。
+        Character chr = event.chr();
+        Client c = client.getLegacyClient();
+        client.send(SetFieldTranslator.setField(chr,
+                c.getChannel() - 1,
+                chr.getBuddylist().getCapacity(),
+                chr.getLinkedName(),
+                chr.getMeso(),
+                Server.getInstance().getCurrentTime()));
+    }
+
+    @Override
     public void deliver(ServerEventBase r) {
         switch (r) {
+            case InitializeEvent e -> onInitialize(e);
             case BasicEvent(var u) -> client.translators().statsT.onBasic(u);
             case UnlockActionsEvent ue -> client.translators().statsT.onUnlockActions();
             default -> { }   // 非本模块事件不会到达（owner 标记保证）；防御静默

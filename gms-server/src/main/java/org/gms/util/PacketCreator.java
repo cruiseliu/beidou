@@ -123,28 +123,10 @@ public class PacketCreator {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PacketCreator.class);
 
     public static final List<Pair<PacketStat, Integer>> EMPTY_STATUPDATE = Collections.emptyList();
-    private final static long FT_UT_OFFSET = 116444736010800000L + (10000L * TimeZone.getDefault().getOffset(System.currentTimeMillis())); // normalize with timezone offset suggested by Ari
-    private final static long DEFAULT_TIME = 150842304000000000L;//00 80 05 BB 46 E6 17 02
-    public final static long ZERO_TIME = 94354848000000000L;//00 40 E0 FD 3B 37 4F 01
-    private final static long PERMANENT = 150841440000000000L; // 00 C0 9B 90 7D E5 17 02
+    public final static long ZERO_TIME = FieldTime.ZERO_TIME;
 
     public static long getTime(long utcTimestamp) {
-        // TODO(debug, 临时): -8 = PERMANENT+12h、-9 = DEFAULT_TIME，配合 @pet debug3/4 到期显示探测，测完移除
-        if (utcTimestamp < 0 && utcTimestamp >= -9) {
-            if (utcTimestamp == -1) {
-                return DEFAULT_TIME;    //high number ll
-            } else if (utcTimestamp == -2) {
-                return ZERO_TIME;
-            } else if (utcTimestamp == -8) {
-                return PERMANENT + 432000000000L;   // PERMANENT + 12h（2078-12-31T12:00）
-            } else if (utcTimestamp == -9) {
-                return DEFAULT_TIME;
-            } else {
-                return PERMANENT;
-            }
-        }
-
-        return utcTimestamp * 10000 + FT_UT_OFFSET;
+        return FieldTime.getTime(utcTimestamp);
     }
 
     private static void writeMobSkillId(OutPacket packet, MobSkillId msId) {
@@ -178,7 +160,7 @@ public class PacketCreator {
         }
     }
 
-    private static void addCharStats(OutPacket p, Character chr) {
+    public static void addCharStats(OutPacket p, Character chr) {
         p.writeInt(chr.getId()); // character id
         p.writeFixedString(StringUtil.getRightPaddedStr(chr.getName(), '\0', 13));
         p.writeByte(chr.getGender()); // gender (0 = male, 1 = female)
@@ -255,16 +237,16 @@ public class PacketCreator {
         p.writeShort(0);
     }
 
-    private static void addNewYearInfo(OutPacket p, Character chr) {
+    public static void addNewYearInfo(OutPacket p, Character chr) {
         Set<NewYearCardRecord> received = chr.getReceivedNewYearRecords();
 
         p.writeShort(received.size());
         for (NewYearCardRecord nyc : received) {
-            encodeNewYearCard(nyc, p);
+            encodeNewYearCardForSetField(nyc, p);
         }
     }
 
-    private static void addTeleportInfo(OutPacket p, Character chr) {
+    public static void addTeleportInfo(OutPacket p, Character chr) {
         final List<Integer> tele = chr.getTrockMaps();
         final List<Integer> viptele = chr.getVipTrockMaps();
         for (int i = 0; i < 5; i++) {
@@ -275,7 +257,7 @@ public class PacketCreator {
         }
     }
 
-    private static void addMiniGameInfo(OutPacket p, Character chr) {
+    public static void addMiniGameInfo(OutPacket p, Character chr) {
         p.writeShort(0);
                 /*for (int m = size; m > 0; m--) {//nexon does this :P
                  p.writeInt(0);
@@ -286,7 +268,7 @@ public class PacketCreator {
                  }*/
     }
 
-    private static void addAreaInfo(OutPacket p, Character chr) {
+    public static void addAreaInfo(OutPacket p, Character chr) {
         Map<Short, String> areaInfos = chr.getAreaInfos();
         p.writeShort(areaInfos.size());
         for (Short area : areaInfos.keySet()) {
@@ -361,7 +343,7 @@ public class PacketCreator {
         p.writeInt(chr.getJobRankMove()); // move (negative is downwards)
     }
 
-    private static void addQuestInfo(OutPacket p, Character chr) {
+    public static void addQuestInfo(OutPacket p, Character chr) {
         List<QuestStatus> started = chr.getStartedQuests();
         int startedSize = 0;
         for (QuestStatus qs : started) {
@@ -390,7 +372,7 @@ public class PacketCreator {
         }
     }
 
-    private static void addExpirationTime(final OutPacket p, long time) {
+    public static void addExpirationTime(final OutPacket p, long time) {
         p.writeLong(getTime(time)); // offset expiration time issue found thanks to Thora
     }
 
@@ -398,100 +380,11 @@ public class PacketCreator {
         addItemInfo(p, item, false, pet);
     }
 
-    protected static void addItemInfo(final OutPacket p, ItemSlot item, boolean zeroPosition, Pet pet) {
-        ItemInformationProvider ii = ItemInformationProvider.getInstance();
-        boolean isCash = ii.isCash(item.getItemId());
-        boolean isPet = item.getPetId() > -1;
-        boolean isRing = false;
-        Equip equip = null;
-        short pos = (short) item.getPosition();
-        byte itemType = (byte) item.getItemType();
-        if (itemType == 1) {
-            equip = item.getEquipInfo();
-            isRing = equip.getRingId() > -1;
-        }
-        if (!zeroPosition) {
-            if (equip != null) {
-                if (pos < 0) {
-                    pos *= -1;
-                }
-                p.writeShort(pos > 100 ? pos - 100 : pos);
-            } else {
-                p.writeByte(pos);
-            }
-        }
-        p.writeByte(itemType);
-        p.writeInt(item.getItemId());
-        p.writeBool(isCash);
-        if (isCash) {
-            p.writeLong(isPet ? item.getPetId() : isRing ? equip.getRingId() : item.getCashInfo() != null ? item.getCashInfo().getCashId() : 0);
-        }
-        addExpirationTime(p, item.LEGACY_getExpiration());
-        if (isPet) {
-            p.writeFixedString(StringUtil.getRightPaddedStr(pet.getName(), '\0', 13));
-            p.writeByte(pet.getLevel());
-            p.writeShort(pet.getTameness());
-            p.writeByte(pet.getFullness());
-            addExpirationTime(p, item.LEGACY_getExpiration());
-            p.writeShort(pet.getFlags()); // PetAttribute noticed by lrenex & Spoon
-            p.writeShort(0); // PetSkill
-            p.writeInt(18000); // RemainLife
-            p.writeShort(0); // attribute
-            return;
-        }
-        if (equip == null) {
-            p.writeShort(item.getQuantity());
-            p.writeString(item.getOwner());
-            p.writeShort(item.getLegacyFlags()); // flag
-
-            if (ItemConstants.isRechargeable(item.getItemId())) {
-                p.writeInt(2);
-                p.writeBytes(new byte[]{(byte) 0x54, 0, 0, (byte) 0x34});
-            }
-            return;
-        }
-        p.writeByte(equip.getEnhancementSlots()); // upgrade slots
-        p.writeByte(equip.getEnhancementLevel()); // level
-        p.writeShort(equip.getStat(Stat.STR)); // str
-        p.writeShort(equip.getStat(Stat.DEX)); // dex
-        p.writeShort(equip.getStat(Stat.INT)); // int
-        p.writeShort(equip.getStat(Stat.LUK)); // luk
-        p.writeShort(equip.getStat(Stat.MAX_HP)); // hp
-        p.writeShort(equip.getStat(Stat.MAX_MP)); // mp
-        p.writeShort(equip.getStat(Stat.P_ATK)); // watk
-        p.writeShort(equip.getStat(Stat.M_ATK)); // matk
-        p.writeShort(equip.getStat(Stat.P_DEF)); // wdef
-        p.writeShort(equip.getStat(Stat.M_DEF)); // mdef
-        p.writeShort(equip.getStat(Stat.ACCURACY)); // accuracy
-        p.writeShort(equip.getStat(Stat.AVOIDABILITY)); // avoid
-        p.writeShort(equip.getStat(Stat.HANDS)); // hands
-        p.writeShort(equip.getStat(Stat.SPEED)); // speed
-        p.writeShort(equip.getStat(Stat.JUMP)); // jump
-        p.writeString(item.getOwner()); // owner name
-        p.writeShort(item.getLegacyFlags()); //Item Flags
-
-        if (isCash) {
-            for (int i = 0; i < 10; i++) {
-                p.writeByte(0x40);
-            }
-        } else {
-            int itemLevel = equip.getItemLevel();
-
-            long expNibble = (ExpTable.getExpNeededForLevel(ii.getEquipLevelReq(item.getItemId())) * equip.getItemExp());
-            expNibble /= ExpTable.getEquipExpNeededForLevel(itemLevel);
-
-            p.writeByte(0);
-            p.writeByte(itemLevel); //Item Level
-            p.writeInt((int) expNibble);
-            p.writeInt(equip.getVicious()); //WTF NEXON ARE YOU SERIOUS?
-            p.writeLong(0);
-        }
-        p.writeLong(getTime(-2));
-        p.writeInt(-1);
-
+    public static void addItemInfo(final OutPacket p, ItemSlot item, boolean zeroPosition, Pet pet) {
+        ItemInfoCodec.addItemInfo(p, item, zeroPosition, pet);
     }
 
-    private static void addInventoryInfo(OutPacket p, Character chr) {
+    public static void addInventoryInfo(OutPacket p, Character chr) {
         for (byte i = 1; i <= 5; i++) {
             p.writeByte((byte) chr.getInventory(InventoryType.getByType(i)).getSlotLimit());
         }
@@ -536,7 +429,7 @@ public class PacketCreator {
         }
     }
 
-    private static void addSkillInfo(OutPacket p, Character chr) {
+    public static void addSkillInfo(OutPacket p, Character chr) {
         p.writeByte(0); // start of skills
         Map<Integer, SkillEntry> skills = chr.getSkills();
         int skillsSize = skills.size();
@@ -568,7 +461,7 @@ public class PacketCreator {
         }
     }
 
-    private static void addMonsterBookInfo(OutPacket p, Character chr) {
+    public static void addMonsterBookInfo(OutPacket p, Character chr) {
         p.writeInt(chr.getMonsterBookCover()); // cover
         p.writeByte(0);
         Map<Integer, Integer> cards = chr.getMonsterBook().getCards();
@@ -2072,7 +1965,7 @@ public class PacketCreator {
         switch (mode) {
             case 4: // Successfully sent a New Year Card\r\n to %s.
             case 6: // Successfully received a New Year Card.
-                encodeNewYearCard(newyear, p);
+                encodeNewYearCardForSetField(newyear, p);
                 break;
 
             case 8: // Successfully deleted a New Year Card.
@@ -2123,7 +2016,7 @@ public class PacketCreator {
         return p;
     }
 
-    private static void encodeNewYearCard(NewYearCardRecord newyear, OutPacket p) {
+    public static void encodeNewYearCardForSetField(NewYearCardRecord newyear, OutPacket p) {
         p.writeInt(newyear.getId());
         p.writeInt(newyear.getSenderId());
         p.writeString(newyear.getSenderName());
@@ -6786,7 +6679,7 @@ public class PacketCreator {
         return p;
     }
 
-    private static void addRingInfo(OutPacket p, Character chr) {
+    public static void addRingInfo(OutPacket p, Character chr) {
         p.writeShort(chr.getCrushRings().size());
         for (Ring ring : chr.getCrushRings()) {
             p.writeInt(ring.getPartnerChrId());

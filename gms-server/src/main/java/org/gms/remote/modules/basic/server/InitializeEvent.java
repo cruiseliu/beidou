@@ -1,0 +1,12 @@
+package org.gms.remote.modules.basic.server;
+
+import org.gms.client.character.Character;
+import org.gms.remote.ServerEvent;
+
+/**
+ * 进图初始化（SET_FIELD 语义）：以角色当前全量状态初始化客户端视图。
+ * 冻结不完整：chr 活引用 + wire 事实派生发生在 deliver 时点（合并域内 = 提交时刻，
+ * 晚于构造），完整的入域时冻结以后再修（router 处 FIXME）。见 doc/12 §21 追记 5。
+ */
+public record InitializeEvent(Character chr) implements ServerEvent {
+}

@@ -10,13 +10,12 @@ import org.gms.remote.gms083.server.translators.StatsTranslator;
 
 public class Gms083Translators {
     public CooldownTranslator cooldownT = new CooldownTranslator();
-    public InventoryTranslator inventoryT;
+    public InventoryTranslator inventoryT = new InventoryTranslator();
     public PetTranslator petT;
     public SkillsTranslator skillsT = new SkillsTranslator();
     public StatsTranslator statsT = new StatsTranslator();
 
     public Gms083Translators(Charset charset) {
-        this.inventoryT = new InventoryTranslator(charset);
         this.petT = new PetTranslator(charset);
     }
 }

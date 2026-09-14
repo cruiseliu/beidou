@@ -2502,7 +2502,7 @@ public class MapleMap {
         MapScriptManager msm = MapScriptManager.getInstance();
         if (firstEnter) {
             if (onFirstUserEnter.length() != 0) {
-                msm.runMapScript(chr.getClient(), "onFirstUserEnter/" + onFirstUserEnter, true);
+                msm.runMapScript(chr, "onFirstUserEnter/" + onFirstUserEnter, true);
             }
         }
         if (onUserEnter.length() != 0) {
@@ -2510,7 +2510,7 @@ public class MapleMap {
                 chr.saveLocation("INTRO");
             }
 
-            msm.runMapScript(chr.getClient(), "onUserEnter/" + onUserEnter, false);
+            msm.runMapScript(chr, "onUserEnter/" + onUserEnter, false);
         }
         if (FieldLimit.CANNOTUSEMOUNTS.check(fieldLimit) && chr.getBuffedValue(EffectType.MONSTER_RIDING) != null) {
             chr.cancelEffectFromBuffStat(EffectType.MONSTER_RIDING);

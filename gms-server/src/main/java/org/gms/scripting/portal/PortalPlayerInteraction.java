@@ -47,7 +47,7 @@ public class PortalPlayerInteraction extends AbstractPlayerInteraction {
 
     public void runMapScript() {
         MapScriptManager msm = MapScriptManager.getInstance();
-        msm.runMapScript(c, "onUserEnter/" + portal.getScriptName(), false);
+        msm.runMapScript(getPlayer(), "onUserEnter/" + portal.getScriptName(), false);
     }
 
     public boolean hasLevel30Character() {
