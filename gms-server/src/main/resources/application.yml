@@ -67,3 +67,5 @@ gms:
     localhost: 127.0.0.1
     # 客户端登录端口
     login-port: 8484
+    # 频道端口基数（频道 port = 基数 + (channel-1) + world*100）；开发实例可整体换段
+    channel-base-port: 7575

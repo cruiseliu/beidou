@@ -1,6 +1,8 @@
 package org.gms.client.character;
 
 import org.gms.client.Client;
+import org.gms.client.PlayerStrand;
+import org.gms.infra.ActorMessage;
 import org.gms.net.server.world.Party;
 import org.gms.net.server.world.PartyCharacter;
 import org.gms.scripting.event.EventInstanceManager;
@@ -39,6 +41,8 @@ public final class CharacterRef implements org.gms.server.maps.MapObject {
     private volatile boolean awayFromWorld = true;
     /** 幽灵判定快照：会话断开（单向置位，player 断连收尾回写） */
     private volatile boolean clientDisconnected;
+    /** 所属 player strand（跨 actor 类型化消息投递通道）：newClient 安装、登出收尾清除——与本体 strandSlot 同步点一致 */
+    private volatile PlayerStrand strand;
 
     CharacterRef(Character chr) {
         this.chr = chr;
@@ -52,6 +56,39 @@ public final class CharacterRef implements org.gms.server.maps.MapObject {
     /** player 侧回写：会话断开置位（client 置空的收尾点） */
     void syncClientDisconnected() {
         clientDisconnected = true;
+    }
+
+    /** player 侧回写：会话 strand 安装/清除（与本体 strandSlot 同步点一致，见 newClient/登出收尾） */
+    void syncStrand(PlayerStrand s) {
+        strand = s;
+    }
+
+    /**
+     * 跨 actor 类型化消息投递（map→player）：入队到本体 strand，接收域内经分发器执行。
+     * 无会话静默丢弃；closed strand 的 IllegalStateException 捕获静默——对齐 Strand 契约
+     * 「close 后迟到任务由调用侧静默」（登出竞态是常态而非异常）。
+     */
+    public void post(ActorMessage msg) {
+        PlayerStrand s = strand;
+        if (s == null) {
+            return;
+        }
+        try {
+            s.post(msg);
+        } catch (IllegalStateException ignored) {
+        }
+    }
+
+    /** 本域写回的便捷后投递（apply-visibility 类；同一 null/closed 容忍语义） */
+    public void post(String taskName, Runnable body) {
+        PlayerStrand s = strand;
+        if (s == null) {
+            return;
+        }
+        try {
+            s.post(taskName, body);
+        } catch (IllegalStateException ignored) {
+        }
     }
 
     /** 幂等：角色实例的唯一 ref（null 透传） */

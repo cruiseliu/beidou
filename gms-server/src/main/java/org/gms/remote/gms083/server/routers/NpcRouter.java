@@ -5,6 +5,7 @@ import org.gms.remote.gms083.Gms083;
 import org.gms.remote.gms083.server.packets.NPCTalkPacket;
 import org.gms.remote.gms083.server.packets.ServerMessagePacket;
 import org.gms.remote.gms083.server.packets.ShowInfoPacket;
+import org.gms.remote.modules.npc.client.DialogButtons;
 import org.gms.remote.modules.npc.client.NpcModule;
 
 /** NPC 对话域视图：对话页编码 + 直发本连接。 */
@@ -17,8 +18,8 @@ public final class NpcRouter implements NpcModule {
     }
 
     @Override
-    public void talk(int npc, int msgType, int speaker, String text, int... endBytes) {
-        client.send(new NPCTalkPacket(npc, msgType, speaker, text, endBytes));
+    public void talk(int npc, String text, DialogButtons buttons, int speaker) {
+        client.send(client.translators().npcT.talk(npc, text, buttons, speaker));
     }
 
     @Override

@@ -79,7 +79,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 public final class Channel {
     private static final Logger log = LoggerFactory.getLogger(Channel.class);
-    private static final int BASE_PORT = 7575;
 
     private final int port;
     private final String ip;
@@ -133,7 +132,7 @@ public final class Channel {
 
         this.ongoingStartTime = startTime + 10000;  // rude approach to a world's last channel boot time, placeholder for the 1st wedding reservation ever
         this.mapManager = new MapManager(null, world, channel);
-        this.port = BASE_PORT + (this.channel - 1) + (world * 100);
+        this.port = serviceProperty.getChannelBasePort() + (this.channel - 1) + (world * 100);
         this.ip = serviceProperty.getWanHost() + ":" + port;
 
         ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock(true);

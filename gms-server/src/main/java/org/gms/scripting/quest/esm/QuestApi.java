@@ -1,7 +1,7 @@
 package org.gms.scripting.quest.esm;
 
 import org.gms.client.character.Character;
-import org.gms.remote.modules.npc.client.NpcModule;
+import org.gms.remote.modules.npc.client.DialogButtons;
 
 /**
  * ESM 任务脚本的对话会话 API（per 会话实例，doc/13 权责设计）：
@@ -45,27 +45,27 @@ public final class QuestApi {
     // ── 对话页（self 流，经 RemoteClient 编码直发本连接；样式字节契约见 NpcModule）──
 
     public void sendNext(String text) {
-        owner.getRemote().npc().talk(npc, NpcModule.MSG_TALK, 0, text, 0, 1);
+        owner.getRemote().npc().talk(npc, text, DialogButtons.NEXT, 0);
     }
 
     public void sendPrev(String text) {
-        owner.getRemote().npc().talk(npc, NpcModule.MSG_TALK, 0, text, 1, 0);
+        owner.getRemote().npc().talk(npc, text, DialogButtons.PREV_OK, 0);
     }
 
     public void sendNextPrev(String text) {
-        owner.getRemote().npc().talk(npc, NpcModule.MSG_TALK, 0, text, 1, 1);
+        owner.getRemote().npc().talk(npc, text, DialogButtons.PREV_NEXT, 0);
     }
 
     public void sendOk(String text) {
-        owner.getRemote().npc().talk(npc, NpcModule.MSG_TALK, 0, text, 0, 0);
+        owner.getRemote().npc().talk(npc, text, DialogButtons.OK, 0);
     }
 
     public void sendYesNo(String text) {
-        owner.getRemote().npc().talk(npc, NpcModule.MSG_YES_NO, 0, text);
+        owner.getRemote().npc().talk(npc, text, DialogButtons.YES_NO, 0);
     }
 
     public void sendAcceptDecline(String text) {
-        owner.getRemote().npc().talk(npc, NpcModule.MSG_ACCEPT_DECLINE, 0, text);
+        owner.getRemote().npc().talk(npc, text, DialogButtons.ACCEPT_DECLINE, 0);
     }
 
     /** 过场 UI 图（借 item-inchat 帧发 UI 路径 + 动作锁解除归 basic 模块）。 */

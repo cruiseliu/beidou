@@ -10,8 +10,6 @@ import org.gms.remote.gms083.server.packets.V83Packet;
  * 可能产出多帧（如背包满提示与操作包并存）。分层职责见 gms-server/doc/package-client.md §6/§7。
  */
 public interface ServerTranslator {
-    boolean isEmpty();
-
     /** 组树并清空内部缓冲，交 route 层发送 */
     List<V83Packet> flush();
 }

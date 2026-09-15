@@ -17,14 +17,7 @@ public final class Filetimes {
     }
 
     public static long toWire(long utcTimestamp) {
-        // TODO(debug, 临时): -8 = PERMANENT+12h、-9 = EXPIRED，配合 @pet debug3/4 到期显示探测，测完移除
         if (utcTimestamp < 0 && utcTimestamp >= -9) {
-            if (utcTimestamp == -8) {
-                return PERMANENT + 432000000000L;   // PERMANENT + 12h（2078-12-31T12:00）
-            }
-            if (utcTimestamp == -9) {
-                return EXPIRED;
-            }
             return switch ((int) utcTimestamp) {
                 case -1 -> EXPIRED;                 // DEFAULT（通用物品"无期限"哨兵，值同 EXPIRED）
                 case -2 -> 94354848000000000L;      // ZERO

@@ -1,7 +1,6 @@
 package org.gms.remote;
 
 import org.gms.remote.modules.basic.BasicModule;
-import org.gms.remote.modules.cooldown.CooldownModule;
 import org.gms.remote.modules.inventory.InventoryModule;
 import org.gms.remote.modules.map.client.MapModule;
 import org.gms.remote.modules.npc.client.NpcModule;
@@ -23,7 +22,6 @@ public interface RemoteClient {
 
     SkillsModule skills();
 
-    CooldownModule cooldown();
 
     InventoryModule inventory();
 

@@ -24,17 +24,16 @@ package org.gms.server.maps;
 import org.gms.client.EffectType;
 import org.gms.client.character.Character;
 import org.gms.client.character.CharacterRef;
-import org.gms.client.character.Character;
-import org.gms.client.character.CharacterRef;
 import org.gms.client.Client;
 import org.gms.client.autoban.AutobanFactory;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
+import org.gms.client.messages.MapCharacterMoveMessage;
+import org.gms.client.messages.MapMonsterMoveMessage;
 import org.gms.client.pet.Pet;
 import org.gms.client.status.MonsterStatus;
 import org.gms.client.status.MonsterStatusEffect;
 import org.gms.config.GameConfig;
-import org.gms.constants.game.GameConstants;
 import org.gms.constants.id.MapId;
 import org.gms.constants.id.MobId;
 import org.gms.constants.inventory.ItemConstants;
@@ -49,17 +48,17 @@ import org.gms.net.server.services.task.channel.OverallService;
 import org.gms.net.server.services.type.ChannelServices;
 import org.gms.net.server.world.Party;
 import org.gms.net.server.world.World;
+import org.gms.remote.modules.map.client.MonsterMove;
 import org.gms.remote.modules.map.client.MoveLife;
+import org.gms.remote.modules.map.client.movement.MoveElement;
 import org.gms.remote.modules.map.client.movement.AbsoluteMove;
 import org.gms.remote.modules.map.client.movement.JumpDownMove;
-import org.gms.remote.modules.map.client.movement.MoveElement;
 import org.gms.remote.modules.map.client.movement.RelativeMove;
 import org.gms.remote.modules.map.client.movement.TeleportMove;
 import org.gms.util.NumberTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.gms.scripting.event.EventInstanceManager;
-import org.gms.scripting.map.MapScriptManager;
 import org.gms.server.ItemInformationProvider;
 import org.gms.server.BuffEffectData;
 import org.gms.server.TimerManager;
@@ -93,7 +92,6 @@ import java.awt.*;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -115,7 +113,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 
-import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class MapleMap {
@@ -418,31 +415,6 @@ public class MapleMap {
             }
         } finally {
             objectWLock.unlock();
-            chrRLock.unlock();
-        }
-
-        for (CharacterRef chr : inRangeCharacters) {
-            packetbakery.sendPackets(chr.getClient());
-        }
-    }
-
-    private void spawnRangedMapObject(MapObject mapobject, DelayedPacketCreation packetbakery, SpawnCondition condition) {
-        List<CharacterRef> inRangeCharacters = new LinkedList<>();
-
-        chrRLock.lock();
-        try {
-            int curOID = getUsableOID();
-            mapobject.setObjectId(curOID);
-            for (CharacterRef cr : characters) {
-                CharacterRef chr = cr;
-                if (condition == null || condition.canSpawn(chr)) {
-                    if (chr.getPosition().distanceSq(mapobject.getPosition()) <= getRangedDistance()) {
-                        inRangeCharacters.add(chr);
-                        chr.addVisibleMapObject(mapobject);
-                    }
-                }
-            }
-        } finally {
             chrRLock.unlock();
         }
 
@@ -1661,7 +1633,7 @@ public class MapleMap {
     public List<MapObject> getMapObjects() {
         objectRLock.lock();
         try {
-            return new LinkedList(mapobjects.values());
+            return new LinkedList<>(mapobjects.values());
         } finally {
             objectRLock.unlock();
         }
@@ -2554,10 +2526,6 @@ public class MapleMap {
         }
     }
 
-    private static void announcePlayerDiseases(final Client c) {
-        Server.getInstance().registerAnnouncePlayerDiseases(c);
-    }
-
     public Portal getRandomPlayerSpawnpoint() {
         List<Portal> spawnPoints = new ArrayList<>();
         for (Portal portal : portals.values()) {
@@ -3214,9 +3182,7 @@ public class MapleMap {
      * 移动消息（player actor → map actor，doc/13 §12）：携带差集计算与广播所需的全部事实，
      * map 任务体零 player 状态读。
      */
-    public record MoveMsg(org.gms.infra.Strand strand, CharacterRef chr, Client client, Point newPos,
-                          Packet relayPacket, boolean gmOnly, List<MapObject> visible) {
-    }
+
     // relayPacket == null：同图内传送等无中继广播的位移（仅可见性差集）
 
     /**
@@ -3224,11 +3190,36 @@ public class MapleMap {
      * 回程 post（可见集应用归 player actor，幂等）。
      * 快照过期（apply 回程与新 move 竞态 <1ms 窗口）→ 重复 spawn 包：oid 寻址自愈，已知中间态。
      */
-    public void onMove(MoveMsg msg) {
+    /**
+     * 角色移动他人流中继（map actor，doc/13 §12 的广播时点形态）：受众=本图非断连角色，
+     * source 按 ref 自持 id 排除；投递为接收方连接视角的语义通知（remote.map().characterMove，
+     * 编码+发送归各端 remote）。
+     */
+    public void broadcastCharacterMove(int charId, List<MoveElement> movements) {
+        chrRLock.lock();
+        try {
+            for (CharacterRef cr : characters) {
+                if (cr.isClientDisconnected() || cr.getId() == charId) {
+                    continue;
+                }
+                cr.post(new MapCharacterMoveMessage(charId, movements));
+            }
+        } finally {
+            chrRLock.unlock();
+        }
+    }
+
+    /**
+     * 角色移动的可见性差集应用（map actor，doc/13 §12；原 onMove/MoveMsg 的参数直提形态——
+     * strand 归 {@link CharacterRef} 自持、client 经本任务只触移动者自身（其窗口按调度必已关闭））：
+     * 消失集 destroy 包 + 新现集 spawn 包发往移动者连接，差集回投 player strand 登记可见集。
+     */
+    public void handleCharacterMove(CharacterRef chr, Point toPos, List<MapObject> visibleObjs) {
         List<MapObject> addRefs = new ArrayList<>();
         List<MapObject> removeRefs = new ArrayList<>();
         Map<Integer, MapObject> mapObjects = getCopyMapObjects();
-        for (MapObject mo : msg.visible()) {
+        Client client = chr.getClient();
+        for (MapObject mo : visibleObjs) {
             if (mo == null) {
                 continue;
             }
@@ -3236,29 +3227,20 @@ public class MapleMap {
                 // 对象已不在图上：现状语义为静默移除（无包）
                 removeRefs.add(mo);
             } else if (mo.getType() != MapObjectType.SUMMON
-                    && mo.getPosition().distanceSq(msg.newPos()) > getRangedDistance()) {
-                mo.sendDestroyData(msg.client());
+                    && mo.getPosition().distanceSq(toPos) > getRangedDistance()) {
+                mo.sendDestroyData(client);
                 removeRefs.add(mo);
             }
         }
-        for (MapObject mo : getMapObjectsInRange(msg.newPos(), getRangedDistance(), rangedMapobjectTypes)) {
-            if (!msg.visible().contains(mo)) {
-                mo.sendSpawnData(msg.client());
+        for (MapObject mo : getMapObjectsInRange(toPos, getRangedDistance(), rangedMapobjectTypes)) {
+            if (!visibleObjs.contains(mo)) {
+                mo.sendSpawnData(client);
                 addRefs.add(mo);
             }
         }
 
-        // 他人流广播（source 引用排除；gmOnly 时 source.gmLevel 为登录期不变字段容忍读）
-        if (msg.relayPacket() != null) {
-            if (msg.gmOnly()) {
-                broadcastGMPacket(msg.chr(), msg.relayPacket());
-            } else {
-                broadcastPacket(msg.chr(), msg.relayPacket());
-            }
-        }
-
-        msg.strand().post("apply-visibility",
-                () -> msg.chr().applyVisibleMapObjects(addRefs, removeRefs));
+        chr.post("apply-visibility",
+                () -> chr.applyVisibleMapObjects(addRefs, removeRefs));
     }
 
     /**
@@ -3299,6 +3281,26 @@ public class MapleMap {
      * 官方重启版数据一年内不会出现 banish；补齐时不得从 map 任务体阻塞等 player strand
      * （应 post 目标 strand）。
      */
+    /**
+     * 怪物移动他人流中继（map actor）：受众 = controller 以外、anchor 视野范围内的
+     * 非断连角色，逐接收方消息投递（编码+发送回接收方 strand 执行——包构建归 remote）。
+     */
+    public void broadcastMonsterMove(MonsterMove move, Point rangeAnchor, CharacterRef source) {
+        chrRLock.lock();
+        try {
+            for (CharacterRef cr : characters) {
+                if (cr.isClientDisconnected() || cr == source) {
+                    continue;
+                }
+                if (cr.getPosition().distanceSq(rangeAnchor) <= getRangedDistance()) {
+                    cr.post(new MapMonsterMoveMessage(move));
+                }
+            }
+        } finally {
+            chrRLock.unlock();
+        }
+    }
+
     public void onMoveLife(MoveLifeMsg msg) {
         MoveLife life = msg.life();
         MapObject mmo = getMapObject(life.oid());
@@ -3318,7 +3320,6 @@ public class MapleMap {
             rawActivity = (byte) (rawActivity & 0xFF >> 1);
         }
 
-        boolean isAttack = inRangeInclusive(rawActivity, 24, 41);
         boolean isSkill = inRangeInclusive(rawActivity, 42, 59);
 
         int useSkillId = 0;
@@ -3374,13 +3375,12 @@ public class MapleMap {
 
         msg.remote().map().ackMoveMonster(life.oid(), life.moveid(), mobMp, aggro, nextSkillId, nextSkillLevel);
 
-        // 位置应用（updatePosition monster 分支语义）→ 他人流中继 → 可见性维护
+        // 位置应用（updatePosition monster 分支语义）→ 他人流中继（逐接收方语义投递）→ 可见性维护
         Point serverStartPos = new Point(monster.getPosition());
         applyLifeMovement(monster, life.elements());
-
-        Packet relay = msg.remote().map().relayMoveMonster(life.oid(), nextMovementCouldBeSkill,
-                rawActivity, useSkillId, useSkillLevel, pOption, life.startPos(), life.elements());
-        broadcastMessage(player, relay, serverStartPos);
+        broadcastMonsterMove(new MonsterMove(life.oid(), nextMovementCouldBeSkill,
+                rawActivity, useSkillId, useSkillLevel, pOption, life.startPos(), life.elements()),
+                serverStartPos, player);
         moveMonster(monster, monster.getPosition());
     }
 
@@ -3868,10 +3868,6 @@ public class MapleMap {
         return st.recovery();
     }
 
-    private int hasBoat() {
-        return !st.boat() ? 0 : (docked ? 1 : 2);
-    }
-
     public void setDocked(boolean isDocked) {
         this.docked = isDocked;
     }
@@ -3954,10 +3950,6 @@ public class MapleMap {
         return st.onFirstUserEnter();
     }
 
-    private boolean hasForcedEquip() {
-        return st.fieldType() == 81 || st.fieldType() == 82;
-    }
-
     public void clearDrops(CharacterRef player) {
         for (MapObject i : getMapObjectsInRange(player.getPosition(), Double.POSITIVE_INFINITY, Arrays.asList(MapObjectType.ITEM))) {
             droppedItemCount.decrementAndGet();
@@ -4025,10 +4017,6 @@ public class MapleMap {
             default:
                 return null;
         }
-    }
-
-    private boolean specialEquip() {//Maybe I shouldn't use st.fieldType() :\
-        return st.fieldType() == 4 || st.fieldType() == 19;
     }
 
     public void setCoconut(Coconut nut) {

@@ -15,7 +15,6 @@ import org.gms.server.ExpLogger;
 import org.gms.server.ExpLogger.ExpLogRecord;
 import org.gms.server.life.PlayerNPC;
 import org.gms.net.server.world.PartyCharacter;
-import org.gms.remote.modules.basic.server.BasicUpdate;
 import org.gms.util.I18nUtil;
 import org.gms.util.Locks;
 import org.gms.util.PacketCreator;
@@ -238,7 +237,8 @@ class CharacterLevel {
                         .setMp(owner.stats.getTotal(Stat.MAX_MP))
                         .commit();
             }
-            owner.remote().basic().updateBasic(new BasicUpdate().level(level).exp(exp.get()));
+            owner.remote().basic().updateLevel(level);
+        owner.remote().basic().updateExp(exp.get());   // 与上一调用同段（外层 _u batch）合并为一个 STAT_CHANGED
             owner.remote().basic().unlockActions();
         }   // try-with-resources close = 统一发送
 

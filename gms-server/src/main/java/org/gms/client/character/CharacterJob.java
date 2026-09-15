@@ -23,7 +23,6 @@ import org.gms.client.SkillFactory;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
 import org.gms.net.server.world.PartyCharacter;
-import org.gms.remote.modules.basic.server.BasicUpdate;
 import org.gms.model.pojo.SkillEntry;
 import org.gms.server.BuffEffectData;
 import org.gms.server.maps.MapleMapRef;
@@ -188,7 +187,7 @@ class CharacterJob {
                         .commit();
             }
 
-            owner.remote().basic().updateBasic(new BasicUpdate().jobId(getId()));
+            owner.remote().basic().updateJob(getId());
             owner.remote().basic().unlockActions();
         }
 

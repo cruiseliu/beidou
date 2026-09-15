@@ -16,7 +16,6 @@ import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.Item;
 import org.gms.client.inventory.ItemFlag;
 import org.gms.remote.modules.basic.BasicModule;
-import org.gms.remote.modules.cooldown.CooldownModule;
 import org.gms.remote.modules.inventory.InventoryModule;
 import org.gms.remote.modules.map.client.MapModule;
 import org.gms.remote.modules.npc.client.NpcModule;
@@ -159,12 +158,11 @@ public final class Gms083 extends RemoteClientBase implements RemoteClient {
 
     // ── RemoteClient 钩子 ──
 
-    /** 固定冲刷序：stats → skills → cooldown → inventory（业务序，版本显式书写） */
+    /** 固定冲刷序：stats → skills（含冷却包，原 cooldown 段并入 skills 冲刷）→ inventory（业务序，版本显式书写） */
     @Override
     protected void flushAll() {
         routers.stats.flush();
         routers.skills.flush();
-        routers.cooldown.flush();
         routers.inventory.flush();
     }
 
@@ -175,8 +173,6 @@ public final class Gms083 extends RemoteClientBase implements RemoteClient {
     @Override public SkillsModule skills() { return routers.skills; }
 
     @Override public BasicModule basic() { return routers.basic; }
-
-    @Override public CooldownModule cooldown() { return routers.cooldown; }
 
     @Override public InventoryModule inventory() { return routers.inventory; }
 

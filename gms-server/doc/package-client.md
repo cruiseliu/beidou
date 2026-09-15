@@ -18,7 +18,7 @@
 ## 1. 语义层 / 版本实现两层
 
 - **语义层**（`org.gms.remote`）面向 gameplay 逻辑，按领域分语义模块
-  （`XxxModule`：stats / skills / basic / cooldown / inventory / pet；C→S 方向另有
+  （`XxxModule`：stats / skills / basic / inventory / pet；C→S 方向另有
   map / npc）。
   **不允许暴露任何版本特定行为**——wire 形态、opcode、掩码位、魔法数字、编码基元、
   显示值都是实现私事；版本 hack 有唯一居所（版本实现内），换客户端版本 = 换一个实现。
@@ -115,7 +115,7 @@ deliver + flush）。
 - 对参数**不做理解、只透传**：语义调用与合并域书写共用同一批 route 单例，
   句柄（`Handle`）不参与路由。
 - deliver 内的事件 → translator 分派（多对多下沉，如 PetPanel → inventoryT）在各 route；
-  冲刷序（stats → skills → cooldown → inventory，业务序显式书写）在门面 `flushAll`。
+  冲刷序（stats → skills（含冷却包，原 cooldown 域并入）→ inventory，业务序显式书写）在门面 `flushAll`。
 
 ## 6. translate 层
 

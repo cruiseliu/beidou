@@ -39,7 +39,7 @@ class CharacterSkills {
         cooldownTimer.setListener((skillId, timestamp) -> {
             // fixme: [refactor] send packet in remove methods (it's outside because of battleship hack)
             removeCooldown(skillId);
-            owner.remote().cooldown().clearSkillCooldown(skillId);
+            owner.remote().skills().clearSkillCooldown(skillId);
         });
         skillExpireTimer.setListener((skillId, timestamp) -> {
             removeSkill(skillId);
@@ -169,7 +169,7 @@ class CharacterSkills {
                     cooldowns.remove(mcvh.skillId);
                     cooldownTimer.cancel(mcvh.skillId);
                     if (packet) {
-                        owner.remote().cooldown().clearSkillCooldown(mcvh.skillId);
+                        owner.remote().skills().clearSkillCooldown(mcvh.skillId);
                     }
                 }
             }

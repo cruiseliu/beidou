@@ -1,5 +1,6 @@
 package org.gms.remote.modules.skills;
 
+import org.gms.client.SkillMacro;
 import org.gms.remote.modules.skills.server.SkillUpdate;
 import org.gms.remote.modules.skills.server.SpUpdate;
 
@@ -12,4 +13,10 @@ public interface SkillsModule {
 
     /** 客户端侧删除已获得技能 */
     void removeSkill(int skillId);
+
+    /** 清除技能冷却显示（到期/重置；原 cooldown 域并入） */
+    void clearSkillCooldown(int skillId);
+
+    /** 技能宏表重推（SP 重置清引用等运行期变更；与入图初始化同一 wire 包） */
+    void updateMacros(SkillMacro[] macros);
 }

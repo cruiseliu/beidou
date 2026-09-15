@@ -4,6 +4,7 @@ import org.gms.client.Client;
 import org.gms.client.character.Character;
 import org.gms.client.character.CharacterRef;
 import org.gms.client.pet.Pet;
+import org.gms.remote.modules.map.client.movement.MoveElement;
 import org.gms.infra.ActorShim;
 import org.gms.net.packet.Packet;
 import org.gms.net.server.world.Party;
@@ -291,8 +292,14 @@ public final class MapleMapRef {
         shim.run("pickItemDrop", () -> map.pickItemDrop(pickupPacket, mdrop));
     }
 
-    public void onMove(MapleMap.MoveMsg msg) {
-        shim.run("onMove", () -> map.onMove(msg));
+    /** 角色移动的可见性差集应用（通知类 post）：参数全快照（ref/落点/可见集冻结列表） */
+    public void handleCharacterMove(CharacterRef chr, Point toPos, List<MapObject> visibleObjs) {
+        shim.post("handleCharacterMove", () -> map.handleCharacterMove(chr, toPos, visibleObjs));
+    }
+
+    /** 角色移动他人流中继：map actor 内按受众逐连接语义投递（地图决定发谁，包构建归 remote） */
+    public void broadcastCharacterMove(int charId, List<MoveElement> movements) {
+        shim.post("broadcastCharacterMove", () -> map.broadcastCharacterMove(charId, movements));
     }
 
     public void onMoveLife(MapleMap.MoveLifeMsg msg) {

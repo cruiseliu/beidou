@@ -31,6 +31,7 @@ import org.gms.client.BuddyList;
 import org.gms.client.BuddylistEntry;
 import org.gms.client.EffectType;
 import org.gms.client.Client;
+import org.gms.client.PlayerStrand;
 import org.gms.infra.Strand;
 import org.gms.client.Disease;
 import org.gms.client.Family;
@@ -651,6 +652,9 @@ public class Character extends AbstractAnimatedMapObject {
         c.setAccountName(this.client.getAccountName());  // No null's for accountName
         this.setClient(c);
         this.strandSlot = c.getStrand();   // 会话 strand（doc/12 §3.8）；c 已 attach，此调用在会话 strand 上
+        if (c.getStrand() instanceof PlayerStrand ps) {
+            ref.syncStrand(ps);            // ref 投递通道同步安装（与 strandSlot 同步点一致）
+        }
         setMap(c.getChannelServer().getMapFactory().getMap(getMapId()));
         Portal portal = getMapRef().findClosestPlayerSpawnpoint(getPosition());
         if (portal == null) {
@@ -2387,7 +2391,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void sendMacros() {
         // Always send the macro packet to fix a client side bug when switching characters.
-        getRemote().basic().updateMacros(skillMacros);
+        getRemote().skills().updateMacros(skillMacros);
     }
 
     public void setChalkboard(String text) {
@@ -2724,6 +2728,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     public final void empty(final boolean remove) {
         this.strandSlot = null;   // 会话已终结，路由槽位清除（登出收尾在会话 strand 上执行，doc/12）
+        ref.syncStrand(null);
 
         if (dragonBloodSchedule != null) {
             dragonBloodSchedule.cancel(true);

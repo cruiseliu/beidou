@@ -4,8 +4,6 @@ import org.gms.client.character.Character;
 import org.gms.net.packet.Packet;
 import org.gms.client.pet.Pet;
 import org.gms.remote.modules.basic.BasicModule;
-import org.gms.remote.modules.basic.server.BasicUpdate;
-import org.gms.remote.modules.cooldown.CooldownModule;
 import org.gms.remote.modules.inventory.InventoryModule;
 import org.gms.remote.modules.map.client.MapModule;
 import org.gms.remote.modules.npc.client.NpcModule;
@@ -26,7 +24,6 @@ final class DummyClient extends RemoteClientBase implements RemoteClient,
         StatsModule,
         SkillsModule,
         BasicModule,
-        CooldownModule,
         InventoryModule,
         PetModule,
         MapModule,
@@ -41,7 +38,7 @@ final class DummyClient extends RemoteClientBase implements RemoteClient,
 
     @Override
     public org.gms.net.PacketHandler resolveHandler(short opcode) {
-        return null;   // 无连接：静默
+        return null;
     }
 
     @Override
@@ -52,12 +49,10 @@ final class DummyClient extends RemoteClientBase implements RemoteClient,
 
     @Override
     public void initialize(Character chr) {
-        // 无连接：静默
     }
 
     @Override
     public void updateMacros(org.gms.client.SkillMacro[] macros) {
-        // 无连接：静默
     }
 
     @Override
@@ -72,11 +67,6 @@ final class DummyClient extends RemoteClientBase implements RemoteClient,
 
     @Override
     public SkillsModule skills() {
-        return this;
-    }
-
-    @Override
-    public CooldownModule cooldown() {
         return this;
     }
 
@@ -101,34 +91,27 @@ final class DummyClient extends RemoteClientBase implements RemoteClient,
     }
 
     @Override
-    public Packet movePlayer(int charId, List<MoveElement> elements) {
-        return null;   // 无连接：静默
+    public void characterMove(int charId, List<MoveElement> movements) {
     }
 
     @Override
     public void ackMoveMonster(int oid, short moveid, int currentMp, boolean useSkills, int skillId, int skillLevel) {
-        // 无连接：静默
     }
 
     @Override
-    public Packet relayMoveMonster(int oid, boolean skillPossible, int skill, int skillId, int skillLevel,
-                                   int pOption, java.awt.Point startPos, List<MoveElement> elements) {
-        return null;   // 无连接：静默
+    public void monsterMove(org.gms.remote.modules.map.client.MonsterMove move) {
     }
 
     @Override
-    public void talk(int npc, int msgType, int speaker, String text, int... endBytes) {
-        // 无连接：静默
+    public void talk(int npc, String text, org.gms.remote.modules.npc.client.DialogButtons buttons, int speaker) {
     }
 
     @Override
     public void showInfo(String path) {
-        // 无连接：静默
     }
 
     @Override
     public void dropMessage(int type, String message) {
-        // 无连接：静默
     }
 
     // ── 模块面：全部静默 ──
@@ -150,7 +133,15 @@ final class DummyClient extends RemoteClientBase implements RemoteClient,
     }
 
     @Override
-    public void updateBasic(BasicUpdate update) {
+    public void updateJob(int jobId) {
+    }
+
+    @Override
+    public void updateLevel(int level) {
+    }
+
+    @Override
+    public void updateExp(long exp) {
     }
 
     @Override

@@ -58,11 +58,6 @@ import java.util.List;
     }
 
     @Override
-    public boolean isEmpty() {
-        return changes.isEmpty() && !full;
-    }
-
-    @Override
     public List<V83Packet> flush() {
         List<V83Packet> packets = new ArrayList<>(3);
         // 已生效变更先行；背包满=空操作帧 + 0xff 状态帧成对（对齐 addById 失败双包）

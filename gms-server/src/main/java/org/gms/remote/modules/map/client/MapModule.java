@@ -1,9 +1,7 @@
 package org.gms.remote.modules.map.client;
 
-import org.gms.net.packet.Packet;
 import org.gms.remote.modules.map.client.movement.MoveElement;
 
-import java.awt.*;
 import java.util.List;
 
 /**
@@ -15,10 +13,10 @@ import java.util.List;
 public interface MapModule {
 
     /**
-     * 移动中继编码（他人流广播的成品包）：int charId + 元素序列对称重放。
-     * 与历史 PacketCreator.movePlayer 逐字节一致（对称 codec，round-trip 验证）。
+     * 某角色移动了（他人流中继，接收方连接视角的语义投递）：编码并投递到本端连接。
+     * 由地图域在广播时点对每个接收方调用（地图决定发谁，包的构建归 remote，§3）。
      */
-    Packet movePlayer(int charId, List<MoveElement> elements);
+    void characterMove(int charId, List<MoveElement> movements);
 
     /**
      * mob 移动 ack（controller 连接直发；载荷依赖 mob 状态，由地图域在 map actor
@@ -27,11 +25,10 @@ public interface MapModule {
     void ackMoveMonster(int oid, short moveid, int currentMp, boolean useSkills, int skillId, int skillLevel);
 
     /**
-     * mob 移动中继编码（他人流广播的成品包）。与历史 PacketCreator.moveMonster
-     * 逐字节一致。
+     * 某怪物移动了（他人流中继，接收方连接视角的语义投递）：编码并投递到本端连接。
+     * 由地图域在广播时点对每个受众调用（地图决定发谁，包的构建归 remote，§3）。
      */
-    Packet relayMoveMonster(int oid, boolean skillPossible, int skill, int skillId, int skillLevel,
-                            int pOption, Point startPos, List<MoveElement> elements);
+    void monsterMove(MonsterMove move);
 
     /** 移动语义入口（player actor strand 上执行；元素由 gms083 纯解码产出）。 */
     interface Handler {

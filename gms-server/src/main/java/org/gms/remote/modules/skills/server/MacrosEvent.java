@@ -1,4 +1,4 @@
-package org.gms.remote.modules.basic.server;
+package org.gms.remote.modules.skills.server;
 
 import org.gms.client.SkillMacro;
 import org.gms.remote.ServerEvent;

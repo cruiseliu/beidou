@@ -1,5 +1,6 @@
 package org.gms.client;
 
+import org.gms.infra.ActorMessage;
 import org.gms.infra.Strand;
 
 /**
@@ -17,10 +18,12 @@ import org.gms.infra.Strand;
 public final class PlayerStrand extends Strand {
 
     private final Player player;
+    private final MessageDispatcher dispatcher;
 
     PlayerStrand(String name) {
         super(name);
         this.player = new Player(this);
+        this.dispatcher = new MessageDispatcher(player);
     }
 
     /**
@@ -39,6 +42,11 @@ public final class PlayerStrand extends Strand {
     /** 仅同包 {@link Player#current()} 消费；不作为导航出口 */
     Player player() {
         return player;
+    }
+
+    /** 类型化消息投递（跨 actor 消息面）：入队后在 player 域内经分发器执行 */
+    public void post(ActorMessage msg) {
+        post(msg.name(), () -> dispatcher.dispatch(msg));
     }
 
     /**

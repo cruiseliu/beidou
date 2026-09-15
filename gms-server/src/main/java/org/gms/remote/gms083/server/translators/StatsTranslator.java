@@ -6,7 +6,6 @@ import org.gms.constants.game.GameConstants;
 import org.gms.remote.gms083.ServerTranslator;
 import org.gms.remote.gms083.server.packets.StatChangedPacket;
 import org.gms.remote.gms083.server.packets.V83Packet;
-import org.gms.remote.modules.basic.server.BasicUpdate;
 import org.gms.remote.modules.skills.server.SpUpdate;
 import org.gms.remote.modules.stats.server.StatsUpdate;
 
@@ -68,30 +67,20 @@ public final class StatsTranslator implements ServerTranslator {
         sp = update;
     }
 
-    public void onBasic(BasicUpdate update) {
-        if (update.jobId() != null) {
-            jobId = update.jobId();
-        }
-        if (update.level() != null) {
-            level = update.level();
-        }
-        if (update.exp() != null) {
-            exp = update.exp();
-        }
+    public void onJob(int jobId) {
+        this.jobId = jobId;
+    }
+
+    public void onLevel(int level) {
+        this.level = level;
+    }
+
+    public void onExp(long exp) {
+        this.exp = exp;
     }
 
     public void onUnlockActions() {
         unlockActions = true;
-    }
-
-    private boolean stateEmpty() {
-        return panel.isEmpty() && hp == null && mp == null && ap == null && sp == null
-                && level == null && jobId == null && exp == null && !unlockActions;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return stateEmpty();
     }
 
     @Override

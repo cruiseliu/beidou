@@ -6,7 +6,6 @@ import org.gms.client.inventory.ItemSlot;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
 import org.gms.constants.id.MapId;
-import org.gms.constants.inventory.ItemConstants;
 import org.gms.net.packet.Packet;
 import org.gms.net.server.Server;
 import org.gms.net.server.world.Party;
@@ -27,6 +26,7 @@ import org.gms.server.maps.MiniDungeon;
 import org.gms.server.maps.MiniDungeonInfo;
 import org.gms.server.maps.PlayerShop;
 import org.gms.server.maps.Summon;
+import org.gms.server.maps.MapleMap;
 import org.gms.remote.modules.map.client.MoveLife;
 import org.gms.remote.modules.map.client.movement.AbsoluteMove;
 import org.gms.remote.modules.map.client.movement.ChangeEquipMove;
@@ -88,15 +88,14 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         applyMovement(elements);
 
         final Point newPos = owner.getPosition();
-        final Packet relay = owner.getRemote().map().movePlayer(owner.getId(), elements);
-        final boolean gmOnly = owner.isHidden();
         final List<MapObject> visible = List.of(owner.getVisibleMapObjects());
         final Strand strand = owner.strand();
         if (strand == null) {
             return;   // 无会话 strand（理论不可达：本入口在 strand 上执行）
         }
         final MapleMapRef map = this.map;
-        map.post("move", () -> map.onMove(new org.gms.server.maps.MapleMap.MoveMsg(strand, owner.ref(), owner.getClient(), newPos, relay, gmOnly, visible)));
+        map.broadcastCharacterMove(owner.getId(), elements);   // 他人流中继（map actor 逐连接语义投递）
+        map.handleCharacterMove(owner.ref(), newPos, visible); // 可见性差集（map actor）
     }
 
     /**
@@ -111,7 +110,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         }
         final MapleMapRef map = this.map;
         final org.gms.remote.RemoteClient remote = owner.remote();   // 语义层引用快照过界（map 任务体零导航）
-        map.post("move-life", () -> map.onMoveLife(new org.gms.server.maps.MapleMap.MoveLifeMsg(owner.ref(), owner.getClient(), remote, life)));
+        map.post("move-life", () -> map.onMoveLife(new MapleMap.MoveLifeMsg(owner.ref(), owner.getClient(), remote, life)));
     }
 
     /**

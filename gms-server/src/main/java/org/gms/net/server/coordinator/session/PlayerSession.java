@@ -261,29 +261,29 @@ public final class PlayerSession {
     }
 
     public static void bindClient(int characterId, RemoteClient remote, Client legacyClient) {
-        final Client c = legacyClient;
+        final Client client = legacyClient;
         final Server server = Server.getInstance();
 
 
-        if (!c.tryacquireClient()) {
+        if (!client.tryacquireClient()) {
             // thanks MedicOP for assisting on concurrency protection here
-            c.sendPacket(PacketCreator.getAfterLoginError(10));
+            client.sendPacket(PacketCreator.getAfterLoginError(10));
         }
 
         try {
-            World wserv = server.getWorld(c.getWorld());
+            World wserv = server.getWorld(client.getWorld());
             if (wserv == null) {
-                c.disconnect(true, false);
+                client.disconnect(true, false);
                 return;
             }
 
-            Channel cserv = wserv.getChannel(c.getChannel());
+            Channel cserv = wserv.getChannel(client.getChannel());
             if (cserv == null) {
-                c.setChannel(1);
-                cserv = wserv.getChannel(c.getChannel());
+                client.setChannel(1);
+                cserv = wserv.getChannel(client.getChannel());
 
                 if (cserv == null) {
-                    c.disconnect(true, false);
+                    client.disconnect(true, false);
                     return;
                 }
             }
@@ -293,31 +293,31 @@ public final class PlayerSession {
             boolean newcomer = false;
             if (player == null) {
                 try {
-                    player = Character.loadCharFromDB(characterId, c, true);
+                    player = Character.loadCharFromDB(characterId, client, true);
                     newcomer = true;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
 
                 if (player == null) { //If you are still getting null here then please just uninstall the game >.>, we dont need you fucking with the logs
-                    c.disconnect(true, false);
+                    client.disconnect(true, false);
                     return;
                 }
             }
 
-            if (!server.validateCharacteridInTransition(c, characterId)) {
-                c.disconnect(true, false);
+            if (!server.validateCharacteridInTransition(client, characterId)) {
+                client.disconnect(true, false);
                 return;
             }
 
-            c.setAccID(player.getAccountId());
+            client.setAccID(player.getAccountId());
 
             final Hwid hwid;
             if (newcomer) {
                 // 按账号拾取登录会话 hwid（原按远程 IP 取出即删，同 IP 并发登录会互相挤掉，见 doc/TODO.md）
                 hwid = SessionCoordinator.getInstance().pickLoginSessionHwid(player.getAccountId());
                 if (hwid == null) {
-                    c.disconnect(true, false);
+                    client.disconnect(true, false);
                     return;
                 }
             } else {
@@ -327,72 +327,56 @@ public final class PlayerSession {
                 hwid = cached != null ? cached : player.getClient().getHwid();
             }
 
-            c.setHwid(hwid);
+            client.setHwid(hwid);
 
             boolean allowLogin = true;
 
-                /*  is this check really necessary?
-                if (state == Client.LOGIN_SERVER_TRANSITION || state == Client.LOGIN_NOTLOGGEDIN) {
-                    List<String> charNames = c.loadCharacterNames(c.getWorld());
-                    if(!newcomer) {
-                        charNames.remove(player.getName());
-                    }
-
-                    for (String charName : charNames) {
-                        if(wserv.getPlayerStorage().getCharacterByName(charName) != null) {
-                            allowLogin = false;
-                            break;
-                        }
-                    }
-                }
-                */
-
-            int accId = c.getAccID();
+            int accId = client.getAccID();
             if (tryAcquireAccount(accId)) { // Sync this to prevent wrong login state for double loggedin handling
                 try {
-                    int state = c.getLoginState();
+                    int state = client.getLoginState();
                     if (state != Client.LOGIN_SERVER_TRANSITION || !allowLogin) {
-                        c.setAccID(0);
+                        client.setAccID(0);
 
                         if (state == Client.LOGIN_LOGGEDIN) {
-                            c.disconnect(true, false);
+                            client.disconnect(true, false);
                         } else {
-                            c.sendPacket(PacketCreator.getAfterLoginError(7));
+                            client.sendPacket(PacketCreator.getAfterLoginError(7));
                         }
 
                         return;
                     }
-                    c.updateLoginState(Client.LOGIN_LOGGEDIN);
+                    client.updateLoginState(Client.LOGIN_LOGGEDIN);
                 } finally {
                     releaseAccount(accId);
                 }
             } else {
-                c.setAccID(0);
-                c.sendPacket(PacketCreator.getAfterLoginError(10));
+                client.setAccID(0);
+                client.sendPacket(PacketCreator.getAfterLoginError(10));
                 return;
             }
 
             if (!newcomer) {
                 // 过渡重入：读悬挂旧 Client 的账号级不可变设置（language/slots，过渡分支不清理）
-                c.setLanguage(player.getClient().getLanguage());
-                c.setCharacterSlots((byte) player.getClient().getCharacterSlots());
+                client.setLanguage(player.getClient().getLanguage());
+                client.setCharacterSlots((byte) player.getClient().getCharacterSlots());
             }
 
             // —— 会话建立（doc/12 §3.4）：attach 决定 fresh/adopt/顶号等待；入场流程（含
             // rebind）作为单个任务投递到会话 strand，FIFO 排在该会话既有任务之后——旧连接
             // 收尾与新连接进入在此获得全序。newClient 依赖会话 strand（strandSlot 安装），
             // 故一并移入入场任务。
-            PlayerSession session = SessionCoordinator.getInstance().attach(c, accId);
-            c.attachTo(session);
+            PlayerSession session = SessionCoordinator.getInstance().attach(client, accId);
+            client.attachTo(session);
             final Character entered = player;
             final boolean firstEntry = newcomer;
             session.strand().post("loggedin-enter", () -> {
-                if (!c.tryacquireClient()) {   // 与前半段的并发保护对齐（MedicOP）
-                    c.sendPacket(PacketCreator.getAfterLoginError(10));
+                if (!client.tryacquireClient()) {   // 与前半段的并发保护对齐（MedicOP）
+                    client.sendPacket(PacketCreator.getAfterLoginError(10));
                     return;
                 }
                 try {
-                    session.strand().rebindTo(c);   // 跨 actor 写：跑在 actor 上（doc/12 权责语义）
+                    session.strand().rebindTo(client);   // 跨 actor 写：跑在 actor 上（doc/12 权责语义）
                     // Character 从属 Player（doc/12 §21）：槽位在 actor 上绑定；Client.player 降为 legacy 镜像
                     Player.current().bindCharacter(entered);   // 跨 actor 写：跑在 actor 上（doc/12 权责语义）
                     // 收包插座接线：角色把组件接插到 actor 的 Handler 槽位（on strand 写；
@@ -400,13 +384,13 @@ public final class PlayerSession {
                     entered.bindClientHandlers(Player.current().clientEventHandlers());
                     Player.current().enterWorld(firstEntry);
                 } finally {
-                    c.releaseClient();
+                    client.releaseClient();
                 }
             });
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            c.releaseClient();
+            client.releaseClient();
         }
     }
 

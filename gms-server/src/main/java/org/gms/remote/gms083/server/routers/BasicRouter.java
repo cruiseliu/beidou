@@ -11,10 +11,11 @@ import org.gms.remote.gms083.server.translators.KeymapTranslator;
 import org.gms.remote.gms083.server.translators.MacrosTranslator;
 import org.gms.remote.gms083.server.translators.QuickslotTranslator;
 import org.gms.remote.gms083.server.translators.SetFieldTranslator;
-import org.gms.remote.modules.basic.server.BasicEvent;
-import org.gms.remote.modules.basic.server.BasicUpdate;
+import org.gms.remote.modules.skills.server.MacrosEvent;
+import org.gms.remote.modules.basic.server.UpdateExpEvent;
+import org.gms.remote.modules.basic.server.UpdateJobEvent;
+import org.gms.remote.modules.basic.server.UpdateLevelEvent;
 import org.gms.remote.modules.basic.server.InitializeEvent;
-import org.gms.remote.modules.basic.server.MacrosEvent;
 import org.gms.remote.modules.basic.server.UnlockActionsEvent;
 
 /**
@@ -30,8 +31,18 @@ public final class BasicRouter implements BasicModule, ServerEventDest {
     }
 
     @Override
-    public void updateBasic(BasicUpdate update) {
-        client.schedule(this, new BasicEvent(update));
+    public void updateJob(int jobId) {
+        client.schedule(this, new UpdateJobEvent(jobId));
+    }
+
+    @Override
+    public void updateLevel(int level) {
+        client.schedule(this, new UpdateLevelEvent(level));
+    }
+
+    @Override
+    public void updateExp(long exp) {
+        client.schedule(this, new UpdateExpEvent(exp));
     }
 
     @Override
@@ -45,11 +56,11 @@ public final class BasicRouter implements BasicModule, ServerEventDest {
         client.schedule(this, new InitializeEvent(chr));
     }
 
-    /** 技能宏表重推：入域即浅冻结（MacrosEvent 构造期数组克隆） */
-    @Override
-    public void updateMacros(org.gms.client.SkillMacro[] macros) {
-        client.schedule(this, new MacrosEvent(macros));
-    }
+    // /** 技能宏表重推：入域即浅冻结（MacrosEvent 构造期数组克隆） */
+    // @Override
+    // public void updateMacros(org.gms.client.SkillMacro[] macros) {
+    //     client.schedule(this, new MacrosEvent(macros));
+    // }
 
     private void onInitialize(InitializeEvent event) {
         // 不完整 freeze：chr 活引用 + wire 事实（channel/buddy/linkedName/meso/时间）在
@@ -75,7 +86,9 @@ public final class BasicRouter implements BasicModule, ServerEventDest {
         switch (r) {
             case InitializeEvent e -> onInitialize(e);
             case MacrosEvent m -> client.send(MacrosTranslator.macros(m.macros()));
-            case BasicEvent(var u) -> client.translators().statsT.onBasic(u);
+            case UpdateJobEvent(var jobId) -> client.translators().statsT.onJob(jobId);
+            case UpdateLevelEvent(var level) -> client.translators().statsT.onLevel(level);
+            case UpdateExpEvent(var exp) -> client.translators().statsT.onExp(exp);
             case UnlockActionsEvent ue -> client.translators().statsT.onUnlockActions();
             default -> { }   // 非本模块事件不会到达（owner 标记保证）；防御静默
         }
