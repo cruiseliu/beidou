@@ -4,17 +4,29 @@ import org.gms.client.EffectType;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.config.GameConfig;
+import org.gms.constants.game.GameConstants;
 import org.gms.constants.id.MapId;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.net.packet.Packet;
+import org.gms.net.server.Server;
 import org.gms.net.server.world.Party;
 import org.gms.net.server.world.PartyOperation;
+import org.gms.net.server.world.World;
 import org.gms.client.pet.Pet;
 import org.gms.scripting.event.EventInstanceManager;
+import org.gms.server.BuffEffectData;
+import org.gms.server.TimerManager;
 import org.gms.server.Trade;
 import org.gms.infra.Strand;
+import org.gms.server.maps.Dragon;
+import org.gms.server.maps.FieldLimit;
 import org.gms.server.maps.MapleMapRef;
+import org.gms.server.maps.MapleMapStatic;
 import org.gms.server.maps.MapObject;
+import org.gms.server.maps.MiniDungeon;
+import org.gms.server.maps.MiniDungeonInfo;
+import org.gms.server.maps.PlayerShop;
+import org.gms.server.maps.Summon;
 import org.gms.remote.modules.map.client.MoveLife;
 import org.gms.remote.modules.map.client.movement.AbsoluteMove;
 import org.gms.remote.modules.map.client.movement.ChangeEquipMove;
@@ -36,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import java.awt.Point;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -442,8 +455,8 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
             // 宠物召唤快照：本 strand 上采集后随边界传入（doc/13 §5.2；map shim 后 map 任务体
             // 内禁止 actor 回询 = 环死锁）
             final List<Pet> pets = owner.getPets().getSummonedPets();
-            final boolean firstEnter = map.registerPlayer(owner.ref(), pets);   // shim run：登记段缝合点
-            map.finishEnter(owner.ref(), firstEnter, pets);                     // player strand：脚本 + self 流
+            final boolean firstEnter = registerPlayer(owner, pets);   // shim run：登记段缝合点（party 快照在门面采集）
+            enterMap(firstEnter, pets);                               // player strand：进图编舞（原 finishEnter 迁出）
             visitMap(map);
 
             try (var ignored = Locks.acquire(owner.party.lock)) {
@@ -500,14 +513,203 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
 
     // ── 进图/拾取/移动（shim 缝合点语义见各方法注释）──
 
-    /** 进图登记（shim supply 缝合点，doc/13 §5.2）——ref 透传 */
+    /** 进图登记（shim supply 缝合点，doc/13 §5.2）——party 快照（player strand 采集）随边界传入 */
     boolean registerPlayer(Character chr, List<Pet> summonedPets) {
-        return map.registerPlayer(chr.ref(), summonedPets);
+        return map.registerPlayer(chr.ref(), summonedPets, chr.getParty());
     }
 
-    /** 进图通知（player strand 原位：脚本 + self 流）——ref 透传 */
-    void finishEnter(Character chr, boolean firstEnter, List<Pet> summonedPets) {
-        map.finishEnter(chr.ref(), firstEnter, summonedPets);
+    /**
+     * 进图编舞（原 MapleMap.finishEnter verbatim 迁出——player strand 原位，§5.4 收口）：
+     * 本体触点全部 owner 直调（不经 ref，canary 不触发）；静态事实经 {@code map.statics()}
+     * 无锁直读；map 操作经 MapleMapRef 原位 helper（快照入参，体内零 CharacterRef 方法调用）。
+     * 语句相对顺序与迁移前一致（发包字节序不变）。进图脚本按裁定注释留 FIXME（测试场景无 map script）。
+     */
+    void enterMap(boolean firstEnter, List<Pet> summonedPets) {
+        final Character chr = owner;
+        final MapleMapStatic st = map.statics();
+        final World wserv = Server.getInstance().getWorld(st.world());
+        chr.setMapId(st.mapid());
+        chr.updateActiveEffects();
+
+        if (st.decHP() > 0) {
+            wserv.addPlayerHpDecrease(chr);
+        } else {
+            wserv.removePlayerHpDecrease(chr);
+        }
+
+        // FIXME(脚本桥): 进图脚本暂不执行（现测试场景无 map script）。恢复时脚本执行归 player 域、
+        //  触发归 map 域（反向 post 通道），不得以 player strand 直调 ref 参数化 API 的旧形态回归。
+        // MapScriptManager msm = MapScriptManager.getInstance();
+        // if (firstEnter) {
+        //     if (st.onFirstUserEnter().length() != 0) {
+        //         msm.runMapScript(chr, "onFirstUserEnter/" + st.onFirstUserEnter(), true);
+        //     }
+        // }
+        if (st.onUserEnter().length() != 0) {
+            if (st.onUserEnter().equals("cygnusTest") && !MapId.isCygnusIntro(st.mapid())) {
+                chr.saveLocation("INTRO");
+            }
+            // msm.runMapScript(chr, "onUserEnter/" + st.onUserEnter(), false);
+        }
+        if (FieldLimit.CANNOTUSEMOUNTS.check(st.fieldLimit()) && chr.getBuffedValue(EffectType.MONSTER_RIDING) != null) {
+            chr.cancelEffectFromBuffStat(EffectType.MONSTER_RIDING);
+            chr.cancelBuffStats(EffectType.MONSTER_RIDING);
+        }
+
+        if (st.mapid() == MapId.FROM_LITH_TO_RIEN) { // To Rien
+            int travelTime = wserv.getTransportationTime((int) MINUTES.toMillis(1));
+            chr.sendPacket(PacketCreator.getClock(travelTime / 1000));
+            TimerManager.getInstance().schedule(() -> {
+                if (chr.getMapId() == MapId.FROM_LITH_TO_RIEN) {
+                    chr.changeMap(MapId.DANGEROUS_FOREST, 0);
+                }
+            }, travelTime);
+        } else if (st.mapid() == MapId.FROM_RIEN_TO_LITH) { // To Lith Harbor
+            int travelTime = wserv.getTransportationTime((int) MINUTES.toMillis(1));
+            chr.sendPacket(PacketCreator.getClock(travelTime / 1000));
+            TimerManager.getInstance().schedule(() -> {
+                if (chr.getMapId() == MapId.FROM_RIEN_TO_LITH) {
+                    chr.changeMap(MapId.LITH_HARBOUR, 3);
+                }
+            }, travelTime);
+        } else if (st.mapid() == MapId.FROM_ELLINIA_TO_EREVE) { // To Ereve (SkyFerry)
+            int travelTime = wserv.getTransportationTime((int) MINUTES.toMillis(2));
+            chr.sendPacket(PacketCreator.getClock(travelTime / 1000));
+            TimerManager.getInstance().schedule(() -> {
+                if (chr.getMapId() == MapId.FROM_ELLINIA_TO_EREVE) {
+                    chr.changeMap(MapId.SKY_FERRY, 0);
+                }
+            }, travelTime);
+        } else if (st.mapid() == MapId.FROM_EREVE_TO_ELLINIA) { // To Victoria Island (SkyFerry)
+            int travelTime = wserv.getTransportationTime((int) MINUTES.toMillis(2));
+            chr.sendPacket(PacketCreator.getClock(travelTime / 1000));
+            TimerManager.getInstance().schedule(() -> {
+                if (chr.getMapId() == MapId.FROM_EREVE_TO_ELLINIA) {
+                    chr.changeMap(MapId.ELLINIA_SKY_FERRY, 0);
+                }
+            }, travelTime);
+        } else if (st.mapid() == MapId.FROM_EREVE_TO_ORBIS) { // To Orbis (SkyFerry)
+            int travelTime = wserv.getTransportationTime((int) MINUTES.toMillis(8));
+            chr.sendPacket(PacketCreator.getClock(travelTime / 1000));
+            TimerManager.getInstance().schedule(() -> {
+                if (chr.getMapId() == MapId.FROM_EREVE_TO_ORBIS) {
+                    chr.changeMap(MapId.ORBIS_STATION, 0);
+                }
+            }, travelTime);
+        } else if (st.mapid() == MapId.FROM_ORBIS_TO_EREVE) { // To Ereve From Orbis (SkyFerry)
+            int travelTime = wserv.getTransportationTime((int) MINUTES.toMillis(8));
+            chr.sendPacket(PacketCreator.getClock(travelTime / 1000));
+            TimerManager.getInstance().schedule(() -> {
+                if (chr.getMapId() == MapId.FROM_ORBIS_TO_EREVE) {
+                    chr.changeMap(MapId.SKY_FERRY, 0);
+                }
+            }, travelTime);
+        } else if (MiniDungeonInfo.isDungeonMap(st.mapid())) {
+            MiniDungeon mmd = chr.getClient().getChannelServer().getMiniDungeon(st.mapid());
+            if (mmd != null) {
+                mmd.registerPlayer(chr);
+            }
+        } else if (GameConstants.isAriantColiseumArena(st.mapid())) {
+            int pqTimer = (int) MINUTES.toMillis(10);
+            chr.sendPacket(PacketCreator.getClock(pqTimer / 1000));
+        }
+
+        for (Pet pet : summonedPets) {
+            // 原 MapleMap.getGroundBelow：calcPointBelow(pos.y-14) 后 y--（静态落点，footholds 直算）
+            Point pos = MapleMapStatic.calcPointBelow(st.footholds(), new Point(chr.getPosition().x, chr.getPosition().y - 14));
+            pos.y--;
+            int fh = st.footholds().findBelow(pos).getId();
+            pet.announceSummon(pos, fh);
+        }
+
+        chr.getRemote().pet().updateIgnoreList(chr);  // thanks OishiiKawaiiDesu for noticing pet item ignore registry erasing upon changing maps
+
+        if (chr.getMonsterCarnival() != null) {
+            chr.sendPacket(PacketCreator.getClock(chr.getMonsterCarnival().getTimeLeftSeconds()));
+            if (MapleMapStatic.isCPQMapId(st.mapid())) {
+                int team = -1;
+                int oposition = -1;
+                if (chr.getTeam() == 0) {
+                    team = 0;
+                    oposition = 1;
+                }
+                if (chr.getTeam() == 1) {
+                    team = 1;
+                    oposition = 0;
+                }
+                chr.sendPacket(PacketCreator.startMonsterCarnival(chr, team, oposition));
+            }
+        }
+
+        chr.removeSandboxItems();
+
+        if (chr.getChalkboard() != null) {
+            if (!GameConstants.isFreeMarketRoom(st.mapid())) {
+                chr.sendPacket(PacketCreator.useChalkboard(chr, false)); // update player's chalkboard when changing maps found thanks to Vcoc
+            } else {
+                chr.setChalkboard(null);
+            }
+        }
+
+        // （原 GM 隐身特效包分支：isHidden 按"单机无 GM"裁定删除，恒 false）
+
+        List<MapObject> addRefs = map.sendObjectPlacement(chr.getClient(), chr.getPosition(), chr.getId(), chr.getSummonsValues());
+        chr.applyVisibleMapObjects(addRefs, List.of());
+
+        map.closeEventJoinPortal();
+        if (st.fieldType() == 81 || st.fieldType() == 82) {   // 原 hasForcedEquip（fieldType 静态判定内联）
+            chr.sendPacket(PacketCreator.showForcedEquip(-1));
+        }
+        if (st.fieldType() == 4 || st.fieldType() == 19) {    // 原 specialEquip
+            chr.sendPacket(PacketCreator.coconutScore(0, 0));
+            chr.sendPacket(PacketCreator.showForcedEquip(chr.getTeam()));
+        }
+        map.registerEnterObjects(chr.ref(), chr.getObjectId(), chr.getPlayerShop());
+
+        final Dragon dragon = chr.getDragon();
+        if (dragon != null) {
+            map.spawnDragon(dragon, chr.getPosition(), chr.ref());
+        }
+
+        BuffEffectData summonStat = chr.getStatForBuff(EffectType.SUMMON);
+        if (summonStat != null) {
+            Summon summon = chr.getSummonByKey(summonStat.getSourceId());
+            summon.setPosition(chr.getPosition());
+            map.spawnSummonExcludeOwner(summon, chr.ref());
+            // owner 份（原 ranged 广播内含 owner：可见集登记 + 与 packetbakery 同形的 spawn 包）
+            chr.addVisibleMapObject(summon);
+            chr.sendPacket(PacketCreator.spawnSummon(summon, true));
+        }
+        map.sendMapEffectData(chr.getClient());
+        chr.sendPacket(PacketCreator.resetForcedStats());
+        if (MapId.isGodlyStatMap(st.mapid())) {
+            chr.sendPacket(PacketCreator.aranGodlyStats());
+        }
+        if (chr.getEventInstance() != null && chr.getEventInstance().isTimerStarted()) {
+            chr.sendPacket(PacketCreator.getClock((int) (chr.getEventInstance().getTimeLeft() / 1000)));
+        }
+        if (chr.getFitness() != null && chr.getFitness().isTimerStarted()) {
+            chr.sendPacket(PacketCreator.getClock((int) (chr.getFitness().getTimeLeft() / 1000)));
+        }
+
+        if (chr.getOla() != null && chr.getOla().isTimerStarted()) {
+            chr.sendPacket(PacketCreator.getClock((int) (chr.getOla().getTimeLeft() / 1000)));
+        }
+
+        if (st.mapid() == MapId.EVENT_SNOWBALL) {
+            chr.sendPacket(PacketCreator.rollSnowBall(true, 0, null, null));
+        }
+
+        if (st.clock()) {
+            Calendar cal = Calendar.getInstance();
+            chr.sendPacket(PacketCreator.getClockTime(cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND)));
+        }
+        if (st.boat()) {   // 原 hasBoat()：boat 能力静态，docked 运行时态经 supply 自读
+            chr.sendPacket(PacketCreator.boatPacket(map.isBoatDocked()));
+        }
+
+        chr.receivePartyMemberHP();
+        Server.getInstance().registerAnnouncePlayerDiseases(chr.getClient());
     }
 
     // ── 地图历史 ──

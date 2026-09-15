@@ -29,9 +29,29 @@ import java.awt.Point;
 public final class CharacterRef implements org.gms.server.maps.MapObject {
 
     private final Character chr;
+    /**
+     * 本体 id（装载后不变）：构造期未定（id 由 DB 装载后赋值），首次读取时捕获——
+     * 捕获后 getId 不再访问 Character（map 任务体直读安全；未装载角色不可达 map 域，
+     * 首捕必然发生在装载后）。并发首捕同值幂等。
+     */
+    private int id;
+    /** 幽灵判定快照（方向 2 读快照化）：离场标志，player 侧翻转点回写；初值 true 对齐本体 AtomicBoolean */
+    private volatile boolean awayFromWorld = true;
+    /** 幽灵判定快照：会话断开（单向置位，player 断连收尾回写） */
+    private volatile boolean clientDisconnected;
 
     CharacterRef(Character chr) {
         this.chr = chr;
+    }
+
+    /** player 侧回写：离场标志翻转（setEnteredChannelWorld/setAwayFromChannelWorld） */
+    void syncAwayFromWorld(boolean v) {
+        awayFromWorld = v;
+    }
+
+    /** player 侧回写：会话断开置位（client 置空的收尾点） */
+    void syncClientDisconnected() {
+        clientDisconnected = true;
     }
 
     /** 幂等：角色实例的唯一 ref（null 透传） */
@@ -50,12 +70,19 @@ public final class CharacterRef implements org.gms.server.maps.MapObject {
      * 由 strand/shim fail-safe 记日志（定位用，不中断服务）。
      */
     private void notInStrictPipeline() {
-        AssertUtil.isTrue(!chr.strictMode(), "strict 管线执行窗口内经 CharacterRef 触达本体 (cid=" + chr.getId() + ")");
+        AssertUtil.isTrue(!chr.strictMode(), "strict 管线执行窗口内经 CharacterRef 触达本体 (cid=" + id + ")");
     }
 
+    /** 本体 id（首次读取捕获，见字段注；不访问 Character） */
     public int getId() {
-        notInStrictPipeline();
-        return chr.getId();
+        int i = id;
+        if (i == 0) {
+            i = chr.getId();
+            if (i != 0) {
+                id = i;
+            }
+        }
+        return i;
     }
 
     public String getName() {
@@ -349,9 +376,14 @@ public final class CharacterRef implements org.gms.server.maps.MapObject {
         return org.gms.util.PacketCreator.updateCharLook(targetClient, chr);
     }
 
+    /** 幽灵判定快照读（map 域直读，不触本体；写点见 syncAwayFromWorld） */
     public boolean isAwayFromWorld() {
-        notInStrictPipeline();
-        return chr.isAwayFromWorld();
+        return awayFromWorld;
+    }
+
+    /** 幽灵判定快照读（map 域直读，不触本体；写点见 syncClientDisconnected） */
+    public boolean isClientDisconnected() {
+        return clientDisconnected;
     }
 
     public void applyVisibleMapObjects(java.util.List<org.gms.server.maps.MapObject> addRefs,

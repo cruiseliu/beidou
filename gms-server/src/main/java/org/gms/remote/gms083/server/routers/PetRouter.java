@@ -3,6 +3,7 @@ package org.gms.remote.gms083.server.routers;
 import org.gms.client.character.Character;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.pet.Pet;
+import org.gms.net.packet.Packet;
 import org.gms.remote.ServerEventDest;
 
 import java.util.List;
@@ -28,7 +29,11 @@ public final class PetRouter implements PetModule, ServerEventDest {
     @Override
     public void summonPet(Pet pet, int fh) {
         Character chr = pet.getOwner();
-        chr.getMap().broadcastMessage(chr, client.toLegacyPacket(client.translators().petT.spawnPet(chr, pet, false, false, fh)), true);
+        Packet spawn = client.toLegacyPacket(client.translators().petT.spawnPet(chr, pet, false, false, fh));
+        // 本体直发 + 他人流广播（原 repeatToSource=true 的拆分）：进图编舞（enterMap）在本体
+        // strict 窗口内调用本方法，广播扫本体 ref 会触发 canary——自投递走本体直调不经 ref。
+        chr.sendPacket(spawn);
+        chr.getMap().broadcastMessage(chr, spawn, false);
         client.send(client.translators().petT.petStatUpdate(chr));
     }
 
@@ -36,7 +41,9 @@ public final class PetRouter implements PetModule, ServerEventDest {
     @Override
     public void dismissPet(Pet pet, boolean hunger) {
         Character chr = pet.getOwner();
-        chr.getMap().broadcastMessage(chr, client.toLegacyPacket(client.translators().petT.spawnPet(chr, pet, true, hunger, 0)), true);
+        Packet despawn = client.toLegacyPacket(client.translators().petT.spawnPet(chr, pet, true, hunger, 0));
+        chr.sendPacket(despawn);   // 同 summonPet：本体直发 + 他人流广播
+        chr.getMap().broadcastMessage(chr, despawn, false);
         client.send(client.translators().petT.petStatUpdate(chr));
     }
 

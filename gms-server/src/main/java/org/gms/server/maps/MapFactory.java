@@ -141,8 +141,6 @@ public class MapFactory {
     }
 
     public static MapleMap loadMapFromWz(int mapid, int world, int channel, EventInstanceManager event) {
-        MapleMap map;
-
         String mapName = getMapName(mapid);
         Data mapData = mapSource.getData(mapName);    // source.getData issue with giving nulls in rare ocasions found thanks to MedicOP
         Data infoData = mapData.getChildByPath("info");
@@ -157,24 +155,23 @@ public class MapFactory {
         if (mobRate != null) {
             monsterRate = (Float) mobRate.getData();
         }
-        map = new MapleMap(mapid, world, channel, DataTool.getInt("returnMap", infoData), monsterRate);
-        map.setEventInstance(event);
+
+        // —— 静态内容装配（Builder；WZ 纯读，零实例依赖）——
+        MapleMapStatic.Builder stb = new MapleMapStatic.Builder(mapid, world, channel,
+                DataTool.getInt("returnMap", infoData), monsterRate);
 
         String onFirstEnter = DataTool.getString(infoData.getChildByPath("onFirstUserEnter"), String.valueOf(mapid));
-        map.setOnFirstUserEnter(onFirstEnter.equals("") ? String.valueOf(mapid) : onFirstEnter);
+        stb.onFirstUserEnter(onFirstEnter.equals("") ? String.valueOf(mapid) : onFirstEnter);
 
         String onEnter = DataTool.getString(infoData.getChildByPath("onUserEnter"), String.valueOf(mapid));
-        map.setOnUserEnter(onEnter.equals("") ? String.valueOf(mapid) : onEnter);
+        stb.onUserEnter(onEnter.equals("") ? String.valueOf(mapid) : onEnter);
 
-        map.setFieldLimit(DataTool.getInt(infoData.getChildByPath("fieldLimit"), 0));
-        map.setMobInterval((short) DataTool.getInt(infoData.getChildByPath("createMobInterval"), 5000));
-        PortalFactory portalFactory = new PortalFactory();
-        for (Data portal : mapData.getChildByPath("portal")) {
-            map.addPortal(portalFactory.makePortal(DataTool.getInt(portal.getChildByPath("pt")), portal));
-        }
+        stb.fieldLimit(DataTool.getInt(infoData.getChildByPath("fieldLimit"), 0));
+        stb.mobInterval((short) DataTool.getInt(infoData.getChildByPath("createMobInterval"), 5000));
+
         Data timeMob = infoData.getChildByPath("timeMob");
         if (timeMob != null) {
-            map.setTimeMob(DataTool.getInt(timeMob.getChildByPath("id")), DataTool.getString(timeMob.getChildByPath("message")));
+            stb.timeMob(DataTool.getInt(timeMob.getChildByPath("id")), DataTool.getString(timeMob.getChildByPath("message")));
         }
 
         int[] bounds = new int[4];
@@ -189,16 +186,16 @@ public class MapFactory {
                 bounds[2] = DataTool.getInt(minimapData.getChildByPath("height"));
                 bounds[3] = DataTool.getInt(minimapData.getChildByPath("width"));
 
-                map.setMapPointBoundings(bounds[0], bounds[1], bounds[2], bounds[3]);
+                stb.mapPointBoundings(bounds[0], bounds[1], bounds[2], bounds[3]);
             } else {
                 int dist = (1 << 18);
-                map.setMapPointBoundings(-dist / 2, -dist / 2, dist, dist);
+                stb.mapPointBoundings(-dist / 2, -dist / 2, dist, dist);
             }
         } else {
             bounds[2] = DataTool.getInt(infoData.getChildByPath("VRLeft"));
             bounds[3] = DataTool.getInt(infoData.getChildByPath("VRRight"));
 
-            map.setMapLineBoundings(bounds[0], bounds[1], bounds[2], bounds[3]);
+            stb.mapLineBoundings(bounds[0], bounds[1], bounds[2], bounds[3]);
         }
 
         List<Foothold> allFootholds = new LinkedList<>();
@@ -234,84 +231,61 @@ public class MapFactory {
         for (Foothold fh : allFootholds) {
             fTree.insert(fh);
         }
-        map.setFootholds(fTree);
+        stb.footholds(fTree);
         if (mapData.getChildByPath("area") != null) {
             for (Data area : mapData.getChildByPath("area")) {
                 int x1 = DataTool.getInt(area.getChildByPath("x1"));
                 int y1 = DataTool.getInt(area.getChildByPath("y1"));
                 int x2 = DataTool.getInt(area.getChildByPath("x2"));
                 int y2 = DataTool.getInt(area.getChildByPath("y2"));
-                map.addMapleArea(new Rectangle(x1, y1, (x2 - x1), (y2 - y1)));
+                stb.addArea(new Rectangle(x1, y1, (x2 - x1), (y2 - y1)));
             }
         }
         if (mapData.getChildByPath("seat") != null) {
             int seats = mapData.getChildByPath("seat").getChildren().size();
-            map.setSeats(seats);
-        }
-        if (event == null) {
-            PlayerNPC.addPlayerNPCMapObject(map);
+            stb.seats(seats);
         }
 
-        loadLifeFromWz(map, mapData);
-        loadLifeFromDb(map);
-
-        if (map.isCPQMap()) {
+        if (MapleMapStatic.isCPQMapId(mapid)) {
             Data mcData = mapData.getChildByPath("monsterCarnival");
             if (mcData != null) {
-                map.setDeathCP(DataTool.getIntConvert("deathCP", mcData, 0));
-                map.setMaxMobs(DataTool.getIntConvert("mobGenMax", mcData, 20));    // thanks Atoot for noticing CPQ1 bf. 3 and 4 not accepting spawns due to undefined limits, Lame for noticing a need to cap mob spawns even on such undefined limits
-                map.setTimeDefault(DataTool.getIntConvert("timeDefault", mcData, 0));
-                map.setTimeExpand(DataTool.getIntConvert("timeExpand", mcData, 0));
-                map.setMaxReactors(DataTool.getIntConvert("guardianGenMax", mcData, 16));
-                Data guardianGenData = mcData.getChildByPath("guardianGenPos");
-                for (Data node : guardianGenData.getChildren()) {
-                    GuardianSpawnPoint pt = new GuardianSpawnPoint(new Point(DataTool.getIntConvert("x", node), DataTool.getIntConvert("y", node)));
-                    pt.setTeam(DataTool.getIntConvert("team", node, -1));
-                    pt.setTaken(false);
-                    map.addGuardianSpawnPoint(pt);
-                }
+                stb.deathCP(DataTool.getIntConvert("deathCP", mcData, 0));
+                stb.maxMobs(DataTool.getIntConvert("mobGenMax", mcData, 20));    // thanks Atoot for noticing CPQ1 bf. 3 and 4 not accepting spawns due to undefined limits, Lame for noticing a need to cap mob spawns even on such undefined limits
+                stb.timeDefault(DataTool.getIntConvert("timeDefault", mcData, 0));
+                stb.timeExpand(DataTool.getIntConvert("timeExpand", mcData, 0));
+                stb.maxReactors(DataTool.getIntConvert("guardianGenMax", mcData, 16));
                 if (mcData.getChildByPath("skill") != null) {
                     for (Data area : mcData.getChildByPath("skill")) {
-                        map.addSkillId(DataTool.getInt(area));
+                        stb.addSkillId(DataTool.getInt(area));
                     }
                 }
 
                 if (mcData.getChildByPath("mob") != null) {
                     for (Data area : mcData.getChildByPath("mob")) {
-                        map.addMobSpawn(DataTool.getInt(area.getChildByPath("id")), DataTool.getInt(area.getChildByPath("spendCP")));
+                        stb.addMobSpawn(DataTool.getInt(area.getChildByPath("id")), DataTool.getInt(area.getChildByPath("spendCP")));
                     }
                 }
             }
 
         }
 
-        if (mapData.getChildByPath("reactor") != null) {
-            for (Data reactor : mapData.getChildByPath("reactor")) {
-                String id = DataTool.getString(reactor.getChildByPath("id"));
-                if (id != null) {
-                    Reactor newReactor = loadReactor(reactor, id, (byte) DataTool.getInt(reactor.getChildByPath("f"), 0));
-                    map.spawnReactor(newReactor);
-                }
-            }
-        }
+        stb.mapName(loadPlaceName(mapid));
+        stb.streetName(loadStreetName(mapid));
 
-        map.setMapName(loadPlaceName(mapid));
-        map.setStreetName(loadStreetName(mapid));
-
-        map.setClock(mapData.getChildByPath("clock") != null);
-        map.setEverlast(DataTool.getIntConvert("everlast", infoData, 0) != 0); // thanks davidlafriniere for noticing value 0 accounting as true
-        map.setTown(DataTool.getIntConvert("town", infoData, 0) != 0);
-        map.setHPDec(DataTool.getIntConvert("decHP", infoData, 0));
-        map.setHPDecProtect(DataTool.getIntConvert("protectItem", infoData, 0));
-        map.setForcedReturnMap(DataTool.getInt(infoData.getChildByPath("forcedReturn"), MapId.NONE));
-        map.setBoat(mapData.getChildByPath("shipObj") != null);
-        map.setTimeLimit(DataTool.getIntConvert("timeLimit", infoData, -1));
-        map.setFieldType(DataTool.getIntConvert("fieldType", infoData, 0));
-        map.setMobCapacity(DataTool.getIntConvert("fixedMobCapacity", infoData, 500));//Is there a map that contains more than 500 mobs?
+        stb.clock(mapData.getChildByPath("clock") != null);
+        stb.everlast(DataTool.getIntConvert("everlast", infoData, 0) != 0); // thanks davidlafriniere for noticing value 0 accounting as true
+        stb.town(DataTool.getIntConvert("town", infoData, 0) != 0);
+        stb.hpDec(DataTool.getIntConvert("decHP", infoData, 0));
+        stb.hpDecProtect(DataTool.getIntConvert("protectItem", infoData, 0));
+        stb.forcedReturnMap(DataTool.getInt(infoData.getChildByPath("forcedReturn"), MapId.NONE));
+        stb.boat(mapData.getChildByPath("shipObj") != null);
+        stb.timeLimit(DataTool.getIntConvert("timeLimit", infoData, -1));
+        stb.fieldType(DataTool.getIntConvert("fieldType", infoData, 0));
+        stb.mobCapacity(DataTool.getIntConvert("fixedMobCapacity", infoData, 500));//Is there a map that contains more than 500 mobs?
 
         Data recData = infoData.getChildByPath("recovery");
         if (recData != null) {
-            map.setRecovery(DataTool.getFloat(recData));
+            stb.recovery(DataTool.getFloat(recData));
         }
 
         HashMap<Integer, Integer> backTypes = new HashMap<>();
@@ -327,8 +301,48 @@ public class MapFactory {
             // swallow cause I'm cool
         }
 
-        map.setBackgroundTypes(backTypes);
-        map.generateMapDropRangeCache();
+        stb.backgroundTypes(backTypes);
+
+        // —— 实例构造（静态已冻结；build() 内含 xLimits 落点边界计算）——
+        MapleMap map = new MapleMap(stb.build());
+        map.setEventInstance(event);
+
+        // —— 动态装载（相对顺序与迁移前完全一致：portal → playernpc → life → guardian → reactor）——
+        PortalFactory portalFactory = new PortalFactory();
+        for (Data portal : mapData.getChildByPath("portal")) {
+            map.addPortal(portalFactory.makePortal(DataTool.getInt(portal.getChildByPath("pt")), portal));
+        }
+
+        if (event == null) {
+            PlayerNPC.addPlayerNPCMapObject(map);
+        }
+
+        loadLifeFromWz(map, mapData);
+        loadLifeFromDb(map);
+
+        if (MapleMapStatic.isCPQMapId(mapid)) {
+            Data mcData = mapData.getChildByPath("monsterCarnival");
+            if (mcData != null) {
+                Data guardianGenData = mcData.getChildByPath("guardianGenPos");
+                for (Data node : guardianGenData.getChildren()) {
+                    GuardianSpawnPoint pt = new GuardianSpawnPoint(new Point(DataTool.getIntConvert("x", node), DataTool.getIntConvert("y", node)));
+                    pt.setTeam(DataTool.getIntConvert("team", node, -1));
+                    pt.setTaken(false);
+                    map.addGuardianSpawnPoint(pt);
+                }
+            }
+
+        }
+
+        if (mapData.getChildByPath("reactor") != null) {
+            for (Data reactor : mapData.getChildByPath("reactor")) {
+                String id = DataTool.getString(reactor.getChildByPath("id"));
+                if (id != null) {
+                    Reactor newReactor = loadReactor(reactor, id, (byte) DataTool.getInt(reactor.getChildByPath("f"), 0));
+                    map.spawnReactor(newReactor);
+                }
+            }
+        }
 
         return map;
     }

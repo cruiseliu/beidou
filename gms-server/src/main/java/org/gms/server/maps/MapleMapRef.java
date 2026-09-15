@@ -6,10 +6,13 @@ import org.gms.client.character.CharacterRef;
 import org.gms.client.pet.Pet;
 import org.gms.infra.ActorShim;
 import org.gms.net.packet.Packet;
+import org.gms.net.server.world.Party;
+
 import org.gms.scripting.event.EventInstanceManager;
 import org.gms.server.partyquest.MonsterCarnival;
 
 import java.awt.Point;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -59,6 +62,15 @@ public final class MapleMapRef {
     /** 还原 map 本体（legacy 外部门面用；阶段二外部迁 ref 后收口） */
     public MapleMap unwrap() {
         return map;
+    }
+
+    /**
+     * 静态内容视图（WZ 装载期决定，装载后不可变）：与 map 本体共享同一实例，
+     * player strand 可无锁直读、不走 actor api。只读纪律——运行时可变状态
+     * （角色/掉落/事件等）不在此，仍走 shim 查询。
+     */
+    public MapleMapStatic statics() {
+        return map.statics();
     }
 
     // ── shim 通道（既有异步语义，透传）──
@@ -221,17 +233,57 @@ public final class MapleMapRef {
 
     /**
      * 进图登记：shim supply 缝合点（调用方阻塞至完成，返回 firstEnter——登记动作的产物，
-     * doc/13 §5.2）。supply 包装在 ref（map 侧方法为纯任务体）。
+     * doc/13 §5.2）。party 为 caller 快照（player strand 采集）——任务体对入场者零 Character 访问
+     * （id 由 CharacterRef 自持，isHidden 分支按"单机无 GM"删除）。
      */
-    public boolean registerPlayer(CharacterRef chr, List<Pet> summonedPets) {
-        return shim.supply("map-registerPlayer", () -> map.registerPlayer(chr, summonedPets));
+    public boolean registerPlayer(CharacterRef chr, List<Pet> summonedPets, Party party) {
+        return shim.supply("map-registerPlayer", () -> map.registerPlayer(chr, summonedPets, party));
     }
 
+    // ── 入场编舞原位操作（原 finishEnter 段拆出；player strand 原位，§5.4 豁免延续；
+    //    编舞本体在 CharacterMap.enterMap，参数全快照，体内零 CharacterRef 方法调用）──
+
     /**
-     * 进图通知：<b>player strand 原位方法（跑脚本，永不经 shim）</b>——P4 翻转的豁免项。
+     * 入场对象投放：非视野型 spawn 流 + 陈旧 summon 清理 + 视野内 spawn 流。
+     * 返回视野新增集（调用方回放到本体可见集，wire 无差）。
      */
-    public void finishEnter(CharacterRef chr, boolean firstEnter, List<Pet> summonedPets) {
-        map.finishEnter(chr, firstEnter, summonedPets);
+    public List<MapObject> sendObjectPlacement(Client c, Point pos, int cid, Collection<Summon> ownedSummons) {
+        return map.sendObjectPlacement(c, pos, cid, ownedSummons);
+    }
+
+    /** 入场注册表登记（oid 快照）+  个人商店可空注册 */
+    public void registerEnterObjects(CharacterRef chr, int oid, PlayerShop shop) {
+        map.registerEnterObjects(chr, oid, shop);
+    }
+
+    /** 龙投放 + 全图广播（source 仅 identity 过滤；isHidden 分支按"单机无 GM"删除） */
+    public void spawnDragon(Dragon dragon, Point pos, CharacterRef source) {
+        map.spawnDragon(dragon, pos, source);
+    }
+
+    /** summon 投放 + 广播（gameplay 路径，窗口外） */
+    public void spawnSummon(Summon summon) {
+        map.spawnSummon(summon);
+    }
+
+    /** summon 投放（owner 排除变体；enterMap 窗口内用——owner 份由 caller 本体直调投递） */
+    public void spawnSummonExcludeOwner(Summon summon, CharacterRef owner) {
+        map.spawnSummonExcludeOwner(summon, owner);
+    }
+
+    /** 船停靠态（docked 运行时态，map 自读；boat 能力为静态——caller 先查 statics().boat()） */
+    public boolean isBoatDocked() {
+        return shim.supply("map-isBoatDocked", map::isBoatDocked);
+    }
+
+    /** 开赛事件图入口关门（map 内部自读 eventstarted 动态态 + 静态 mapid 判定） */
+    public void closeEventJoinPortal() {
+        map.closeEventJoinPortal();
+    }
+
+    /** 地图特效初始化数据（mapEffect 为运行时态，直读归 map；client 快照入参） */
+    public void sendMapEffectData(Client c) {
+        map.sendMapEffectData(c);
     }
 
     /** 拾取落图：调用方 post 的任务体内经 run 调用（onShim 内联，itemLock 契约在任务体侧） */

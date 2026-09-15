@@ -472,6 +472,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void setEnteredChannelWorld() {
         awayFromWorld.set(false);
+        ref.syncAwayFromWorld(false);   // map 域快照回写（幽灵判定读，doc/16 §4.1）
         client.getChannelServer().removePlayerAway(id);
 
         if (party.canRecvPartySearchInvite) {
@@ -489,6 +490,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     private void setAwayFromChannelWorld(boolean disconnect) {
         awayFromWorld.set(true);
+        ref.syncAwayFromWorld(true);   // map 域快照回写（幽灵判定读，doc/16 §4.1）
 
         if (!disconnect) {
             client.getChannelServer().insertPlayerAway(id);
@@ -2789,6 +2791,7 @@ public class Character extends AbstractAnimatedMapObject {
             // 债务，届时随该债务一并处理。
             getWorldServer().registerTimedMapObject(() -> {
                 client = null;  // clients still triggers handlers a few times after disconnecting
+                ref.syncClientDisconnected();   // map 域快照回写（幽灵判定读，doc/16 §4.1）
         setMap((MapleMap) null);
 
                 // thanks Shavit for noticing a memory leak with inventories holding owner object
@@ -3621,9 +3624,17 @@ public class Character extends AbstractAnimatedMapObject {
 
             // 宠物召唤快照：本 strand（会话 strand）上采集后随边界传入（doc/13 §5.2）
             final List<Pet> pets = getPets().getSummonedPets();
+
+            // ── PLAYER_LOGGEDIN strict 窗口（canary）：窗口前移至缝合段之前——registerPlayer
+            // （party 快照 + ref 自持 id）与 enterMap（原 finishEnter 迁出，本体直调 + statics 直读）
+            // 均已零 CharacterRef 直调，缺口闭合。已知在窗内的有序缝合：召回 EIM 的 playerEntry
+            // 脚本走 chr.changeMap（fire 即发现）。
+            setStrictMode(true);
+
             final boolean firstEnter = map.registerPlayer(this, pets);   // shim run：登记段缝合点
-            map.finishEnter(this, firstEnter, pets);                     // player strand：脚本 + self 流
+            map.enterMap(firstEnter, pets);                              // player strand：进图编舞
             map.visitMap(map.getMap());
+            // 前段缝合已去 ref 直调（见上）；SET_FIELD 段角色尚未入图（ref 不可达），窗口无需更早。
 
             BuddyList bl = getBuddylist();
             int[] buddyIds = bl.getBuddyIds();
@@ -3790,6 +3801,8 @@ public class Character extends AbstractAnimatedMapObject {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            setStrictMode(false);   // strict 窗口收口（正常/异常统一；未开窗路径为幂等空写）
         }
         // releaseClient 归调用方（入场任务）的 try/finally；此处不再持有 client 锁
     }
