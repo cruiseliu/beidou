@@ -24,6 +24,7 @@
 package org.gms.client.command.commands.gm2;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
 import org.gms.server.maps.MapleMap;
@@ -54,9 +55,10 @@ public class WarpAreaCommand extends Command {
 
             Point pos = player.getPosition();
 
-            Collection<Character> characters = player.getMap().getAllPlayers();
+            Collection<CharacterRef> characters = player.getMap().getAllPlayers();
 
-            for (Character victim : characters) {
+            for (CharacterRef victimR : characters) {
+                Character victim = victimR.unref();
                 if (victim.getPosition().distanceSq(pos) <= 50000) {
                     victim.saveLocationOnWarp();
                     victim.changeMap(target, target.getRandomPlayerSpawnpoint());

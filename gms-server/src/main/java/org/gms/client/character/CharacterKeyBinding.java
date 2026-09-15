@@ -4,7 +4,6 @@ import org.gms.client.keybind.KeyBinding;
 import org.gms.client.keybind.QuickslotBinding;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
-import org.gms.util.PacketCreator;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -12,14 +11,15 @@ import java.util.Map;
 /**
  * 键位绑定模块组件：键位映射（keymap = 按键 → KeyBinding）+ 快捷栏（QuickslotBinding）。
  * 仿照 CharacterBuffs/CharacterChair 模式：数据 + 领域逻辑内聚于此，持有 owner 反向引用，
- * Character 保留公开具名门面（getKeymap/changeKeybinding/sendKeymap/... 对外转发）。
+ * Character 保留公开具名门面（getKeymap/changeKeybinding/getQuickSlotKeyMapped/... 对外转发）。
+ * 键位表/快捷栏/宏表的下发归 remote 层——InitializeEvent 链条与 updateMacros。
  *
  * 边界：只承载键位绑定语义——keymap（KeyBinding 集合）与 quickslot 快捷栏。
  * 持久化 SQL（keymap/quickslotkeymapped 表）留在 Character.saveCharToDB；
  * 依赖经 owner 门面调用（sendPacket/...）。
  */
 class CharacterKeyBinding {
-    private final Character owner;
+    // private final Character owner;
 
     /** 键位映射：按键码 → KeyBinding（keymap 即 keybinding 的集合容器） */
     private final Map<Integer, KeyBinding> keymap = new LinkedHashMap<>();
@@ -31,7 +31,7 @@ class CharacterKeyBinding {
     private QuickslotBinding quickSlotKeyMapped;
 
     CharacterKeyBinding(Character owner) {
-        this.owner = owner;
+        // this.owner = owner;
 
         // Select a keybinding method
         boolean useCustomKeySet = GameConfig.getServerBoolean("use_custom_keyset");
@@ -81,19 +81,5 @@ class CharacterKeyBinding {
     }
 
     // ── 发送 ──
-
-    void sendKeymap() {
-        owner.sendPacket(PacketCreator.getKeymap(keymap));
-    }
-
-    void sendQuickmap() {
-        // send quickslots to user
-        QuickslotBinding pQuickslotKeyMapped = this.quickSlotKeyMapped;
-
-        if (pQuickslotKeyMapped == null) {
-            pQuickslotKeyMapped = new QuickslotBinding(QuickslotBinding.DEFAULT_QUICKSLOTS);
-        }
-
-        owner.sendPacket(PacketCreator.QuickslotMappedInit(pQuickslotKeyMapped));
-    }
+    // 键位表/快捷栏/宏表/自动用药的下发归 remote 层——InitializeEvent 链条与 updateMacros。
 }

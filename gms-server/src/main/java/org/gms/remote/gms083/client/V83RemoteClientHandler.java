@@ -2,6 +2,7 @@ package org.gms.remote.gms083.client;
 
 import org.gms.client.Client;
 import org.gms.client.Player;
+import org.gms.client.character.Character;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
 
@@ -29,10 +30,21 @@ public final class V83RemoteClientHandler extends AbstractPacketHandler {
     public void handlePacket(InPacket p, Client c) {
         c.getStrand().run("in-" + pipeline.name(), () -> {
             Player player = Player.require("in " + pipeline.name());
-            if (player.character() == null) {   // 转换窗口守卫（validateState 后角色理论上已挂）
+            Character chr = player.character();
+            if (chr == null) {   // 转换窗口守卫（validateState 后角色理论上已挂）
                 return;
             }
-            pipeline.handle(p, player);
+            boolean strict = pipeline.strict();
+            if (strict) {   // strict 管线窗口：置位 canary，CharacterRef 直调本体即断言（fail-safe 记日志）
+                chr.setStrictMode(true);
+            }
+            try {
+                pipeline.handle(p, player);
+            } finally {
+                if (strict) {
+                    chr.setStrictMode(false);
+                }
+            }
         });
     }
 }

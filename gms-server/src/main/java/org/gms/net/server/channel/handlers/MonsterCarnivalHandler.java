@@ -126,7 +126,7 @@ public final class MonsterCarnivalHandler extends AbstractPacketHandler {
                         } else {
                             int amount = enemies.getMembers().size() - 1;
                             int randd = (int) Math.floor(Math.random() * amount);
-                            Character chrApp = c.getPlayer().getMap().getCharacterById(enemies.getMemberByPos(randd).getId());
+                            Character chrApp = c.getPlayer().getMap().getCharacterById(enemies.getMemberByPos(randd).getId()).unref();
                             if (chrApp != null && chrApp.getMap().isCPQMap()) {
                                 if (dis == null) {
                                     chrApp.dispel();

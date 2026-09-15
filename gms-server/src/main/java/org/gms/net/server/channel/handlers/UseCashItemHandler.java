@@ -22,6 +22,7 @@
 package org.gms.net.server.channel.handlers;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.client.Client;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
@@ -419,7 +420,8 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
             remove(c, position, itemId);
         } else if (itemType == 512) {//场景消息
             if (ii.getStateChangeItem(itemId) != 0) {
-                for (Character mChar : player.getMap().getCharacters()) {
+                for (CharacterRef mCharr : player.getMap().getCharacters()) {
+                    Character mChar = mCharr.unref();
                     ii.getItemEffect(ii.getStateChangeItem(itemId)).applyTo(mChar);
                 }
             }
@@ -473,7 +475,8 @@ public final class UseCashItemHandler extends AbstractPacketHandler {
                 player.getMap().spawnMist(mist, 10000, false, true,false);
     //                player.getMap().broadcastMessage(PacketCreator.getChatText(player.getId(), "Oh no, I farted!", false, 1));
                 int emote = 8;   //设定表情为呕吐表情
-                for (Character mChr : player.getMap().getCharacters()) {//循环当前地图的角色
+                for (CharacterRef mChrr : player.getMap().getCharacters()) {//循环当前地图的角色
+            Character mChr = mChrr.unref();
                     if (mChr.isLoggedInWorld()) {
                         mChr.getMap().broadcastMessage(PacketCreator.facialExpression(mChr, emote));//向所有符合条件的角色发送更改表情的封包
                         mChr.changeFaceExpression(8);

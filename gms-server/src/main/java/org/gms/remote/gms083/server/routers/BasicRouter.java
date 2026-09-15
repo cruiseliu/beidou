@@ -7,10 +7,14 @@ import org.gms.remote.ServerEventDest;
 import org.gms.remote.modules.basic.BasicModule;
 import org.gms.remote.ServerEventBase;
 import org.gms.remote.gms083.Gms083;
+import org.gms.remote.gms083.server.translators.KeymapTranslator;
+import org.gms.remote.gms083.server.translators.MacrosTranslator;
+import org.gms.remote.gms083.server.translators.QuickslotTranslator;
 import org.gms.remote.gms083.server.translators.SetFieldTranslator;
 import org.gms.remote.modules.basic.server.BasicEvent;
 import org.gms.remote.modules.basic.server.BasicUpdate;
 import org.gms.remote.modules.basic.server.InitializeEvent;
+import org.gms.remote.modules.basic.server.MacrosEvent;
 import org.gms.remote.modules.basic.server.UnlockActionsEvent;
 
 /**
@@ -35,9 +39,16 @@ public final class BasicRouter implements BasicModule, ServerEventDest {
         client.schedule(this, new UnlockActionsEvent());
     }
 
+    /** 直发改 schedule（doc/12 追记 10）：无开域即时 deliver，开域入段回放 */
     @Override
     public void initialize(Character chr) {
         client.schedule(this, new InitializeEvent(chr));
+    }
+
+    /** 技能宏表重推：入域即浅冻结（MacrosEvent 构造期数组克隆） */
+    @Override
+    public void updateMacros(org.gms.client.SkillMacro[] macros) {
+        client.schedule(this, new MacrosEvent(macros));
     }
 
     private void onInitialize(InitializeEvent event) {
@@ -52,12 +63,18 @@ public final class BasicRouter implements BasicModule, ServerEventDest {
                 chr.getLinkedName(),
                 chr.getMeso(),
                 Server.getInstance().getCurrentTime()));
+        client.send(KeymapTranslator.keymap(chr.getKeymap()));
+        client.send(QuickslotTranslator.quickslot(chr.getQuickSlotKeyMapped()));
+        client.send(MacrosTranslator.macros(chr.getMacros()));
+        client.send(KeymapTranslator.autoHpPot(chr.getKeymap()));
+        client.send(KeymapTranslator.autoMpPot(chr.getKeymap()));
     }
 
     @Override
     public void deliver(ServerEventBase r) {
         switch (r) {
             case InitializeEvent e -> onInitialize(e);
+            case MacrosEvent m -> client.send(MacrosTranslator.macros(m.macros()));
             case BasicEvent(var u) -> client.translators().statsT.onBasic(u);
             case UnlockActionsEvent ue -> client.translators().statsT.onUnlockActions();
             default -> { }   // 非本模块事件不会到达（owner 标记保证）；防御静默

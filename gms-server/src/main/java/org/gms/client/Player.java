@@ -1,48 +1,6 @@
 package org.gms.client;
 
 import org.gms.client.character.Character;
-import org.gms.client.keybind.KeyBinding;
-import org.gms.client.inventory.Equip;
-import org.gms.client.inventory.InventoryTab;
-import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.ItemSlot;
-import org.gms.client.pet.Pet;
-import org.gms.client.Family;
-import org.gms.client.FamilyEntry;
-import org.gms.client.Mount;
-import org.gms.client.SkillFactory;
-import org.gms.client.BuddyList;
-import org.gms.client.BuddylistEntry;
-import org.gms.client.CharacterNameAndId;
-import org.gms.config.GameConfig;
-import org.gms.constants.game.GameConstants;
-import org.gms.manager.ServerManager;
-import org.gms.net.server.Server;
-import org.gms.net.server.channel.Channel;
-import org.gms.net.server.channel.CharacterIdChannelPair;
-import org.gms.net.server.coordinator.world.EventRecallCoordinator;
-import org.gms.net.server.guild.Alliance;
-import org.gms.net.server.guild.Guild;
-import org.gms.net.server.guild.GuildPackets;
-import org.gms.net.server.world.PartyCharacter;
-import org.gms.net.server.world.PartyOperation;
-import org.gms.net.server.world.World;
-import org.gms.scripting.event.EventInstanceManager;
-import org.gms.service.HpMpAlertService;
-import org.gms.service.NoteService;
-import org.gms.util.DatabaseConnection;
-import org.gms.util.I18nUtil;
-import org.gms.util.PacketCreator;
-import org.gms.util.packets.WeddingPackets;
-import org.gms.server.maps.MapleMap;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.gms.remote.ClientEventHandlerRegistry;
 import org.gms.remote.RemoteClient;
 
@@ -64,9 +22,6 @@ import org.gms.remote.RemoteClient;
  * actor 执行"，不是"本线程在为该 actor 等待"——阻塞在 strand.run 上的等待者拿到 null。
  */
 public final class Player {
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Player.class);
-
-
     private final PlayerStrand strand;
     private volatile Client client;
     /** 收包入口聚合（per-module Handler 槽位表）：actor 的收包插座，角色入场绑定时接插组件 */
@@ -121,7 +76,6 @@ public final class Player {
         this.client = c;
     }
 
-
     /**
      * 角色实体槽位（doc/12 §21 追记：从属关系反转）——Character 从属于 Player（actor），
      * 入场编舞时在本 strand 上绑定，会话期内稳定（换角色 = 完整重登 = 新会话 = 新 Player）；
@@ -152,9 +106,6 @@ public final class Player {
         return client.remoteView();
     }
 
-
-
-
     /**
      * 入场流程（原 PlayerLoggedinHandler/PlayerSession verbatim 迁移）：仅在入场任务内
      * 调用——rebind 已完成（client()/character() 派生视图就绪），跑在本 actor strand 上。
@@ -173,32 +124,6 @@ public final class Player {
         final Character player = character();
         player.initWorldEntry(c, newcomer);
         player.sendWorldEntryData(c, newcomer);
-    }
-
-
-
-
-
-
-
-    private static void showDueyNotification(Client c, Character player) {
-        try (Connection con = DatabaseConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement("SELECT Type FROM dueypackages WHERE ReceiverId = ? AND Checked = 1 ORDER BY Type DESC")) {
-            ps.setInt(1, player.getId());
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    try (PreparedStatement ps2 = con.prepareStatement("UPDATE dueypackages SET Checked = 0 WHERE ReceiverId = ?")) {
-                        ps2.setInt(1, player.getId());
-                        ps2.executeUpdate();
-
-                        c.sendPacket(PacketCreator.sendDueyParcelNotification(rs.getInt("Type") == 1));
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override

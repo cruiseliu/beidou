@@ -1,5 +1,6 @@
 package org.gms.client.character;
 
+import org.gms.client.character.CharacterRef;
 import org.gms.client.Disease;
 import org.gms.constants.skills.Bishop;
 import org.gms.model.json.CharacterDebuffsData;
@@ -87,9 +88,9 @@ class CharacterDebuffs {
             owner.sendPacket(PacketCreator.giveDebuff(debuffList, skill));
 
             if (debuff != Disease.SLOW) {
-                owner.getMap().broadcastMessage(owner, PacketCreator.giveForeignDebuff(owner.getId(), debuffList, skill), false);
+                owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.giveForeignDebuff(owner.getId(), debuffList, skill), false);
             } else {
-                owner.getMap().broadcastMessage(owner, PacketCreator.giveForeignSlowDebuff(owner.getId(), debuffList, skill), false);
+                owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.giveForeignSlowDebuff(owner.getId(), debuffList, skill), false);
             }
         }
     }
@@ -102,9 +103,9 @@ class CharacterDebuffs {
             owner.sendPacket(PacketCreator.cancelDebuff(mask));
 
             if (debuff != Disease.SLOW) {
-                owner.getMap().broadcastMessage(owner, PacketCreator.cancelForeignDebuff(owner.getId(), mask), false);
+                owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.cancelForeignDebuff(owner.getId(), mask), false);
             } else {
-                owner.getMap().broadcastMessage(owner, PacketCreator.cancelForeignSlowDebuff(owner.getId()), false);
+                owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.cancelForeignSlowDebuff(owner.getId()), false);
             }
 
             try (var ignored = Locks.acquire(lock)) {
@@ -159,9 +160,9 @@ class CharacterDebuffs {
             final List<Pair<Disease, Integer>> debuffList = Collections.singletonList(new Pair<>(debuff, Integer.valueOf(skill.getX())));
 
             if (debuff != Disease.SLOW) {
-                owner.getMap().broadcastMessage(PacketCreator.giveForeignDebuff(owner.getId(), debuffList, skill));
+                owner.getMapRef().broadcastMessage(PacketCreator.giveForeignDebuff(owner.getId(), debuffList, skill));
             } else {
-                owner.getMap().broadcastMessage(PacketCreator.giveForeignSlowDebuff(owner.getId(), debuffList, skill));
+                owner.getMapRef().broadcastMessage(PacketCreator.giveForeignSlowDebuff(owner.getId(), debuffList, skill));
             }
         }
     }
@@ -185,7 +186,8 @@ class CharacterDebuffs {
 
     /** 把全图所有玩家的疾病广播给本客户端（进图时同步他人 debuff 显示） */
     void collectDebuffs() {
-        for (Character chr : owner.getMap().getAllPlayers()) {
+        for (CharacterRef mcrr : owner.getMapRef().getAllPlayers()) {
+            Character chr = mcrr.unref();
             int cid = chr.getId();
 
             List<DebuffStatus> all;

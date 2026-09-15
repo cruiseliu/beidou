@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.gms.scripting.npc;
 
+import org.gms.client.character.CharacterRef;
 import lombok.Getter;
 import org.gms.client.character.Character;
 import org.gms.client.*;
@@ -512,7 +513,8 @@ public class NPCConversationManager extends AbstractPlayerInteraction {
 
     public int partyMembersInMap() {
         int inMap = 0;
-        for (Character char2 : getPlayer().getMap().getCharacters()) {
+        for (CharacterRef cr2r : getPlayer().getMap().getCharacters()) {
+            Character char2 = cr2r.unref();
             if (char2.getParty() == getPlayer().getParty()) {
                 inMap++;
             }
@@ -749,7 +751,8 @@ public class NPCConversationManager extends AbstractPlayerInteraction {
 
     private void warpoutCPQLobby(MapleMap lobbyMap) {
         MapleMap out = lobbyMap.getChannelServer().getMapFactory().getMap((lobbyMap.getId() < 980030000) ? 980000000 : 980030000);
-        for (Character mc : lobbyMap.getAllPlayers()) {
+        for (CharacterRef mcrr : lobbyMap.getAllPlayers()) {
+            Character mc = mcrr.unref();
             mc.resetCP();
             mc.setTeam(-1);
             mc.setMonsterCarnival(null);

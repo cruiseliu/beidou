@@ -22,6 +22,7 @@
 package org.gms.server.life;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.client.Disease;
 import org.gms.client.status.MonsterStatus;
 import org.gms.constants.id.MapId;
@@ -402,7 +403,8 @@ public class MobSkill {
     }
 
     private List<Character> getPlayersInRange(Monster monster) {
-        return monster.getMap().getPlayersInRange(calculateBoundingBox(monster.getPosition()));
+        return monster.getMap().getPlayersInRange(calculateBoundingBox(monster.getPosition())).stream()
+                .map(org.gms.client.character.CharacterRef::unref).collect(java.util.stream.Collectors.toList());
     }
 
     public MobSkillId getId() {

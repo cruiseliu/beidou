@@ -22,6 +22,7 @@
 package org.gms.net.server.channel.handlers;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.client.Client;
 import org.gms.client.Disease;
 import org.gms.client.inventory.InventoryType;
@@ -111,7 +112,8 @@ public final class UseItemHandler extends AbstractPacketHandler {
                 ii.getItemEffect(toUse.getItemId()).applyTo(chr);
             } else {
                 BuffEffectData mse = ii.getItemEffect(toUse.getItemId());
-                for (Character player : chr.getMap().getCharacters()) {
+                for (CharacterRef playerr : chr.getMap().getCharacters()) {
+                    Character player = playerr.unref();
                     mse.applyTo(player);
                 }
             }

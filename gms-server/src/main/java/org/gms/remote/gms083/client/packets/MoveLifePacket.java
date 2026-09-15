@@ -14,7 +14,7 @@ import java.util.List;
 
 /**
  * MOVE_LIFE codec（v83）：controller 客户端的 mob 移动汇报——语义头部 + 移动元素序列。
- * 元素语法与 MOVE_PLAYER 共用（唯一分歧 command 11，见 MovePacket#decodeElements），
+ * 元素语法与 MOVE_PLAYER 共用（唯一分歧 command 11，见 MovePlayerPacket#decodeElements），
  * 位置应用语义（updatePosition 的 monster 分支）归地图域，不在此层。
  */
 public final class MoveLifePacket {
@@ -45,7 +45,7 @@ public final class MoveLifePacket {
         if (numCommands < 1) {
             throw new EmptyMovementException(p);
         }
-        List<MoveElement> elements = MovePacket.decodeElements(p, numCommands, true);
+        List<MoveElement> elements = MovePlayerPacket.decodeElements(p, numCommands, true);
         return new MoveLife(oid, moveid, pNibbles, rawActivity, skillId, skillLv, pOption, startPos, elements);
     }
 
@@ -97,7 +97,7 @@ public final class MoveLifePacket {
             out.writeShortLE(pOption);
             out.writeShortLE((short) startPos.getX());
             out.writeShortLE((short) startPos.getY());
-            MovePacket.encodeElements(out, elements);
+            MovePlayerPacket.encodeElements(out, elements);
             return out;
         }
     }

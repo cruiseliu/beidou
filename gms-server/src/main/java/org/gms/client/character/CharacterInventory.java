@@ -12,7 +12,7 @@ import org.gms.client.inventory.Item;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.server.CashShop;
 import org.gms.server.maps.MapItem;
-import org.gms.server.maps.MapleMap;
+import org.gms.server.maps.MapleMapRef;
 import org.gms.server.maps.MapObject;
 import org.gms.scripting.item.ItemScript;
 import org.gms.scripting.item.ItemScriptManager;
@@ -504,7 +504,7 @@ class CharacterInventory implements InventoryModule.Handler {
      */
     private void completePickup(MapItem mapitem, Packet pickupPacket) {
         mapitem.setPickedUp(true);
-        final MapleMap map = owner.getMap();
+        final MapleMapRef map = owner.getMapRef();
         map.post("pickup-drop", () -> {
             mapitem.lockItem();
             try {

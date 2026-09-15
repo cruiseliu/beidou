@@ -21,6 +21,7 @@
  */
 package org.gms.server.life;
 
+import org.gms.client.character.CharacterRef;
 import org.gms.client.EffectType;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
@@ -399,7 +400,7 @@ public class Monster extends AbstractLoadedLife {
             Packet packet = PacketCreator.showMonsterHP(getObjectId(), remainingHP);
             if (from.getParty() != null) {
                 for (PartyCharacter mpc : from.getParty().getMembers()) {
-                    Character member = from.getMap().getCharacterById(mpc.getId()); // god bless
+Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god bless
                     if (member != null) {
                         member.sendPacket(packet);
                     }
@@ -612,11 +613,11 @@ public class Monster extends AbstractLoadedLife {
         Map<Party, Map<Character, Long>> partyExpDist = new HashMap<>();
         Map<Character, Long> soloExpDist = new HashMap<>();
 
-        Map<Integer, Character> mapPlayers = map.getMapAllPlayers();
+        Map<Integer, CharacterRef> mapPlayers = map.getMapAllPlayers();
 
         int totalEntries = 0;   // counts "participant parties", players who no longer are available in the map is an "independent party"
         for (Entry<Integer, AtomicLong> e : takenDamage.entrySet()) {
-            Character chr = mapPlayers.get(e.getKey());
+            Character chr = mapPlayers.get(e.getKey()).unref();
             if (chr != null) {
                 long damage = e.getValue().longValue();
 
@@ -682,7 +683,7 @@ public class Monster extends AbstractLoadedLife {
 
         EventInstanceManager eim = getMap().getEventInstance();
         if (eim != null) {
-            Character chr = mapPlayers.get(killerId);
+            Character chr = mapPlayers.get(killerId).unref();
             if (chr != null) {
                 eim.monsterKilled(chr, this);
             }
@@ -786,11 +787,11 @@ public class Monster extends AbstractLoadedLife {
             return MonsterInformationProvider.getInstance().retrieveEffectiveDrop(this.getId());
         }
 
-        Map<Integer, Character> pchars = map.getMapAllPlayers();
+        Map<Integer, CharacterRef> pchars = map.getMapAllPlayers();
 
         List<Character> lootChars = new LinkedList<>();
         for (Integer cid : takenDamage.keySet()) {
-            Character chr = pchars.get(cid);
+            Character chr = pchars.get(cid).unref();
             if (chr != null && chr.isLoggedInWorld()) {
                 lootChars.add(chr);
             }
@@ -849,12 +850,12 @@ public class Monster extends AbstractLoadedLife {
                                 }
 
                                 if (htKilled) {
-                                    reviveMap.killMonster(ht, killer, true);
+                                    reviveMap.killMonster(ht, killer.ref(), true);
                                 }
                             }
 
                             for (int i = MobId.DEAD_HORNTAIL_MAX; i >= MobId.DEAD_HORNTAIL_MIN; i--) {
-                                reviveMap.killMonster(reviveMap.getMonsterById(i), killer, true);
+                                reviveMap.killMonster(reviveMap.getMonsterById(i), killer.ref(), true);
                             }
                         } else if (controller != null) {
                             mob.aggroSwitchController(controller, aggro);
@@ -870,7 +871,7 @@ public class Monster extends AbstractLoadedLife {
             log.warn("[CRITICAL LOSS] toSpawn is null for {}", getName());
         }
 
-        Character looter = map.getCharacterById(getHighestDamagerId());
+        Character looter = map.getCharacterById(getHighestDamagerId()).unref();
         return looter != null ? looter : killer;
     }
 
@@ -886,16 +887,16 @@ public class Monster extends AbstractLoadedLife {
             }
 
             MapleMap map = m.getMap();
-            List<Character> chrList = map.getAllPlayers();
+            List<CharacterRef> chrList = map.getAllPlayers();
             if (!chrList.isEmpty()) {
-                Character chr = chrList.get(0);
+                Character chr = chrList.get(0).unref();
 
                 EventInstanceManager eim = map.getEventInstance();
                 if (eim != null) {
                     eim.friendlyItemDrop(m);
                 }
 
-                map.dropFromFriendlyMonster(chr, m);
+                map.dropFromFriendlyMonster(chr.ref(), m);
             }
         }, delay, delay);
     }
@@ -903,12 +904,12 @@ public class Monster extends AbstractLoadedLife {
     private void dispatchRaiseQuestMobCount() {
         Set<Integer> attackerChrids = takenDamage.keySet();
         if (!attackerChrids.isEmpty()) {
-            Map<Integer, Character> mapChars = map.getMapPlayers();
+            Map<Integer, CharacterRef> mapChars = map.getMapPlayers();
             if (!mapChars.isEmpty()) {
                 int mobid = getId();
 
                 for (Integer chrid : attackerChrids) {
-                    Character chr = mapChars.get(chrid);
+                    Character chr = mapChars.get(chrid) != null ? mapChars.get(chrid).unref() : null;
 
                     if (chr != null && chr.isLoggedInWorld()) {
                         chr.raiseQuestMobCount(mobid);
@@ -1864,7 +1865,8 @@ public class Monster extends AbstractLoadedLife {
 
         Character newControllerWithPuppet = null;
 
-        for (Character chr : getMap().getAllPlayers()) {
+        for (CharacterRef chrr : getMap().getAllPlayers()) {
+            final Character chr = chrr.unref();
             if (!chr.isHidden() && chr.isLoggedInWorld()) {   // 过滤已断线/awayFromWorld 的幽灵玩家，避免被选为 controller 候选
                 int ctrlMonsSize = chr.getNumControlledMonsters();
 
@@ -2017,7 +2019,7 @@ public class Monster extends AbstractLoadedLife {
             List<Integer> toRemovePuppets = new LinkedList<>();
 
             for (Integer cid : puppetOwners) {
-                Character chr = map.getCharacterById(cid);
+                Character chr = map.getCharacterById(cid).unref();
 
                 if (chr != null) {
                     if (isCharacterPuppetInVicinity(chr)) {

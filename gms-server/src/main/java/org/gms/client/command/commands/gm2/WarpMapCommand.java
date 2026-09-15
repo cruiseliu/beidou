@@ -24,6 +24,7 @@
 package org.gms.client.command.commands.gm2;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
 import org.gms.server.maps.MapleMap;
@@ -51,9 +52,10 @@ public class WarpMapCommand extends Command {
                 return;
             }
 
-            Collection<Character> characters = player.getMap().getAllPlayers();
+            Collection<CharacterRef> characters = player.getMap().getAllPlayers();
 
-            for (Character victim : characters) {
+            for (CharacterRef victimR : characters) {
+                Character victim = victimR.unref();
                 victim.saveLocationOnWarp();
                 victim.changeMap(target, target.getRandomPlayerSpawnpoint());
             }

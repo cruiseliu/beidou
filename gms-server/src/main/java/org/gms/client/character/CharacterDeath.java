@@ -34,12 +34,12 @@ class CharacterDeath {
     // ── 死亡 ──
 
     void playerDead() {    // 包内可见：CharacterStats.hpChangeAction 调用
-        if (owner.getMap().isCPQMap()) {
-            int losing = owner.getMap().getDeathCP();
+        if (owner.getMapRef().isCPQMap()) {
+            int losing = owner.getMapRef().getDeathCP();
             if (owner.pq.getCP() < losing) {
                 losing = owner.pq.getCP();
             }
-            owner.getMap().broadcastMessage(PacketCreator.playerDiedMessage(owner.getName(), losing, owner.pq.getTeam()));
+            owner.getMapRef().broadcastMessage(PacketCreator.playerDiedMessage(owner.getName(), losing, owner.pq.getTeam()));
             owner.pq.gainCP(-losing);
             return;
         }
@@ -67,10 +67,10 @@ class CharacterDeath {
             InventoryManipulator.removeById(owner.client, ItemConstants.getInventoryType(charmID[i]), charmID[i], 1, true, false);
             usedSafetyCharm = true;
         } else if (owner.getJob() != JobEnum.BEGINNER) { //Hmm...
-            if (!FieldLimit.NO_EXP_DECREASE.check(owner.getMap().getFieldLimit())) {  // thanks Conrad for noticing missing FieldLimit check
+            if (!FieldLimit.NO_EXP_DECREASE.check(owner.getMapRef().getFieldLimit())) {  // thanks Conrad for noticing missing FieldLimit check
                 int XPdummy = ExpTable.getExpNeededForLevel(owner.getLevel());
 
-                if (owner.getMap().isTown()) {    // thanks MindLove, SIayerMonkey, HaItsNotOver for noting players only lose 1% on town maps
+                if (owner.getMapRef().isTown()) {    // thanks MindLove, SIayerMonkey, HaItsNotOver for noting players only lose 1% on town maps
                     XPdummy /= 100;
                 } else {
                     if (owner.getLuk() < 50) {    // thanks Taiketo, Quit, Fishanelli for noting player EXP loss are fixed, 50-LUK threshold

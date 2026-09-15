@@ -59,7 +59,7 @@ public final class MoveSummonHandler extends AbstractMovementPacketHandler {
                 long movementDataLength = p.getPosition() - movementDataStart; //how many bytes were read by updatePosition
                 p.seek(movementDataStart);
 
-                player.getMap().broadcastMessage(player, PacketCreator.moveSummon(player.getId(), oid, startPos, p, movementDataLength), summon.getPosition());
+                player.getMap().broadcastMessage(player.ref(), PacketCreator.moveSummon(player.getId(), oid, startPos, p, movementDataLength), summon.getPosition());
             } catch (EmptyMovementException e) {
             }
         }

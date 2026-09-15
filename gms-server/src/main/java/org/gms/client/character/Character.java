@@ -21,6 +21,7 @@
  */
 package org.gms.client.character;
 
+import org.gms.client.character.CharacterRef;
 import org.gms.client.Player;
 
 import lombok.Getter;
@@ -76,19 +77,11 @@ import org.gms.model.pojo.SkillEntry;
 import org.gms.net.packet.Packet;
 import org.gms.net.server.PlayerCoolDownValueHolder;
 import org.gms.client.CharacterNameAndId;
-import org.gms.client.inventory.InventoryTab;
-import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.ItemSlot;
 import org.gms.net.server.channel.CharacterIdChannelPair;
 import org.gms.net.server.coordinator.world.EventRecallCoordinator;
 import org.gms.net.server.guild.GuildPackets;
-import org.gms.service.HpMpAlertService;
-import org.gms.service.NoteService;
-import org.gms.util.DatabaseConnection;
-import org.gms.util.I18nUtil;
 import org.gms.util.packets.WeddingPackets;
 import org.gms.net.server.Server;
-import org.gms.net.server.world.World;
 import org.gms.net.server.channel.Channel;
 import org.gms.net.server.coordinator.world.InviteCoordinator;
 import org.gms.net.server.guild.Alliance;
@@ -114,6 +107,7 @@ import org.gms.server.partyquest.MonsterCarnival;
 import org.gms.server.partyquest.MonsterCarnivalParty;
 import org.gms.server.partyquest.PartyQuest;
 import org.gms.server.quest.Quest;
+import org.gms.server.quest.medal.OutstandingCitizenMedal;
 import org.gms.service.*;
 import org.gms.util.*;
 import org.slf4j.Logger;
@@ -151,6 +145,14 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterChair chair = new CharacterChair(this);
     final CharacterJob job = new CharacterJob(this);
     final CharacterMap map = new CharacterMap(this);
+    /** 地图域侧句柄（doc/13 反向剥离）：MapleMap 只持 ref 不持 Character——规范唯一（identity 即本角色） */
+    private final CharacterRef ref = new CharacterRef(this);
+    /**
+     * strict 收包管线执行窗口标志（V83RemoteClientHandler 置位/复位）：true = 本角色的
+     * strict 管线正在执行，期间经 {@link CharacterRef} 直调本体即断言失败（迁移 canary，
+     * doc/16 §4.1）。volatile：player strand 写、map shim 线程读。
+     */
+    private volatile boolean strictMode;
     final CharacterRates rates = new CharacterRates(this);
     final CharacterScriptRunner scriptRunner = new CharacterScriptRunner(this::strand);
     /** 活跃的 ESM 任务脚本会话（重放模型，doc/13 §15）；dispose/登出清理 */
@@ -528,13 +530,13 @@ public class Character extends AbstractAnimatedMapObject {
      * 语义上属召唤物域（地图对象管理），非 buff——由 buff 取消链调用。
      */
     void removeSummonAndPuppet(Summon summon) {
-        getMap().broadcastMessage(PacketCreator.removeSummon(summon, true), summon.getPosition());
-        getMap().removeMapObject(summon);
+        getMapRef().broadcastMessage(PacketCreator.removeSummon(summon, true), summon.getPosition());
+        getMapRef().removeMapObject(summon);
         removeVisibleMapObject(summon);
 
         summons.remove(summon.getSkill());
         if (summon.isPuppet()) {
-            getMap().removePlayerPuppet(this);
+            getMapRef().removePlayerPuppet(this.ref());
         } else if (summon.getSkill() == DarkKnight.BEHOLDER) {
             if (beholderHealingSchedule != null) {
                 beholderHealingSchedule.cancel(false);
@@ -551,7 +553,7 @@ public class Character extends AbstractAnimatedMapObject {
         summons.put(id, summon);
 
         if (summon.isPuppet()) {
-            getMap().addPlayerPuppet(this);
+            getMapRef().addPlayerPuppet(this.ref());
         }
     }
 
@@ -648,9 +650,9 @@ public class Character extends AbstractAnimatedMapObject {
         this.setClient(c);
         this.strandSlot = c.getStrand();   // 会话 strand（doc/12 §3.8）；c 已 attach，此调用在会话 strand 上
         setMap(c.getChannelServer().getMapFactory().getMap(getMapId()));
-        Portal portal = getMap().findClosestPlayerSpawnpoint(getPosition());
+        Portal portal = getMapRef().findClosestPlayerSpawnpoint(getPosition());
         if (portal == null) {
-            portal = getMap().getPortal(0);
+            portal = getMapRef().getPortal(0);
         }
         this.setPosition(portal.getPosition());
         this.initialSpawnPoint = portal.getId();
@@ -723,7 +725,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void broadcastStance() {
-        getMap().broadcastMessage(this, PacketCreator.movePlayer(id, this.getIdleMovement(), AbstractAnimatedMapObject.IDLE_MOVEMENT_PACKET_LENGTH), false);
+        getMapRef().broadcastMessage(this.ref(), PacketCreator.movePlayer(id, this.getIdleMovement(), AbstractAnimatedMapObject.IDLE_MOVEMENT_PACKET_LENGTH), false);
     }
 
     private boolean buffMapProtection() {
@@ -771,9 +773,9 @@ public class Character extends AbstractAnimatedMapObject {
 
                     sendPacket(PacketCreator.showOwnBerserk(skilllevel, berserk));
                     if (!isHidden) {
-                        getMap().broadcastMessage(Character.this, PacketCreator.showBerserk(getId(), skilllevel, berserk), false);
+                        getMapRef().broadcastMessage(Character.this.ref(), PacketCreator.showBerserk(getId(), skilllevel, berserk), false);
                     } else {
-                        getMap().broadcastGMMessage(Character.this, PacketCreator.showBerserk(getId(), skilllevel, berserk), false);
+                        getMapRef().broadcastGMMessage(Character.this.ref(), PacketCreator.showBerserk(getId(), skilllevel, berserk), false);
                     }
                 }, 5000, 3000);
             }
@@ -976,7 +978,7 @@ public class Character extends AbstractAnimatedMapObject {
             if (Character.this.getHp() < stats.getTotal(Stat.MAX_HP)) {
                 if (healHP > 0) {
                     sendPacket(PacketCreator.showOwnRecovery(healHP));
-                    getMap().broadcastMessage(Character.this, PacketCreator.showRecovery(id, healHP), false);
+                    getMapRef().broadcastMessage(Character.this.ref(), PacketCreator.showRecovery(id, healHP), false);
                 }
             }
 
@@ -985,9 +987,9 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void doHurtHp() {
-        if (!(this.getInventory(InventoryType.EQUIPPED).findById(getMap().getHPDecProtect()) != null || buffMapProtection())) {
-            addHP(-getMap().getHPDec());
-            sendPacket(PacketCreator.onNotifyHPDecByField(getMap().getHPDec()));
+        if (!(this.getInventory(InventoryType.EQUIPPED).findById(getMapRef().getHPDecProtect()) != null || buffMapProtection())) {
+            addHP(-getMapRef().getHPDec());
+            sendPacket(PacketCreator.onNotifyHPDecByField(getMapRef().getHPDec()));
         }
     }
 
@@ -1064,11 +1066,11 @@ public class Character extends AbstractAnimatedMapObject {
      */
     public void removeSummonsFromMap() {
         for (Summon summon : new ArrayList<>(summons.values())) {
-            getMap().broadcastMessage(PacketCreator.removeSummon(summon, true), summon.getPosition());
-            getMap().removeMapObject(summon);
+            getMapRef().broadcastMessage(PacketCreator.removeSummon(summon, true), summon.getPosition());
+            getMapRef().removeMapObject(summon);
             removeVisibleMapObject(summon);
             if (summon.isPuppet()) {
-                getMap().removePlayerPuppet(this);
+                getMapRef().removePlayerPuppet(this.ref());
             }
         }
     }
@@ -1152,10 +1154,10 @@ public class Character extends AbstractAnimatedMapObject {
         Point pos = this.getPosition();
         pos.y -= 6;
 
-        if (getMap().getFootholds().findBelow(pos) == null) {
+        if (getMapRef().getFootholds().findBelow(pos) == null) {
             return 0;
         } else {
-            return getMap().getFootholds().findBelow(pos).getY1();
+            return getMapRef().getFootholds().findBelow(pos).getY1();
         }
     }
 
@@ -1754,7 +1756,7 @@ public class Character extends AbstractAnimatedMapObject {
 
             addHP(-bloodEffect.getX());
             sendPacket(PacketCreator.showOwnBuffEffect(bloodEffect.getSourceId(), 5));
-            getMap().broadcastMessage(Character.this, PacketCreator.showBuffEffect(getId(), bloodEffect.getSourceId(), 5), false);
+            getMapRef().broadcastMessage(Character.this.ref(), PacketCreator.showBuffEffect(getId(), bloodEffect.getSourceId(), 5), false);
         }, 4000, 4000);
     }
 
@@ -1819,7 +1821,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void resetEnteredScript() {
-        entered.remove(getMap().getId());
+        entered.remove(getMapRef().getId());
     }
 
     public void resetEnteredScript(int mapId) {
@@ -1835,7 +1837,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void saveLocationOnWarp() {  // suggestion to remember the map before warp command thanks to Lei
-        Portal closest = getMap().findClosestPortal(getPosition());
+        Portal closest = getMapRef().findClosestPortal(getPosition());
         int curMapid = getMapId();
 
         for (int i = 0; i < savedLocations.length; i++) {
@@ -1846,7 +1848,7 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void saveLocation(String type) {
-        Portal closest = getMap().findClosestPortal(getPosition());
+        Portal closest = getMapRef().findClosestPortal(getPosition());
         savedLocations[SavedLocationType.fromString(type).ordinal()] = new SavedLocation(getMapId(), closest != null ? closest.getId() : 0);
     }
 
@@ -2089,10 +2091,10 @@ public class Character extends AbstractAnimatedMapObject {
                     ps.setInt(9, appearance.getHair());
                     ps.setInt(10, appearance.getFace());
                     ps.setInt(11, meso.get());
-                    if (getMap() == null || getMap().getId() == MapId.CRIMSONWOOD_VALLEY_1 || getMap().getId() == MapId.CRIMSONWOOD_VALLEY_2) {  // reset to first spawnpoint on those maps
+                    if (getMapRef() == null || getMapRef().getId() == MapId.CRIMSONWOOD_VALLEY_1 || getMapRef().getId() == MapId.CRIMSONWOOD_VALLEY_2) {  // reset to first spawnpoint on those maps
                         ps.setInt(12, 0);
                     } else {
-                        Portal closest = getMap().findClosestPlayerSpawnpoint(getPosition());
+                        Portal closest = getMapRef().findClosestPlayerSpawnpoint(getPosition());
                         if (closest != null) {
                             ps.setInt(12, closest.getId());
                         } else {
@@ -2383,7 +2385,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void sendMacros() {
         // Always send the macro packet to fix a client side bug when switching characters.
-        sendPacket(PacketCreator.getMacros(skillMacros));
+        getRemote().basic().updateMacros(skillMacros);
     }
 
     public void setChalkboard(String text) {
@@ -2408,11 +2410,11 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     private long getDojoTimeLeft() {
-        return client.getChannelServer().getDojoFinishTime(getMap().getId()) - Server.getInstance().getCurrentTime();
+        return client.getChannelServer().getDojoFinishTime(getMapRef().getId()) - Server.getInstance().getCurrentTime();
     }
 
     public void showDojoClock() {
-        if (GameConstants.isDojoBossArea(getMap().getId())) {
+        if (GameConstants.isDojoBossArea(getMapRef().getId())) {
             sendPacket(PacketCreator.getClock((int) (getDojoTimeLeft() / 1000)));
         }
     }
@@ -2459,7 +2461,7 @@ public class Character extends AbstractAnimatedMapObject {
         if (mapleMount != null) {
             int tiredness = mapleMount.incrementAndGetTiredness();
 
-            this.getMap().broadcastMessage(PacketCreator.updateMount(this.getId(), mapleMount, false));
+            this.getMapRef().broadcastMessage(PacketCreator.updateMount(this.getId(), mapleMount, false));
             if (tiredness > 99) {
                 mapleMount.setTiredness(99);
                 this.dispelSkill(this.getJobType() * 10000000 + 1004);
@@ -2557,7 +2559,7 @@ public class Character extends AbstractAnimatedMapObject {
 
         if (this.isHidden()) {
             List<Pair<EffectType, Integer>> dsstat = Collections.singletonList(new Pair<>(EffectType.DARKSIGHT, 0));
-            getMap().broadcastGMMessage(this, PacketCreator.giveForeignBuff(getId(), dsstat), false);
+            getMapRef().broadcastGMMessage(this.ref(), PacketCreator.giveForeignBuff(getId(), dsstat), false);
         }
     }
 
@@ -3041,25 +3043,30 @@ public class Character extends AbstractAnimatedMapObject {
 
     // ── map 门面 ──
 
-    public MapleMap getWarpMap(int mapid) { return map.getWarpMap(mapid); }
+    public MapleMap getWarpMap(int mapid) { return map.getWarpMap(mapid).unwrap(); }
     public void warpAhead(int mapid) { map.warpAhead(mapid); }
     public void changeMap(int mapid) { map.changeMap(mapid); }
     public void changeMap(int mapid, Object pt) { map.changeMap(mapid, pt); }
-    public void changeMap(MapleMap to) { map.changeMap(to); }
-    public void changeMap(MapleMap to, int portal) { map.changeMap(to, portal); }
-    public void changeMap(final MapleMap target, Portal pto) { map.changeMap(target, pto); }
-    public void changeMap(final MapleMap target, final Point pos) { map.changeMap(target, pos); }
-    public void forceChangeMap(final MapleMap target, Portal pto) { map.forceChangeMap(target, pto); }
+    public void changeMap(MapleMap to) { map.changeMap(MapleMapRef.of(to)); }
+    public void changeMap(MapleMap to, int portal) { map.changeMap(MapleMapRef.of(to), portal); }
+    public void changeMap(final MapleMap target, Portal pto) { map.changeMap(MapleMapRef.of(target), pto); }
+    public void changeMap(final MapleMap target, final Point pos) { map.changeMap(MapleMapRef.of(target), pos); }
+    public void forceChangeMap(final MapleMap target, Portal pto) { map.forceChangeMap(MapleMapRef.of(target), pto); }
     public List<Integer> getLastVisitedMapIds() { return map.getLastVisitedMapIds(); }
-    public void visitMap(MapleMap to) { map.visitMap(to); }
+    public void visitMap(MapleMap to) { map.visitMap(MapleMapRef.of(to)); }
     public boolean isChangingMaps() { return map.isChangingMaps(); }
     public void setMapTransitionComplete() { map.setMapTransitionComplete(); }
-    public MapleMap getMap() { return map.getMap(); }
+    public MapleMapRef getMapRef() { return map.getMap(); }
+    /** 地图域侧句柄（规范唯一；MapleMap 只持 ref 不持本类型） */
+    public CharacterRef ref() { return ref; }
+    /** strict 管线执行窗口标志（canary 用，见字段注） */
+    public boolean strictMode() { return strictMode; }
+    public void setStrictMode(boolean strictMode) { this.strictMode = strictMode; }
+    public MapleMap getMap() { MapleMapRef r = map.getMap(); return r != null ? r.unwrap() : null; }
     public int getMapId() { return map.getMapId(); }
-    public void setMap(MapleMap to) { map.setMap(to); }
+    public void setMap(MapleMap to) { map.setMap(MapleMapRef.of(to)); }
     public void setMap(int PmapId) { map.setMap(PmapId); }
     public void setMapId(int mapId) { map.setMapId(mapId); }
-    public MapleMap getMap(int mapid, boolean showMsg) { return map.getMap(mapid, showMsg); }
     public boolean canRecoverLastBanish() { return map.canRecoverLastBanish(); }
     public Pair<Integer, Integer> getLastBanishData() { return map.getLastBanishData(); }
     public void clearBanishPlayerData() { map.clearBanishPlayerData(); }
@@ -3390,7 +3397,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     /** 外观变更（发型/脸型/肤色/转职等，装备未动）：广播外观 + messenger 刷新；不触发属性重算 */
     public void appearanceChanged() {
-        getMap().broadcastUpdateCharLookMessage(this, this);
+        getMapRef().broadcastUpdateCharLookMessage(this.ref(), this.ref());
         if (getMessenger() != null) {
             getWorldServer().updateMessenger(getMessenger(), getName(), getWorld(), client.getChannel());
         }
@@ -3529,8 +3536,8 @@ public class Character extends AbstractAnimatedMapObject {
     public Map<Integer, KeyBinding> getKeymap() { return keybinding.getKeymap(); }
     public void changeKeybinding(int key, KeyBinding keybinding) { this.keybinding.changeKeybinding(key, keybinding); }
     public void changeQuickslotKeybinding(byte[] aQuickslotKeyMapped) { keybinding.changeQuickslotKeybinding(aQuickslotKeyMapped); }
-    public void sendKeymap() { keybinding.sendKeymap(); }
-    public void sendQuickmap() { keybinding.sendQuickmap(); }
+    public SkillMacro[] getMacros() { return skillMacros; }
+    public QuickslotBinding getQuickSlotKeyMapped() { return keybinding.getQuickSlotKeyMapped(); }
     public byte[] getQuickSlotLoaded() { return keybinding.getQuickSlotLoaded(); }
     public void setQuickSlotLoaded(byte[] quickSlotLoaded) { keybinding.setQuickSlotLoaded(quickSlotLoaded); }
     public void setQuickSlotKeyMapped(QuickslotBinding quickSlotKeyMapped) { keybinding.setQuickSlotKeyMapped(quickSlotKeyMapped); }
@@ -3569,122 +3576,99 @@ public class Character extends AbstractAnimatedMapObject {
     public void setBuddylist(BuddyList buddylist) { buddy.setBuddylist(buddylist); }
     public void deleteBuddy(int otherCid) { buddy.deleteBuddy(otherCid); }
     public void setBuddyCapacity(int capacity) { buddy.setBuddyCapacity(capacity); }
+
     // ── 世界入场（doc/12 §21 追记 4）：服务端初始化 + 初始化数据发送（保序拆分）──
 
-    private static final org.gms.service.HpMpAlertService HP_MP_ALERT_SERVICE =
-            org.gms.manager.ServerManager.getApplicationContext().getBean(org.gms.service.HpMpAlertService.class);
+    private static final HpMpAlertService HP_MP_ALERT_SERVICE =
+            org.gms.manager.ServerManager.getApplicationContext().getBean(HpMpAlertService.class);
 
-    private static final org.gms.service.NoteService NOTE_SERVICE =
-            org.gms.manager.ServerManager.getApplicationContext().getBean(org.gms.service.NoteService.class);
+    private static final NoteService NOTE_SERVICE =
+            org.gms.manager.ServerManager.getApplicationContext().getBean(NoteService.class);
 
     /**
      * 入场服务端初始化（纯状态，无本客户端包）：过渡重入重绑、world/channel 注册、
      * buff 恢复。spawn 包必须晚于 SET_FIELD，编舞穿插归 sendWorldEntryData 原序保留。
      */
-    public void initWorldEntry(Client c, boolean newcomer) {
-        final World wserv = c.getWorldServer();
-        final Channel cserv = c.getChannelServer();
-        final Character player = this;
+    public void initWorldEntry(Client client, boolean newcomer) {
+        final World wserv = client.getWorldServer();
+        final Channel cserv = client.getChannelServer();
         if (!newcomer) {
-                player.newClient(c);   // 过渡重入：重绑 + 出生点重定位（newcomer 的位置由 DB 装载决定，不走此路径）
-            }
+            newClient(client);   // 过渡重入：重绑 + 出生点重定位（newcomer 的位置由 DB 装载决定，不走此路径）
+        }
 
-            // 增加参数判断，避免给客户端发未知包导致异常
-            cserv.addPlayer(player);
-            wserv.addPlayer(player);
-            player.setEnteredChannelWorld();
-
-            player.resumeBuffs();   // 同对象冻结恢复（换频道/商城/MTS 重入）；未冻结时空操作
+        cserv.addPlayer(this);
+        wserv.addPlayer(this);
+        setEnteredChannelWorld();
+        resumeBuffs();   // 同对象冻结恢复（换频道/商城/MTS 重入）；未冻结时空操作
     }
 
     /**
      * 入场初始化数据发送（从 SET_FIELD 主包起，地图编舞/各域登记随原序 verbatim 穿插）。
      */
-    public void sendWorldEntryData(Client c, boolean newcomer) {
-        final Character player = this;
+    public void sendWorldEntryData(Client client, boolean newcomer) {
         final Server server = Server.getInstance();
-        final World wserv = c.getWorldServer();
+        final World wserv = client.getWorldServer();
         try {
             if (GameConfig.getServerBoolean("use_server_auto_pot")) {
-                byte hpAlert = HP_MP_ALERT_SERVICE.getHpAlert(player.getId());
-                byte mpAlert = HP_MP_ALERT_SERVICE.getMpAlert(player.getId());
+                byte hpAlert = HP_MP_ALERT_SERVICE.getHpAlert(getId());
+                byte mpAlert = HP_MP_ALERT_SERVICE.getMpAlert(getId());
                 // 仅同步给本人：该包属于客户端本地设置且不含角色标识，广播给他人可能污染其本地配置。
                 // 后续如需扩展系统设置字段，可在该包尾部追加，保持前两个字节为 HP/MP 警报。
-                player.sendPacket(PacketCreator.updateClientSettings(hpAlert, mpAlert));
+                sendPacket(PacketCreator.updateClientSettings(hpAlert, mpAlert));
             }
 
-            getRemote().basic().initialize(player);
-            if (player.isHidden()) {
-                if (!GameConfig.getServerBoolean("use_auto_hide_gm")) {
-                    player.toggleHide(true);
-                }
-            } else {
-                if (player.isGM() && GameConfig.getServerBoolean("use_auto_hide_gm")) {
-                    player.toggleHide(true);    //设置GM角色隐身
-                }
-            }
-            player.sendKeymap();
-            player.sendQuickmap();
-            player.sendMacros();
-
-            // pot bindings being passed through other characters on the account detected thanks to Croosade dev team
-            KeyBinding autohpPot = player.getKeymap().get(91);
-            player.sendPacket(PacketCreator.sendAutoHpPot(autohpPot != null ? autohpPot.getAction() : 0));
-
-            KeyBinding autompPot = player.getKeymap().get(92);
-            player.sendPacket(PacketCreator.sendAutoMpPot(autompPot != null ? autompPot.getAction() : 0));
+            getRemote().basic().initialize(this);
 
             // 宠物召唤快照：本 strand（会话 strand）上采集后随边界传入（doc/13 §5.2）
-            final List<Pet> pets = player.getPets().getSummonedPets();
-            final MapleMap entryMap = player.getMap();
-            final boolean firstEnter = entryMap.registerPlayer(player, pets);   // shim run：登记段缝合点
-            entryMap.finishEnter(player, firstEnter, pets);                     // player strand：脚本 + self 流
-            player.visitMap(player.getMap());
+            final List<Pet> pets = getPets().getSummonedPets();
+            final boolean firstEnter = map.registerPlayer(this, pets);   // shim run：登记段缝合点
+            map.finishEnter(this, firstEnter, pets);                     // player strand：脚本 + self 流
+            map.visitMap(map.getMap());
 
-            BuddyList bl = player.getBuddylist();
+            BuddyList bl = getBuddylist();
             int[] buddyIds = bl.getBuddyIds();
-            wserv.loggedOn(player.getName(), player.getId(), c.getChannel(), buddyIds);
-            for (CharacterIdChannelPair onlineBuddy : wserv.multiBuddyFind(player.getId(), buddyIds)) {
+            wserv.loggedOn(getName(), getId(), client.getChannel(), buddyIds);
+            for (CharacterIdChannelPair onlineBuddy : wserv.multiBuddyFind(getId(), buddyIds)) {
                 BuddylistEntry ble = bl.get(onlineBuddy.getCharacterId());
                 ble.setChannel(onlineBuddy.getChannel());
                 bl.put(ble);
             }
-            c.sendPacket(PacketCreator.updateBuddylist(bl.getBuddies()));
+            client.sendPacket(PacketCreator.updateBuddylist(bl.getBuddies()));
 
-            c.sendPacket(PacketCreator.loadFamily(player));
-            if (player.getFamilyId() > 0) {
-                Family f = wserv.getFamily(player.getFamilyId());
+            client.sendPacket(PacketCreator.loadFamily(this));
+            if (getFamilyId() > 0) {
+                Family f = wserv.getFamily(getFamilyId());
                 if (f != null) {
-                    FamilyEntry familyEntry = f.getEntryByID(player.getId());
+                    FamilyEntry familyEntry = f.getEntryByID(getId());
                     if (familyEntry != null) {
-                        familyEntry.setCharacter(player);
-                        player.setFamilyEntry(familyEntry);
+                        familyEntry.setCharacter(this);
+                        setFamilyEntry(familyEntry);
 
-                        c.sendPacket(PacketCreator.getFamilyInfo(familyEntry));
-                        familyEntry.announceToSenior(PacketCreator.sendFamilyLoginNotice(player.getName(), true), true);
+                        client.sendPacket(PacketCreator.getFamilyInfo(familyEntry));
+                        familyEntry.announceToSenior(PacketCreator.sendFamilyLoginNotice(getName(), true), true);
                     } else {
-                        log.error(I18nUtil.getLogMessage("PlayerLoggedinHandler.error.message1"), player.getName(), f.getID());
+                        log.error(I18nUtil.getLogMessage("PlayerLoggedinHandler.error.message1"), getName(), f.getID());
                     }
                 } else {
-                    log.error(I18nUtil.getLogMessage("PlayerLoggedinHandler.error.message2"), player.getName(), player.getFamilyId());
-                    c.sendPacket(PacketCreator.getFamilyInfo(null));
+                    log.error(I18nUtil.getLogMessage("PlayerLoggedinHandler.error.message2"), getName(), getFamilyId());
+                    client.sendPacket(PacketCreator.getFamilyInfo(null));
                 }
             } else {
-                c.sendPacket(PacketCreator.getFamilyInfo(null));
+                client.sendPacket(PacketCreator.getFamilyInfo(null));
             }
 
-            if (player.getGuildId() > 0) {
-                Guild playerGuild = server.getGuild(player.getGuildId(), player.getWorld(), player);
+            if (getGuildId() > 0) {
+                Guild playerGuild = server.getGuild(getGuildId(), getWorld(), this);
                 if (playerGuild == null) {
-                    player.deleteGuild(player.getGuildId());
-                    player.getMGC().setGuildId(0);
-                    player.getMGC().setGuildRank(5);
+                    deleteGuild(getGuildId());
+                    getMGC().setGuildId(0);
+                    getMGC().setGuildRank(5);
                 } else {
-                    playerGuild.getMGC(player.getId()).setCharacter(player);
-                    player.setMGC(playerGuild.getMGC(player.getId()));
-                    server.setGuildMemberOnline(player, true, c.getChannel());
-                    c.sendPacket(GuildPackets.showGuildInfo(player));
-                    int allianceId = player.getGuild().getAllianceId();
+                    playerGuild.getMGC(getId()).setCharacter(this);
+                    setMGC(playerGuild.getMGC(getId()));
+                    server.setGuildMemberOnline(this, true, client.getChannel());
+                    client.sendPacket(GuildPackets.showGuildInfo(this));
+                    int allianceId = getGuild().getAllianceId();
                     if (allianceId > 0) {
                         Alliance newAlliance = server.getAlliance(allianceId);
                         if (newAlliance == null) {
@@ -3692,167 +3676,136 @@ public class Character extends AbstractAnimatedMapObject {
                             if (newAlliance != null) {
                                 server.addAlliance(allianceId, newAlliance);
                             } else {
-                                player.getGuild().setAllianceId(0);
+                                getGuild().setAllianceId(0);
                             }
                         }
                         if (newAlliance != null) {
-                            c.sendPacket(GuildPackets.updateAllianceInfo(newAlliance, c.getWorld()));
-                            c.sendPacket(GuildPackets.allianceNotice(newAlliance.getId(), newAlliance.getNotice()));
+                            client.sendPacket(GuildPackets.updateAllianceInfo(newAlliance, client.getWorld()));
+                            client.sendPacket(GuildPackets.allianceNotice(newAlliance.getId(), newAlliance.getNotice()));
 
                             if (newcomer) {
-                                server.allianceMessage(allianceId, GuildPackets.allianceMemberOnline(player, true), player.getId(), -1);
+                                server.allianceMessage(allianceId, GuildPackets.allianceMemberOnline(this, true), getId(), -1);
                             }
                         }
                     }
                 }
             }
             //展示服务信息
-            org.gms.server.quest.medal.OutstandingCitizenMedal.refreshEligibility(player);
-            NOTE_SERVICE.show(player);
+            OutstandingCitizenMedal.refreshEligibility(this);
+            NOTE_SERVICE.show(this);
             //异常地图掉线信息提示
-            c.getSysRescue().showMapChangeMessage(player);
+            client.getSysRescue().showMapChangeMessage(this);
 
-            if (player.getParty() != null) {
-                PartyCharacter pchar = player.getMPC();
+            if (getParty() != null) {
+                PartyCharacter pchar = getMPC();
 
                 //Use this in case of enabling party HPbar HUD when logging in, however "you created a party" will appear on chat.
                 //c.sendPacket(PacketCreator.partyCreated(pchar));
 
-                pchar.setChannel(c.getChannel());
-                pchar.setMapId(player.getMapId());
+                pchar.setChannel(client.getChannel());
+                pchar.setMapId(getMapId());
                 pchar.setOnline(true);
-                wserv.updateParty(player.getParty().getId(), PartyOperation.LOG_ONOFF, pchar);
-                player.updatePartyMemberHP();
+                wserv.updateParty(getParty().getId(), PartyOperation.LOG_ONOFF, pchar);
+                updatePartyMemberHP();
             }
 
-            InventoryTab eqpInv = player.getInventory(InventoryType.EQUIPPED);
+            InventoryTab eqpInv = getInventory(InventoryType.EQUIPPED);
             eqpInv.lockInventory();
             try {
                 for (ItemSlot it : eqpInv.list()) {
-                    it.getItem().onEquip(player, true);   // 登录装载初始化
+                    it.getItem().onEquip(this, true);   // 登录装载初始化
                 }
             } finally {
                 eqpInv.unlockInventory();
             }
 
-            c.sendPacket(PacketCreator.updateBuddylist(player.getBuddylist().getBuddies()));
+            client.sendPacket(PacketCreator.updateBuddylist(getBuddylist().getBuddies()));
 
-            CharacterNameAndId pendingBuddyRequest = player.getBuddylist().pollPendingRequest();
+            CharacterNameAndId pendingBuddyRequest = getBuddylist().pollPendingRequest();
             if (pendingBuddyRequest != null) {
-                c.sendPacket(PacketCreator.requestBuddylistAdd(pendingBuddyRequest.getId(), player.getId(), pendingBuddyRequest.getName()));
+                client.sendPacket(PacketCreator.requestBuddylistAdd(pendingBuddyRequest.getId(), getId(), pendingBuddyRequest.getName()));
             }
 
-            c.sendPacket(PacketCreator.updateGender(player));
-            player.checkMessenger();
-            c.sendPacket(PacketCreator.enableReport());
-            player.changeSkillLevel(10000000 * player.getJobType() + 12, (byte) (player.getLinkedLevel() / 10), 20, -1);
-            player.checkBerserk(player.isHidden());
+            client.sendPacket(PacketCreator.updateGender(this));
+            checkMessenger();
+            client.sendPacket(PacketCreator.enableReport());
+            changeSkillLevel(10000000 * getJobType() + 12, (byte) (getLinkedLevel() / 10), 20, -1);
+            checkBerserk(isHidden());
 
             if (newcomer) {
                 // 宠物饥饿注册随 adoptPet 的召唤恢复进行（adopt 异步于登录流程，此处槽位可能未就绪）
 
-                Mount mount = player.getMapleMount();   // thanks Ari for noticing a scenario where Silver Mane quest couldn't be started
+                Mount mount = getMapleMount();   // thanks Ari for noticing a scenario where Silver Mane quest couldn't be started
                 if (mount.getItemId() != 0) {
-                    player.sendPacket(PacketCreator.updateMount(player.getId(), mount, false));
+                    sendPacket(PacketCreator.updateMount(getId(), mount, false));
                 }
 
-                player.reloadQuestExpirations();
+                reloadQuestExpirations();
 
-                    /*
-                    if (!c.hasVotedAlready()){
-                        player.sendPacket(PacketCreator.earnTitleMessage("You can vote now! Vote and earn a vote point!"));
-                    }
-                    */
-                if (player.isGM()) {
-                    Server.getInstance().broadcastGMMessage(c.getWorld(), PacketCreator.earnTitleMessage((player.gmLevel() < 6 ? "GM " : "Admin ") + player.getName() + " 登录了游戏"));
-                } else {
-                    if (GameConfig.getServerBoolean("use_login_notification")) {
-                        String msg = I18nUtil.getMessage("Character.login.globalNotice", player.getName());
-                        Server.getInstance().broadcastMessage(c.getWorld(), PacketCreator.serverNotice(3, c.getChannel(), msg));
-                    }
-                }
                 // 登录展示已恢复的 debuff（applyData 已恢复，发包逻辑在 CharacterDebuffs 内部）
-                player.announceDebuffsToOwner();
+                announceDebuffsToOwner();
             } else {
-                if (player.isRidingBattleship()) {
-                    player.announceBattleshipHp();
+                if (isRidingBattleship()) {
+                    announceBattleshipHp();
                 }
             }
 
-            player.buffExpireTask();
-            player.diseaseExpireTask();
-            player.startSkillTimers();
-            player.expirationTask();
-            player.questExpirationTask();
-            if (GameConstants.hasSPTable(player.getJob()) && player.getJob().getId() != 2001) {
-                player.createDragon();
-            }
+            buffExpireTask();
+            diseaseExpireTask();
+            startSkillTimers();
+            expirationTask();
+            questExpirationTask();
+            // if (GameConstants.hasSPTable(getJob()) && getJob().getId() != 2001) {
+            //     createDragon();
+            // }
 
-            player.getRemote().pet().updateIgnoreList(player);
-            showDueyNotification(c, player);
+            getRemote().pet().updateIgnoreList(this);
+            showDueyNotification(client);
 
-            player.resetPlayerRates();
-            if (GameConfig.getServerBoolean("use_add_rates_by_level")) {
-                player.setPlayerRates();
-            }
+            resetPlayerRates();
 
-            player.setWorldRates();
+            setWorldRates();
 
-            player.receivePartyMemberHP();
+            receivePartyMemberHP();
 
-            if (player.getPartnerId() > 0) {
-                int partnerId = player.getPartnerId();
+            if (getPartnerId() > 0) {
+                int partnerId = getPartnerId();
                 final Character partner = wserv.getPlayerStorage().getCharacterById(partnerId);
 
                 if (partner != null && !partner.isAwayFromWorld()) {
-                    player.sendPacket(WeddingPackets.OnNotifyWeddingPartnerTransfer(partnerId, partner.getMapId()));
-                    partner.sendPacket(WeddingPackets.OnNotifyWeddingPartnerTransfer(player.getId(), player.getMapId()));
+                    sendPacket(WeddingPackets.OnNotifyWeddingPartnerTransfer(partnerId, partner.getMapId()));
+                    partner.sendPacket(WeddingPackets.OnNotifyWeddingPartnerTransfer(getId(), getMapId()));
                 }
             }
 
             if (newcomer) {
-                EventInstanceManager eim = EventRecallCoordinator.getInstance().recallEventInstance(player.getId());
+                EventInstanceManager eim = EventRecallCoordinator.getInstance().recallEventInstance(getId());
                 if (eim != null) {
-                    eim.registerPlayer(player);
+                    eim.registerPlayer(this);
                 }
-            }
-
-            // Tell the client to use the custom scripts available for the NPCs provided, instead of the WZ entries.
-            if (GameConfig.getServerBoolean("use_npcs_scriptable")) {
-
-                // Create a copy to prevent always adding entries to the server's list.
-                Map<Integer, String> npcsIds = GameConfig.getServerObject("npcs_scriptable", new HashMap<>());
-
-                // Any npc be specified as the rebirth npc. Allow the npc to use custom scripts explicitly.
-                if (GameConfig.getServerBoolean("use_rebirth_system")) {
-                    npcsIds.put(GameConfig.getServerInt("rebirth_npc_id"), "Rebirth");
-                }
-
-                c.sendPacket(PacketCreator.setNPCScriptable(npcsIds));
             }
 
             if (newcomer) {
-                player.setLoginTime(System.currentTimeMillis());
+                setLoginTime(System.currentTimeMillis());
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         // releaseClient 归调用方（入场任务）的 try/finally；此处不再持有 client 锁
-    
     }
 
-    private static void showDueyNotification(Client c, Character player) {
+    private void showDueyNotification(Client client) {
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement("SELECT Type FROM dueypackages WHERE ReceiverId = ? AND Checked = 1 ORDER BY Type DESC")) {
-            ps.setInt(1, player.getId());
+            ps.setInt(1, getId());
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     try (PreparedStatement ps2 = con.prepareStatement("UPDATE dueypackages SET Checked = 0 WHERE ReceiverId = ?")) {
-                        ps2.setInt(1, player.getId());
+                        ps2.setInt(1, getId());
                         ps2.executeUpdate();
 
-                        c.sendPacket(PacketCreator.sendDueyParcelNotification(rs.getInt("Type") == 1));
+                        client.sendPacket(PacketCreator.sendDueyParcelNotification(rs.getInt("Type") == 1));
                     }
                 }
             }

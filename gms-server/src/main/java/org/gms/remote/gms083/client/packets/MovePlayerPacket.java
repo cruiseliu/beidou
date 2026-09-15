@@ -24,9 +24,9 @@ import java.util.List;
  * <p>command 布局与历史 parseMovement/updatePosition 并集对齐（含 11 椅子、14/21 保留布局）；
  * 未识别 command 抛 {@link EmptyMovementException}（现状语义，响亮失败）。
  */
-public final class MovePacket {
+public final class MovePlayerPacket {
 
-    private MovePacket() {
+    private MovePlayerPacket() {
     }
 
     /** 解码移动包语义元素序列（纯解码，无任何对象写入）。包头 9 字节由本方法跳过（包布局归 codec）。 */

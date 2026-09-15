@@ -20,6 +20,7 @@
 package org.gms.server.partyquest;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.constants.game.GameConstants;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.id.MapId;
@@ -263,7 +264,8 @@ public class AriantColiseum {
         exped.removeChannelExpedition(map.getChannelServer());
         cancelAriantSchedules();
 
-        for (Character chr : map.getAllPlayers()) {
+        for (CharacterRef chrr : map.getAllPlayers()) {
+            Character chr = chrr.unref();
             chr.changeMap(MapId.ARPQ_KINGS_ROOM, 0);
         }
     }

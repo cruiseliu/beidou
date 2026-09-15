@@ -64,6 +64,6 @@ public final class PlayerMapTransitionHandler extends AbstractPacketHandler {
             return;
         }
         final MapleMap map = chr.getMap();
-        map.post("map-transitionMobView", () -> map.onTransitionMobView(chr, c));
+        map.post("map-transitionMobView", () -> map.onTransitionMobView(chr.ref(), c));
     }
 }

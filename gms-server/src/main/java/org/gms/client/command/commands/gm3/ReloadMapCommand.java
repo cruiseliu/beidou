@@ -24,6 +24,7 @@
 package org.gms.client.command.commands.gm3;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
 import org.gms.server.maps.MapleMap;
@@ -42,10 +43,11 @@ public class ReloadMapCommand extends Command {
         MapleMap newMap = c.getChannelServer().getMapFactory().resetMap(player.getMapId());
         int callerid = c.getPlayer().getId();
 
-        Collection<Character> characters = player.getMap().getAllPlayers();
+        Collection<CharacterRef> characters = player.getMap().getAllPlayers();
 
         String message = I18nUtil.getMessage("ReloadMapCommand.message2");
-        for (Character chr : characters) {
+        for (CharacterRef chrR : characters) {
+            Character chr = chrR.unref();
             chr.saveLocationOnWarp();
             chr.changeMap(newMap);
             if (chr.getId() != callerid) {

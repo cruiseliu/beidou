@@ -36,7 +36,7 @@ public class ClearDropsCommand extends Command {
     @Override
     public void execute(Client c, String[] params) {
         Character player = c.getPlayer();
-        player.getMap().clearDrops(player);
+        player.getMap().clearDrops(player.ref());
         player.dropMessage(5, I18nUtil.getMessage("ClearDropsCommand.message2"));
     }
 }

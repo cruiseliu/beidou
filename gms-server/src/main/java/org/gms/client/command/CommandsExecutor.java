@@ -213,7 +213,7 @@ public class CommandsExecutor {
         addCommand("luk", StatLukCommand.class);
         addCommand("enableauth", EnableAuthCommand.class);
         addCommand("toggleexp", ToggleExpCommand.class);
-        addCommand("mylawn", MapOwnerClaimCommand.class);
+        // addCommand("mylawn", MapOwnerClaimCommand.class);
 
         commandsNameDesc.add(levelCommandsCursor);
     }

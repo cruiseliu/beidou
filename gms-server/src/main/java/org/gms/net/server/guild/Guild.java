@@ -22,6 +22,7 @@
 package org.gms.net.server.guild;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.client.Client;
 import org.gms.config.GameConfig;
 import org.gms.net.packet.Packet;
@@ -749,7 +750,8 @@ public class Guild {
         guildMembers.add(guildLeader);
 
         MatchCheckerCoordinator mmce = guildLeader.getWorldServer().getMatchCheckerCoordinator();
-        for (Character chr : guildLeader.getMap().getAllPlayers()) {
+        for (CharacterRef mcrr : guildLeader.getMap().getAllPlayers()) {
+            Character chr = mcrr.unref();
             if (chr.getParty() == null && chr.getGuild() == null && mmce.getMatchConfirmationLeaderid(chr.getId()) == -1) {
                 guildMembers.add(chr);
             }

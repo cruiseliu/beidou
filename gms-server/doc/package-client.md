@@ -1,3 +1,8 @@
+<!--
+本文档是面向所有开发者的模块设计文档，包含 org.gms.remote 模块的使用指南和编辑该模块时必须遵守的原则。
+本文档不是 agent 工作记录，禁止写入其他开发者不会关心的多余细节，比如某个 event 或 packet 的具体实现。
+-->
+
 # package-client —— remote 包设计原则
 
 `org.gms.remote`（语义层）与 `org.gms.remote.gms083`（gms083 版本实现）负责管理和客户端的通信。
@@ -70,8 +75,11 @@
 - `PetModule` 的面板事件落在 inventory 域的物品体刷新（v83 无专用面板包）；
 - `Sp` / `Basic` / `UnlockActions` 骑 stats 域的 STAT_CHANGED 包型；
 - 一个语义事件可同时落多个 translator（宠物面板 → inventory body 变更 + pet 域演出帧）；
-- `BasicModule.initialize`（进图主包 SET_FIELD）落 basic 域自有包：
-  `SetFieldTranslator` 整包快照 → `SetFieldPacket`。
+- `BasicModule.initialize`（进图客户端视图初始化）落 basic 域自有包：
+  `SetFieldTranslator` 整包快照 → `SetFieldPacket`，另有 `KeymapTranslator` →
+  `KeymapPacket`（键位表 + 自动用药绑定 91/92 槽派生）、`QuickslotTranslator` →
+  `QuickslotPacket`、`MacrosTranslator` → `MacrosPacket`；`updateMacros`（运行期宏表
+  重推）经 `MacrosEvent` 复用同一包。
 
 wire 上怎么合并、拆分、搭载是实现私事。地图决定"发给谁"，包的构建归 remote。
 

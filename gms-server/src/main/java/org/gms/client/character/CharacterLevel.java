@@ -132,7 +132,7 @@ class CharacterLevel {
             while (exp.get() >= ExpTable.getExpNeededForLevel(level)) {
                 levelUp(true);
 
-                String msg = I18nUtil.getMessage("Character.levelUp.globalNotice", owner.getName(), owner.getMap().getMapName(), getLevel());
+                String msg = I18nUtil.getMessage("Character.levelUp.globalNotice", owner.getName(), owner.getMapRef().getMapName(), getLevel());
                 if (GameConfig.getServerBoolean("use_announce_global_level_up") && !owner.isGM()) {
                     for (Character player : owner.getWorldServer().getPlayerStorage().getAllCharacters()) {
                         // 如果玩家在商城，将会以弹窗的形式发送，一堆弹窗会把玩家逼疯！
@@ -242,7 +242,7 @@ class CharacterLevel {
             owner.remote().basic().unlockActions();
         }   // try-with-resources close = 统一发送
 
-        owner.getMap().broadcastMessage(owner, PacketCreator.showForeignEffect(owner.getId(), 0), false);
+        owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.showForeignEffect(owner.getId(), 0), false);
         owner.setMPC(new PartyCharacter(owner));
         owner.silentPartyUpdate();
 

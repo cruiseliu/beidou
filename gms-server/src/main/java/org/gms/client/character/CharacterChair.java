@@ -70,14 +70,14 @@ class CharacterChair {
             if (itemId >= 1000000) {    // sit on item chair
                 if (getChair() < 0) {
                     setChair(itemId);
-                    owner.getMap().broadcastMessage(owner, PacketCreator.showChair(owner.getId(), itemId), false);
+                    owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.showChair(owner.getId(), itemId), false);
                 }
                 owner.enableActions();
             } else if (itemId >= 0) {    // sit on map chair
                 if (getChair() < 0) {
                     setChair(itemId);
                     if (registerChairBuff()) {
-                        owner.getMap().broadcastMessage(owner, PacketCreator.giveForeignChairSkillEffect(owner.getId()), false);
+                        owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.giveForeignChairSkillEffect(owner.getId()), false);
                     }
                     owner.sendPacket(PacketCreator.cancelChair(itemId));
                 }
@@ -96,10 +96,10 @@ class CharacterChair {
 
             setChair(-1);
             if (unregisterChairBuff()) {
-                owner.getMap().broadcastMessage(owner, PacketCreator.cancelForeignChairSkillEffect(owner.getId()), false);
+                owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.cancelForeignChairSkillEffect(owner.getId()), false);
             }
 
-            owner.getMap().broadcastMessage(owner, PacketCreator.showChair(owner.getId(), 0), false);
+            owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.showChair(owner.getId(), 0), false);
         }
 
         owner.sendPacket(PacketCreator.cancelChair(-1));
@@ -192,7 +192,7 @@ class CharacterChair {
                     byte recHP = (byte) (healHP / 10);
 
                     owner.sendPacket(PacketCreator.showOwnRecovery(recHP));
-                    owner.getMap().broadcastMessage(owner, PacketCreator.showRecovery(owner.getId(), recHP), false);
+                    owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.showRecovery(owner.getId(), recHP), false);
                 } else if (owner.getMp() >= owner.stats.getTotal(Stat.MAX_MP)) {
                     stopChairTask();    // optimizing schedule management when player is already with full pool.
                 }

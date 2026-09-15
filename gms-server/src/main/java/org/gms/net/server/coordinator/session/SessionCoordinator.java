@@ -19,11 +19,9 @@
 */
 package org.gms.net.server.coordinator.session;
 
-import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.NpcId;
-import org.gms.net.server.Server;
 import org.gms.net.server.coordinator.login.LoginStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

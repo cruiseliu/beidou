@@ -22,6 +22,7 @@
 package org.gms.server.events.gm;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.provider.DataProvider;
 import org.gms.provider.DataProviderFactory;
 import org.gms.provider.DataTool;
@@ -62,7 +63,8 @@ public final class OxQuiz {
 
     public void sendQuestion() {
         int gm = 0;
-        for (Character mc : map.getCharacters()) {
+        for (CharacterRef mcr : map.getCharacters()) {
+            Character mc = mcr.unref();
             if (mc.gmLevel() > 1) {
                 gm++;
             }
@@ -71,7 +73,7 @@ public final class OxQuiz {
         map.broadcastMessage(PacketCreator.showOXQuiz(round, question, true));
         TimerManager.getInstance().schedule(() -> {
             map.broadcastMessage(PacketCreator.showOXQuiz(round, question, true));
-            List<Character> chars = new ArrayList<>(map.getCharacters());
+            List<Character> chars = map.getCharacters().stream().map(CharacterRef::unref).collect(java.util.stream.Collectors.toList());
 
             for (Character chr : chars) {
                 if (chr != null) // make sure they aren't null... maybe something can happen in 12 seconds.

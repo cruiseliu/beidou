@@ -139,7 +139,7 @@ public final class TakeDamageHandler extends AbstractPacketHandler {
 
                                         for (byte b = 0; b < qty; b++) {
                                             pos.x = playerpos + ((d % 2 == 0) ? (25 * (d + 1) / 2) : -(25 * (d / 2)));
-                                            map.spawnItemDrop(chr, chr, new ItemSlot(loseItem.getId(), (short) 0, (short) 1), map.calcDropPos(pos, chr.getPosition()), true, true);
+                                            map.spawnItemDrop(chr, chr.ref(), new ItemSlot(loseItem.getId(), (short) 0, (short) 1), map.calcDropPos(pos, chr.getPosition()), true, true);
                                             d++;
                                         }
                                     }
@@ -215,7 +215,7 @@ public final class TakeDamageHandler extends AbstractPacketHandler {
                             if (bouncedamage > attacker.getMaxHp() / 5) {
                                 bouncedamage = attacker.getMaxHp() / 5;
                             }
-                            map.damageMonster(chr, attacker, bouncedamage);
+                            map.damageMonster(chr.ref(), attacker, bouncedamage);
                             map.broadcastMessage(chr, PacketCreator.damageMonster(oid, bouncedamage), true);
                             chr.sendPacket(PacketCreator.showOwnBuffEffect(id, 5));
                             map.broadcastMessage(chr, PacketCreator.showBuffEffect(chr.getId(), id, 5), false);
@@ -248,7 +248,7 @@ public final class TakeDamageHandler extends AbstractPacketHandler {
                         int bouncedamage = (int) (damage * (chr.getBuffedValue(EffectType.POWERGUARD).doubleValue() / (attacker.isBoss() ? 200 : 100)));
                         bouncedamage = Math.min(bouncedamage, attacker.getMaxHp() / 10);
                         damage -= bouncedamage;
-                        map.damageMonster(chr, attacker, bouncedamage);
+                        map.damageMonster(chr.ref(), attacker, bouncedamage);
                         map.broadcastMessage(chr, PacketCreator.damageMonster(oid, bouncedamage), false, true);
                         attacker.aggroMonsterDamage(chr, bouncedamage);
                     }

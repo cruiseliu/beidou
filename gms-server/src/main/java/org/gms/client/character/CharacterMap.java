@@ -13,7 +13,7 @@ import org.gms.client.pet.Pet;
 import org.gms.scripting.event.EventInstanceManager;
 import org.gms.server.Trade;
 import org.gms.infra.Strand;
-import org.gms.server.maps.MapleMap;
+import org.gms.server.maps.MapleMapRef;
 import org.gms.server.maps.MapObject;
 import org.gms.remote.modules.map.client.MoveLife;
 import org.gms.remote.modules.map.client.movement.AbsoluteMove;
@@ -53,6 +53,8 @@ import org.gms.client.inventory.EquipFlag;
  * 边界：只承载地图管理语义——当前图状态、换图（warp）、地图历史、放逐（banish 城镇卷轴/怪物放逐）。
  * 换图流程中编排的其他模块（party/Trade/chair/event/summons 等）经 owner 门面调用；
  * partyOperationUpdate（组队地图协作）属 party 语义，留在 Character。
+ * 地图访问经 {@link MapleMapRef}（player strand 侧句柄，doc/13）——本组件不持 MapleMap 类型；
+ * warp 包构造（legacy PacketCreator 需 map 本体）以 unwrap 内联过渡。
  */
 class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handler {
     private static final Logger log = LoggerFactory.getLogger(CharacterMap.class);
@@ -80,8 +82,8 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         if (strand == null) {
             return;   // 无会话 strand（理论不可达：本入口在 strand 上执行）
         }
-        final MapleMap map = this.map;
-        map.post("move", () -> map.onMove(new MapleMap.MoveMsg(strand, owner, owner.getClient(), newPos, relay, gmOnly, visible)));
+        final MapleMapRef map = this.map;
+        map.post("move", () -> map.onMove(new org.gms.server.maps.MapleMap.MoveMsg(strand, owner.ref(), owner.getClient(), newPos, relay, gmOnly, visible)));
     }
 
     /**
@@ -94,9 +96,9 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         if (owner.isChangingMaps()) {
             return;
         }
-        final MapleMap map = this.map;
+        final MapleMapRef map = this.map;
         final org.gms.remote.RemoteClient remote = owner.remote();   // 语义层引用快照过界（map 任务体零导航）
-        map.post("move-life", () -> map.onMoveLife(new MapleMap.MoveLifeMsg(owner, owner.getClient(), remote, life)));
+        map.post("move-life", () -> map.onMoveLife(new org.gms.server.maps.MapleMap.MoveLifeMsg(owner.ref(), owner.getClient(), remote, life)));
     }
 
     /**
@@ -162,8 +164,8 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         return new Point(beforePos.x + deltaX, beforePos.y + deltaY);
     }
 
-    /** 当前地图对象 */
-    MapleMap map;
+    /** 当前地图句柄（player strand 侧） */
+    MapleMapRef map;
 
     /** 当前地图 id（map 为 null 时的兜底；换图前预置） */
     int mapId;
@@ -178,8 +180,8 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
     /** 嵌套 warp 计数（changeMap 内部再触发 changeMap 时） */
     private int canWarpCounter = 0;
 
-    /** 最近访问地图历史（换图/回城用） */
-    private final LinkedList<WeakReference<MapleMap>> lastVisitedMaps = new LinkedList<>();
+    /** 最近访问地图历史（换图/回城用；ref 规范身份 = map 身份） */
+    private final LinkedList<WeakReference<MapleMapRef>> lastVisitedMaps = new LinkedList<>();
     /** 地图历史锁 */
     private final Lock mapHistoryLock = new ReentrantLock(true);
 
@@ -194,7 +196,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
 
     // ── 查询 ──
 
-    MapleMap getMap() {
+    MapleMapRef getMap() {
         return map;
     }
 
@@ -205,7 +207,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         return mapId;
     }
 
-    void setMap(MapleMap map) {
+    void setMap(MapleMapRef map) {
         this.map = map;
     }
 
@@ -218,18 +220,12 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
     }
 
     /**
-     * 获取地图类
+     * 获取地图句柄
      * @param mapid 地图ID
      * @param showMsg   true = 地图不存在弹出提示，false = 不提示
-     * @return
      */
-    MapleMap getMap(int mapid, boolean showMsg) {
-        /** 按 id 取地图（带错误提示）；null 且 showMsg 时告警 */
-        MapleMap map = null;
-        try {
-            map = owner.getClient().getChannelServer().getMapFactory().getMap(mapid);
-        } catch (Exception ignored) {
-        }
+    MapleMapRef getMap(int mapid, boolean showMsg) {
+        MapleMapRef map = MapleMapRef.of(owner.getClient().getChannelServer().getMapFactory(), mapid);
         if (map == null && showMsg) {
             String msg = I18nUtil.getMessage("Character.Map.Change.message1", Integer.toString(mapid));
             owner.dropMessage(6, msg);
@@ -237,16 +233,16 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         return map;
     }
 
-    /** 取地图实例：事件图优先，其次怪物嘉年华图，最后普通地图工厂 */
-    MapleMap getWarpMap(int map) {
-        MapleMap warpMap;
+    /** 取地图句柄：事件图优先，其次怪物嘉年华图，最后普通地图工厂 */
+    MapleMapRef getWarpMap(int map) {
+        MapleMapRef warpMap;
         EventInstanceManager eim = owner.getEventInstance();
         if (eim != null) {
-            warpMap = eim.getMapInstance(map);
+            warpMap = MapleMapRef.of(eim, map);
         } else if (owner.getMonsterCarnival() != null && owner.getMonsterCarnival().getEventMap().getId() == map) {
-            warpMap = owner.getMonsterCarnival().getEventMap();
+            warpMap = MapleMapRef.of(owner.getMonsterCarnival());
         } else {
-            warpMap = owner.getClient().getChannelServer().getMapFactory().getMap(map);
+            warpMap = MapleMapRef.of(owner.getClient().getChannelServer().getMapFactory(), map);
         }
         return warpMap;
     }
@@ -282,11 +278,11 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
      * @param mapid   地图ID
      */
     void changeMap(int map, Object pt) {
-        MapleMap warpMap;
+        MapleMapRef warpMap;
         EventInstanceManager eim = owner.getEventInstance();
 
         if (eim != null) {
-            warpMap = eim.getMapInstance(map);
+            warpMap = MapleMapRef.of(eim, map);
         } else {
             warpMap = getMap(map, true);
             if (warpMap == null) return; //判断地图不存在则直接返回并发送提示消息。
@@ -302,23 +298,24 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         changeMap(warpMap, portal);
     }
 
-    void changeMap(MapleMap to) {
+    void changeMap(MapleMapRef to) {
         changeMap(to, 0);
     }
 
-    void changeMap(MapleMap to, int portal) {
+    void changeMap(MapleMapRef to, int portal) {
         changeMap(to, to.getPortal(portal));
     }
 
-    void changeMap(final MapleMap target, Portal pto) {
+    void changeMap(final MapleMapRef target, Portal pto) {
         canWarpCounter++;
 
         eventChangedMap(target.getId());    // player can be dropped from an event here, hence the new warping target.  //玩家可以从这里的事件中退出，因此成为新的扭曲目标。
-        MapleMap to = getWarpMap(target.getId());
+        MapleMapRef to = getWarpMap(target.getId());
         if (pto == null) {
             pto = to.getPortal(0);
         }
-        changeMapInternal(to, pto.getPosition(), PacketCreator.getWarpToMap(to, pto.getId(), owner));
+        // warp 包构造需 map 本体（legacy PacketCreator）——unwrap 内联过渡（组件不 import MapleMap）
+        changeMapInternal(to, pto.getPosition(), PacketCreator.getWarpToMap(to.unwrap(), pto.getId(), owner));
         canWarpMap = false;
 
         canWarpCounter--;
@@ -329,12 +326,12 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         eventAfterChangedMap(getMapId());
     }
 
-    void changeMap(final MapleMap target, final Point pos) {
+    void changeMap(final MapleMapRef target, final Point pos) {
         canWarpCounter++;
 
         eventChangedMap(target.getId());
-        MapleMap to = getWarpMap(target.getId());
-        changeMapInternal(to, pos, PacketCreator.getWarpToMap(to, 0x80, pos, owner));
+        MapleMapRef to = getWarpMap(target.getId());
+        changeMapInternal(to, pos, PacketCreator.getWarpToMap(to.unwrap(), 0x80, pos, owner));
         canWarpMap = false;
 
         canWarpCounter--;
@@ -345,7 +342,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         eventAfterChangedMap(getMapId());
     }
 
-    void forceChangeMap(final MapleMap target, Portal pto) {
+    void forceChangeMap(final MapleMapRef target, Portal pto) {
         // will actually enter the map given as parameter, regardless of being an eventmap or whatnot       //将实际输入作为参数给出的映射，无论是事件映射还是其他什么
 
         canWarpCounter++;
@@ -362,14 +359,14 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
             }
 
             // thanks Thora for finding an issue with players not being actually warped into the target event map (rather sent to the event starting map)
-            //感谢Thora发现玩家实际上没有被扭曲到目标事件地图中（而是被发送到事件开始地图）的问题
+            //感谢Thora发现玩家实际上没有被扭曲到目标事件地图中（而是被发送到事件开始地图）
             mapEim.registerPlayer(owner, false);
         }
 
         if (pto == null) {
             pto = target.getPortal(0);
         }
-        changeMapInternal(target, pto.getPosition(), PacketCreator.getWarpToMap(target, pto.getId(), owner));
+        changeMapInternal(target, pto.getPosition(), PacketCreator.getWarpToMap(target.unwrap(), pto.getId(), owner));
         canWarpMap = false;
 
         canWarpCounter--;
@@ -383,7 +380,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
     /** 是否带地图环境防护（寒冷/水下） */
     boolean buffMapProtection() {
         int thisMapid = mapId;
-        int returnMapid = owner.getClient().getChannelServer().getMapFactory().getMap(thisMapid).getReturnMapId();
+        int returnMapid = MapleMapRef.of(owner.getClient().getChannelServer().getMapFactory(), thisMapid).getReturnMapId();
 
         // effLock/chrLock 已冗余：激活表为不可变快照，无锁迭代
 
@@ -412,7 +409,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
     }
 
     /** 换图内部实现：切图/进图/通知/事件 */
-    private void changeMapInternal(final MapleMap to, final Point pos, Packet warpPacket) {
+    private void changeMapInternal(final MapleMapRef to, final Point pos, Packet warpPacket) {
         if (!canWarpMap) {
             return;
         }
@@ -435,18 +432,18 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
 
         owner.sendPacket(warpPacket);
         // 局部捕获旧图：lambda 读字段是执行时取值，下方 map = to 重赋值后会串图
-        final MapleMap from = map;
+        final MapleMapRef from = map;
         // removePlayer 缝合点（doc/13 §4）：审计过无脚本入口/无 pet 阻塞回询/无自发包；
         // 同步完成以保证同图传送时 remove 先于 add 的 destroy→spawn 包序（幽灵玩家防线）
-        from.runIn("map-removePlayer", () -> from.removePlayer(owner));
+        from.runIn("map-removePlayer", () -> from.removePlayer(owner.ref()));
         if (owner.getClient().getChannelServer().getPlayerStorage().getCharacterById(owner.getId()) != null) {
             map = to;
             owner.setPosition(pos);
             // 宠物召唤快照：本 strand 上采集后随边界传入（doc/13 §5.2；map shim 后 map 任务体
             // 内禁止 actor 回询 = 环死锁）
             final List<Pet> pets = owner.getPets().getSummonedPets();
-            final boolean firstEnter = map.registerPlayer(owner, pets);   // shim run：登记段缝合点
-            map.finishEnter(owner, firstEnter, pets);                     // player strand：脚本 + self 流
+            final boolean firstEnter = map.registerPlayer(owner.ref(), pets);   // shim run：登记段缝合点
+            map.finishEnter(owner.ref(), firstEnter, pets);                     // player strand：脚本 + self 流
             visitMap(map);
 
             try (var ignored = Locks.acquire(owner.party.lock)) {
@@ -501,11 +498,23 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         }
     }
 
+    // ── 进图/拾取/移动（shim 缝合点语义见各方法注释）──
+
+    /** 进图登记（shim supply 缝合点，doc/13 §5.2）——ref 透传 */
+    boolean registerPlayer(Character chr, List<Pet> summonedPets) {
+        return map.registerPlayer(chr.ref(), summonedPets);
+    }
+
+    /** 进图通知（player strand 原位：脚本 + self 流）——ref 透传 */
+    void finishEnter(Character chr, boolean firstEnter, List<Pet> summonedPets) {
+        map.finishEnter(chr.ref(), firstEnter, summonedPets);
+    }
+
     // ── 地图历史 ──
 
-    private Integer getVisitedMapIndex(MapleMap map) {
+    private Integer getVisitedMapIndex(MapleMapRef map) {
         int idx = 0;
-        for (WeakReference<MapleMap> mapRef : lastVisitedMaps) {
+        for (WeakReference<MapleMapRef> mapRef : lastVisitedMaps) {
             if (map.equals(mapRef.get())) {
                 return idx;
             }
@@ -514,7 +523,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         return -1;
     }
 
-    void visitMap(MapleMap map) {
+    void visitMap(MapleMapRef map) {
         mapHistoryLock.lock();
         try {
             int idx = getVisitedMapIndex(map);
@@ -524,7 +533,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
                     lastVisitedMaps.removeFirst();
                 }
             } else {
-                WeakReference<MapleMap> mapRef = lastVisitedMaps.remove(idx);
+                WeakReference<MapleMapRef> mapRef = lastVisitedMaps.remove(idx);
                 lastVisitedMaps.add(mapRef);
                 return;
             }
@@ -540,8 +549,8 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
 
         mapHistoryLock.lock();
         try {
-            for (WeakReference<MapleMap> lv : lastVisitedMaps) {
-                MapleMap lvm = lv.get();
+            for (WeakReference<MapleMapRef> lv : lastVisitedMaps) {
+                MapleMapRef lvm = lv.get();
 
                 if (lvm != null) {
                     lastVisited.add(lvm.getId());
@@ -555,7 +564,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
     }
 
     /** 地图历史快照（partyOperationUpdate 用；返回弱引用副本，调用方持锁读） */
-    List<WeakReference<MapleMap>> getLastVisitedMaps() {
+    List<WeakReference<MapleMapRef>> getLastVisitedMaps() {
         mapHistoryLock.lock();
         try {
             return new LinkedList<>(lastVisitedMaps);
@@ -604,14 +613,14 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         }
 
         int banMap = getMapId();
-        int banSp = getMap().findClosestPlayerSpawnpoint(owner.getPosition()).getId();
+        int banSp = map.findClosestPlayerSpawnpoint(owner.getPosition()).getId();
         long banTime = System.currentTimeMillis();
 
         if (msg != null) {
             owner.dropMessage(5, msg);
         }
 
-        MapleMap map_ = getWarpMap(mapid);
+        MapleMapRef map_ = getWarpMap(mapid);
         Portal portal_ = map_.getPortal(portal);
         changeMap(map_, portal_ != null ? portal_ : map_.getRandomPlayerSpawnpoint());
 

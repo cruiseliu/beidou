@@ -131,7 +131,7 @@ public final class InnerPortalHandler extends AbstractPacketHandler {
         if (strand == null) {
             return;
         }
-        map.post("move", () -> map.onMove(new MapleMap.MoveMsg(strand, player, player.getClient(),
+        map.post("move", () -> map.onMove(new MapleMap.MoveMsg(strand, player.ref(), player.getClient(),
                 afterPos, null, false, List.of(player.getVisibleMapObjects()))));
     }
 }

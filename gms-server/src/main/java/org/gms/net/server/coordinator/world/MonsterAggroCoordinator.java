@@ -310,7 +310,7 @@ public class MonsterAggroCoordinator {
 
             MapleMap map = mob.getMap();
             for (PlayerAggroEntry pae : mobAggroList) {
-                Character chr = map.getCharacterById(pae.cid);
+                Character chr = map.getCharacterById(pae.cid).unref();
                 if (chr != null) {
                     if (player.getId() == pae.cid) {
                         return true;

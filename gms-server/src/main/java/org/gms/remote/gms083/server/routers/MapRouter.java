@@ -3,7 +3,7 @@ package org.gms.remote.gms083.server.routers;
 import org.gms.net.packet.Packet;
 import org.gms.remote.gms083.Gms083;
 import org.gms.remote.gms083.client.packets.MoveLifePacket;
-import org.gms.remote.gms083.client.packets.MovePacket;
+import org.gms.remote.gms083.client.packets.MovePlayerPacket;
 import org.gms.remote.modules.map.client.MapModule;
 import org.gms.remote.modules.map.client.movement.MoveElement;
 
@@ -21,7 +21,7 @@ public final class MapRouter implements MapModule {
 
     @Override
     public Packet movePlayer(int charId, List<MoveElement> elements) {
-        return client.toLegacyPacket(MovePacket.relay(charId, elements));
+        return client.toLegacyPacket(MovePlayerPacket.relay(charId, elements));
     }
 
     @Override

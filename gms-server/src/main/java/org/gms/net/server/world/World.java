@@ -57,7 +57,6 @@ import org.gms.net.server.task.CharacterHpDecreaseTask;
 import org.gms.net.server.task.FamilyDailyResetTask;
 import org.gms.net.server.task.FishingTask;
 import org.gms.net.server.task.HiredMerchantTask;
-import org.gms.net.server.task.MapOwnershipTask;
 import org.gms.net.server.task.MountTirednessTask;
 import org.gms.net.server.task.PartySearchTask;
 import org.gms.net.server.task.ServerMessageTask;
@@ -249,7 +248,7 @@ public class World {
         timedMapObjectsSchedule = tman.register(new TimedMapObjectTask(this), MINUTES.toMillis(1), MINUTES.toMillis(1));
         charactersSchedule = tman.registerWithFixedDelay(new CharacterAutosaverTask(this), HOURS.toMillis(1), HOURS.toMillis(1));
         marriagesSchedule = tman.register(new WeddingReservationTask(this), MINUTES.toMillis(GameConfig.getServerLong("wedding_reservation_interval")), MINUTES.toMillis(GameConfig.getServerLong("wedding_reservation_interval")));
-        mapOwnershipSchedule = tman.register(new MapOwnershipTask(this), SECONDS.toMillis(20), SECONDS.toMillis(20));
+        // mapOwnershipSchedule = tman.register(new MapOwnershipTask(this), SECONDS.toMillis(20), SECONDS.toMillis(20));
         fishingSchedule = tman.register(new FishingTask(this), SECONDS.toMillis(10), SECONDS.toMillis(10));
         partySearchSchedule = tman.register(new PartySearchTask(this), SECONDS.toMillis(10), SECONDS.toMillis(10));
         timeoutSchedule = tman.register(new TimeoutTask(this), SECONDS.toMillis(10), SECONDS.toMillis(10));

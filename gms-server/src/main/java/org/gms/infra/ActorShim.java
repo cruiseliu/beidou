@@ -5,8 +5,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 /**
  * 伪 actor（shim）：actor 形状的调用边界——与 {@link Strand} 同款的 FIFO 队列与
@@ -76,11 +77,11 @@ public final class ActorShim {
      * <b>不服务读导航</b>——"读地图状态给自己做决策"走调用方直读（宿主锁保护），
      * "上一步地图动作的产物"才走本方法（doc/13 §2）。
      */
-    public <T> T supply(String taskName, java.util.function.Supplier<T> task) {
+    public <T> T supply(String taskName, Supplier<T> task) {
         if (onShim()) {
             return task.get();
         }
-        java.util.concurrent.atomic.AtomicReference<T> result = new java.util.concurrent.atomic.AtomicReference<>();
+        AtomicReference<T> result = new AtomicReference<>();
         CountDownLatch done = new CountDownLatch(1);
         enqueue(new Task(taskName, () -> {
             try {

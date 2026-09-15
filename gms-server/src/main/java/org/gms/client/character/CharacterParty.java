@@ -4,7 +4,7 @@ import org.gms.net.server.world.Party;
 import org.gms.net.server.world.PartyCharacter;
 import org.gms.net.server.world.PartyOperation;
 import org.gms.server.maps.MapItem;
-import org.gms.server.maps.MapleMap;
+import org.gms.server.maps.MapleMapRef;
 import org.gms.util.PacketCreator;
 
 import java.lang.ref.WeakReference;
@@ -82,7 +82,7 @@ class CharacterParty {
 
     List<Character> getPartyMembersOnSameMap() {
         List<Character> list = new LinkedList<>();
-        int thisMapHash = owner.getMap().hashCode();
+        int thisMapHash = System.identityHashCode(owner.getMapRef());
 
         lock.lock();
         try {
@@ -90,8 +90,8 @@ class CharacterParty {
                 for (PartyCharacter mpc : party.getMembers()) {
                     Character chr = mpc.getPlayer();
                     if (chr != null) {
-                        MapleMap chrMap = chr.getMap();
-                        if (chrMap != null && chrMap.hashCode() == thisMapHash && chr.isLoggedInWorld()) {
+                        MapleMapRef chrMap = chr.getMapRef();
+                        if (chrMap != null && System.identityHashCode(chrMap) == thisMapHash && chr.isLoggedInWorld()) {
                             list.add(chr);
                         }
                     }
@@ -259,7 +259,7 @@ class CharacterParty {
     // ── 组队操作更新（含掉落归属；门更新编排经 owner 门面） ──
 
     void partyOperationUpdate(Party party, List<Character> exPartyMembers) {
-        List<WeakReference<MapleMap>> mapIds = owner.map.getLastVisitedMaps();
+        List<WeakReference<MapleMapRef>> mapIds = owner.map.getLastVisitedMaps();
 
         List<Character> partyMembers = new LinkedList<>();
         for (Character mc : (exPartyMembers != null) ? exPartyMembers : this.getPartyMembersOnline()) {
@@ -274,23 +274,24 @@ class CharacterParty {
             partyLeaver = owner;
         }
 
-        MapleMap map = owner.getMap();
+        MapleMapRef map = owner.map.getMap();
         List<MapItem> partyItems = null;
 
         int partyId = exPartyMembers != null ? -1 : this.getPartyId();
-        for (WeakReference<MapleMap> mapRef : mapIds) {
-            MapleMap mapObj = mapRef.get();
+        for (WeakReference<MapleMapRef> mapRef : mapIds) {
+            MapleMapRef mapObj = mapRef.get();
 
             if (mapObj != null) {
-                List<MapItem> partyMapItems = mapObj.updatePlayerItemDropsToParty(partyId, owner.getId(), partyMembers, partyLeaver);
-                if (map.hashCode() == mapObj.hashCode()) {
+                List<MapItem> partyMapItems = mapObj.updatePlayerItemDropsToParty(partyId, owner.getId(),
+                partyMembers.stream().map(CharacterRef::of).toList(), partyLeaver.ref());
+                if (map == mapObj) {
                     partyItems = partyMapItems;
                 }
             }
         }
 
         if (partyItems != null && exPartyMembers == null) {
-            map.updatePartyItemDropsToNewcomer(owner, partyItems);
+            map.updatePartyItemDropsToNewcomer(owner.ref(), partyItems);
         }
 
         CharacterMysticDoor.updatePartyTownDoors(party, owner, partyLeaver, partyMembers);

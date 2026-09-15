@@ -101,11 +101,7 @@ public final class SummonDamageHandler extends AbstractDealDamageHandler {
             int damage = p.readInt();
             allDamage.add(new SummonAttackEntry(monsterOid, damage));
         }
-        player.getMap().broadcastMessage(player, PacketCreator.summonAttack(player.getId(), summon.getObjectId(), direction, allDamage), summon.getPosition());
-
-        if (player.getMap().isOwnershipRestricted(player)) {
-            return;
-        }
+        player.getMap().broadcastMessage(player.ref(), PacketCreator.summonAttack(player.getId(), summon.getObjectId(), direction, allDamage), summon.getPosition());
 
         boolean magic = summonEffect.getWatk() == 0;
         int maxDmg = calcMaxDamage(summonEffect, player, magic);    // thanks Darter (YungMoozi) for reporting unchecked max dmg
@@ -126,7 +122,7 @@ public final class SummonDamageHandler extends AbstractDealDamageHandler {
                         target.applyStatus(player, new MonsterStatusEffect(summonEffect.getMonsterStati(), summonSkill, null, false), summonEffect.isPoison(), 4000);
                     }
                 }
-                player.getMap().damageMonster(player, target, damage);
+                player.getMap().damageMonster(player.ref(), target, damage);
             }
         }
 

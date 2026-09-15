@@ -21,7 +21,6 @@
 package org.gms.util;
 
 import com.mybatisflex.annotation.Column;
-import org.gms.client.character.Stat;
 import org.gms.client.BuddylistEntry;
 import org.gms.client.EffectType;
 import org.gms.client.character.Character;
@@ -53,7 +52,6 @@ import org.gms.model.pojo.NewYearCardRecord;
 import org.gms.client.status.MonsterStatus;
 import org.gms.client.status.MonsterStatusEffect;
 import org.gms.config.GameConfig;
-import org.gms.constants.game.ExpTable;
 import org.gms.constants.game.GameConstants;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.id.MapId;
@@ -320,12 +318,6 @@ public class PacketCreator {
         }
     }
 
-    public static Packet setExtraPendantSlot(boolean toggleExtraSlot) {
-        final OutPacket p = OutPacket.create(SendOpcode.SET_EXTRA_PENDANT_SLOT);
-        p.writeBool(toggleExtraSlot);
-        return p;
-    }
-
     private static void addCharEntry(OutPacket p, Character chr, boolean viewall) {
         addCharStats(p, chr);
         addCharLook(p, chr, false);
@@ -562,12 +554,6 @@ public class PacketCreator {
     public static Packet getAfterLoginError(int reason) {//same as above o.o
         OutPacket p = OutPacket.create(SendOpcode.SELECT_CHARACTER_BY_VAC);
         p.writeShort(reason);//using other types than stated above = CRASH
-        return p;
-    }
-
-    public static Packet sendPolice() {
-        final OutPacket p = OutPacket.create(SendOpcode.FAKE_GM_NOTICE);
-        p.writeByte(0);//doesn't even matter what value
         return p;
     }
 
@@ -857,26 +843,6 @@ public class PacketCreator {
         if (partner != null) {
             addCharLook(p, partner, false);
         }
-        return p;
-    }
-
-    /**
-     * Gets character info for a character.
-     *
-     * @param chr The character to get info about.
-     * @return The character info packet.
-     */
-    public static Packet getCharInfo(Character chr) {
-        final OutPacket p = OutPacket.create(SendOpcode.SET_FIELD);
-        p.writeInt(chr.getClient().getChannel() - 1);
-        p.writeByte(1);
-        p.writeByte(1);
-        p.writeShort(0);
-        for (int i = 0; i < 3; i++) {
-            p.writeInt(Randomizer.nextInt());
-        }
-        addCharacterInfo(p, chr);
-        p.writeLong(getTime(System.currentTimeMillis()));
         return p;
     }
 
@@ -1306,29 +1272,6 @@ public class PacketCreator {
         return spawnMonsterInternal(life, true, newSpawn, aggro, 0, false);
     }
 
-    /**
-     * Removes a monster invisibility.
-     *
-     * @param life
-     * @return
-     */
-    public static Packet removeMonsterInvisibility(Monster life) {
-        final OutPacket p = OutPacket.create(SendOpcode.SPAWN_MONSTER_CONTROL);
-        p.writeByte(1);
-        p.writeInt(life.getObjectId());
-        return p;
-    }
-
-    /**
-     * Makes a monster invisible for Ariant PQ.
-     *
-     * @param life
-     * @return
-     */
-    public static Packet makeMonsterInvisible(Monster life) {
-        return spawnMonsterInternal(life, true, false, false, 0, true);
-    }
-
     private static void encodeParentlessMobSpawnEffect(OutPacket p, boolean newSpawn, int effect) {
         if (effect > 0) {
             p.writeByte(effect);
@@ -1515,42 +1458,6 @@ public class PacketCreator {
     }
 
     /**
-     * Gets a response to a move monster packet.
-     *
-     * @param objectid  The ObjectID of the monster being moved.
-     * @param moveid    The movement ID.
-     * @param currentMp The current MP of the monster.
-     * @param useSkills Can the monster use skills?
-     * @return The move response packet.
-     */
-    public static Packet moveMonsterResponse(int objectid, short moveid, int currentMp, boolean useSkills) {
-        return moveMonsterResponse(objectid, moveid, currentMp, useSkills, 0, 0);
-    }
-
-    /**
-     * Gets a response to a move monster packet.
-     *
-     * @param objectid   The ObjectID of the monster being moved.
-     * @param moveid     The movement ID.
-     * @param currentMp  The current MP of the monster.
-     * @param useSkills  Can the monster use skills?
-     * @param skillId    The skill ID for the monster to use.
-     * @param skillLevel The level of the skill to use.
-     * @return The move response packet.
-     */
-
-    public static Packet moveMonsterResponse(int objectid, short moveid, int currentMp, boolean useSkills, int skillId, int skillLevel) {
-        OutPacket p = OutPacket.create(SendOpcode.MOVE_MONSTER_RESPONSE);
-        p.writeInt(objectid);
-        p.writeShort(moveid);
-        p.writeBool(useSkills);
-        p.writeShort(currentMp);
-        p.writeByte(skillId);
-        p.writeByte(skillLevel);
-        return p;
-    }
-
-    /**
      * Gets a general chat packet.
      *
      * @param cidfrom The character ID who sent the chat.
@@ -1608,16 +1515,6 @@ public class PacketCreator {
         p.writeByte(4);
         p.writeInt(gain);
         return p;
-    }
-
-    /**
-     * Gets a packet telling the client to show a meso gain.
-     *
-     * @param gain How many mesos gained.
-     * @return The meso gain packet.
-     */
-    public static Packet getShowMesoGain(int gain) {
-        return getShowMesoGain(gain, false);
     }
 
     /**
@@ -2016,7 +1913,7 @@ public class PacketCreator {
         return p;
     }
 
-    public static void encodeNewYearCardForSetField(NewYearCardRecord newyear, OutPacket p) {
+    private static void encodeNewYearCardForSetField(NewYearCardRecord newyear, OutPacket p) {
         p.writeInt(newyear.getId());
         p.writeInt(newyear.getSenderId());
         p.writeString(newyear.getSenderName());
@@ -2220,25 +2117,6 @@ public class PacketCreator {
 
         return p;
     }
-
-        /*
-        public static Packet summonAttack(int cid, int summonSkillId, byte direction, List<SummonAttackEntry> allDamage) {
-                OutPacket p = OutPacket.create(SendOpcode);
-                //b2 00 29 f7 00 00 9a a3 04 00 c8 04 01 94 a3 04 00 06 ff 2b 00
-                SUMMON_ATTACK);
-                p.writeInt(cid);
-                p.writeInt(summonSkillId);
-                p.writeByte(direction);
-                p.writeByte(4);
-                p.writeByte(allDamage.size());
-                for (SummonAttackEntry attackEntry : allDamage) {
-                        p.writeInt(attackEntry.getMonsterOid()); // oid
-                        p.writeByte(6); // who knows
-                        p.writeInt(attackEntry.getDamage()); // damage
-                }
-                return p;
-        }
-        */
 
     public static Packet closeRangeAttack(Character chr, int skill, int skilllevel, int stance, int numAttackedAndDamage, Map<Integer, List<Integer>> damage, int speed, int direction, int display) {
         final OutPacket p = OutPacket.create(SendOpcode.CLOSE_RANGE_ATTACK);
@@ -2753,17 +2631,6 @@ public class PacketCreator {
         p.writeByte(0); //Times you have been buffed
         return p;
     }
-        /*        p.writeInt(cid);
-             writeLongMask(mplew, statups);
-             for (Pair<BuffStat, Integer> statup : statups) {
-             if (morph) {
-             p.writeInt(statup.getRight().intValue());
-             } else {
-             p.writeShort(statup.getRight().shortValue());
-             }
-             }
-             p.writeShort(0);
-             p.writeByte(0);*/
 
     /**
      * @param quest
@@ -2795,7 +2662,6 @@ public class PacketCreator {
      * @param npc
      * @return
      */
-
     public static Packet updateQuestInfo(short quest, int npc) {
         final OutPacket p = OutPacket.create(SendOpcode.UPDATE_QUEST_INFO);
         p.writeByte(8); //0x0A in v95
@@ -7338,82 +7204,6 @@ public class PacketCreator {
         return p;
     }
 
-    /**
-     * Makes the NPCs provided set as scriptable, informing the client to search for js scripts for these NPCs even
-     * if they already have entries within the wz files.
-     *
-     * @param scriptableNpcIds Ids of npcs to enable scripts for.
-     * @return a packet which makes the npc's provided scriptable.
-     */
-    public static Packet setNPCScriptable(Map<Integer, String> scriptableNpcIds) {  // thanks to GabrielSin
-        OutPacket p = OutPacket.create(SendOpcode.SET_NPC_SCRIPTABLE);
-        p.writeByte(scriptableNpcIds.size());
-        scriptableNpcIds.forEach((id, name) -> {
-            p.writeInt(id);
-            // The client needs a name for the npc conversation, which is displayed under etc when the npc has a quest available.
-            if (CharsetConstants.isZhCN()) {
-                byte[] bytes = name.getBytes(CharsetConstants.getCharset(3));
-                p.writeShort(bytes.length);
-                p.writeBytes(bytes);
-            } else {
-                p.writeString(name);
-            }
-            p.writeInt(0); // start time
-            p.writeInt(Integer.MAX_VALUE); // end time
-        });
-        return p;
-    }
-
-    private static Packet MassacreResult(byte nRank, int nIncExp) {
-        //CField_MassacreResult__OnMassacreResult @ 0x005617C5
-        final OutPacket p = OutPacket.create(SendOpcode.PYRAMID_SCORE); //MASSACRERESULT | 0x009E
-        p.writeByte(nRank); //(0 - S) (1 - A) (2 - B) (3 - C) (4 - D) ( Else - Crash )
-        p.writeInt(nIncExp);
-        return p;
-    }
-
-
-    private static Packet Tournament__Tournament(byte nState, byte nSubState) {
-        final OutPacket p = OutPacket.create(SendOpcode.TOURNAMENT);
-        p.writeByte(nState);
-        p.writeByte(nSubState);
-        return p;
-    }
-
-    private static Packet Tournament__MatchTable(byte nState, byte nSubState) {
-        final OutPacket p = OutPacket.create(SendOpcode.TOURNAMENT_MATCH_TABLE); //Prompts CMatchTableDlg Modal
-        return p;
-    }
-
-    private static Packet Tournament__SetPrize(byte bSetPrize, byte bHasPrize, int nItemID1, int nItemID2) {
-        final OutPacket p = OutPacket.create(SendOpcode.TOURNAMENT_SET_PRIZE);
-
-        //0 = "You have failed the set the prize. Please check the item number again."
-        //1 = "You have successfully set the prize."
-        p.writeByte(bSetPrize);
-
-        p.writeByte(bHasPrize);
-
-        if (bHasPrize != 0) {
-            p.writeInt(nItemID1);
-            p.writeInt(nItemID2);
-        }
-
-        return p;
-    }
-
-    private static Packet Tournament__UEW(byte nState) {
-        final OutPacket p = OutPacket.create(SendOpcode.TOURNAMENT_UEW);
-
-        //Is this a bitflag o.o ?
-        //2 = "You have reached the finals by default."
-        //4 = "You have reached the semifinals by default."
-        //8 or 16 = "You have reached the round of %n by default." | Encodes nState as %n ?!
-        p.writeByte(nState);
-
-        return p;
-    }
-
     public static Packet familyBuff(int type, int buffnr, int amount, int time) {
         OutPacket p = OutPacket.create(SendOpcode.FAMILY_SET_PRIVILEGE);
         p.writeByte(type);
@@ -7427,8 +7217,6 @@ public class PacketCreator {
         return p;
     }
 
-
-
     public static Packet cancelFamilyBuff() {
         return familyBuff(0, 0, 0, 0);
     }
@@ -7438,7 +7226,6 @@ public class PacketCreator {
         p.writeInt(type);
         return p;
     }
-
 
     /**
      * 客户端系统设置回显（目前仅 HP/MP 警报阈值）。
@@ -7450,5 +7237,4 @@ public class PacketCreator {
         p.writeByte(mp);
         return p;
     }
-
 }

@@ -22,6 +22,7 @@
 package org.gms.net.server.channel.handlers;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.client.Client;
 import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
@@ -118,7 +119,8 @@ public final class AdminCommandHandler extends AbstractPacketHandler {
                 switch (p.readByte()) {
                     case 0:// /u
                         StringBuilder sb = new StringBuilder("USERS ON THIS MAP: ");
-                        for (Character mc : c.getPlayer().getMap().getCharacters()) {
+                        for (CharacterRef mcrr : c.getPlayer().getMap().getCharacters()) {
+                            Character mc = mcrr.unref();
                             sb.append(mc.getName());
                             sb.append(" ");
                         }
@@ -140,7 +142,7 @@ public final class AdminCommandHandler extends AbstractPacketHandler {
                 for (int x = 0; x < amount; x++) {
                     Monster monster = (Monster) monsterx.get(x);
                     if (monster.getId() == mobToKill) {
-                        c.getPlayer().getMap().killMonster(monster, c.getPlayer(), true);
+                        c.getPlayer().getMap().killMonster(monster, c.getPlayer().ref(), true);
                     }
                 }
                 break;

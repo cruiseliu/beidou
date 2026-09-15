@@ -1,5 +1,6 @@
 package org.gms.client.character;
 
+import org.gms.client.character.CharacterRef;
 import org.gms.client.Client;
 import org.gms.client.EffectType;
 import org.gms.client.Family;
@@ -25,8 +26,8 @@ import org.gms.net.server.world.PartyCharacter;
 import org.gms.remote.modules.basic.server.BasicUpdate;
 import org.gms.model.pojo.SkillEntry;
 import org.gms.server.BuffEffectData;
+import org.gms.server.maps.MapleMapRef;
 import org.gms.server.TimerManager;
-import org.gms.server.maps.MapleMap;
 import org.gms.util.I18nUtil;
 import org.gms.util.PacketCreator;
 import org.gms.util.Randomizer;
@@ -195,7 +196,7 @@ class CharacterJob {
         owner.silentPartyUpdate();
 
         if (owner.getDragon() != null) {
-            owner.getMap().broadcastMessage(PacketCreator.removeDragon(owner.getDragon().getObjectId()));
+            owner.getMapRef().broadcastMessage(PacketCreator.removeDragon(owner.getDragon().getObjectId()));
             owner.setDragon(null);
         }
 
@@ -226,7 +227,8 @@ class CharacterJob {
     }
 
     private void broadcastChangeJob() {
-        for (Character chr : owner.getMap().getAllPlayers()) {
+        for (CharacterRef mcrr : owner.getMapRef().getAllPlayers()) {
+            Character chr = mcrr.unref();
             Client chrC = chr.getClient();
 
             if (chrC != null) {     // propagate new job 3rd-person effects (FJ, Aran 1st strike, etc)
@@ -237,10 +239,10 @@ class CharacterJob {
 
         // need to delay to ensure clientside has finished reloading character data     //需要延迟以确保客户端已完成重新加载角色数据
         TimerManager.getInstance().schedule(() -> {
-            MapleMap map = owner.getMap();
+            MapleMapRef map = owner.getMapRef();
 
             if (map != null) {
-                map.broadcastMessage(owner, PacketCreator.showForeignEffect(owner.getId(), 8), false);
+                map.broadcastMessage(owner.ref(), PacketCreator.showForeignEffect(owner.getId(), 8), false);
             }
         }, 777);
     }

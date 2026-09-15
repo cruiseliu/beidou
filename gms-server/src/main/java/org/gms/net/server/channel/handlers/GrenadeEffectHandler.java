@@ -56,7 +56,7 @@ public class GrenadeEffectHandler extends AbstractPacketHandler {
             case Gunslinger.GRENADE:
                 int skillLevel = chr.getSkillLevel(skillId);
                 if (skillLevel > 0) {
-                    chr.getMap().broadcastMessage(chr, PacketCreator.throwGrenade(chr.getId(), position, keyDown, skillId, skillLevel), position);
+                    chr.getMap().broadcastMessage(chr.ref(), PacketCreator.throwGrenade(chr.getId(), position, keyDown, skillId, skillLevel), position);
                 }
                 break;
             default:

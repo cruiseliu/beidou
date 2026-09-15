@@ -12,8 +12,12 @@ public interface BasicModule {
     void unlockActions();
 
     /**
-     * 进图主包 SET_FIELD（doc/12 §21 追记 5）。事件（InitializeEvent）与 wire 派生归
-     * 版本实现，不对 gameplay 暴露；进不进合并域由 caller 的 update 域决定。
+     * 进图客户端视图初始化（SET_FIELD 主包 + 键位表/快捷栏/技能宏/自动用药绑定，
+     * doc/12 §21 追记 5）。事件（InitializeEvent）与 wire 派生归版本实现，不对
+     * gameplay 暴露；进不进合并域由 caller 的 update 域决定。
      */
     void initialize(Character chr);
+
+    /** 技能宏表重推（SP 重置清引用等运行期变更；与入图初始化同一 wire 包） */
+    void updateMacros(org.gms.client.SkillMacro[] macros);
 }

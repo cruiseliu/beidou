@@ -269,7 +269,7 @@ public class CharacterStats {
             }
         };
         if (owner.getMap() != null) {
-            owner.getMap().registerCharacterStatUpdate(r);
+            owner.getMapRef().registerCharacterStatUpdate(r);
         }
     }
 

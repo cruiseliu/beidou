@@ -25,6 +25,7 @@ import org.gms.net.server.world.World;
 /**
  * @author Ronan
  */
+/*
 public class MapOwnershipTask extends BaseTask implements Runnable {
 
     @Override
@@ -38,3 +39,4 @@ public class MapOwnershipTask extends BaseTask implements Runnable {
         super(world);
     }
 }
+*/

@@ -100,7 +100,7 @@ class ActiveBuffs {
 
         owner.addHP(heal);
         owner.sendPacket(PacketCreator.showOwnRecovery(heal));
-        owner.getMap().broadcastMessage(owner, PacketCreator.showRecovery(owner.id, heal), false);
+        owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.showRecovery(owner.id, heal), false);
     }
 
     void setBuffedValue(EffectType effect, int value) {
@@ -223,7 +223,7 @@ class ActiveBuffs {
         if (owner.client.getChannelServer().getPlayerStorage().getCharacterById(owner.getId()) != null) {
             owner.sendPacket(PacketCreator.cancelBuff(effectTypes));
             if (!effectTypes.isEmpty()) {
-                owner.getMap().broadcastMessage(owner, PacketCreator.cancelForeignBuff(owner.getId(), effectTypes), false);
+                owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.cancelForeignBuff(owner.getId(), effectTypes), false);
             }
         }
     }
@@ -309,8 +309,8 @@ class ActiveBuffs {
                     executeCompanion(strand, () -> {
                         owner.addHP(healEffect.getHp());
                         owner.sendPacket(PacketCreator.showOwnBuffEffect(beholder, 2));
-                        owner.getMap().broadcastMessage(owner, PacketCreator.summonSkill(owner.getId(), beholder, 5), true);
-                        owner.getMap().broadcastMessage(owner, PacketCreator.showOwnBuffEffect(beholder, 2), false);
+                        owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.summonSkill(owner.getId(), beholder, 5), true);
+                        owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.showOwnBuffEffect(beholder, 2), false);
                     });
                 }, healInterval, healInterval);
             }
@@ -329,8 +329,8 @@ class ActiveBuffs {
                     executeCompanion(strand, () -> {
                         buffEffect.applyTo(owner);
                         owner.sendPacket(PacketCreator.showOwnBuffEffect(beholder, 2));
-                        owner.getMap().broadcastMessage(owner, PacketCreator.summonSkill(owner.getId(), beholder, (int) (Math.random() * 3) + 6), true);
-                        owner.getMap().broadcastMessage(owner, PacketCreator.showBuffEffect(owner.getId(), beholder, 2), false);
+                        owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.summonSkill(owner.getId(), beholder, (int) (Math.random() * 3) + 6), true);
+                        owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.showBuffEffect(owner.getId(), beholder, 2), false);
                     });
                 }, buffInterval, buffInterval);
             }
@@ -362,7 +362,7 @@ class ActiveBuffs {
 
                     owner.addHP(heal);
                     owner.sendPacket(PacketCreator.showOwnRecovery(heal));
-                    owner.getMap().broadcastMessage(owner, PacketCreator.showRecovery(owner.id, heal), false);
+                    owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.showRecovery(owner.id, heal), false);
                 }, healInterval, healInterval);
             }
         } else if (effect.getHpRRate() > 0 || effect.getMpRRate() > 0) {

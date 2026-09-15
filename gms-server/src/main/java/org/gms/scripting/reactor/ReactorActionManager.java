@@ -173,7 +173,7 @@ public class ReactorActionManager extends AbstractPlayerInteraction {
                     int range = maxMeso - minMeso;
                     double displayDrop = Math.random() * range + minMeso;
                     int mesoDrop = NumberTool.doubleToInt(displayDrop * c.getWorldServer().getMesoRate());
-                    reactor.getMap().spawnMesoDrop(mesoDrop, reactor.getMap().calcDropPos(dropPos, reactor.getPosition()), reactor, c.getPlayer(), false, (byte) 2);
+                    reactor.getMap().spawnMesoDrop(mesoDrop, reactor.getMap().calcDropPos(dropPos, reactor.getPosition()), reactor, c.getPlayer().ref(), false, (byte) 2);
                 } else {
                     ItemSlot drop;
 
@@ -185,7 +185,7 @@ public class ReactorActionManager extends AbstractPlayerInteraction {
                         drop = equipDrop;
                     }
 
-                    reactor.getMap().dropFromReactor(getPlayer(), reactor, drop, dropPos, (short) d.questid);
+                    reactor.getMap().dropFromReactor(getPlayer().ref(), reactor, drop, dropPos, (short) d.questid);
                 }
             }
         } else {
@@ -206,7 +206,7 @@ public class ReactorActionManager extends AbstractPlayerInteraction {
                     int range = maxMeso - minMeso;
                     double displayDrop = Math.random() * range + minMeso;
                     int mesoDrop = NumberTool.doubleToInt(displayDrop * worldMesoRate);
-                    r.getMap().spawnMesoDrop(mesoDrop, r.getMap().calcDropPos(dropPos, r.getPosition()), r, chr, false, (byte) 2);
+                    r.getMap().spawnMesoDrop(mesoDrop, r.getMap().calcDropPos(dropPos, r.getPosition()), r, chr.ref(), false, (byte) 2);
                 } else {
                     ItemSlot drop;
 
@@ -219,7 +219,7 @@ public class ReactorActionManager extends AbstractPlayerInteraction {
                         drop = equipDrop;
                     }
 
-                    r.getMap().dropFromReactor(getPlayer(), r, drop, dropPos, (short) d.questid);
+                    r.getMap().dropFromReactor(getPlayer().ref(), r, drop, dropPos, (short) d.questid);
                 }
 
                 dropPos.x += 25;

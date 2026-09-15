@@ -102,8 +102,8 @@ class CharacterSpecialSkills {
             owner.setBuffedValue(EffectType.ENERGY_CHARGE, energyBar);
             owner.sendPacket(PacketCreator.giveBuff(energyBar, 0, stat));
             owner.sendPacket(PacketCreator.showOwnBuffEffect(energycharge.getId(), 2));
-            owner.getMap().broadcastPacket(owner, PacketCreator.showBuffEffect(owner.getId(), energycharge.getId(), 2));
-            owner.getMap().broadcastPacket(owner, PacketCreator.giveForeignPirateBuff(owner.getId(), energycharge.getId(),
+            owner.getMapRef().broadcastPacket(owner.ref(), PacketCreator.showBuffEffect(owner.getId(), energycharge.getId(), 2));
+            owner.getMapRef().broadcastPacket(owner.ref(), PacketCreator.giveForeignPirateBuff(owner.getId(), energycharge.getId(),
                     ceffect.getDuration(), stat));
         }
         if (energyBar >= 10000 && energyBar < 11000) {
@@ -114,7 +114,7 @@ class CharacterSpecialSkills {
                 List<Pair<EffectType, Integer>> stat = Collections.singletonList(new Pair<>(EffectType.ENERGY_CHARGE, energyBar));
                 owner.setBuffedValue(EffectType.ENERGY_CHARGE, energyBar);
                 owner.sendPacket(PacketCreator.giveBuff(energyBar, 0, stat));
-                owner.getMap().broadcastPacket(chr, PacketCreator.cancelForeignFirstDebuff(owner.getId(), ((long) 1) << 50));
+                owner.getMapRef().broadcastPacket(chr.ref(), PacketCreator.cancelForeignFirstDebuff(owner.getId(), ((long) 1) << 50));
             }, ceffect.getDuration());
         }
     }
@@ -127,6 +127,6 @@ class CharacterSpecialSkills {
         List<Pair<EffectType, Integer>> stat = Collections.singletonList(new Pair<>(EffectType.COMBO, 1));
         owner.setBuffedValue(EffectType.COMBO, 1);
         owner.sendPacket(PacketCreator.giveBuff(skillid, combo.getEffect(owner.getSkillLevel(skillid)).getDuration() + (int) ((owner.getBuffedStarttime(EffectType.COMBO) - System.currentTimeMillis())), stat));
-        owner.getMap().broadcastMessage(owner, PacketCreator.giveForeignBuff(owner.getId(), stat), false);
+        owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.giveForeignBuff(owner.getId(), stat), false);
     }
 }

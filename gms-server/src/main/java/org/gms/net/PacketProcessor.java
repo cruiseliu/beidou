@@ -51,7 +51,7 @@ import org.gms.net.server.handlers.login.ViewAllCharSelectedHandler;
 import org.gms.net.server.handlers.login.ViewAllCharSelectedWithPicHandler;
 import org.gms.remote.gms083.client.V83RemoteClientHandler;
 import org.gms.remote.gms083.client.pipelines.InventoryInPipeline;
-import org.gms.remote.gms083.client.pipelines.MoveInPipeline;
+import org.gms.remote.gms083.client.pipelines.MovePlayerInPipeline;
 import org.gms.remote.gms083.client.pipelines.MoveLifeInPipeline;
 import org.gms.remote.gms083.client.pipelines.NPCActionInPipeline;
 import org.gms.remote.gms083.client.pipelines.PetInPipeline;
@@ -193,7 +193,7 @@ public final class PacketProcessor {
         registerHandler(RecvOpcode.RANGED_ATTACK, new RangedAttackHandler());
         registerHandler(RecvOpcode.MAGIC_ATTACK, new MagicDamageHandler());
         registerHandler(RecvOpcode.TAKE_DAMAGE, new TakeDamageHandler());
-        registerHandler(RecvOpcode.MOVE_PLAYER, new V83RemoteClientHandler(new MoveInPipeline()));
+        registerHandler(RecvOpcode.MOVE_PLAYER, new V83RemoteClientHandler(new MovePlayerInPipeline()));
         registerHandler(RecvOpcode.USE_CASH_ITEM, new UseCashItemHandler(channelDeps.noteService()));
         registerHandler(RecvOpcode.USE_ITEM, new UseItemHandler());
         registerHandler(RecvOpcode.USE_RETURN_SCROLL, new UseItemHandler());

@@ -82,6 +82,6 @@ public class ItemDropCommand extends Command {
             toDrop.setOwner("TRIAL-MODE");
         }
 
-        c.getPlayer().getMap().spawnItemDrop(c.getPlayer(), c.getPlayer(), toDrop, c.getPlayer().getPosition(), true, true);
+        c.getPlayer().getMap().spawnItemDrop(c.getPlayer(), c.getPlayer().ref(), toDrop, c.getPlayer().getPosition(), true, true);
     }
 }

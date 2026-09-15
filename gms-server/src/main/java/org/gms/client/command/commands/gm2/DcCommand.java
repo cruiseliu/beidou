@@ -49,7 +49,7 @@ public class DcCommand extends Command {
         if (victim == null) {
             victim = c.getChannelServer().getPlayerStorage().getCharacterByName(params[0]);
             if (victim == null) {
-                victim = player.getMap().getCharacterByName(params[0]);
+                victim = player.getMap().getCharacterByName(params[0]).unref();
                 if (victim != null) {
                     try {//sometimes bugged because the map = null
                         victim.getClient().disconnect(true, false);

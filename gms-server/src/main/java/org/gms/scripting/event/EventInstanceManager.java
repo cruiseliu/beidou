@@ -22,6 +22,7 @@
 package org.gms.scripting.event;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
 import org.gms.config.GameConfig;
@@ -394,7 +395,7 @@ public class EventInstanceManager {
     public void registerParty(Party party, MapleMap map) {
         for (PartyCharacter mpc : party.getEligibleMembers()) {
             if (mpc.isOnline()) {   // thanks resinate
-                Character chr = map.getCharacterById(mpc.getId());
+                Character chr = map.getCharacterById(mpc.getId()).unref();
                 if (chr != null) {
                     registerPlayer(chr);
                 }
@@ -911,12 +912,12 @@ public class EventInstanceManager {
     }
 
     public void dispatchRaiseQuestMobCount(int mobid, int mapid) {
-        Map<Integer, Character> mapChars = getInstanceMap(mapid).getMapPlayers();
+Map<Integer, CharacterRef> mapChars = getInstanceMap(mapid).getMapPlayers();
         if (!mapChars.isEmpty()) {
             List<Character> eventMembers = getPlayers();
 
             for (Character evChr : eventMembers) {
-                Character chr = mapChars.get(evChr.getId());
+                Character chr = mapChars.get(evChr.getId()).unref();
 
                 if (chr != null && chr.isLoggedInWorld()) {
                     chr.raiseQuestMobCount(mobid);

@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package org.gms.net.server.channel;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.MapId;
 import org.gms.manager.ServerManager;
@@ -663,7 +664,8 @@ public final class Channel {
                     }
 
                     MapleMap dojoExit = getMapFactory().getMap(MapId.DOJO_EXIT);
-                    for (Character chr : getMapFactory().getMap(dojoBaseMap + (100 * (stage + i)) + delta).getAllPlayers()) {
+                    for (CharacterRef chrr : getMapFactory().getMap(dojoBaseMap + (100 * (stage + i)) + delta).getAllPlayers()) {
+                        Character chr = chrr.unref();
                         if (MapId.isDojo(chr.getMap().getId())) {
                             chr.changeMap(dojoExit);
                         }
@@ -1040,20 +1042,6 @@ public final class Channel {
 
     public void unregisterOwnedMap(MapleMap map) {
         ownedMaps.remove(map);
-    }
-
-    public void runCheckOwnedMapsSchedule() {
-        if (!ownedMaps.isEmpty()) {
-            List<MapleMap> ownedMapsList;
-
-            synchronized (ownedMaps) {
-                ownedMapsList = new ArrayList<>(ownedMaps);
-            }
-
-            for (MapleMap map : ownedMapsList) {
-                map.checkMapOwnerActivity();
-            }
-        }
     }
 
     private static int getMonsterCarnivalRoom(boolean cpq1, int field) {

@@ -34,6 +34,6 @@ public class StartMapEventCommand extends Command {
 
     @Override
     public void execute(Client c, String[] params) {
-        c.getPlayer().getMap().startEvent(c.getPlayer());
+        c.getPlayer().getMap().startEvent(c.getPlayer().ref());
     }
 }

@@ -5,6 +5,7 @@ import com.mybatisflex.core.query.QueryWrapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
 import org.gms.client.command.CommandsExecutor;
@@ -234,10 +235,11 @@ public class CommandService {
             world.getChannels().forEach(channel -> {
                 Map<Integer, MapleMap> maps = channel.getMapFactory().getMaps();
                 maps.forEach((mapid, map) -> {
-                    List<Character> allPlayers = map.getAllPlayers();
+                    List<CharacterRef> allPlayers = map.getAllPlayers();
                     MapleMap newMap = channel.getMapFactory().resetMap(mapid);
                     String message = I18nUtil.getMessage("ReloadMapCommand.message2");
-                    allPlayers.forEach(chr -> {
+                    allPlayers.forEach(chrRef -> {
+                        Character chr = chrRef.unref();
                         int callerid = chr.getId();
                         chr.saveLocationOnWarp();
                         chr.changeMap(newMap);

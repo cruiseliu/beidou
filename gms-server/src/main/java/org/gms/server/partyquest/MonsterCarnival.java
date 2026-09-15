@@ -1,6 +1,7 @@
 package org.gms.server.partyquest;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.config.GameConfig;
 import org.gms.constants.string.LanguageConstants;
 import org.gms.net.server.Server;
@@ -126,7 +127,8 @@ public class MonsterCarnival {
                 team = 1;
             }
         }
-        for (Character chrMap : map.getAllPlayers()) {
+        for (CharacterRef chrMapr : map.getAllPlayers()) {
+            Character chrMap = chrMapr.unref();
             if (team == -1) {
                 team = 1;
             }
@@ -353,7 +355,8 @@ public class MonsterCarnival {
     }
 
     private void extendTime() {
-        for (Character chrMap : map.getAllPlayers()) {
+        for (CharacterRef chrMapr : map.getAllPlayers()) {
+            Character chrMap = chrMapr.unref();
             chrMap.dropMessage(5, LanguageConstants.getMessage(chrMap, LanguageConstants.CPQExtendTime));
         }
         startTime = System.currentTimeMillis() + MINUTES.toMillis(3);

@@ -109,7 +109,7 @@ class CharacterBuffs {
             if (!toCancel.isEmpty()) {
                 List<EffectType> list = new ArrayList<>(toCancel);
                 owner.sendPacket(PacketCreator.cancelBuff(list));
-                owner.getMap().broadcastMessage(owner, PacketCreator.cancelForeignBuff(owner.getId(), list), false);
+                owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.cancelForeignBuff(owner.getId(), list), false);
             }
         }
     }

@@ -55,7 +55,7 @@ public final class DamageSummonHandler extends AbstractPacketHandler {
             if (summon.getHP() <= 0) {
                 player.cancelEffectFromBuffStat(EffectType.PUPPET);
             }
-            player.getMap().broadcastMessage(player, PacketCreator.damageSummon(player.getId(), oid, damage, monsterIdFrom), summon.getPosition());
+            player.getMap().broadcastMessage(player.ref(), PacketCreator.damageSummon(player.getId(), oid, damage, monsterIdFrom), summon.getPosition());
         }
     }
 }

@@ -21,6 +21,7 @@
  */
 package org.gms.server;
 
+import org.gms.client.character.CharacterRef;
 import org.gms.client.EffectType;
 import org.gms.client.character.Character;
 import org.gms.client.Disease;
@@ -899,12 +900,12 @@ public class BuffEffectData {
     }
 
     public boolean applyEchoOfHero(Character applyfrom) {
-        Map<Integer, Character> mapPlayers = applyfrom.getMap().getMapPlayers();
+        Map<Integer, CharacterRef> mapPlayers = applyfrom.getMap().getMapPlayers();
         mapPlayers.remove(applyfrom.getId());
 
         boolean hwResult = applyTo(applyfrom);
-        for (Character chr : mapPlayers.values()) {    // Echo of Hero not buffing players in the map detected thanks to Masterrulax
-            applyTo(applyfrom, chr, false, null, false, 1);
+        for (CharacterRef chr : mapPlayers.values()) {    // Echo of Hero not buffing players in the map detected thanks to Masterrulax
+            applyTo(applyfrom, chr.unref(), false, null, false, 1);
         }
 
         return hwResult;
@@ -1116,7 +1117,7 @@ public class BuffEffectData {
                 } else {
                     int amount = opposition.getMembers().size();
                     int randd = (int) Math.floor(Math.random() * amount);
-                    Character chrApp = applyfrom.getMap().getCharacterById(opposition.getMemberByPos(randd).getId());
+                    Character chrApp = applyfrom.getMap().getCharacterById(opposition.getMemberByPos(randd).getId()).unref();
                     if (chrApp != null && chrApp.getMap().isCPQMap()) {
                         if (dis == null) {
                             chrApp.dispel();
@@ -1137,7 +1138,8 @@ public class BuffEffectData {
             Disease dis = Disease.getBySkill(mobSkillType);
 
             if (target > 0) {
-                for (Character chr : applyto.getMap().getAllPlayers()) {
+                for (CharacterRef chrRef : applyto.getMap().getAllPlayers()) {
+                    Character chr = chrRef.unref();
                     if (chr.getId() != applyto.getId()) {
                         chr.giveDebuff(dis, ms);
                     }

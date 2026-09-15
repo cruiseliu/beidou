@@ -24,6 +24,7 @@
 package org.gms.client.command.commands.gm3;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
 import org.gms.util.I18nUtil;
@@ -37,7 +38,8 @@ public class InMapCommand extends Command {
     public void execute(Client c, String[] params) {
         Character player = c.getPlayer();
         StringBuilder st = new StringBuilder();
-        for (Character chr : player.getMap().getCharacters()) {
+        for (CharacterRef crr : player.getMap().getCharacters()) {
+            Character chr = crr.unref();
             st.append(chr.getName()).append(" , ");
         }
         player.message(st.toString());

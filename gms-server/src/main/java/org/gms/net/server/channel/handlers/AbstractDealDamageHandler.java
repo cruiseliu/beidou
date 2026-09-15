@@ -122,9 +122,6 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
 
     public static void applyAttack(AttackInfo attack, final Character player, int attackCount) {
         final MapleMap map = player.getMap();
-        if (map.isOwnershipRestricted(player)) {
-            return;
-        }
 
         Skill theSkill = null;
         BuffEffectData attackEffect = null;
@@ -348,7 +345,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                                         eachdf = eachd;
                                     }
 
-                                    TimerManager.getInstance().schedule(() -> map.spawnMesoDrop(Math.min((int) Math.max(((double) eachdf / (double) 20000) * (double) maxmeso, 1), maxmeso), new Point((int) (monster.getPosition().getX() + Randomizer.nextInt(100) - 50), (int) (monster.getPosition().getY())), monster, player, true, (byte) 2), delay);
+                                    TimerManager.getInstance().schedule(() -> map.spawnMesoDrop(Math.min((int) Math.max(((double) eachdf / (double) 20000) * (double) maxmeso, 1), maxmeso), new Point((int) (monster.getPosition().getX() + Randomizer.nextInt(100) - 50), (int) (monster.getPosition().getY())), monster, player.ref(), true, (byte) 2), delay);
                                     delay += 100;
                                 }
                             }
@@ -374,7 +371,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                                     List<MonsterDropEntry> toSteal = new ArrayList<>();
                                     toSteal.add(mi.retrieveDrop(monster.getId()).get(i));
 
-                                    map.dropItemsFromMonster(toSteal, player, monster);
+                                    map.dropItemsFromMonster(toSteal, player.ref(), monster);
                                     monster.addStolen(toSteal.get(0).itemId);
                                 }
                             }
@@ -499,7 +496,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                                 BuffEffectData mortal = mortalBlow.getEffect(skillLevel);
                                 if (monster.getHp() <= (monster.getStats().getHp() * mortal.getX()) / 100) {
                                     if (Randomizer.rand(1, 100) <= mortal.getY()) {
-                                        map.damageMonster(player, monster, Integer.MAX_VALUE);  // thanks Conrad for noticing reduced EXP gain from skill kill
+                                        map.damageMonster(player.ref(), monster, Integer.MAX_VALUE);  // thanks Conrad for noticing reduced EXP gain from skill kill
                                     }
                                 }
                             }
@@ -562,7 +559,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                             map.broadcastMessage(PacketCreator.damageMonster(monster.getObjectId(), totDamageToOneMonster));
                         }
 
-                        map.damageMonster(player, monster, totDamageToOneMonster);
+                        map.damageMonster(player.ref(), monster, totDamageToOneMonster);
                     }
                     if (monster.isBuffed(MonsterStatus.WEAPON_REFLECT) && !attack.magic) {
                         for (MobSkillId msId : monster.getSkills()) {
@@ -628,11 +625,11 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
         if (animationTime > 0) { // be sure to only use LIMITED ATTACKS with animation time here
             TimerManager.getInstance().schedule(() -> {
                 map.broadcastMessage(PacketCreator.damageMonster(monster.getObjectId(), damage), monster.getPosition());
-                map.damageMonster(attacker, monster, damage);
+                map.damageMonster(attacker.ref(), monster, damage);
             }, animationTime);
         } else {
             map.broadcastMessage(PacketCreator.damageMonster(monster.getObjectId(), damage), monster.getPosition());
-            map.damageMonster(attacker, monster, damage);
+            map.damageMonster(attacker.ref(), monster, damage);
         }
     }
 

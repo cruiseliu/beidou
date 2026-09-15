@@ -21,6 +21,7 @@
 /*
    @Author: Ronan
 */
+/*
 package org.gms.client.command.commands.gm0;
 
 import org.gms.client.character.Character;
@@ -75,3 +76,4 @@ public class MapOwnerClaimCommand extends Command {
         }
     }
 }
+*/

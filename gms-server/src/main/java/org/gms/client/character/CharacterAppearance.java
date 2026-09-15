@@ -64,7 +64,7 @@ class CharacterAppearance {
         // Client allows changing every 2 seconds. Give it a little bit of overhead for packet delays.
         if (timeNow - lastExpression > 1500) {
             lastExpression = timeNow;
-            owner.getMap().broadcastMessage(owner, PacketCreator.facialExpression(owner, emote), false);
+            owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.facialExpression(owner, emote), false);
         }
     }
 }

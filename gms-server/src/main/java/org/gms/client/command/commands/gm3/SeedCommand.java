@@ -50,7 +50,7 @@ public class SeedCommand extends Command {
                 ItemId.BLUE_PRIMROSE_SEED, ItemId.YELLOW_PRIMROSE_SEED, ItemId.BROWN_PRIMROSE_SEED};
         for (int i = 0; i < pos.length; i++) {
             ItemSlot item = new ItemSlot(seed[i], (byte) 0, (short) 1);
-            player.getMap().spawnItemDrop(player, player, item, pos[i], false, true);
+            player.getMap().spawnItemDrop(player, player.ref(), item, pos[i], false, true);
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {

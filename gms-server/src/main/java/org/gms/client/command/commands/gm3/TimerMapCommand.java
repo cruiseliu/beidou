@@ -24,6 +24,7 @@
 package org.gms.client.command.commands.gm3;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
 import org.gms.util.I18nUtil;
@@ -43,13 +44,15 @@ public class TimerMapCommand extends Command {
         }
 
         if (params[0].equalsIgnoreCase("remove") || "移除".equals(params[0])) {
-            for (Character victim : player.getMap().getCharacters()) {
+            for (CharacterRef vcrr : player.getMap().getCharacters()) {
+                Character victim = vcrr.unref();
                 victim.sendPacket(PacketCreator.removeClock());
             }
         } else {
             try {
                 int seconds = Integer.parseInt(params[0]);
-                for (Character victim : player.getMap().getCharacters()) {
+                for (CharacterRef vcrr : player.getMap().getCharacters()) {
+                    Character victim = vcrr.unref();
                     victim.sendPacket(PacketCreator.getClock(seconds));
                 }
             } catch (NumberFormatException e) {

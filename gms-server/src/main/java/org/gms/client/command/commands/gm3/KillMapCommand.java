@@ -24,6 +24,7 @@
 package org.gms.client.command.commands.gm3;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
 import org.gms.util.I18nUtil;
@@ -36,7 +37,8 @@ public class KillMapCommand extends Command {
     @Override
     public void execute(Client c, String[] params) {
         Character player = c.getPlayer();
-        for (Character mch : player.getMap().getCharacters()) {
+        for (CharacterRef mcrr : player.getMap().getCharacters()) {
+            Character mch = mcrr.unref();
             mch.updateHp(0);
         }
     }

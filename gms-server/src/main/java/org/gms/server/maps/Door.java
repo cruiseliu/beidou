@@ -22,6 +22,7 @@
 package org.gms.server.maps;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.config.GameConfig;
 import org.gms.net.server.services.task.channel.OverallService;
 import org.gms.net.server.services.type.ChannelServices;
@@ -95,18 +96,20 @@ public class Door {
         MapleMap target = this.getTarget();
         MapleMap town = this.getTown();
 
-        Collection<Character> targetChars = target.getCharacters();
-        Collection<Character> townChars = town.getCharacters();
+        Collection<CharacterRef> targetChars = target.getCharacters();
+        Collection<CharacterRef> townChars = town.getCharacters();
 
         target.removeMapObject(areaDoor);
         town.removeMapObject(townDoor);
 
-        for (Character chr : targetChars) {
+        for (CharacterRef chrR : targetChars) {
+            Character chr = chrR.unref();
             areaDoor.sendDestroyData(chr.getClient());
             chr.removeVisibleMapObject(areaDoor);
         }
 
-        for (Character chr : townChars) {
+        for (CharacterRef chrR : townChars) {
+            Character chr = chrR.unref();
             townDoor.sendDestroyData(chr.getClient());
             chr.removeVisibleMapObject(townDoor);
         }
@@ -114,7 +117,8 @@ public class Door {
         owner.removePartyDoor(false);
 
         if (this.getTownPortal().getId() == 0x80) {
-            for (Character chr : townChars) {
+            for (CharacterRef chrR : townChars) {
+                Character chr = chrR.unref();
                 Door door = chr.getMainTownDoor();
                 if (door != null) {
                     townDoor.sendSpawnData(chr.getClient());

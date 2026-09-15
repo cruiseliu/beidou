@@ -111,7 +111,7 @@ public class DebugCommand extends Command {
                 break;
 
             case "mobsp":
-                player.getMap().reportMonsterSpawnPoints(player);
+                player.getMap().reportMonsterSpawnPoints(player.ref());
                 break;
 
             case "event":

@@ -56,6 +56,11 @@ final class DummyClient extends RemoteClientBase implements RemoteClient,
     }
 
     @Override
+    public void updateMacros(org.gms.client.SkillMacro[] macros) {
+        // 无连接：静默
+    }
+
+    @Override
     public BasicModule basic() {
         return this;
     }

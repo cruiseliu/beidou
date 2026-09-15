@@ -71,14 +71,14 @@ class CharacterGm {
                 this.hidden = false;
                 owner.sendPacket(PacketCreator.getGMEffect(0x10, (byte) 0));
                 List<EffectType> dsstat = Collections.singletonList(EffectType.DARKSIGHT);
-                owner.getMap().broadcastGMMessage(owner, PacketCreator.cancelForeignBuff(owner.getId(), dsstat), false);
-                owner.getMap().broadcastSpawnPlayerMapObjectMessage(owner, owner, false);
+                owner.getMapRef().broadcastGMMessage(owner.ref(), PacketCreator.cancelForeignBuff(owner.getId(), dsstat), false);
+                owner.getMapRef().broadcastSpawnPlayerMapObjectMessage(owner.ref(), owner.ref(), false);
 
                 for (Summon ms : owner.getSummonsValues()) {
-                    owner.getMap().broadcastNONGMMessage(owner, PacketCreator.spawnSummon(ms, false), false);
+                    owner.getMapRef().broadcastNONGMMessage(owner.ref(), PacketCreator.spawnSummon(ms, false), false);
                 }
 
-                for (MapObject mo : owner.getMap().getMonsters()) {
+                for (MapObject mo : owner.getMapRef().getMonsters()) {
                     Monster m = (Monster) mo;
                     m.aggroUpdateController();
                 }
@@ -86,10 +86,10 @@ class CharacterGm {
                 this.hidden = true;
                 owner.sendPacket(PacketCreator.getGMEffect(0x10, (byte) 1));
                 if (!login) {
-                    owner.getMap().broadcastNONGMMessage(owner, PacketCreator.removePlayerFromMap(owner.getId()), false);
+                    owner.getMapRef().broadcastNONGMMessage(owner.ref(), PacketCreator.removePlayerFromMap(owner.getId()), false);
                 }
                 List<Pair<EffectType, Integer>> ldsstat = Collections.singletonList(new Pair<EffectType, Integer>(EffectType.DARKSIGHT, 0));
-                owner.getMap().broadcastGMMessage(owner, PacketCreator.giveForeignBuff(owner.getId(), ldsstat), false);
+                owner.getMapRef().broadcastGMMessage(owner.ref(), PacketCreator.giveForeignBuff(owner.getId(), ldsstat), false);
                 owner.releaseControlledMonsters();
             }
             owner.enableActions();

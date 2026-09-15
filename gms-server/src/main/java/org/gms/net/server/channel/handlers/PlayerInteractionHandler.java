@@ -300,7 +300,7 @@ public final class PlayerInteractionHandler extends AbstractPacketHandler {
                 }
             } else if (mode == Action.INVITE.getCode()) {
                 int otherCid = p.readInt();
-                Character other = chr.getMap().getCharacterById(otherCid);
+                Character other = chr.getMap().getCharacterById(otherCid).unref();
                 if (other == null || chr.getId() == other.getId()) {
                     return;
                 }
