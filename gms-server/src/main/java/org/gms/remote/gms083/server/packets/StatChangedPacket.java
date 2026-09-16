@@ -49,6 +49,11 @@ public record StatChangedPacket(boolean unlockActions, Body body) implements V83
         return new StatChangedPacket(unlockActions, new Body.PetIds(petIds));
     }
 
+    /** 纯 unlock 回包形态（空 mask + unlock 位；收包路径的协议应答直发用，字节 = of(true, [], null)）。 */
+    public static StatChangedPacket unlock() {
+        return of(true, List.of(), null);
+    }
+
     @Override
     public SendOpcode opcode() {
         return SendOpcode.STAT_CHANGED;

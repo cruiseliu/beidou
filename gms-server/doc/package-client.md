@@ -60,7 +60,10 @@
   ClientEvent（no-peek，不读角色数据），返回 null = echo 形态（服务端只回应不消费语义，
   NPC_ACTION 首例，回发副作用在 beforeEmit）；`beforeEmit`/`afterEmit` 为副作用钩子
   （副作用可依赖 packet 内容与翻译结果；unlock 类回包在 afterEmit——dispatch 同步执行完
-  gameplay 后调用，时序与历史 handler→unlock 一致）。
+  gameplay 后调用，时序与历史 handler→unlock 一致——并以版本包直发
+  （`StatChangedPacket.unlock()`，版本 send 路径），不经语义接口：协议应答不走 gameplay
+  语义；gameplay 发起的 unlock 仍走 `basic().unlockActions()` 事件路径，与同事务属性
+  变更合并进同一 STAT_CHANGED）。
   **事件归属与产出方解耦**：`ClientEvent.module()` 由事件自报归属域，dispatcher 按 module
   查 `ClientEventReceiver`（每模块一个 XxxInbound，只解包直调本域 Handler；装配期重复
   注册 fail-fast，未装配 module 收到事件 log error）——router 产出的事件落哪个域与 router
