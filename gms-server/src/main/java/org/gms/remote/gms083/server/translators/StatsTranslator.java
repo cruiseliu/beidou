@@ -114,7 +114,7 @@ public final class StatsTranslator implements ServerTranslator {
         if (exp != null) {
             entries.add(new StatChangedPacket.StatEntry(MASK_EXP, Math.toIntExact(exp)));
         }
-        if (entries.isEmpty() && spBucketsUnused(spTable)) {
+        if (entries.isEmpty() && !unlockActions && spBucketsUnused(spTable)) {
             return List.of();   // 全空且无 unlockActions：不发包
         }
         var spBuckets = spTable && sp != null

@@ -50,5 +50,8 @@ public abstract class MapModule extends AbstractModule {
 
         /** 切图完成确认语义入口（PLAYER_MAP_TRANSFER；player 侧标志/beacon + map 域 mob 视图重建）。 */
         void mapTransition();
+
+        /** 脚本传送门入口（CHANGE_MAP_SPECIAL；门校验与门脚本执行归 gameplay 地图域）。 */
+        void enterPortal(String portalName);
     }
 }

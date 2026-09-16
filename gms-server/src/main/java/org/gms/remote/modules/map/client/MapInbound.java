@@ -26,6 +26,7 @@ public final class MapInbound implements ClientEventReceiver {
             case MovePlayerEvent(var elements) -> player.clientEventHandlers().map().movePlayer(elements);
             case MoveLife life -> player.clientEventHandlers().map().moveLife(life);
             case MapTransitionEvent e -> player.clientEventHandlers().map().mapTransition();
+            case EnterPortalEvent(var portalName) -> player.clientEventHandlers().map().enterPortal(portalName);
             default -> log.error("MapInbound 收到非本模块事件 {}", event.getClass().getName());
         }
     }

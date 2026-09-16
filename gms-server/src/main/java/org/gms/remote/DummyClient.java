@@ -4,6 +4,7 @@ import org.gms.net.PacketHandler;
 import org.gms.remote.modules.basic.BasicModule;
 import org.gms.remote.modules.inventory.InventoryModule;
 import org.gms.remote.modules.map.client.MapModule;
+import org.gms.remote.modules.message.MessageModule;
 import org.gms.remote.modules.npc.client.NpcModule;
 import org.gms.remote.modules.pet.PetModule;
 import org.gms.remote.modules.skills.SkillsModule;
@@ -60,6 +61,12 @@ final class DummyClient extends RemoteClientBase implements RemoteClient {
         }
     };
 
+    private final MessageModule message = new MessageModule() {
+        @Override
+        protected void emit(ServerEventBase event) {
+        }
+    };
+
     private DummyClient() {
     }
 
@@ -109,5 +116,10 @@ final class DummyClient extends RemoteClientBase implements RemoteClient {
     @Override
     public NpcModule npc() {
         return npc;
+    }
+
+    @Override
+    public MessageModule message() {
+        return message;
     }
 }

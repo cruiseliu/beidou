@@ -3,6 +3,7 @@ package org.gms.remote;
 import org.gms.remote.modules.basic.BasicModule;
 import org.gms.remote.modules.inventory.InventoryModule;
 import org.gms.remote.modules.map.client.MapModule;
+import org.gms.remote.modules.message.MessageModule;
 import org.gms.remote.modules.npc.client.NpcModule;
 import org.gms.remote.modules.pet.PetModule;
 import org.gms.remote.modules.skills.SkillsModule;
@@ -30,6 +31,8 @@ public interface RemoteClient {
     MapModule map();
 
     NpcModule npc();
+
+    MessageModule message();
 
     /**
      * 开启合并域：try-with-resources 使用，close 即统一发送（机器在基类；世界域

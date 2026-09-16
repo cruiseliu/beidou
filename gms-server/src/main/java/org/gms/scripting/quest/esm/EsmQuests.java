@@ -9,7 +9,7 @@ import java.nio.file.Path;
 /**
  * ESM 任务脚本接入点（doc/13）：按脚本文件存在性分流——
  * <ul>
- *   <li>{@code scripts/quest/esm/<id>.mjs} 存在 → ESM 新系统（player actor context，
+ *   <li>{@code actorscripts/quest/esm/<id>.mjs} 存在 → ESM 新系统（player actor context，
  *       NextLevel 之前的重放模型：模块级 status 状态机 + more 重入）；</li>
  *   <li>不存在 → 旧 QuestScriptManager 路径（并行共存，互不影响）。</li>
  * </ul>
@@ -28,7 +28,7 @@ public final class EsmQuests {
 
     /** ESM 脚本是否存在（分流探测；文件级判断，不触发 eval）。 */
     public static boolean exists(int questId) {
-        return Files.exists(Path.of("scripts", scriptPath(questId)));
+        return Files.exists(Path.of("actorscripts", scriptPath(questId)));
     }
 
     /**

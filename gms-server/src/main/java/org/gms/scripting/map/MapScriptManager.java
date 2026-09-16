@@ -46,6 +46,11 @@ public class MapScriptManager extends AbstractScriptManager {
         scripts.clear();
     }
 
+    /** 无脚本围栏用（CharacterMap.enterMap）：脚本文件是否可解析（不经缓存、不执行） */
+    public boolean hasScript(String mapScriptPath) {
+        return getInvocableScriptEngine("map/" + mapScriptPath + ".js") != null;
+    }
+
     public boolean runMapScript(Character chr, String mapScriptPath, boolean firstUser) {
         final Client c = chr.getClient();   // 脚本上下文传输；角色由调用方显式携带（不从 Client 反查）
         if (firstUser) {

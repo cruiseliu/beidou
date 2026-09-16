@@ -17,6 +17,7 @@ import org.gms.server.BuffEffectData;
 import org.gms.server.TimerManager;
 import org.gms.server.Trade;
 import org.gms.infra.Strand;
+import org.gms.scripting.JsModule;
 import org.gms.server.maps.Dragon;
 import org.gms.server.maps.FieldLimit;
 import org.gms.server.maps.MapleMapRef;
@@ -127,6 +128,63 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
 
         final MapleMapRef map = this.map;
         map.onTransitionMobView(owner.ref(), owner.getClient());
+    }
+
+    /**
+     * 脚本传送门入口（player strand 上执行）：门存在性/进入冷却/屏蔽名单/换图态/封禁
+     * 五重校验（拒绝路径回 enableActions 解锁客户端），在途交易随换图取消，最后交门脚本
+     * 执行（enterPortal）。语义主体自 ChangeMapSpecialHandler verbatim 迁移。
+     */
+    @Override
+    public void enterPortal(String portalName) {
+        Portal portal = map.getPortal(portalName);
+        if (portal == null || owner.portalDelay() > Server.getInstance().getCurrentTime() || owner.getBlockedPortals().contains(portal.getScriptName())) {
+            log.warn("走传送门拒绝(SPECIAL): 玩家 {} 地图 {} 传送门 {} 原因: {}", owner.getName(), owner.getMapId(), portalName,
+                    portal == null ? "传送门不存在" : (owner.portalDelay() > Server.getInstance().getCurrentTime() ? "冷却中" : "被屏蔽"));
+            owner.remote().basic().unlockActions();
+            return;
+        }
+        if (owner.isChangingMaps() || owner.isBanned()) {
+            owner.remote().basic().unlockActions();
+            return;
+        }
+        if (owner.getTrade() != null) {
+            Trade.cancelTrade(owner, Trade.TradeResult.UNSUCCESSFUL_ANOTHER_MAP);
+        }
+        String scriptName = portal.getScriptName();
+        if (scriptName != null) {
+            // FIXME(onlyOnce): WZ onlyOnce=1 的脚本门一次性触发是服务端职责，且需持久化
+            //  （跨重登/重进图仍有效）——现状仅靠客户端自拦，服务端对重入无仲裁（会重复
+            //  执行脚本/重发演出）。接入时按 script+mapid 走 Character.enteredScript 式
+            //  持久化记账，命中即视为无脚本门（unlock 兜底）后放行。
+            // 脚本门：ESM 桥——actorscripts/map/<mapid>.js 按 WZ portal script 名同名导出，
+            // 返回 true = 门已处理（演出/warp 由脚本语义决定）；无模块/无导出/脚本失败 =
+            // 无脚本门（unlock 兜底，对齐旧 GenericPortal enableActions 语义）。
+            if (!runPortalScript(scriptName)) {
+                owner.remote().basic().unlockActions();
+            }
+            return;
+        }
+        portal.enterPortal(owner.getClient());
+    }
+
+    /** portal 脚本桥：脚本执行归 player 域（moduleFor/call 经 ScriptRunner 串行进 context）。 */
+    private boolean runPortalScript(String scriptName) {
+        JsModule module;
+        try {
+            module = owner.getScriptRunner().moduleFor("map/" + map.statics().mapid() + ".js");
+        } catch (RuntimeException e) {
+            return false;   // 模块缺失 = 无脚本门
+        }
+        if (module.get(scriptName) == null) {
+            return false;   // 无同名导出 = 无脚本门
+        }
+        try {
+            return Boolean.TRUE.equals(module.call(scriptName));
+        } catch (RuntimeException e) {
+            log.warn("portal 脚本执行失败: map={} script={}", map.statics().mapid(), scriptName, e);
+            return false;   // 对齐旧 PortalScriptManager 吞异常 → enableActions 语义
+        }
     }
 
     /**
@@ -545,13 +603,12 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
             wserv.removePlayerHpDecrease(chr);
         }
 
-        // FIXME(脚本桥): 进图脚本暂不执行（现测试场景无 map script）。恢复时脚本执行归 player 域、
-        //  触发归 map 域（反向 post 通道），不得以 player strand 直调 ref 参数化 API 的旧形态回归。
+        // FIXME(脚本桥): 进图脚本暂不执行——围栏断言已按裁定关闭：遇脚本地图静默跳过
+        //  （explorationPoint / onFirstUserEnter 等行为缺口待 map 脚本桥排期）。恢复时脚本
+        //  执行归 player 域、触发归 map 域（反向 post 通道）。
         // MapScriptManager msm = MapScriptManager.getInstance();
-        // if (firstEnter) {
-        //     if (st.onFirstUserEnter().length() != 0) {
-        //         msm.runMapScript(chr, "onFirstUserEnter/" + st.onFirstUserEnter(), true);
-        //     }
+        // if (firstEnter && st.onFirstUserEnter().length() != 0) {
+        //     msm.runMapScript(chr, "onFirstUserEnter/" + st.onFirstUserEnter(), true);
         // }
         if (st.onUserEnter().length() != 0) {
             if (st.onUserEnter().equals("cygnusTest") && !MapId.isCygnusIntro(st.mapid())) {

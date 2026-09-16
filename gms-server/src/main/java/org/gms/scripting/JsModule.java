@@ -17,7 +17,7 @@ import java.util.Map;
  *
  * <p>对应 ESM 语义：
  * <pre>
- * JsModule m = runner.moduleFor("item/pet.js");  // import * as m from "scripts/item/pet.js"
+ * JsModule m = runner.moduleFor("item/pet.js");  // import * as m from "actorscripts/item/pet.js"
  * Object fn  = m.get("onEnterInventory");        // import { onEnterInventory } from ...
  * Object r   = m.call("add", 1, 2);              // 取导出函数并调用
  * </pre>
@@ -31,7 +31,8 @@ import java.util.Map;
  */
 public final class JsModule {
 
-    private static final String SCRIPT_DIRECTORY = "scripts";
+    /** ESM 脚本根目录（新脚本系统；legacy js 系统仍在 scripts/，互不混用） */
+    private static final String SCRIPT_DIRECTORY = "actorscripts";
     private static final String MODULE_MIME_TYPE = "application/javascript+module";
 
     private final String key;
@@ -47,12 +48,12 @@ public final class JsModule {
                         .build());
     }
 
-    /** 规范化缓存键：统一为相对 scripts/ 的路径（"lib/add.js"），并做越界校验。 */
+    /** 规范化缓存键：统一为相对 actorscripts/ 的路径（"lib/add.js"），并做越界校验。 */
     public static String normalizeKey(String path) {
         Path base = Path.of(SCRIPT_DIRECTORY);
         Path resolved = base.resolve(path).normalize();
         if (!resolved.startsWith(base)) {
-            throw new IllegalArgumentException("JS module path escapes scripts/ dir: " + path);
+            throw new IllegalArgumentException("JS module path escapes actorscripts/ dir: " + path);
         }
         if (!Files.exists(resolved)) {
             throw new IllegalArgumentException("JS module not found: " + resolved.toAbsolutePath());

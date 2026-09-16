@@ -18,6 +18,7 @@ import org.gms.client.inventory.ItemFlag;
 import org.gms.remote.modules.basic.BasicModule;
 import org.gms.remote.modules.inventory.InventoryModule;
 import org.gms.remote.modules.map.client.MapModule;
+import org.gms.remote.modules.message.MessageModule;
 import org.gms.remote.modules.npc.client.NpcModule;
 import org.gms.remote.modules.pet.PetModule;
 import org.gms.remote.RemoteClient;
@@ -181,4 +182,6 @@ public final class Gms083 extends RemoteClientBase implements RemoteClient {
     @Override public MapModule map() { return routers.map; }
 
     @Override public NpcModule npc() { return routers.npc; }
+
+    @Override public MessageModule message() { return routers.message; }
 }

@@ -26,6 +26,7 @@ import org.gms.client.Client;
 import org.gms.constants.game.GameConstants;
 import org.gms.constants.id.MapId;
 import org.gms.scripting.portal.PortalScriptManager;
+import org.gms.util.AssertUtil;
 import org.gms.util.PacketCreator;
 
 import java.awt.*;
@@ -130,16 +131,20 @@ public class GenericPortal implements Portal {
     public void enterPortal(Client c) {
         boolean changed = false;
         if (getScriptName() != null) {
-            try {
-                scriptLock.lock();
-                try {
-                    changed = PortalScriptManager.getInstance().executePortalScript(this, c);
-                } finally {
-                    scriptLock.unlock();
-                }
-            } catch (NullPointerException npe) {
-                npe.printStackTrace();
-            }
+            // FIXME(portal 脚本桥): 脚本执行暂不接——无脚本围栏：WZ/事件给门配了脚本即断言炸出，
+            //  届时再接 PortalScriptManager（脚本执行归 player 域，不得入 map actor 任务体）。
+            //  现网预期无 portal 脚本。
+            AssertUtil.isTrue(false, "portal 脚本未接桥: portal=" + getName() + " script=" + getScriptName());
+            // try {
+            //     scriptLock.lock();
+            //     try {
+            //         changed = PortalScriptManager.getInstance().executePortalScript(this, c);
+            //     } finally {
+            //         scriptLock.unlock();
+            //     }
+            // } catch (NullPointerException npe) {
+            //     npe.printStackTrace();
+            // }
         } else if (getTargetMapId() != MapId.NONE) {
             Character chr = c.getPlayer();
             if (!(chr.getChalkboard() != null && GameConstants.isFreeMarketRoom(getTargetMapId()))) {

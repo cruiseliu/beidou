@@ -19,7 +19,7 @@
 ## 1. 语义层 / 版本实现两层
 
 - **语义层**（`org.gms.remote`）面向 gameplay 逻辑，按领域分语义模块
-  （`XxxModule`：basic / stats / skills / inventory / pet / map / npc）。模块是抽象基类
+  （`XxxModule`：basic / stats / skills / inventory / pet / map / npc / message）。模块是抽象基类
   （extends `AbstractModule`）：API 方法 `final`，一律经 `post(freeze(event))` 把调用转为
   `ServerEvent`，gms083 只消费 `ServerEventBase`；禁止不分模块处理全部事件类型的超级
   class（`AbstractModule` 不出现任何具体事件类型，事件 → wire 的翻译归各域 route）。
