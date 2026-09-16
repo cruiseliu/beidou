@@ -24,7 +24,6 @@ import org.gms.server.maps.MapleMapStatic;
 import org.gms.server.maps.MapObject;
 import org.gms.server.maps.MiniDungeon;
 import org.gms.server.maps.MiniDungeonInfo;
-import org.gms.server.maps.PlayerShop;
 import org.gms.server.maps.Summon;
 import org.gms.server.maps.MapleMap;
 import org.gms.remote.modules.map.client.MoveLife;

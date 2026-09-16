@@ -2,8 +2,8 @@ package org.gms.remote.gms083.client.packets;
 
 import org.gms.exception.EmptyMovementException;
 import org.gms.net.opcodes.SendOpcode;
-import org.gms.net.packet.InPacket;
 import org.gms.remote.gms083.server.packets.V83Packet;
+import org.gms.remote.gms083.utils.ByteBufReader;
 import org.gms.remote.modules.map.client.movement.AbsoluteMove;
 import org.gms.remote.modules.map.client.movement.ChangeEquipMove;
 import org.gms.remote.modules.map.client.movement.ChairMove;
@@ -22,7 +22,8 @@ import java.util.List;
  * 严格对称——byte buffer 不跨出本类（doc/13，round-trip 逐字节）。
  *
  * <p>command 布局与历史 parseMovement/updatePosition 并集对齐（含 11 椅子、14/21 保留布局）；
- * 未识别 command 抛 {@link EmptyMovementException}（现状语义，响亮失败）。
+ * 未识别 command 在共享语法层抛 {@link EmptyMovementException}，decode 归一为 null
+ * （整包静默丢，现状语义）。
  */
 public final class MovePlayerPacket {
 
@@ -30,13 +31,17 @@ public final class MovePlayerPacket {
     }
 
     /** 解码移动包语义元素序列（纯解码，无任何对象写入）。包头 9 字节由本方法跳过（包布局归 codec）。 */
-    public static List<MoveElement> decode(InPacket p) throws EmptyMovementException {
-        p.skip(9);
-        byte numCommands = p.readByte();
-        if (numCommands < 1) {
-            throw new EmptyMovementException(p);
+    public static List<MoveElement> decode(ByteBufReader p) {
+        try {
+            p.skip(9);
+            byte numCommands = p.readByte();
+            if (numCommands < 1) {
+                throw new EmptyMovementException(p);
+            }
+            return decodeElements(p, numCommands, false);
+        } catch (EmptyMovementException e) {
+            return null;   // 空序列/未识别 command：静默丢（现状语义）
         }
-        return decodeElements(p, numCommands, false);
     }
 
     /**
@@ -45,7 +50,7 @@ public final class MovePlayerPacket {
      * 同为 9 字节，字段语义不同）。14/21 两侧都保留占位 record：updatePosition 对其
      * 无位置效果，但中继必须重放字节。
      */
-    static List<MoveElement> decodeElements(InPacket p, byte numCommands, boolean lifeGrammar) throws EmptyMovementException {
+    static List<MoveElement> decodeElements(ByteBufReader p, byte numCommands, boolean lifeGrammar) throws EmptyMovementException {
         List<MoveElement> res = new ArrayList<>(numCommands);
         for (byte i = 0; i < numCommands; i++) {
             byte command = p.readByte();

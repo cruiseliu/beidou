@@ -12,46 +12,71 @@
 
 - 管理游戏服务端与客户端之间的全部通信。
 - 目前只覆盖 **S→C 单向**（C→S 预留，命名与包结构已为之留位）。
-- 无连接/已断线时使用 `DummyClient` 的静默实现（自指实现全部模块面，调用静默）——对齐
+- 无连接/已断线时使用 `DummyClient` 的静默实现——每域一个匿名模块子类，仅重载 `emit`
+  静默抛弃（不感知任何具体模块 API，新增模块方法无需回来补 no-op）——对齐
   `Character.sendPacket` 对 `client == null` 的容忍，断线角色的语义书写安全无害。
 
 ## 1. 语义层 / 版本实现两层
 
 - **语义层**（`org.gms.remote`）面向 gameplay 逻辑，按领域分语义模块
-  （`XxxModule`：stats / skills / basic / inventory / pet；C→S 方向另有
-  map / npc）。
+  （`XxxModule`：basic / stats / skills / inventory / pet / map / npc）。模块是抽象基类
+  （extends `AbstractModule`）：API 方法 `final`，一律经 `post(freeze(event))` 把调用转为
+  `ServerEvent`，gms083 只消费 `ServerEventBase`；禁止不分模块处理全部事件类型的超级
+  class（`AbstractModule` 不出现任何具体事件类型，事件 → wire 的翻译归各域 route）。
   **不允许暴露任何版本特定行为**——wire 形态、opcode、掩码位、魔法数字、编码基元、
   显示值都是实现私事；版本 hack 有唯一居所（版本实现内），换客户端版本 = 换一个实现。
 - remote client 是 `PacketCreator` 的替代：本包**禁止引用** `PacketCreator`。
 - **命名用游戏语义，不用协议动词**：`unlockActions()`（不是 enableActions）、
   `petFoodResponse(...)`（不是某 opcode + 魔法位）。
 - **模块方法不暴露版本类型，也不暴露事件类型**：gameplay 传语义实体
-  （Character/Pet/Item）或基础类型；事件（`XxxEvent`）由版本 route 在入口包入
-  （如 `BasicModule.initialize(Character)` → route 内构造 `InitializeEvent`）。
+  （Character/Pet/Item）或基础类型；事件（`XxxEvent`）由模块基类在方法体内构造
+  （如 `BasicModule.initialize(Character)` → `post(new InitializeEvent(chr))`），
+  版本 router 不参与事件构造。
 - **语义载荷（`XxxUpdate` / `SlotChange` / 事件 record）自包含**：携带编码所需的
   全部事实，尽量避免实现层回读 `Character`。
-- **冻结纪律（peek）**：携带可变实体引用的事件在**入域时**由版本实现 peek，冻结为
-  版本自有的冻结事件——快照在入域时点抽取，翻译只读快照（翻译时机可能晚于构造，
+- **冻结纪律（统一冻结门）**：`AbstractModule.post = emit(freeze(event))`，`freeze` 是
+  全部事件入域前的唯一拦截点，默认恒等——语义层不枚举、不决策任何单个事件的冻结策略。
+  冻结时点 = 事件构造时点；携带活引用的事件由版本 route **按域统一重载 `freeze`** 做快照/
+  替换，产物为版本冻结事件——快照在入域时点抽取，翻译只读快照（翻译时机可能晚于构造，
   活引用会读到未来状态）。冻结所需的数据解析属于版本知识（例：宠物物品的数据在
-  语义层对 pet 盲，由版本实现在 freeze 时解析补齐）。
-  现存欠账：`InitializeEvent` 携带 Character 活引用，wire 事实派生在 deliver 时点
-  （BasicRouter onInitialize 处 FIXME——不完整 freeze，完整入域时快照以后再修）。
-- **无需快照的事件**：不经过冻结，原样通过，翻译按语义事件正常消费。
+  语义层对 pet 盲，由版本实现在 freeze 时解析补齐）。现存两处：`FrozenInventoryEvent`
+  （宠物槽位 PetSnap）、`FrozenInitializeEvent`（入场 SET_FIELD + 键位/快捷键/宏/自动用药
+  帧在入域时点物化）。
+- **无需快照的事件**：不经过冻结（恒等通过），翻译按语义事件正常消费。
 - **事件基类**：`ServerEventBase` 为事务段（`EventLog`）可存储记录的最高类型；
   `ServerEvent` 是其 S→C 封闭子接口（语义事件词表，版本不得伪造语义事件）；版本派生的
-  冻结事件实现 `ServerEventBase`。事件 record 与模块接口同模块树
+  冻结事件实现 `ServerEventBase`。事件 record 与模块基类同模块树
   （`modules/<域>/server`），类型名带 Event 后缀。
-- **收包（C→S，迁移中）**：管线 `shim（queued，投会话 strand）→ per-module pipeline
-  （decode 产出 GMS083 事件 → translate 拓宽为版本无关事件）→ Handler 裸参数直调 →
-  unlock（按事件类型由 pipeline 负责）`。dispatch 分模块（无中央 switch）；gameplay 不见
-  ClientEvent/unlock。no-peek：v83 各层只读包与语义接口，角色状态读取全部在 gameplay
-  Handler 实现内（例：PET_FOOD 包内无目标宠物，选宠是 gameplay 的事）。
-  GMS083 事件 record 在 `gms083/client/packets`（byte/short 版本词汇）；语义事件 record 在
-  `modules/<域>/client`（int 词汇，`ClientEvent` 封闭基接口）。
+- **收包（C→S，迁移中）**：链路 `Gms083ShimHandler（net 层按 opcode 注册，每 opcode 一实例；
+  queued 投会话 strand；InPacket → ByteBufReader，net 类型不越过 shim）→ fan-out 全部
+  InRouter（route 单开关自报是否接收，0 接收 = 装配不一致，log error）→ router 单 switch
+  选定 codec + translator → emit 模板（decode → 日志 → translate → beforeEmit → dispatch
+  → afterEmit）→ ClientEventDispatcher 按事件自报 module 查表 → XxxInbound 解包直调
+  Handler 裸参数入口`。
+  **route 单开关**：router 的 `route(RecvOpcode, ByteBufReader, Player)` 一个 switch 同时
+  完成「是否接收」（default 返回 false，不碰 reader）与「怎么处理」；strict canary 窗口
+  是 case 级知识（`AbstractInRouter.strictWindow`，机制在基类）。
+  **translator 每包一实例**（状态寿命 = 单包）：`translate` 纯映射 wire record →
+  ClientEvent（no-peek，不读角色数据），返回 null = echo 形态（服务端只回应不消费语义，
+  NPC_ACTION 首例，回发副作用在 beforeEmit）；`beforeEmit`/`afterEmit` 为副作用钩子
+  （副作用可依赖 packet 内容与翻译结果；unlock 类回包在 afterEmit——dispatch 同步执行完
+  gameplay 后调用，时序与历史 handler→unlock 一致）。
+  **事件归属与产出方解耦**：`ClientEvent.module()` 由事件自报归属域，dispatcher 按 module
+  查 `ClientEventReceiver`（每模块一个 XxxInbound，只解包直调本域 Handler；装配期重复
+  注册 fail-fast，未装配 module 收到事件 log error）——router 产出的事件落哪个域与 router
+  自身的域归属无关（例：PET_FOOD opcode 归 InventoryInRouter，产出 `UseItemEvent`
+  (inventory) → InventoryInbound）。
+  日志收口对称：发侧 `toLegacyPacket`、收侧 `emit` 模板（debug = JSON，trace = hex）。
+  gameplay 不见 ClientEvent/unlock；no-peek：v83 各层只读包与语义接口，角色状态读取全部在
+  gameplay Handler 实现内（例：PET_FOOD 包内无目标宠物，选宠是 gameplay 的事）。
+  GMS083 解码 record 在 `gms083/client/packets`（byte/short 版本词汇，`decode(ByteBufReader)`
+  与 `encode()` 对称 codec）；语义事件 record 在 `modules/<域>/client`（int 词汇，
+  `ClientEvent` 基接口 + `module()`）。读侧 `ByteBufReader` 与写侧 `ByteBufBuilder`
+  逐方法对称（charset 构造期固定，shim 按会话语言注入）。
   **Handler 槽位表 `ClientEventHandlerRegistry` 挂 Player**（actor 的收包插座，会话级寿命）：
   构造期不自注册（构造上下文无 actor 可达：autosave/charlist 装载）——角色入场绑定时经
   `Character.bindClientHandlers` 聚合接线（register 调用在各组件内，角色内部组成不外泄给
-  handler），on strand 执行；pipeline 经 `Player.current()` 环境取用（doc/12 权责语义）。
+  handler），on strand 执行；接收器经 dispatch 传入的 player 直取（doc/12 权责语义）。
 
 ## 2. 事务（合并域）
 
@@ -96,22 +121,22 @@ org.gms.remote.gms083
 ├── Gms083Translators          // translator 装配（charset 构造注入）
 ├── ServerTranslator           // translator 契约：isEmpty / flush() -> List<V83Packet>
 ├── server/
-│   ├── routers/XxxRouter      // 每语义模块一个（模块出脸 + freeze + deliver + flush）
+│   ├── routers/XxxRouter      // 每语义模块一个（extends 模块基类；emit + freeze + deliver + flush）
 │   ├── translators/XxxTranslator
 │   ├── packets/XxxPacket
 │   └── events/                // 版本派生的冻结事件（FrozenInventoryEvent）
-├── client/                    // C→S（见 §1 收包）：packets / pipelines / translate
+├── client/                    // C→S（见 §1 收包）：packets / routers（InRouter） / translate
 └── utils/ByteBufBuilder       // wire 组装器（write 系列同 OutPacket 面，charset 构造期固定）
 ```
 
 ## 5. route 层
 
 route 是语义模块与 translator 之间的 wire：每个语义模块一个 `XxxRouter`
-（`server/routers`，实现模块接口 + `ServerEventDest`，一类四职：模块出脸 + freeze +
-deliver + flush）。
+（`server/routers`，extends 模块抽象基类 + 实现 `ServerEventDest`，一类四职：emit +
+freeze + deliver + flush；模块出脸 = API → 事件已上移语义基类，route 不参与事件构造）。
 
-- route 只把模块调用构造成事件并 `client.schedule` 交付；事件去向由作用域状态决定
-  （§2），route 不感知作用域状态。
+- route 的 `emit` 一行 `client.schedule(this, event)` 接事务机器；事件去向由作用域状态
+  决定（§2），route 不感知作用域状态。
 - 对参数**不做理解、只透传**：语义调用与合并域书写共用同一批 route 单例，
   句柄（`Handle`）不参与路由。
 - deliver 内的事件 → translator 分派（多对多下沉，如 PetPanel → inventoryT）在各 route；

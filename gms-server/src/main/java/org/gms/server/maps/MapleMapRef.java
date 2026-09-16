@@ -1,7 +1,6 @@
 package org.gms.server.maps;
 
 import org.gms.client.Client;
-import org.gms.client.character.Character;
 import org.gms.client.character.CharacterRef;
 import org.gms.client.pet.Pet;
 import org.gms.remote.modules.map.client.movement.MoveElement;

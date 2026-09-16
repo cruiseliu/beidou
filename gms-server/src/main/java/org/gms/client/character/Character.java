@@ -149,7 +149,7 @@ public class Character extends AbstractAnimatedMapObject {
     /** 地图域侧句柄（doc/13 反向剥离）：MapleMap 只持 ref 不持 Character——规范唯一（identity 即本角色） */
     private final CharacterRef ref = new CharacterRef(this);
     /**
-     * strict 收包管线执行窗口标志（V83RemoteClientHandler 置位/复位）：true = 本角色的
+     * strict 收包执行窗口标志（in-route strictWindow 置位/复位）：true = 本角色的
      * strict 管线正在执行，期间经 {@link CharacterRef} 直调本体即断言失败（迁移 canary，
      * doc/16 §4.1）。volatile：player strand 写、map shim 线程读。
      */

@@ -1,22 +1,38 @@
 package org.gms.remote.modules.skills;
 
 import org.gms.client.SkillMacro;
+import org.gms.remote.AbstractModule;
+import org.gms.remote.modules.skills.server.CooldownClearEvent;
+import org.gms.remote.modules.skills.server.MacrosEvent;
+import org.gms.remote.modules.skills.server.SkillEvent;
+import org.gms.remote.modules.skills.server.SkillRemoveEvent;
 import org.gms.remote.modules.skills.server.SkillUpdate;
+import org.gms.remote.modules.skills.server.SpEvent;
 import org.gms.remote.modules.skills.server.SpUpdate;
 
-/** 语义模块：域归属见类型注释；wire 组装归后端私有（多对多映射见 gms-server/doc/package-client.md §3）。 */
-/** 技能域：SP/技能等级/master/到期/移除。SP 在 v83 下由 STAT_CHANGED 后端并包。 */
-public interface SkillsModule {
-    void updateSp(SpUpdate update);
+/** 技能域（语义基类）：SP/技能等级/master/到期/移除 + 冷却清除（原 cooldown 域并入）。 */
+public abstract class SkillsModule extends AbstractModule {
 
-    void updateSkill(SkillUpdate update);
+    public final void updateSp(SpUpdate update) {
+        post(new SpEvent(update));
+    }
+
+    public final void updateSkill(SkillUpdate update) {
+        post(new SkillEvent(update));
+    }
 
     /** 客户端侧删除已获得技能 */
-    void removeSkill(int skillId);
+    public final void removeSkill(int skillId) {
+        post(new SkillRemoveEvent(skillId));
+    }
 
     /** 清除技能冷却显示（到期/重置；原 cooldown 域并入） */
-    void clearSkillCooldown(int skillId);
+    public final void clearSkillCooldown(int skillId) {
+        post(new CooldownClearEvent(skillId));
+    }
 
     /** 技能宏表重推（SP 重置清引用等运行期变更；与入图初始化同一 wire 包） */
-    void updateMacros(SkillMacro[] macros);
+    public final void updateMacros(SkillMacro[] macros) {
+        post(new MacrosEvent(macros));
+    }
 }

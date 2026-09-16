@@ -3,89 +3,73 @@ package org.gms.remote.gms083.server.routers;
 import org.gms.client.Client;
 import org.gms.client.character.Character;
 import org.gms.net.server.Server;
-import org.gms.remote.ServerEventDest;
-import org.gms.remote.modules.basic.BasicModule;
+import org.gms.remote.ServerEvent;
 import org.gms.remote.ServerEventBase;
+import org.gms.remote.ServerEventDest;
 import org.gms.remote.gms083.Gms083;
+import org.gms.remote.gms083.server.events.FrozenInitializeEvent;
+import org.gms.remote.gms083.server.packets.V83Packet;
 import org.gms.remote.gms083.server.translators.KeymapTranslator;
 import org.gms.remote.gms083.server.translators.MacrosTranslator;
 import org.gms.remote.gms083.server.translators.QuickslotTranslator;
 import org.gms.remote.gms083.server.translators.SetFieldTranslator;
-import org.gms.remote.modules.skills.server.MacrosEvent;
+import org.gms.remote.modules.basic.BasicModule;
+import org.gms.remote.modules.basic.server.InitializeEvent;
+import org.gms.remote.modules.basic.server.UnlockActionsEvent;
 import org.gms.remote.modules.basic.server.UpdateExpEvent;
 import org.gms.remote.modules.basic.server.UpdateJobEvent;
 import org.gms.remote.modules.basic.server.UpdateLevelEvent;
-import org.gms.remote.modules.basic.server.InitializeEvent;
-import org.gms.remote.modules.basic.server.UnlockActionsEvent;
+
+import java.util.List;
 
 /**
- * 基础标识域 route：出脸（updateBasic/unlockActions/initialize）+ deliver 下沉。
- * Basic/UnlockActions 骑 stats 域的 STAT_CHANGED 包型（多对多映射归本类 deliver，statsT 注入）；
- * flush 为空——unlock 标志随 statsT 冲刷统一出包。
+ * 基础标识域 route：出脸继承自 {@link BasicModule}（API → 事件在基类），本类承载统一冻结门
+ * + emit + deliver + flush。InitializeEvent（活引用档）经统一冻结门在入域时点物化为成品帧
+ * FrozenInitializeEvent——wire 事实（channel/buddyCapacity/linkedName/meso/时间）读于调用时点，
+ * 合并域内提交晚于构造不再读到未来状态。
+ * UpdateJob/Level/Exp/UnlockActions 骑 stats 域的 STAT_CHANGED 包型（多对多映射归 deliver，
+ * statsT 注入）；flush 为空——unlock 标志随 statsT 冲刷统一出包。
  */
-public final class BasicRouter implements BasicModule, ServerEventDest {
+public final class BasicRouter extends BasicModule implements ServerEventDest {
     private final Gms083 client;
 
     public BasicRouter(Gms083 client) {
         this.client = client;
     }
 
+    /** 唯一出口：接事务机器（doc/12 追记 10：无开域即时 deliver，开域入段回放） */
     @Override
-    public void updateJob(int jobId) {
-        client.schedule(this, new UpdateJobEvent(jobId));
+    protected void emit(ServerEventBase event) {
+        client.schedule(this, event);
     }
 
+    /** 统一冻结门：入场初始化帧在事件构造时点物化（其余事件恒等通过） */
     @Override
-    public void updateLevel(int level) {
-        client.schedule(this, new UpdateLevelEvent(level));
-    }
-
-    @Override
-    public void updateExp(long exp) {
-        client.schedule(this, new UpdateExpEvent(exp));
-    }
-
-    @Override
-    public void unlockActions() {
-        client.schedule(this, new UnlockActionsEvent());
-    }
-
-    /** 直发改 schedule（doc/12 追记 10）：无开域即时 deliver，开域入段回放 */
-    @Override
-    public void initialize(Character chr) {
-        client.schedule(this, new InitializeEvent(chr));
-    }
-
-    // /** 技能宏表重推：入域即浅冻结（MacrosEvent 构造期数组克隆） */
-    // @Override
-    // public void updateMacros(org.gms.client.SkillMacro[] macros) {
-    //     client.schedule(this, new MacrosEvent(macros));
-    // }
-
-    private void onInitialize(InitializeEvent event) {
-        // 不完整 freeze：chr 活引用 + wire 事实（channel/buddy/linkedName/meso/时间）在
-        // deliver 时点派生——合并域内提交晚于构造会读到未来状态。完整冻结（入域时快照）
-        // 以后再修。
-        Character chr = event.chr();
+    protected ServerEventBase freeze(ServerEvent event) {
+        if (!(event instanceof InitializeEvent init)) {
+            return event;
+        }
+        Character chr = init.chr();
         Client c = client.getLegacyClient();
-        client.send(SetFieldTranslator.setField(chr,
-                c.getChannel() - 1,
-                chr.getBuddylist().getCapacity(),
-                chr.getLinkedName(),
-                chr.getMeso(),
-                Server.getInstance().getCurrentTime()));
-        client.send(KeymapTranslator.keymap(chr.getKeymap()));
-        client.send(QuickslotTranslator.quickslot(chr.getQuickSlotKeyMapped()));
-        client.send(MacrosTranslator.macros(chr.getMacros()));
-        client.send(KeymapTranslator.autoHpPot(chr.getKeymap()));
-        client.send(KeymapTranslator.autoMpPot(chr.getKeymap()));
+        List<V83Packet> frames = List.of(
+                SetFieldTranslator.setField(chr,
+                        c.getChannel() - 1,
+                        chr.getBuddylist().getCapacity(),
+                        chr.getLinkedName(),
+                        chr.getMeso(),
+                        Server.getInstance().getCurrentTime()),
+                KeymapTranslator.keymap(chr.getKeymap()),
+                QuickslotTranslator.quickslot(chr.getQuickSlotKeyMapped()),
+                MacrosTranslator.macros(chr.getMacros()),
+                KeymapTranslator.autoHpPot(chr.getKeymap()),
+                KeymapTranslator.autoMpPot(chr.getKeymap()));
+        return new FrozenInitializeEvent(frames);
     }
 
     @Override
     public void deliver(ServerEventBase r) {
         switch (r) {
-            case InitializeEvent e -> onInitialize(e);
-            case MacrosEvent m -> client.send(MacrosTranslator.macros(m.macros()));
+            case FrozenInitializeEvent f -> f.frames().forEach(client::send);
             case UpdateJobEvent(var jobId) -> client.translators().statsT.onJob(jobId);
             case UpdateLevelEvent(var level) -> client.translators().statsT.onLevel(level);
             case UpdateExpEvent(var exp) -> client.translators().statsT.onExp(exp);

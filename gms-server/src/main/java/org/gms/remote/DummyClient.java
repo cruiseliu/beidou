@@ -1,35 +1,64 @@
 package org.gms.remote;
 
-import org.gms.client.character.Character;
-import org.gms.net.packet.Packet;
-import org.gms.client.pet.Pet;
+import org.gms.net.PacketHandler;
 import org.gms.remote.modules.basic.BasicModule;
 import org.gms.remote.modules.inventory.InventoryModule;
 import org.gms.remote.modules.map.client.MapModule;
 import org.gms.remote.modules.npc.client.NpcModule;
-import org.gms.remote.modules.map.client.movement.MoveElement;
-import org.gms.remote.modules.inventory.server.SlotChange;
 import org.gms.remote.modules.pet.PetModule;
 import org.gms.remote.modules.skills.SkillsModule;
-import org.gms.remote.modules.skills.server.SkillUpdate;
-import org.gms.remote.modules.skills.server.SpUpdate;
 import org.gms.remote.modules.stats.StatsModule;
-import org.gms.remote.modules.stats.server.StatsUpdate;
 
-import java.util.List;
-
-/** 无连接实现：全部语义调用静默容忍（对齐 Character.sendPacket 对 client==null 的行为）；
- *  模块访问器自指（本类即全部模块面），机器钩子（flushAll/dispatch）为空操作。 */
-final class DummyClient extends RemoteClientBase implements RemoteClient,
-        StatsModule,
-        SkillsModule,
-        BasicModule,
-        InventoryModule,
-        PetModule,
-        MapModule,
-        NpcModule {
+/**
+ * 无连接实现：模块访问器交付每域一个 emit 静默抛弃的匿名子类（全部语义调用静默容忍，
+ * 对齐 Character.sendPacket 对 client==null 的行为）；机器钩子（flushAll/dispatch）为空操作。
+ * DummyClient 不感知任何具体模块 API——新增模块方法无需回来补 no-op。
+ */
+final class DummyClient extends RemoteClientBase implements RemoteClient {
 
     static final DummyClient INSTANCE = new DummyClient();
+
+    private final BasicModule basic = new BasicModule() {
+        @Override
+        protected void emit(ServerEventBase event) {
+        }
+    };
+
+    private final StatsModule stats = new StatsModule() {
+        @Override
+        protected void emit(ServerEventBase event) {
+        }
+    };
+
+    private final SkillsModule skills = new SkillsModule() {
+        @Override
+        protected void emit(ServerEventBase event) {
+        }
+    };
+
+    private final InventoryModule inventory = new InventoryModule() {
+        @Override
+        protected void emit(ServerEventBase event) {
+        }
+    };
+
+    private final PetModule pet = new PetModule() {
+        @Override
+        protected void emit(ServerEventBase event) {
+        }
+    };
+
+    private final MapModule map = new MapModule() {
+        @Override
+        protected void emit(ServerEventBase event) {
+        }
+    };
+
+    private final NpcModule npc = new NpcModule() {
+        @Override
+        protected void emit(ServerEventBase event) {
+        }
+    };
 
     private DummyClient() {
     }
@@ -37,7 +66,7 @@ final class DummyClient extends RemoteClientBase implements RemoteClient,
     // ── 机器钩子：空操作 ──
 
     @Override
-    public org.gms.net.PacketHandler resolveHandler(short opcode) {
+    public PacketHandler resolveHandler(short opcode) {
         return null;
     }
 
@@ -45,150 +74,40 @@ final class DummyClient extends RemoteClientBase implements RemoteClient,
     protected void flushAll() {
     }
 
-    // ── 模块访问器：自指（本类即全部模块面，调用全部静默）──
-
-    @Override
-    public void initialize(Character chr) {
-    }
-
-    @Override
-    public void updateMacros(org.gms.client.SkillMacro[] macros) {
-    }
+    // ── 模块访问器 ──
 
     @Override
     public BasicModule basic() {
-        return this;
+        return basic;
     }
 
     @Override
     public StatsModule stats() {
-        return this;
+        return stats;
     }
 
     @Override
     public SkillsModule skills() {
-        return this;
+        return skills;
     }
 
     @Override
     public InventoryModule inventory() {
-        return this;
+        return inventory;
     }
 
     @Override
     public PetModule pet() {
-        return this;
-    }
-
-    @Override
-    public NpcModule npc() {
-        return this;
+        return pet;
     }
 
     @Override
     public MapModule map() {
-        return this;
+        return map;
     }
 
     @Override
-    public void characterMove(int charId, List<MoveElement> movements) {
-    }
-
-    @Override
-    public void ackMoveMonster(int oid, short moveid, int currentMp, boolean useSkills, int skillId, int skillLevel) {
-    }
-
-    @Override
-    public void monsterMove(org.gms.remote.modules.map.client.MonsterMove move) {
-    }
-
-    @Override
-    public void talk(int npc, String text, org.gms.remote.modules.npc.client.DialogButtons buttons, int speaker) {
-    }
-
-    @Override
-    public void showInfo(String path) {
-    }
-
-    @Override
-    public void dropMessage(int type, String message) {
-    }
-
-    // ── 模块面：全部静默 ──
-
-    @Override
-    public void updateStats(StatsUpdate update) {
-    }
-
-    @Override
-    public void updateSp(SpUpdate update) {
-    }
-
-    @Override
-    public void updateSkill(SkillUpdate update) {
-    }
-
-    @Override
-    public void removeSkill(int skillId) {
-    }
-
-    @Override
-    public void updateJob(int jobId) {
-    }
-
-    @Override
-    public void updateLevel(int level) {
-    }
-
-    @Override
-    public void updateExp(long exp) {
-    }
-
-    @Override
-    public void unlockActions() {
-    }
-
-    @Override
-    public void clearSkillCooldown(int skillId) {
-    }
-
-    @Override
-    public void updateInventory(List<SlotChange> changes) {
-    }
-
-    @Override
-    public void announceInventoryFull() {
-    }
-
-    @Override
-    public void summonPet(Pet pet, int fh) {
-    }
-
-    @Override
-    public void dismissPet(Pet pet, boolean hunger) {
-    }
-
-    @Override
-    public void expire(Pet pet) {
-    }
-
-    @Override
-    public void revive(Pet pet) {
-    }
-
-    @Override
-    public void updatePanel(Pet pet, boolean levelUp) {
-    }
-
-    @Override
-    public void updateIgnoreList(Character chr) {
-    }
-
-    @Override
-    public void petFoodResponse(Character chr, int slot, boolean enjoyed, boolean hasChatBalloon) {
-    }
-
-    @Override
-    public void petNameChange(Character chr, String newName, int slot) {
+    public NpcModule npc() {
+        return npc;
     }
 }

@@ -1,11 +1,12 @@
 package org.gms.remote.gms083.server.routers;
 
 import org.gms.client.pet.Pet;
-import org.gms.remote.ServerEventDest;
-import org.gms.remote.modules.inventory.InventoryModule;
+import org.gms.remote.ServerEvent;
 import org.gms.remote.ServerEventBase;
+import org.gms.remote.ServerEventDest;
 import org.gms.remote.gms083.Gms083;
 import org.gms.remote.gms083.server.events.FrozenInventoryEvent;
+import org.gms.remote.modules.inventory.InventoryModule;
 import org.gms.remote.modules.inventory.server.InventoryFullEvent;
 import org.gms.remote.modules.inventory.server.InventoryModsEvent;
 import org.gms.remote.modules.inventory.server.SlotChange;
@@ -16,10 +17,11 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
- * 背包域 route：出脸（updateInventory/announceInventoryFull）+ freeze/deliver/flush 下沉。
- * freeze（宠物槽位快照 PetSnap，含行缺失 desync 容忍）在此入域前完成；client 注入用于宠物解析。
+ * 背包域 route：出脸继承自 {@link InventoryModule}（API → 事件在基类），本类承载统一冻结门
+ * + emit + deliver + flush。freeze（宠物槽位快照 PetSnap，含行缺失 desync 容忍）经统一门
+ * 拦截 InventoryModsEvent 在入域时点完成；client 注入用于宠物解析。
  */
-public final class InventoryRouter implements InventoryModule, ServerEventDest {
+public final class InventoryRouter extends InventoryModule implements ServerEventDest {
 
     private static final Logger log = LoggerFactory.getLogger(InventoryRouter.class);
 
@@ -30,17 +32,16 @@ public final class InventoryRouter implements InventoryModule, ServerEventDest {
     }
 
     @Override
-    public void updateInventory(List<SlotChange> changes) {
-        client.schedule(this, freeze(changes));
+    protected void emit(ServerEventBase event) {
+        client.schedule(this, event);
     }
 
+    /** 统一冻结门：宠物槽位的 body 入域前补齐为 PetSnap 快照，翻译层只读快照（其余事件恒等通过） */
     @Override
-    public void announceInventoryFull() {
-        client.schedule(this, new InventoryFullEvent());
-    }
-
-    /** freeze 下沉：入域前解析活引用——宠物槽位的 body 补齐为 PetSnap 快照，翻译层只读快照。 */
-    private ServerEventBase freeze(List<SlotChange> changes) {
+    protected ServerEventBase freeze(ServerEvent event) {
+        if (!(event instanceof InventoryModsEvent(var changes))) {
+            return event;
+        }
         boolean hasPet = changes.stream().anyMatch(c ->
                 c instanceof SlotChange.Added a && a.item().getPetId() > -1);
         if (!hasPet) {

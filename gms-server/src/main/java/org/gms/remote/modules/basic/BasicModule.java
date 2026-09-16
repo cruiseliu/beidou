@@ -1,25 +1,41 @@
 package org.gms.remote.modules.basic;
 
 import org.gms.client.character.Character;
+import org.gms.remote.AbstractModule;
+import org.gms.remote.ServerEvent;
+import org.gms.remote.modules.basic.server.InitializeEvent;
+import org.gms.remote.modules.basic.server.UnlockActionsEvent;
+import org.gms.remote.modules.basic.server.UpdateExpEvent;
+import org.gms.remote.modules.basic.server.UpdateJobEvent;
+import org.gms.remote.modules.basic.server.UpdateLevelEvent;
 
-/** 语义模块：域归属见类型注释；wire 组装归后端私有（多对多映射见 gms-server/doc/package-client.md §3）。 */
-/** 基础标识域：jobId/level/exp 等"搭车"字段 + 动作锁（用户决策：unlockActions 归此模块，
- *  v83 编码并入 STAT_CHANGED 首字节/空包）。同段多次提交同字段后写覆盖（§2）。
- */
-public interface BasicModule {
-    /**
-     * Send all data.
-     */
-    void initialize(Character chr);
+/** 基础标识域（语义基类）：API call → ServerEvent 的转换在此，wire 归版本 deliver。 */
+public abstract class BasicModule extends AbstractModule {
 
     /** jobId 变更（转职）。 */
-    void updateJob(int jobId);
+    public final void updateJob(int jobId) {
+        post(new UpdateJobEvent(jobId));
+    }
 
     /** level 变更。 */
-    void updateLevel(int level);
+    public final void updateLevel(int level) {
+        post(new UpdateLevelEvent(level));
+    }
 
     /** exp 变更。 */
-    void updateExp(long exp);
+    public final void updateExp(long exp) {
+        post(new UpdateExpEvent(exp));
+    }
 
-    void unlockActions();
+    public final void unlockActions() {
+        post(new UnlockActionsEvent());
+    }
+
+    /**
+     * Send all data. 活引用默认不完整冻结；版本经统一冻结门物化成品帧
+     * （FrozenInitializeEvent，wire 事实入域时点抽取）。
+     */
+    public final void initialize(Character chr) {
+        post(new InitializeEvent(chr));
+    }
 }

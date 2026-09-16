@@ -4,8 +4,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.gms.exception.EmptyMovementException;
 import org.gms.net.opcodes.SendOpcode;
-import org.gms.net.packet.InPacket;
 import org.gms.remote.gms083.server.packets.V83Packet;
+import org.gms.remote.gms083.utils.ByteBufReader;
 import org.gms.remote.modules.map.client.MoveLife;
 import org.gms.remote.modules.map.client.movement.MoveElement;
 
@@ -25,28 +25,33 @@ public final class MoveLifePacket {
     /**
      * 解码语义头部 + 元素序列（纯解码；包布局归本类）。rawActivity 保留原样字节——
      * 活动/技能判定与攻击门控改写它，属 gameplay 语义，在地图域 verbatim 进行。
+     * 空序列/未识别 command → null（整包静默丢，现状语义）。
      */
-    public static MoveLife decode(InPacket p) throws EmptyMovementException {
-        int oid = p.readInt();
-        short moveid = p.readShort();
-        byte pNibbles = p.readByte();
-        byte rawActivity = p.readByte();
-        int skillId = p.readByte() & 0xff;
-        int skillLv = p.readByte() & 0xff;
-        short pOption = p.readShort();
-        p.skip(8);
-        p.readByte();   // 未知字节（历史 handler 原样消费）
-        p.readInt();    // whatever
-        short startX = p.readShort();
-        short startY = p.readShort();
-        Point startPos = new Point(startX, startY - 2);
+    public static MoveLife decode(ByteBufReader p) {
+        try {
+            int oid = p.readInt();
+            short moveid = p.readShort();
+            byte pNibbles = p.readByte();
+            byte rawActivity = p.readByte();
+            int skillId = p.readByte() & 0xff;
+            int skillLv = p.readByte() & 0xff;
+            short pOption = p.readShort();
+            p.skip(8);
+            p.readByte();   // 未知字节（历史 handler 原样消费）
+            p.readInt();    // whatever
+            short startX = p.readShort();
+            short startY = p.readShort();
+            Point startPos = new Point(startX, startY - 2);
 
-        byte numCommands = p.readByte();
-        if (numCommands < 1) {
-            throw new EmptyMovementException(p);
+            byte numCommands = p.readByte();
+            if (numCommands < 1) {
+                throw new EmptyMovementException(p);
+            }
+            List<MoveElement> elements = MovePlayerPacket.decodeElements(p, numCommands, true);
+            return new MoveLife(oid, moveid, pNibbles, rawActivity, skillId, skillLv, pOption, startPos, elements);
+        } catch (EmptyMovementException e) {
+            return null;   // 空序列/未识别 command：静默丢（现状语义）
         }
-        List<MoveElement> elements = MovePlayerPacket.decodeElements(p, numCommands, true);
-        return new MoveLife(oid, moveid, pNibbles, rawActivity, skillId, skillLv, pOption, startPos, elements);
     }
 
     /**

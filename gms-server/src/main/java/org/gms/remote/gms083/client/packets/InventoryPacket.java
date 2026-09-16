@@ -1,6 +1,6 @@
 package org.gms.remote.gms083.client.packets;
 
-import org.gms.net.packet.InPacket;
+import org.gms.remote.gms083.utils.ByteBufReader;
 
 /**
  * PET_FOOD 的 GMS083 事件（解码产物，版本词汇，byte/short 合法）。
@@ -15,7 +15,7 @@ public final class InventoryPacket {
     public record PetFood(short slot, int itemId) {
     }
 
-    public static PetFood decodePetFood(InPacket p) {
+    public static PetFood decode(ByteBufReader p) {
         p.readInt();
         short slot = p.readShort();
         int itemId = p.readInt();

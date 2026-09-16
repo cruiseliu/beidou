@@ -1,17 +1,16 @@
 package org.gms.remote.gms083.server.routers;
 
-import org.gms.remote.ServerEventDest;
-import org.gms.remote.modules.stats.StatsModule;
 import org.gms.remote.ServerEventBase;
+import org.gms.remote.ServerEventDest;
 import org.gms.remote.gms083.Gms083;
+import org.gms.remote.modules.stats.StatsModule;
 import org.gms.remote.modules.stats.server.StatsEvent;
-import org.gms.remote.modules.stats.server.StatsUpdate;
 
 /**
- * stats 域 route：出脸（updateStats）+ deliver/flush 下沉。事件收窄仅限本域
- * （owner 标记保证只收到本模块事件）。
+ * stats 域 route：出脸继承自 {@link StatsModule}（API → 事件在基类），本类承载 emit/deliver/flush。
+ * 事件收窄仅限本域（owner 标记保证只收到本模块事件）。
  */
-public final class StatsRouter implements StatsModule, ServerEventDest {
+public final class StatsRouter extends StatsModule implements ServerEventDest {
     private final Gms083 client;
 
     public StatsRouter(Gms083 client) {
@@ -19,8 +18,8 @@ public final class StatsRouter implements StatsModule, ServerEventDest {
     }
 
     @Override
-    public void updateStats(StatsUpdate update) {
-        client.schedule(this, new StatsEvent(update));
+    protected void emit(ServerEventBase event) {
+        client.schedule(this, event);
     }
 
     @Override
