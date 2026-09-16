@@ -3063,7 +3063,6 @@ public class Character extends AbstractAnimatedMapObject {
     public List<Integer> getLastVisitedMapIds() { return map.getLastVisitedMapIds(); }
     public void visitMap(MapleMap to) { map.visitMap(MapleMapRef.of(to)); }
     public boolean isChangingMaps() { return map.isChangingMaps(); }
-    public void setMapTransitionComplete() { map.setMapTransitionComplete(); }
     public MapleMapRef getMapRef() { return map.getMap(); }
     /** 地图域侧句柄（规范唯一；MapleMap 只持 ref 不持本类型） */
     public CharacterRef ref() { return ref; }

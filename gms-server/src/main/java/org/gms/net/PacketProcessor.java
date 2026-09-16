@@ -289,7 +289,7 @@ public final class PacketProcessor {
         registerHandler(RecvOpcode.ACCEPT_FAMILY, new AcceptFamilyHandler());
         registerHandler(RecvOpcode.DUEY_ACTION, new DueyHandler());
         registerHandler(RecvOpcode.USE_DEATHITEM, new UseDeathItemHandler());
-        registerHandler(RecvOpcode.PLAYER_MAP_TRANSFER, new PlayerMapTransitionHandler());
+        registerHandler(RecvOpcode.PLAYER_MAP_TRANSFER, new Gms083ShimHandler(RecvOpcode.PLAYER_MAP_TRANSFER));
         registerHandler(RecvOpcode.USE_MAPLELIFE, new UseMapleLifeHandler());
         registerHandler(RecvOpcode.USE_CATCH_ITEM, new UseCatchItemHandler());
         registerHandler(RecvOpcode.FIELD_DAMAGE_MOB, new FieldDamageMobHandler());

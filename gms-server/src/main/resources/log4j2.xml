@@ -11,7 +11,7 @@
         <property name="rolling_max">10</property>
         <property name="rolling_timeInterval">1</property>
         <property name="rolling_timeModulate">true</property>
-        <property name="console_print_level">TRACE</property>
+        <property name="console_print_level">DEBUG</property>
         <property name="file_print_level">TRACE</property>
         <property name="output_log_level">INFO</property>
     </Properties>
@@ -39,15 +39,15 @@
     </appenders>
 
     <loggers>
-        <!-- remote Í¨µÀ packet ÈÕÖ¾£ºdebug=JSON / trace=hex bytes -->
+        <!-- remote é€šé“ packet æ—¥å¿—ï¼šdebug=JSON / trace=hex bytes -->
         <Logger name="org.gms.remote" level="TRACE"/>
 
-        <!-- ½µµÍ Druid µÄÈÕÖ¾¼¶±ð -->
+        <!-- é™ä½Ž Druid çš„æ—¥å¿—çº§åˆ« -->
         <Logger name="com.alibaba.druid" level="ERROR">
             <AppenderRef ref="Console"/>
         </Logger>
 
-        <!-- ½µµÍ flyway µÄÈÕÖ¾¼¶±ð -->
+        <!-- é™ä½Ž flyway çš„æ—¥å¿—çº§åˆ« -->
         <Logger name="org.flywaydb.core.internal.command.DbMigrate" level="INFO" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>

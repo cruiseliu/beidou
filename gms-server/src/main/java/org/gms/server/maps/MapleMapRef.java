@@ -301,8 +301,18 @@ public final class MapleMapRef {
         shim.post("broadcastCharacterMove", () -> map.broadcastCharacterMove(charId, movements));
     }
 
+    /**
+     * mob 控制移动应用（player→map 通知，异步）：载荷为不可变 {@link MapleMap.MoveLifeMsg}
+     * （零 player 可变状态导航）。本方法在 player strand 上调用——shim 任务体内不得再绕回
+     * ref 方法（ref 是 player 侧句柄，任务体直调 map 本体字段）。
+     */
     public void onMoveLife(MapleMap.MoveLifeMsg msg) {
-        shim.run("onMoveLife", () -> map.onMoveLife(msg));
+        shim.post("move-life", () -> map.onMoveLife(msg));
+    }
+
+    /** 切图完成的 mob 视图重建（player→map 通知，异步；纪律同 {@link #onMoveLife}） */
+    public void onTransitionMobView(CharacterRef chr, Client c) {
+        shim.post("map-transitionMobView", () -> map.onTransitionMobView(chr, c));
     }
 
     public List<MapItem> updatePlayerItemDropsToParty(int partyid, int charid,

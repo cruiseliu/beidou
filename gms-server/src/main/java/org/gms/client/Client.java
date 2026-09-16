@@ -49,6 +49,7 @@ import org.gms.infra.Strand;
 import org.gms.remote.RemoteClient;
 import org.gms.remote.RemoteClientBase;
 import org.gms.remote.gms083.Gms083;
+import org.gms.remote.gms083.client.Gms083ShimHandler;
 import org.gms.net.server.guild.GuildCharacter;
 import org.gms.net.server.guild.GuildPackets;
 import org.gms.net.server.world.MessengerCharacter;
@@ -268,7 +269,9 @@ public class Client extends ChannelInboundHandlerAdapter {
         // 管道机制（ThreadLocal 播种/queued 排队/异常兜底）留在本类。
         final PacketHandler handler = remoteViewBase().resolveHandler(opcode);
 
-        if (GameConfig.getServerBoolean("use_debug_show_rcvd_packet") && !LoggingUtil.isIgnoredRecvPacket(opcode)) {
+        // 已被 remote client 接管的 opcode 不进本日志（收侧有 [remote-in] 统一收口）
+        if (GameConfig.getServerBoolean("use_debug_show_rcvd_packet") && !LoggingUtil.isIgnoredRecvPacket(opcode)
+                && !(handler instanceof Gms083ShimHandler)) {
             log.info("收到封包 包头ID [{}] 内容： {}", String.format("0x%02X", opcode),packet);
         }
 

@@ -47,5 +47,8 @@ public abstract class MapModule extends AbstractModule {
 
         /** mob 控制移动语义入口（MOVE_LIFE；player strand 快照过界，map 域应用）。 */
         void moveLife(MoveLife life);
+
+        /** 切图完成确认语义入口（PLAYER_MAP_TRANSFER；player 侧标志/beacon + map 域 mob 视图重建）。 */
+        void mapTransition();
     }
 }

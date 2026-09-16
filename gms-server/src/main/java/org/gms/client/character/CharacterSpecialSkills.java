@@ -25,7 +25,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * 仿照 CharacterBuffs/CharacterChair 模式：数据 + 领域逻辑内聚于此，持有 owner 反向引用，
  * Character 保留公开具名门面（handleEnergyChargeGain/handleOrbconsume/... 对外转发）。
  *
- * 边界：只承载特殊技能语义——战船血量、能量条（energyBar）、斗气珠消耗。
+ * 边界：只承载特殊技能语义——战船血量、能量条（energyBar）、斗气珠消耗、信标切图重置。
  * 依赖经 owner 门面调用（sendPacket/getMap/getSkillLevel/setBuffedValue/...）。
  */
 class CharacterSpecialSkills {
@@ -84,6 +84,24 @@ class CharacterSpecialSkills {
     void resetBattleshipHp() {
         int bshipLevel = Math.max(owner.getLevel() - 120, 0);  // thanks alex12 for noticing battleship HP issues for low-level players
         this.battleshipHp = 400 * owner.getSkillLevel(Corsair.BATTLE_SHIP) + (bshipLevel * 200);
+    }
+
+    // ── 信标 ──
+
+    /**
+     * 切图完成确认时重置 HOMING_BEACON/BULLSEYE 信标：清服务端标记并重发零目标激活帧
+     * （技能激活显示保留）——不清则客户端拿旧 oid 在新图撞号自动标记 mob
+     * （thanks Thora & Hyun for reporting）。
+     */
+    void resetHomingBeaconOnChangeMap() {
+        int beaconid = owner.getBuffSource(EffectType.HOMING_BEACON);
+        if (beaconid == -1) {
+            return;
+        }
+        owner.cancelBuffStats(EffectType.HOMING_BEACON);
+
+        final List<Pair<EffectType, Integer>> stat = Collections.singletonList(new Pair<>(EffectType.HOMING_BEACON, 0));
+        owner.sendPacket(PacketCreator.giveBuff(1, beaconid, stat));
     }
 
     // ── 能量充能 ──

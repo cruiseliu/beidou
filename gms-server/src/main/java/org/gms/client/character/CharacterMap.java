@@ -26,6 +26,7 @@ import org.gms.server.maps.MiniDungeon;
 import org.gms.server.maps.MiniDungeonInfo;
 import org.gms.server.maps.Summon;
 import org.gms.server.maps.MapleMap;
+import org.gms.remote.RemoteClient;
 import org.gms.remote.modules.map.client.MoveLife;
 import org.gms.remote.modules.map.client.movement.AbsoluteMove;
 import org.gms.remote.modules.map.client.movement.ChangeEquipMove;
@@ -107,9 +108,25 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         if (owner.isChangingMaps()) {
             return;
         }
+        final RemoteClient remote = owner.remote();   // 语义层引用快照过界（map 任务体零导航）
+        map.onMoveLife(new MapleMap.MoveLifeMsg(owner.ref(), owner.getClient(), remote, life));
+    }
+
+    /**
+     * 切图完成确认语义入口（player strand 上执行）：切图标志复位 + homing beacon 重挂
+     * → post map actor 做 mob 视图重建（revoke 控制 → destroy → respawn → 重挂 controller，
+     * 修复客户端切图后的 mob 状态显示）。历史 isHidden 门（隐藏角色不控 mob）恒 false
+     * （单机版没有 GM），分支不迁移。
+     */
+    @Override
+    public void mapTransition() {
+        mapTransitioning.set(false);
+
+        // TODO: move to skill script
+        owner.specialSkills.resetHomingBeaconOnChangeMap();
+
         final MapleMapRef map = this.map;
-        final org.gms.remote.RemoteClient remote = owner.remote();   // 语义层引用快照过界（map 任务体零导航）
-        map.post("move-life", () -> map.onMoveLife(new MapleMap.MoveLifeMsg(owner.ref(), owner.getClient(), remote, life)));
+        map.onTransitionMobView(owner.ref(), owner.getClient());
     }
 
     /**
@@ -264,13 +281,6 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
      */
     boolean isChangingMaps() {
         return this.mapTransitioning.get();
-    }
-
-    /**
-     *  设置地图转换完成
-     */
-    void setMapTransitionComplete() {
-        this.mapTransitioning.set(false);
     }
 
     // ── 换图 ──
@@ -446,7 +456,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         final MapleMapRef from = map;
         // removePlayer 缝合点（doc/13 §4）：审计过无脚本入口/无 pet 阻塞回询/无自发包；
         // 同步完成以保证同图传送时 remove 先于 add 的 destroy→spawn 包序（幽灵玩家防线）
-        from.runIn("map-removePlayer", () -> from.removePlayer(owner.ref()));
+        from.removePlayer(owner.ref());
         if (owner.getClient().getChannelServer().getPlayerStorage().getCharacterById(owner.getId()) != null) {
             map = to;
             owner.setPosition(pos);
