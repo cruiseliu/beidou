@@ -656,12 +656,12 @@ public class Character extends AbstractAnimatedMapObject {
             ref.syncStrand(ps);            // ref 投递通道同步安装（与 strandSlot 同步点一致）
         }
         setMap(c.getChannelServer().getMapFactory().getMap(getMapId()));
-        Portal portal = getMapRef().findClosestPlayerSpawnpoint(getPosition());
+        PortalStatic portal = getMapRef().statics().findClosestPlayerSpawnpoint(getPosition());
         if (portal == null) {
-            portal = getMapRef().getPortal(0);
+            portal = getMapRef().statics().portal(0);
         }
-        this.setPosition(portal.getPosition());
-        this.initialSpawnPoint = portal.getId();
+        this.setPosition(portal.position());
+        this.initialSpawnPoint = portal.id();
     }
 
     public String getMedalText() {
@@ -1843,19 +1843,19 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     public void saveLocationOnWarp() {  // suggestion to remember the map before warp command thanks to Lei
-        Portal closest = getMapRef().findClosestPortal(getPosition());
+        PortalStatic closest = getMapRef().statics().findClosestPortal(getPosition());
         int curMapid = getMapId();
 
         for (int i = 0; i < savedLocations.length; i++) {
             if (savedLocations[i] == null) {
-                savedLocations[i] = new SavedLocation(curMapid, closest != null ? closest.getId() : 0);
+                savedLocations[i] = new SavedLocation(curMapid, closest != null ? closest.id() : 0);
             }
         }
     }
 
     public void saveLocation(String type) {
-        Portal closest = getMapRef().findClosestPortal(getPosition());
-        savedLocations[SavedLocationType.fromString(type).ordinal()] = new SavedLocation(getMapId(), closest != null ? closest.getId() : 0);
+        PortalStatic closest = getMapRef().statics().findClosestPortal(getPosition());
+        savedLocations[SavedLocationType.fromString(type).ordinal()] = new SavedLocation(getMapId(), closest != null ? closest.id() : 0);
     }
 
     /**
@@ -2100,9 +2100,9 @@ public class Character extends AbstractAnimatedMapObject {
                     if (getMapRef() == null || getMapRef().getId() == MapId.CRIMSONWOOD_VALLEY_1 || getMapRef().getId() == MapId.CRIMSONWOOD_VALLEY_2) {  // reset to first spawnpoint on those maps
                         ps.setInt(12, 0);
                     } else {
-                        Portal closest = getMapRef().findClosestPlayerSpawnpoint(getPosition());
+                        PortalStatic closest = getMapRef().statics().findClosestPlayerSpawnpoint(getPosition());
                         if (closest != null) {
-                            ps.setInt(12, closest.getId());
+                            ps.setInt(12, closest.id());
                         } else {
                             ps.setInt(13, 0);
                         }
@@ -3057,9 +3057,9 @@ public class Character extends AbstractAnimatedMapObject {
     public void changeMap(int mapid, Object pt) { map.changeMap(mapid, pt); }
     public void changeMap(MapleMap to) { map.changeMap(MapleMapRef.of(to)); }
     public void changeMap(MapleMap to, int portal) { map.changeMap(MapleMapRef.of(to), portal); }
-    public void changeMap(final MapleMap target, Portal pto) { map.changeMap(MapleMapRef.of(target), pto); }
+    public void changeMap(final MapleMap target, Portal pto) { map.changeMap(MapleMapRef.of(target), PortalStatic.of(pto)); }
     public void changeMap(final MapleMap target, final Point pos) { map.changeMap(MapleMapRef.of(target), pos); }
-    public void forceChangeMap(final MapleMap target, Portal pto) { map.forceChangeMap(MapleMapRef.of(target), pto); }
+    public void forceChangeMap(final MapleMap target, Portal pto) { map.forceChangeMap(MapleMapRef.of(target), PortalStatic.of(pto)); }
     public List<Integer> getLastVisitedMapIds() { return map.getLastVisitedMapIds(); }
     public void visitMap(MapleMap to) { map.visitMap(MapleMapRef.of(to)); }
     public boolean isChangingMaps() { return map.isChangingMaps(); }

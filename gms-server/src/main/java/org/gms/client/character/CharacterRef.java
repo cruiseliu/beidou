@@ -103,8 +103,10 @@ public final class CharacterRef implements org.gms.server.maps.MapObject {
     }
 
     /**
-     * strict 管线窗口断言（迁移 canary）：窗口内经 ref 触达本体即抛 AssertionError，
-     * 由 strand/shim fail-safe 记日志（定位用，不中断服务）。
+     * strict 管线窗口断言（迁移 canary，全量）：窗口内经 ref 触达本体即抛 AssertionError，
+     * 由 strand/shim fail-safe 记日志（定位用，不中断服务）。合法的 map actor 载荷任务
+     * 不应携带/触达 CharacterRef——需要本体引用的（controller 移交等）由载荷直接携带
+     * Character（identity/移交专用，见 MapleMap.onTransitionMobView）。
      */
     private void notInStrictPipeline() {
         AssertUtil.isTrue(!chr.strictMode(), "strict 管线执行窗口内经 CharacterRef 触达本体 (cid=" + id + ")");

@@ -3026,6 +3026,35 @@ public class MapleMap {
         return portals.get(portalid);
     }
 
+    // ── portal 门禁（动态半归 map actor；player strand 经 ref 快照/意图方法访问）──
+
+    /** 脚本门门禁快照（动态三元组入域时点抽取；查无门返回 null） */
+    public PortalGateSnap portalGate(String portalName) {
+        Portal p = getPortal(portalName);
+        return p == null ? null : new PortalGateSnap(p.getScriptName(), p.getPortalStatus(), p.getPortalState());
+    }
+
+    public void setPortalStatus(String portalName, boolean open) {
+        Portal p = getPortal(portalName);
+        if (p != null) {
+            p.setPortalStatus(open);
+        }
+    }
+
+    public void setPortalState(String portalName, boolean state) {
+        Portal p = getPortal(portalName);
+        if (p != null) {
+            p.setPortalState(state);
+        }
+    }
+
+    public void setPortalScript(String portalName, String script) {
+        Portal p = getPortal(portalName);
+        if (p != null) {
+            p.setScriptName(script);
+        }
+    }
+
     public FootholdTree getFootholds() {
         return st.footholds();
     }
@@ -3248,12 +3277,16 @@ public class MapleMap {
      * 的 map 侧半段）：对视野内 mob 做 revoke 控制 → destroy → respawn → 重挂 controller，
      * 修复客户端切图后的 mob 状态显示。chr 的 player 侧状态已在 strand 读完（isHidden
      * 快照门在调用方）；mob 侧状态照旧并发语义。
+     *
+     * <p>载荷为<b>本体引用</b>（非 CharacterRef，绕开 strict canary 的 ref 触达断言）：
+     * 仅用于 controller 的 identity 比较/移交，任何 player 状态导航都是违规（审计面仅此方法）。
      */
-    public void onTransitionMobView(CharacterRef chr, Client c) {
+    public void onTransitionMobView(Character chr, Client c) {
         for (MapObject mo : getMonsters()) {    // thanks BHB, IxianMace, Jefe for noticing several issues regarding mob statuses (such as freeze)
             Monster m = (Monster) mo;
             if (m.getSpawnEffect() == 0 || m.getHp() < m.getMaxHp()) {     // avoid effect-spawning mobs
-                if (m.getController() == chr.unref()) {
+                Character controller = m.getController();
+                if (controller != null && controller.getId() == chr.getId()) {   // identity = id（跨实例稳健；引用 == 会误判重连后的新旧实例）
                     c.sendPacket(PacketCreator.stopControllingMonster(m.getObjectId()));
                     m.sendDestroyData(c);
                     m.aggroRemoveController();
@@ -3261,7 +3294,7 @@ public class MapleMap {
                     m.sendDestroyData(c);
                 }
                 m.sendSpawnData(c);
-                m.aggroSwitchController(chr.unref(), false);
+                m.aggroSwitchController(chr, false);
             }
         }
     }

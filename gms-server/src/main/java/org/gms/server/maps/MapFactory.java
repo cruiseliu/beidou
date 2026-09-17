@@ -41,8 +41,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -302,6 +304,19 @@ public class MapFactory {
         }
 
         stb.backgroundTypes(backTypes);
+
+        // —— portal 静态半（冻结前入 Builder；门禁动态半仍走下方 addPortal 装载）——
+        Map<String, PortalStatic> portalsByName = new LinkedHashMap<>();
+        Map<Integer, PortalStatic> portalsById = new LinkedHashMap<>();
+        Data portalData = mapData.getChildByPath("portal");
+        if (portalData != null) {
+            for (Data portal : portalData) {
+                PortalStatic ps = PortalStatic.of(Integer.parseInt(portal.getName()), portal);
+                portalsByName.put(ps.name(), ps);
+                portalsById.put(ps.id(), ps);
+            }
+        }
+        stb.portals(portalsByName, portalsById);
 
         // —— 实例构造（静态已冻结；build() 内含 xLimits 落点边界计算）——
         MapleMap map = new MapleMap(stb.build());

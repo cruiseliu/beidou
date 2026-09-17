@@ -1,12 +1,15 @@
 package org.gms.server.maps;
 
 import org.gms.client.Client;
+import org.gms.client.character.Character;
+import org.gms.client.Player;
 import org.gms.client.character.CharacterRef;
 import org.gms.client.pet.Pet;
 import org.gms.remote.modules.map.client.movement.MoveElement;
 import org.gms.infra.ActorShim;
 import org.gms.net.packet.Packet;
 import org.gms.net.server.world.Party;
+import org.gms.util.AssertUtil;
 
 import org.gms.scripting.event.EventInstanceManager;
 import org.gms.server.partyquest.MonsterCarnival;
@@ -61,7 +64,19 @@ public final class MapleMapRef {
 
     /** 还原 map 本体（legacy 外部门面用；阶段二外部迁 ref 后收口） */
     public MapleMap unwrap() {
+        assertNotInStrictPipeline("unwrap");
         return map;
+    }
+
+    /**
+     * 直调守卫（迁移 canary，与 {@link org.gms.client.character.CharacterRef} 同罪口径）：
+     * 本组方法绕过 shim 直触 map 本体，strict 收包执行窗口内调用即抛 AssertionError，
+     * 由 strand/shim fail-safe 记日志（定位用，不中断服务）。statics() 豁免（不可变读）。
+     */
+    private void assertNotInStrictPipeline(String what) {
+        Player player = Player.current();
+        AssertUtil.isTrue(player == null || !player.character().strictMode(),
+                "strict 管线执行窗口内经 MapleMapRef 直调 map 本体: " + what + " (map=" + map.getId() + ")");
     }
 
     /**
@@ -91,24 +106,24 @@ public final class MapleMapRef {
         return shim.supply("getId", map::getId);
     }
 
-    public Portal getPortal(String portalname) {
-        return shim.supply("getPortal", () -> map.getPortal(portalname));
+    /** 脚本门门禁快照（动态三元组入域时点抽取；查无门返回 null） */
+    public PortalGateSnap portalGate(String portalName) {
+        return shim.supply("portalGate", () -> map.portalGate(portalName));
     }
 
-    public Portal getPortal(int portalid) {
-        return shim.supply("getPortal", () -> map.getPortal(portalid));
+    /** 脚本门开启位（事件脚本/Monitor 写入） */
+    public void setPortalStatus(String portalName, boolean open) {
+        shim.run("setPortalStatus", () -> map.setPortalStatus(portalName, open));
     }
 
-    public Portal getRandomPlayerSpawnpoint() {
-        return shim.supply("getRandomPlayerSpawnpoint", map::getRandomPlayerSpawnpoint);
+    /** GM 开关门 */
+    public void setPortalState(String portalName, boolean state) {
+        shim.run("setPortalState", () -> map.setPortalState(portalName, state));
     }
 
-    public Portal findClosestPortal(Point from) {
-        return shim.supply("findClosestPortal", () -> map.findClosestPortal(from));
-    }
-
-    public Portal findClosestPlayerSpawnpoint(Point from) {
-        return shim.supply("findClosestPlayerSpawnpoint", () -> map.findClosestPlayerSpawnpoint(from));
+    /** 事件脚本阶段绑定门脚本名（EventInstanceManager） */
+    public void setPortalScript(String portalName, String script) {
+        shim.run("setPortalScript", () -> map.setPortalScript(portalName, script));
     }
 
     public int getReturnMapId() {
@@ -248,27 +263,29 @@ public final class MapleMapRef {
      * 返回视野新增集（调用方回放到本体可见集，wire 无差）。
      */
     public List<MapObject> sendObjectPlacement(Client c, Point pos, int cid, Collection<Summon> ownedSummons) {
-        return map.sendObjectPlacement(c, pos, cid, ownedSummons);
+        // 入场投放（含逐对象 sendSpawnData 与陈旧 summon 清理）在 actor 内执行：supply
+        // 期间 player strand 阻塞，spawn 包与后续 strand 包天然串行（字节序不变）
+        return shim.supply("sendObjectPlacement", () -> map.sendObjectPlacement(c, pos, cid, ownedSummons));
     }
 
     /** 入场注册表登记（oid 快照）+  个人商店可空注册 */
     public void registerEnterObjects(CharacterRef chr, int oid, PlayerShop shop) {
-        map.registerEnterObjects(chr, oid, shop);
+        shim.run("registerEnterObjects", () -> map.registerEnterObjects(chr, oid, shop));
     }
 
     /** 龙投放 + 全图广播（source 仅 identity 过滤；isHidden 分支按"单机无 GM"删除） */
     public void spawnDragon(Dragon dragon, Point pos, CharacterRef source) {
-        map.spawnDragon(dragon, pos, source);
+        shim.run("spawnDragon", () -> map.spawnDragon(dragon, pos, source));
     }
 
-    /** summon 投放 + 广播（gameplay 路径，窗口外） */
+    /** summon 投放 + 广播 */
     public void spawnSummon(Summon summon) {
-        map.spawnSummon(summon);
+        shim.run("spawnSummon", () -> map.spawnSummon(summon));
     }
 
     /** summon 投放（owner 排除变体；enterMap 窗口内用——owner 份由 caller 本体直调投递） */
     public void spawnSummonExcludeOwner(Summon summon, CharacterRef owner) {
-        map.spawnSummonExcludeOwner(summon, owner);
+        shim.run("spawnSummonExcludeOwner", () -> map.spawnSummonExcludeOwner(summon, owner));
     }
 
     /** 船停靠态（docked 运行时态，map 自读；boat 能力为静态——caller 先查 statics().boat()） */
@@ -278,12 +295,12 @@ public final class MapleMapRef {
 
     /** 开赛事件图入口关门（map 内部自读 eventstarted 动态态 + 静态 mapid 判定） */
     public void closeEventJoinPortal() {
-        map.closeEventJoinPortal();
+        shim.run("closeEventJoinPortal", () -> map.closeEventJoinPortal());
     }
 
     /** 地图特效初始化数据（mapEffect 为运行时态，直读归 map；client 快照入参） */
     public void sendMapEffectData(Client c) {
-        map.sendMapEffectData(c);
+        shim.run("sendMapEffectData", () -> map.sendMapEffectData(c));
     }
 
     /** 拾取落图：调用方 post 的任务体内经 run 调用（onShim 内联，itemLock 契约在任务体侧） */
@@ -310,8 +327,8 @@ public final class MapleMapRef {
         shim.post("move-life", () -> map.onMoveLife(msg));
     }
 
-    /** 切图完成的 mob 视图重建（player→map 通知，异步；纪律同 {@link #onMoveLife}） */
-    public void onTransitionMobView(CharacterRef chr, Client c) {
+    /** 切图完成的 mob 视图重建（player→map 通知，异步；载荷 = 本体引用，identity/移交专用） */
+    public void onTransitionMobView(Character chr, Client c) {
         shim.post("map-transitionMobView", () -> map.onTransitionMobView(chr, c));
     }
 

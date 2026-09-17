@@ -29,6 +29,7 @@ import org.gms.provider.DataTool;
 import org.gms.provider.wz.WZFiles;
 import org.gms.server.TimerManager;
 import org.gms.server.maps.MapleMap;
+import org.gms.server.maps.MapleMapRef;
 import org.gms.util.PacketCreator;
 import org.gms.util.Randomizer;
 
@@ -94,7 +95,7 @@ public final class OxQuiz {
             //send question
             if (map.getCharacters().size() - number <= 2) {
                 map.broadcastMessage(PacketCreator.serverNotice(6, "The event has ended"));
-                map.getPortal("join00").setPortalStatus(true);
+                MapleMapRef.of(map).setPortalStatus("join00", true);
                 map.setOx(null);
                 map.setOxQuiz(false);
                 //prizes here

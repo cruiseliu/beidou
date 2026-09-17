@@ -55,7 +55,7 @@ public final class PetRouter extends PetModule implements ServerEventDest {
                     //       drop 撤不回；summon/desummon 等入口广播同样在事务保护之外），整体设计待重审。
                     Character chr = client.getLegacyClient().getPlayer();
                     chr.sendPacket(client.toLegacyPacket(client.translators().petT.petLevelUpOwn(snap.petIndex())));
-                    chr.getMap().broadcastMessage(client.toLegacyPacket(client.translators().petT.petLevelUpForeign(chr, snap.petIndex())));
+                    chr.getMapRef().broadcastMessage(client.toLegacyPacket(client.translators().petT.petLevelUpForeign(chr, snap.petIndex())));
                 }
             }
             case PetIgnoreListEvent l -> {
@@ -68,14 +68,12 @@ public final class PetRouter extends PetModule implements ServerEventDest {
         }
     }
 
-    /** 召唤（出现 + 属性栏刷新）：本体直发 + 他人流广播（原 repeatToSource=true 的拆分）——
-     *  进图编舞（enterMap）在本体 strict 窗口内到达，广播扫本体 ref 会触发 canary，
-     *  自投递走本体直调不经 ref。 */
+    /** 召唤（出现 + 属性栏刷新）：本体直发 + 他人流广播经 ref 通道（原 repeatToSource=true 的拆分）。 */
     private void onSummon(Pet pet, int fh) {
         Character chr = pet.getOwner();
         Packet spawn = client.toLegacyPacket(client.translators().petT.spawnPet(chr, pet, false, false, fh));
         chr.sendPacket(spawn);
-        chr.getMap().broadcastMessage(chr, spawn, false);
+        chr.getMapRef().broadcastMessage(chr.ref(), spawn, false);
         client.send(client.translators().petT.petStatUpdate(chr));
     }
 
@@ -84,7 +82,7 @@ public final class PetRouter extends PetModule implements ServerEventDest {
         Character chr = pet.getOwner();
         Packet despawn = client.toLegacyPacket(client.translators().petT.spawnPet(chr, pet, true, hunger, 0));
         chr.sendPacket(despawn);
-        chr.getMap().broadcastMessage(chr, despawn, false);
+        chr.getMapRef().broadcastMessage(chr.ref(), despawn, false);
         client.send(client.translators().petT.petStatUpdate(chr));
     }
 

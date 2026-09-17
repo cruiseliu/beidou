@@ -39,6 +39,8 @@ import org.gms.remote.modules.map.client.movement.MoveElement;
 import org.gms.remote.modules.map.client.movement.RelativeMove;
 import org.gms.remote.modules.map.client.movement.TeleportMove;
 import org.gms.server.maps.Portal;
+import org.gms.server.maps.PortalGateSnap;
+import org.gms.server.maps.PortalStatic;
 import org.gms.util.I18nUtil;
 import org.gms.util.Locks;
 import org.gms.util.Pair;
@@ -127,20 +129,23 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         owner.specialSkills.resetHomingBeaconOnChangeMap();
 
         final MapleMapRef map = this.map;
-        map.onTransitionMobView(owner.ref(), owner.getClient());
+        map.onTransitionMobView(owner, owner.getClient());
     }
 
     /**
-     * 脚本传送门入口（player strand 上执行）：门存在性/进入冷却/屏蔽名单/换图态/封禁
-     * 五重校验（拒绝路径回 enableActions 解锁客户端），在途交易随换图取消，最后交门脚本
-     * 执行（enterPortal）。语义主体自 ChangeMapSpecialHandler verbatim 迁移。
+     * 脚本传送门入口（player strand 上执行）：门禁走 map actor 快照（portalGate）+
+     * 门存在性/进入冷却/屏蔽名单/换图态/封禁五重校验（拒绝路径回 unlock 解锁客户端），
+     * 在途交易随换图取消；脚本门走 ESM 桥，非脚本门内建 warp（落点自静态半快照解析）。
+     * 语义主体自 ChangeMapSpecialHandler verbatim 迁移。
      */
     @Override
     public void enterPortal(String portalName) {
-        Portal portal = map.getPortal(portalName);
-        if (portal == null || owner.portalDelay() > Server.getInstance().getCurrentTime() || owner.getBlockedPortals().contains(portal.getScriptName())) {
+        PortalGateSnap gate = map.portalGate(portalName);
+        PortalStatic portal = map.statics().portal(portalName);
+        if (gate == null || owner.portalDelay() > Server.getInstance().getCurrentTime()
+                || (gate.scriptName() != null && owner.getBlockedPortals().contains(gate.scriptName()))) {
             log.warn("走传送门拒绝(SPECIAL): 玩家 {} 地图 {} 传送门 {} 原因: {}", owner.getName(), owner.getMapId(), portalName,
-                    portal == null ? "传送门不存在" : (owner.portalDelay() > Server.getInstance().getCurrentTime() ? "冷却中" : "被屏蔽"));
+                    gate == null ? "传送门不存在" : (owner.portalDelay() > Server.getInstance().getCurrentTime() ? "冷却中" : "被屏蔽"));
             owner.remote().basic().unlockActions();
             return;
         }
@@ -151,7 +156,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         if (owner.getTrade() != null) {
             Trade.cancelTrade(owner, Trade.TradeResult.UNSUCCESSFUL_ANOTHER_MAP);
         }
-        String scriptName = portal.getScriptName();
+        String scriptName = gate.scriptName();
         if (scriptName != null) {
             // FIXME(onlyOnce): WZ onlyOnce=1 的脚本门一次性触发是服务端职责，且需持久化
             //  （跨重登/重进图仍有效）——现状仅靠客户端自拦，服务端对重入无仲裁（会重复
@@ -165,7 +170,17 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
             }
             return;
         }
-        portal.enterPortal(owner.getClient());
+        // 非脚本门：内建 warp（原 GenericPortal.enterPortal 分支上移；落点自静态半快照解析）
+        if (!(owner.getChalkboard() != null && GameConstants.isFreeMarketRoom(portal.targetMapId()))) {
+            MapleMapRef to = getWarpMap(portal.targetMapId());
+            PortalStatic pto = to.statics().portal(portal.target());
+            if (pto == null) {
+                pto = to.statics().portal(0);
+            }
+            changeMap(to, pto);
+        } else {
+            owner.dropMessage(5, "You cannot enter this map with the chalkboard opened.");
+        }
     }
 
     /** portal 脚本桥：脚本执行归 player 域（moduleFor/call 经 ScriptRunner 串行进 context）。 */
@@ -367,12 +382,12 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
             if (warpMap == null) return; //判断地图不存在则直接返回并发送提示消息。
         }
 
-        Portal portal = switch (pt) {
-            case null -> warpMap.getRandomPlayerSpawnpoint();
-            case Integer i -> warpMap.getPortal(i);
-            case String s -> warpMap.getPortal(s);
-            case Portal p -> p;
-            default -> warpMap.getPortal(0);
+        PortalStatic portal = switch (pt) {
+            case null -> warpMap.statics().randomPlayerSpawnpoint();
+            case Integer i -> warpMap.statics().portal(i);
+            case String s -> warpMap.statics().portal(s);
+            case Portal p -> PortalStatic.of(p);
+            default -> warpMap.statics().portal(0);
         };
         changeMap(warpMap, portal);
     }
@@ -382,19 +397,19 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
     }
 
     void changeMap(MapleMapRef to, int portal) {
-        changeMap(to, to.getPortal(portal));
+        changeMap(to, to.statics().portal(portal));
     }
 
-    void changeMap(final MapleMapRef target, Portal pto) {
+    void changeMap(final MapleMapRef target, PortalStatic pto) {
         canWarpCounter++;
 
         eventChangedMap(target.getId());    // player can be dropped from an event here, hence the new warping target.  //玩家可以从这里的事件中退出，因此成为新的扭曲目标。
         MapleMapRef to = getWarpMap(target.getId());
         if (pto == null) {
-            pto = to.getPortal(0);
+            pto = to.statics().portal(0);
         }
         // warp 包构造需 map 本体（legacy PacketCreator）——unwrap 内联过渡（组件不 import MapleMap）
-        changeMapInternal(to, pto.getPosition(), PacketCreator.getWarpToMap(to.unwrap(), pto.getId(), owner));
+        changeMapInternal(to, pto.position(), PacketCreator.getWarpToMap(to.unwrap(), pto.id(), owner));
         canWarpMap = false;
 
         canWarpCounter--;
@@ -421,7 +436,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         eventAfterChangedMap(getMapId());
     }
 
-    void forceChangeMap(final MapleMapRef target, Portal pto) {
+    void forceChangeMap(final MapleMapRef target, PortalStatic pto) {
         // will actually enter the map given as parameter, regardless of being an eventmap or whatnot       //将实际输入作为参数给出的映射，无论是事件映射还是其他什么
 
         canWarpCounter++;
@@ -443,9 +458,9 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         }
 
         if (pto == null) {
-            pto = target.getPortal(0);
+            pto = target.statics().portal(0);
         }
-        changeMapInternal(target, pto.getPosition(), PacketCreator.getWarpToMap(target.unwrap(), pto.getId(), owner));
+        changeMapInternal(target, pto.position(), PacketCreator.getWarpToMap(target.unwrap(), pto.id(), owner));
         canWarpMap = false;
 
         canWarpCounter--;
@@ -880,7 +895,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         }
 
         int banMap = getMapId();
-        int banSp = map.findClosestPlayerSpawnpoint(owner.getPosition()).getId();
+        int banSp = map.statics().findClosestPlayerSpawnpoint(owner.getPosition()).id();
         long banTime = System.currentTimeMillis();
 
         if (msg != null) {
@@ -888,8 +903,8 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         }
 
         MapleMapRef map_ = getWarpMap(mapid);
-        Portal portal_ = map_.getPortal(portal);
-        changeMap(map_, portal_ != null ? portal_ : map_.getRandomPlayerSpawnpoint());
+        PortalStatic portal_ = map_.statics().portal(portal);
+        changeMap(map_, portal_ != null ? portal_ : map_.statics().randomPlayerSpawnpoint());
 
         setBanishPlayerData(banMap, banSp, banTime);
     }

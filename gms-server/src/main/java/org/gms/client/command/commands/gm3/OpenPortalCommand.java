@@ -40,6 +40,6 @@ public class OpenPortalCommand extends Command {
             player.yellowMessage(I18nUtil.getMessage("OpenPortalCommand.message2"));
             return;
         }
-        player.getMap().getPortal(params[0]).setPortalState(true);
+        player.getMapRef().setPortalState(params[0], true);
     }
 }

@@ -1,13 +1,17 @@
 package org.gms.server.maps;
 
+import org.gms.constants.id.MapId;
 import org.gms.util.Pair;
 
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -77,6 +81,10 @@ public final class MapleMapStatic {
     private final List<Integer> skillIds;
     private final List<Pair<Integer, Integer>> mobsToSpawn;
 
+    // ── portal 静态半（WZ 装载期冻结；动态门禁归 map actor）──
+    private final Map<String, PortalStatic> portals;
+    private final Map<Integer, PortalStatic> portalsById;
+
     private MapleMapStatic(Builder b) {
         this.mapid = b.mapid;
         this.world = b.world;
@@ -115,6 +123,9 @@ public final class MapleMapStatic {
         this.timeExpand = b.timeExpand;
         this.skillIds = List.copyOf(b.skillIds);
         this.mobsToSpawn = List.copyOf(b.mobsToSpawn);
+        // LinkedHashMap 保序（随机出生点选择遍历序确定）；Unmodifiable 防运行期改动
+        this.portals = Collections.unmodifiableMap(new LinkedHashMap<>(b.portals));
+        this.portalsById = Collections.unmodifiableMap(new LinkedHashMap<>(b.portalsById));
     }
 
     public int mapid() {
@@ -265,6 +276,57 @@ public final class MapleMapStatic {
         return mobsToSpawn;
     }
 
+    // ── portal 静态半（移植 MapleMap 同名查询；纯 WZ 数据计算，player strand 无锁直读）──
+
+    /** 按门名取（查无返回 null，对齐 MapleMap.getPortal 语义） */
+    public PortalStatic portal(String name) {
+        return portals.get(name);
+    }
+
+    /** 按门 id 取（查无返回 null） */
+    public PortalStatic portal(int id) {
+        return portalsById.get(id);
+    }
+
+    /** 随机玩家出生点（type 0..1 且无跨图目标；空表回 0 号门）——移植 MapleMap 同名 */
+    public PortalStatic randomPlayerSpawnpoint() {
+        List<PortalStatic> spawnPoints = new ArrayList<>();
+        for (PortalStatic portal : portals.values()) {
+            if (portal.type() >= 0 && portal.type() <= 1 && portal.targetMapId() == MapId.NONE) {
+                spawnPoints.add(portal);
+            }
+        }
+        return spawnPoints.isEmpty() ? portal(0) : spawnPoints.get(new Random().nextInt(spawnPoints.size()));
+    }
+
+    /** 距指定点最近的玩家出生点（type 0..1 且无跨图目标）——移植 MapleMap 同名 */
+    public PortalStatic findClosestPlayerSpawnpoint(Point from) {
+        PortalStatic closest = null;
+        double shortestDistance = Double.POSITIVE_INFINITY;
+        for (PortalStatic portal : portals.values()) {
+            double distance = portal.position().distanceSq(from);
+            if (portal.type() >= 0 && portal.type() <= 1 && distance < shortestDistance && portal.targetMapId() == MapId.NONE) {
+                closest = portal;
+                shortestDistance = distance;
+            }
+        }
+        return closest;
+    }
+
+    /** 距指定点最近的门（全类型）——移植 MapleMap 同名 */
+    public PortalStatic findClosestPortal(Point from) {
+        PortalStatic closest = null;
+        double shortestDistance = Double.POSITIVE_INFINITY;
+        for (PortalStatic portal : portals.values()) {
+            double distance = portal.position().distanceSq(from);
+            if (distance < shortestDistance) {
+                closest = portal;
+                shortestDistance = distance;
+            }
+        }
+        return closest;
+    }
+
     // ── mapid 分类（装载期 gating 与实例判定共用）──
 
     public static boolean isCPQMapId(int mapid) {
@@ -405,6 +467,15 @@ public final class MapleMapStatic {
         private int timeExpand;
         private final List<Integer> skillIds = new ArrayList<>();
         private final List<Pair<Integer, Integer>> mobsToSpawn = new ArrayList<>();
+        private final Map<String, PortalStatic> portals = new LinkedHashMap<>();
+        private final Map<Integer, PortalStatic> portalsById = new LinkedHashMap<>();
+
+        /** portal 静态半装配（WZ 冻结前调用；MapFactory 专用） */
+        public Builder portals(Map<String, PortalStatic> byName, Map<Integer, PortalStatic> byId) {
+            portals.putAll(byName);
+            portalsById.putAll(byId);
+            return this;
+        }
 
         public Builder(int mapid, int world, int channel, int returnMapId, float monsterRate) {
             this.mapid = mapid;

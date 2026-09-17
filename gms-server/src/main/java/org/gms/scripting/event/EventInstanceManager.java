@@ -44,6 +44,7 @@ import org.gms.server.life.LifeFactory;
 import org.gms.server.life.Monster;
 import org.gms.server.life.NPC;
 import org.gms.server.maps.MapManager;
+import org.gms.server.maps.MapleMapRef;
 import org.gms.server.maps.MapleMap;
 import org.gms.server.maps.Portal;
 import org.gms.server.maps.Reactor;
@@ -1359,22 +1360,16 @@ Map<Integer, CharacterRef> mapChars = getInstanceMap(mapid).getMapPlayers();
         giveEventPlayersStageReward(thisStage);
         thisStage--;    //stages counts from ONE, scripts from ZERO
 
-        MapleMap nextStage = getMapInstance(thisMapId);
-        Portal portal = nextStage.getPortal("next00");
-        if (portal != null) {
-            portal.setScriptName(eventFamily + thisStage);
-        }
+        MapleMapRef nextStage = MapleMapRef.of(getMapInstance(thisMapId));
+        nextStage.setPortalScript("next00", eventFamily + thisStage);
     }
 
     public final void linkPortalToScript(int thisStage, String portalName, String scriptName, int thisMapId) {
         giveEventPlayersStageReward(thisStage);
         thisStage--;    //stages counts from ONE, scripts from ZERO
 
-        MapleMap nextStage = getMapInstance(thisMapId);
-        Portal portal = nextStage.getPortal(portalName);
-        if (portal != null) {
-            portal.setScriptName(scriptName);
-        }
+        MapleMapRef nextStage = MapleMapRef.of(getMapInstance(thisMapId));
+        nextStage.setPortalScript(portalName, scriptName);
     }
 
     // registers a player status in an event

@@ -40,6 +40,6 @@ public class ClosePortalCommand extends Command {
             player.yellowMessage(I18nUtil.getMessage("ClosePortalCommand.message2"));
             return;
         }
-        player.getMap().getPortal(params[0]).setPortalState(false);
+        player.getMapRef().setPortalState(params[0], false);
     }
 }
