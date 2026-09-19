@@ -2,17 +2,28 @@ package org.gms.client.character;
 
 import org.gms.client.Client;
 import org.gms.client.PlayerStrand;
+import org.gms.client.QuestStatus;
 import org.gms.infra.ActorMessage;
 import org.gms.net.server.world.Party;
 import org.gms.net.server.world.PartyCharacter;
+import org.gms.remote.RemoteClient;
 import org.gms.scripting.event.EventInstanceManager;
 import org.gms.server.maps.Dragon;
+import org.gms.server.maps.MapObject;
+import org.gms.server.maps.MapObjectType;
+import org.gms.server.maps.MapleMap;
+import org.gms.server.maps.PlayerShop;
+import org.gms.server.maps.Portal;
 import org.gms.server.maps.Summon;
+import org.gms.server.partyquest.MonsterCarnival;
 import org.gms.client.EffectType;
 import org.gms.server.BuffEffectData;
+import org.gms.server.events.gm.Fitness;
+import org.gms.server.events.gm.Ola;
 import org.gms.util.AssertUtil;
 
 import java.awt.Point;
+import java.util.function.Consumer;
 
 /**
  * 角色的地图域侧句柄（doc/13 反向剥离）：MapleMap 只持 ref 不持 Character——
@@ -28,7 +39,7 @@ import java.awt.Point;
  * 即 map 域同步跨域点，post 化欠账的定位输出（doc/16 §4.1）。当前全部管线 strict=false，
  * 断言不激活。
  */
-public final class CharacterRef implements org.gms.server.maps.MapObject {
+public final class CharacterRef implements MapObject {
 
     private final Character chr;
     /**
@@ -91,6 +102,24 @@ public final class CharacterRef implements org.gms.server.maps.MapObject {
         }
     }
 
+    /**
+     * strict 管线过渡桥（legacy 直发段 post 化）：把「经 ref 取 client 直发」的遗留发包段
+     * 整体后投递到本 strand 执行——strict 窗口内经 ref 直触 client 即 canary 断言
+     * （doc/16 §4.1），map 任务体/in-place 缝以本桥替代直发；body 执行时窗口按 strand
+     * 串行必已收口，体内 getClient 合法。无会话静默丢弃（对齐 {@link #post(String, Runnable)}）。
+     *
+     * <p>过渡债务：body 捕获 map 域活对象（MapObject 等）跨界，延迟窗口内可能被 map actor
+     * 并改——与被替代的直发段（本就无同步直读）同偿；对应收包流全量 post 化后消除。
+     */
+    public void postLegacyPacket(String taskName, Consumer<Client> body) {
+        post(taskName, () -> {
+            Client c = chr.getClient();
+            if (c != null) {
+                body.accept(c);
+            }
+        });
+    }
+
     /** 幂等：角色实例的唯一 ref（null 透传） */
     public static CharacterRef of(Character chr) {
         return chr != null ? chr.ref() : null;
@@ -149,7 +178,7 @@ public final class CharacterRef implements org.gms.server.maps.MapObject {
         chr.setMapId(mapId);
     }
 
-    public org.gms.server.maps.MapleMap getMap() {
+    public MapleMap getMap() {
         notInStrictPipeline();
         return chr.getMap();
     }
@@ -194,7 +223,7 @@ public final class CharacterRef implements org.gms.server.maps.MapObject {
         return chr.getEventInstance();
     }
 
-    public org.gms.server.partyquest.MonsterCarnival getMonsterCarnival() {
+    public MonsterCarnival getMonsterCarnival() {
         notInStrictPipeline();
         return chr.getMonsterCarnival();
     }
@@ -204,7 +233,7 @@ public final class CharacterRef implements org.gms.server.maps.MapObject {
         return chr.getDragon();
     }
 
-    public org.gms.server.maps.PlayerShop getPlayerShop() {
+    public PlayerShop getPlayerShop() {
         notInStrictPipeline();
         return chr.getPlayerShop();
     }
@@ -214,7 +243,7 @@ public final class CharacterRef implements org.gms.server.maps.MapObject {
         return chr.getSkillLevel(skillId);
     }
 
-    public org.gms.client.QuestStatus getQuest(int questid) {
+    public QuestStatus getQuest(int questid) {
         notInStrictPipeline();
         return chr.getQuest(questid);
     }
@@ -224,7 +253,7 @@ public final class CharacterRef implements org.gms.server.maps.MapObject {
         return chr.needQuestItem(questid, itemid);
     }
 
-    public org.gms.remote.RemoteClient getRemote() {
+    public RemoteClient getRemote() {
         notInStrictPipeline();
         return chr.getRemote();
     }
@@ -279,22 +308,22 @@ public final class CharacterRef implements org.gms.server.maps.MapObject {
         return chr.isFamilyBuff();
     }
 
-    public org.gms.server.events.gm.Ola getOla() {
+    public Ola getOla() {
         notInStrictPipeline();
         return chr.getOla();
     }
 
-    public void setOla(org.gms.server.events.gm.Ola ola) {
+    public void setOla(Ola ola) {
         notInStrictPipeline();
         chr.setOla(ola);
     }
 
-    public org.gms.server.events.gm.Fitness getFitness() {
+    public Fitness getFitness() {
         notInStrictPipeline();
         return chr.getFitness();
     }
 
-    public void setFitness(org.gms.server.events.gm.Fitness fitness) {
+    public void setFitness(Fitness fitness) {
         notInStrictPipeline();
         chr.setFitness(fitness);
     }
@@ -319,17 +348,17 @@ public final class CharacterRef implements org.gms.server.maps.MapObject {
         return chr.containsSummon(summon);
     }
 
-    public void addVisibleMapObject(org.gms.server.maps.MapObject mo) {
+    public void addVisibleMapObject(MapObject mo) {
         notInStrictPipeline();
         chr.addVisibleMapObject(mo);
     }
 
-    public void removeVisibleMapObject(org.gms.server.maps.MapObject mo) {
+    public void removeVisibleMapObject(MapObject mo) {
         notInStrictPipeline();
         chr.removeVisibleMapObject(mo);
     }
 
-    public boolean isMapObjectVisible(org.gms.server.maps.MapObject mo) {
+    public boolean isMapObjectVisible(MapObject mo) {
         notInStrictPipeline();
         return chr.isMapObjectVisible(mo);
     }
@@ -425,8 +454,8 @@ public final class CharacterRef implements org.gms.server.maps.MapObject {
         return clientDisconnected;
     }
 
-    public void applyVisibleMapObjects(java.util.List<org.gms.server.maps.MapObject> addRefs,
-                                       java.util.List<org.gms.server.maps.MapObject> removeRefs) {
+    public void applyVisibleMapObjects(java.util.List<MapObject> addRefs,
+                                       java.util.List<MapObject> removeRefs) {
         notInStrictPipeline();
         chr.applyVisibleMapObjects(addRefs, removeRefs);
     }
@@ -461,22 +490,22 @@ public final class CharacterRef implements org.gms.server.maps.MapObject {
         chr.changeMap(mapid, pt);
     }
 
-    public void changeMap(org.gms.server.maps.MapleMap to) {
+    public void changeMap(MapleMap to) {
         notInStrictPipeline();
         chr.changeMap(to);
     }
 
-    public void changeMap(org.gms.server.maps.MapleMap to, int portal) {
+    public void changeMap(MapleMap to, int portal) {
         notInStrictPipeline();
         chr.changeMap(to, portal);
     }
 
-    public void changeMap(org.gms.server.maps.MapleMap to, org.gms.server.maps.Portal pto) {
+    public void changeMap(MapleMap to, Portal pto) {
         notInStrictPipeline();
         chr.changeMap(to, pto);
     }
 
-    public void changeMap(org.gms.server.maps.MapleMap to, Point pos) {
+    public void changeMap(MapleMap to, Point pos) {
         notInStrictPipeline();
         chr.changeMap(to, pos);
     }
@@ -496,8 +525,8 @@ public final class CharacterRef implements org.gms.server.maps.MapObject {
     }
 
     @Override
-    public org.gms.server.maps.MapObjectType getType() {
-        return org.gms.server.maps.MapObjectType.PLAYER;
+    public MapObjectType getType() {
+        return MapObjectType.PLAYER;
     }
 
     @Override

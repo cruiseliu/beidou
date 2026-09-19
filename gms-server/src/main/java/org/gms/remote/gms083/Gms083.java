@@ -128,15 +128,7 @@ public final class Gms083 extends RemoteClientBase implements RemoteClient {
         if (log.isDebugEnabled()) {
             // record 携带实体引用时 JSON 序列化可能撞对象图循环（fastjson2 层级上限，
             // 循环可致 StackOverflowError）——诊断日志降级，发包不受影响；hex trace 恒可用
-            String json;
-            try {
-                json = JSON.toJSONString(packet);
-            } catch (Throwable t) {
-                // StackOverflowError 也是合法结果（实体对象图循环，如 GuildCharacter）——
-                // 诊断日志不得有任何抛出路径
-                json = "<unserializable>";
-            }
-            log.debug("[remote] {} {}", packet.opcode(), json);
+            log.debug("[remote] {} {}", packet.opcode(), JSON.toJSONString(packet));
         }
         ByteBuf frame = packet.encode();
         if (log.isTraceEnabled()) {

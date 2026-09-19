@@ -111,6 +111,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -2441,12 +2442,14 @@ public class MapleMap {
     }
 
     /**
-     * 入场对象投放（原 finishEnter 内联段；player strand 原位操作，§5.4 豁免延续）：
-     * 非视野型对象 spawn 流 + 陈旧 summon 注册表清理 + 视野范围内对象 spawn 流。
-     * 参数全快照（client/落点/本体 id/自有 summon 集），体内零 CharacterRef 方法调用；
-     * 返回视野新增集，由调用方回放到本体可见集（wire 无差：可见集为服务端簿记）。
+     * 入场对象投放（原 finishEnter 内联段；map actor 任务体——编舞最后一个原位 helper
+     * 的 shim 化，§5.4 豁免收口）：非视野型对象 spawn 流 + 陈旧 summon 注册表清理 +
+     * 视野范围内对象 spawn 流。参数全快照（落点/本体 id/自有 summon 集）；spawn 直发段
+     * 经 {@link CharacterRef#postLegacyPacket} 回 strand（窗口内不得经 ref 取 client），
+     * 包序 = 收集序（非视野型在前、视野型在后，与原两段循环一致），整体落到收件 strand
+     * 队列尾；返回视野新增集，由调用方回放到本体可见集（wire 无差：可见集为服务端簿记）。
      */
-    List<MapObject> sendObjectPlacement(Client c, Point pos, int cid, Collection<Summon> ownedSummons) {
+    List<MapObject> sendObjectPlacement(CharacterRef chr, Point pos, int cid, Collection<Summon> ownedSummons) {
         Collection<MapObject> objects;
 
         objectRLock.lock();
@@ -2456,9 +2459,10 @@ public class MapleMap {
             objectRLock.unlock();
         }
 
+        List<MapObject> spawns = new ArrayList<>();
         for (MapObject o : objects) {
             if (isNonRangedType(o.getType())) {
-                o.sendSpawnData(c);
+                spawns.add(o);
             } else if (o.getType() == MapObjectType.SUMMON) {
                 Summon summon = (Summon) o;
                 if (summon.getOwner().getId() == cid && !ownedSummons.contains(summon)) {
@@ -2476,11 +2480,11 @@ public class MapleMap {
         for (MapObject o : getMapObjectsInRange(pos, getRangedDistance(), rangedMapobjectTypes)) {
             if (o.getType() == MapObjectType.REACTOR) {
                 if (((Reactor) o).isAlive()) {
-                    o.sendSpawnData(c);
+                    spawns.add(o);
                     addRefs.add(o);
                 }
             } else {
-                o.sendSpawnData(c);
+                spawns.add(o);
                 addRefs.add(o);
 
                 if (o.getType() == MapObjectType.MONSTER) {
@@ -2488,6 +2492,12 @@ public class MapleMap {
                 }
             }
         }
+
+        chr.postLegacyPacket("sendObjectPlacement", client -> {
+            for (MapObject o : spawns) {
+                o.sendSpawnData(client);
+            }
+        });
         return addRefs;
     }
 
@@ -3240,14 +3250,16 @@ public class MapleMap {
 
     /**
      * 角色移动的可见性差集应用（map actor，doc/13 §12；原 onMove/MoveMsg 的参数直提形态——
-     * strand 归 {@link CharacterRef} 自持、client 经本任务只触移动者自身（其窗口按调度必已关闭））：
-     * 消失集 destroy 包 + 新现集 spawn 包发往移动者连接，差集回投 player strand 登记可见集。
+     * strand 归 {@link CharacterRef} 自持）：消失集 destroy 包 + 新现集 spawn 包经
+     * postLegacyPacket 回移动者 strand 发送（本任务体零 client 直触，窗口按调度豁免
+     * 约定随之移除），包序 = destroy 流在前、spawn 流在后（与原两段循环一致），
+     * 差集回投 player strand 登记可见集。
      */
     public void handleCharacterMove(CharacterRef chr, Point toPos, List<MapObject> visibleObjs) {
         List<MapObject> addRefs = new ArrayList<>();
         List<MapObject> removeRefs = new ArrayList<>();
+        List<MapObject> destroySends = new ArrayList<>();
         Map<Integer, MapObject> mapObjects = getCopyMapObjects();
-        Client client = chr.getClient();
         for (MapObject mo : visibleObjs) {
             if (mo == null) {
                 continue;
@@ -3257,15 +3269,25 @@ public class MapleMap {
                 removeRefs.add(mo);
             } else if (mo.getType() != MapObjectType.SUMMON
                     && mo.getPosition().distanceSq(toPos) > getRangedDistance()) {
-                mo.sendDestroyData(client);
+                destroySends.add(mo);
                 removeRefs.add(mo);
             }
         }
         for (MapObject mo : getMapObjectsInRange(toPos, getRangedDistance(), rangedMapobjectTypes)) {
             if (!visibleObjs.contains(mo)) {
-                mo.sendSpawnData(client);
                 addRefs.add(mo);
             }
+        }
+
+        if (!destroySends.isEmpty() || !addRefs.isEmpty()) {
+            chr.postLegacyPacket("handleCharacterMove", client -> {
+                for (MapObject mo : destroySends) {
+                    mo.sendDestroyData(client);
+                }
+                for (MapObject mo : addRefs) {
+                    mo.sendSpawnData(client);
+                }
+            });
         }
 
         chr.post("apply-visibility",
@@ -3281,22 +3303,30 @@ public class MapleMap {
      * <p>载荷为<b>本体引用</b>（非 CharacterRef，绕开 strict canary 的 ref 触达断言）：
      * 仅用于 controller 的 identity 比较/移交，任何 player 状态导航都是违规（审计面仅此方法）。
      */
-    public void onTransitionMobView(Character chr, Client c) {
+    public void onTransitionMobView(CharacterRef chr) {
+        List<Consumer<Client>> sends = new ArrayList<>();
         for (MapObject mo : getMonsters()) {    // thanks BHB, IxianMace, Jefe for noticing several issues regarding mob statuses (such as freeze)
             Monster m = (Monster) mo;
             if (m.getSpawnEffect() == 0 || m.getHp() < m.getMaxHp()) {     // avoid effect-spawning mobs
                 Character controller = m.getController();
                 if (controller != null && controller.getId() == chr.getId()) {   // identity = id（跨实例稳健；引用 == 会误判重连后的新旧实例）
-                    c.sendPacket(PacketCreator.stopControllingMonster(m.getObjectId()));
-                    m.sendDestroyData(c);
+                    sends.add(client -> client.sendPacket(PacketCreator.stopControllingMonster(m.getObjectId())));
+                    sends.add(m::sendDestroyData);
                     m.aggroRemoveController();
                 } else {
-                    m.sendDestroyData(c);
+                    sends.add(m::sendDestroyData);
                 }
-                m.sendSpawnData(c);
-                m.aggroSwitchController(chr, false);
+                sends.add(m::sendSpawnData);
+                m.aggroSwitchController(chr.unref(), false);
             }
         }
+        // 直发段 post 化（strict 窗口内不得经 ref 取 client）：mob 状态变更留在 map actor
+        // 任务体，重建包按收集序整体回移动者 strand；窗口按调度豁免约定随之移除。
+        chr.postLegacyPacket("map-transitionMobView", client -> {
+            for (Consumer<Client> send : sends) {
+                send.accept(client);
+            }
+        });
     }
 
     /**

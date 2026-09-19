@@ -50,9 +50,9 @@ public final class UseCatchItemHandler extends AbstractPacketHandler {
     @Override
     public final void handlePacket(InPacket p, Client c) {
         Character chr = c.getPlayer();
-        AutobanManager abm = chr.getAutoBanManager();
+        // AutobanManager abm = chr.getAutoBanManager();
         p.readInt();
-        abm.setTimestamp(5, Server.getInstance().getCurrentTimestamp(), 4);
+        // abm.setTimestamp(5, Server.getInstance().getCurrentTimestamp(), 4);
         p.readShort();
         int itemId = p.readInt();
         int monsterid = p.readInt();
@@ -76,23 +76,23 @@ public final class UseCatchItemHandler extends AbstractPacketHandler {
                 break;
             case ItemId.POUCH:
                 if (mob.getId() == MobId.GHOST) {
-                    if ((abm.getLastSpam(10) + 1000) < currentServerTime()) {
+                    // if ((abm.getLastSpam(10) + 1000) < currentServerTime()) {
                         if (mob.getHp() < ((mob.getMaxHp() / 10) * 4)) {
                             chr.getMap().broadcastMessage(PacketCreator.catchMonster(monsterid, itemId, (byte) 1));
                             mob.getMap().killMonster(mob, null, false);
                             InventoryManipulator.removeById(c, InventoryType.USE, itemId, 1, true, true);
                             InventoryManipulator.REFACTOR5_addById(c, ItemId.GHOST_SACK, (short) 1, "", -1);
                         } else {
-                            abm.spam(10);
+                            // abm.spam(10);
                             c.sendPacket(PacketCreator.catchMessage(0));
                         }
-                    }
+                    // }
                     c.sendPacket(PacketCreator.enableActions());
                 }
                 break;
             case ItemId.ARPQ_ELEMENT_ROCK:
                 if (mob.getId() == MobId.ARPQ_SCORPION) {
-                    if ((abm.getLastSpam(10) + 800) < currentServerTime()) {
+                    // if ((abm.getLastSpam(10) + 800) < currentServerTime()) {
                         if (mob.getHp() < ((mob.getMaxHp() / 10) * 4)) {
                             if (chr.canHold(ItemId.ARPQ_SPIRIT_JEWEL, 1)) {
                                 if (Math.random() < 0.5) { // 50% chance
@@ -108,11 +108,11 @@ public final class UseCatchItemHandler extends AbstractPacketHandler {
                                 chr.dropMessage(5, "Make a ETC slot available before using this item.");
                             }
 
-                            abm.spam(10);
+                            // abm.spam(10);
                         } else {
                             c.sendPacket(PacketCreator.catchMessage(0));
                         }
-                    }
+                    // }
                     c.sendPacket(PacketCreator.enableActions());
                 }
                 break;
@@ -183,15 +183,15 @@ public final class UseCatchItemHandler extends AbstractPacketHandler {
                 break;
             case ItemId.FISH_NET:
                 if (mob.getId() == MobId.P_JUNIOR) {
-                    if ((abm.getLastSpam(10) + 3000) < currentServerTime()) {
-                        abm.spam(10);
+                    // if ((abm.getLastSpam(10) + 3000) < currentServerTime()) {
+                        // abm.spam(10);
                         chr.getMap().broadcastMessage(PacketCreator.catchMonster(monsterid, itemId, (byte) 1));
                         mob.getMap().killMonster(mob, null, false);
                         InventoryManipulator.removeById(c, InventoryType.USE, itemId, 1, true, true);
                         InventoryManipulator.REFACTOR5_addById(c, ItemId.FISH_NET_WITH_A_CATCH, (short) 1, "", -1);
-                    } else {
-                        chr.message("You cannot use the Fishing Net yet.");
-                    }
+                    // } else {
+                    //     chr.message("You cannot use the Fishing Net yet.");
+                    // }
                     c.sendPacket(PacketCreator.enableActions());
                 }
                 break;
@@ -206,7 +206,7 @@ public final class UseCatchItemHandler extends AbstractPacketHandler {
                     int timeCatch = ii.getUseDelay(itemId);
                     int mobHp = ii.getMobHP(itemId);
 
-                    if (timeCatch != 0 && (abm.getLastSpam(10) + timeCatch) < currentServerTime()) {
+                    // if (timeCatch != 0 && (abm.getLastSpam(10) + timeCatch) < currentServerTime()) {
                         if (mobHp != 0 && mob.getHp() < ((mob.getMaxHp() / 100) * mobHp)) {
                             chr.getMap().broadcastMessage(PacketCreator.catchMonster(monsterid, itemId, (byte) 1));
                             mob.getMap().killMonster(mob, null, false);
@@ -214,13 +214,13 @@ public final class UseCatchItemHandler extends AbstractPacketHandler {
                             InventoryManipulator.REFACTOR5_addById(c, itemGanho, (short) 1, "", -1);
                         } else if (mob.getId() != MobId.P_JUNIOR) {
                             if (mobHp != 0) {
-                                abm.spam(10);
+                                // abm.spam(10);
                                 c.sendPacket(PacketCreator.catchMessage(0));
                             }
                         } else {
                             chr.message("You cannot use the Fishing Net yet.");
                         }
-                    }
+                    // }
                 }
                 c.sendPacket(PacketCreator.enableActions());
 

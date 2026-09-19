@@ -95,10 +95,10 @@ public final class WhisperHandler extends AbstractPacketHandler {
     }
 
     private void handleWhisper(String message, Character user, Character target) {
-        if (user.getAutoBanManager().getLastSpam(7) + 200 > currentServerTime()) {
-            return;
-        }
-        user.getAutoBanManager().spam(7);
+        // if (user.getAutoBanManager().getLastSpam(7) + 200 > currentServerTime()) {
+        //     return;
+        // }
+        // user.getAutoBanManager().spam(7);
 
         if (message.length() > Byte.MAX_VALUE) {
             AutobanFactory.PACKET_EDIT.alert(user, user.getName() + " tried to packet edit with whispers.");

@@ -45,10 +45,10 @@ public final class GeneralChatHandler extends AbstractPacketHandler {
     public void handlePacket(InPacket p, Client c) {
         String s = p.readString();
         Character chr = c.getPlayer();
-        if (chr.getAutoBanManager().getLastSpam(7) + 200 > currentServerTime()) {
-            c.sendPacket(PacketCreator.enableActions());
-            return;
-        }
+        // if (chr.getAutoBanManager().getLastSpam(7) + 200 > currentServerTime()) {
+        //     c.sendPacket(PacketCreator.enableActions());
+        //     return;
+        // }
         if (s.length() > Byte.MAX_VALUE && !chr.isGM()) {
             AutobanFactory.PACKET_EDIT.alert(c.getPlayer(), c.getPlayer().getName() + " tried to packet edit in General Chat.");
             log.warn("Chr {} tried to send text with length of {}", c.getPlayer().getName(), s.length());
@@ -73,7 +73,7 @@ public final class GeneralChatHandler extends AbstractPacketHandler {
                 ChatLogger.log(c, "GM General", s);
             }
 
-            chr.getAutoBanManager().spam(7);
+            // chr.getAutoBanManager().spam(7);
         }
     }
 }

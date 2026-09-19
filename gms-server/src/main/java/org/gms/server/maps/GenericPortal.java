@@ -25,7 +25,6 @@ import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.constants.game.GameConstants;
 import org.gms.constants.id.MapId;
-import org.gms.scripting.portal.PortalScriptManager;
 import org.gms.util.AssertUtil;
 import org.gms.util.PacketCreator;
 

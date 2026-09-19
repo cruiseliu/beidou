@@ -271,7 +271,7 @@ public abstract class AbstractMovementPacketHandler extends AbstractPacketHandle
 
         // 仅玩家记录“瞬移前后坐标”，供攻击距离双坐标校验使用
         if (target instanceof Character chr) {
-            chr.markTeleportLikeMove(beforePos, afterPos);
+            // chr.markTeleportLikeMove(beforePos, afterPos);
         }
     }
 
@@ -338,7 +338,7 @@ public abstract class AbstractMovementPacketHandler extends AbstractPacketHandle
 
     private static void recordRegularMove(AnimatedMapObject target, Point beforePos, Point afterPos) {
         if (target instanceof Character chr) {
-            chr.markRegularMove(beforePos, afterPos);
+            // chr.markRegularMove(beforePos, afterPos);
         }
     }
 }

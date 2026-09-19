@@ -62,7 +62,7 @@ public final class ChangeMapHandler extends AbstractPacketHandler {
     @Override
     public void handlePacket(InPacket p, Client c) {
         Character chr = c.getPlayer();
-        if (chr.isChangingMaps() || chr.isBanned()) {
+        if (chr.isChangingMaps()) {
             if (chr.isChangingMaps()) {
                 log.warn(I18nUtil.getLogMessage("ChangeMapHandler.warn.message1"),
                         chr.getName(),      //玩家角色名称

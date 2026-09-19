@@ -229,11 +229,11 @@ public final class TakeDamageHandler extends AbstractPacketHandler {
             fake = 4020002 + (chr.getJob().getId() / 10 - 40) * 100000;
         }
 
-        if (damage > 0) {
-            chr.getAutoBanManager().resetMisses();
-        } else {
-            chr.getAutoBanManager().addMiss();
-        }
+        // if (damage > 0) {
+        //     chr.getAutoBanManager().resetMisses();
+        // } else {
+        //     chr.getAutoBanManager().addMiss();
+        // }
 
         //in dojo player cannot use pot, so deadly attacks should be turned off as well
         if (is_deadly && MapId.isDojo(chr.getMap().getId()) && !GameConfig.getServerBoolean("use_deadly_dojo")) {

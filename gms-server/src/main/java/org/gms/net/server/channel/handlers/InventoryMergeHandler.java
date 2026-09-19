@@ -47,7 +47,7 @@ public final class InventoryMergeHandler extends AbstractPacketHandler {
     public final void handlePacket(InPacket p, Client c) {
         Character chr = c.getPlayer();
         p.readInt();
-        chr.getAutoBanManager().setTimestamp(2, Server.getInstance().getCurrentTimestamp(), 4);
+        // chr.getAutoBanManager().setTimestamp(2, Server.getInstance().getCurrentTimestamp(), 4);
 
         if (!GameConfig.getServerBoolean("use_item_sort")) {
             c.sendPacket(PacketCreator.enableActions());

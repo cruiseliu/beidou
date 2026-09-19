@@ -158,7 +158,7 @@ public class Character extends AbstractAnimatedMapObject {
     final CharacterScriptRunner scriptRunner = new CharacterScriptRunner(this::strand);
     /** 活跃的 ESM 任务脚本会话（重放模型，doc/13 §15）；dispose/登出清理 */
     private volatile org.gms.scripting.quest.esm.QuestApi esmQuest;
-    final CharacterAntiCheat antiCheat = new CharacterAntiCheat(this);
+    // final CharacterAntiCheat antiCheat = new CharacterAntiCheat(this);
     final CharacterMarket market = new CharacterMarket(this);
     final CharacterQuests quests = new CharacterQuests(this);
     final CharacterParty party = new CharacterParty(this);
@@ -1633,7 +1633,7 @@ public class Character extends AbstractAnimatedMapObject {
         eventstatsDOList.forEach(eventstatsDO -> chr.getEvents().put(eventstatsDO.getName(), new RescueGaga(Optional.ofNullable(eventstatsDO.getInfo()).orElse(0))));
 
         chr.setCashShop(new CashShop(charactersDO.getAccountid(), charactersDO.getId(), chr.getJobType()));
-        chr.setAutoBanManager(new AutobanManager(chr));
+        // chr.setAutoBanManager(new AutobanManager(chr));
 
         List<CharactersDO> charactersDOList = characterService.getCharacterByAccountId(charactersDO.getAccountid());
         charactersDOList.stream()
@@ -1676,7 +1676,7 @@ public class Character extends AbstractAnimatedMapObject {
         data.ap = ap.toData();
         data.sp = sp.toData();
         data.debuffs = debuffs.toData();
-        data.antiCheat = antiCheat.toData();
+        // data.antiCheat = antiCheat.toData();
         data.pets = petsData;
         data.inventory = inventory.toData();
         data.jobId = job.getId();
@@ -1694,7 +1694,7 @@ public class Character extends AbstractAnimatedMapObject {
         if (data.pets != null) {
             pets.applyData(data.pets);
         }
-        antiCheat.applyData(data.antiCheat);
+        // antiCheat.applyData(data.antiCheat);
         if (data.inventory != null) {
             inventory.applyData(data.inventory);
         }
@@ -3051,7 +3051,7 @@ public class Character extends AbstractAnimatedMapObject {
 
     // ── map 门面 ──
 
-    public MapleMap getWarpMap(int mapid) { return map.getWarpMap(mapid).unwrap(); }
+    public MapleMap getWarpMap(int mapid) { return map.getWarpMap(mapid).unref(); }
     public void warpAhead(int mapid) { map.warpAhead(mapid); }
     public void changeMap(int mapid) { map.changeMap(mapid); }
     public void changeMap(int mapid, Object pt) { map.changeMap(mapid, pt); }
@@ -3069,7 +3069,7 @@ public class Character extends AbstractAnimatedMapObject {
     /** strict 管线执行窗口标志（canary 用，见字段注） */
     public boolean strictMode() { return strictMode; }
     public void setStrictMode(boolean strictMode) { this.strictMode = strictMode; }
-    public MapleMap getMap() { MapleMapRef r = map.getMap(); return r != null ? r.unwrap() : null; }
+    public MapleMap getMap() { MapleMapRef r = map.getMap(); return r != null ? r.unref() : null; }
     public int getMapId() { return map.getMapId(); }
     public void setMap(MapleMap to) { map.setMap(MapleMapRef.of(to)); }
     public void setMap(int PmapId) { map.setMap(PmapId); }
@@ -3205,46 +3205,6 @@ public class Character extends AbstractAnimatedMapObject {
     public void removeAllCooldownsExcept(int id, boolean packet) { skills.removeAllCooldownsExcept(id, packet); }
     public void removeCooldown(int skillId) { skills.removeCooldown(skillId); }
     public boolean skillIsCooling(int skillId) { return skills.skillIsCooling(skillId); }
-
-    // ── antiCheat 门面 ──
-
-    /** 滑动窗口判定结果（public API：供 AbstractDealDamageHandler 等外部 switch，判定逻辑在 CharacterAntiCheat） */
-    public enum SkillWindowResult {
-        PASS,          // 数据不足 / avg >= 250 → 正常
-        STABLE_HACK,   // avg < 250 且 CV < STABLE_CV → 稳定高速
-        BURST          // avg < 250 但 CV >= STABLE_CV → 网络暴发
-    }
-
-    /** 网络抖动透明上限：< 此值的间隔不更新状态、不入窗口（转发 CharacterAntiCheat） */
-    public static final long MIN_INTERVAL = CharacterAntiCheat.MIN_INTERVAL;
-    /** 平均阈值：窗口 avg >= 此值判定为正常频率（转发 CharacterAntiCheat） */
-    public static final long NORMAL_AVG = CharacterAntiCheat.NORMAL_AVG;
-
-    public void ban(String reason) { antiCheat.ban(reason); }
-    public static boolean ban(String id, String reason, boolean accountId) { return CharacterAntiCheat.ban(id, reason, accountId); }
-    public void autoBan(String reason) { antiCheat.autoBan(reason); }
-    public void block(int reason, int days, String desc) { antiCheat.block(reason, days, desc); }
-    public void sendPolice(int greason, String reason, int duration) { antiCheat.sendPolice(greason, reason, duration); }
-    public void sendPolice(String text) { antiCheat.sendPolice(text); }
-    public boolean isBanned() { return antiCheat.isBanned(); }
-    public void setBanned(boolean banned) { antiCheat.setBanned(banned); }
-    public AutobanManager getAutoBanManager() { return antiCheat.getAutoBanManager(); }
-    public void setAutoBanManager(AutobanManager autoBan) { antiCheat.setAutoBanManager(autoBan); }
-    public long getJailExpirationTimeLeft() { return antiCheat.getJailExpirationTimeLeft(); }
-    public void addJailExpirationTime(long time) { antiCheat.addJailExpirationTime(time); }
-    public void removeJailExpirationTime() { antiCheat.removeJailExpirationTime(); }
-    public SkillWindowResult checkSkillWindow(int skillId, long interval) { return antiCheat.checkSkillWindow(skillId, interval); }
-    public CharacterAntiCheat.AttackWindow getSkillWindow(int skillId) { return antiCheat.getSkillWindow(skillId); }
-    public long getGlobalInterval(long now) { return antiCheat.getGlobalInterval(now); }
-    public void updateGlobalTime(long now) { antiCheat.updateGlobalTime(now); }
-    public synchronized void markTeleportLikeMove(Point beforePos, Point afterPos) { antiCheat.markTeleportLikeMove(beforePos, afterPos); }
-    public synchronized void markRegularMove(Point beforePos, Point afterPos) { antiCheat.markRegularMove(beforePos, afterPos); }
-    public synchronized Point getTeleportBeforePositionForDistanceCheck() { return antiCheat.getTeleportBeforePositionForDistanceCheck(); }
-    public synchronized Point getMovementBeforePositionForDistanceCheck() { return antiCheat.getMovementBeforePositionForDistanceCheck(); }
-    public synchronized void consumeTeleportDistanceCheckContext() { antiCheat.consumeTeleportDistanceCheckContext(); }
-    public synchronized void consumeMovementDistanceCheckContext() { antiCheat.consumeMovementDistanceCheckContext(); }
-    public synchronized void clearTeleportDistanceContext() { antiCheat.clearTeleportDistanceContext(); }
-    public long getAttackInterval(int skillId, long now) { return antiCheat.getAttackInterval(skillId, now); }
 
     // ── market 门面 ──
 
@@ -3594,13 +3554,21 @@ public class Character extends AbstractAnimatedMapObject {
 
     /**
      * 入场服务端初始化（纯状态，无本客户端包）：过渡重入重绑、world/channel 注册、
-     * buff 恢复。spawn 包必须晚于 SET_FIELD，编舞穿插归 sendWorldEntryData 原序保留。
+     * buff 恢复。spawn 包必须晚于 SET_FIELD，编排穿插归 sendWorldEntryData 原序保留。
      */
     public void initWorldEntry(Client client, boolean newcomer) {
         final World wserv = client.getWorldServer();
         final Channel cserv = client.getChannelServer();
         if (!newcomer) {
             newClient(client);   // 过渡重入：重绑 + 出生点重定位（newcomer 的位置由 DB 装载决定，不走此路径）
+        } else {
+            // newcomer 首次入场：ref 投递通道在此安装——newClient 只覆盖重入路径，缺口期内
+            // ref post 一律静默丢弃（入场编舞 sendObjectPlacement 的 postLegacyPacket 即命中等）。
+            // 自装不变量：入场任务跑在会话 strand 上且 attach 已完成 → getStrand() 即当前 strand；
+            // 裸 strand 仅存在于 attach 前的跳板域，不可达此处
+            Strand s = client.getStrand();
+            AssertUtil.isTrue(s instanceof PlayerStrand, "入场 strand 必为 PlayerStrand: " + s);
+            ref.syncStrand((PlayerStrand) s);
         }
 
         cserv.addPlayer(this);
@@ -3610,9 +3578,21 @@ public class Character extends AbstractAnimatedMapObject {
     }
 
     /**
-     * 入场初始化数据发送（从 SET_FIELD 主包起，地图编舞/各域登记随原序 verbatim 穿插）。
+     * 入场初始化数据发送（从 SET_FIELD 主包起，地图编排/各域登记随原序 verbatim 穿插）。
      */
     public void sendWorldEntryData(Client client, boolean newcomer) {
+        // NOTE 包序 diff（actor 迁移：入场 spawn 流 post 化 + shim 化，2026-09-20）——
+        //   旧序：SET_FIELD 束(initialize) → registerPlayer → enterMap{
+        //         spawn 流(NPC/怪等，编舞中段原位直发)
+        //         → showForcedEquip/spawnSummon(自有)/resetForcedStats/clock/boat 等 tail }
+        //         → 尾段(buddylist/family/quest 等)
+        //   新序：SET_FIELD 束(initialize) → registerPlayer → enterMap{ tail 直发包 }
+        //         → 尾段直发包 → spawn 流 burst（enterWorld 任务结束后统一补发；
+        //         burst 内部序不变：非视野型对象在前、视野型在后）
+        // 即：编舞 tail 与入口尾段的全部直发包现在先于 NPC/怪 spawn 到达。
+        // burst 与 shim 异步包（PLAYER_HINT 等）的相对序新旧均无保证（跨线程竞态）。
+        // 走图视野差集/切图 mob 重建同样由 map 线程直发改为任务后补发，
+        // 见 MapleMap.handleCharacterMove / onTransitionMobView。
         final Server server = Server.getInstance();
         final World wserv = client.getWorldServer();
         try {
@@ -3636,7 +3616,7 @@ public class Character extends AbstractAnimatedMapObject {
             setStrictMode(true);
 
             final boolean firstEnter = map.registerPlayer(this, pets);   // shim run：登记段缝合点
-            map.enterMap(firstEnter, pets);                              // player strand：进图编舞
+            map.enterMap(firstEnter, pets);                              // player strand：进图编排
             map.visitMap(map.getMap());
             // 前段缝合已去 ref 直调（见上）；SET_FIELD 段角色尚未入图（ref 不可达），窗口无需更早。
 

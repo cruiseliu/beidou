@@ -181,7 +181,7 @@ public enum AutobanFactory {
 
     public void autoban(Character chr, String value) {
         if (GameConfig.getServerBoolean("use_auto_ban")) {
-            chr.autoBan("Autobanned for (" + this.name() + ": " + value + ")");
+            // chr.autoBan("Autobanned for (" + this.name() + ": " + value + ")");
             //chr.sendPolice("You will be disconnected for (" + this.name() + ": " + value + ")");
         }
     }

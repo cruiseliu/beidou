@@ -42,10 +42,10 @@ public final class ItemMoveHandler extends AbstractPacketHandler {
     @Override
     public final void handlePacket(InPacket p, Client c) {  //使用装备、物品、道具
         p.skip(4);
-        if (c.getPlayer().getAutoBanManager().getLastSpam(6) + 300 > currentServerTime()) {
-            c.sendPacket(PacketCreator.enableActions());
-            return;
-        }
+        // if (c.getPlayer().getAutoBanManager().getLastSpam(6) + 300 > currentServerTime()) {
+        //     c.sendPacket(PacketCreator.enableActions());
+        //     return;
+        // }
 
         InventoryType type = InventoryType.getByType(p.readByte());
         short src = p.readShort();     //is there any reason to use byte instead of short in src and action?
@@ -62,6 +62,6 @@ public final class ItemMoveHandler extends AbstractPacketHandler {
             InventoryManipulator.move(c, type, src, action);
         }
 
-        c.getPlayer().getAutoBanManager().spam(6);
+        // c.getPlayer().getAutoBanManager().spam(6);
     }
 }

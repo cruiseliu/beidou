@@ -127,9 +127,6 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
         BuffEffectData attackEffect = null;
         final int job = player.getJob().getId();
         try {
-            if (player.isBanned()) {
-                return;
-            }
             if (attack.skill != 0) {
                 theSkill = SkillFactory.getSkill(attack.skill); // thanks Conrad for noticing some Aran skills not consuming MP
                 attackEffect = attack.getAttackEffect(player, theSkill); //returns back the player's attack effect so we are gucci
@@ -176,8 +173,8 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
             final boolean skipDistanceHack = shouldSkipDistanceHackCheck(attack.skill, attackEffect);
             final boolean isChainLightning = attack.skill == ILArchMage.CHAIN_LIGHTNING;
             boolean chainLightningCheckedFirst = false;
-            Point teleportBeforePosForDistanceCheck = player.getTeleportBeforePositionForDistanceCheck();
-            Point movementBeforePosForDistanceCheck = player.getMovementBeforePositionForDistanceCheck();
+            // Point teleportBeforePosForDistanceCheck = player.getTeleportBeforePositionForDistanceCheck();
+            // Point movementBeforePosForDistanceCheck = player.getMovementBeforePositionForDistanceCheck();
 
             //WTF IS THIS F3,1
             /*if (attackCount != attack.numDamage && attack.skill != ChiefBandit.MESO_EXPLOSION && attack.skill != NightWalker.VAMPIRE && attack.skill != WindArcher.WIND_SHOT && attack.skill != Aran.COMBO_SMASH && attack.skill != Aran.COMBO_FENRIR && attack.skill != Aran.COMBO_TEMPEST && attack.skill != NightLord.NINJA_AMBUSH && attack.skill != Shadower.NINJA_AMBUSH) {
@@ -271,6 +268,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                                 chainLightningCheckedFirst = true;
                             }
                         }
+                        /*
                         if (checkDistance && !isWithinAttackBox(player, monster, attackEffect, attack, teleportBeforePosForDistanceCheck, movementBeforePosForDistanceCheck)) {
                             boolean useBbox = shouldUseBoundingBox(monster);
                             if (!hasReliableDistanceGeometry(attackEffect, useBbox)) {
@@ -293,6 +291,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                                 distanceHackWorstUsedMovementContext = distanceSample.usedMovementContext;
                             }
                         }
+                        */
                     }
 
                     int totDamageToOneMonster = 0;
@@ -581,6 +580,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                     }
                 }
             }
+            /*
             if (teleportBeforePosForDistanceCheck != null) {
                 player.consumeTeleportDistanceCheckContext();
             }
@@ -608,6 +608,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                         bboxInfo
                 );
             }
+            */
         } catch (Exception e) {
             e.printStackTrace();
         }

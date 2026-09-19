@@ -46,7 +46,7 @@ public final class DoorHandler extends AbstractPacketHandler {
         p.readByte(); // specifies if backwarp or not, 1 town to target, 0 target to town
 
         Character chr = c.getPlayer();
-        if (chr.isChangingMaps() || chr.isBanned()) {
+        if (chr.isChangingMaps()) {
             c.sendPacket(PacketCreator.enableActions());
             return;
         }

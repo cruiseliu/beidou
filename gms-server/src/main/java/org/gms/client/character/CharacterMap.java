@@ -29,6 +29,7 @@ import org.gms.server.maps.Summon;
 import org.gms.server.maps.MapleMap;
 import org.gms.remote.RemoteClient;
 import org.gms.remote.modules.map.client.MoveLife;
+import org.gms.remote.modules.map.client.MapModule;
 import org.gms.remote.modules.map.client.movement.AbsoluteMove;
 import org.gms.remote.modules.map.client.movement.ChangeEquipMove;
 import org.gms.remote.modules.map.client.movement.ChairMove;
@@ -72,7 +73,7 @@ import org.gms.client.inventory.EquipFlag;
  * 地图访问经 {@link MapleMapRef}（player strand 侧句柄，doc/13）——本组件不持 MapleMap 类型；
  * warp 包构造（legacy PacketCreator 需 map 本体）以 unwrap 内联过渡。
  */
-class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handler {
+class CharacterMap implements MapModule.Handler {
     private static final Logger log = LoggerFactory.getLogger(CharacterMap.class);
 
     private final Character owner;
@@ -128,8 +129,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         // TODO: move to skill script
         owner.specialSkills.resetHomingBeaconOnChangeMap();
 
-        final MapleMapRef map = this.map;
-        map.onTransitionMobView(owner, owner.getClient());
+        map.onTransitionMobView(owner.ref());
     }
 
     /**
@@ -149,7 +149,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
             owner.remote().basic().unlockActions();
             return;
         }
-        if (owner.isChangingMaps() || owner.isBanned()) {
+        if (owner.isChangingMaps()) {
             owner.remote().basic().unlockActions();
             return;
         }
@@ -214,7 +214,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
                     Point after = new Point(m.x(), m.y());
                     owner.setPosition(after);
                     owner.setStance(m.stance());
-                    owner.markRegularMove(before, after);
+                    // owner.markRegularMove(before, after);
                 }
                 case RelativeMove m -> {
                     Point before = snapshotPosition();
@@ -223,7 +223,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
                         owner.setPosition(after);
                     }
                     owner.setStance(m.stance());
-                    owner.markRegularMove(before, after);
+                    // owner.markRegularMove(before, after);
                 }
                 case TeleportMove t -> {
                     Point before = snapshotPosition();
@@ -232,7 +232,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
                     owner.setStance(t.stance());
                     if (t.command() == 3 || t.command() == 4) {
                         // 瞬移前后坐标记录，供攻击距离双坐标校验使用
-                        owner.markTeleportLikeMove(before, after);
+                        // owner.markTeleportLikeMove(before, after);
                     }
                 }
                 case ChairMove c -> owner.setStance(c.stance());
@@ -241,7 +241,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
                     Point after = new Point(j.x(), j.y());
                     owner.setPosition(after);
                     owner.setStance(j.stance());
-                    owner.markRegularMove(before, after);
+                    // owner.markRegularMove(before, after);
                 }
                 case ChangeEquipMove c -> {
                 }
@@ -409,7 +409,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
             pto = to.statics().portal(0);
         }
         // warp 包构造需 map 本体（legacy PacketCreator）——unwrap 内联过渡（组件不 import MapleMap）
-        changeMapInternal(to, pto.position(), PacketCreator.getWarpToMap(to.unwrap(), pto.id(), owner));
+        changeMapInternal(to, pto.position(), PacketCreator.getWarpToMap(to.unref(), pto.id(), owner));
         canWarpMap = false;
 
         canWarpCounter--;
@@ -425,7 +425,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
 
         eventChangedMap(target.getId());
         MapleMapRef to = getWarpMap(target.getId());
-        changeMapInternal(to, pos, PacketCreator.getWarpToMap(to.unwrap(), 0x80, pos, owner));
+        changeMapInternal(to, pos, PacketCreator.getWarpToMap(to.unref(), 0x80, pos, owner));
         canWarpMap = false;
 
         canWarpCounter--;
@@ -460,7 +460,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
         if (pto == null) {
             pto = target.statics().portal(0);
         }
-        changeMapInternal(target, pto.position(), PacketCreator.getWarpToMap(target.unwrap(), pto.id(), owner));
+        changeMapInternal(target, pto.position(), PacketCreator.getWarpToMap(target.unref(), pto.id(), owner));
         canWarpMap = false;
 
         canWarpCounter--;
@@ -511,7 +511,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
 
         this.mapTransitioning.set(true);
         // 显式清空“传送距离校验上下文”，避免跨图后旧上下文残留
-        owner.clearTeleportDistanceContext();
+        // owner.clearTeleportDistanceContext();
 
         owner.unregisterChairBuff();
         clearBanishPlayerData();
@@ -733,7 +733,7 @@ class CharacterMap implements org.gms.remote.modules.map.client.MapModule.Handle
 
         // （原 GM 隐身特效包分支：isHidden 按"单机无 GM"裁定删除，恒 false）
 
-        List<MapObject> addRefs = map.sendObjectPlacement(chr.getClient(), chr.getPosition(), chr.getId(), chr.getSummonsValues());
+        List<MapObject> addRefs = map.sendObjectPlacement(owner.ref(), chr.getPosition(), chr.getId(), chr.getSummonsValues());
         chr.applyVisibleMapObjects(addRefs, List.of());
 
         map.closeEventJoinPortal();

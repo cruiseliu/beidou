@@ -71,16 +71,18 @@ public class BanCommand extends Command {
             }
             target.getClient().banMacs();
             reason = I18nUtil.getMessage("BanCommand.message5", c.getPlayer().getName(), readableTargetName, reason, ip, c.getMacs());
-            target.ban(reason);
+            // target.ban(reason);
             target.yellowMessage(I18nUtil.getMessage("BanCommand.message6", c.getPlayer().getName()));
             target.yellowMessage(I18nUtil.getMessage("BanCommand.message7", reason));
             c.sendPacket(PacketCreator.getGMEffect(4, (byte) 0));
             final Character rip = target;
             TimerManager.getInstance().schedule(() -> rip.getClient().disconnect(false, false), 5000); //5 Seconds
             Server.getInstance().broadcastMessage(c.getWorld(), PacketCreator.serverNotice(6, I18nUtil.getMessage("BanCommand.message8", ign)));
+        /*
         } else if (Character.ban(ign, reason, false)) {
             c.sendPacket(PacketCreator.getGMEffect(4, (byte) 0));
             Server.getInstance().broadcastMessage(c.getWorld(), PacketCreator.serverNotice(6, I18nUtil.getMessage("BanCommand.message8", ign)));
+        */
         } else {
             c.sendPacket(PacketCreator.getGMEffect(6, (byte) 1));
         }

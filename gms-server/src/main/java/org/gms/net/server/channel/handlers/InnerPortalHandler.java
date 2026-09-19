@@ -83,7 +83,7 @@ public final class InnerPortalHandler extends AbstractPacketHandler {
         // player.setPetLootTeleportBeforePos(new Point(playerPos));
 
         movePlayerInMap(player, afterPos);
-        player.markTeleportLikeMove(new Point(playerPos), afterPos);
+        // player.markTeleportLikeMove(new Point(playerPos), afterPos);
     }
 
     private static boolean isPlayerReady(Character player) {

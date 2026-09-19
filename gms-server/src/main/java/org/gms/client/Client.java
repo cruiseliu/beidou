@@ -1664,11 +1664,6 @@ public class Client extends ChannelInboundHandlerAdapter {
     }
 
     public void changeChannel(int channel) {
-        Server server = Server.getInstance();
-        if (player.isBanned()) {
-            disconnect(false, false);
-            return;
-        }
         if (!player.isAlive() || FieldLimit.CANNOTMIGRATE.check(player.getMap().getFieldLimit())) {
             enableActions();
             return;

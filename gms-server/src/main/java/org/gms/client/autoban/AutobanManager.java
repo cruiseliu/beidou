@@ -37,7 +37,7 @@ public class AutobanManager {
 
     public void addPoint(AutobanFactory fac, String reason) {
         if (GameConfig.getServerBoolean("use_auto_ban")) {
-            if (chr.isGM() || chr.isBanned()) {
+            if (chr.isGM()) {
                 return;
             }
 
@@ -67,7 +67,7 @@ public class AutobanManager {
             // 获取生效的积分阈值
             int effectivePoints = fac.getEffectivePoints();
             if (points.get(fac) >= effectivePoints) {
-                chr.autoBan(reason);
+                // chr.autoBan(reason);
             }
         }
         if (GameConfig.getServerBoolean("use_auto_ban_log")) {
@@ -85,7 +85,7 @@ public class AutobanManager {
             samemisscount++;
         }
         if (samemisscount > 4) {
-            chr.sendPolice("You will be disconnected for miss godmode.");
+            // chr.sendPolice("You will be disconnected for miss godmode.");
         }
         //chr.autoban("Autobanned for : " + misses + " Miss godmode", 1);
         else if (samemisscount > 0) {

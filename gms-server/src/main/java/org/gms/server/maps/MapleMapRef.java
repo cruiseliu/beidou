@@ -1,7 +1,6 @@
 package org.gms.server.maps;
 
 import org.gms.client.Client;
-import org.gms.client.character.Character;
 import org.gms.client.Player;
 import org.gms.client.character.CharacterRef;
 import org.gms.client.pet.Pet;
@@ -26,7 +25,7 @@ import java.util.Map;
  * <p><b>规范身份</b>：每个 MapleMap 实例构造自己的唯一 ref（{@link #of(MapleMap)} 幂等），
  * ref 的 identity 即 map identity（跨角色同图比较/弱引用历史表依赖此性质）。
  *
- * <p><b>接口 = client.character 的用法并集</b>（封闭集，外部调用方经 {@link #unwrap()}）。
+ * <p><b>接口 = client.character 的用法并集</b>（封闭集，外部调用方经 {@link #unref()}）。
  * <b>调用语义（P4 翻转后）</b>：写方法经 {@code shim.run}、有返回值经 {@code shim.supply}
  * （阻塞至 map actor 完成——与 shim 化前的直接调用时序等价，但串行入队）；唯一豁免：
  * {@link #finishEnter} 是 player strand 原位方法（跑脚本，永不入 shim 任务体）。
@@ -63,8 +62,8 @@ public final class MapleMapRef {
     }
 
     /** 还原 map 本体（legacy 外部门面用；阶段二外部迁 ref 后收口） */
-    public MapleMap unwrap() {
-        assertNotInStrictPipeline("unwrap");
+    public MapleMap unref() {
+        assertNotInStrictPipeline("unref");
         return map;
     }
 
@@ -255,17 +254,17 @@ public final class MapleMapRef {
         return shim.supply("map-registerPlayer", () -> map.registerPlayer(chr, summonedPets, party));
     }
 
-    // ── 入场编舞原位操作（原 finishEnter 段拆出；player strand 原位，§5.4 豁免延续；
-    //    编舞本体在 CharacterMap.enterMap，参数全快照，体内零 CharacterRef 方法调用）──
+    // ── 入场编舞缝合点（原 finishEnter 段拆出，编舞本体在 CharacterMap.enterMap）：
+    //    全部 shim 化——最后一个原位 helper（sendObjectPlacement）已收口，
+    //    strict 窗口内零 player strand 直触 map 本体 ──
 
     /**
-     * 入场对象投放：非视野型 spawn 流 + 陈旧 summon 清理 + 视野内 spawn 流。
+     * 入场对象投放：非视野型 spawn 流 + 陈旧 summon 清理 + 视野内 spawn 流（map actor
+     * 任务体）。spawn 直发段在任务体内经 {@link CharacterRef#postLegacyPacket} 回 strand。
      * 返回视野新增集（调用方回放到本体可见集，wire 无差）。
      */
-    public List<MapObject> sendObjectPlacement(Client c, Point pos, int cid, Collection<Summon> ownedSummons) {
-        // 入场投放（含逐对象 sendSpawnData 与陈旧 summon 清理）在 actor 内执行：supply
-        // 期间 player strand 阻塞，spawn 包与后续 strand 包天然串行（字节序不变）
-        return shim.supply("sendObjectPlacement", () -> map.sendObjectPlacement(c, pos, cid, ownedSummons));
+    public List<MapObject> sendObjectPlacement(CharacterRef chr, Point pos, int cid, Collection<Summon> ownedSummons) {
+        return shim.supply("sendObjectPlacement", () -> map.sendObjectPlacement(chr, pos, cid, ownedSummons));
     }
 
     /** 入场注册表登记（oid 快照）+  个人商店可空注册 */
@@ -328,8 +327,8 @@ public final class MapleMapRef {
     }
 
     /** 切图完成的 mob 视图重建（player→map 通知，异步；载荷 = 本体引用，identity/移交专用） */
-    public void onTransitionMobView(Character chr, Client c) {
-        shim.post("map-transitionMobView", () -> map.onTransitionMobView(chr, c));
+    public void onTransitionMobView(CharacterRef chr) {
+        shim.post("map-transitionMobView", () -> map.onTransitionMobView(chr));
     }
 
     public List<MapItem> updatePlayerItemDropsToParty(int partyid, int charid,

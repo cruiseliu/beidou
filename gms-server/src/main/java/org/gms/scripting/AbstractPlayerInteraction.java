@@ -1085,9 +1085,9 @@ public class AbstractPlayerInteraction {
         return exped.isLeader(getPlayer());
     }
 
-    public long getJailTimeLeft() {
-        return getPlayer().getJailExpirationTimeLeft();
-    }
+    // public long getJailTimeLeft() {
+    //     return getPlayer().getJailExpirationTimeLeft();
+    // }
 
     public List<Pet> getDriedPets() {
         List<Pet> list = new LinkedList<>();

@@ -100,14 +100,16 @@ public final class AdminCommandHandler extends AbstractPacketHandler {
                     String ip = target.getClient().getRemoteAddress();
                     reason += readableTargetName + " (IP: " + ip + ")";
                     if (duration == -1) {
-                        target.ban(description + " " + reason);
+                        // target.ban(description + " " + reason);
                     } else {
-                        target.block(type, duration, description);
-                        target.sendPolice(duration, reason, 6000);
+                        // target.block(type, duration, description);
+                        // target.sendPolice(duration, reason, 6000);
                     }
                     c.sendPacket(PacketCreator.getGMEffect(4, (byte) 0));
+                /*
                 } else if (Character.ban(victim, reason, false)) {
                     c.sendPacket(PacketCreator.getGMEffect(4, (byte) 0));
+                */
                 } else {
                     c.sendPacket(PacketCreator.getGMEffect(6, (byte) 1));
                 }

@@ -65,7 +65,7 @@ public class JailCommand extends Command {
                 player.yellowMessage(I18nUtil.getMessage("JailCommand.message5"));
                 return;
             }
-            victim.addJailExpirationTime(MINUTES.toMillis(minutesJailed));
+            // victim.addJailExpirationTime(MINUTES.toMillis(minutesJailed));
 
             if (victim.getMapId() != MapId.JAIL) {    // those gone to jail won't be changing map anyway
                 MapleMap target = c.getChannelServer().getMapFactory().getMap(MapId.JAIL);

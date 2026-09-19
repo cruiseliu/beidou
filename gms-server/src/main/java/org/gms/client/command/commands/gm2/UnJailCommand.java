@@ -47,11 +47,11 @@ public class UnJailCommand extends Command {
             victim = c.getWorldServer().getPlayerStorage().getCharacterById(Integer.parseInt(params[0]));
         }
         if (victim != null) {
-            if (victim.getJailExpirationTimeLeft() <= 0) {
-                player.message(I18nUtil.getMessage("UnJailCommand.message3"));
-                return;
-            }
-            victim.removeJailExpirationTime();
+            // if (victim.getJailExpirationTimeLeft() <= 0) {
+            //     player.message(I18nUtil.getMessage("UnJailCommand.message3"));
+            //     return;
+            // }
+            // victim.removeJailExpirationTime();
             victim.message(I18nUtil.getMessage("UnJailCommand.message4"));
             player.message(I18nUtil.getMessage("UnJailCommand.message5", victim.getName()));
         } else {
