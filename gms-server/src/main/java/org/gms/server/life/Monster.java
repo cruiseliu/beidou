@@ -1131,7 +1131,9 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
     private Character getActiveController() {
         Character chr = getController();
 
-        if (chr != null && chr.isLoggedInWorld() && chr.getMap() == this.getMap()) {
+        // 同图校验按 mapId 比对（chr.getMap() 内部走 getMapRef().unref()，strict 窗口内
+        // 为守卫触达；mapId 为离图即变的普通字段读，语义等价）
+        if (chr != null && chr.isLoggedInWorld() && chr.getMapId() == this.getMap().getId()) {
             return chr;
         } else {
             return null;
@@ -1866,6 +1868,11 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
         Character newControllerWithPuppet = null;
 
         for (CharacterRef chrr : getMap().getAllPlayers()) {
+            if (chrr.strictMode()) {
+                // strict 窗口内的角色不参与本轮选举（unref 即守卫触达）：窗口关闭后的
+                // 下次选举或攻击聚合会自然接管
+                continue;
+            }
             final Character chr = chrr.unref();
             if (!chr.isHidden() && chr.isLoggedInWorld()) {   // 过滤已断线/awayFromWorld 的幽灵玩家，避免被选为 controller 候选
                 int ctrlMonsSize = chr.getNumControlledMonsters();

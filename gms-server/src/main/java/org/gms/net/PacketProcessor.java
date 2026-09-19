@@ -182,7 +182,7 @@ public final class PacketProcessor {
         registerHandler(RecvOpcode.ITEM_SORT, new InventoryMergeHandler());
         registerHandler(RecvOpcode.ITEM_MOVE, new ItemMoveHandler());
         registerHandler(RecvOpcode.MESO_DROP, new MesoDropHandler());
-        registerHandler(RecvOpcode.CHANGE_MAP, new ChangeMapHandler());
+        registerHandler(RecvOpcode.CHANGE_MAP, new Gms083ShimHandler(RecvOpcode.CHANGE_MAP));
         registerHandler(RecvOpcode.MOVE_LIFE, new Gms083ShimHandler(RecvOpcode.MOVE_LIFE));
         registerHandler(RecvOpcode.CLOSE_RANGE_ATTACK, new CloseRangeDamageHandler());
         registerHandler(RecvOpcode.RANGED_ATTACK, new RangedAttackHandler());

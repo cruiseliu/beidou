@@ -403,4 +403,38 @@ public record SetFieldPacket(
             return p.getBytes();
         }
     }
+
+    /**
+     * warp 变体（玩家换图主包，ChangeMapServerEvent 的 wire 形态）：与登录全量帧
+     * 同 opcode 的轻量帧。coordinateArrival = true 时为坐标落地（wire 追加落点 x/y）；
+     * timestamp 为 wire 值（Filetimes.toWire 换算在 route 完成）。
+     */
+    public record Warp(int channel, int mapId, int spawnPoint, int hp,
+                       boolean coordinateArrival, int spawnX, int spawnY,
+                       long timestamp) implements V83Packet {
+
+        @Override
+        public SendOpcode opcode() {
+            return SendOpcode.SET_FIELD;
+        }
+
+        @Override
+        public ByteBuf encode() {
+            ByteBufBuilder p = new ByteBufBuilder();
+            p.writeShort((short) opcode().getValue());
+            p.writeInt(channel);
+            p.writeInt(0);
+            p.writeByte(0);
+            p.writeInt(mapId);
+            p.writeByte(spawnPoint);
+            p.writeShort(hp);
+            p.writeBool(coordinateArrival);
+            if (coordinateArrival) {
+                p.writeInt(spawnX);
+                p.writeInt(spawnY);
+            }
+            p.writeLong(timestamp);
+            return p.build();
+        }
+    }
 }

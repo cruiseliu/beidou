@@ -912,46 +912,8 @@ public class PacketCreator {
         return p;
     }
 
-    /**
-     * Gets a packet telling the client to change maps.
-     *
-     * @param to         The <code>MapleMap</code> to warp to.
-     * @param spawnPoint The spawn portal number to spawn at.
-     * @param chr        The character warping to <code>to</code>
-     * @return The map change packet.
-     */
-    public static Packet getWarpToMap(MapleMap to, int spawnPoint, Character chr) {
-        final OutPacket p = OutPacket.create(SendOpcode.SET_FIELD);
-        p.writeInt(chr.getClient().getChannel() - 1);
-        p.writeInt(0);//updated
-        p.writeByte(0);//updated
-        p.writeInt(to.getId());
-        p.writeByte(spawnPoint);
-        p.writeShort(chr.getHp());
-        p.writeBool(chr.isChasing());
-        if (chr.isChasing()) {
-            chr.setChasing(false);
-            p.writeInt(chr.getPosition().x);
-            p.writeInt(chr.getPosition().y);
-        }
-        p.writeLong(getTime(Server.getInstance().getCurrentTime()));
-        return p;
-    }
+    // getWarpToMap（SET_FIELD warp 帧）已迁语义层：ChangeMapServerEvent → SetFieldPacket.Warp。
 
-    public static Packet getWarpToMap(MapleMap to, int spawnPoint, Point spawnPosition, Character chr) {
-        final OutPacket p = OutPacket.create(SendOpcode.SET_FIELD);
-        p.writeInt(chr.getClient().getChannel() - 1);
-        p.writeInt(0);//updated
-        p.writeByte(0);//updated
-        p.writeInt(to.getId());
-        p.writeByte(spawnPoint);
-        p.writeShort(chr.getHp());
-        p.writeBool(true);
-        p.writeInt(spawnPosition.x);    // spawn position placement thanks to Arnah (Vertisy)
-        p.writeInt(spawnPosition.y);
-        p.writeLong(getTime(Server.getInstance().getCurrentTime()));
-        return p;
-    }
 
     /**
      * Gets a packet to spawn a portal.

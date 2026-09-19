@@ -8,7 +8,6 @@ import org.gms.net.server.world.Party;
 import org.gms.net.server.world.PartyCharacter;
 import org.gms.remote.RemoteClient;
 import org.gms.scripting.event.EventInstanceManager;
-import org.gms.server.maps.Dragon;
 import org.gms.server.maps.MapObject;
 import org.gms.server.maps.MapObjectType;
 import org.gms.server.maps.MapleMap;
@@ -228,9 +227,12 @@ public final class CharacterRef implements MapObject {
         return chr.getMonsterCarnival();
     }
 
-    public Dragon getDragon() {
-        notInStrictPipeline();
-        return chr.getDragon();
+    /**
+     * strict 窗口标志读（免闸：plain volatile 读）——map 域逻辑用于跳过在窗角色
+     * （如 Monster controller 选举：在窗角色本轮不参选，unref 候选即守卫触达）。
+     */
+    public boolean strictMode() {
+        return chr.strictMode();
     }
 
     public PlayerShop getPlayerShop() {

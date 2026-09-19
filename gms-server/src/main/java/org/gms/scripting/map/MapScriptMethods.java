@@ -105,11 +105,6 @@ public class MapScriptMethods extends AbstractPlayerInteraction {
         c.sendPacket(PacketCreator.showIntro("Effect/Direction3.img/goAdventure/Scene" + c.getPlayer().getGender()));
     }
 
-    public void goLith() {
-        lockUI();
-        c.sendPacket(PacketCreator.showIntro("Effect/Direction3.img/goLith/Scene" + c.getPlayer().getGender()));
-    }
-
     public void explorerQuest(short questid, String questName) {
         Quest quest = Quest.getInstance(questid);
         if (isQuestCompleted(questid)) {

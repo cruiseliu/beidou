@@ -1058,8 +1058,15 @@ public class Client extends ChannelInboundHandlerAdapter {
             final MapleMap map = player.getMap();
             if (map != null) {
                 int mapId = player.getMapId();
-                // removePlayer shim 缝合点（doc/13）：与换图路径统一执行上下文；审计通过（无脚本/无回询）
-                map.runIn("map-removePlayer", () -> map.removePlayer(player));
+                // removePlayer shim 缝合点（doc/13）：与换图路径统一执行上下文。
+                // player 域收尾切片（原任务体段前置）：controller 重分配 + MiniDungeon 退场 +
+                // PUPPET 效果取消（removeFacts 内），随后载荷键控摘除（零 Character 触达），
+                // leaveMap 于摘除完成后补（原任务体尾段）。
+                player.releaseControlledMonsters();
+                player.leaveMiniDungeon();
+                MapleMap.RemoveFacts facts = player.removeFacts();
+                map.runIn("map-removePlayer", () -> map.removePlayer(facts));
+                player.leaveMap();
                 if (MapId.isDojo(mapId)) {
                     this.getChannelServer().freeDojoSectionIfEmpty(mapId);
                 }
@@ -1696,7 +1703,12 @@ public class Client extends ChannelInboundHandlerAdapter {
 
         player.getInventory(InventoryType.EQUIPPED).checked(false); //test
         final MapleMap currentMap = player.getMap();
-        currentMap.runIn("map-removePlayer", () -> currentMap.removePlayer(player));   // 换频道离图，与换图路径同缝合点（doc/13）
+        // 换频道离图，与换图路径同缝合点（doc/13）；player 域收尾切片前置 + leaveMap 后置（strict 载荷键控批次）
+        player.releaseControlledMonsters();
+        player.leaveMiniDungeon();
+        MapleMap.RemoveFacts facts = player.removeFacts();
+        currentMap.runIn("map-removePlayer", () -> currentMap.removePlayer(facts));
+        player.leaveMap();
         player.clearBanishPlayerData();
         player.getClient().getChannelServer().removePlayer(player);
 

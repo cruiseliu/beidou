@@ -48,6 +48,7 @@ import org.gms.client.SkinColor;
 import org.gms.client.PacketStat;
 import org.gms.remote.ClientEventHandlerRegistry;
 import org.gms.remote.RemoteClient;
+import org.gms.remote.modules.cashshop.CashShopModule;
 import org.gms.client.autoban.AutobanManager;
 import org.gms.client.creator.CharacterTemplate;
 import org.gms.client.pet.Pet;
@@ -116,6 +117,8 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.lang.ref.WeakReference;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.*;
 import java.util.List;
 import java.util.*;
@@ -132,7 +135,7 @@ import static org.gms.client.character.Stat.*;
 
 import static java.util.concurrent.TimeUnit.*;
 
-public class Character extends AbstractAnimatedMapObject {
+public class Character extends AbstractAnimatedMapObject implements CashShopModule.Handler {
     private static final Logger log = LoggerFactory.getLogger(Character.class);
 
     // ── 属性核心（原 AbstractCharacterObject 合并而来） ──
@@ -502,6 +505,40 @@ public class Character extends AbstractAnimatedMapObject {
 
     public void setSessionTransitionState() {
         client.setCharacterOnSessionTransitionState(this.getId());
+    }
+
+    // ── cashshop 域 C→S（首个入口：CHANGE_MAP 空载荷；域组件化随商城迁移再拆）──
+
+    /**
+     * 商城返回语义入口（原 ChangeMapHandler 顶部守卫切片 + enterFromCashShop verbatim）。
+     * 回包解锁归 ChangeMapTranslator.afterEmit；ChannelChange 为跨频道迁移协议帧，
+     * 商城域未迁移期暂走 PacketCreator 直发。
+     */
+    @Override
+    public void leaveCashShop() {
+        if (isChangingMaps()) {   // legacy 三形态共用守卫切片
+            log.warn("走传送门拒绝(换图中): 玩家 {} 地图 {}", getName(), getMapId());
+            return;
+        }
+        if (trade != null) {
+            Trade.cancelTrade(this, Trade.TradeResult.UNSUCCESSFUL_ANOTHER_MAP);
+        }
+        if (!getCashShop().isOpened()) {
+            getClient().disconnect(false, false);
+            return;
+        }
+        String[] socket = Server.getInstance().getInetSocket(getClient(), getClient().getWorld(), getClient().getChannel());
+        if (socket == null) {
+            getClient().enableCSActions();
+            return;
+        }
+        getCashShop().open(false);
+        setSessionTransitionState();
+        try {
+            sendPacket(PacketCreator.getChannelChange(InetAddress.getByName(socket[0]), Integer.parseInt(socket[1])));
+        } catch (UnknownHostException ex) {
+            ex.printStackTrace();
+        }
     }
 
     public long getNpcCooldown() {
@@ -1362,6 +1399,35 @@ public class Character extends AbstractAnimatedMapObject {
         }
 
         pq.leaveArenaIfPresent();
+    }
+
+    /**
+     * 离图事实采集 + player 域收尾前置（strict removePlayer 批次）：summons 快照随采集，
+     * 固定 summon（PUPPET 类）的效果取消原在 map 任务体 summons 循环内——player 域状态
+     * 不可在 map actor 触达，随快照化前置到本方法。
+     */
+    public MapleMap.RemoveFacts removeFacts() {
+        List<Summon> summons = new ArrayList<>(getSummonsValues());
+        boolean puppet = summons.stream().anyMatch(Summon::isStationary);
+        if (puppet) {
+            cancelEffectFromBuffStat(EffectType.PUPPET);
+        }
+        return new MapleMap.RemoveFacts(getId(), isHidden(), getParty(), summons);
+    }
+
+    /**
+     * MiniDungeon 退场（原 removePlayer 任务体段前置 player 侧）：退场回包 removeClock
+     * 自发，登记表锁保护、任意 strand 可进。
+     */
+    public void leaveMiniDungeon() {
+        Channel cserv = client != null ? client.getChannelServer() : null;
+        if (cserv == null || !MiniDungeonInfo.isDungeonMap(getMapId())) {
+            return;
+        }
+        MiniDungeon mmd = cserv.getMiniDungeon(getMapId());
+        if (mmd != null && !mmd.unregisterPlayer(this)) {
+            cserv.removeMiniDungeon(getMapId());
+        }
     }
 
     int getChangedJobSp(JobEnum newJob) {    // 包内可见：CharacterJob.changeJob 调用
@@ -3187,6 +3253,7 @@ public class Character extends AbstractAnimatedMapObject {
         pets.bindClientHandlers(registry);
         inventory.bindClientHandlers(registry);
         map.bindClientHandlers(registry);
+        registry.registerCashShop(this);
     }
 
     // ── skills 门面 ──

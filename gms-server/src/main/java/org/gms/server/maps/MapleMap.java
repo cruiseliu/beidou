@@ -2296,7 +2296,7 @@ public class MapleMap {
         }
     }
 
-    private void removePartyMemberInternal(CharacterRef chr, int partyid) {
+    private void removePartyMemberInternal(int cid, int partyid) {
         if (partyid == -1) {
             return;
         }
@@ -2304,7 +2304,7 @@ public class MapleMap {
         Set<Integer> partyEntry = mapParty.get(partyid);
         if (partyEntry != null) {
             if (partyEntry.size() > 1) {
-                partyEntry.remove(chr.getId());
+                partyEntry.remove(cid);
             } else {
                 mapParty.remove(partyid);
             }
@@ -2323,7 +2323,7 @@ public class MapleMap {
     public void removePartyMember(CharacterRef chr, int partyid) {
         chrWLock.lock();
         try {
-            removePartyMemberInternal(chr, partyid);
+            removePartyMemberInternal(chr.getId(), partyid);
         } finally {
             chrWLock.unlock();
         }
@@ -2393,7 +2393,7 @@ public class MapleMap {
     }
 
     public void removePlayer(Character chr) {
-        removePlayer(CharacterRef.of(chr));
+        removePlayer(chr.removeFacts());
     }
 
     public List<MapItem> updatePlayerItemDropsToParty(int partyid, int charid, List<Character> partyMembers, Character partyLeaver) {
@@ -2515,13 +2515,6 @@ public class MapleMap {
         }
     }
 
-    /** 龙投放 + 全图广播（原 finishEnter 段；isHidden 分支按"单机无 GM"删除，恒走普通广播） */
-    void spawnDragon(Dragon dragon, Point pos, CharacterRef source) {
-        dragon.setPosition(pos);
-        addMapObject(dragon);
-        broadcastPacket(source, PacketCreator.spawnDragon(dragon));
-    }
-
     /** 开赛事件图入口关门（原 finishEnter 段；动态 eventstarted 归 map 自读，静态判定走 st） */
     void closeEventJoinPortal() {
         if (isStartingEventMap() && !eventStarted()) {
@@ -2616,63 +2609,46 @@ public class MapleMap {
         }
     }
 
-    public void removePlayer(CharacterRef cr) {
-        final CharacterRef chr = cr;
-        // 优先重分配该玩家控制的怪物 controller，防止后续步骤抛异常导致 leaveMap()->releaseControlledMonsters() 没执行，
-        // 怪物 controller 卡在已离线玩家身上（幽灵致怪物不动的根因之一）。
-        try {
-            chr.releaseControlledMonsters();
-        } catch (Throwable t) {
-            log.warn("removePlayer 重分配怪物 controller 异常 chr={}", chr.getName(), t);
-        }
+    /**
+     * 离图事实载荷（strict 批次）：player 域收尾（controller 重分配/unregisterChairBuff/
+     * leaveMap/PUPPET 效果取消）由 caller 在 player strand 切片完成（Character.leaveMap/
+     * removeFacts），本载荷只携带 map 域摘除所需的键与快照。
+     *
+     * @param cid     离图角色 id（= 地图 oid）
+     * @param hidden  GM 隐身快照（决定 removePlayerFromMap 走普通/GM 广播）
+     * @param party   party 快照（caller strand 采集，registerPlayer 同款）
+     * @param summons summon 快照（非固定者从图上摘除；固定者 PUPPET 效果取消已在 caller）
+     */
+    public record RemoveFacts(int cid, boolean hidden, Party party, List<Summon> summons) {
+    }
 
-        Channel cserv = chr.getClient() != null ? chr.getClient().getChannelServer() : null;
-        chr.unregisterChairBuff();
-
-        Party party = chr.getParty();
+    /**
+     * 离图摘除（map actor 任务体，载荷键控零 CharacterRef 触达——strict 批次产物）。
+     * player 域收尾归 caller 切片（CharacterMap.changeMapInternal：controller 重分配/
+     * leaveMiniDungeon 前置、leaveMap 后置）。
+     */
+    public void removePlayer(RemoveFacts facts) {
         chrWLock.lock();
         try {
-            if (party != null && party.getMemberById(chr.getId()) != null) {
-                removePartyMemberInternal(chr, party.getId());
+            if (facts.party() != null && facts.party().getMemberById(facts.cid()) != null) {
+                removePartyMemberInternal(facts.cid(), facts.party().getId());
             }
 
-            characters.remove(cr);
+            characters.removeIf(c -> c.getId() == facts.cid());
         } finally {
             chrWLock.unlock();
         }
 
-        if (cserv != null && MiniDungeonInfo.isDungeonMap(st.mapid())) {
-            MiniDungeon mmd = cserv.getMiniDungeon(st.mapid());
-            if (mmd != null) {
-                if (!mmd.unregisterPlayer(chr.unref())) {
-                    cserv.removeMiniDungeon(st.mapid());
-                }
-            }
-        }
-
-        removeMapObject(chr.getObjectId());
-        if (!chr.isHidden()) {
-            broadcastMessage(PacketCreator.removePlayerFromMap(chr.getId()));
+        removeMapObject(facts.cid());
+        if (!facts.hidden()) {
+            broadcastMessage(PacketCreator.removePlayerFromMap(facts.cid()));
         } else {
-            broadcastGMMessage(PacketCreator.removePlayerFromMap(chr.getId()));
+            broadcastGMMessage(PacketCreator.removePlayerFromMap(facts.cid()));
         }
 
-        chr.leaveMap();
-
-        for (Summon summon : new ArrayList<>(chr.getSummonsValues())) {
-            if (summon.isStationary()) {
-                chr.cancelEffectFromBuffStat(EffectType.PUPPET);
-            } else {
+        for (Summon summon : facts.summons()) {
+            if (!summon.isStationary()) {
                 removeMapObject(summon);
-            }
-        }
-
-        if (chr.getDragon() != null) {
-            removeMapObject(chr.getDragon());
-            if (chr.isHidden()) {
-                this.broadcastGMPacket(chr, PacketCreator.removeDragon(chr.getId()));
-            } else {
-                this.broadcastPacket(chr, PacketCreator.removeDragon(chr.getId()));
             }
         }
     }
@@ -2700,7 +2676,10 @@ public class MapleMap {
         for (CharacterRef ghost : ghosts) {
             log.warn("检测到幽灵玩家（已断线未正常移除），被动清理. mapId={} ghostChr={}", st.mapid(), ghost.getName());
             try {
-                removePlayer(ghost);
+                // 幽灵会话已终结（strictMode 必为 false），ref 读不触发 canary；PUPPET 效果
+                // 取消随会话消亡失去意义，故不搬 player 切片、就地组载荷
+                removePlayer(new RemoveFacts(ghost.getId(), ghost.isHidden(), ghost.getParty(),
+                        new ArrayList<>(ghost.getSummonsValues())));
             } catch (Throwable t) {
                 // 单个幽灵清理失败不应影响其他幽灵清理，也不应阻断 addPlayer 流程
                 log.error("清理幽灵玩家异常 mapId={} ghostChr={}", st.mapid(), ghost.getName(), t);

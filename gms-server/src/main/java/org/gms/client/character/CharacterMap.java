@@ -3,8 +3,10 @@ package org.gms.client.character;
 import org.gms.client.EffectType;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
+import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
+import org.gms.constants.id.ItemId;
 import org.gms.constants.id.MapId;
 import org.gms.net.packet.Packet;
 import org.gms.net.server.Server;
@@ -18,8 +20,8 @@ import org.gms.server.TimerManager;
 import org.gms.server.Trade;
 import org.gms.infra.Strand;
 import org.gms.scripting.JsModule;
-import org.gms.server.maps.Dragon;
 import org.gms.server.maps.FieldLimit;
+import org.gms.util.AssertUtil;
 import org.gms.server.maps.MapleMapRef;
 import org.gms.server.maps.MapleMapStatic;
 import org.gms.server.maps.MapObject;
@@ -28,8 +30,10 @@ import org.gms.server.maps.MiniDungeonInfo;
 import org.gms.server.maps.Summon;
 import org.gms.server.maps.MapleMap;
 import org.gms.remote.RemoteClient;
+import org.gms.remote.modules.map.client.ChangeMapEvent;
 import org.gms.remote.modules.map.client.MoveLife;
 import org.gms.remote.modules.map.client.MapModule;
+import org.gms.remote.modules.map.client.ReviveHereEvent;
 import org.gms.remote.modules.map.client.movement.AbsoluteMove;
 import org.gms.remote.modules.map.client.movement.ChangeEquipMove;
 import org.gms.remote.modules.map.client.movement.ChairMove;
@@ -134,9 +138,10 @@ class CharacterMap implements MapModule.Handler {
 
     /**
      * 脚本传送门入口（player strand 上执行）：门禁走 map actor 快照（portalGate）+
-     * 门存在性/进入冷却/屏蔽名单/换图态/封禁五重校验（拒绝路径回 unlock 解锁客户端），
-     * 在途交易随换图取消；脚本门走 ESM 桥，非脚本门内建 warp（落点自静态半快照解析）。
-     * 语义主体自 ChangeMapSpecialHandler verbatim 迁移。
+     * 门存在性/进入冷却/屏蔽名单/换图态/封禁五重校验（拒绝路径的回包解锁已收编至
+     * EnterPortalTranslator.afterEmit），在途交易随换图取消；脚本门走 ESM 桥，
+     * 非脚本门内建 warp（落点自静态半快照解析）。语义主体自 ChangeMapSpecialHandler
+     * verbatim 迁移。
      */
     @Override
     public void enterPortal(String portalName) {
@@ -146,11 +151,9 @@ class CharacterMap implements MapModule.Handler {
                 || (gate.scriptName() != null && owner.getBlockedPortals().contains(gate.scriptName()))) {
             log.warn("走传送门拒绝(SPECIAL): 玩家 {} 地图 {} 传送门 {} 原因: {}", owner.getName(), owner.getMapId(), portalName,
                     gate == null ? "传送门不存在" : (owner.portalDelay() > Server.getInstance().getCurrentTime() ? "冷却中" : "被屏蔽"));
-            owner.remote().basic().unlockActions();
             return;
         }
         if (owner.isChangingMaps()) {
-            owner.remote().basic().unlockActions();
             return;
         }
         if (owner.getTrade() != null) {
@@ -161,13 +164,11 @@ class CharacterMap implements MapModule.Handler {
             // FIXME(onlyOnce): WZ onlyOnce=1 的脚本门一次性触发是服务端职责，且需持久化
             //  （跨重登/重进图仍有效）——现状仅靠客户端自拦，服务端对重入无仲裁（会重复
             //  执行脚本/重发演出）。接入时按 script+mapid 走 Character.enteredScript 式
-            //  持久化记账，命中即视为无脚本门（unlock 兜底）后放行。
+            //  持久化记账，命中即视为无脚本门后放行。
             // 脚本门：ESM 桥——actorscripts/map/<mapid>.js 按 WZ portal script 名同名导出，
             // 返回 true = 门已处理（演出/warp 由脚本语义决定）；无模块/无导出/脚本失败 =
-            // 无脚本门（unlock 兜底，对齐旧 GenericPortal enableActions 语义）。
-            if (!runPortalScript(scriptName)) {
-                owner.remote().basic().unlockActions();
-            }
+            // 无脚本门（回包解锁由 EnterPortalTranslator.afterEmit 统一兜底）。
+            runPortalScript(scriptName);
             return;
         }
         // 非脚本门：内建 warp（原 GenericPortal.enterPortal 分支上移；落点自静态半快照解析）
@@ -200,6 +201,131 @@ class CharacterMap implements MapModule.Handler {
             log.warn("portal 脚本执行失败: map={} script={}", map.statics().mapid(), scriptName, e);
             return false;   // 对齐旧 PortalScriptManager 吞异常 → enableActions 语义
         }
+    }
+
+    // ── CHANGE_MAP（走门/复活/显式 warp；原 ChangeMapHandler 语义主体 verbatim 迁移）──
+    // 回包解锁已收编至 ChangeMapTranslator.afterEmit（gameplay 零散点）；暂不设 strict
+    // 窗口：changeMap 链的 removePlayer 任务体仍触达入场者 ref（canary 未排，随其快照化
+    // 批次翻转）。显式目标 warp 原有非 GM 白名单（六段剧情序列枚举）已删——单机环境放
+    // 反作弊壳，客户端声明直接放行；其中 20100 case（goLith 空图开场，无入口）确认死
+    // 分支一并下线。
+
+    /**
+     * 走传送门/白名单 warp 意图入口（CHANGE_MAP mode=0）。复活分支按服务端存活事实进入
+     * （mode 字节只是客户端声明，legacy 即如此）。
+     */
+    @Override
+    public void changeMap(ChangeMapEvent event) {
+        if (!changeMapGuard()) {
+            return;
+        }
+        PortalView view = portalView(event.portalName());
+        applyDeclaredTarget(event.targetMapId(), false);
+        portalTail(event.portalName(), view);
+    }
+
+    /**
+     * 原地复活意图入口（CHANGE_MAP mode=1）。portalName 按 wire 空串参与尾段
+     * （复活无门户概念，getPortal 必空，legacy 每次复活同样路径）。
+     */
+    @Override
+    public void reviveHere(ReviveHereEvent event) {
+        if (!changeMapGuard()) {
+            return;
+        }
+        PortalView view = portalView("");
+        applyDeclaredTarget(event.targetMapId(), event.wheel());
+        portalTail("", view);
+    }
+
+    /** 门快照对（开闭动态位 + 静态事实），尾段校验的输入。 */
+    private record PortalView(PortalGateSnap gate, PortalStatic portal) {
+    }
+
+    /** 门快照采集：动态位 shim supply（查无门 = null），静态事实豁免直读。 */
+    private PortalView portalView(String portalName) {
+        return new PortalView(map.portalGate(portalName), map.statics().portal(portalName));
+    }
+
+    /**
+     * 入口守卫切片（CHANGE_MAP 三形态共用）：换图过渡态拒绝、在途交易取消、商城开启
+     * 断连。返回 false = 已终结。
+     */
+    private boolean changeMapGuard() {
+        if (owner.isChangingMaps()) {
+            log.warn("走传送门拒绝(换图中): 玩家 {} 地图 {}", owner.getName(), owner.getMapId());
+            return false;
+        }
+        if (owner.getTrade() != null) {
+            Trade.cancelTrade(owner, Trade.TradeResult.UNSUCCESSFUL_ANOTHER_MAP);
+        }
+        if (owner.getCashShop().isOpened()) {   // 商城开着走门 = 非法态（legacy 断连）
+            owner.getClient().disconnect(false, false);
+            return false;
+        }
+        return true;
+    }
+
+    /** 显式目标图应用（-1 = 纯走门，无前置动作）：存活按声明 warp，死亡走复活路径。 */
+    private void applyDeclaredTarget(int targetMapId, boolean wheel) {
+        if (targetMapId == -1) {
+            return;
+        }
+        if (!owner.isAlive()) {
+            revive(wheel);
+            return;
+        }
+        MapleMapRef to = getWarpMap(targetMapId);
+        changeMap(to, to.statics().portal(0));
+    }
+
+    /** 死亡复活路径：转盘原地复活（持有校验在先）→ 事件脚本复活 → 回程图 respawn。 */
+    private void revive(boolean wheel) {
+        if (wheel && owner.haveItemWithId(ItemId.WHEEL_OF_FORTUNE, false)) {
+            // thanks lucasziron (lziron) for showing revivePlayer() triggering by Wheel
+            InventoryManipulator.removeById(owner.getClient(), InventoryType.CASH, ItemId.WHEEL_OF_FORTUNE, 1, true, false);
+            owner.sendPacket(PacketCreator.showWheelsLeft(owner.getItemQuantity(ItemId.WHEEL_OF_FORTUNE, false)));
+            owner.updateHp(50);
+            changeMap(map, map.statics().findClosestPlayerSpawnpoint(owner.getPosition()));
+            return;
+        }
+        boolean executeStandardPath = true;
+        EventInstanceManager eim = owner.getEventInstance();
+        if (eim != null) {
+            executeStandardPath = eim.revivePlayer(owner);
+        }
+        if (executeStandardPath) {
+            owner.respawn(map.getReturnMapId());
+        }
+    }
+
+    /**
+     * 门尾段：关门拒绝（blocked 回包）→ 活动计时重置 → 距离校验 → 走门（委托
+     * {@link #enterPortal(String)}，CHANGE_MAP_SPECIAL 同款，含 ESM 脚本桥）/ 查无门告警。
+     */
+    private void portalTail(String portalName, PortalView view) {
+        if (view.gate() != null && !view.gate().status()) {
+            owner.sendPacket(PacketCreator.blockedMessage(1));
+            return;
+        }
+
+        if (owner.getMapId() == MapId.FITNESS_EVENT_LAST) {
+            owner.getFitness().resetTimes();
+        } else if (owner.getMapId() == MapId.OLA_EVENT_LAST_1 || owner.getMapId() == MapId.OLA_EVENT_LAST_2) {
+            owner.getOla().resetTimes();
+        }
+
+        if (view.portal() == null) {
+            log.warn("走传送门拒绝: 玩家 {} 地图 {} 找不到传送门 {}", owner.getName(), owner.getMapId(), portalName);
+            return;
+        }
+        if (view.portal().position().distanceSq(owner.getPosition()) > 400000) {
+            log.warn("走传送门拒绝: 玩家 {} 地图 {} 传送门 {} 距离过远 (门=({},{}) 玩家=({},{}))",
+                    owner.getName(), owner.getMapId(), portalName,
+                    view.portal().position().x, view.portal().position().y, owner.getPosition().x, owner.getPosition().y);
+            return;
+        }
+        enterPortal(portalName);
     }
 
     /**
@@ -408,8 +534,8 @@ class CharacterMap implements MapModule.Handler {
         if (pto == null) {
             pto = to.statics().portal(0);
         }
-        // warp 包构造需 map 本体（legacy PacketCreator）——unwrap 内联过渡（组件不 import MapleMap）
-        changeMapInternal(to, pto.position(), PacketCreator.getWarpToMap(to.unref(), pto.id(), owner));
+        // warp 主包走语义层（ChangeMapServerEvent → SetFieldPacket.Warp）
+        changeMapInternal(to, pto.position(), pto.id(), null);
         canWarpMap = false;
 
         canWarpCounter--;
@@ -425,7 +551,7 @@ class CharacterMap implements MapModule.Handler {
 
         eventChangedMap(target.getId());
         MapleMapRef to = getWarpMap(target.getId());
-        changeMapInternal(to, pos, PacketCreator.getWarpToMap(to.unref(), 0x80, pos, owner));
+        changeMapInternal(to, pos, -1, pos);
         canWarpMap = false;
 
         canWarpCounter--;
@@ -460,7 +586,7 @@ class CharacterMap implements MapModule.Handler {
         if (pto == null) {
             pto = target.statics().portal(0);
         }
-        changeMapInternal(target, pto.position(), PacketCreator.getWarpToMap(target.unref(), pto.id(), owner));
+        changeMapInternal(target, pto.position(), pto.id(), null);
         canWarpMap = false;
 
         canWarpCounter--;
@@ -503,7 +629,12 @@ class CharacterMap implements MapModule.Handler {
     }
 
     /** 换图内部实现：切图/进图/通知/事件 */
-    private void changeMapInternal(final MapleMapRef to, final Point pos, Packet warpPacket) {
+    /**
+     * 换图主干：warp 主包经语义层（ChangeMapServerEvent → SetFieldPacket.Warp）在
+     * 离图清理之前发出；spawnPosition = null 走传送门落点，非 null 走坐标落点（0x80
+     * 形态标记归 route 侧版本词汇）。
+     */
+    private void changeMapInternal(final MapleMapRef to, final Point pos, final int spawnPoint, final Point spawnPosition) {
         if (!canWarpMap) {
             return;
         }
@@ -524,12 +655,20 @@ class CharacterMap implements MapModule.Handler {
         }
         final Party k = e;
 
-        owner.sendPacket(warpPacket);
+        if (spawnPosition != null) {
+            owner.remote().map().changeMapServerAt(to.getId(), owner.getHp(), spawnPosition);
+        } else {
+            owner.remote().map().changeMapServer(to.getId(), spawnPoint, owner.getHp());
+        }
         // 局部捕获旧图：lambda 读字段是执行时取值，下方 map = to 重赋值后会串图
         final MapleMapRef from = map;
-        // removePlayer 缝合点（doc/13 §4）：审计过无脚本入口/无 pet 阻塞回询/无自发包；
-        // 同步完成以保证同图传送时 remove 先于 add 的 destroy→spawn 包序（幽灵玩家防线）
-        from.removePlayer(owner.ref());
+        // 离图收尾切片（player strand，原 removePlayer 任务体 player 域段前置）：
+        // controller 重分配 + MiniDungeon 退场 → map 域摘除（载荷键控，零 ref 触达）→ leaveMap。
+        // 同步完成以保证同图传送时 remove 先于 add 的 destroy→spawn 包序（幽灵玩家防线）。
+        owner.releaseControlledMonsters();
+        owner.leaveMiniDungeon();
+        from.removePlayer(owner.removeFacts());
+        owner.leaveMap();
         if (owner.getClient().getChannelServer().getPlayerStorage().getCharacterById(owner.getId()) != null) {
             map = to;
             owner.setPosition(pos);
@@ -746,10 +885,13 @@ class CharacterMap implements MapModule.Handler {
         }
         map.registerEnterObjects(chr.ref(), chr.getObjectId(), chr.getPlayerShop());
 
-        final Dragon dragon = chr.getDragon();
-        if (dragon != null) {
-            map.spawnDragon(dragon, chr.getPosition(), chr.ref());
-        }
+        // dragon 功能当前版本不支持（MapleMap 侧投放/移除链已下线）：龙对象若经转职
+        // 路径（createDragon）存在，换图在此响断言——tripwire，不静默半支持。
+        // final Dragon dragon = chr.getDragon();
+        // if (dragon != null) {
+        //     map.spawnDragon(dragon, chr.getPosition(), chr.ref());
+        // }
+        AssertUtil.isTrue(chr.getDragon() == null, "dragon 不受支持却已存在 (cid=" + chr.getId() + ")");
 
         BuffEffectData summonStat = chr.getStatForBuff(EffectType.SUMMON);
         if (summonStat != null) {

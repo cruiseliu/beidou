@@ -235,8 +235,12 @@ public final class MapleMapRef {
         shim.run("removeMapObject", () -> map.removeMapObject(obj));
     }
 
-    public void removePlayer(CharacterRef chr) {
-        shim.run("removePlayer", () -> map.removePlayer(chr));
+    /**
+     * 离图摘除（载荷键控，RemoveFacts 于 caller/player strand 采集）——任务体零
+     * CharacterRef 触达（strict 批次产物）。player 域收尾归 caller 切片。
+     */
+    public void removePlayer(MapleMap.RemoveFacts facts) {
+        shim.run("removePlayer", () -> map.removePlayer(facts));
     }
 
     public void registerCharacterStatUpdate(Runnable r) {
@@ -270,11 +274,6 @@ public final class MapleMapRef {
     /** 入场注册表登记（oid 快照）+  个人商店可空注册 */
     public void registerEnterObjects(CharacterRef chr, int oid, PlayerShop shop) {
         shim.run("registerEnterObjects", () -> map.registerEnterObjects(chr, oid, shop));
-    }
-
-    /** 龙投放 + 全图广播（source 仅 identity 过滤；isHidden 分支按"单机无 GM"删除） */
-    public void spawnDragon(Dragon dragon, Point pos, CharacterRef source) {
-        shim.run("spawnDragon", () -> map.spawnDragon(dragon, pos, source));
     }
 
     /** summon 投放 + 广播 */
