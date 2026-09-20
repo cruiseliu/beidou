@@ -438,7 +438,7 @@ public class FamilyEntry {
                 getFamily().addEntry(newJunior);
                 Character chr = getChr();
                 if (chr != null) {
-                    org.gms.server.quest.medal.OutstandingCitizenMedal.refreshEligibility(chr);
+                    org.gms.client.quest.medal.OutstandingCitizenMedal.refreshEligibility(chr);
                 }
                 return true;
             }
@@ -460,7 +460,7 @@ public class FamilyEntry {
                 juniors[i] = null;
                 Character chr = getChr();
                 if (chr != null) {
-                    org.gms.server.quest.medal.OutstandingCitizenMedal.refreshEligibility(chr);
+                    org.gms.client.quest.medal.OutstandingCitizenMedal.refreshEligibility(chr);
                 }
                 return true;
             }

@@ -26,7 +26,7 @@ package org.gms.client.command.commands.gm6;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
-import org.gms.server.quest.Quest;
+import org.gms.client.quest.QuestWz;
 import org.gms.util.I18nUtil;
 
 public class ClearQuestCommand extends Command {
@@ -41,7 +41,7 @@ public class ClearQuestCommand extends Command {
             player.dropMessage(5, I18nUtil.getMessage("ClearQuestCommand.message2"));
             return;
         }
-        Quest.clearCache(Integer.parseInt(params[0]));
+        QuestWz.clearCache(Integer.parseInt(params[0]));
         player.dropMessage(5, I18nUtil.getMessage("ClearQuestCommand.message3", params[0]));
 
     }

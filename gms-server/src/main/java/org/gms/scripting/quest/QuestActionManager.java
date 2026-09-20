@@ -22,11 +22,11 @@
 package org.gms.scripting.quest;
 
 import org.gms.client.Client;
+import org.gms.client.quest.QuestWz;
+import org.gms.client.quest.actions.ExpAction;
+import org.gms.client.quest.actions.MesoAction;
 import org.gms.scripting.npc.NPCConversationManager;
 import org.gms.server.ItemInformationProvider;
-import org.gms.server.quest.Quest;
-import org.gms.server.quest.actions.ExpAction;
-import org.gms.server.quest.actions.MesoAction;
 
 /**
  * @author RMZero213
@@ -83,7 +83,7 @@ public class QuestActionManager extends NPCConversationManager {
     }
 
     public String getMedalName() {  // usable only for medal quests (id 299XX)
-        Quest q = Quest.getInstance(quest);
+        QuestWz q = QuestWz.getInstance(quest);
         return ItemInformationProvider.getInstance().getName(q.getMedalRequirement());
     }
 }

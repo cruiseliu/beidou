@@ -24,6 +24,7 @@
 package org.gms.client.command.commands.gm5;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
 import org.gms.client.inventory.ItemSlot;
@@ -75,7 +76,7 @@ public class DebugCommand extends Command {
                 List<MapObject> monsters = player.getMap().getMapObjectsInRange(player.getPosition(), Double.POSITIVE_INFINITY, Arrays.asList(MapObjectType.MONSTER));
                 for (MapObject monstermo : monsters) {
                     Monster monster = (Monster) monstermo;
-                    Character controller = monster.getController();
+                    CharacterRef controller = monster.getController();
                     player.message(I18nUtil.getMessage("DebugCommand.message4",monster.getName(), monster.getId(), controller != null ? I18nUtil.getMessage("DebugCommand.message5", controller.getName(), monster.isControllerHasAggro(), monster.isControllerKnowsAboutAggro()) : "<none>"));
                 }
                 break;

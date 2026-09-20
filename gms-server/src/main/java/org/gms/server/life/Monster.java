@@ -22,6 +22,8 @@
 package org.gms.server.life;
 
 import org.gms.client.character.CharacterRef;
+import org.gms.client.quest.medal.SpecialChallengeMedal;
+import org.gms.client.quest.medal.VeteranHunterMedal;
 import org.gms.client.EffectType;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
@@ -67,8 +69,6 @@ import org.gms.server.maps.MapObjectType;
 import org.gms.server.maps.MapleMap;
 import org.gms.server.maps.Summon;
 import org.gms.server.partyquest.Pyramid;
-import org.gms.server.quest.medal.SpecialChallengeMedal;
-import org.gms.server.quest.medal.VeteranHunterMedal;
 
 import java.awt.*;
 import java.lang.ref.WeakReference;
@@ -97,7 +97,12 @@ public class Monster extends AbstractLoadedLife {
     private final AtomicInteger hp = new AtomicInteger(1);
     private final AtomicLong maxHpPlusHeal = new AtomicLong(1);
     private int mp;
-    private WeakReference<Character> controller = new WeakReference<>(null);
+    /**
+     * 活动控制者（v83 每怪单 controller 协议：唯一可发 MOVE_LIFE 的客户端）。存
+     * {@link CharacterRef}——本体触达经 ref 镜像直调（P0 现状语义），发包经
+     * postLegacyPacket 回 strand；簿记/战斗导航的 post 化与快照化逐批收编。
+     */
+    private WeakReference<CharacterRef> controller = new WeakReference<>(null);
     private boolean controllerHasAggro, controllerKnowsAboutAggro, controllerHasPuppet;
     private final Collection<MonsterListener> listeners = new LinkedList<>();
     private final EnumMap<MonsterStatus, MonsterStatusEffect> stati = new EnumMap<>(MonsterStatus.class);
@@ -803,7 +808,7 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
     public Character killBy(final Character killer) {
         distributeExperience(killer != null ? killer.getId() : 0);
 
-        final Pair<Character, Boolean> lastController = aggroRemoveController();
+        final Pair<CharacterRef, Boolean> lastController = aggroRemoveController();
         final List<Integer> toSpawn = this.getRevives();
         if (toSpawn != null) {
             final MapleMap reviveMap = map;
@@ -822,7 +827,7 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
                 final EventInstanceManager eim = this.getMap().getEventInstance();
 
                 TimerManager.getInstance().schedule(() -> {
-                    Character controller = lastController.getLeft();
+                    CharacterRef controller = lastController.getLeft();
                     boolean aggro = lastController.getRight();
 
                     for (Integer mid : toSpawn) {
@@ -1025,11 +1030,11 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
         }
     }
 
-    public Character getController() {
+    public CharacterRef getController() {
         return controller.get();
     }
 
-    private void setController(Character controller) {
+    private void setController(CharacterRef controller) {
         this.controller = new WeakReference<>(controller);
     }
 
@@ -1128,8 +1133,8 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
         }
     }
 
-    private Character getActiveController() {
-        Character chr = getController();
+    private CharacterRef getActiveController() {
+        CharacterRef chr = getController();
 
         // 同图校验按 mapId 比对（chr.getMap() 内部走 getMapRef().unref()，strict 窗口内
         // 为守卫触达；mapId 为离图即变的普通字段读，语义等价）
@@ -1143,9 +1148,10 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
     private void broadcastMonsterStatusMessage(Packet packet) {
         map.broadcastMessage(packet, getPosition());
 
-        Character chrController = getActiveController();
+        CharacterRef chrController = getActiveController();
         if (chrController != null && !chrController.isMapObjectVisible(Monster.this)) {
-            chrController.sendPacket(packet);
+            // controller 看不见地图广播，状态包单独补给（post 回 strand 直发）
+            chrController.postLegacyPacket("aggro-status-" + getObjectId(), client -> client.sendPacket(packet));
         }
     }
 
@@ -1832,7 +1838,7 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
         return summon.getPosition().distanceSq(this.getPosition()) < 177777;
     }
 
-    public boolean isCharacterPuppetInVicinity(Character chr) {
+    public boolean isCharacterPuppetInVicinity(CharacterRef chr) {
         BuffEffectData mse = chr.getBuffEffect(EffectType.PUPPET);
         if (mse != null) {
             Summon summon = chr.getSummonByKey(mse.getSourceId());
@@ -1849,7 +1855,7 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
     }
 
     public boolean isLeadingPuppetInVicinity() {
-        Character chrController = this.getActiveController();
+        CharacterRef chrController = this.getActiveController();
 
         if (chrController != null) {
             return this.isCharacterPuppetInVicinity(chrController);
@@ -1858,22 +1864,16 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
         return false;
     }
 
-    private Character getNextControllerCandidate() {
+    private CharacterRef getNextControllerCandidate() {
         int mincontrolled = Integer.MAX_VALUE;
-        Character newController = null;
+        CharacterRef newController = null;
 
         int mincontrolleddead = Integer.MAX_VALUE;
-        Character newControllerDead = null;
+        CharacterRef newControllerDead = null;
 
-        Character newControllerWithPuppet = null;
+        CharacterRef newControllerWithPuppet = null;
 
-        for (CharacterRef chrr : getMap().getAllPlayers()) {
-            if (chrr.strictMode()) {
-                // strict 窗口内的角色不参与本轮选举（unref 即守卫触达）：窗口关闭后的
-                // 下次选举或攻击聚合会自然接管
-                continue;
-            }
-            final Character chr = chrr.unref();
+        for (CharacterRef chr : getMap().getAllPlayers()) {
             if (!chr.isHidden() && chr.isLoggedInWorld()) {   // 过滤已断线/awayFromWorld 的幽灵玩家，避免被选为 controller 候选
                 int ctrlMonsSize = chr.getNumControlledMonsters();
 
@@ -1906,8 +1906,8 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
     /**
      * Removes controllability status from the current controller of this mob.
      */
-    public Pair<Character, Boolean> aggroRemoveController() {
-        Character chrController;
+    public Pair<CharacterRef, Boolean> aggroRemoveController() {
+        CharacterRef chrController;
         boolean hadAggro;
 
         aggroUpdateLock.lock();
@@ -1924,7 +1924,8 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
 
         if (chrController != null) { // this can/should only happen when a hidden gm attacks the monster
             if (!this.isFake()) {
-                chrController.sendPacket(PacketCreator.stopControllingMonster(this.getObjectId()));
+                chrController.postLegacyPacket("aggro-stop-" + getObjectId(),
+                        client -> client.sendPacket(PacketCreator.stopControllingMonster(this.getObjectId())));
             }
             chrController.stopControllingMonster(this);
         }
@@ -1936,16 +1937,18 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
      * Pass over the mob controllability and updates aggro status on the new
      * player controller.
      */
-    public void aggroSwitchController(Character newController, boolean immediateAggro) {
+    public void aggroSwitchController(CharacterRef newController, boolean immediateAggro) {
         if (aggroUpdateLock.tryLock()) {
             try {
-                Character prevController = getController();
-                if (prevController == newController) {
+                CharacterRef prevController = getController();
+                // identity = id（跨实例稳健：重连后的新旧实例 ref 不同而 id 相同）
+                if (prevController == newController
+                        || (prevController != null && newController != null && prevController.getId() == newController.getId())) {
                     return;
                 }
 
                 aggroRemoveController();
-                if (!(newController != null && newController.isLoggedInWorld() && newController.getMap() == this.getMap())) {
+                if (!(newController != null && newController.isLoggedInWorld() && newController.getMapId() == this.getMap().getId())) {
                     return;
                 }
 
@@ -1958,12 +1961,13 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
             }
 
             this.aggroUpdatePuppetVisibility();
-            aggroMonsterControl(newController.getClient(), this, immediateAggro);
+            newController.postLegacyPacket("aggro-control-" + getObjectId(),
+                    client -> aggroMonsterControl(client, this, immediateAggro));
             newController.controlMonster(this);
         }
     }
 
-    public void aggroAddPuppet(Character player) {
+    public void aggroAddPuppet(CharacterRef player) {
         MonsterAggroCoordinator mmac = map.getAggroCoordinator();
         mmac.addPuppetAggro(player);
 
@@ -1974,7 +1978,7 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
         }
     }
 
-    public void aggroRemovePuppet(Character player) {
+    public void aggroRemovePuppet(CharacterRef player) {
         MonsterAggroCoordinator mmac = map.getAggroCoordinator();
         mmac.removePuppetAggro(player.getId());
 
@@ -1990,12 +1994,12 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
      * on the map it is from...
      */
     public void aggroUpdateController() {
-        Character chrController = this.getActiveController();
+        CharacterRef chrController = this.getActiveController();
         if (chrController != null && chrController.isAlive()) {
             return;
         }
 
-        Character newController = getNextControllerCandidate();
+        CharacterRef newController = getNextControllerCandidate();
         if (newController == null) {    // was a new controller found? (if not no one is on the map)
             return;
         }
@@ -2007,8 +2011,8 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
      * Finds a new controller for the given monster from the chars with deployed
      * puppet nearby on the map it is from...
      */
-    private void aggroUpdatePuppetController(Character newController) {
-        Character chrController = this.getActiveController();
+    private void aggroUpdatePuppetController(CharacterRef newController) {
+        CharacterRef chrController = this.getActiveController();
         boolean updateController = false;
 
         if (chrController != null && chrController.isAlive()) {
@@ -2026,7 +2030,7 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
             List<Integer> toRemovePuppets = new LinkedList<>();
 
             for (Integer cid : puppetOwners) {
-                Character chr = map.getCharacterById(cid).unref();
+                CharacterRef chr = map.getCharacterById(cid);
 
                 if (chr != null) {
                     if (isCharacterPuppetInVicinity(chr)) {
@@ -2049,7 +2053,8 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
 
                 return;
             }
-        } else if (chrController == newController) {
+        } else if (chrController == newController
+                || (chrController != null && newController != null && chrController.getId() == newController.getId())) {
             this.aggroUpdatePuppetVisibility();
         }
 
@@ -2069,8 +2074,8 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
      * Returns the current aggro status on the specified player, or null if the
      * specified player is currently not this mob's controller.
      */
-    public Boolean aggroMoveLifeUpdate(Character player) {
-        Character chrController = getController();
+    public Boolean aggroMoveLifeUpdate(CharacterRef player) {
+        CharacterRef chrController = getController();
         if (chrController != null && player.getId() == chrController.getId()) {
             boolean aggro = this.isControllerHasAggro();
             if (aggro) {
@@ -2087,15 +2092,15 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
      * Refreshes auto aggro for the player passed as parameter, does nothing if
      * there is already an active controller for this mob.
      */
-    public void aggroAutoAggroUpdate(Character player) {
-        Character chrController = this.getActiveController();
+    public void aggroAutoAggroUpdate(CharacterRef player) {
+        CharacterRef chrController = this.getActiveController();
 
         if (chrController == null) {
             this.aggroSwitchController(player, true);
         } else if (chrController.getId() == player.getId()) {
             this.setControllerHasAggro(true);
             if (!GameConfig.getServerBoolean("use_auto_aggro_nearby")) {   // thanks Lichtmager for noticing autoaggro not updating the player properly
-                aggroMonsterControl(player.getClient(), this, true);
+                player.postLegacyPacket("aggro-control-" + getObjectId(), client -> aggroMonsterControl(client, this, true));
             }
         }
     }
@@ -2108,10 +2113,10 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
         MonsterAggroCoordinator mmac = this.getMapAggroCoordinator();
         mmac.addAggroDamage(this, attacker.getId(), damage);
 
-        Character chrController = this.getController();    // aggro based on DPS rather than first-come-first-served, now live after suggestions thanks to MedicOP, Thora, Vcoc
-        if (chrController != attacker) {
-            if (this.getMapAggroCoordinator().isLeadingCharacterAggro(this, attacker)) {
-                this.aggroSwitchController(attacker, true);
+        CharacterRef chrController = this.getController();    // aggro based on DPS rather than first-come-first-served, now live after suggestions thanks to MedicOP, Thora, Vcoc
+        if (chrController == null || chrController.getId() != attacker.getId()) {
+            if (this.getMapAggroCoordinator().isLeadingCharacterAggro(this, CharacterRef.of(attacker))) {
+                this.aggroSwitchController(CharacterRef.of(attacker), true);
             } else {
                 this.setControllerHasAggro(true);
                 this.aggroUpdatePuppetVisibility();
@@ -2136,7 +2141,7 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
         c.sendPacket(PacketCreator.controlMonster(mob, false, immediateAggro));
     }
 
-    private void aggroRefreshPuppetVisibility(Character chrController, Summon puppet) {
+    private void aggroRefreshPuppetVisibility(CharacterRef chrController, Summon puppet) {
         // lame patch for client to redirect all aggro to the puppet
 
         List<Monster> puppetControlled = new LinkedList<>();
@@ -2146,16 +2151,18 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
             }
         }
 
-        for (Monster mob : puppetControlled) {
-            chrController.sendPacket(PacketCreator.stopControllingMonster(mob.getObjectId()));
-        }
-        chrController.sendPacket(PacketCreator.removeSummon(puppet, false));
+        // 重定向演出整批 post 回 strand 直发（stop → removeSummon → control → spawnSummon，原序保持）
+        chrController.postLegacyPacket("aggro-puppet-" + getObjectId(), client -> {
+            for (Monster mob : puppetControlled) {
+                client.sendPacket(PacketCreator.stopControllingMonster(mob.getObjectId()));
+            }
+            client.sendPacket(PacketCreator.removeSummon(puppet, false));
 
-        Client c = chrController.getClient();
-        for (Monster mob : puppetControlled) { // thanks BHB for noticing puppets disrupting mobstatuses for bowmans
-            aggroMonsterControl(c, mob, mob.isControllerKnowsAboutAggro());
-        }
-        chrController.sendPacket(PacketCreator.spawnSummon(puppet, false));
+            for (Monster mob : puppetControlled) { // thanks BHB for noticing puppets disrupting mobstatuses for bowmans
+                aggroMonsterControl(client, mob, mob.isControllerKnowsAboutAggro());
+            }
+            client.sendPacket(PacketCreator.spawnSummon(puppet, false));
+        });
     }
 
     public void aggroUpdatePuppetVisibility() {
@@ -2166,7 +2173,7 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
         availablePuppetUpdate = false;
         Runnable r = () -> {
             try {
-                Character chrController = Monster.this.getActiveController();
+                CharacterRef chrController = Monster.this.getActiveController();
                 if (chrController == null) {
                     return;
                 }
@@ -2185,8 +2192,10 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
                 if (controllerHasPuppet) {
                     controllerHasPuppet = false;
 
-                    chrController.sendPacket(PacketCreator.stopControllingMonster(Monster.this.getObjectId()));
-                    aggroMonsterControl(chrController.getClient(), Monster.this, Monster.this.isControllerHasAggro());
+                    chrController.postLegacyPacket("aggro-puppet-clear-" + getObjectId(), client -> {
+                        client.sendPacket(PacketCreator.stopControllingMonster(Monster.this.getObjectId()));
+                        aggroMonsterControl(client, Monster.this, Monster.this.isControllerHasAggro());
+                    });
                 }
             } finally {
                 availablePuppetUpdate = true;

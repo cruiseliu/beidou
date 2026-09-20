@@ -3,6 +3,8 @@ package org.gms.service;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import lombok.AllArgsConstructor;
+
+import org.gms.client.quest.QuestWz;
 import org.gms.dao.entity.DropDataDO;
 import org.gms.dao.entity.DropDataGlobalDO;
 import org.gms.dao.mapper.DropDataGlobalMapper;
@@ -11,7 +13,6 @@ import org.gms.model.dto.DropSearchReqDTO;
 import org.gms.model.dto.DropSearchRtnDTO;
 import org.gms.server.ItemInformationProvider;
 import org.gms.server.life.MonsterInformationProvider;
-import org.gms.server.quest.Quest;
 import org.gms.util.Pair;
 import org.springframework.stereotype.Service;
 
@@ -169,6 +170,6 @@ public class DropService {
     }
 
     private String getQuestName(Integer questId) {
-        return questId == null ? null : Quest.getInstance(questId).getName();
+        return questId == null ? null : QuestWz.getInstance(questId).getName();
     }
 }

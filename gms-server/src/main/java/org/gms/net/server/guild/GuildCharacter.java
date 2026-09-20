@@ -113,7 +113,7 @@ public class GuildCharacter {
         guildid = gid;
         if (character != null) {
             character.setGuildId(gid);
-            org.gms.server.quest.medal.OutstandingCitizenMedal.refreshEligibility(character);
+            org.gms.client.quest.medal.OutstandingCitizenMedal.refreshEligibility(character);
         }
     }
 

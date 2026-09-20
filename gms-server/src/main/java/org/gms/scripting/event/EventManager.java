@@ -22,6 +22,7 @@
 package org.gms.scripting.event;
 
 import org.gms.client.character.Character;
+import org.gms.client.quest.QuestWz;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
 import org.gms.net.server.Server;
@@ -40,7 +41,6 @@ import org.gms.server.expeditions.Expedition;
 import org.gms.server.life.LifeFactory;
 import org.gms.server.life.Monster;
 import org.gms.server.maps.MapleMap;
-import org.gms.server.quest.Quest;
 import org.gms.exception.EventInstanceInProgressException;
 
 import javax.script.Invocable;
@@ -1218,7 +1218,7 @@ public class EventManager {
      */
     public void startQuest(Character chr, int id, int npcid) {
         try {
-            Quest.getInstance(id).forceStart(chr, npcid);
+            QuestWz.getInstance(id).forceStart(chr, npcid);
         } catch (NullPointerException ex) {
             ex.printStackTrace();
         }
@@ -1232,7 +1232,7 @@ public class EventManager {
      */
     public void completeQuest(Character chr, int id, int npcid) {
         try {
-            Quest.getInstance(id).forceComplete(chr, npcid);
+            QuestWz.getInstance(id).forceComplete(chr, npcid);
         } catch (NullPointerException ex) {
             ex.printStackTrace();
         }

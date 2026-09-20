@@ -12,6 +12,7 @@ import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.weaponType.WeaponTypeDefinition;
 import org.gms.client.weaponType.WeaponTypeRegistry;
+import org.gms.server.maps.MapleMapRef;
 import org.gms.client.SkillFactory;
 import org.gms.config.GameConfig;
 import org.gms.constants.skills.Marauder;
@@ -268,8 +269,9 @@ public class CharacterStats {
                 owner.checkBerserk(owner.isHidden());
             }
         };
-        if (owner.getMap() != null) {
-            owner.getMapRef().registerCharacterStatUpdate(r);
+        MapleMapRef mapRef = owner.getMapRef();
+        if (mapRef != null) {
+            mapRef.registerCharacterStatUpdate(r);
         }
     }
 

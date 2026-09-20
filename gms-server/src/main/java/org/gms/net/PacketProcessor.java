@@ -176,12 +176,12 @@ public final class PacketProcessor {
         registerHandler(RecvOpcode.WHISPER, new WhisperHandler());
         registerHandler(RecvOpcode.NPC_TALK, new NPCTalkHandler());
         registerHandler(RecvOpcode.NPC_TALK_MORE, new NPCMoreTalkHandler());
-        registerHandler(RecvOpcode.QUEST_ACTION, new QuestActionHandler());
         registerHandler(RecvOpcode.GRENADE_EFFECT, new GrenadeEffectHandler());
         registerHandler(RecvOpcode.NPC_SHOP, new NPCShopHandler());
         registerHandler(RecvOpcode.ITEM_SORT, new InventoryMergeHandler());
         registerHandler(RecvOpcode.ITEM_MOVE, new ItemMoveHandler());
         registerHandler(RecvOpcode.MESO_DROP, new MesoDropHandler());
+        registerHandler(RecvOpcode.QUEST_ACTION, new Gms083ShimHandler(RecvOpcode.QUEST_ACTION));
         registerHandler(RecvOpcode.CHANGE_MAP, new Gms083ShimHandler(RecvOpcode.CHANGE_MAP));
         registerHandler(RecvOpcode.MOVE_LIFE, new Gms083ShimHandler(RecvOpcode.MOVE_LIFE));
         registerHandler(RecvOpcode.CLOSE_RANGE_ATTACK, new CloseRangeDamageHandler());

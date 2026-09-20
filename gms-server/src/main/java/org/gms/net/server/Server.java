@@ -38,6 +38,7 @@ import org.gms.property.ServiceProperty;
 import org.gms.util.*;
 import org.gms.model.pojo.NewYearCardRecord;
 import org.gms.client.processor.npc.FredrickProcessor;
+import org.gms.client.quest.QuestWz;
 import org.gms.constants.game.GameConstants;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.constants.net.OpcodeConstants;
@@ -61,7 +62,6 @@ import org.gms.server.ThreadManager;
 import org.gms.server.TimerManager;
 import org.gms.server.expeditions.ExpeditionBossLog;
 import org.gms.server.life.PlayerNPC;
-import org.gms.server.quest.Quest;
 import org.gms.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -634,7 +634,7 @@ public class Server {
             final List<Future<?>> futures = new ArrayList<>();
             futures.add(initExecutor.submit(SkillFactory::loadAllSkills));
             futures.add(initExecutor.submit(CashItemFactory::loadAllCashItems));
-            futures.add(initExecutor.submit(Quest::loadAllQuests));
+            futures.add(initExecutor.submit(QuestWz::loadAllQuests));
             futures.add(initExecutor.submit(SkillbookInformationProvider::loadAllSkillbookInformation));
             // Wait on all async tasks to complete
             for (Future<?> future : futures) {

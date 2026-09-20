@@ -52,6 +52,8 @@ import org.gms.remote.modules.cashshop.CashShopModule;
 import org.gms.client.autoban.AutobanManager;
 import org.gms.client.creator.CharacterTemplate;
 import org.gms.client.pet.Pet;
+import org.gms.client.quest.QuestWz;
+import org.gms.client.quest.medal.OutstandingCitizenMedal;
 import org.gms.client.inventory.*;
 import org.gms.client.job.WeaponRule;
 import org.gms.client.weaponType.WeaponTypeDefinition;
@@ -108,8 +110,6 @@ import org.gms.server.partyquest.AriantColiseum;
 import org.gms.server.partyquest.MonsterCarnival;
 import org.gms.server.partyquest.MonsterCarnivalParty;
 import org.gms.server.partyquest.PartyQuest;
-import org.gms.server.quest.Quest;
-import org.gms.server.quest.medal.OutstandingCitizenMedal;
 import org.gms.service.*;
 import org.gms.util.*;
 import org.slf4j.Logger;
@@ -156,7 +156,11 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
      * strict 管线正在执行，期间经 {@link CharacterRef} 直调本体即断言失败（迁移 canary，
      * doc/16 §4.1）。volatile：player strand 写、map shim 线程读。
      */
-    private volatile boolean strictMode;
+    /** strict 管线执行窗口（canary 用，doc/16 §4.1）：值 = 开窗线程。断言只对同线程触达
+     *  生效——管线内的 ref 直调违规必然发生在管线线程上；跨 actor 异步任务（map shim/
+     *  timer）在窗口存续期触达 ref 属合法域上下文（controller 移交等豁免载荷），非违规。
+     *  null = 无窗口。 */
+    private volatile Thread strictThread;
     final CharacterRates rates = new CharacterRates(this);
     final CharacterScriptRunner scriptRunner = new CharacterScriptRunner(this::strand);
     /** 活跃的 ESM 任务脚本会话（重放模型，doc/13 §15）；dispose/登出清理 */
@@ -882,9 +886,18 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
             cpnLock.unlock();
         }
 
-        for (Monster monster : controlledMonsters) {
-            monster.aggroRedirectController();
+        MapleMapRef mapRef = getMapRef();
+        if (mapRef == null || controlledMonsters.isEmpty()) {
+            return;
         }
+        // controller 移交是 mob 域状态工作（换届判定要读新任 controller 的玩家状态）：
+        // post 到 map actor 执行——离开本图的玩家 strand 不越界触达 ref；与后续
+        // removePlayer 任务同 shim FIFO，先换届再移除的顺序与旧内联实现一致。
+        mapRef.post("release-controlled-monsters", () -> {
+            for (Monster monster : controlledMonsters) {
+                monster.aggroRedirectController();
+            }
+        });
     }
 
     /**
@@ -1744,6 +1757,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         data.debuffs = debuffs.toData();
         // data.antiCheat = antiCheat.toData();
         data.pets = petsData;
+        data.quests = quests.toData();
         data.inventory = inventory.toData();
         data.jobId = job.getId();
         data.mapId = getMapId();
@@ -1761,6 +1775,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
             pets.applyData(data.pets);
         }
         // antiCheat.applyData(data.antiCheat);
+        quests.applyData(data.quests);
         if (data.inventory != null) {
             inventory.applyData(data.inventory);
         }
@@ -2374,44 +2389,8 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
                     }
                 }
 
-                CharacterQuests.deleteQuestProgressWhereCharacterId(con, id);
-
-                // Quests and medals
-                try (PreparedStatement psStatus = con.prepareStatement("INSERT INTO queststatus (`queststatusid`, `characterid`, `quest`, `status`, `time`, `expires`, `forfeited`, `completed`) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
-                     PreparedStatement psProgress = con.prepareStatement("INSERT INTO questprogress VALUES (NULL, ?, ?, ?, ?)");
-                     PreparedStatement psMedal = con.prepareStatement("INSERT INTO medalmaps VALUES (NULL, ?, ?, ?)")) {
-                    psStatus.setInt(1, id);
-
-                    for (QuestStatus qs : quests.getQuestValues()) {
-                        psStatus.setInt(2, qs.getQuest().getId());
-                        psStatus.setInt(3, qs.getStatus().getId());
-                        psStatus.setInt(4, (int) (qs.getCompletionTime() / 1000));
-                        psStatus.setLong(5, qs.getExpirationTime());
-                        psStatus.setInt(6, qs.getForfeited());
-                        psStatus.setInt(7, qs.getCompleted());
-                        psStatus.executeUpdate();
-
-                        try (ResultSet rs = psStatus.getGeneratedKeys()) {
-                            rs.next();
-                            for (int mob : qs.getProgress().keySet()) {
-                                psProgress.setInt(1, id);
-                                psProgress.setInt(2, rs.getInt(1));
-                                psProgress.setInt(3, mob);
-                                psProgress.setString(4, qs.getProgress(mob));
-                                psProgress.addBatch();
-                            }
-                            psProgress.executeBatch();
-
-                            for (int i = 0; i < qs.getMedalMaps().size(); i++) {
-                                psMedal.setInt(1, id);
-                                psMedal.setInt(2, rs.getInt(1));
-                                psMedal.setInt(3, qs.getMedalMaps().get(i));
-                                psMedal.addBatch();
-                            }
-                            psMedal.executeBatch();
-                        }
-                    }
-                }
+                // 任务持久化已迁 character_json 的 quests 域（CharacterQuests.toData/applyData；
+                // queststatus/questprogress/medalmaps 三表随 V0.1.4 下线）
 
                 FamilyEntry familyEntry = family.getFamilyEntry(); //save family rep
                 if (familyEntry != null) {
@@ -3132,9 +3111,11 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     public MapleMapRef getMapRef() { return map.getMap(); }
     /** 地图域侧句柄（规范唯一；MapleMap 只持 ref 不持本类型） */
     public CharacterRef ref() { return ref; }
-    /** strict 管线执行窗口标志（canary 用，见字段注） */
-    public boolean strictMode() { return strictMode; }
-    public void setStrictMode(boolean strictMode) { this.strictMode = strictMode; }
+    /** strict 管线执行窗口标志（窗口存续视角，跨线程可见——controller 选举过滤等语义过滤用） */
+    public boolean strictMode() { return strictThread != null; }
+    public void setStrictMode(boolean strictMode) { strictThread = strictMode ? Thread.currentThread() : null; }
+    /** canary 断言谓词：当前线程正处本角色的管线窗口内（ref 触达守卫用，线程精确） */
+    public boolean inStrictPipelineOnThisThread() { return Thread.currentThread() == strictThread; }
     public MapleMap getMap() { MapleMapRef r = map.getMap(); return r != null ? r.unref() : null; }
     public int getMapId() { return map.getMapId(); }
     public void setMap(MapleMap to) { map.setMap(MapleMapRef.of(to)); }
@@ -3253,6 +3234,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         pets.bindClientHandlers(registry);
         inventory.bindClientHandlers(registry);
         map.bindClientHandlers(registry);
+        quests.bindClientHandlers(registry);
         registry.registerCashShop(this);
     }
 
@@ -3293,10 +3275,10 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
 
     public Map<Short, QuestStatus> getQuests() { return quests.getQuests(); }
     public QuestStatus getQuest(final int quest) { return quests.getQuest(quest); }
-    public QuestStatus getQuest(Quest quest) { return quests.getQuest(quest); }
+    public QuestStatus getQuest(QuestWz quest) { return quests.getQuest(quest); }
     public byte getQuestStatus(final int quest) { return quests.getQuestStatus(quest); }
-    public QuestStatus getQuestNoAdd(final Quest quest) { return quests.getQuestNoAdd(quest); }
-    public QuestStatus getQuestNAdd(final Quest quest) { return quests.getQuestNAdd(quest); }
+    public QuestStatus getQuestNoAdd(final QuestWz quest) { return quests.getQuestNoAdd(quest); }
+    public QuestStatus getQuestNAdd(final QuestWz quest) { return quests.getQuestNAdd(quest); }
     public List<QuestStatus> getCompletedQuests() { return quests.getCompletedQuests(); }
     public List<QuestStatus> getStartedQuests() { return quests.getStartedQuests(); }
     public boolean needQuestItem(int questid, int itemid) { return quests.needQuestItem(questid, itemid); }
@@ -3307,8 +3289,8 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     public boolean forceStartQuest(int questId, int npc) { return quests.forceStartQuest(questId, npc); }
     public boolean forceCompleteQuest(int questId, int npc) { return quests.forceCompleteQuest(questId, npc); }
     public boolean isQuestCompleted(int questId) { return quests.isQuestCompleted(questId); }
-    public void questTimeLimit(final Quest quest, int seconds) { quests.questTimeLimit(quest, seconds); }
-    public void questTimeLimit2(final Quest quest, long expires) { quests.questTimeLimit2(quest, expires); }
+    public void questTimeLimit(final QuestWz quest, int seconds) { quests.questTimeLimit(quest, seconds); }
+    public void questTimeLimit2(final QuestWz quest, long expires) { quests.questTimeLimit2(quest, expires); }
     public void raiseQuestMobCount(int id) { quests.raiseQuestMobCount(id); }
     public void forfeitExpirableQuests() { quests.forfeitExpirableQuests(); }
     public void questExpirationTask() { quests.questExpirationTask(); }

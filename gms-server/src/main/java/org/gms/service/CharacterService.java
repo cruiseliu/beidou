@@ -76,7 +76,6 @@ public class CharacterService {
     private final FamilyCharacterMapper familyCharacterMapper;
     private final FamelogMapper famelogMapper;
     private final InventoryService inventoryService;
-    private final QuestService questService;
     private final FredstorageMapper fredstorageMapper;
     private final MtsService mtsService;
     private final KeymapMapper keymapMapper;
@@ -276,8 +275,6 @@ public class CharacterService {
         famelogMapper.deleteByQuery(QueryWrapper.create().where(FAMELOG_D_O.CHARACTERID_TO.eq(cid).or(FAMELOG_D_O.CHARACTERID.eq(cid))));
         // 删除背包库存
         inventoryService.deleteInventoryByCharacterId(cid);
-        // 删除任务进度
-        questService.deleteQuestProgressByCharacter(cid);
         // 删除fredstorage
         fredstorageMapper.deleteByQuery(QueryWrapper.create().where(FREDSTORAGE_D_O.CID.eq(cid)));
         // 删除拍卖行
@@ -386,8 +383,7 @@ public class CharacterService {
         }
         chr.setLoggedIn(true);
 
-        List<QuestStatus> questStatusList = questService.getQuestStatusByCharacter(cid);
-        questStatusList.forEach(questStatus -> chr.getQuests().put(questStatus.getQuestID(), questStatus));
+        // 任务状态随 character_json 的 quests 域恢复（fromCharactersDO → loadDataFromJson → applyData）
 
         List<SkillmacrosDO> skillmacrosDOList = skillmacrosMapper.selectListByQuery(QueryWrapper.create().where(SKILLMACROS_D_O.CHARACTERID.eq(cid)));
         skillmacrosDOList.forEach(skillmacrosDO -> chr.getSkillMacros()[skillmacrosDO.getPosition()] = new SkillMacro(

@@ -72,19 +72,19 @@ public final class MobDamageMobHandler extends AbstractPacketHandler {
                 MonsterStatusEffect hadAttHypnotized = attacker.getStati(MonsterStatus.INERTMOB);
                 if (hadAttHypnotized != null) {
                     // 心灵控制的怪物攻击其他怪物，伤害算作控制者的伤害
-                    damageChr = attacker.getController();
+                    damageChr = attacker.getController().unref();
                 } else if (damaged.getController() != null) {
                     MonsterStatusEffect hadDamHypnotized = damaged.getStati(MonsterStatus.INERTMOB);
                     if (hadDamHypnotized != null) {
                         // 心灵控制的怪物被其他怪物攻击，伤害算作被控制者的伤害
-                        damageChr = damaged.getController();
+                        damageChr = damaged.getController().unref();
                     }
                 }
             } else if (damaged.getController() != null) {
                 MonsterStatusEffect hadDamHypnotized = damaged.getStati(MonsterStatus.INERTMOB);
                 if (hadDamHypnotized != null) {
                     // 心灵控制的怪物被其他怪物攻击，伤害算作被控制者的伤害
-                    damageChr = damaged.getController();
+                    damageChr = damaged.getController().unref();
                 }
             }
             if (damageChr == null) {

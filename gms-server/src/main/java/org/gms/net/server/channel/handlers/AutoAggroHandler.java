@@ -22,6 +22,7 @@
 package org.gms.net.server.channel.handlers;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.client.Client;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
@@ -49,7 +50,7 @@ public final class AutoAggroHandler extends AbstractPacketHandler {
 
         Monster monster = map.getMonsterByOid(oid);
         if (monster != null) {
-            monster.aggroAutoAggroUpdate(player);
+            monster.aggroAutoAggroUpdate(CharacterRef.of(player));
         }
     }
 }

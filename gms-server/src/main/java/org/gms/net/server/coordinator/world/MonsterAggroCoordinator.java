@@ -20,6 +20,7 @@
 package org.gms.net.server.coordinator.world;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.config.GameConfig;
 import org.gms.net.server.Server;
 import org.gms.server.TimerManager;
@@ -292,7 +293,7 @@ public class MonsterAggroCoordinator {
         }
     }
 
-    public boolean isLeadingCharacterAggro(Monster mob, Character player) {
+    public boolean isLeadingCharacterAggro(Monster mob, CharacterRef player) {
         if (mob.isLeadingPuppetInVicinity()) {
             return false;
         } else if (mob.isCharacterPuppetInVicinity(player)) {
@@ -350,7 +351,7 @@ public class MonsterAggroCoordinator {
         }
     }
 
-    public void addPuppetAggro(Character player) {
+    public void addPuppetAggro(CharacterRef player) {
         synchronized (mapPuppetEntries) {
             mapPuppetEntries.add(player.getId());
         }

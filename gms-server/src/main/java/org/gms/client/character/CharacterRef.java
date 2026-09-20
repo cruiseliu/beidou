@@ -14,6 +14,7 @@ import org.gms.server.maps.MapleMap;
 import org.gms.server.maps.PlayerShop;
 import org.gms.server.maps.Portal;
 import org.gms.server.maps.Summon;
+import org.gms.server.life.Monster;
 import org.gms.server.partyquest.MonsterCarnival;
 import org.gms.client.EffectType;
 import org.gms.server.BuffEffectData;
@@ -22,6 +23,7 @@ import org.gms.server.events.gm.Ola;
 import org.gms.util.AssertUtil;
 
 import java.awt.Point;
+import java.util.Collection;
 import java.util.function.Consumer;
 
 /**
@@ -33,10 +35,10 @@ import java.util.function.Consumer;
  * 的现状（chrWLock 等锁保护）保持。后续 post 化（写方法 post 回 player strand +
  * 读快照化）为独立批次，不在本轮。
  *
- * <p><b>strict canary</b>：本体的 strict 收包管线执行窗口内（{@code chr.strictMode()}），
- * 一切经 ref 触达本体（直调委托与 {@link #unref()} 解包）即断言失败——命中的调用链
- * 即 map 域同步跨域点，post 化欠账的定位输出（doc/16 §4.1）。当前全部管线 strict=false，
- * 断言不激活。
+ * <p><b>strict canary</b>：本体的 strict 收包管线执行窗口内（按开窗线程判定，见
+ * Character#inStrictPipelineOnThisThread），一切经 ref 触达本体（直调委托与
+ * {@link #unref()} 解包）即断言失败——命中的调用链即 map 域同步跨域点，post 化欠账的
+ * 定位输出（doc/16 §4.1）。
  */
 public final class CharacterRef implements MapObject {
 
@@ -131,13 +133,15 @@ public final class CharacterRef implements MapObject {
     }
 
     /**
-     * strict 管线窗口断言（迁移 canary，全量）：窗口内经 ref 触达本体即抛 AssertionError，
-     * 由 strand/shim fail-safe 记日志（定位用，不中断服务）。合法的 map actor 载荷任务
-     * 不应携带/触达 CharacterRef——需要本体引用的（controller 移交等）由载荷直接携带
-     * Character（identity/移交专用，见 MapleMap.onTransitionMobView）。
+     * strict 管线窗口断言（迁移 canary，全量）：管线线程窗口内经 ref 触达本体即抛
+     * AssertionError，由 strand/shim fail-safe 记日志（定位用，不中断服务）。合法的
+     * map actor 载荷任务不应携带/触达 CharacterRef——需要本体引用的（controller 移交等）
+     * 由载荷直接携带 Character（identity/移交专用，见 MapleMap.onTransitionMobView）。
+     * 断言按<b>开窗线程</b>判定（线程精确）：跨 actor 异步任务在窗口存续期触达 ref
+     * （如 map shim 上的 transitionMobView）不属管线违规，不 fire。
      */
     private void notInStrictPipeline() {
-        AssertUtil.isTrue(!chr.strictMode(), "strict 管线执行窗口内经 CharacterRef 触达本体 (cid=" + id + ")");
+        AssertUtil.isTrue(!chr.inStrictPipelineOnThisThread(), "strict 管线执行窗口内经 CharacterRef 触达本体 (cid=" + id + ")");
     }
 
     /** 本体 id（首次读取捕获，见字段注；不访问 Character） */
@@ -433,6 +437,38 @@ public final class CharacterRef implements MapObject {
     public boolean isAlive() {
         notInStrictPipeline();
         return chr.isAlive();
+    }
+
+    public boolean isLoggedInWorld() {
+        notInStrictPipeline();
+        return chr.isLoggedInWorld();
+    }
+
+    public BuffEffectData getBuffEffect(EffectType type) {
+        notInStrictPipeline();
+        return chr.getBuffEffect(type);
+    }
+
+    // ── mob 控制簿记（Monster.controller 的 ref 化镜像，P0 直调；post 化另批）──
+
+    public void controlMonster(Monster monster) {
+        notInStrictPipeline();
+        chr.controlMonster(monster);
+    }
+
+    public void stopControllingMonster(Monster monster) {
+        notInStrictPipeline();
+        chr.stopControllingMonster(monster);
+    }
+
+    public int getNumControlledMonsters() {
+        notInStrictPipeline();
+        return chr.getNumControlledMonsters();
+    }
+
+    public Collection<Monster> getControlledMonsters() {
+        notInStrictPipeline();
+        return chr.getControlledMonsters();
     }
 
     public void resetPlayerAggro() {

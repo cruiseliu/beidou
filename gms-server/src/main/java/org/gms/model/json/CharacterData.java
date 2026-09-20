@@ -19,6 +19,8 @@ public class CharacterData {
     public java.util.Map<String, java.util.List<ItemData>> inventory;
     /** 宠物域（召唤中的宠物 id + 拾取过滤共享列表） */
     public CharacterPetsData pets;
+    /** 任务域（任务状态/进度/勋章探索图；权威自 V0.1.4 起从 queststatus 三表迁入） */
+    public CharacterQuestsData quests;
     /** 职业 id（CharacterJob.job），与 character 表 job 列冗余双写 */
     public int jobId;
     /** 当前地图 id（CharacterMap.mapId），与 character 表 map 列冗余双写 */

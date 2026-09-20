@@ -26,6 +26,7 @@ package org.gms.client.command.commands.gm2;
 import org.gms.client.character.Character;
 import org.gms.client.Client;
 import org.gms.client.command.Command;
+import org.gms.client.quest.QuestWz;
 import org.gms.constants.id.NpcId;
 import org.gms.provider.Data;
 import org.gms.provider.DataProvider;
@@ -33,7 +34,6 @@ import org.gms.provider.DataProviderFactory;
 import org.gms.provider.DataTool;
 import org.gms.provider.wz.WZFiles;
 import org.gms.server.ItemInformationProvider;
-import org.gms.server.quest.Quest;
 import org.gms.util.I18nUtil;
 import org.gms.util.Pair;
 
@@ -122,7 +122,7 @@ public class SearchCommand extends Command {
                     }
                 }
             } else {
-                for (Quest mq : Quest.getMatchedQuests(search)) {
+                for (QuestWz mq : QuestWz.getMatchedQuests(search)) {
                     sb.append("#b").append(mq.getId()).append("#k - #r");
 
                     String parentName = mq.getParentName();

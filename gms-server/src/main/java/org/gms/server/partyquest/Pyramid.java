@@ -23,12 +23,12 @@
 package org.gms.server.partyquest;
 
 import org.gms.client.character.Character;
+import org.gms.client.quest.QuestWz;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.id.MapId;
 import org.gms.net.server.world.Party;
 import org.gms.server.ItemInformationProvider;
 import org.gms.server.TimerManager;
-import org.gms.server.quest.Quest;
 import org.gms.util.PacketCreator;
 
 import java.util.concurrent.ScheduledFuture;
@@ -149,12 +149,12 @@ public class Pyramid extends PartyQuest {
                 continue;
             }
             if (chr.getQuestStatus(PROTECTOR_OF_PHARAOH_QUEST) != 1) {
-                Quest.getInstance(PROTECTOR_OF_PHARAOH_QUEST).forceStart(chr, PROTECTOR_OF_PHARAOH_NPC);
+                QuestWz.getInstance(PROTECTOR_OF_PHARAOH_QUEST).forceStart(chr, PROTECTOR_OF_PHARAOH_NPC);
             }
 
             int progress;
             try {
-                progress = Integer.parseInt(chr.getQuest(Quest.getInstance(PROTECTOR_OF_PHARAOH_INFO)).getProgress(0));
+                progress = Integer.parseInt(chr.getQuest(QuestWz.getInstance(PROTECTOR_OF_PHARAOH_INFO)).getProgress(0));
             } catch (NumberFormatException nfe) {
                 progress = 0;
             }

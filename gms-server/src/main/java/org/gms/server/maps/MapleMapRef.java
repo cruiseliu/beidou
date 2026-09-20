@@ -11,6 +11,7 @@ import org.gms.net.server.world.Party;
 import org.gms.util.AssertUtil;
 
 import org.gms.scripting.event.EventInstanceManager;
+import org.gms.server.life.NPC;
 import org.gms.server.partyquest.MonsterCarnival;
 
 import java.awt.Point;
@@ -159,6 +160,11 @@ public final class MapleMapRef {
 
     public List<MapObject> getMonsters() {
         return shim.supply("getMonsters", map::getMonsters);
+    }
+
+    /** 图上 NPC 查询（任务临近校验等；查无返回 null；NPC 位置出生后不变，跨 actor 读安全） */
+    public NPC getNPCById(int id) {
+        return shim.supply("getNPCById", () -> map.getNPCById(id));
     }
 
     public boolean isTown() {

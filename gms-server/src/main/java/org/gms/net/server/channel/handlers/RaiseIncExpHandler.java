@@ -6,11 +6,11 @@ import org.gms.client.QuestStatus;
 import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
+import org.gms.client.quest.QuestWz;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
 import org.gms.server.ItemInformationProvider;
 import org.gms.server.ItemInformationProvider.QuestConsItem;
-import org.gms.server.quest.Quest;
 import org.gms.util.PacketCreator;
 
 import java.util.Map;
@@ -46,7 +46,7 @@ public class RaiseIncExpHandler extends AbstractPacketHandler {
                 Map<Integer, Integer> consumables = consItem.items;
 
                 Character chr = c.getPlayer();
-                Quest quest = Quest.getInstanceFromInfoNumber(infoNumber);
+                QuestWz quest = QuestWz.getInstanceFromInfoNumber(infoNumber);
                 if (!chr.getQuest(quest).getStatus().equals(QuestStatus.Status.STARTED)) {
                     c.sendPacket(PacketCreator.enableActions());
                     return;

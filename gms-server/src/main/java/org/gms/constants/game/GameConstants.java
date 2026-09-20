@@ -2,6 +2,7 @@ package org.gms.constants.game;
 
 import org.gms.client.Disease;
 import org.gms.client.JobEnum;
+import org.gms.client.quest.QuestWz;
 import org.gms.config.GameConfig;
 import org.gms.constants.id.MapId;
 import org.gms.constants.skills.Aran;
@@ -9,7 +10,6 @@ import org.gms.provider.*;
 import org.gms.provider.wz.WZFiles;
 import org.gms.server.maps.FieldLimit;
 import org.gms.server.maps.MapleMap;
-import org.gms.server.quest.Quest;
 import org.gms.util.Pair;
 
 import java.text.DecimalFormat;
@@ -598,7 +598,7 @@ public class GameConstants {
     }
 
     public static boolean isMedalQuest(short questid) {
-        return Quest.getInstance(questid).getMedalRequirement() != -1;
+        return QuestWz.getInstance(questid).getMedalRequirement() != -1;
     }
 
     public static boolean hasSPTable(JobEnum job) {

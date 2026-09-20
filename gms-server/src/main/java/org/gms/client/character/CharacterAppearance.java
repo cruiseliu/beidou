@@ -1,8 +1,8 @@
 package org.gms.client.character;
 
 import org.gms.client.SkinColor;
+import org.gms.client.quest.medal.DynamicHairMedal;
 import org.gms.net.server.Server;
-import org.gms.server.quest.medal.DynamicHairMedal;
 import org.gms.util.PacketCreator;
 
 /**

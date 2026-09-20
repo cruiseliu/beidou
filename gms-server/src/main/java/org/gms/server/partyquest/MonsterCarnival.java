@@ -2,6 +2,7 @@ package org.gms.server.partyquest;
 
 import org.gms.client.character.Character;
 import org.gms.client.character.CharacterRef;
+import org.gms.client.quest.medal.SpecialChallengeMedal;
 import org.gms.config.GameConfig;
 import org.gms.constants.string.LanguageConstants;
 import org.gms.net.server.Server;
@@ -11,7 +12,6 @@ import org.gms.net.server.world.PartyCharacter;
 import org.gms.server.TimerManager;
 import org.gms.server.maps.MapleMap;
 import org.gms.server.maps.Reactor;
-import org.gms.server.quest.medal.SpecialChallengeMedal;
 import org.gms.util.PacketCreator;
 
 import java.util.concurrent.ScheduledFuture;

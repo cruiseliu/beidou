@@ -22,6 +22,7 @@
 package org.gms.net.server.channel.handlers;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.client.Client;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
@@ -115,7 +116,7 @@ public final class SpecialMoveHandler extends AbstractPacketHandler {
 
                         // thanks onechord for pointing out Magnet crashing the caster (issue would actually happen upon failing to catch mob)
                         // thanks Conrad for noticing Magnet crashing when trying to pull bosses and fixed mobs
-                        monster.aggroSwitchController(chr, true);
+                        monster.aggroSwitchController(CharacterRef.of(chr), true);
                     }
                 }
             }

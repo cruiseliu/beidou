@@ -2596,16 +2596,14 @@ public class MapleMap {
     */
 
     public void addPlayerPuppet(CharacterRef cr) {
-        CharacterRef player = cr;
         for (Monster mm : this.getAllMonsters()) {
-            mm.aggroAddPuppet(player.unref());
+            mm.aggroAddPuppet(cr);
         }
     }
 
     public void removePlayerPuppet(CharacterRef cr) {
-        CharacterRef player = cr;
         for (Monster mm : this.getAllMonsters()) {
-            mm.aggroRemovePuppet(player.unref());
+            mm.aggroRemovePuppet(cr);
         }
     }
 
@@ -3279,15 +3277,15 @@ public class MapleMap {
      * 修复客户端切图后的 mob 状态显示。chr 的 player 侧状态已在 strand 读完（isHidden
      * 快照门在调用方）；mob 侧状态照旧并发语义。
      *
-     * <p>载荷为<b>本体引用</b>（非 CharacterRef，绕开 strict canary 的 ref 触达断言）：
-     * 仅用于 controller 的 identity 比较/移交，任何 player 状态导航都是违规（审计面仅此方法）。
+     * <p>载荷为 {@link CharacterRef}：controller 的 identity 比较按 id；重挂与收回的
+     * 发包在 Monster 侧经 postLegacyPacket 回 strand，本任务体零本体触达。
      */
     public void onTransitionMobView(CharacterRef chr) {
         List<Consumer<Client>> sends = new ArrayList<>();
         for (MapObject mo : getMonsters()) {    // thanks BHB, IxianMace, Jefe for noticing several issues regarding mob statuses (such as freeze)
             Monster m = (Monster) mo;
             if (m.getSpawnEffect() == 0 || m.getHp() < m.getMaxHp()) {     // avoid effect-spawning mobs
-                Character controller = m.getController();
+                CharacterRef controller = m.getController();
                 if (controller != null && controller.getId() == chr.getId()) {   // identity = id（跨实例稳健；引用 == 会误判重连后的新旧实例）
                     sends.add(client -> client.sendPacket(PacketCreator.stopControllingMonster(m.getObjectId())));
                     sends.add(m::sendDestroyData);
@@ -3296,11 +3294,10 @@ public class MapleMap {
                     sends.add(m::sendDestroyData);
                 }
                 sends.add(m::sendSpawnData);
-                m.aggroSwitchController(chr.unref(), false);
+                m.aggroSwitchController(chr, false);
             }
         }
-        // 直发段 post 化（strict 窗口内不得经 ref 取 client）：mob 状态变更留在 map actor
-        // 任务体，重建包按收集序整体回移动者 strand；窗口按调度豁免约定随之移除。
+        // 重建包按收集序整体回移动者 strand 直发（窗口收口后执行，时序近等价旧内联直发）。
         chr.postLegacyPacket("map-transitionMobView", client -> {
             for (Consumer<Client> send : sends) {
                 send.accept(client);
@@ -3410,7 +3407,7 @@ public class MapleMap {
             }
         }
 
-        Boolean aggro = monster.aggroMoveLifeUpdate(player.unref());
+        Boolean aggro = monster.aggroMoveLifeUpdate(player);
         if (aggro == null) {
             return;
         }

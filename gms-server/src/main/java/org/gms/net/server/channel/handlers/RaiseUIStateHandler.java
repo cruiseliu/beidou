@@ -1,13 +1,13 @@
 package org.gms.net.server.channel.handlers;
 
 import org.gms.client.character.Character;
+import org.gms.client.quest.QuestWz;
 import org.gms.client.Client;
 import org.gms.client.QuestStatus;
 import org.gms.constants.game.DelayedQuestUpdate;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
 import org.gms.scripting.quest.QuestScriptManager;
-import org.gms.server.quest.Quest;
 
 /**
  * @author Xari
@@ -28,7 +28,7 @@ public class RaiseUIStateHandler extends AbstractPacketHandler {
         if (c.tryacquireClient()) {
             try {
                 Character chr = c.getPlayer();
-                Quest quest = Quest.getInstanceFromInfoNumber(infoNumber);
+                QuestWz quest = QuestWz.getInstanceFromInfoNumber(infoNumber);
                 QuestStatus mqs = chr.getQuest(quest);
 
                 QuestScriptManager.getInstance().raiseOpen(c, (short) infoNumber, mqs.getNpc());

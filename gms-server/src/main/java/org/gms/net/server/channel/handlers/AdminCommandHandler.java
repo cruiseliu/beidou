@@ -27,6 +27,7 @@ import org.gms.client.Client;
 import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
+import org.gms.client.quest.QuestWz;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
 import org.slf4j.Logger;
@@ -36,7 +37,6 @@ import org.gms.server.life.LifeFactory;
 import org.gms.server.life.Monster;
 import org.gms.server.maps.MapObject;
 import org.gms.server.maps.MapObjectType;
-import org.gms.server.quest.Quest;
 import org.gms.util.PacketCreator;
 import org.gms.util.Randomizer;
 
@@ -149,7 +149,7 @@ public final class AdminCommandHandler extends AbstractPacketHandler {
                 }
                 break;
             case 0x16: // Questreset
-                Quest.getInstance(p.readShort()).reset(c.getPlayer());
+                QuestWz.getInstance(p.readShort()).reset(c.getPlayer());
                 break;
             case 0x17: // Summon
                 int mobId = p.readInt();

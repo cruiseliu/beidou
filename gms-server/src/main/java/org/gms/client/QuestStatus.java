@@ -21,7 +21,7 @@
 */
 package org.gms.client;
 
-import org.gms.server.quest.Quest;
+import org.gms.client.quest.QuestWz;
 import org.gms.util.StringUtil;
 
 import java.util.Collections;
@@ -69,7 +69,7 @@ public class QuestStatus {
     private int forfeited = 0, completed = 0;
     private String customData;
 
-    public QuestStatus(Quest quest, Status status) {
+    public QuestStatus(QuestWz quest, Status status) {
         this.questID = quest.getId();
         this.setStatus(status);
         this.completionTime = System.currentTimeMillis();
@@ -80,7 +80,7 @@ public class QuestStatus {
         }
     }
 
-    public QuestStatus(Quest quest, Status status, int npc) {
+    public QuestStatus(QuestWz quest, Status status, int npc) {
         this.questID = quest.getId();
         this.setStatus(status);
         this.setNpc(npc);
@@ -92,8 +92,8 @@ public class QuestStatus {
         }
     }
 
-    public Quest getQuest() {
-        return Quest.getInstance(questID);
+    public QuestWz getQuest() {
+        return QuestWz.getInstance(questID);
     }
 
     public short getQuestID() {
@@ -131,7 +131,7 @@ public class QuestStatus {
     }
 
     private void registerMobs() {
-        for (int i : Quest.getInstance(questID).getRelevantMobs()) {
+        for (int i : QuestWz.getInstance(questID).getRelevantMobs()) {
             progress.put(i, "000");
         }
         //this.setUpdated();
@@ -204,21 +204,21 @@ public class QuestStatus {
     }
 
     public short getInfoNumber() {
-        Quest q = this.getQuest();
+        QuestWz q = this.getQuest();
         Status s = this.getStatus();
 
         return q.getInfoNumber(s);
     }
 
     public String getInfoEx(int index) {
-        Quest q = this.getQuest();
+        QuestWz q = this.getQuest();
         Status s = this.getStatus();
 
         return q.getInfoEx(s, index);
     }
 
     public List<String> getInfoEx() {
-        Quest q = this.getQuest();
+        QuestWz q = this.getQuest();
         Status s = this.getStatus();
 
         return q.getInfoEx(s);
