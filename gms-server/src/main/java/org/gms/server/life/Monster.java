@@ -775,15 +775,20 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
             // （opaque handler 纪律——map 任务体只持调度句柄，载荷在 actor 域内执行）
             Strand s = attacker.strand();
             if (s != null) {
-                s.execute("gain-exp", () -> attacker.gainExp(_personalExp, _partyExp, true, false, white));
+                s.execute("gain-exp", () -> {
+                    attacker.gainExp(_personalExp, _partyExp, true, false, white);
+                    attacker.raiseQuestMobCount(getId());
+                    VeteranHunterMedal.onMonsterKilled(attacker, this);
+                    // 特级挑战勋章复用怪物死亡事件，在角色已接任务时写入个人击杀进度。
+                    SpecialChallengeMedal.onMonsterKilled(attacker, this);
+                });
             } else {
                 attacker.gainExp(_personalExp, _partyExp, true, false, white);
+                attacker.raiseQuestMobCount(getId());
+                VeteranHunterMedal.onMonsterKilled(attacker, this);
+                SpecialChallengeMedal.onMonsterKilled(attacker, this);
             }
             attacker.increaseEquipExp(_personalExp);
-            attacker.raiseQuestMobCount(getId());
-            VeteranHunterMedal.onMonsterKilled(attacker, this);
-            // 特级挑战勋章复用怪物死亡事件，在角色已接任务时写入个人击杀进度。
-            SpecialChallengeMedal.onMonsterKilled(attacker, this);
         }
     }
 
@@ -917,7 +922,12 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
                     Character chr = mapChars.get(chrid) != null ? mapChars.get(chrid).unref() : null;
 
                     if (chr != null && chr.isLoggedInWorld()) {
-                        chr.raiseQuestMobCount(mobid);
+                        Strand s = chr.strand();
+                        if (s != null) {
+                            s.execute("quest-mob-count", () -> chr.raiseQuestMobCount(mobid));
+                        } else {
+                            chr.raiseQuestMobCount(mobid);
+                        }
                     }
                 }
             }

@@ -23,6 +23,7 @@ package org.gms.scripting.event;
 
 import org.gms.client.character.Character;
 import org.gms.client.quest.QuestWz;
+import org.gms.infra.Strand;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
 import org.gms.net.server.Server;
@@ -1218,7 +1219,12 @@ public class EventManager {
      */
     public void startQuest(Character chr, int id, int npcid) {
         try {
-            chr.getQuestNAdd(id).forceStart(chr, npcid);
+            Strand s = chr.strand();
+            if (s != null) {
+                s.execute("eim-quest-start", () -> chr.getQuestNAdd(id).forceStart(chr, npcid));
+            } else {
+                chr.getQuestNAdd(id).forceStart(chr, npcid);
+            }
         } catch (NullPointerException ex) {
             ex.printStackTrace();
         }
@@ -1232,7 +1238,12 @@ public class EventManager {
      */
     public void completeQuest(Character chr, int id, int npcid) {
         try {
-            chr.getQuestNAdd(id).forceComplete(chr, npcid);
+            Strand s = chr.strand();
+            if (s != null) {
+                s.execute("eim-quest-complete", () -> chr.getQuestNAdd(id).forceComplete(chr, npcid));
+            } else {
+                chr.getQuestNAdd(id).forceComplete(chr, npcid);
+            }
         } catch (NullPointerException ex) {
             ex.printStackTrace();
         }

@@ -9,6 +9,7 @@ import org.gms.constants.game.DelayedQuestUpdate;
 import org.gms.constants.id.MobId;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.model.json.CharacterQuestsData;
+import org.gms.infra.Strand;
 import org.gms.net.server.Server;
 import org.gms.remote.modules.quest.QuestModule;
 import org.gms.scripting.quest.QuestScriptManager;
@@ -28,8 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -38,6 +37,8 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * 仿照 CharacterBuffs/CharacterChair 模式：数据 + 领域逻辑内聚于此，持有 owner 反向引用，
  * Character 保留公开具名门面（getQuest/updateQuestStatus/... 对外转发）。
  *
+ * 线程纪律：任务状态全部属 owner strand（无锁）；跨线程入口（怪物击杀、到期 tick、
+ * EIM 脚本）由调用方 strand 跳板进入，不在本类内加锁。
  * 边界：只承载任务语义——任务状态、任务点数、限时任务、任务更新封包（npcUpdateQuests 延迟队列）。
  * 组队任务（party quest，AriantColiseum/MonsterCarnival/partyQuest 字段）不属本组件；
  * 持久化走 character_json 的 quests 域（toData/applyData，queststatus 三表已下线）；
@@ -59,11 +60,8 @@ class CharacterQuests implements QuestModule.Handler {
     /** 限时任务检查定时器 */
     private ScheduledFuture<?> questExpireTask = null;
 
-    /** 任务更新封包延迟队列（NPC 脚本对话期间积压） */
+    /** 任务更新封包延迟队列（NPC 脚本对话期间积压；全部读写已 strand 收口，无需队列锁） */
     private final List<Pair<DelayedQuestUpdate, Object[]>> npcUpdateQuests = new LinkedList<>();
-
-    /** 限时任务表锁（原 Character.evtLock 职责拆分） */
-    private final Lock questLock = new ReentrantLock(true);
 
     CharacterQuests(Character owner) {
         this.owner = owner;
@@ -86,9 +84,7 @@ class CharacterQuests implements QuestModule.Handler {
 
     /** 快照（saveCharToDB 持久化用；包内可见） */
     List<QuestInfo> getQuestValues() {
-        synchronized (quests) {
-            return new ArrayList<>(quests.values());
-        }
+        return new ArrayList<>(quests.values());
     }
 
     // ── 持久化数据转换（quests 域；信封组装在 Character.toData，加载经 loadDataFromJson → applyData）──
@@ -128,26 +124,24 @@ class CharacterQuests implements QuestModule.Handler {
         if (data == null || data.quests == null) {
             return;
         }
-        synchronized (quests) {
-            quests.clear();
-            for (CharacterQuestsData.QuestEntryData e : data.quests) {
-                QuestInfo qs = new QuestInfo(QuestWz.getInstance(e.quest), QuestStatus.fromValue(e.status));
-                qs.setCompletionTime(e.completionTime);
-                qs.setExpirationTime(e.expirationTime);
-                qs.setForfeited(e.forfeited);
-                qs.setCompleted(e.completed);
-                if (e.progress != null) {
-                    for (Map.Entry<Integer, String> p : e.progress.entrySet()) {
-                        qs.setProgress(p.getKey(), p.getValue());
-                    }
+        quests.clear();
+        for (CharacterQuestsData.QuestEntryData e : data.quests) {
+            QuestInfo qs = new QuestInfo(QuestWz.getInstance(e.quest), QuestStatus.fromValue(e.status));
+            qs.setCompletionTime(e.completionTime);
+            qs.setExpirationTime(e.expirationTime);
+            qs.setForfeited(e.forfeited);
+            qs.setCompleted(e.completed);
+            if (e.progress != null) {
+                for (Map.Entry<Integer, String> p : e.progress.entrySet()) {
+                    qs.setProgress(p.getKey(), p.getValue());
                 }
-                if (e.medalMaps != null) {
-                    for (int mapid : e.medalMaps) {
-                        qs.addMedalMap(mapid);
-                    }
-                }
-                quests.put((int) qs.getQuestID(), qs);
             }
+            if (e.medalMaps != null) {
+                for (int mapid : e.medalMaps) {
+                    qs.addMedalMap(mapid);
+                }
+            }
+            quests.put(qs.getQuestID(), qs);
         }
     }
 
@@ -163,13 +157,11 @@ class CharacterQuests implements QuestModule.Handler {
     }
 
     byte getQuestStatus(final int quest) {
-        synchronized (quests) {
-            QuestInfo mqs = quests.get(quest);
-            if (mqs != null) {
-                return (byte) mqs.getStatus().getValue();
-            } else {
-                return 0;
-            }
+        QuestInfo mqs = quests.get(quest);
+        if (mqs != null) {
+            return (byte) mqs.getStatus().getValue();
+        } else {
+            return 0;
         }
     }
 
@@ -191,31 +183,25 @@ class CharacterQuests implements QuestModule.Handler {
     }
 
     QuestInfo getQuest(final int questId) {
-        synchronized (quests) {
-            QuestInfo qs = quests.get(questId);
-            if (qs == null) {
-                qs = new QuestInfo(QuestWz.getInstance(questId), QuestStatus.NOT_STARTED);
-                quests.put(questId, qs);
-            }
-            return qs;
+        QuestInfo qs = quests.get(questId);
+        if (qs == null) {
+            qs = new QuestInfo(QuestWz.getInstance(questId), QuestStatus.NOT_STARTED);
+            quests.put(questId, qs);
         }
+        return qs;
     }
 
     QuestInfo getQuestNAdd(final int questId) {
-        synchronized (quests) {
-            if (!quests.containsKey(questId)) {
-                final QuestInfo status = new QuestInfo(QuestWz.getInstance(questId), QuestStatus.NOT_STARTED);
-                quests.put(questId, status);
-                return status;
-            }
-            return quests.get(questId);
+        QuestInfo status = quests.get(questId);
+        if (status == null) {
+            status = new QuestInfo(QuestWz.getInstance(questId), QuestStatus.NOT_STARTED);
+            quests.put(questId, status);
         }
+        return status;
     }
 
     QuestInfo getQuestNoAdd(final int questId) {
-        synchronized (quests) {
-            return quests.get(questId);
-        }
+        return quests.get(questId);
     }
 
     List<QuestInfo> getStartedQuests() {
@@ -270,9 +256,7 @@ class CharacterQuests implements QuestModule.Handler {
     }
 
     void updateQuestStatus(QuestInfo qs) {
-        synchronized (quests) {
-            quests.put(qs.getQuestID(), qs);
-        }
+        quests.put(qs.getQuestID(), qs);
         if (qs.getStatus().equals(QuestStatus.STARTED)) {
             announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, false);
             if (qs.getInfoNumber() > 0) {
@@ -302,13 +286,10 @@ class CharacterQuests implements QuestModule.Handler {
             return;
         }
 
-        int delta;
-        synchronized (quests) {
-            questFame += awardedPoints;
+        questFame += awardedPoints;
 
-            delta = questFame / GameConfig.getServerInt("quest_point_requirement");
-            questFame %= GameConfig.getServerInt("quest_point_requirement");
-        }
+        int delta = questFame / GameConfig.getServerInt("quest_point_requirement");
+        questFame %= GameConfig.getServerInt("quest_point_requirement");
 
         if (delta > 0) {
             owner.gainFame(delta);
@@ -328,18 +309,16 @@ class CharacterQuests implements QuestModule.Handler {
 
         int lastQuestProcessed = 0;
         try {
-            synchronized (quests) {
-                for (QuestInfo qs : getQuestValues()) {
-                    lastQuestProcessed = qs.getQuest().getId();
-                    if (qs.getStatus() == QuestStatus.COMPLETED || qs.canComplete(owner, null)) {
-                        continue;
-                    }
+            for (QuestInfo qs : getQuestValues()) {
+                lastQuestProcessed = qs.getQuest().getId();
+                if (qs.getStatus() == QuestStatus.COMPLETED || qs.canComplete(owner, null)) {
+                    continue;
+                }
 
-                    if (qs.progress(id)) {
-                        announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, false);
-                        if (qs.getInfoNumber() > 0) {
-                            announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, true);
-                        }
+                if (qs.progress(id)) {
+                    announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, false);
+                    if (qs.getInfoNumber() > 0) {
+                        announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, true);
                     }
                 }
             }
@@ -378,21 +357,15 @@ class CharacterQuests implements QuestModule.Handler {
         Pair<DelayedQuestUpdate, Object[]> p = new Pair<>(questUpdateType, params);
         Client c = owner.getClient();
         if (c.getQM() != null || c.getCM() != null) {
-            synchronized (npcUpdateQuests) {
-                npcUpdateQuests.add(p);
-            }
+            npcUpdateQuests.add(p);
         } else {
             announceUpdateQuestInternal(owner, p);
         }
     }
 
     void flushDelayedUpdateQuests() {
-        List<Pair<DelayedQuestUpdate, Object[]>> qmQuestUpdateList;
-
-        synchronized (npcUpdateQuests) {
-            qmQuestUpdateList = new ArrayList<>(npcUpdateQuests);
-            npcUpdateQuests.clear();
-        }
+        List<Pair<DelayedQuestUpdate, Object[]>> qmQuestUpdateList = new ArrayList<>(npcUpdateQuests);
+        npcUpdateQuests.clear();
 
         for (Pair<DelayedQuestUpdate, Object[]> q : qmQuestUpdateList) {
             announceUpdateQuestInternal(owner, q);
@@ -410,82 +383,63 @@ class CharacterQuests implements QuestModule.Handler {
     }
 
     void cancelQuestExpirationTask() {
-        questLock.lock();
-        try {
-            if (questExpireTask != null) {
-                questExpireTask.cancel(false);
-                questExpireTask = null;
-            }
-        } finally {
-            questLock.unlock();
+        if (questExpireTask != null) {
+            questExpireTask.cancel(false);
+            questExpireTask = null;
         }
     }
 
     void forfeitExpirableQuests() {
-        questLock.lock();
-        try {
-            for (int questId : questExpirations.keySet()) {
-                getQuestNAdd(questId).forfeit(owner);
-            }
-
-            questExpirations.clear();
-        } finally {
-            questLock.unlock();
+        for (int questId : questExpirations.keySet()) {
+            getQuestNAdd(questId).forfeit(owner);
         }
+
+        questExpirations.clear();
     }
 
     void questExpirationTask() {
-        questLock.lock();
-        try {
-            if (!questExpirations.isEmpty()) {
-                if (questExpireTask == null) {
-                    questExpireTask = TimerManager.getInstance().register(this::runQuestExpireTask, SECONDS.toMillis(10));
-                }
-            }
-        } finally {
-            questLock.unlock();
+        if (!questExpirations.isEmpty() && questExpireTask == null) {
+            questExpireTask = TimerManager.getInstance().register(this::tickQuestExpire, SECONDS.toMillis(10));
+        }
+    }
+
+    /** 定时器线程入口：到期判定与状态迁移 strand 化（tick 只做投递，timer 线程不触状态） */
+    private void tickQuestExpire() {
+        Strand s = owner.strand();
+        if (s != null) {
+            s.post("quest-expire-tick", this::runQuestExpireTask);
         }
     }
 
     private void runQuestExpireTask() {
-        questLock.lock();
-        try {
-            long timeNow = Server.getInstance().getCurrentTime();
-            List<Integer> expireList = new LinkedList<>();
+        long timeNow = Server.getInstance().getCurrentTime();
+        List<Integer> expireList = new LinkedList<>();
 
-            for (Entry<Integer, Long> qe : questExpirations.entrySet()) {
-                if (qe.getValue() <= timeNow) {
-                    expireList.add(qe.getKey());
-                }
+        for (Entry<Integer, Long> qe : questExpirations.entrySet()) {
+            if (qe.getValue() <= timeNow) {
+                expireList.add(qe.getKey());
+            }
+        }
+
+        if (!expireList.isEmpty()) {
+            for (int questId : expireList) {
+                getQuestNAdd(questId).expireQuest(owner);
+                questExpirations.remove(questId);
             }
 
-            if (!expireList.isEmpty()) {
-                for (int questId : expireList) {
-                    getQuestNAdd(questId).expireQuest(owner);
-                    questExpirations.remove(questId);
-                }
-
-                if (questExpirations.isEmpty()) {
-                    questExpireTask.cancel(false);
-                    questExpireTask = null;
-                }
+            if (questExpirations.isEmpty()) {
+                questExpireTask.cancel(false);
+                questExpireTask = null;
             }
-        } finally {
-            questLock.unlock();
         }
     }
 
     private void registerQuestExpire(int questId, long time) {
-        questLock.lock();
-        try {
-            if (questExpireTask == null) {
-                questExpireTask = TimerManager.getInstance().register(this::runQuestExpireTask, SECONDS.toMillis(10));
-            }
-
-            questExpirations.put(questId, Server.getInstance().getCurrentTime() + time);
-        } finally {
-            questLock.unlock();
+        if (questExpireTask == null) {
+            questExpireTask = TimerManager.getInstance().register(this::tickQuestExpire, SECONDS.toMillis(10));
         }
+
+        questExpirations.put(questId, Server.getInstance().getCurrentTime() + time);
     }
 
     void questTimeLimit(final int questId, int seconds) {
@@ -505,19 +459,14 @@ class CharacterQuests implements QuestModule.Handler {
 
     /** 角色清空时释放限时任务资源（Character.empty 调用） */
     void empty() {
-        questLock.lock();
-        try {
-            if (questExpireTask != null) {
-                questExpireTask.cancel(true);
-                questExpireTask = null;
-            }
+        if (questExpireTask != null) {
+            questExpireTask.cancel(true);
+            questExpireTask = null;
+        }
 
-            if (questExpirations != null) {
-                questExpirations.clear();
-                questExpirations = null;
-            }
-        } finally {
-            questLock.unlock();
+        if (questExpirations != null) {
+            questExpirations.clear();
+            questExpirations = null;
         }
     }
 
