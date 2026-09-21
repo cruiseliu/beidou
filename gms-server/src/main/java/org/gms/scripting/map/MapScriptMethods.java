@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package org.gms.scripting.map;
 
 import org.gms.client.Client;
-import org.gms.client.QuestStatus;
+import org.gms.client.quest.QuestInfo;
 import org.gms.client.quest.QuestWz;
 import org.gms.constants.game.DelayedQuestUpdate;
 import org.gms.constants.id.MapId;
@@ -116,7 +116,7 @@ public class MapScriptMethods extends AbstractPlayerInteraction {
                 return;
             }
         }
-        QuestStatus qs = getPlayer().getQuest(quest);
+        QuestInfo qs = getPlayer().getQuest(quest);
         if (!qs.addMedalMap(getPlayer().getMapId())) {
             return;
         }
@@ -149,7 +149,7 @@ public class MapScriptMethods extends AbstractPlayerInteraction {
                 return;
             }
         }
-        QuestStatus qs = getPlayer().getQuest(quest);
+        QuestInfo qs = getPlayer().getQuest(quest);
         if (!qs.addMedalMap(getPlayer().getMapId())) {
             return;
         }

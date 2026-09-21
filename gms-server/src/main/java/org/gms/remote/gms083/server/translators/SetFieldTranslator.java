@@ -143,7 +143,7 @@ public final class SetFieldTranslator {
 
     private static SetFieldPacket.Quests quests(Character chr) {
         var started = new ArrayList<SetFieldPacket.Quests.StartedQuest>();
-        for (org.gms.client.QuestStatus qs : chr.getStartedQuests()) {
+        for (org.gms.client.quest.QuestInfo qs : chr.getStartedQuests()) {
             started.add(new SetFieldPacket.Quests.StartedQuest(qs.getQuest().getId(), qs.getProgressData()));
             if (qs.getInfoNumber() > 0) {
                 var iqs = chr.getQuest(qs.getInfoNumber());
@@ -152,7 +152,7 @@ public final class SetFieldTranslator {
             }
         }
         var completed = new ArrayList<SetFieldPacket.Quests.CompletedQuest>();
-        for (org.gms.client.QuestStatus qs : chr.getCompletedQuests()) {
+        for (org.gms.client.quest.QuestInfo qs : chr.getCompletedQuests()) {
             completed.add(new SetFieldPacket.Quests.CompletedQuest(qs.getQuest().getId(),
                     Filetimes.toWire(qs.getCompletionTime())));
         }

@@ -1,8 +1,9 @@
 package org.gms.client.quest.medal;
 
 import org.gms.client.character.Character;
+import org.gms.client.quest.QuestInfo;
+import org.gms.client.quest.QuestStatus;
 import org.gms.client.quest.QuestWz;
-import org.gms.client.QuestStatus;
 import org.gms.constants.game.DelayedQuestUpdate;
 import org.gms.server.life.Monster;
 
@@ -16,7 +17,7 @@ public final class VeteranHunterMedal {
     }
 
     public static int getProgress(Character player) {
-        QuestStatus status = player.getQuest(QuestWz.getInstance(QUEST_ID));
+        QuestInfo status = player.getQuest(QuestWz.getInstance(QUEST_ID));
         try {
             return Integer.parseInt(status.getProgress(PROGRESS_MOB_ID));
         } catch (NumberFormatException ignored) {
@@ -30,8 +31,8 @@ public final class VeteranHunterMedal {
 
     public static void onMonsterKilled(Character player, Monster monster) {
         QuestWz quest = QuestWz.getInstance(QUEST_ID);
-        QuestStatus status = player.getQuest(quest);
-        if (status.getStatus() != QuestStatus.Status.STARTED || isComplete(player)) {
+        QuestInfo status = player.getQuest(quest);
+        if (status.getStatus() != QuestStatus.STARTED || isComplete(player)) {
             return;
         }
 

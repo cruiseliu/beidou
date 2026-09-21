@@ -2,7 +2,7 @@ package org.gms.client.character;
 
 import org.gms.client.Client;
 import org.gms.client.PlayerStrand;
-import org.gms.client.QuestStatus;
+import org.gms.client.quest.QuestInfo;
 import org.gms.infra.ActorMessage;
 import org.gms.net.server.world.Party;
 import org.gms.net.server.world.PartyCharacter;
@@ -249,7 +249,7 @@ public final class CharacterRef implements MapObject {
         return chr.getSkillLevel(skillId);
     }
 
-    public QuestStatus getQuest(int questid) {
+    public QuestInfo getQuest(int questid) {
         notInStrictPipeline();
         return chr.getQuest(questid);
     }

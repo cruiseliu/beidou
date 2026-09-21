@@ -24,7 +24,8 @@ package org.gms.client.quest.actions;
 import org.gms.client.character.Character;
 import org.gms.client.quest.QuestWz;
 import org.gms.client.quest.QuestActionType;
-import org.gms.client.QuestStatus;
+import org.gms.client.quest.QuestInfo;
+import org.gms.client.quest.QuestStatus;
 import org.gms.provider.Data;
 import org.gms.provider.DataTool;
 
@@ -58,7 +59,7 @@ public class QuestAction extends AbstractQuestAction {
     public void run(Character chr, Integer extSelection) {
         for (Integer questID : quests.keySet()) {
             int stat = quests.get(questID);
-            chr.updateQuestStatus(new QuestStatus(QuestWz.getInstance(questID), QuestStatus.Status.getById(stat)));
+            chr.updateQuestStatus(new QuestInfo(QuestWz.getInstance(questID), QuestStatus.fromValue(stat)));
         }
     }
 } 

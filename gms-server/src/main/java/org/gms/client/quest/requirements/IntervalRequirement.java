@@ -24,7 +24,8 @@ package org.gms.client.quest.requirements;
 import org.gms.client.character.Character;
 import org.gms.client.quest.QuestWz;
 import org.gms.client.quest.QuestRequirementType;
-import org.gms.client.QuestStatus;
+import org.gms.client.quest.QuestStatus;
+import org.gms.client.quest.QuestInfo;
 import org.gms.provider.Data;
 import org.gms.provider.DataTool;
 
@@ -87,7 +88,7 @@ public class IntervalRequirement extends AbstractQuestRequirement {
 
     @Override
     public boolean check(Character chr, Integer npcid) {
-        boolean check = !chr.getQuest(QuestWz.getInstance(questID)).getStatus().equals(QuestStatus.Status.COMPLETED);
+        boolean check = !chr.getQuest(QuestWz.getInstance(questID)).getStatus().equals(QuestStatus.COMPLETED);
         boolean check2 = chr.getQuest(QuestWz.getInstance(questID)).getCompletionTime() <= System.currentTimeMillis() - interval;
 
         if (check || check2) {

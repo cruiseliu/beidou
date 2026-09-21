@@ -19,9 +19,8 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-package org.gms.client;
+package org.gms.client.quest;
 
-import org.gms.client.quest.QuestWz;
 import org.gms.util.StringUtil;
 
 import java.util.Collections;
@@ -33,34 +32,10 @@ import java.util.Map;
 /**
  * @author Matze
  */
-public class QuestStatus {
-    public enum Status {
-        UNDEFINED(-1),
-        NOT_STARTED(0),
-        STARTED(1),
-        COMPLETED(2);
-        final int status;
+public class QuestInfo {
 
-        Status(int id) {
-            status = id;
-        }
-
-        public int getId() {
-            return status;
-        }
-
-        public static Status getById(int id) {
-            for (Status l : Status.values()) {
-                if (l.getId() == id) {
-                    return l;
-                }
-            }
-            return null;
-        }
-    }
-
-    private final short questID;
-    private Status status;
+    private final int questID;
+    private QuestStatus status;
     //private boolean updated;   //maybe this can be of use for someone?
     private final Map<Integer, String> progress = new LinkedHashMap<>();
     private final List<Integer> medalProgress = new LinkedList<>();
@@ -69,25 +44,32 @@ public class QuestStatus {
     private int forfeited = 0, completed = 0;
     private String customData;
 
-    public QuestStatus(QuestWz quest, Status status) {
+    public QuestInfo(int questId) {
+        this.questID = questId;
+        this.setStatus(QuestStatus.NOT_STARTED);
+        this.completionTime = 0;
+        this.expirationTime = 0;
+    }
+
+    public QuestInfo(QuestWz quest, QuestStatus status) {
         this.questID = quest.getId();
         this.setStatus(status);
         this.completionTime = System.currentTimeMillis();
         this.expirationTime = 0;
         //this.updated = true;
-        if (status == Status.STARTED) {
+        if (status == QuestStatus.STARTED) {
             registerMobs();
         }
     }
 
-    public QuestStatus(QuestWz quest, Status status, int npc) {
+    public QuestInfo(QuestWz quest, QuestStatus status, int npc) {
         this.questID = quest.getId();
         this.setStatus(status);
         this.setNpc(npc);
         this.completionTime = System.currentTimeMillis();
         this.expirationTime = 0;
         //this.updated = true;
-        if (status == Status.STARTED) {
+        if (status == QuestStatus.STARTED) {
             registerMobs();
         }
     }
@@ -96,15 +78,15 @@ public class QuestStatus {
         return QuestWz.getInstance(questID);
     }
 
-    public short getQuestID() {
+    public int getQuestID() {
         return questID;
     }
 
-    public Status getStatus() {
+    public QuestStatus getStatus() {
         return status;
     }
 
-    public final void setStatus(Status status) {
+    public final void setStatus(QuestStatus status) {
         this.status = status;
     }
     
@@ -205,21 +187,21 @@ public class QuestStatus {
 
     public short getInfoNumber() {
         QuestWz q = this.getQuest();
-        Status s = this.getStatus();
+        QuestStatus s = this.getStatus();
 
         return q.getInfoNumber(s);
     }
 
     public String getInfoEx(int index) {
         QuestWz q = this.getQuest();
-        Status s = this.getStatus();
+        QuestStatus s = this.getStatus();
 
         return q.getInfoEx(s, index);
     }
 
     public List<String> getInfoEx() {
         QuestWz q = this.getQuest();
-        Status s = this.getStatus();
+        QuestStatus s = this.getStatus();
 
         return q.getInfoEx(s);
     }

@@ -25,6 +25,8 @@ import org.gms.client.character.Character;
 import org.gms.client.*;
 import org.gms.client.inventory.*;
 import org.gms.client.pet.Pet;
+import org.gms.client.quest.QuestInfo;
+import org.gms.client.quest.QuestStatus;
 import org.gms.client.quest.QuestWz;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.config.GameConfig;
@@ -348,11 +350,11 @@ public class AbstractPlayerInteraction {
 
     //---- \/ \/ \/ \/ \/ \/ \/  NOT TESTED  \/ \/ \/ \/ \/ \/ \/ \/ \/ ----
 
-    public final QuestStatus getQuestRecord(final int id) {
+    public final QuestInfo getQuestRecord(final int id) {
         return c.getPlayer().getQuestNAdd(QuestWz.getInstance(id));
     }
 
-    public final QuestStatus getQuestNoRecord(final int id) {
+    public final QuestInfo getQuestNoRecord(final int id) {
         return c.getPlayer().getQuestNoAdd(QuestWz.getInstance(id));
     }
 
@@ -373,10 +375,10 @@ public class AbstractPlayerInteraction {
     }
 
     public int getQuestStatus(int id) {
-        return c.getPlayer().getQuest(QuestWz.getInstance(id)).getStatus().getId();
+        return c.getPlayer().getQuest(QuestWz.getInstance(id)).getStatus().getValue();
     }
 
-    private QuestStatus.Status getQuestStat(int id) {
+    private QuestStatus getQuestStat(int id) {
         return c.getPlayer().getQuest(QuestWz.getInstance(id)).getStatus();
     }
 
@@ -390,7 +392,7 @@ public class AbstractPlayerInteraction {
 
     public boolean isQuestStarted(int id) {
         try {
-            return getQuestStat(id) == QuestStatus.Status.STARTED;
+            return getQuestStat(id) == QuestStatus.STARTED;
         } catch (NullPointerException e) {
             e.printStackTrace();
             return false;
@@ -418,7 +420,7 @@ public class AbstractPlayerInteraction {
     }
 
     public String getQuestProgress(int id, int infoNumber) {
-        QuestStatus qs = getPlayer().getQuest(QuestWz.getInstance(id));
+        QuestInfo qs = getPlayer().getQuest(QuestWz.getInstance(id));
 
         if (qs.getInfoNumber() == infoNumber && infoNumber > 0) {
             qs = getPlayer().getQuest(QuestWz.getInstance(infoNumber));
@@ -449,7 +451,7 @@ public class AbstractPlayerInteraction {
     }
 
     public void resetAllQuestProgress(int id) {
-        QuestStatus qs = getPlayer().getQuest(QuestWz.getInstance(id));
+        QuestInfo qs = getPlayer().getQuest(QuestWz.getInstance(id));
         if (qs != null) {
             qs.resetAllProgress();
             getPlayer().announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, false);
@@ -457,7 +459,7 @@ public class AbstractPlayerInteraction {
     }
 
     public void resetQuestProgress(int id, int infoNumber) {
-        QuestStatus qs = getPlayer().getQuest(QuestWz.getInstance(id));
+        QuestInfo qs = getPlayer().getQuest(QuestWz.getInstance(id));
         if (qs != null) {
             qs.resetProgress(infoNumber);
             getPlayer().announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, false);

@@ -1,8 +1,9 @@
 package org.gms.client.quest.medal;
 
 import org.gms.client.character.Character;
-import org.gms.client.QuestStatus;
 import org.gms.client.pet.Pet;
+import org.gms.client.quest.QuestInfo;
+import org.gms.client.quest.QuestStatus;
 import org.gms.client.quest.QuestWz;
 import org.gms.constants.game.DelayedQuestUpdate;
 import org.gms.server.life.Monster;
@@ -59,7 +60,7 @@ public final class SpecialChallengeMedal {
      * <p>未开始任务或旧数据为空时，QuestStatus 可能返回空值；解析失败统一当作 0，避免脚本领取时报错。</p>
      */
     public static int getProgress(Character player, int questId, int progressId) {
-        QuestStatus status = player.getQuest(QuestWz.getInstance(questId));
+        QuestInfo status = player.getQuest(QuestWz.getInstance(questId));
         try {
             return Integer.parseInt(status.getProgress(progressId));
         } catch (NumberFormatException ignored) {
@@ -139,8 +140,8 @@ public final class SpecialChallengeMedal {
      */
     private static void addStartedQuestProgress(Character player, int questId, int progressId, int cap) {
         QuestWz quest = QuestWz.getInstance(questId);
-        QuestStatus status = player.getQuest(quest);
-        if (status.getStatus() != QuestStatus.Status.STARTED) {
+        QuestInfo status = player.getQuest(quest);
+        if (status.getStatus() != QuestStatus.STARTED) {
             return;
         }
 

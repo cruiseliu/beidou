@@ -2,10 +2,11 @@ package org.gms.net.server.channel.handlers;
 
 import org.gms.client.character.Character;
 import org.gms.client.Client;
-import org.gms.client.QuestStatus;
 import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
+import org.gms.client.quest.QuestInfo;
+import org.gms.client.quest.QuestStatus;
 import org.gms.client.quest.QuestWz;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
@@ -47,7 +48,7 @@ public class RaiseIncExpHandler extends AbstractPacketHandler {
 
                 Character chr = c.getPlayer();
                 QuestWz quest = QuestWz.getInstanceFromInfoNumber(infoNumber);
-                if (!chr.getQuest(quest).getStatus().equals(QuestStatus.Status.STARTED)) {
+                if (!chr.getQuest(quest).getStatus().equals(QuestStatus.STARTED)) {
                     c.sendPacket(PacketCreator.enableActions());
                     return;
                 }

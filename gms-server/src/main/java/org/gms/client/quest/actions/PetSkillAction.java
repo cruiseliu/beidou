@@ -24,8 +24,9 @@ package org.gms.client.quest.actions;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.quest.QuestWz;
 import org.gms.client.quest.QuestActionType;
+import org.gms.client.quest.QuestInfo;
+import org.gms.client.quest.QuestStatus;
 import org.gms.client.character.Character;
-import org.gms.client.QuestStatus;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.provider.Data;
 import org.gms.provider.DataTool;
@@ -51,8 +52,8 @@ public class PetSkillAction extends AbstractQuestAction {
 
     @Override
     public boolean check(Character chr, Integer extSelection) {
-        QuestStatus status = chr.getQuest(QuestWz.getInstance(questID));
-        if (!(status.getStatus() == QuestStatus.Status.NOT_STARTED && status.getForfeited() > 0)) {
+        QuestInfo status = chr.getQuest(QuestWz.getInstance(questID));
+        if (!(status.getStatus() == QuestStatus.NOT_STARTED && status.getForfeited() > 0)) {
             return false;
         }
 

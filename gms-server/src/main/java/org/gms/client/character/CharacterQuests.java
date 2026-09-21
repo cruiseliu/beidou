@@ -1,7 +1,8 @@
 package org.gms.client.character;
 
 import org.gms.client.Client;
-import org.gms.client.QuestStatus;
+import org.gms.client.quest.QuestInfo;
+import org.gms.client.quest.QuestStatus;
 import org.gms.client.quest.QuestWz;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.DelayedQuestUpdate;
@@ -50,8 +51,8 @@ class CharacterQuests implements QuestModule.Handler {
     /** 任务点数（持久化到 characters.fquest） */
     private int questFame;
 
-    /** 任务状态表（键 = 任务 id；int 键——QuestWz id 语义值，避免 get/put 侧的 short 强转） */
-    private final Map<Integer, QuestStatus> quests;
+    /** 任务状态表 */
+    private final Map<Integer, QuestInfo> quests;
 
     /** 限时任务到期表 */
     private Map<QuestWz, Long> questExpirations = new LinkedHashMap<>();
@@ -71,7 +72,7 @@ class CharacterQuests implements QuestModule.Handler {
 
     // ── 查询 ──
 
-    Map<Integer, QuestStatus> getQuests() {
+    Map<Integer, QuestInfo> getQuests() {
         return quests;
     }
 
@@ -84,7 +85,7 @@ class CharacterQuests implements QuestModule.Handler {
     }
 
     /** 快照（saveCharToDB 持久化用；包内可见） */
-    List<QuestStatus> getQuestValues() {
+    List<QuestInfo> getQuestValues() {
         synchronized (quests) {
             return new ArrayList<>(quests.values());
         }
@@ -95,13 +96,13 @@ class CharacterQuests implements QuestModule.Handler {
     /** 持久化快照：无任务返回 null（不落库） */
     CharacterQuestsData toData() {
         List<CharacterQuestsData.QuestEntryData> entries = null;
-        for (QuestStatus qs : getQuestValues()) {
+        for (QuestInfo qs : getQuestValues()) {
             if (entries == null) {
                 entries = new ArrayList<>();
             }
             CharacterQuestsData.QuestEntryData e = new CharacterQuestsData.QuestEntryData();
             e.quest = qs.getQuest().getId();
-            e.status = qs.getStatus().getId();
+            e.status = qs.getStatus().getValue();
             e.completionTime = qs.getCompletionTime();
             e.expirationTime = qs.getExpirationTime();
             e.forfeited = qs.getForfeited();
@@ -130,7 +131,7 @@ class CharacterQuests implements QuestModule.Handler {
         synchronized (quests) {
             quests.clear();
             for (CharacterQuestsData.QuestEntryData e : data.quests) {
-                QuestStatus qs = new QuestStatus(QuestWz.getInstance(e.quest), QuestStatus.Status.getById(e.status));
+                QuestInfo qs = new QuestInfo(QuestWz.getInstance(e.quest), QuestStatus.fromValue(e.status));
                 qs.setCompletionTime(e.completionTime);
                 qs.setExpirationTime(e.expirationTime);
                 qs.setForfeited(e.forfeited);
@@ -150,10 +151,10 @@ class CharacterQuests implements QuestModule.Handler {
         }
     }
 
-    List<QuestStatus> getCompletedQuests() {
-        List<QuestStatus> ret = new LinkedList<>();
-        for (QuestStatus qs : getQuestValues()) {
-            if (qs.getStatus().equals(QuestStatus.Status.COMPLETED)) {
+    List<QuestInfo> getCompletedQuests() {
+        List<QuestInfo> ret = new LinkedList<>();
+        for (QuestInfo qs : getQuestValues()) {
+            if (qs.getStatus().equals(QuestStatus.COMPLETED)) {
                 ret.add(qs);
             }
         }
@@ -163,9 +164,9 @@ class CharacterQuests implements QuestModule.Handler {
 
     byte getQuestStatus(final int quest) {
         synchronized (quests) {
-            QuestStatus mqs = quests.get(quest);
+            QuestInfo mqs = quests.get(quest);
             if (mqs != null) {
-                return (byte) mqs.getStatus().getId();
+                return (byte) mqs.getStatus().getValue();
             } else {
                 return 0;
             }
@@ -186,29 +187,29 @@ class CharacterQuests implements QuestModule.Handler {
 
     /** 任务是否已完成（未接取视为未完成；原 APII.isQuestCompleted 的 NPE 捕获语义显式化）。 */
     boolean isQuestCompleted(int questId) {
-        return getQuest(questId).getStatus() == QuestStatus.Status.COMPLETED;
+        return getQuest(questId).getStatus() == QuestStatus.COMPLETED;
     }
 
-    QuestStatus getQuest(final int quest) {
+    QuestInfo getQuest(final int quest) {
         return getQuest(QuestWz.getInstance(quest));
     }
 
-    QuestStatus getQuest(QuestWz quest) {
+    QuestInfo getQuest(QuestWz quest) {
         synchronized (quests) {
-            short questid = quest.getId();
-            QuestStatus qs = quests.get((int) questid);
+            int questid = quest.getId();
+            QuestInfo qs = quests.get((int) questid);
             if (qs == null) {
-                qs = new QuestStatus(quest, QuestStatus.Status.NOT_STARTED);
+                qs = new QuestInfo(quest, QuestStatus.NOT_STARTED);
                 quests.put((int) questid, qs);
             }
             return qs;
         }
     }
 
-    QuestStatus getQuestNAdd(final QuestWz quest) {
+    QuestInfo getQuestNAdd(final QuestWz quest) {
         synchronized (quests) {
             if (!quests.containsKey((int) quest.getId())) {
-                final QuestStatus status = new QuestStatus(quest, QuestStatus.Status.NOT_STARTED);
+                final QuestInfo status = new QuestInfo(quest, QuestStatus.NOT_STARTED);
                 quests.put((int) quest.getId(), status);
                 return status;
             }
@@ -216,16 +217,16 @@ class CharacterQuests implements QuestModule.Handler {
         }
     }
 
-    QuestStatus getQuestNoAdd(final QuestWz quest) {
+    QuestInfo getQuestNoAdd(final QuestWz quest) {
         synchronized (quests) {
             return quests.get(quest.getId());
         }
     }
 
-    List<QuestStatus> getStartedQuests() {
-        List<QuestStatus> ret = new LinkedList<>();
-        for (QuestStatus qs : getQuestValues()) {
-            if (QuestStatus.Status.STARTED.equals(qs.getStatus())) {
+    List<QuestInfo> getStartedQuests() {
+        List<QuestInfo> ret = new LinkedList<>();
+        for (QuestInfo qs : getQuestValues()) {
+            if (QuestStatus.STARTED.equals(qs.getStatus())) {
                 ret.add(qs);
             }
         }
@@ -259,11 +260,11 @@ class CharacterQuests implements QuestModule.Handler {
 
     void setQuestProgress(int id, int infoNumber, String progress) {
         QuestWz q = QuestWz.getInstance(id);
-        QuestStatus qs = getQuest(q);
+        QuestInfo qs = getQuest(q);
 
         if (qs.getInfoNumber() == infoNumber && infoNumber > 0) {
             QuestWz iq = QuestWz.getInstance(infoNumber);
-            QuestStatus iqs = getQuest(iq);
+            QuestInfo iqs = getQuest(iq);
             iqs.setProgress(0, progress);
         } else {
             qs.setProgress(infoNumber, progress);   // quest progress is thoroughly a string match, infoNumber is actually another questid
@@ -275,19 +276,19 @@ class CharacterQuests implements QuestModule.Handler {
         }
     }
 
-    void updateQuestStatus(QuestStatus qs) {
+    void updateQuestStatus(QuestInfo qs) {
         synchronized (quests) {
             quests.put((int) qs.getQuestID(), qs);
         }
-        if (qs.getStatus().equals(QuestStatus.Status.STARTED)) {
+        if (qs.getStatus().equals(QuestStatus.STARTED)) {
             announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, false);
             if (qs.getInfoNumber() > 0) {
                 announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, true);
             }
             announceUpdateQuest(DelayedQuestUpdate.INFO, qs);
-        } else if (qs.getStatus().equals(QuestStatus.Status.COMPLETED)) {
+        } else if (qs.getStatus().equals(QuestStatus.COMPLETED)) {
             QuestWz mquest = qs.getQuest();
-            short questid = mquest.getId();
+            int questid = mquest.getId();
             if (!mquest.isSameDayRepeatable() && !QuestWz.isExploitableQuest(questid)) {
                 awardQuestPoint(GameConfig.getServerInt("quest_point_per_quest_complete"));
             }
@@ -295,7 +296,7 @@ class CharacterQuests implements QuestModule.Handler {
 
             announceUpdateQuest(DelayedQuestUpdate.COMPLETE, questid, qs.getCompletionTime());
             //announceUpdateQuest(DelayedQuestUpdate.INFO, qs); // happens after giving rewards, for non-next quests only
-        } else if (qs.getStatus().equals(QuestStatus.Status.NOT_STARTED)) {
+        } else if (qs.getStatus().equals(QuestStatus.NOT_STARTED)) {
             announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, false);
             if (qs.getInfoNumber() > 0) {
                 announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, true);
@@ -336,9 +337,9 @@ class CharacterQuests implements QuestModule.Handler {
         int lastQuestProcessed = 0;
         try {
             synchronized (quests) {
-                for (QuestStatus qs : getQuestValues()) {
+                for (QuestInfo qs : getQuestValues()) {
                     lastQuestProcessed = qs.getQuest().getId();
-                    if (qs.getStatus() == QuestStatus.Status.COMPLETED || qs.getQuest().canComplete(owner, null)) {
+                    if (qs.getStatus() == QuestStatus.COMPLETED || qs.getQuest().canComplete(owner, null)) {
                         continue;
                     }
 
@@ -362,7 +363,7 @@ class CharacterQuests implements QuestModule.Handler {
 
         switch (questUpdate.getLeft()) {
             case UPDATE:
-                owner.sendPacket(PacketCreator.updateQuest(chr, (QuestStatus) objs[0], (Boolean) objs[1]));
+                owner.sendPacket(PacketCreator.updateQuest(chr, (QuestInfo) objs[0], (Boolean) objs[1]));
                 break;
 
             case FORFEIT:
@@ -374,8 +375,8 @@ class CharacterQuests implements QuestModule.Handler {
                 break;
 
             case INFO:
-                QuestStatus qs = (QuestStatus) objs[0];
-                owner.sendPacket(PacketCreator.updateQuestInfo(qs.getQuest().getId(), qs.getNpc()));
+                QuestInfo qs = (QuestInfo) objs[0];
+                owner.sendPacket(PacketCreator.updateQuestInfo((short) qs.getQuest().getId(), qs.getNpc()));
                 break;
         }
     }
@@ -408,7 +409,7 @@ class CharacterQuests implements QuestModule.Handler {
     // ── 限时任务 ──
 
     void reloadQuestExpirations() {
-        for (QuestStatus mqs : getStartedQuests()) {
+        for (QuestInfo mqs : getStartedQuests()) {
             if (mqs.getExpirationTime() > 0) {
                 questTimeLimit2(mqs.getQuest(), mqs.getExpirationTime());
             }
@@ -496,7 +497,7 @@ class CharacterQuests implements QuestModule.Handler {
 
     void questTimeLimit(final QuestWz quest, int seconds) {
         registerQuestExpire(quest, SECONDS.toMillis(seconds));
-        owner.sendPacket(PacketCreator.addQuestTimeLimit(quest.getId(), (int) SECONDS.toMillis(seconds)));
+        owner.sendPacket(PacketCreator.addQuestTimeLimit((short) quest.getId(), (int) SECONDS.toMillis(seconds)));
     }
 
     void questTimeLimit2(final QuestWz quest, long expires) {
@@ -559,7 +560,7 @@ class CharacterQuests implements QuestModule.Handler {
 
     @Override
     public void startQuest(int questId, int npc) {
-        QuestWz quest = QuestWz.getInstance((short) questId);
+        QuestWz quest = QuestWz.getInstance(questId);
         if (!npcOnMap(quest, npc)) {
             return;
         }
@@ -583,7 +584,7 @@ class CharacterQuests implements QuestModule.Handler {
 
     @Override
     public void completeQuest(int questId, int npc, Integer selection) {
-        QuestWz quest = QuestWz.getInstance((short) questId);
+        QuestWz quest = QuestWz.getInstance(questId);
         if (!npcOnMap(quest, npc)) {
             return;
         }
@@ -607,17 +608,17 @@ class CharacterQuests implements QuestModule.Handler {
 
     @Override
     public void forfeitQuest(int questId) {
-        QuestWz.getInstance((short) questId).forfeit(owner);
+        QuestWz.getInstance(questId).forfeit(owner);
     }
 
     @Override
     public void restoreLostItem(int questId, int itemId) {
-        QuestWz.getInstance((short) questId).restoreLostItem(owner, itemId);
+        QuestWz.getInstance(questId).restoreLostItem(owner, itemId);
     }
 
     @Override
     public void startScriptedQuest(int questId, int npc) {
-        QuestWz quest = QuestWz.getInstance((short) questId);
+        QuestWz quest = QuestWz.getInstance(questId);
         if (!npcOnMap(quest, npc)) {
             return;
         }
@@ -633,7 +634,7 @@ class CharacterQuests implements QuestModule.Handler {
 
     @Override
     public void endScriptedQuest(int questId, int npc) {
-        QuestWz quest = QuestWz.getInstance((short) questId);
+        QuestWz quest = QuestWz.getInstance(questId);
         if (!npcOnMap(quest, npc)) {
             return;
         }

@@ -22,7 +22,8 @@
 package org.gms.scripting.quest;
 
 import org.gms.client.Client;
-import org.gms.client.QuestStatus;
+import org.gms.client.quest.QuestInfo;
+import org.gms.client.quest.QuestStatus;
 import org.gms.client.quest.QuestWz;
 import org.gms.constants.game.GameConstants;
 import org.slf4j.Logger;
@@ -49,7 +50,7 @@ public class QuestScriptManager extends AbstractScriptManager {
         return instance;
     }
 
-    private ScriptEngine getQuestScriptEngine(Client c, short questid) {
+    private ScriptEngine getQuestScriptEngine(Client c, int questid) {
         ScriptEngine engine = getInvocableScriptEngine("quest/" + questid + ".js", c);
         if (engine == null && GameConstants.isMedalQuest(questid)) {
             engine = getInvocableScriptEngine("quest/medalQuest.js", c);   // start generic medal quest
@@ -58,7 +59,7 @@ public class QuestScriptManager extends AbstractScriptManager {
         return engine;
     }
 
-    public void start(Client c, short questid, int npc) {
+    public void start(Client c, int questid, int npc) {
         QuestWz quest = QuestWz.getInstance(questid);
         try {
             QuestActionManager qm = new QuestActionManager(c, questid, npc, true);
@@ -106,9 +107,9 @@ public class QuestScriptManager extends AbstractScriptManager {
         }
     }
 
-    public void end(Client c, short questid, int npc) {
+    public void end(Client c, int questid, int npc) {
         QuestWz quest = QuestWz.getInstance(questid);
-        if (!c.getPlayer().getQuest(quest).getStatus().equals(QuestStatus.Status.STARTED) || (!c.getPlayer().getMap().containsNPC(npc) && !quest.isAutoComplete())) {
+        if (!c.getPlayer().getQuest(quest).getStatus().equals(QuestStatus.STARTED) || (!c.getPlayer().getMap().containsNPC(npc) && !quest.isAutoComplete())) {
             dispose(c);
             return;
         }
@@ -211,7 +212,7 @@ public class QuestScriptManager extends AbstractScriptManager {
         qms.clear();
     }
 
-    public boolean checkFunctionExists(Client c, short questid, int npc, String functionName) {
+    public boolean checkFunctionExists(Client c, int questid, int npc, String functionName) {
         ScriptEngine engine = getQuestScriptEngine(c, questid);
         if (engine == null) {
             return false;

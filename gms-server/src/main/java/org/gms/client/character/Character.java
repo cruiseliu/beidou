@@ -39,7 +39,6 @@ import org.gms.client.FamilyEntry;
 import org.gms.client.JobEnum;
 import org.gms.client.MonsterBook;
 import org.gms.client.Mount;
-import org.gms.client.QuestStatus;
 import org.gms.client.Ring;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
@@ -52,6 +51,7 @@ import org.gms.remote.modules.cashshop.CashShopModule;
 import org.gms.client.autoban.AutobanManager;
 import org.gms.client.creator.CharacterTemplate;
 import org.gms.client.pet.Pet;
+import org.gms.client.quest.QuestInfo;
 import org.gms.client.quest.QuestWz;
 import org.gms.client.quest.medal.OutstandingCitizenMedal;
 import org.gms.client.inventory.*;
@@ -3273,16 +3273,16 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
 
     // ── quest 门面 ──
 
-    public Map<Integer, QuestStatus> getQuests() { return quests.getQuests(); }
-    public QuestStatus getQuest(final int quest) { return quests.getQuest(quest); }
-    public QuestStatus getQuest(QuestWz quest) { return quests.getQuest(quest); }
+    public Map<Integer, QuestInfo> getQuests() { return quests.getQuests(); }
+    public QuestInfo getQuest(final int quest) { return quests.getQuest(quest); }
+    public QuestInfo getQuest(QuestWz quest) { return quests.getQuest(quest); }
     public byte getQuestStatus(final int quest) { return quests.getQuestStatus(quest); }
-    public QuestStatus getQuestNoAdd(final QuestWz quest) { return quests.getQuestNoAdd(quest); }
-    public QuestStatus getQuestNAdd(final QuestWz quest) { return quests.getQuestNAdd(quest); }
-    public List<QuestStatus> getCompletedQuests() { return quests.getCompletedQuests(); }
-    public List<QuestStatus> getStartedQuests() { return quests.getStartedQuests(); }
+    public QuestInfo getQuestNoAdd(final QuestWz quest) { return quests.getQuestNoAdd(quest); }
+    public QuestInfo getQuestNAdd(final QuestWz quest) { return quests.getQuestNAdd(quest); }
+    public List<QuestInfo> getCompletedQuests() { return quests.getCompletedQuests(); }
+    public List<QuestInfo> getStartedQuests() { return quests.getStartedQuests(); }
     public boolean needQuestItem(int questid, int itemid) { return quests.needQuestItem(questid, itemid); }
-    public void updateQuestStatus(QuestStatus qs) { quests.updateQuestStatus(qs); }
+    public void updateQuestStatus(QuestInfo qs) { quests.updateQuestStatus(qs); }
     public void setQuestProgress(int id, int infoNumber, String progress) { quests.setQuestProgress(id, infoNumber, progress); }
     public void announceUpdateQuest(DelayedQuestUpdate questUpdateType, Object... params) { quests.announceUpdateQuest(questUpdateType, params); }
     public void flushDelayedUpdateQuests() { quests.flushDelayedUpdateQuests(); }
