@@ -149,7 +149,7 @@ public final class AdminCommandHandler extends AbstractPacketHandler {
                 }
                 break;
             case 0x16: // Questreset
-                QuestWz.getInstance(p.readShort()).reset(c.getPlayer());
+                c.getPlayer().getQuestNAdd(p.readShort()).reset(c.getPlayer());
                 break;
             case 0x17: // Summon
                 int mobId = p.readInt();

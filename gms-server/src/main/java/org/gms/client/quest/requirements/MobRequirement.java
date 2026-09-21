@@ -62,7 +62,7 @@ public class MobRequirement extends AbstractQuestRequirement {
 
     @Override
     public boolean check(Character chr, Integer npcid) {
-        QuestInfo status = chr.getQuest(QuestWz.getInstance(questID));
+        QuestInfo status = chr.getQuest(questID);
         for (Integer mobID : mobs.keySet()) {
             int countReq = mobs.get(mobID);
             int progress;

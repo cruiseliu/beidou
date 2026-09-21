@@ -149,12 +149,12 @@ public class Pyramid extends PartyQuest {
                 continue;
             }
             if (chr.getQuestStatus(PROTECTOR_OF_PHARAOH_QUEST) != 1) {
-                QuestWz.getInstance(PROTECTOR_OF_PHARAOH_QUEST).forceStart(chr, PROTECTOR_OF_PHARAOH_NPC);
+                chr.getQuestNAdd(PROTECTOR_OF_PHARAOH_QUEST).forceStart(chr, PROTECTOR_OF_PHARAOH_NPC);
             }
 
             int progress;
             try {
-                progress = Integer.parseInt(chr.getQuest(QuestWz.getInstance(PROTECTOR_OF_PHARAOH_INFO)).getProgress(0));
+                progress = Integer.parseInt(chr.getQuest(PROTECTOR_OF_PHARAOH_INFO).getProgress(0));
             } catch (NumberFormatException nfe) {
                 progress = 0;
             }

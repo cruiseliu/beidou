@@ -3,7 +3,6 @@ package org.gms.client.quest.medal;
 import org.gms.client.character.Character;
 import org.gms.client.quest.QuestInfo;
 import org.gms.client.quest.QuestStatus;
-import org.gms.client.quest.QuestWz;
 import org.gms.client.FamilyEntry;
 
 public final class OutstandingCitizenMedal {
@@ -23,27 +22,24 @@ public final class OutstandingCitizenMedal {
     }
 
     public static void refreshEligibility(Character player) {
-        QuestWz mainQuest = QuestWz.getInstance(QUEST_ID);
-        QuestWz eligibilityQuest = QuestWz.getInstance(ELIGIBILITY_QUEST_ID);
-        QuestStatus mainStatus = player.getQuest(mainQuest).getStatus();
-        QuestStatus eligibilityStatus = player.getQuest(eligibilityQuest).getStatus();
+        QuestStatus mainStatus = player.getQuest(QUEST_ID).getStatus();
+        QuestStatus eligibilityStatus = player.getQuest(ELIGIBILITY_QUEST_ID).getStatus();
 
         if (mainStatus != QuestStatus.STARTED || !isEligible(player)) {
             if (eligibilityStatus != QuestStatus.NOT_STARTED) {
-                eligibilityQuest.reset(player);
+                player.getQuestNAdd(ELIGIBILITY_QUEST_ID).reset(player);
             }
             return;
         }
 
         if (eligibilityStatus != QuestStatus.STARTED) {
-            eligibilityQuest.forceStart(player, 9000040);
+            player.getQuestNAdd(ELIGIBILITY_QUEST_ID).forceStart(player, 9000040);
         }
     }
 
     public static void clearEligibility(Character player) {
-        QuestWz eligibilityQuest = QuestWz.getInstance(ELIGIBILITY_QUEST_ID);
-        if (player.getQuest(eligibilityQuest).getStatus() != QuestStatus.NOT_STARTED) {
-            eligibilityQuest.reset(player);
+        if (player.getQuest(ELIGIBILITY_QUEST_ID).getStatus() != QuestStatus.NOT_STARTED) {
+            player.getQuestNAdd(ELIGIBILITY_QUEST_ID).reset(player);
         }
     }
 }

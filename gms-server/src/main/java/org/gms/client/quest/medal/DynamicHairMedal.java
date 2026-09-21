@@ -13,7 +13,7 @@ public final class DynamicHairMedal {
     }
 
     public static void onHairChanged(Character player, int oldHair, int newHair) {
-        QuestInfo status = player.getQuestNoAdd(QuestWz.getInstance(QUEST_ID));
+        QuestInfo status = player.getQuestNoAdd(QUEST_ID);
         if (oldHair / 10 == newHair / 10 || status == null || status.getStatus() != QuestStatus.STARTED) {
             return;
         }

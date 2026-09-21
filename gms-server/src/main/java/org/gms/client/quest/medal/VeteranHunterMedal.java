@@ -17,7 +17,7 @@ public final class VeteranHunterMedal {
     }
 
     public static int getProgress(Character player) {
-        QuestInfo status = player.getQuest(QuestWz.getInstance(QUEST_ID));
+        QuestInfo status = player.getQuest(QUEST_ID);
         try {
             return Integer.parseInt(status.getProgress(PROGRESS_MOB_ID));
         } catch (NumberFormatException ignored) {
@@ -30,8 +30,7 @@ public final class VeteranHunterMedal {
     }
 
     public static void onMonsterKilled(Character player, Monster monster) {
-        QuestWz quest = QuestWz.getInstance(QUEST_ID);
-        QuestInfo status = player.getQuest(quest);
+        QuestInfo status = player.getQuest(QUEST_ID);
         if (status.getStatus() != QuestStatus.STARTED || isComplete(player)) {
             return;
         }

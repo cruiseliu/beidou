@@ -21,13 +21,23 @@
 */
 package org.gms.client.quest;
 
+import org.gms.client.character.Character;
+import org.gms.constants.game.DelayedQuestUpdate;
+import org.gms.config.GameConfig;
+import org.gms.util.PacketCreator;
 import org.gms.util.StringUtil;
+import org.gms.client.quest.actions.AbstractQuestAction;
+import org.gms.client.quest.actions.ItemAction;
+import org.gms.client.quest.requirements.AbstractQuestRequirement;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * @author Matze
@@ -260,5 +270,201 @@ public class QuestInfo {
             str.append(ps);
         }
         return str.toString();
+    }
+
+    // ── 动态操作（任务域裁定：状态迁移在本实例上就地生效，QuestWz 只读静态定义）──
+    // 就地变异等价复刻旧"换新对象顶替 map 条目"形态的净状态效果（progress 清空/重播种、
+    // forfeited/completed 归复规则逐项保留）；npcUpdateQuests 延迟队列持有本实例引用，
+    // NPC 对话期间同任务的连发更新在冲刷时呈现终态（帧数与末帧内容不变，中间帧为幂等
+    // 状态集被终态覆盖，客户端净状态一致）。
+
+    private boolean canStartQuestByStatus(Character chr) {
+        return !(!status.equals(QuestStatus.NOT_STARTED) && !(status.equals(QuestStatus.COMPLETED) && getQuest().isRepeatable()));
+    }
+
+    private boolean canQuestByInfoProgress(Character chr) {
+        List<String> ix = getInfoEx();
+        if (!ix.isEmpty()) {
+            int infoNumber = getInfoNumber();
+            if (infoNumber <= 0) {
+                infoNumber = questID;  // on default infoNumber mimics questid
+            }
+
+            for (int i = 0; i < ix.size(); i++) {
+                String progress = chr.getAbstractPlayerInteraction().getQuestProgress(infoNumber, i);
+                String ixProgress = ix.get(i);
+
+                if (!progress.contentEquals(ixProgress)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public boolean canStart(Character chr, int npcid) {
+        if (!canStartQuestByStatus(chr)) {
+            return false;
+        }
+
+        for (AbstractQuestRequirement r : getQuest().getStartReqs().values()) {
+            if (!r.check(chr, npcid)) {
+                return false;
+            }
+        }
+
+        return canQuestByInfoProgress(chr);
+    }
+
+    public boolean canComplete(Character chr, Integer npcid) {
+        if (!status.equals(QuestStatus.STARTED)) {
+            return false;
+        }
+
+        for (AbstractQuestRequirement r : getQuest().getCompleteReqs().values()) {
+            if (!r.check(chr, npcid)) {
+                return false;
+            }
+        }
+
+        return canQuestByInfoProgress(chr);
+    }
+
+    public void start(Character chr, int npc) {
+        if (getQuest().isAutoStart() || canStart(chr, npc)) {
+            Collection<AbstractQuestAction> acts = getQuest().getStartActs().values();
+            for (AbstractQuestAction a : acts) {
+                if (!a.check(chr, null)) { // would null be good ?
+                    return;
+                }
+            }
+            for (AbstractQuestAction a : acts) {
+                a.run(chr, null);
+            }
+            forceStart(chr, npc);
+        }
+    }
+
+    public void complete(Character chr, int npc) {
+        complete(chr, npc, null);
+    }
+
+    public void complete(Character chr, int npc, Integer selection) {
+        if (getQuest().isAutoPreComplete() || canComplete(chr, npc)) {
+            Collection<AbstractQuestAction> acts = getQuest().getCompleteActs().values();
+            for (AbstractQuestAction a : acts) {
+                if (!a.check(chr, selection)) {
+                    return;
+                }
+            }
+            forceComplete(chr, npc);
+            for (AbstractQuestAction a : acts) {
+                a.run(chr, selection);
+            }
+            if (!getQuest().hasNextQuestAction()) {
+                chr.announceUpdateQuest(DelayedQuestUpdate.INFO, this);
+            }
+        }
+    }
+
+    public void reset(Character chr) {
+        // 复刻旧"新对象"全字段复位（completionTime=now 为历史行为原样保留；
+        // 直接字段赋值绕过 setForfeited/setCompleted 的单调护栏——归零即旧语义）
+        status = QuestStatus.NOT_STARTED;
+        npc = 0;
+        completionTime = System.currentTimeMillis();
+        expirationTime = 0;
+        forfeited = 0;
+        completed = 0;
+        progress.clear();
+        chr.updateQuestStatus(this);
+    }
+
+    public boolean forfeit(Character chr) {
+        if (!status.equals(QuestStatus.STARTED)) {
+            return false;
+        }
+        if (getQuest().getTimeLimit() > 0) {
+            chr.sendPacket(PacketCreator.removeQuestTimeLimit((short) questID));
+        }
+        status = QuestStatus.NOT_STARTED;
+        npc = 0;
+        completionTime = System.currentTimeMillis();
+        expirationTime = 0;
+        forfeited = this.forfeited + 1;
+        completed = 0;
+        progress.clear();
+        chr.updateQuestStatus(this);
+        return true;
+    }
+
+    public boolean forceStart(Character chr, int npc) {
+        Map<Integer, String> oldProgress = new LinkedHashMap<>(progress);
+
+        setStatus(QuestStatus.STARTED);
+        setNpc(npc);
+        completionTime = System.currentTimeMillis();
+        progress.clear();
+        registerMobs();
+        for (Map.Entry<Integer, String> e : oldProgress.entrySet()) {
+            progress.put(e.getKey(), e.getValue());
+        }
+
+        if (questID / 100 == 35 && GameConfig.getServerInt("tot_mob_quest_requirement") > 0) {
+            int setProg = 999 - Math.min(999, GameConfig.getServerInt("tot_mob_quest_requirement"));
+
+            for (Integer pid : progress.keySet()) {
+                if (pid >= 8200000 && pid <= 8200012) {
+                    progress.put(pid, StringUtil.getLeftPaddedStr(Integer.toString(setProg), '0', 3));
+                }
+            }
+        }
+
+        if (getQuest().getTimeLimit() > 0) {
+            expirationTime = System.currentTimeMillis() + SECONDS.toMillis(getQuest().getTimeLimit());
+            chr.questTimeLimit(questID, getQuest().getTimeLimit());
+        }
+        if (getQuest().getTimeLimit2() > 0) {
+            expirationTime = System.currentTimeMillis() + SECONDS.toMillis(getQuest().getTimeLimit2());
+            chr.questTimeLimit2(questID, expirationTime);
+        }
+
+        chr.updateQuestStatus(this);
+
+        return true;
+    }
+
+    public boolean forceComplete(Character chr, int npc) {
+        if (getQuest().getTimeLimit() > 0) {
+            chr.sendPacket(PacketCreator.removeQuestTimeLimit((short) questID));
+        }
+
+        setStatus(QuestStatus.COMPLETED);
+        setNpc(npc);
+        completionTime = System.currentTimeMillis();
+        progress.clear();   // 旧实现 COMPLETED 换新对象不带 progress；重跑种子由 forceStart 重播
+        chr.updateQuestStatus(this);
+
+        chr.sendPacket(PacketCreator.showSpecialEffect(9)); // Quest completion
+        chr.getMapRef().broadcastMessage(chr.ref(), PacketCreator.showForeignEffect(chr.getId(), 9), false); //use 9 instead of 12 for both
+        return true;
+    }
+
+    public boolean restoreLostItem(Character chr, int itemid) {
+        if (status.equals(QuestStatus.STARTED)) {
+            ItemAction itemAct = (ItemAction) getQuest().getStartActs().get(QuestActionType.ITEM);
+            if (itemAct != null) {
+                return itemAct.restoreLostItem(chr, itemid);
+            }
+        }
+
+        return false;
+    }
+
+    public void expireQuest(Character chr) {
+        if (forfeit(chr)) {
+            chr.sendPacket(PacketCreator.questExpire((short) questID));
+        }
     }
 }

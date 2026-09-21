@@ -57,7 +57,7 @@ public class QuestRequirement extends AbstractQuestRequirement {
     public boolean check(Character chr, Integer npcid) {
         for (Integer questID : quests.keySet()) {
             int stateReq = quests.get(questID);
-            QuestInfo qs = chr.getQuest(QuestWz.getInstance(questID));
+            QuestInfo qs = chr.getQuest(questID);
 
             if (qs == null && QuestStatus.fromValue(stateReq).equals(QuestStatus.NOT_STARTED)) {
                 continue;

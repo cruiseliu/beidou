@@ -3274,11 +3274,10 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     // ── quest 门面 ──
 
     public Map<Integer, QuestInfo> getQuests() { return quests.getQuests(); }
-    public QuestInfo getQuest(final int quest) { return quests.getQuest(quest); }
-    public QuestInfo getQuest(QuestWz quest) { return quests.getQuest(quest); }
+    public QuestInfo getQuest(final int questId) { return quests.getQuest(questId); }
     public byte getQuestStatus(final int quest) { return quests.getQuestStatus(quest); }
-    public QuestInfo getQuestNoAdd(final QuestWz quest) { return quests.getQuestNoAdd(quest); }
-    public QuestInfo getQuestNAdd(final QuestWz quest) { return quests.getQuestNAdd(quest); }
+    public QuestInfo getQuestNoAdd(final int questId) { return quests.getQuestNoAdd(questId); }
+    public QuestInfo getQuestNAdd(final int questId) { return quests.getQuestNAdd(questId); }
     public List<QuestInfo> getCompletedQuests() { return quests.getCompletedQuests(); }
     public List<QuestInfo> getStartedQuests() { return quests.getStartedQuests(); }
     public boolean needQuestItem(int questid, int itemid) { return quests.needQuestItem(questid, itemid); }
@@ -3289,8 +3288,8 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     public boolean forceStartQuest(int questId, int npc) { return quests.forceStartQuest(questId, npc); }
     public boolean forceCompleteQuest(int questId, int npc) { return quests.forceCompleteQuest(questId, npc); }
     public boolean isQuestCompleted(int questId) { return quests.isQuestCompleted(questId); }
-    public void questTimeLimit(final QuestWz quest, int seconds) { quests.questTimeLimit(quest, seconds); }
-    public void questTimeLimit2(final QuestWz quest, long expires) { quests.questTimeLimit2(quest, expires); }
+    public void questTimeLimit(final int questId, int seconds) { quests.questTimeLimit(questId, seconds); }
+    public void questTimeLimit2(final int questId, long expires) { quests.questTimeLimit2(questId, expires); }
     public void raiseQuestMobCount(int id) { quests.raiseQuestMobCount(id); }
     public void forfeitExpirableQuests() { quests.forfeitExpirableQuests(); }
     public void questExpirationTask() { quests.questExpirationTask(); }

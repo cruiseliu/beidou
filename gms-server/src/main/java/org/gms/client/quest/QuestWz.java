@@ -21,7 +21,6 @@
  */
 package org.gms.client.quest;
 
-import org.gms.client.character.Character;
 import org.gms.client.quest.QuestStatus;
 import org.gms.client.quest.actions.AbstractQuestAction;
 import org.gms.client.quest.actions.BuffAction;
@@ -58,7 +57,6 @@ import org.gms.client.quest.requirements.PetRequirement;
 import org.gms.client.quest.requirements.QuestRequirement;
 import org.gms.client.quest.requirements.ScriptRequirement;
 import org.gms.config.GameConfig;
-import org.gms.constants.game.DelayedQuestUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.gms.provider.Data;
@@ -66,10 +64,7 @@ import org.gms.provider.DataProvider;
 import org.gms.provider.DataProviderFactory;
 import org.gms.provider.DataTool;
 import org.gms.provider.wz.WZFiles;
-import org.gms.util.PacketCreator;
-import org.gms.util.StringUtil;
 
-import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -77,11 +72,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import static java.util.concurrent.TimeUnit.HOURS;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * @author Matze
@@ -255,169 +248,34 @@ public class QuestWz {
         return ir.getInterval() < HOURS.toMillis(GameConfig.getServerLong("quest_point_repeatable_interval"));
     }
 
-    public boolean canStartQuestByStatus(Character chr) {
-        QuestInfo mqs = chr.getQuest(this);
-        return !(!mqs.getStatus().equals(QuestStatus.NOT_STARTED) && !(mqs.getStatus().equals(QuestStatus.COMPLETED) && repeatable));
+    // ── 静态数据 getter（任务域裁定：QuestWz 只承载 WZ 静态定义；动态操作在 QuestInfo）──
+
+    public boolean isRepeatable() {
+        return repeatable;
     }
 
-    public boolean canQuestByInfoProgress(Character chr) {
-        QuestInfo mqs = chr.getQuest(this);
-        List<String> ix = mqs.getInfoEx();
-        if (!ix.isEmpty()) {
-            int questid = mqs.getQuestID();
-            int infoNumber = mqs.getInfoNumber();
-            if (infoNumber <= 0) {
-                infoNumber = questid;  // on default infoNumber mimics questid
-            }
-
-            int ixSize = ix.size();
-            for (int i = 0; i < ixSize; i++) {
-                String progress = chr.getAbstractPlayerInteraction().getQuestProgress(infoNumber, i);
-                String ixProgress = ix.get(i);
-
-                if (!progress.contentEquals(ixProgress)) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
+    public boolean isAutoPreComplete() {
+        return autoPreComplete;
     }
 
-    public boolean canStart(Character chr, int npcid) {
-        if (!canStartQuestByStatus(chr)) {
-            return false;
-        }
-
-        for (AbstractQuestRequirement r : startReqs.values()) {
-            if (!r.check(chr, npcid)) {
-                return false;
-            }
-        }
-
-        return canQuestByInfoProgress(chr);
+    public Map<QuestRequirementType, AbstractQuestRequirement> getStartReqs() {
+        return startReqs;
     }
 
-    public boolean canComplete(Character chr, Integer npcid) {
-        QuestInfo mqs = chr.getQuest(this);
-        if (!mqs.getStatus().equals(QuestStatus.STARTED)) {
-            return false;
-        }
-
-        for (AbstractQuestRequirement r : completeReqs.values()) {
-            if (!r.check(chr, npcid)) {
-                return false;
-            }
-        }
-
-        return canQuestByInfoProgress(chr);
+    public Map<QuestRequirementType, AbstractQuestRequirement> getCompleteReqs() {
+        return completeReqs;
     }
 
-    public void start(Character chr, int npc) {
-        if (autoStart || canStart(chr, npc)) {
-            Collection<AbstractQuestAction> acts = startActs.values();
-            for (AbstractQuestAction a : acts) {
-                if (!a.check(chr, null)) { // would null be good ?
-                    return;
-                }
-            }
-            for (AbstractQuestAction a : acts) {
-                a.run(chr, null);
-            }
-            forceStart(chr, npc);
-        }
+    public Map<QuestActionType, AbstractQuestAction> getStartActs() {
+        return startActs;
     }
 
-    public void complete(Character chr, int npc) {
-        complete(chr, npc, null);
+    public Map<QuestActionType, AbstractQuestAction> getCompleteActs() {
+        return completeActs;
     }
 
-    public void complete(Character chr, int npc, Integer selection) {
-        if (autoPreComplete || canComplete(chr, npc)) {
-            Collection<AbstractQuestAction> acts = completeActs.values();
-            for (AbstractQuestAction a : acts) {
-                if (!a.check(chr, selection)) {
-                    return;
-                }
-            }
-            forceComplete(chr, npc);
-            for (AbstractQuestAction a : acts) {
-                a.run(chr, selection);
-            }
-            if (!this.hasNextQuestAction()) {
-                chr.announceUpdateQuest(DelayedQuestUpdate.INFO, chr.getQuest(this));
-            }
-        }
-    }
-
-    public void reset(Character chr) {
-        QuestInfo newStatus = new QuestInfo(this, QuestStatus.NOT_STARTED);
-        chr.updateQuestStatus(newStatus);
-    }
-
-    public boolean forfeit(Character chr) {
-        if (!chr.getQuest(this).getStatus().equals(QuestStatus.STARTED)) {
-            return false;
-        }
-        if (timeLimit > 0) {
-            chr.sendPacket(PacketCreator.removeQuestTimeLimit((short) id));
-        }
-        QuestInfo newStatus = new QuestInfo(this, QuestStatus.NOT_STARTED);
-        newStatus.setForfeited(chr.getQuest(this).getForfeited() + 1);
-        chr.updateQuestStatus(newStatus);
-        return true;
-    }
-
-    public boolean forceStart(Character chr, int npc) {
-        QuestInfo newStatus = new QuestInfo(this, QuestStatus.STARTED, npc);
-
-        QuestInfo oldStatus = chr.getQuest(this.getId());
-        for (Entry<Integer, String> e : oldStatus.getProgress().entrySet()) {
-            newStatus.setProgress(e.getKey(), e.getValue());
-        }
-
-        if (id / 100 == 35 && GameConfig.getServerInt("tot_mob_quest_requirement") > 0) {
-            int setProg = 999 - Math.min(999, GameConfig.getServerInt("tot_mob_quest_requirement"));
-
-            for (Integer pid : newStatus.getProgress().keySet()) {
-                if (pid >= 8200000 && pid <= 8200012) {
-                    String pr = StringUtil.getLeftPaddedStr(Integer.toString(setProg), '0', 3);
-                    newStatus.setProgress(pid, pr);
-                }
-            }
-        }
-
-        newStatus.setForfeited(chr.getQuest(this).getForfeited());
-        newStatus.setCompleted(chr.getQuest(this).getCompleted());
-
-        if (timeLimit > 0) {
-            newStatus.setExpirationTime(System.currentTimeMillis() + SECONDS.toMillis(timeLimit));
-            chr.questTimeLimit(this, timeLimit);
-        }
-        if (timeLimit2 > 0) {
-            newStatus.setExpirationTime(System.currentTimeMillis() + SECONDS.toMillis(timeLimit2));
-            chr.questTimeLimit2(this, newStatus.getExpirationTime());
-        }
-
-        chr.updateQuestStatus(newStatus);
-
-        return true;
-    }
-
-    public boolean forceComplete(Character chr, int npc) {
-        if (timeLimit > 0) {
-            chr.sendPacket(PacketCreator.removeQuestTimeLimit((short) id));
-        }
-
-        QuestInfo newStatus = new QuestInfo(this, QuestStatus.COMPLETED, npc);
-        newStatus.setForfeited(chr.getQuest(this).getForfeited());
-        newStatus.setCompleted(chr.getQuest(this).getCompleted());
-        newStatus.setCompletionTime(System.currentTimeMillis());
-        chr.updateQuestStatus(newStatus);
-
-        chr.sendPacket(PacketCreator.showSpecialEffect(9)); // Quest completion
-        chr.getMapRef().broadcastMessage(chr.ref(), PacketCreator.showForeignEffect(chr.getId(), 9), false); //use 9 instead of 12 for both
-        return true;
+    public int getTimeLimit2() {
+        return timeLimit2;
     }
 
     public int getId() {
@@ -628,17 +486,6 @@ public class QuestWz {
         return ret;
     }
 
-    public boolean restoreLostItem(Character chr, int itemid) {
-        if (chr.getQuest(this).getStatus().equals(QuestStatus.STARTED)) {
-            ItemAction itemAct = (ItemAction) startActs.get(QuestActionType.ITEM);
-            if (itemAct != null) {
-                return itemAct.restoreLostItem(chr, itemid);
-            }
-        }
-
-        return false;
-    }
-
     public int getMedalRequirement() {
         Integer medalid = medals.get(id);
         return medalid != null ? medalid : -1;
@@ -730,11 +577,5 @@ public class QuestWz {
 
         QuestWz.quests = loadedQuests;
         QuestWz.infoNumberQuests = loadedInfoNumberQuests;
-    }
-
-    public void expireQuest(Character chr) {
-        if (forfeit(chr)) {
-            chr.sendPacket(PacketCreator.questExpire((short) getId()));
-        }
     }
 }

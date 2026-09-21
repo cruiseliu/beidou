@@ -108,8 +108,7 @@ public class QuestScriptManager extends AbstractScriptManager {
     }
 
     public void end(Client c, int questid, int npc) {
-        QuestWz quest = QuestWz.getInstance(questid);
-        if (!c.getPlayer().getQuest(quest).getStatus().equals(QuestStatus.STARTED) || (!c.getPlayer().getMap().containsNPC(npc) && !quest.isAutoComplete())) {
+        if (!c.getPlayer().getQuest(questid).getStatus().equals(QuestStatus.STARTED) || (!c.getPlayer().getMap().containsNPC(npc) && !QuestWz.getInstance(questid).isAutoComplete())) {
             dispose(c);
             return;
         }

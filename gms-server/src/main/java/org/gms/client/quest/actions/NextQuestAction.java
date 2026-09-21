@@ -48,7 +48,7 @@ public class NextQuestAction extends AbstractQuestAction {
 
     @Override
     public void run(Character chr, Integer extSelection) {
-        QuestInfo status = chr.getQuest(QuestWz.getInstance(questID));
+        QuestInfo status = chr.getQuest(questID);
         chr.sendPacket(PacketCreator.updateQuestFinish((short) questID, status.getNpc(), (short) nextQuest));
     }
 } 

@@ -47,8 +47,8 @@ public class RaiseIncExpHandler extends AbstractPacketHandler {
                 Map<Integer, Integer> consumables = consItem.items;
 
                 Character chr = c.getPlayer();
-                QuestWz quest = QuestWz.getInstanceFromInfoNumber(infoNumber);
-                if (!chr.getQuest(quest).getStatus().equals(QuestStatus.STARTED)) {
+                QuestInfo questInfo = chr.getQuest(QuestWz.getInstanceFromInfoNumber(infoNumber).getId());
+                if (!questInfo.getStatus().equals(QuestStatus.STARTED)) {
                     c.sendPacket(PacketCreator.enableActions());
                     return;
                 }
@@ -67,7 +67,7 @@ public class RaiseIncExpHandler extends AbstractPacketHandler {
                     inv.unlockInventory();
                 }
 
-                int questid = quest.getId();
+                int questid = questInfo.getQuestID();
                 int nextValue = Math.min(consumables.get(consId) + c.getAbstractPlayerInteraction().getQuestProgressInt(questid, infoNumber), consItem.exp * consItem.grade);
                 c.getAbstractPlayerInteraction().setQuestProgress(questid, infoNumber, nextValue);
 

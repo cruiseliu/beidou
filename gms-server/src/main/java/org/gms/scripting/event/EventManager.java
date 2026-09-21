@@ -1218,7 +1218,7 @@ public class EventManager {
      */
     public void startQuest(Character chr, int id, int npcid) {
         try {
-            QuestWz.getInstance(id).forceStart(chr, npcid);
+            chr.getQuestNAdd(id).forceStart(chr, npcid);
         } catch (NullPointerException ex) {
             ex.printStackTrace();
         }
@@ -1232,7 +1232,7 @@ public class EventManager {
      */
     public void completeQuest(Character chr, int id, int npcid) {
         try {
-            QuestWz.getInstance(id).forceComplete(chr, npcid);
+            chr.getQuestNAdd(id).forceComplete(chr, npcid);
         } catch (NullPointerException ex) {
             ex.printStackTrace();
         }

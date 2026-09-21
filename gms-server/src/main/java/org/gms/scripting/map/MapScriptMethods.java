@@ -106,17 +106,16 @@ public class MapScriptMethods extends AbstractPlayerInteraction {
     }
 
     public void explorerQuest(short questid, String questName) {
-        QuestWz quest = QuestWz.getInstance(questid);
         if (isQuestCompleted(questid)) {
             return;
         }
         
         if (!isQuestStarted(questid)) {
-            if (!quest.forceStart(getPlayer(), 9000066)) {
+            if (!getPlayer().getQuestNAdd(questid).forceStart(getPlayer(), 9000066)) {
                 return;
             }
         }
-        QuestInfo qs = getPlayer().getQuest(quest);
+        QuestInfo qs = getPlayer().getQuest(questid);
         if (!qs.addMedalMap(getPlayer().getMapId())) {
             return;
         }
@@ -125,14 +124,14 @@ public class MapScriptMethods extends AbstractPlayerInteraction {
 
         // explorer quests all have an infoex/infonumber requirement that points to another quest
         // THAT quest's progress needs to be updated for Quest.canComplete() to return true
-        getPlayer().setQuestProgress(quest.getId(), (int)quest.getInfoNumber(qs.getStatus()), status);
+        getPlayer().setQuestProgress(questid, (int) QuestWz.getInstance(questid).getInfoNumber(qs.getStatus()), status);
 
         StringBuilder smp = new StringBuilder();
         StringBuilder etm = new StringBuilder();
         if (status.equals(infoex)) {
             etm.append("获得 ").append(questName).append(" 勋章！");
             smp.append("你获得了 <").append(questName).append(">").append(rewardstring);
-            getPlayer().sendPacket(PacketCreator.getShowQuestCompletion(quest.getId()));
+            getPlayer().sendPacket(PacketCreator.getShowQuestCompletion(questid));
         } else {
             getPlayer().sendPacket(PacketCreator.earnTitleMessage(status + "/" + infoex + " 区域已探索"));
             etm.append("正在挑战 ").append(questName).append(" 勋章");
@@ -143,23 +142,22 @@ public class MapScriptMethods extends AbstractPlayerInteraction {
     }
 
     public void touchTheSky() { //29004
-        QuestWz quest = QuestWz.getInstance(29004);
         if (!isQuestStarted(29004)) {
-            if (!quest.forceStart(getPlayer(), 9000066)) {
+            if (!getPlayer().getQuestNAdd(29004).forceStart(getPlayer(), 9000066)) {
                 return;
             }
         }
-        QuestInfo qs = getPlayer().getQuest(quest);
+        QuestInfo qs = getPlayer().getQuest(29004);
         if (!qs.addMedalMap(getPlayer().getMapId())) {
             return;
         }
         String status = Integer.toString(qs.getMedalProgress());
-        getPlayer().setQuestProgress(quest.getId(), (int)quest.getInfoNumber(qs.getStatus()), status);
+        getPlayer().setQuestProgress(29004, (int) QuestWz.getInstance(29004).getInfoNumber(qs.getStatus()), status);
         getPlayer().sendPacket(PacketCreator.earnTitleMessage(status + "/5 已完成"));
         getPlayer().sendPacket(PacketCreator.earnTitleMessage("站在巅峰的人 勋章挑战正在进行中"));
         if (Integer.toString(qs.getMedalProgress()).equals(qs.getInfoEx(0))) {
             showInfoText("站在巅峰的人" + rewardstring);
-            getPlayer().sendPacket(PacketCreator.getShowQuestCompletion(quest.getId()));
+            getPlayer().sendPacket(PacketCreator.getShowQuestCompletion(29004));
         } else {
             showInfoText("站在巅峰的人 勋章挑战正在进行中。 " + status + "/5 已完成");
         }

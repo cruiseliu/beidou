@@ -60,7 +60,7 @@ public final class SpecialChallengeMedal {
      * <p>未开始任务或旧数据为空时，QuestStatus 可能返回空值；解析失败统一当作 0，避免脚本领取时报错。</p>
      */
     public static int getProgress(Character player, int questId, int progressId) {
-        QuestInfo status = player.getQuest(QuestWz.getInstance(questId));
+        QuestInfo status = player.getQuest(questId);
         try {
             return Integer.parseInt(status.getProgress(progressId));
         } catch (NumberFormatException ignored) {
@@ -139,8 +139,7 @@ public final class SpecialChallengeMedal {
      * <p>这里集中处理“必须已接任务”“达到上限后不再增加”“通知客户端刷新任务面板”三个细节。</p>
      */
     private static void addStartedQuestProgress(Character player, int questId, int progressId, int cap) {
-        QuestWz quest = QuestWz.getInstance(questId);
-        QuestInfo status = player.getQuest(quest);
+        QuestInfo status = player.getQuest(questId);
         if (status.getStatus() != QuestStatus.STARTED) {
             return;
         }

@@ -57,7 +57,7 @@ public class IntervalRequirement extends AbstractQuestRequirement {
     private static String getIntervalTimeLeft(Character chr, IntervalRequirement r) {
         StringBuilder str = new StringBuilder();
 
-        long futureTime = chr.getQuest(QuestWz.getInstance(r.questID)).getCompletionTime() + r.getInterval();
+        long futureTime = chr.getQuest(r.questID).getCompletionTime() + r.getInterval();
         long leftTime = futureTime - System.currentTimeMillis();
 
         byte mode = 0;
@@ -88,8 +88,8 @@ public class IntervalRequirement extends AbstractQuestRequirement {
 
     @Override
     public boolean check(Character chr, Integer npcid) {
-        boolean check = !chr.getQuest(QuestWz.getInstance(questID)).getStatus().equals(QuestStatus.COMPLETED);
-        boolean check2 = chr.getQuest(QuestWz.getInstance(questID)).getCompletionTime() <= System.currentTimeMillis() - interval;
+        boolean check = !chr.getQuest(questID).getStatus().equals(QuestStatus.COMPLETED);
+        boolean check2 = chr.getQuest(questID).getCompletionTime() <= System.currentTimeMillis() - interval;
 
         if (check || check2) {
             return true;

@@ -52,7 +52,7 @@ public class PetSkillAction extends AbstractQuestAction {
 
     @Override
     public boolean check(Character chr, Integer extSelection) {
-        QuestInfo status = chr.getQuest(QuestWz.getInstance(questID));
+        QuestInfo status = chr.getQuest(questID);
         if (!(status.getStatus() == QuestStatus.NOT_STARTED && status.getForfeited() > 0)) {
             return false;
         }
