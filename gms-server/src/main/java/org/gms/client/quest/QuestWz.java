@@ -95,16 +95,16 @@ public class QuestWz {
     private static volatile Map<Integer, QuestWz> quests = new ConcurrentHashMap<>();
     /** infoNumber → 任务 id 反查表：loadAllQuests 整表构建后替换，此后只读，无需并发容器 */
     private static volatile Map<Integer, Integer> infoNumberQuests = new HashMap<>();
-    /** 勋章任务 viewMedalItem 侧表：QuestWz 构造器（任意 strand 首触）写入 */
-    private static final Map<Short, Integer> medals = new ConcurrentHashMap<>();
+    /** 勋章任务 viewMedalItem 侧表（键 = 任务 id）：QuestWz 构造器（任意 strand 首触）写入 */
+    private static final Map<Integer, Integer> medals = new ConcurrentHashMap<>();
 
-    private static final Set<Short> exploitableQuests = new HashSet<>();
+    private static final Set<Integer> exploitableQuests = new HashSet<>();
 
     static {
-        exploitableQuests.add((short) 2338);    // there are a lot more exploitable quests, they need to be nit-picked
-        exploitableQuests.add((short) 3637);
-        exploitableQuests.add((short) 3714);
-        exploitableQuests.add((short) 21752);
+        exploitableQuests.add(2338);    // there are a lot more exploitable quests, they need to be nit-picked
+        exploitableQuests.add(3637);
+        exploitableQuests.add(3714);
+        exploitableQuests.add(21752);
     }
 
     protected short id;
@@ -145,7 +145,7 @@ public class QuestWz {
 
                 int medalid = DataTool.getInt("viewMedalItem", reqInfo, 0);
                 if (medalid != 0) {
-                    medals.put(this.id, medalid);
+                    medals.put((int) this.id, medalid);
                 }
             } else {
                 log.warn("No quest data for id {}", id);

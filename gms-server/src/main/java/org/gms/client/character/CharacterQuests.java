@@ -50,8 +50,8 @@ class CharacterQuests implements QuestModule.Handler {
     /** 任务点数（持久化到 characters.fquest） */
     private int questFame;
 
-    /** 任务状态表 */
-    private final Map<Short, QuestStatus> quests;
+    /** 任务状态表（键 = 任务 id；int 键——QuestWz id 语义值，避免 get/put 侧的 short 强转） */
+    private final Map<Integer, QuestStatus> quests;
 
     /** 限时任务到期表 */
     private Map<QuestWz, Long> questExpirations = new LinkedHashMap<>();
@@ -71,7 +71,7 @@ class CharacterQuests implements QuestModule.Handler {
 
     // ── 查询 ──
 
-    Map<Short, QuestStatus> getQuests() {
+    Map<Integer, QuestStatus> getQuests() {
         return quests;
     }
 
@@ -145,7 +145,7 @@ class CharacterQuests implements QuestModule.Handler {
                         qs.addMedalMap(mapid);
                     }
                 }
-                quests.put(qs.getQuestID(), qs);
+                quests.put((int) qs.getQuestID(), qs);
             }
         }
     }
@@ -163,7 +163,7 @@ class CharacterQuests implements QuestModule.Handler {
 
     byte getQuestStatus(final int quest) {
         synchronized (quests) {
-            QuestStatus mqs = quests.get((short) quest);
+            QuestStatus mqs = quests.get(quest);
             if (mqs != null) {
                 return (byte) mqs.getStatus().getId();
             } else {
@@ -196,10 +196,10 @@ class CharacterQuests implements QuestModule.Handler {
     QuestStatus getQuest(QuestWz quest) {
         synchronized (quests) {
             short questid = quest.getId();
-            QuestStatus qs = quests.get(questid);
+            QuestStatus qs = quests.get((int) questid);
             if (qs == null) {
                 qs = new QuestStatus(quest, QuestStatus.Status.NOT_STARTED);
-                quests.put(questid, qs);
+                quests.put((int) questid, qs);
             }
             return qs;
         }
@@ -207,12 +207,12 @@ class CharacterQuests implements QuestModule.Handler {
 
     QuestStatus getQuestNAdd(final QuestWz quest) {
         synchronized (quests) {
-            if (!quests.containsKey(quest.getId())) {
+            if (!quests.containsKey((int) quest.getId())) {
                 final QuestStatus status = new QuestStatus(quest, QuestStatus.Status.NOT_STARTED);
-                quests.put(quest.getId(), status);
+                quests.put((int) quest.getId(), status);
                 return status;
             }
-            return quests.get(quest.getId());
+            return quests.get((int) quest.getId());
         }
     }
 
@@ -277,7 +277,7 @@ class CharacterQuests implements QuestModule.Handler {
 
     void updateQuestStatus(QuestStatus qs) {
         synchronized (quests) {
-            quests.put(qs.getQuestID(), qs);
+            quests.put((int) qs.getQuestID(), qs);
         }
         if (qs.getStatus().equals(QuestStatus.Status.STARTED)) {
             announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, false);

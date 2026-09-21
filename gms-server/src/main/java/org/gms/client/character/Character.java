@@ -3273,7 +3273,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
 
     // ── quest 门面 ──
 
-    public Map<Short, QuestStatus> getQuests() { return quests.getQuests(); }
+    public Map<Integer, QuestStatus> getQuests() { return quests.getQuests(); }
     public QuestStatus getQuest(final int quest) { return quests.getQuest(quest); }
     public QuestStatus getQuest(QuestWz quest) { return quests.getQuest(quest); }
     public byte getQuestStatus(final int quest) { return quests.getQuestStatus(quest); }
