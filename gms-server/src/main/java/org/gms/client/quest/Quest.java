@@ -1,0 +1,459 @@
+/*
+	This file is part of the OdinMS Maple Story Server
+    Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
+		       Matthias Butz <matze@odinms.de>
+		       Jan Christian Meyer <vimes@odinms.de>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation version 3 as published by
+    the Free Software Foundation. You may not use, modify or distribute
+    this program under any other version of the GNU Affero General Public
+    License.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+package org.gms.client.quest;
+
+import org.gms.client.Player;
+import org.gms.client.character.Character;
+import org.gms.constants.game.DelayedQuestUpdate;
+import org.gms.scripting.quest.esm.EsmQuests;
+import org.gms.util.AssertUtil;
+import org.gms.util.PacketCreator;
+import org.gms.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.gms.client.quest.actions.AbstractQuestAction;
+import org.gms.client.quest.actions.ItemAction;
+import org.gms.client.quest.requirements.AbstractQuestRequirement;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author Matze
+ */
+public class Quest {
+    private static final Logger log = LoggerFactory.getLogger(Quest.class);
+
+    private final int id;
+    private QuestStatus status;
+    private final Map<Integer, String> progress = new LinkedHashMap<>();
+    private final List<Integer> medalProgress = new LinkedList<>();
+    private int npc;
+    private long completionTime;
+    private long expirationTime;
+    private String customData;
+    private final Character chr;
+    private final QuestWz wz;
+
+    private final int NEVER = 0;
+
+    public Quest(int questId) {
+        chr = Player.require("quest").character();
+        wz = QuestWz.getInstance(questId);
+        this.id = questId;
+        this.setStatus(QuestStatus.NOT_STARTED);
+        this.completionTime = NEVER;
+        this.expirationTime = NEVER;
+    }
+
+    public Quest(QuestWz wz, QuestStatus status) {
+        chr = Player.require("quest").character();
+        this.id = wz.getId();
+        this.wz = wz;
+        this.setStatus(status);
+        this.completionTime = System.currentTimeMillis();
+        this.expirationTime = 0;
+        if (status == QuestStatus.STARTED) {
+            registerMobs();
+        }
+    }
+
+    public Quest(QuestWz wz, QuestStatus status, int npc) {
+        chr = Player.require("quest").character();
+        this.id = wz.getId();
+        this.wz = wz;
+        this.setStatus(status);
+        this.setNpc(npc);
+        this.completionTime = System.currentTimeMillis();
+        this.expirationTime = 0;
+        if (status == QuestStatus.STARTED) {
+            registerMobs();
+        }
+    }
+
+    public boolean isSameDayRepeatable() {  // fixme [refactor]
+        return wz.isSameDayRepeatable();
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public QuestStatus getStatus() {
+        return status;
+    }
+
+    public final void setStatus(QuestStatus status) {
+        this.status = status;
+    }
+    
+    public int getNpc() {
+        return npc;
+    }
+
+    public final void setNpc(int npc) {
+        this.npc = npc;
+    }
+
+    private void registerMobs() {
+        for (int i : wz.getRelevantMobs()) {
+            progress.put(i, "000");
+        }
+    }
+
+    public boolean addMedalMap(int mapid) {
+        if (medalProgress.contains(mapid)) {
+            return false;
+        }
+        medalProgress.add(mapid);
+        return true;
+    }
+
+    public int getMedalProgress() {
+        return medalProgress.size();
+    }
+
+    public List<Integer> getMedalMaps() {
+        return medalProgress;
+    }
+
+    public boolean progress(int id) {
+        String currentStr = progress.get(id);
+        if (currentStr == null) {
+            return false;
+        }
+
+        int current = Integer.parseInt(currentStr);
+        if (current >= wz.getMobAmountNeeded(id)) {
+            return false;
+        }
+
+        String str = StringUtil.getLeftPaddedStr(Integer.toString(++current), '0', 3);
+        progress.put(id, str);
+        return true;
+    }
+
+    public void setProgress(int id, String pr) {
+        progress.put(id, pr);
+    }
+
+    public boolean madeProgress() {
+        return progress.size() > 0;
+    }
+
+    public String getProgress(int id) {
+        String ret = progress.get(id);
+        if (ret == null) {
+            return "";
+        } else {
+            return ret;
+        }
+    }
+
+    public void resetProgress(int id) {
+        setProgress(id, "000");
+    }
+
+    public void resetAllProgress() {
+        for (Map.Entry<Integer, String> entry : progress.entrySet()) {
+            setProgress(entry.getKey(), "000");
+        }
+    }
+
+    public Map<Integer, String> getProgress() {
+        return Collections.unmodifiableMap(progress);
+    }
+
+    public short getInfoNumber() {
+        return wz.getInfoNumber(status);
+    }
+
+    public String getInfoEx(int index) {
+        return wz.getInfoEx(status, index);
+    }
+
+    public List<String> getInfoEx() {
+        return wz.getInfoEx(status);
+    }
+
+    public long getCompletionTime() {
+        return completionTime;
+    }
+
+    public void setCompletionTime(long completionTime) {
+        this.completionTime = completionTime;
+    }
+
+    public long getExpirationTime() {
+        return expirationTime;
+    }
+
+    public void setExpirationTime(long expirationTime) {
+        this.expirationTime = expirationTime;
+    }
+
+    public final void setCustomData(final String customData) {
+        this.customData = customData;
+    }
+
+    public final String getCustomData() {
+        return customData;
+    }
+
+    public String getProgressData() {
+        StringBuilder str = new StringBuilder();
+        for (String ps : progress.values()) {
+            str.append(ps);
+        }
+        return str.toString();
+    }
+
+    // ── 动态操作（任务域裁定：状态迁移在本实例上就地生效，QuestWz 只读静态定义）──
+    // 就地变异等价复刻旧"换新对象顶替 map 条目"形态的净状态效果（progress 清空/重播种、
+    // forfeited/completed 归复规则逐项保留）；npcUpdateQuests 延迟队列持有本实例引用，
+    // NPC 对话期间同任务的连发更新在冲刷时呈现终态（帧数与末帧内容不变，中间帧为幂等
+    // 状态集被终态覆盖，客户端净状态一致）。
+
+    public void start(int npcId) {
+        if (!canStart()) {
+            log.warn("{} cannot start quest {}", chr, this);
+            return;
+        }
+
+        Collection<AbstractQuestAction> acts = wz.getStartActs().values();
+        for (AbstractQuestAction act : acts) {
+            if (!act.check(chr)) {
+                return;
+            }
+        }
+        for (AbstractQuestAction act : acts) {
+            act.run(chr);
+        }
+        forceStart(chr, npcId);
+    }
+
+    public void runStartScript(int npcId) {
+        if (!canStart()) {
+            log.warn("{} cannot start quest {}", chr, this);
+            return;
+        }
+
+        String script = wz.getQuestScriptName(status);
+        AssertUtil.isTrue(script != null && EsmQuests.exists(id));
+        EsmQuests.start(chr, id, npcId, script);
+    }
+
+    public void complete(int npcId, Integer selection) {
+        if (!canComplete(chr)) {
+            log.warn("{} cannot complete quest {}", chr, this);
+            return;
+        }
+
+        Collection<AbstractQuestAction> acts = wz.getCompleteActs().values();
+        for (AbstractQuestAction act : acts) {
+            if (!act.check(chr, selection)) {
+                return;
+            }
+        }
+        forceComplete(chr, npcId);
+        for (AbstractQuestAction act : acts) {
+            act.run(chr, selection);
+        }
+
+        if (!wz.hasNextQuestAction()) {
+            chr.announceUpdateQuest(DelayedQuestUpdate.INFO, this);
+        }
+    }
+
+    public void runEndScript(int npcId) {
+        if (!canComplete(chr)) {
+            log.warn("{} cannot complete quest {}", chr, this);
+            return;
+        }
+        
+        String entry = wz.getQuestScriptName(status);
+        AssertUtil.isTrue(entry != null && EsmQuests.exists(id));
+        EsmQuests.end(chr, id, npcId, entry);
+    }
+
+    private boolean canStart() {
+        if (status == QuestStatus.STARTED) {
+            return false;
+        }
+        if (status == QuestStatus.COMPLETED && !wz.isRepeatable()) {
+            // interval is checked by req
+            return false;
+        }
+
+        for (AbstractQuestRequirement req : wz.getStartReqs().values()) {
+            if (!req.check(chr)) {
+                return false;
+            }
+        }
+
+        return checkInfo();
+    }
+
+    public boolean canComplete(Character chr) {
+        if (status != QuestStatus.STARTED) {
+            return false;
+        }
+
+        for (AbstractQuestRequirement req : wz.getCompleteReqs().values()) {
+            if (!req.check(chr)) {
+                return false;
+            }
+        }
+
+        return checkInfo();
+    }
+
+    private boolean checkInfo() {
+        int infoNumber = wz.getInfoNumber(status);
+        if (infoNumber == 0) {
+            return true;
+        }
+
+        String expectInfo = wz.getInfo(status);
+        if (expectInfo != null) {
+            String info = chr.quests().getInfo(infoNumber);
+            if (!info.equals(expectInfo)) {
+                return false;
+            }
+        }
+
+        // FIXME: [refactor] infoEx
+        return true;
+    }
+
+    public void reset(Character chr) {
+        // 复刻旧"新对象"全字段复位（completionTime=now 为历史行为原样保留；
+        // 直接字段赋值绕过 setForfeited/setCompleted 的单调护栏——归零即旧语义）
+        status = QuestStatus.NOT_STARTED;
+        npc = 0;
+        completionTime = System.currentTimeMillis();
+        expirationTime = 0;
+        progress.clear();
+        updateQuestStatus();
+    }
+
+    public void forfeit() {
+        AssertUtil.isTrue(status == QuestStatus.STARTED);
+        AssertUtil.isTrue(wz.getTimeLimit() <= 0 && wz.getTimeLimit2() <= 0);
+        // if (wz.getTimeLimit() > 0) {
+        //     chr.getRemote().quest().removeQuestTimeLimit(id);
+        // }
+
+        status = QuestStatus.NOT_STARTED;
+        npc = 0;
+        completionTime = NEVER;
+        expirationTime = NEVER;
+        progress.clear();
+        updateQuestStatus();
+        return;
+    }
+
+    public boolean forceStart(Character chr, int npcId) {
+        AssertUtil.isTrue(chr == this.chr);
+        forceStart(npcId);
+        return true;
+    }
+
+    public void forceStart(int npcId) {
+        Map<Integer, String> oldProgress = new LinkedHashMap<>(progress);
+
+        status = QuestStatus.STARTED;
+        this.npc = npcId;
+        completionTime = NEVER;
+        progress.clear();
+        registerMobs();
+        for (Map.Entry<Integer, String> e : oldProgress.entrySet()) {
+            progress.put(e.getKey(), e.getValue());
+        }
+
+        AssertUtil.isTrue(wz.getTimeLimit() <= 0 && wz.getTimeLimit2() <= 0);
+        // if (wz.getTimeLimit() > 0) {
+        //     expirationTime = System.currentTimeMillis() + SECONDS.toMillis(wz.getTimeLimit());
+        //     chr.questTimeLimit(id, wz.getTimeLimit());
+        // }
+        // if (wz.getTimeLimit2() > 0) {
+        //     expirationTime = System.currentTimeMillis() + SECONDS.toMillis(wz.getTimeLimit2());
+        //     chr.questTimeLimit2(id, expirationTime);
+        // }
+
+        updateQuestStatus();
+    }
+
+    public boolean forceComplete(Character chr, int npc) {
+        AssertUtil.isTrue(wz.getTimeLimit() <= 0 && wz.getTimeLimit2() <= 0);
+        // if (wz.getTimeLimit() > 0) {
+        //     chr.getRemote().quest().removeQuestTimeLimit(id);
+        // }
+
+        status = QuestStatus.COMPLETED;
+        this.npc = npc;
+        completionTime = System.currentTimeMillis();
+        progress.clear();
+
+        updateQuestStatus();
+        chr.sendPacket(PacketCreator.showSpecialEffect(9)); // Quest completion
+        chr.getMapRef().broadcastMessage(chr.ref(), PacketCreator.showForeignEffect(chr.getId(), 9), false); //use 9 instead of 12 for both
+        return true;
+    }
+
+    public void restoreLostItem(int itemid) {
+        AssertUtil.isTrue(status == QuestStatus.STARTED);
+        ItemAction itemAct = (ItemAction) wz.getStartActs().get(QuestActionType.ITEM);
+        AssertUtil.isTrue(itemAct != null);
+        itemAct.restoreLostItem(chr, itemid);
+    }
+
+    public void expireQuest(Character chr) {
+        if (status == QuestStatus.STARTED) {
+            forfeit();
+            chr.getRemote().quest().questExpired(id);
+        }
+    }
+
+    private void updateQuestStatus() {
+        if (status.equals(QuestStatus.STARTED)) {
+            chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, this, false);
+            if (wz.getInfoNumber(status) > 0) {
+                chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, this, true);
+            }
+            chr.announceUpdateQuest(DelayedQuestUpdate.INFO, this);
+        } else if (status.equals(QuestStatus.COMPLETED)) {
+            chr.announceUpdateQuest(DelayedQuestUpdate.COMPLETE, id, completionTime);
+            //announceUpdateQuest(DelayedQuestUpdate.INFO, qs); // happens after giving rewards, for non-next quests only
+        } else if (status.equals(QuestStatus.NOT_STARTED)) {
+            chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, this, false);
+            if (wz.getInfoNumber(status) > 0) {
+                chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, this, true);
+            }
+            // reminder: do not reset quest progress of infoNumbers, some quests cannot backtrack
+        }
+    }
+}

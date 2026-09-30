@@ -6,15 +6,12 @@ import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.config.GameConfig;
-import org.gms.constants.id.ItemId;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.server.ItemInformationProvider;
-import org.gms.server.TimerManager;
 import org.gms.util.I18nUtil;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.concurrent.ScheduledFuture;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
 

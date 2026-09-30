@@ -30,7 +30,7 @@ public enum QuestActionType {
     ITEM(1),
     NEXTQUEST(2),
     MESO(3),
-    QUEST(4),
+    // QUEST(4),
     SKILL(5),
     FAME(6),
     BUFF(7),

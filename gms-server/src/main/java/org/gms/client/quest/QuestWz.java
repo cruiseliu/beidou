@@ -21,7 +21,6 @@
  */
 package org.gms.client.quest;
 
-import org.gms.client.quest.QuestStatus;
 import org.gms.client.quest.actions.AbstractQuestAction;
 import org.gms.client.quest.actions.BuffAction;
 import org.gms.client.quest.actions.ExpAction;
@@ -33,7 +32,6 @@ import org.gms.client.quest.actions.NextQuestAction;
 import org.gms.client.quest.actions.PetSkillAction;
 import org.gms.client.quest.actions.PetSpeedAction;
 import org.gms.client.quest.actions.PetTamenessAction;
-import org.gms.client.quest.actions.QuestAction;
 import org.gms.client.quest.actions.SkillAction;
 import org.gms.client.quest.requirements.AbstractQuestRequirement;
 import org.gms.client.quest.requirements.BuffExceptRequirement;
@@ -43,6 +41,7 @@ import org.gms.client.quest.requirements.EndDateRequirement;
 import org.gms.client.quest.requirements.FieldEnterRequirement;
 import org.gms.client.quest.requirements.InfoExRequirement;
 import org.gms.client.quest.requirements.InfoNumberRequirement;
+import org.gms.client.quest.requirements.InfoRequirement;
 import org.gms.client.quest.requirements.IntervalRequirement;
 import org.gms.client.quest.requirements.ItemRequirement;
 import org.gms.client.quest.requirements.JobRequirement;
@@ -330,6 +329,19 @@ public class QuestWz {
         }
     }
 
+    public String getInfo(QuestStatus qs) {
+        boolean checkEnd = qs.equals(QuestStatus.STARTED);
+        Map<QuestRequirementType, AbstractQuestRequirement> reqs = !checkEnd ? startReqs : completeReqs;
+
+        AbstractQuestRequirement req = reqs.get(QuestRequirementType.INFO);
+        if (req != null) {
+            InfoRequirement inReq = (InfoRequirement) req;
+            return inReq.getValue();
+        } else {
+            return null;
+        }
+    }
+
     public String getInfoEx(QuestStatus qs, int index) {
         boolean checkEnd = qs.equals(QuestStatus.STARTED);
         Map<QuestRequirementType, AbstractQuestRequirement> reqs = !checkEnd ? startReqs : completeReqs;
@@ -383,6 +395,9 @@ public class QuestWz {
                 break;
             case INFO_NUMBER:
                 ret = new InfoNumberRequirement(this, data);
+                break;
+            case INFO:
+                ret = new InfoRequirement(this, data);
                 break;
             case INFO_EX:
                 ret = new InfoExRequirement(this, data);
@@ -464,9 +479,9 @@ public class QuestWz {
             case PETSKILL:
                 ret = new PetSkillAction(this, data);
                 break;
-            case QUEST:
-                ret = new QuestAction(this, data);
-                break;
+            // case QUEST:
+            //     ret = new QuestAction(this, data);
+            //     break;
             case SKILL:
                 ret = new SkillAction(this, data);
                 break;
@@ -505,7 +520,13 @@ public class QuestWz {
     public String getQuestScriptName(boolean checkEnd) {
         Map<QuestRequirementType, AbstractQuestRequirement> reqs = !checkEnd ? startReqs : completeReqs;
         AbstractQuestRequirement mqr = reqs.get(QuestRequirementType.SCRIPT);
-        return mqr instanceof ScriptRequirement sr ? sr.get() : null;
+        return mqr instanceof ScriptRequirement sr ? sr.getScriptName() : null;
+    }
+
+    public String getQuestScriptName(QuestStatus status) {
+        Map<QuestRequirementType, AbstractQuestRequirement> reqs = status == QuestStatus.STARTED ? completeReqs : startReqs;
+        AbstractQuestRequirement mqr = reqs.get(QuestRequirementType.SCRIPT);
+        return mqr instanceof ScriptRequirement sr ? sr.getScriptName() : null;
     }
 
     public boolean hasScriptRequirement(boolean checkEnd) {
@@ -513,7 +534,7 @@ public class QuestWz {
         AbstractQuestRequirement mqr = reqs.get(QuestRequirementType.SCRIPT);
 
         if (mqr instanceof ScriptRequirement sr) {
-            String name = sr.get();
+            String name = sr.getScriptName();
             return name != null && !name.isEmpty();
         } else {
             return false;

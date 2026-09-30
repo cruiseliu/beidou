@@ -47,7 +47,7 @@ public class ScriptRequirement extends AbstractQuestRequirement {
     }
 
     /** WZ 指定的脚本入口名；未声明返回 null */
-    public String get() {
+    public String getScriptName() {
         return scriptName;
     }
 }

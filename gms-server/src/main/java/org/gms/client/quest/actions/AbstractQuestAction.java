@@ -39,10 +39,19 @@ public abstract class AbstractQuestAction {
     }
 
     public abstract void run(Character chr, Integer extSelection);
+
+    public void run(Character chr) {
+        run(chr, null);
+    }
+
     public abstract void processData(Data data);
 
     public boolean check(Character chr, Integer extSelection) {
         return true;
+    }
+
+    public boolean check(Character chr) {
+        return check(chr, null);
     }
 
     public QuestActionType getType() {

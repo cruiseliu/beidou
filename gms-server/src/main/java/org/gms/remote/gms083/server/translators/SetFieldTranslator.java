@@ -3,6 +3,7 @@ package org.gms.remote.gms083.server.translators;
 import org.gms.client.character.Character;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
+import org.gms.client.quest.Quest;
 import org.gms.constants.game.GameConstants;
 import org.gms.remote.gms083.server.blocks.ItemBlock;
 import org.gms.remote.gms083.server.packets.SetFieldPacket;
@@ -143,8 +144,8 @@ public final class SetFieldTranslator {
 
     private static SetFieldPacket.Quests quests(Character chr) {
         var started = new ArrayList<SetFieldPacket.Quests.StartedQuest>();
-        for (org.gms.client.quest.QuestInfo qs : chr.getStartedQuests()) {
-            started.add(new SetFieldPacket.Quests.StartedQuest(qs.getQuest().getId(), qs.getProgressData()));
+        for (Quest qs : chr.getStartedQuests()) {
+            started.add(new SetFieldPacket.Quests.StartedQuest(qs.getId(), qs.getProgressData()));
             if (qs.getInfoNumber() > 0) {
                 var iqs = chr.getQuest(qs.getInfoNumber());
                 started.add(new SetFieldPacket.Quests.StartedQuest(qs.getInfoNumber(),
@@ -152,8 +153,8 @@ public final class SetFieldTranslator {
             }
         }
         var completed = new ArrayList<SetFieldPacket.Quests.CompletedQuest>();
-        for (org.gms.client.quest.QuestInfo qs : chr.getCompletedQuests()) {
-            completed.add(new SetFieldPacket.Quests.CompletedQuest(qs.getQuest().getId(),
+        for (Quest qs : chr.getCompletedQuests()) {
+            completed.add(new SetFieldPacket.Quests.CompletedQuest(qs.getId(),
                     Filetimes.toWire(qs.getCompletionTime())));
         }
         return new SetFieldPacket.Quests(List.copyOf(started), List.copyOf(completed));

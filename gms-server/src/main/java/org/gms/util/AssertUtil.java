@@ -18,6 +18,12 @@ public final class AssertUtil {
         }
     }
 
+    public static void isTrue(boolean condition) {
+        if (!condition) {
+            throw new AssertionError();
+        }
+    }
+
     public static AssertionError never(String message) {
         throw new AssertionError(message);
     }

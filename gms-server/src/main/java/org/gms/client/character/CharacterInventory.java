@@ -28,7 +28,6 @@ import org.gms.constants.id.MapId;
 import org.gms.net.packet.Packet;
 import org.gms.remote.ClientEventHandlerRegistry;
 import org.gms.remote.modules.inventory.InventoryModule;
-import org.gms.remote.modules.inventory.client.UseItemEvent;
 import org.gms.remote.modules.inventory.server.SlotChange;
 import org.gms.server.ItemInformationProvider.ScriptedItem;
 import org.gms.server.TimerManager;

@@ -22,7 +22,7 @@
 package org.gms.scripting.quest;
 
 import org.gms.client.Client;
-import org.gms.client.quest.QuestInfo;
+import org.gms.client.quest.Quest;
 import org.gms.client.quest.QuestStatus;
 import org.gms.client.quest.QuestWz;
 import org.gms.constants.game.GameConstants;

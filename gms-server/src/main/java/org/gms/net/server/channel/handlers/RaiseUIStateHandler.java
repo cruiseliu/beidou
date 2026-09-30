@@ -1,7 +1,7 @@
 package org.gms.net.server.channel.handlers;
 
 import org.gms.client.character.Character;
-import org.gms.client.quest.QuestInfo;
+import org.gms.client.quest.Quest;
 import org.gms.client.quest.QuestStatus;
 import org.gms.client.quest.QuestWz;
 import org.gms.client.Client;
@@ -29,13 +29,13 @@ public class RaiseUIStateHandler extends AbstractPacketHandler {
         if (c.tryacquireClient()) {
             try {
                 Character chr = c.getPlayer();
-                QuestInfo mqs = chr.getQuest(QuestWz.getInstanceFromInfoNumber(infoNumber).getId());
+                Quest mqs = chr.getQuest(QuestWz.getInstanceFromInfoNumber(infoNumber).getId());
 
                 QuestScriptManager.getInstance().raiseOpen(c, (short) infoNumber, mqs.getNpc());
 
                 if (mqs.getStatus() == QuestStatus.NOT_STARTED) {
                     mqs.forceStart(chr, 22000);
-                    c.getAbstractPlayerInteraction().setQuestProgress(mqs.getQuestID(), infoNumber, 0);
+                    c.getAbstractPlayerInteraction().setQuestProgress(mqs.getId(), infoNumber, 0);
                 } else if (mqs.getStatus() == QuestStatus.STARTED) {
                     chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, mqs, mqs.getInfoNumber() > 0);
                 }

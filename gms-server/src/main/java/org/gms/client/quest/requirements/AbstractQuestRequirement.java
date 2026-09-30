@@ -46,6 +46,10 @@ public abstract class AbstractQuestRequirement {
      */
     public abstract boolean check(Character chr, Integer npcid);
 
+    public boolean check(Character chr) {
+        return check(chr, -1);
+    }
+
     /**
      * Processes the data and stores it in the class for future use.
      *

@@ -1,6 +1,5 @@
 package org.gms.client.character;
 
-import org.gms.client.character.CharacterRef;
 import org.gms.client.Disease;
 import org.gms.constants.skills.Bishop;
 import org.gms.model.json.CharacterDebuffsData;

@@ -8,7 +8,6 @@ import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.id.MapId;
-import org.gms.net.packet.Packet;
 import org.gms.net.server.Server;
 import org.gms.net.server.world.Party;
 import org.gms.net.server.world.PartyOperation;
@@ -336,7 +335,7 @@ class CharacterMap implements MapModule.Handler {
         for (MoveElement e : elements) {
             switch (e) {
                 case AbsoluteMove m -> {
-                    Point before = snapshotPosition();
+                    // Point before = snapshotPosition();
                     Point after = new Point(m.x(), m.y());
                     owner.setPosition(after);
                     owner.setStance(m.stance());
@@ -352,7 +351,7 @@ class CharacterMap implements MapModule.Handler {
                     // owner.markRegularMove(before, after);
                 }
                 case TeleportMove t -> {
-                    Point before = snapshotPosition();
+                    // Point before = snapshotPosition();
                     Point after = new Point(t.x(), t.y());
                     owner.setPosition(after);
                     owner.setStance(t.stance());
@@ -363,7 +362,7 @@ class CharacterMap implements MapModule.Handler {
                 }
                 case ChairMove c -> owner.setStance(c.stance());
                 case JumpDownMove j -> {
-                    Point before = snapshotPosition();
+                    // Point before = snapshotPosition();
                     Point after = new Point(j.x(), j.y());
                     owner.setPosition(after);
                     owner.setStance(j.stance());

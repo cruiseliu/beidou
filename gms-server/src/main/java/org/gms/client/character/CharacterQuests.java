@@ -1,36 +1,27 @@
 package org.gms.client.character;
 
 import org.gms.client.Client;
+import org.gms.client.quest.Quest;
 import org.gms.client.quest.QuestInfo;
 import org.gms.client.quest.QuestStatus;
 import org.gms.client.quest.QuestWz;
-import org.gms.config.GameConfig;
 import org.gms.constants.game.DelayedQuestUpdate;
 import org.gms.constants.id.MobId;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.model.json.CharacterQuestsData;
-import org.gms.infra.Strand;
-import org.gms.net.server.Server;
 import org.gms.remote.modules.quest.QuestModule;
-import org.gms.remote.modules.npc.client.DialogButtons;
-import org.gms.scripting.quest.QuestScriptManager;
-import org.gms.scripting.quest.esm.EsmQuests;
-import org.gms.server.TimerManager;
-import org.gms.util.I18nUtil;
+import org.gms.remote.ClientEventHandlerRegistry;
 import org.gms.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ScheduledFuture;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * 任务模块组件：任务状态（quests map）+ 任务点数（questFame）+ 限时任务（questExpirations/questExpireTask）+ 任务封包延迟。
@@ -44,21 +35,14 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * 持久化走 character_json 的 quests 域（toData/applyData，queststatus 三表已下线）；
  * 依赖经 owner 门面调用（sendPacket/getClient/getInventory/gainFame/...）。
  */
-class CharacterQuests implements QuestModule.Handler {
+public class CharacterQuests implements QuestModule.Handler {
     private static final Logger log = LoggerFactory.getLogger(CharacterQuests.class);
 
     private final Character owner;
 
-    /** 任务点数（持久化到 characters.fquest） */
-    private int questFame;
-
     /** 任务状态表 */
-    private final Map<Integer, QuestInfo> quests;
-
-    /** 限时任务到期表（键 = 任务 id） */
-    private Map<Integer, Long> questExpirations = new LinkedHashMap<>();
-    /** 限时任务检查定时器 */
-    private ScheduledFuture<?> questExpireTask = null;
+    private final Map<Integer, Quest> quests;
+    private final Map<Integer, QuestInfo> infos;
 
     /** 任务更新封包延迟队列（NPC 脚本对话期间积压；全部读写已 strand 收口，无需队列锁） */
     private final List<Pair<DelayedQuestUpdate, Object[]>> npcUpdateQuests = new LinkedList<>();
@@ -66,24 +50,13 @@ class CharacterQuests implements QuestModule.Handler {
     CharacterQuests(Character owner) {
         this.owner = owner;
         this.quests = new LinkedHashMap<>();
+        this.infos = new HashMap<>();
     }
 
     // ── 查询 ──
 
-    Map<Integer, QuestInfo> getQuests() {
-        return quests;
-    }
-
-    int getQuestFame() {
-        return questFame;
-    }
-
-    void setQuestFame(int questFame) {
-        this.questFame = questFame;
-    }
-
     /** 快照（saveCharToDB 持久化用；包内可见） */
-    List<QuestInfo> getQuestValues() {
+    private List<Quest> getQuestValues() {
         return new ArrayList<>(quests.values());
     }
 
@@ -92,17 +65,15 @@ class CharacterQuests implements QuestModule.Handler {
     /** 持久化快照：无任务返回 null（不落库） */
     CharacterQuestsData toData() {
         List<CharacterQuestsData.QuestEntryData> entries = null;
-        for (QuestInfo qs : getQuestValues()) {
+        for (Quest qs : getQuestValues()) {
             if (entries == null) {
                 entries = new ArrayList<>();
             }
             CharacterQuestsData.QuestEntryData e = new CharacterQuestsData.QuestEntryData();
-            e.quest = qs.getQuest().getId();
+            e.quest = qs.getId();
             e.status = qs.getStatus().getValue();
             e.completionTime = qs.getCompletionTime();
             e.expirationTime = qs.getExpirationTime();
-            e.forfeited = qs.getForfeited();
-            e.completed = qs.getCompleted();
             if (!qs.getProgress().isEmpty()) {
                 e.progress = new java.util.LinkedHashMap<>(qs.getProgress());
             }
@@ -126,11 +97,9 @@ class CharacterQuests implements QuestModule.Handler {
         }
         quests.clear();
         for (CharacterQuestsData.QuestEntryData e : data.quests) {
-            QuestInfo qs = new QuestInfo(QuestWz.getInstance(e.quest), QuestStatus.fromValue(e.status));
+            Quest qs = new Quest(QuestWz.getInstance(e.quest), QuestStatus.fromValue(e.status));
             qs.setCompletionTime(e.completionTime);
             qs.setExpirationTime(e.expirationTime);
-            qs.setForfeited(e.forfeited);
-            qs.setCompleted(e.completed);
             if (e.progress != null) {
                 for (Map.Entry<Integer, String> p : e.progress.entrySet()) {
                     qs.setProgress(p.getKey(), p.getValue());
@@ -141,13 +110,13 @@ class CharacterQuests implements QuestModule.Handler {
                     qs.addMedalMap(mapid);
                 }
             }
-            quests.put(qs.getQuestID(), qs);
+            quests.put(qs.getId(), qs);
         }
     }
 
-    List<QuestInfo> getCompletedQuests() {
-        List<QuestInfo> ret = new LinkedList<>();
-        for (QuestInfo qs : getQuestValues()) {
+    List<Quest> getCompletedQuests() {
+        List<Quest> ret = new LinkedList<>();
+        for (Quest qs : getQuestValues()) {
             if (qs.getStatus().equals(QuestStatus.COMPLETED)) {
                 ret.add(qs);
             }
@@ -157,7 +126,7 @@ class CharacterQuests implements QuestModule.Handler {
     }
 
     byte getQuestStatus(final int quest) {
-        QuestInfo mqs = quests.get(quest);
+        Quest mqs = quests.get(quest);
         if (mqs != null) {
             return (byte) mqs.getStatus().getValue();
         } else {
@@ -182,31 +151,31 @@ class CharacterQuests implements QuestModule.Handler {
         return getQuest(questId).getStatus() == QuestStatus.COMPLETED;
     }
 
-    QuestInfo getQuest(final int questId) {
-        QuestInfo qs = quests.get(questId);
+    Quest getQuest(final int questId) {
+        Quest qs = quests.get(questId);
         if (qs == null) {
-            qs = new QuestInfo(QuestWz.getInstance(questId), QuestStatus.NOT_STARTED);
+            qs = new Quest(QuestWz.getInstance(questId), QuestStatus.NOT_STARTED);
             quests.put(questId, qs);
         }
         return qs;
     }
 
-    QuestInfo getQuestNAdd(final int questId) {
-        QuestInfo status = quests.get(questId);
-        if (status == null) {
-            status = new QuestInfo(QuestWz.getInstance(questId), QuestStatus.NOT_STARTED);
-            quests.put(questId, status);
+    Quest getQuestNAdd(int questId) {
+        Quest quest = quests.get(questId);
+        if (quest == null) {
+            quest = new Quest(questId);
+            quests.put(questId, quest);
         }
-        return status;
+        return quest;
     }
 
-    QuestInfo getQuestNoAdd(final int questId) {
+    Quest getQuestNoAdd(final int questId) {
         return quests.get(questId);
     }
 
-    List<QuestInfo> getStartedQuests() {
-        List<QuestInfo> ret = new LinkedList<>();
-        for (QuestInfo qs : getQuestValues()) {
+    List<Quest> getStartedQuests() {
+        List<Quest> ret = new LinkedList<>();
+        for (Quest qs : getQuestValues()) {
             if (QuestStatus.STARTED.equals(qs.getStatus())) {
                 ret.add(qs);
             }
@@ -240,10 +209,10 @@ class CharacterQuests implements QuestModule.Handler {
     // ── 任务状态更新 ──
 
     void setQuestProgress(int id, int infoNumber, String progress) {
-        QuestInfo qs = getQuest(id);
+        Quest qs = getQuest(id);
 
         if (qs.getInfoNumber() == infoNumber && infoNumber > 0) {
-            QuestInfo iqs = getQuest(infoNumber);
+            Quest iqs = getQuest(infoNumber);
             iqs.setProgress(0, progress);
         } else {
             qs.setProgress(infoNumber, progress);   // quest progress is thoroughly a string match, infoNumber is actually another questid
@@ -252,47 +221,6 @@ class CharacterQuests implements QuestModule.Handler {
         announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, false);
         if (qs.getInfoNumber() > 0) {
             announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, true);
-        }
-    }
-
-    void updateQuestStatus(QuestInfo qs) {
-        quests.put(qs.getQuestID(), qs);
-        if (qs.getStatus().equals(QuestStatus.STARTED)) {
-            announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, false);
-            if (qs.getInfoNumber() > 0) {
-                announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, true);
-            }
-            announceUpdateQuest(DelayedQuestUpdate.INFO, qs);
-        } else if (qs.getStatus().equals(QuestStatus.COMPLETED)) {
-            int questid = qs.getQuestID();
-            if (!qs.getQuest().isSameDayRepeatable() && !QuestWz.isExploitableQuest(questid)) {
-                awardQuestPoint(GameConfig.getServerInt("quest_point_per_quest_complete"));
-            }
-            qs.setCompleted(qs.getCompleted() + 1);   // Jayd's idea - count quest completed
-
-            announceUpdateQuest(DelayedQuestUpdate.COMPLETE, questid, qs.getCompletionTime());
-            //announceUpdateQuest(DelayedQuestUpdate.INFO, qs); // happens after giving rewards, for non-next quests only
-        } else if (qs.getStatus().equals(QuestStatus.NOT_STARTED)) {
-            announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, false);
-            if (qs.getInfoNumber() > 0) {
-                announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, true);
-            }
-            // reminder: do not reset quest progress of infoNumbers, some quests cannot backtrack
-        }
-    }
-
-    void awardQuestPoint(int awardedPoints) {
-        if (GameConfig.getServerInt("quest_point_requirement") < 1 || awardedPoints < 1) {
-            return;
-        }
-
-        questFame += awardedPoints;
-
-        int delta = questFame / GameConfig.getServerInt("quest_point_requirement");
-        questFame %= GameConfig.getServerInt("quest_point_requirement");
-
-        if (delta > 0) {
-            owner.gainFame(delta);
         }
     }
 
@@ -309,9 +237,9 @@ class CharacterQuests implements QuestModule.Handler {
 
         int lastQuestProcessed = 0;
         try {
-            for (QuestInfo qs : getQuestValues()) {
-                lastQuestProcessed = qs.getQuest().getId();
-                if (qs.getStatus() == QuestStatus.COMPLETED || qs.canComplete(owner, null)) {
+            for (Quest qs : getQuestValues()) {
+                lastQuestProcessed = qs.getId();
+                if (qs.getStatus() == QuestStatus.COMPLETED || qs.canComplete(owner)) {
                     continue;
                 }
 
@@ -336,12 +264,12 @@ class CharacterQuests implements QuestModule.Handler {
         switch (questUpdate.getLeft()) {
             case UPDATE:
                 // 冲刷期解析（与旧 lazy 语义一致）：infoNumber 分支读关联任务的当前进度
-                QuestInfo qs = (QuestInfo) objs[0];
+                Quest qs = (Quest) objs[0];
                 if ((Boolean) objs[1]) {
-                    QuestInfo iqs = owner.getQuest(qs.getInfoNumber());
-                    quest.updateQuestState(iqs.getQuestID(), iqs.getStatus().getValue(), iqs.getProgressData());
+                    Quest iqs = owner.getQuest(qs.getInfoNumber());
+                    quest.updateQuestState(iqs.getId(), iqs.getStatus().getValue(), iqs.getProgressData());
                 } else {
-                    quest.updateQuestState(qs.getQuest().getId(), qs.getStatus().getValue(), qs.getProgressData());
+                    quest.updateQuestState(qs.getId(), qs.getStatus().getValue(), qs.getProgressData());
                 }
                 break;
 
@@ -355,8 +283,8 @@ class CharacterQuests implements QuestModule.Handler {
                 break;
 
             case INFO:
-                QuestInfo info = (QuestInfo) objs[0];
-                quest.updateQuestNpcDelivery(info.getQuest().getId(), info.getNpc());
+                Quest info = (Quest) objs[0];
+                quest.updateQuestNpcDelivery(info.getId(), info.getNpc());
                 break;
         }
     }
@@ -380,223 +308,48 @@ class CharacterQuests implements QuestModule.Handler {
         }
     }
 
-    // ── 限时任务 ──
-
-    void reloadQuestExpirations() {
-        for (QuestInfo mqs : getStartedQuests()) {
-            if (mqs.getExpirationTime() > 0) {
-                questTimeLimit2(mqs.getQuestID(), mqs.getExpirationTime());
-            }
-        }
-    }
-
-    void cancelQuestExpirationTask() {
-        if (questExpireTask != null) {
-            questExpireTask.cancel(false);
-            questExpireTask = null;
-        }
-    }
-
-    void forfeitExpirableQuests() {
-        for (int questId : questExpirations.keySet()) {
-            getQuestNAdd(questId).forfeit(owner);
-        }
-
-        questExpirations.clear();
-    }
-
-    void questExpirationTask() {
-        if (!questExpirations.isEmpty() && questExpireTask == null) {
-            questExpireTask = TimerManager.getInstance().register(this::tickQuestExpire, SECONDS.toMillis(10));
-        }
-    }
-
-    /** 定时器线程入口：到期判定与状态迁移 strand 化（tick 只做投递，timer 线程不触状态） */
-    private void tickQuestExpire() {
-        Strand s = owner.strand();
-        if (s != null) {
-            s.post("quest-expire-tick", this::runQuestExpireTask);
-        }
-    }
-
-    private void runQuestExpireTask() {
-        long timeNow = Server.getInstance().getCurrentTime();
-        List<Integer> expireList = new LinkedList<>();
-
-        for (Entry<Integer, Long> qe : questExpirations.entrySet()) {
-            if (qe.getValue() <= timeNow) {
-                expireList.add(qe.getKey());
-            }
-        }
-
-        if (!expireList.isEmpty()) {
-            for (int questId : expireList) {
-                getQuestNAdd(questId).expireQuest(owner);
-                questExpirations.remove(questId);
-            }
-
-            if (questExpirations.isEmpty()) {
-                questExpireTask.cancel(false);
-                questExpireTask = null;
-            }
-        }
-    }
-
-    private void registerQuestExpire(int questId, long time) {
-        if (questExpireTask == null) {
-            questExpireTask = TimerManager.getInstance().register(this::tickQuestExpire, SECONDS.toMillis(10));
-        }
-
-        questExpirations.put(questId, Server.getInstance().getCurrentTime() + time);
-    }
-
-    void questTimeLimit(final int questId, int seconds) {
-        registerQuestExpire(questId, SECONDS.toMillis(seconds));
-        owner.remote().quest().addQuestTimeLimit(questId, SECONDS.toMillis(seconds));
-    }
-
-    void questTimeLimit2(final int questId, long expires) {
-        long timeLeft = expires - System.currentTimeMillis();
-
-        if (timeLeft <= 0) {
-            getQuestNAdd(questId).expireQuest(owner);
-        } else {
-            registerQuestExpire(questId, timeLeft);
-        }
-    }
-
-    /** 角色清空时释放限时任务资源（Character.empty 调用） */
-    void empty() {
-        if (questExpireTask != null) {
-            questExpireTask.cancel(true);
-            questExpireTask = null;
-        }
-
-        if (questExpirations != null) {
-            questExpirations.clear();
-            questExpirations = null;
-        }
-    }
-
     // ── C→S 任务意图（QUEST_ACTION，QUEST_MODULE.Handler）──
 
-    /** 白精华丢失任务（找回提示特例） */
-    private static final short LOST_WHITE_ESSENCE_QUEST = 4522;
-    private static final short CAPTAIN_LATANICA_RETURN_QUEST = 4523;
-    private static final int WHITE_ESSENCE = 4000381;
-
-    void bindClientHandlers(org.gms.remote.ClientEventHandlerRegistry registry) {
+    void bindClientHandlers(ClientEventHandlerRegistry registry) {
         registry.registerQuest(this);
     }
 
-    private void sendNpcOk(int npc, String message) {
-        owner.getRemote().npc().talk(npc, message, DialogButtons.OK, 0);
-    }
-
-    /** 公共前置校验：NPC 必须在图上（自动接取/完成的任务豁免；距离校验已删——
-     * 单机环境客户端声明即事实，用户裁定）。 */
-    private boolean npcOnMap(int questId, int npcId) {
-        QuestWz quest = QuestWz.getInstance(questId);   // 静态读取（自动任务豁免判定）在边界内自取
-        if (quest.isAutoStart() || quest.isAutoComplete()) {
-            return true;
-        }
-
-        if (owner.getMapRef().getNPCById(npcId) == null) {
-            log.warn("QUEST_ACTION 拒绝: 任务 {} 的 NPC {} 不在地图 {} 上, 玩家 {}",
-                    questId, npcId, owner.getMapId(), owner.getName());
-            return false;
-        }
-        return true;
+    @Override
+    public void startQuest(int questId, int npcId) {
+        Quest quest = getQuestNAdd(questId);
+        quest.start(npcId);
     }
 
     @Override
-    public void startQuest(int questId, int npc) {
-        if (!npcOnMap(questId, npc)) {
-            return;
-        }
-        QuestInfo qi = getQuestNAdd(questId);
-        if (qi.canStart(owner, npc)) {
-            boolean success = QuestScriptManager.getInstance().checkFunctionExists(owner.getClient(), questId, npc, "start");
-            boolean hasScriptRequirement = QuestWz.getInstance(questId).hasScriptRequirement(false);
-            if (hasScriptRequirement && success) {
-                QuestScriptManager.getInstance().start(owner.getClient(), questId, npc);
-            } else {
-                qi.start(owner, npc);
-            }
-        } else if (questId == LOST_WHITE_ESSENCE_QUEST && owner.haveItem(WHITE_ESSENCE)) {
-            sendNpcOk(npc, I18nUtil.getMessage("QuestActionHandler.hasWhiteEssence.message1"));
-        } else if (questId == CAPTAIN_LATANICA_RETURN_QUEST && owner.haveItem(WHITE_ESSENCE)) {
-            sendNpcOk(npc, I18nUtil.getMessage("QuestActionHandler.hasWhiteEssenceForLatanica.message1"));
-        } else {
-            log.warn("QUEST_ACTION 拒绝: 玩家 {} 不满足任务 {} 的接取条件 (等级/道具/NPC {}), 地图 {}",
-                    owner.getName(), questId, npc, owner.getMapId());
-        }
+    public void startScriptedQuest(int questId, int npcId) {
+        Quest quest = getQuestNAdd(questId);
+        quest.runStartScript(npcId);
     }
 
     @Override
-    public void completeQuest(int questId, int npc, Integer selection) {
-        if (!npcOnMap(questId, npc)) {
-            return;
-        }
-        QuestInfo qi = getQuestNAdd(questId);
-        if (qi.canComplete(owner, npc)) {
-            boolean success = QuestScriptManager.getInstance().checkFunctionExists(owner.getClient(), questId, npc, "end");
-            boolean hasScriptRequirement = QuestWz.getInstance(questId).hasScriptRequirement(true);
-            if (hasScriptRequirement && success) {
-                QuestScriptManager.getInstance().end(owner.getClient(), questId, npc);
-            } else {
-                if (selection != null) {
-                    qi.complete(owner, npc, selection);
-                } else {
-                    qi.complete(owner, npc);
-                }
-            }
-        } else {
-            log.warn("QUEST_ACTION 拒绝: 玩家 {} 不满足任务 {} 的完成条件 (等级/道具/NPC {}), 地图 {}",
-                    owner.getName(), questId, npc, owner.getMapId());
-        }
+    public void completeQuest(int questId, int npcId, Integer selection) {
+        Quest quest = getQuestNAdd(questId);
+        quest.complete(npcId, selection);
+    }
+
+    @Override
+    public void endScriptedQuest(int questId, int npcId) {
+        Quest quest = getQuestNAdd(questId);
+        quest.runEndScript(npcId);
     }
 
     @Override
     public void forfeitQuest(int questId) {
-        getQuestNAdd(questId).forfeit(owner);
+        getQuestNAdd(questId).forfeit();
     }
 
     @Override
     public void restoreLostItem(int questId, int itemId) {
-        getQuestNAdd(questId).restoreLostItem(owner, itemId);
+        getQuestNAdd(questId).restoreLostItem(itemId);
     }
 
-    @Override
-    public void startScriptedQuest(int questId, int npc) {
-        if (!npcOnMap(questId, npc)) {
-            return;
-        }
-        if (getQuestNAdd(questId).canStart(owner, npc)) {
-            String entry = QuestWz.getInstance(questId).getQuestScriptName(false);
-            if (entry != null && EsmQuests.exists(questId)) {
-                EsmQuests.start(owner, questId, npc, entry);   // ESM 新系统：入口名来自 WZ startscript（doc/13 §15）
-            } else if (entry == null) {
-                QuestScriptManager.getInstance().start(owner.getClient(), questId, npc);
-            }
-        }
-    }
-
-    @Override
-    public void endScriptedQuest(int questId, int npc) {
-        if (!npcOnMap(questId, npc)) {
-            return;
-        }
-        if (getQuestNAdd(questId).canComplete(owner, npc)) {
-            String entry = QuestWz.getInstance(questId).getQuestScriptName(true);
-            if (entry != null && EsmQuests.exists(questId)) {
-                EsmQuests.end(owner, questId, npc, entry);     // ESM 新系统：入口名来自 WZ endscript
-            } else if (entry == null) {
-                QuestScriptManager.getInstance().end(owner.getClient(), questId, npc);
-            }
-        } else {
-            log.warn("QUEST_ACTION 拒绝: 玩家 {} 不满足任务 {} 的脚本完成条件 (NPC {}), 地图 {}",
-                    owner.getName(), questId, npc, owner.getMapId());
-        }
+    public String getInfo(int infoNumber) {
+        QuestInfo info = infos.get(infoNumber);
+        return info == null ? null : info.getValue();
     }
 }

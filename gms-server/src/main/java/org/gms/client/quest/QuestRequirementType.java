@@ -49,7 +49,8 @@ public enum QuestRequirementType {
     DAY_BY_DAY(20),
     MESO(21),
     BUFF(22),
-    EXCEPT_BUFF(23);
+    EXCEPT_BUFF(23),
+    INFO(24);
 
     final byte type;
 
@@ -57,9 +58,9 @@ public enum QuestRequirementType {
         this.type = (byte) type;
     }
 
-    public byte getType() {
-        return type;
-    }
+    // public byte getType() {
+    //     return type;
+    // }
 
     public static QuestRequirementType getByWZName(String name) {
         switch (name) {

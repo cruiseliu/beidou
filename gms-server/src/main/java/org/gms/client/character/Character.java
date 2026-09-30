@@ -21,7 +21,6 @@
  */
 package org.gms.client.character;
 
-import org.gms.client.character.CharacterRef;
 import org.gms.client.Player;
 
 import lombok.Getter;
@@ -48,10 +47,9 @@ import org.gms.client.PacketStat;
 import org.gms.remote.ClientEventHandlerRegistry;
 import org.gms.remote.RemoteClient;
 import org.gms.remote.modules.cashshop.CashShopModule;
-import org.gms.client.autoban.AutobanManager;
 import org.gms.client.creator.CharacterTemplate;
 import org.gms.client.pet.Pet;
-import org.gms.client.quest.QuestInfo;
+import org.gms.client.quest.Quest;
 import org.gms.client.quest.QuestWz;
 import org.gms.client.quest.medal.OutstandingCitizenMedal;
 import org.gms.client.inventory.*;
@@ -1594,7 +1592,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         chr.setName(charactersDO.getName());
         chr.level.setLevel(charactersDO.getLevel());
         chr.fame.setFame(charactersDO.getFame());
-        chr.quests.setQuestFame(charactersDO.getFquest());
+        // chr.quests.setQuestFame(charactersDO.getFquest());
         loadDataFromJson(chr, charactersDO.getId());
         chr.level.setExp(charactersDO.getExp());
         chr.level.setGachaExp(charactersDO.getGachaexp());
@@ -2233,7 +2231,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
                     ps.setInt(34, miniGame.getOmoklosses());
                     ps.setInt(35, miniGame.getOmokties());
                     ps.setString(36, pq.getDataString());
-                    ps.setInt(37, quests.getQuestFame());
+                    ps.setInt(37, 0);
                     ps.setInt(38, marriage.getPartnerId());
                     ps.setInt(39, marriage.getMarriageItemId());
                     ps.setTimestamp(40, new Timestamp(lastExpGainTime));
@@ -2806,7 +2804,6 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         stopSkillTimers();
         cancelExpirationTask();
         ItemScript.logout(this);
-        quests.empty();
 
         if (recoveryTask != null) {
             recoveryTask.cancel(true);
@@ -3273,29 +3270,21 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
 
     // ── quest 门面 ──
 
-    public Map<Integer, QuestInfo> getQuests() { return quests.getQuests(); }
-    public QuestInfo getQuest(final int questId) { return quests.getQuest(questId); }
+    public CharacterQuests quests() { return quests; }
+    public Quest getQuest(final int questId) { return quests.getQuest(questId); }
     public byte getQuestStatus(final int quest) { return quests.getQuestStatus(quest); }
-    public QuestInfo getQuestNoAdd(final int questId) { return quests.getQuestNoAdd(questId); }
-    public QuestInfo getQuestNAdd(final int questId) { return quests.getQuestNAdd(questId); }
-    public List<QuestInfo> getCompletedQuests() { return quests.getCompletedQuests(); }
-    public List<QuestInfo> getStartedQuests() { return quests.getStartedQuests(); }
+    public Quest getQuestNoAdd(final int questId) { return quests.getQuestNoAdd(questId); }
+    public Quest getQuestNAdd(final int questId) { return quests.getQuestNAdd(questId); }
+    public List<Quest> getCompletedQuests() { return quests.getCompletedQuests(); }
+    public List<Quest> getStartedQuests() { return quests.getStartedQuests(); }
     public boolean needQuestItem(int questid, int itemid) { return quests.needQuestItem(questid, itemid); }
-    public void updateQuestStatus(QuestInfo qs) { quests.updateQuestStatus(qs); }
     public void setQuestProgress(int id, int infoNumber, String progress) { quests.setQuestProgress(id, infoNumber, progress); }
     public void announceUpdateQuest(DelayedQuestUpdate questUpdateType, Object... params) { quests.announceUpdateQuest(questUpdateType, params); }
     public void flushDelayedUpdateQuests() { quests.flushDelayedUpdateQuests(); }
     public boolean forceStartQuest(int questId, int npc) { return quests.forceStartQuest(questId, npc); }
     public boolean forceCompleteQuest(int questId, int npc) { return quests.forceCompleteQuest(questId, npc); }
     public boolean isQuestCompleted(int questId) { return quests.isQuestCompleted(questId); }
-    public void questTimeLimit(final int questId, int seconds) { quests.questTimeLimit(questId, seconds); }
-    public void questTimeLimit2(final int questId, long expires) { quests.questTimeLimit2(questId, expires); }
     public void raiseQuestMobCount(int id) { quests.raiseQuestMobCount(id); }
-    public void forfeitExpirableQuests() { quests.forfeitExpirableQuests(); }
-    public void questExpirationTask() { quests.questExpirationTask(); }
-    public void cancelQuestExpirationTask() { quests.cancelQuestExpirationTask(); }
-    public void reloadQuestExpirations() { quests.reloadQuestExpirations(); }
-    public void awardQuestPoint(int awardedPoints) { quests.awardQuestPoint(awardedPoints); }
 
     // ── party 门面 ──
 
@@ -3783,8 +3772,6 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
                     sendPacket(PacketCreator.updateMount(getId(), mount, false));
                 }
 
-                reloadQuestExpirations();
-
                 // 登录展示已恢复的 debuff（applyData 已恢复，发包逻辑在 CharacterDebuffs 内部）
                 announceDebuffsToOwner();
             } else {
@@ -3797,7 +3784,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
             diseaseExpireTask();
             startSkillTimers();
             expirationTask();
-            questExpirationTask();
+
             // if (GameConstants.hasSPTable(getJob()) && getJob().getId() != 2001) {
             //     createDragon();
             // }

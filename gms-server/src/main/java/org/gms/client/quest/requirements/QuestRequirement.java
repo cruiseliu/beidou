@@ -22,7 +22,7 @@ import org.gms.client.character.Character;
 import org.gms.client.quest.QuestWz;
 import org.gms.client.quest.QuestRequirementType;
 import org.gms.client.quest.QuestStatus;
-import org.gms.client.quest.QuestInfo;
+import org.gms.client.quest.Quest;
 import org.gms.provider.Data;
 import org.gms.provider.DataTool;
 
@@ -57,7 +57,7 @@ public class QuestRequirement extends AbstractQuestRequirement {
     public boolean check(Character chr, Integer npcid) {
         for (Integer questID : quests.keySet()) {
             int stateReq = quests.get(questID);
-            QuestInfo qs = chr.getQuest(questID);
+            Quest qs = chr.getQuest(questID);
 
             if (qs == null && QuestStatus.fromValue(stateReq).equals(QuestStatus.NOT_STARTED)) {
                 continue;

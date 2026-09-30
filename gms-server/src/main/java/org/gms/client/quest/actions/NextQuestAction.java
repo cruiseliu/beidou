@@ -24,7 +24,7 @@ package org.gms.client.quest.actions;
 import org.gms.client.character.Character;
 import org.gms.client.quest.QuestWz;
 import org.gms.client.quest.QuestActionType;
-import org.gms.client.quest.QuestInfo;
+import org.gms.client.quest.Quest;
 import org.gms.provider.Data;
 import org.gms.provider.DataTool;
 import org.gms.util.PacketCreator;
@@ -48,7 +48,7 @@ public class NextQuestAction extends AbstractQuestAction {
 
     @Override
     public void run(Character chr, Integer extSelection) {
-        QuestInfo status = chr.getQuest(questID);
+        Quest status = chr.getQuest(questID);
         chr.sendPacket(PacketCreator.updateQuestFinish((short) questID, status.getNpc(), (short) nextQuest));
     }
 } 

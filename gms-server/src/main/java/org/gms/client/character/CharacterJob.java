@@ -1,6 +1,5 @@
 package org.gms.client.character;
 
-import org.gms.client.character.CharacterRef;
 import org.gms.client.Client;
 import org.gms.client.EffectType;
 import org.gms.client.Family;

@@ -43,7 +43,7 @@ import org.gms.client.inventory.Item;
 import org.gms.client.inventory.ItemFactory;
 import org.gms.client.inventory.ModifyInventory;
 import org.gms.client.pet.Pet;
-import org.gms.client.quest.QuestInfo;
+import org.gms.client.quest.Quest;
 import org.gms.client.keybind.KeyBinding;
 import org.gms.client.keybind.QuickslotBinding;
 import org.gms.constants.game.CommodityFlag;
@@ -336,30 +336,30 @@ public class PacketCreator {
     }
 
     public static void addQuestInfo(OutPacket p, Character chr) {
-        List<QuestInfo> started = chr.getStartedQuests();
+        List<Quest> started = chr.getStartedQuests();
         int startedSize = 0;
-        for (QuestInfo qs : started) {
+        for (Quest qs : started) {
             if (qs.getInfoNumber() > 0) {
                 startedSize++;
             }
             startedSize++;
         }
         p.writeShort(startedSize);
-        for (QuestInfo qs : started) {
-            p.writeShort(qs.getQuest().getId());
+        for (Quest qs : started) {
+            p.writeShort(qs.getId());
             p.writeString(qs.getProgressData());
 
             short infoNumber = qs.getInfoNumber();
             if (infoNumber > 0) {
-                QuestInfo iqs = chr.getQuest(infoNumber);
+                Quest iqs = chr.getQuest(infoNumber);
                 p.writeShort(infoNumber);
                 p.writeString(iqs.getProgressData());
             }
         }
-        List<QuestInfo> completed = chr.getCompletedQuests();
+        List<Quest> completed = chr.getCompletedQuests();
         p.writeShort(completed.size());
-        for (QuestInfo qs : completed) {
-            p.writeShort(qs.getQuest().getId());
+        for (Quest qs : completed) {
+            p.writeShort(qs.getId());
             p.writeLong(getTime(qs.getCompletionTime()));
         }
     }
@@ -2527,10 +2527,10 @@ public class PacketCreator {
             p.writeInt(0);
         }
         ArrayList<Short> medalQuests = new ArrayList<>();
-        List<QuestInfo> completed = chr.getCompletedQuests();
-        for (QuestInfo qs : completed) {
-            if (qs.getQuest().getId() >= 29000) { // && q.getQuest().getId() <= 29923
-                medalQuests.add((short) qs.getQuest().getId());
+        List<Quest> completed = chr.getCompletedQuests();
+        for (Quest qs : completed) {
+            if (qs.getId() >= 29000) { // && q.getQuest().getId() <= 29923
+                medalQuests.add((short) qs.getId());
             }
         }
 
@@ -2656,16 +2656,16 @@ public class PacketCreator {
         return p;
     }
 
-    public static Packet updateQuest(Character chr, QuestInfo qs, boolean infoUpdate) {
+    public static Packet updateQuest(Character chr, Quest qs, boolean infoUpdate) {
         final OutPacket p = OutPacket.create(SendOpcode.SHOW_STATUS_INFO);
         p.writeByte(1);
         if (infoUpdate) {
-            QuestInfo iqs = chr.getQuest(qs.getInfoNumber());
-            p.writeShort(iqs.getQuestID());
+            Quest iqs = chr.getQuest(qs.getInfoNumber());
+            p.writeShort(iqs.getId());
             p.writeByte(1);
             p.writeString(iqs.getProgressData());
         } else {
-            p.writeShort(qs.getQuest().getId());
+            p.writeShort(qs.getId());
             p.writeByte(qs.getStatus().getValue());
             p.writeString(qs.getProgressData());
         }

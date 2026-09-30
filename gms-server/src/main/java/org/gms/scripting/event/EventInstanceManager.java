@@ -1135,10 +1135,6 @@ Map<Integer, CharacterRef> mapChars = getInstanceMap(mapid).getMapPlayers();
     public final void setEventCleared() {
         eventCleared = true;
 
-        for (Character chr : getPlayers()) {
-            chr.awardQuestPoint(GameConfig.getServerInt("quest_point_per_event_clear"));
-        }
-
         scriptLock.lock();
         try {
             em.disposeInstance(name);

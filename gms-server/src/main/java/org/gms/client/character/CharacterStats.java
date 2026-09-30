@@ -6,7 +6,6 @@ import org.gms.client.keybind.KeyBinding;
 import org.gms.client.processor.action.PetAutopotProcessor;
 import org.gms.client.JobEnum;
 import org.gms.client.Skill;
-import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;

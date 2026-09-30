@@ -24,7 +24,7 @@ package org.gms.client.quest.requirements;
 import org.gms.client.character.Character;
 import org.gms.client.quest.QuestWz;
 import org.gms.client.quest.QuestRequirementType;
-import org.gms.client.quest.QuestInfo;
+import org.gms.client.quest.Quest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.gms.provider.Data;
@@ -62,7 +62,7 @@ public class MobRequirement extends AbstractQuestRequirement {
 
     @Override
     public boolean check(Character chr, Integer npcid) {
-        QuestInfo status = chr.getQuest(questID);
+        Quest status = chr.getQuest(questID);
         for (Integer mobID : mobs.keySet()) {
             int countReq = mobs.get(mobID);
             int progress;

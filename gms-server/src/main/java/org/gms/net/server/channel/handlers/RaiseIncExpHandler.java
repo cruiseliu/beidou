@@ -5,7 +5,7 @@ import org.gms.client.Client;
 import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
-import org.gms.client.quest.QuestInfo;
+import org.gms.client.quest.Quest;
 import org.gms.client.quest.QuestStatus;
 import org.gms.client.quest.QuestWz;
 import org.gms.net.AbstractPacketHandler;
@@ -47,7 +47,7 @@ public class RaiseIncExpHandler extends AbstractPacketHandler {
                 Map<Integer, Integer> consumables = consItem.items;
 
                 Character chr = c.getPlayer();
-                QuestInfo questInfo = chr.getQuest(QuestWz.getInstanceFromInfoNumber(infoNumber).getId());
+                Quest questInfo = chr.getQuest(QuestWz.getInstanceFromInfoNumber(infoNumber).getId());
                 if (!questInfo.getStatus().equals(QuestStatus.STARTED)) {
                     c.sendPacket(PacketCreator.enableActions());
                     return;
@@ -67,7 +67,7 @@ public class RaiseIncExpHandler extends AbstractPacketHandler {
                     inv.unlockInventory();
                 }
 
-                int questid = questInfo.getQuestID();
+                int questid = questInfo.getId();
                 int nextValue = Math.min(consumables.get(consId) + c.getAbstractPlayerInteraction().getQuestProgressInt(questid, infoNumber), consItem.exp * consItem.grade);
                 c.getAbstractPlayerInteraction().setQuestProgress(questid, infoNumber, nextValue);
 

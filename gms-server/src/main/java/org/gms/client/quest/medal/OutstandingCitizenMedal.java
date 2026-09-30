@@ -1,7 +1,7 @@
 package org.gms.client.quest.medal;
 
 import org.gms.client.character.Character;
-import org.gms.client.quest.QuestInfo;
+import org.gms.client.quest.Quest;
 import org.gms.client.quest.QuestStatus;
 import org.gms.client.FamilyEntry;
 

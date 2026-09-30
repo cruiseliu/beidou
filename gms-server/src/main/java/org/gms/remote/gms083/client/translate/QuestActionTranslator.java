@@ -20,16 +20,16 @@ public final class QuestActionTranslator implements InTranslator<QuestActionPack
     @Override
     public ClientEvent translate(QuestActionPacket.Action packet) {
         return switch (packet) {
-            case QuestActionPacket.RestoreLostItem(var questId, var unknownNpc, var itemId) ->
+            case QuestActionPacket.RestoreLostItem(var action, var questId, var unknownNpc, var itemId) ->
                     new RestoreLostItemEvent(questId, itemId);
-            case QuestActionPacket.Start(var questId, var npc, var claimedPos) ->
+            case QuestActionPacket.Start(var action, var questId, var npc, var claimedPos) ->
                     new StartQuestEvent(questId, npc);
-            case QuestActionPacket.Complete(var questId, var npc, var claimedPos, var selection) ->
+            case QuestActionPacket.Complete(var action, var questId, var npc, var claimedPos, var selection) ->
                     new CompleteQuestEvent(questId, npc, selection);
-            case QuestActionPacket.Forfeit(var questId) -> new ForfeitQuestEvent(questId);
-            case QuestActionPacket.ScriptedStart(var questId, var npc, var claimedPos) ->
+            case QuestActionPacket.Forfeit(var action, var questId) -> new ForfeitQuestEvent(questId);
+            case QuestActionPacket.ScriptedStart(var action, var questId, var npc, var claimedPos) ->
                     new ScriptedStartQuestEvent(questId, npc);
-            case QuestActionPacket.ScriptedEnd(var questId, var npc, var claimedPos) ->
+            case QuestActionPacket.ScriptedEnd(var action, var questId, var npc, var claimedPos) ->
                     new ScriptedEndQuestEvent(questId, npc);
             case QuestActionPacket.Unknown unknown -> null;
         };

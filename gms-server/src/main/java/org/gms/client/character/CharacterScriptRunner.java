@@ -7,7 +7,6 @@ import org.gms.scripting.JsModule;
 import org.gms.scripting.ScriptTimers;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Engine;
-import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

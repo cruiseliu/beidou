@@ -1,7 +1,7 @@
 package org.gms.client.quest.medal;
 
 import org.gms.client.character.Character;
-import org.gms.client.quest.QuestInfo;
+import org.gms.client.quest.Quest;
 import org.gms.client.quest.QuestStatus;
 import org.gms.client.quest.QuestWz;
 
@@ -13,7 +13,7 @@ public final class DynamicHairMedal {
     }
 
     public static void onHairChanged(Character player, int oldHair, int newHair) {
-        QuestInfo status = player.getQuestNoAdd(QUEST_ID);
+        Quest status = player.getQuestNoAdd(QUEST_ID);
         if (oldHair / 10 == newHair / 10 || status == null || status.getStatus() != QuestStatus.STARTED) {
             return;
         }
@@ -24,7 +24,7 @@ public final class DynamicHairMedal {
         }
     }
 
-    private static int getProgress(QuestInfo status) {
+    private static int getProgress(Quest status) {
         try {
             return Integer.parseInt(status.getProgress(0));
         } catch (NumberFormatException nfe) {

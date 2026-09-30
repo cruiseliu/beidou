@@ -25,7 +25,7 @@ import org.gms.client.character.Character;
 import org.gms.client.*;
 import org.gms.client.inventory.*;
 import org.gms.client.pet.Pet;
-import org.gms.client.quest.QuestInfo;
+import org.gms.client.quest.Quest;
 import org.gms.client.quest.QuestStatus;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.config.GameConfig;
@@ -349,11 +349,11 @@ public class AbstractPlayerInteraction {
 
     //---- \/ \/ \/ \/ \/ \/ \/  NOT TESTED  \/ \/ \/ \/ \/ \/ \/ \/ \/ ----
 
-    public final QuestInfo getQuestRecord(final int id) {
+    public final Quest getQuestRecord(final int id) {
         return c.getPlayer().getQuestNAdd(id);
     }
 
-    public final QuestInfo getQuestNoRecord(final int id) {
+    public final Quest getQuestNoRecord(final int id) {
         return c.getPlayer().getQuestNoAdd(id);
     }
 
@@ -419,7 +419,7 @@ public class AbstractPlayerInteraction {
     }
 
     public String getQuestProgress(int id, int infoNumber) {
-        QuestInfo qs = getPlayer().getQuest(id);
+        Quest qs = getPlayer().getQuest(id);
 
         if (qs.getInfoNumber() == infoNumber && infoNumber > 0) {
             qs = getPlayer().getQuest(infoNumber);
@@ -450,7 +450,7 @@ public class AbstractPlayerInteraction {
     }
 
     public void resetAllQuestProgress(int id) {
-        QuestInfo qs = getPlayer().getQuest(id);
+        Quest qs = getPlayer().getQuest(id);
         if (qs != null) {
             qs.resetAllProgress();
             getPlayer().announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, false);
@@ -458,7 +458,7 @@ public class AbstractPlayerInteraction {
     }
 
     public void resetQuestProgress(int id, int infoNumber) {
-        QuestInfo qs = getPlayer().getQuest(id);
+        Quest qs = getPlayer().getQuest(id);
         if (qs != null) {
             qs.resetProgress(infoNumber);
             getPlayer().announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, false);

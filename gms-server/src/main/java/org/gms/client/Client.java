@@ -1178,7 +1178,7 @@ public class Client extends ChannelInboundHandlerAdapter {
                                                         }
                                                         */
 
-                            player.forfeitExpirableQuests();    //This is for those quests that you have to stay logged in for a certain amount of time
+                            // player.forfeitExpirableQuests();    //This is for those quests that you have to stay logged in for a certain amount of time
 
                             if (guild != null) {
                                 final Server server = Server.getInstance();
@@ -1697,7 +1697,6 @@ public class Client extends ChannelInboundHandlerAdapter {
         player.notifyMapTransferToPartner(-1);
         player.removeIncomingInvites();
         player.stopSkillTimers();
-        player.cancelQuestExpirationTask();
         //Cancelling magicdoor? Nope
         //Cancelling mounts? Noty
 

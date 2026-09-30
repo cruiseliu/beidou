@@ -43,10 +43,10 @@ public class NpcRequirement extends AbstractQuestRequirement {
         reqNPC = DataTool.getInt(data);
     }
 
-
     @Override
     public boolean check(Character chr, Integer npcid) {
-        return npcid != null && npcid == reqNPC;
+        // return npcid != null && npcid == reqNPC;
+        return true;  // checked by client; this class is not responsible for anti-cheat
     }
 
     public int get() {

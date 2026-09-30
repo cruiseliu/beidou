@@ -104,9 +104,6 @@ public final class EnterMTSHandler extends AbstractPacketHandler {
         chr.stopSkillTimers();
         chr.cancelExpirationTask();
 
-        chr.forfeitExpirableQuests();
-        chr.cancelQuestExpirationTask();
-
         chr.saveCharToDB();
 
         c.getChannelServer().removePlayer(chr);
