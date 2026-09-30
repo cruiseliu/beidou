@@ -5,6 +5,7 @@ import org.gms.remote.modules.inventory.InventoryModule;
 import org.gms.remote.modules.map.client.MapModule;
 import org.gms.remote.modules.message.MessageModule;
 import org.gms.remote.modules.npc.client.NpcModule;
+import org.gms.remote.modules.quest.QuestModule;
 import org.gms.remote.modules.pet.PetModule;
 import org.gms.remote.modules.skills.SkillsModule;
 import org.gms.remote.modules.stats.StatsModule;
@@ -31,6 +32,8 @@ public interface RemoteClient {
     MapModule map();
 
     NpcModule npc();
+
+    QuestModule quest();
 
     MessageModule message();
 

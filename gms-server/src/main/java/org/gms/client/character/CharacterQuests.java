@@ -12,11 +12,11 @@ import org.gms.model.json.CharacterQuestsData;
 import org.gms.infra.Strand;
 import org.gms.net.server.Server;
 import org.gms.remote.modules.quest.QuestModule;
+import org.gms.remote.modules.npc.client.DialogButtons;
 import org.gms.scripting.quest.QuestScriptManager;
 import org.gms.scripting.quest.esm.EsmQuests;
 import org.gms.server.TimerManager;
 import org.gms.util.I18nUtil;
-import org.gms.util.PacketCreator;
 import org.gms.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -329,26 +329,34 @@ class CharacterQuests implements QuestModule.Handler {
 
     // ── 任务更新封包（延迟队列） ──
 
-    private void announceUpdateQuestInternal(Character chr, Pair<DelayedQuestUpdate, Object[]> questUpdate) {
+    private void announceUpdateQuestInternal(Pair<DelayedQuestUpdate, Object[]> questUpdate) {
         Object[] objs = questUpdate.getRight();
+        QuestModule quest = owner.remote().quest();
 
         switch (questUpdate.getLeft()) {
             case UPDATE:
-                owner.sendPacket(PacketCreator.updateQuest(chr, (QuestInfo) objs[0], (Boolean) objs[1]));
+                // 冲刷期解析（与旧 lazy 语义一致）：infoNumber 分支读关联任务的当前进度
+                QuestInfo qs = (QuestInfo) objs[0];
+                if ((Boolean) objs[1]) {
+                    QuestInfo iqs = owner.getQuest(qs.getInfoNumber());
+                    quest.updateQuestState(iqs.getQuestID(), iqs.getStatus().getValue(), iqs.getProgressData());
+                } else {
+                    quest.updateQuestState(qs.getQuest().getId(), qs.getStatus().getValue(), qs.getProgressData());
+                }
                 break;
 
             case FORFEIT:
                 // 任务 id 生产方有 short（历史调用点）与 int（getId 迁移后）两种装箱——经 Number 取值
-                owner.sendPacket(PacketCreator.forfeitQuest(((Number) objs[0]).shortValue()));
+                quest.questForfeited(((Number) objs[0]).intValue());
                 break;
 
             case COMPLETE:
-                owner.sendPacket(PacketCreator.completeQuest(((Number) objs[0]).shortValue(), (Long) objs[1]));
+                quest.questCompleted(((Number) objs[0]).intValue(), (Long) objs[1]);
                 break;
 
             case INFO:
-                QuestInfo qs = (QuestInfo) objs[0];
-                owner.sendPacket(PacketCreator.updateQuestInfo((short) qs.getQuest().getId(), qs.getNpc()));
+                QuestInfo info = (QuestInfo) objs[0];
+                quest.updateQuestNpcDelivery(info.getQuest().getId(), info.getNpc());
                 break;
         }
     }
@@ -359,7 +367,7 @@ class CharacterQuests implements QuestModule.Handler {
         if (c.getQM() != null || c.getCM() != null) {
             npcUpdateQuests.add(p);
         } else {
-            announceUpdateQuestInternal(owner, p);
+            announceUpdateQuestInternal(p);
         }
     }
 
@@ -368,7 +376,7 @@ class CharacterQuests implements QuestModule.Handler {
         npcUpdateQuests.clear();
 
         for (Pair<DelayedQuestUpdate, Object[]> q : qmQuestUpdateList) {
-            announceUpdateQuestInternal(owner, q);
+            announceUpdateQuestInternal(q);
         }
     }
 
@@ -444,7 +452,7 @@ class CharacterQuests implements QuestModule.Handler {
 
     void questTimeLimit(final int questId, int seconds) {
         registerQuestExpire(questId, SECONDS.toMillis(seconds));
-        owner.sendPacket(PacketCreator.addQuestTimeLimit((short) questId, (int) SECONDS.toMillis(seconds)));
+        owner.remote().quest().addQuestTimeLimit(questId, SECONDS.toMillis(seconds));
     }
 
     void questTimeLimit2(final int questId, long expires) {
@@ -481,8 +489,8 @@ class CharacterQuests implements QuestModule.Handler {
         registry.registerQuest(this);
     }
 
-    private static void sendNpcOk(Client c, int npc, String message) {
-        c.sendPacket(PacketCreator.getNPCTalk(npc, (byte) 0, message, "00 00", (byte) 0));
+    private void sendNpcOk(int npc, String message) {
+        owner.getRemote().npc().talk(npc, message, DialogButtons.OK, 0);
     }
 
     /** 公共前置校验：NPC 必须在图上（自动接取/完成的任务豁免；距离校验已删——
@@ -516,9 +524,9 @@ class CharacterQuests implements QuestModule.Handler {
                 qi.start(owner, npc);
             }
         } else if (questId == LOST_WHITE_ESSENCE_QUEST && owner.haveItem(WHITE_ESSENCE)) {
-            sendNpcOk(owner.getClient(), npc, I18nUtil.getMessage("QuestActionHandler.hasWhiteEssence.message1"));
+            sendNpcOk(npc, I18nUtil.getMessage("QuestActionHandler.hasWhiteEssence.message1"));
         } else if (questId == CAPTAIN_LATANICA_RETURN_QUEST && owner.haveItem(WHITE_ESSENCE)) {
-            sendNpcOk(owner.getClient(), npc, I18nUtil.getMessage("QuestActionHandler.hasWhiteEssenceForLatanica.message1"));
+            sendNpcOk(npc, I18nUtil.getMessage("QuestActionHandler.hasWhiteEssenceForLatanica.message1"));
         } else {
             log.warn("QUEST_ACTION 拒绝: 玩家 {} 不满足任务 {} 的接取条件 (等级/道具/NPC {}), 地图 {}",
                     owner.getName(), questId, npc, owner.getMapId());

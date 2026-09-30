@@ -6,6 +6,7 @@ import org.gms.remote.modules.inventory.InventoryModule;
 import org.gms.remote.modules.map.client.MapModule;
 import org.gms.remote.modules.message.MessageModule;
 import org.gms.remote.modules.npc.client.NpcModule;
+import org.gms.remote.modules.quest.QuestModule;
 import org.gms.remote.modules.pet.PetModule;
 import org.gms.remote.modules.skills.SkillsModule;
 import org.gms.remote.modules.stats.StatsModule;
@@ -56,6 +57,12 @@ final class DummyClient extends RemoteClientBase implements RemoteClient {
     };
 
     private final NpcModule npc = new NpcModule() {
+        @Override
+        protected void emit(ServerEventBase event) {
+        }
+    };
+
+    private final QuestModule quest = new QuestModule() {
         @Override
         protected void emit(ServerEventBase event) {
         }
@@ -116,6 +123,11 @@ final class DummyClient extends RemoteClientBase implements RemoteClient {
     @Override
     public NpcModule npc() {
         return npc;
+    }
+
+    @Override
+    public QuestModule quest() {
+        return quest;
     }
 
     @Override

@@ -386,7 +386,7 @@ public class QuestInfo {
             return false;
         }
         if (getQuest().getTimeLimit() > 0) {
-            chr.sendPacket(PacketCreator.removeQuestTimeLimit((short) questID));
+            chr.getRemote().quest().removeQuestTimeLimit(questID);
         }
         status = QuestStatus.NOT_STARTED;
         npc = 0;
@@ -437,7 +437,7 @@ public class QuestInfo {
 
     public boolean forceComplete(Character chr, int npc) {
         if (getQuest().getTimeLimit() > 0) {
-            chr.sendPacket(PacketCreator.removeQuestTimeLimit((short) questID));
+            chr.getRemote().quest().removeQuestTimeLimit(questID);
         }
 
         setStatus(QuestStatus.COMPLETED);
@@ -464,7 +464,7 @@ public class QuestInfo {
 
     public void expireQuest(Character chr) {
         if (forfeit(chr)) {
-            chr.sendPacket(PacketCreator.questExpire((short) questID));
+            chr.getRemote().quest().questExpired(questID);
         }
     }
 }

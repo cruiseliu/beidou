@@ -1,12 +1,59 @@
 package org.gms.remote.modules.quest;
 
 import org.gms.remote.AbstractModule;
+import org.gms.remote.modules.quest.server.QuestCompletedEvent;
+import org.gms.remote.modules.quest.server.QuestExpiredEvent;
+import org.gms.remote.modules.quest.server.QuestForfeitedEvent;
+import org.gms.remote.modules.quest.server.QuestNpcDeliveryEvent;
+import org.gms.remote.modules.quest.server.QuestStateEvent;
+import org.gms.remote.modules.quest.server.QuestTimeLimitEvent;
+import org.gms.remote.modules.quest.server.QuestTimeLimitRemovedEvent;
 
 /**
- * 语义模块：任务域。当前只有 C→S 收侧（玩家任务意图入口）；S→C 预留（任务状态变更
- * 目前随 stats/inventory 域的 STAT_CHANGED / INVENTORY_OPERATION 搭载，无独立包型）。
+ * 语义模块：任务域。C→S 收侧为玩家任务意图入口（Handler）；S→C 为任务状态帧
+ * （SHOW_STATUS_INFO quest 体 + UPDATE_QUEST_INFO 各分支）——调用方传基础类型
+ * 事实（questId/status 值/进度串/时间），wire 形态归版本实现。
  */
 public abstract class QuestModule extends AbstractModule {
+
+    // ── S→C：任务状态帧 ──
+
+    /** 任务状态/进度更新（status = QuestStatus 枚举值；infoNumber 关联任务同步也走本入口）。 */
+    public final void updateQuestState(int questId, int status, String progressData) {
+        post(new QuestStateEvent(questId, status, progressData));
+    }
+
+    /** 任务完成（completionTime = UTC ms；wire 文件时间换算归版本实现）。 */
+    public final void questCompleted(int questId, long completionTime) {
+        post(new QuestCompletedEvent(questId, completionTime));
+    }
+
+    /** 任务放弃。 */
+    public final void questForfeited(int questId) {
+        post(new QuestForfeitedEvent(questId));
+    }
+
+    /** 任务交付确认（任务在指定 NPC 处可交付）。 */
+    public final void updateQuestNpcDelivery(int questId, int npc) {
+        post(new QuestNpcDeliveryEvent(questId, npc));
+    }
+
+    /** 任务到期作废。 */
+    public final void questExpired(int questId) {
+        post(new QuestExpiredEvent(questId));
+    }
+
+    /** 任务限时追加（remainingMillis = 距到期剩余毫秒）。 */
+    public final void addQuestTimeLimit(int questId, long remainingMillis) {
+        post(new QuestTimeLimitEvent(questId, remainingMillis));
+    }
+
+    /** 任务限时移除。 */
+    public final void removeQuestTimeLimit(int questId) {
+        post(new QuestTimeLimitRemovedEvent(questId));
+    }
+
+    // ── C→S：玩家任务意图 ──
 
     /** 接取任务意图入口（player actor strand 上执行；条件校验与脚本分流归 gameplay）。 */
     public interface Handler {
