@@ -157,6 +157,12 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
      *  timer）在窗口存续期触达 ref 属合法域上下文（controller 移交等豁免载荷），非违规。
      *  null = 无窗口。 */
     private volatile Thread strictThread;
+    /**
+     * packet-strict 窗口（legacy-Client 导航 canary，{@link Player#assertNoLegacyClientNavigation}）：
+     * 仅 in-route strictWindow（各 InRouter case 按 opcode 增量迁移）开闭；PLAYER_LOGGEDIN
+     * 等大段窗口不开启——相关模块未迁移，Client 导航合法。null = 无窗口。
+     */
+    private volatile Thread packetStrictThread;
     final CharacterRates rates = new CharacterRates(this);
     final CharacterScriptRunner scriptRunner = new CharacterScriptRunner(this::strand);
     /** 活跃的 ESM 任务脚本会话（重放模型，doc/13 §15）；dispose/登出清理 */
@@ -274,9 +280,18 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     final AtomicBoolean awayFromWorld = new AtomicBoolean(true);  // player is online, but on cash shop or mts
     private final AtomicInteger meso = new AtomicInteger();
     private EventInstanceManager eventInstance = null;
-    @Getter
     @Setter
     Client client;
+
+    /**
+     * legacy Client 导航出口（packet-strict canary 管辖：strict 收包窗口内按
+     * {@link Player#assertNoLegacyClientNavigation} 的级别断言；窗口外放行）。
+     * 布线写入走 {@link #setClient}（登录/换绑，不受限）。
+     */
+    public Client getClient() {
+        Player.assertNoLegacyClientNavigation("Character.getClient");
+        return client;
+    }
     @Getter
     @Setter
     private Messenger messenger = null;
@@ -3061,6 +3076,9 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     public void setStrictMode(boolean strictMode) { strictThread = strictMode ? Thread.currentThread() : null; }
     /** canary 断言谓词：当前线程正处本角色的管线窗口内（ref 触达守卫用，线程精确） */
     public boolean inStrictPipelineOnThisThread() { return Thread.currentThread() == strictThread; }
+    /** packet-strict 窗口标志（legacy-Client 导航 canary 用，线程精确；开闭归 in-route strictWindow） */
+    public boolean inPacketStrictOnThisThread() { return Thread.currentThread() == packetStrictThread; }
+    public void setPacketStrictMode(boolean on) { packetStrictThread = on ? Thread.currentThread() : null; }
     public MapleMap getMap() { MapleMapRef r = map.getMap(); return r != null ? r.unref() : null; }
     public int getMapId() { return map.getMapId(); }
     public void setMap(MapleMap to) { map.setMap(MapleMapRef.of(to)); }

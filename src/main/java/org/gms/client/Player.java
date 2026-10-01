@@ -3,6 +3,8 @@ package org.gms.client;
 import org.gms.client.character.Character;
 import org.gms.remote.ClientEventHandlerRegistry;
 import org.gms.remote.RemoteClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 客户端 actor 的对内封装（词汇纪律：player = 客户端 actor，character = {@link Character}
@@ -22,6 +24,8 @@ import org.gms.remote.RemoteClient;
  * actor 执行"，不是"本线程在为该 actor 等待"——阻塞在 strand.run 上的等待者拿到 null。
  */
 public final class Player {
+    private static final Logger log = LoggerFactory.getLogger(Player.class);
+
     private final PlayerStrand strand;
     private volatile Client client;
     /** 收包入口聚合（per-module Handler 槽位表）：actor 的收包插座，角色入场绑定时接插组件 */
@@ -51,9 +55,50 @@ public final class Player {
         return strand;
     }
 
-    /** 传输/会话所有者（netty handler、登录态、hwid 等的原住地） */
+    /** 传输/会话所有者（netty handler、登录态、hwid 等的原住地）。packet-strict 窗口内
+     * 受 legacy-Client 导航 canary 管辖（{@link #assertNoLegacyClientNavigation}）；actor
+     * 本体内部使用走 {@link #clientRaw()}。 */
     public Client client() {
+        assertNoLegacyClientNavigation("Player.client");
+        return clientRaw();
+    }
+
+    /** actor 本体内部的传输附件访问（enterWorld/bindCharacter/remote——actor 触自己的
+     * 传输附件不属跨域导航）；包私有 = 外部导航只能走受 canary 管辖的 {@link #client()}。 */
+    Client clientRaw() {
         return client;
+    }
+
+    /** packet-strict canary 级别——迁移期 develop helper：翻档 = 改此处重编译，非用户配置。 */
+    private enum StrictClientLevel { OFF, LOG, FAIL }
+
+    /** 现值 LOG：已迁移 opcode 路径内的存量踩点以 WARN 浮出（迁移清单），清完翻 FAIL。 */
+    private static final StrictClientLevel PACKET_STRICT_CLIENT = StrictClientLevel.LOG;
+
+    /**
+     * packet-strict canary（迁移期 develop helper）：strict 收包窗口（由各 InRouter case
+     * 经 {@code AbstractInRouter.strictWindow} 按 opcode 逐一开启；PLAYER_LOGGEDIN 等大段
+     * 窗口不开启）内的 legacy Client 导航断言。窗口外恒放行。
+     */
+    public static void assertNoLegacyClientNavigation(String what) {
+        if (PACKET_STRICT_CLIENT == StrictClientLevel.OFF) {
+            return;
+        }
+        Player p = current();
+        if (p == null) {
+            return;   // 非 actor 上下文（map shim 线程的合法域任务等）
+        }
+        Character chr = p.character();
+        if (chr == null || !chr.inPacketStrictOnThisThread()) {
+            return;   // charlist 阶段 / 不在 packet-strict 窗口（未迁移 op、脚本会话、登录布线）
+        }
+        switch (PACKET_STRICT_CLIENT) {
+            case FAIL -> throw new IllegalStateException(
+                    "packet-strict 窗口内获取 legacy Client [" + what + "] (cid=" + chr.getId() + ")");
+            case LOG -> log.warn("packet-strict 窗口内获取 legacy Client [{}] cid={}",
+                    what, chr.getId(), new RuntimeException("call site"));
+            default -> { }
+        }
     }
 
     /**
@@ -93,7 +138,7 @@ public final class Player {
             throw new IllegalStateException("bindCharacter 必须在本 actor strand 上执行");
         }
         this.characterSlot = c;
-        client().setPlayer(c);
+        clientRaw().setPlayer(c);
     }
 
     /** 角色实体（本 actor 的从属状态）；登录前/charlist 阶段为 null */
@@ -103,7 +148,7 @@ public final class Player {
 
     /** 远端客户端语义层（世界域模块面视图；派生视图，惰性）。世界域代码获取语义层的唯一出口。 */
     public RemoteClient remote() {
-        return client.remoteView();
+        return clientRaw().remoteView();
     }
 
     /**
@@ -120,7 +165,7 @@ public final class Player {
      * @param newcomer 全新入场（DB 装载定位）；false = 过渡重入（重绑出生点 + buff 恢复）
      */
     public void enterWorld(boolean newcomer) {
-        final Client c = client();
+        final Client c = clientRaw();
         final Character player = character();
         player.initWorldEntry(c, newcomer);
         player.sendWorldEntryData(c, newcomer);

@@ -58,15 +58,19 @@ public abstract class AbstractInRouter {
     /**
      * strict canary 窗口（原 shim 机制平移，知识在 case、机制在基类）：窗口内置位
      * strictMode，期间经 CharacterRef 直调本体（含 unref 解包）即断言失败——fail-safe
-     * 记日志（doc/16 §4.1）。
+     * 记日志（doc/16 §4.1）。同一窗口同时开启 packet-strict 哨（legacy-Client 导航
+     * canary，{@code Player.assertNoLegacyClientNavigation}）——strict 粒度 = opcode，
+     * 由各 case 增量迁移逐个纳入；PLAYER_LOGGEDIN 等大段窗口只开 ref 哨。
      */
     protected final void strictWindow(Player player, Runnable body) {
         Character chr = player.character();
         chr.setStrictMode(true);
+        chr.setPacketStrictMode(true);
         try {
             body.run();
         } finally {
             chr.setStrictMode(false);
+            chr.setPacketStrictMode(false);
         }
     }
 
