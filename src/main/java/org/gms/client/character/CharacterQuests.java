@@ -256,11 +256,6 @@ public class CharacterQuests implements QuestModule.Handler {
         }
     }
 
-    /** 任务完成帧（completionTime = UTC ms）。 */
-    void announceQuestComplete(int questId, long completionTime) {
-        owner.remote().quest().questCompleted(questId, completionTime);
-    }
-
     /** 任务交付确认帧（任务在指定 NPC 处可交付）。 */
     void announceQuestNpcDelivery(Quest qs) {
         owner.remote().quest().updateQuestNpcDelivery(qs.getId(), qs.getNpc());

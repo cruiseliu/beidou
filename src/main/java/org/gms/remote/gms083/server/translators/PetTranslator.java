@@ -51,7 +51,7 @@ public final class PetTranslator {
 
     /** 升级演出（本人帧 SHOW_ITEM_GAIN_INCHAT / 全图帧 SHOW_FOREIGN_EFFECT） */
     public ShowItemGainInchatPacket petLevelUpOwn(int index) {
-        return new ShowItemGainInchatPacket((byte) index);
+        return new ShowItemGainInchatPacket(new ShowItemGainInchatPacket.Body.PetLevelUp((byte) index));
     }
 
     public ShowForeignEffectPacket petLevelUpForeign(Character chr, int index) {

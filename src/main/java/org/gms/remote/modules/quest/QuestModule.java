@@ -2,7 +2,7 @@ package org.gms.remote.modules.quest;
 
 import org.gms.client.quest.Quest;
 import org.gms.remote.AbstractModule;
-import org.gms.remote.modules.quest.server.QuestCompletedEvent;
+import org.gms.remote.modules.quest.server.QuestCompleteEvent;
 import org.gms.remote.modules.quest.server.QuestExpiredEvent;
 import org.gms.remote.modules.quest.server.QuestForfeitedEvent;
 import org.gms.remote.modules.quest.server.QuestNpcDeliveryEvent;
@@ -16,7 +16,7 @@ import java.util.Map;
 /**
  * 语义模块：任务域。C→S 收侧为玩家任务意图入口（Handler）；S→C 为任务状态帧
  * （SHOW_STATUS_INFO quest 体 + UPDATE_QUEST_INFO 各分支）——调用方传基础类型
- * 事实（questId/status 值/进度表/时间）或语义实体（接取全量通知），wire 形态归版本实现。
+ * 事实（questId/status 值/进度表/时间）或语义实体（接取/完成全量通知），wire 形态归版本实现。
  */
 public abstract class QuestModule extends AbstractModule {
 
@@ -35,9 +35,12 @@ public abstract class QuestModule extends AbstractModule {
         post(new QuestStartEvent(quest));
     }
 
-    /** 任务完成（completionTime = UTC ms；wire 文件时间换算归版本实现）。 */
-    public final void questCompleted(int questId, long completionTime) {
-        post(new QuestCompletedEvent(questId, completionTime));
+    /**
+     * 任务完成全量通知：完成状态帧 + 完成演出帧（仅本人；全图演出归地图广播），
+     * 由版本实现按序发多帧。实体档——帧物化归版本统一冻结门。
+     */
+    public final void questComplete(Quest quest) {
+        post(new QuestCompleteEvent(quest));
     }
 
     /** 任务放弃。 */

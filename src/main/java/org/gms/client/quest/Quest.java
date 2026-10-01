@@ -368,9 +368,9 @@ public class Quest {
         completionTime = System.currentTimeMillis();
         progress.clear();
 
-        chr.announceQuestComplete(id, completionTime);
+        // 完成状态帧 + 完成演出帧：多帧合一次 QuestCompleteEvent（仅本人帧）
+        chr.getRemote().quest().questComplete(this);
         // INFO 交付帧历史上在给完奖励后补发（仅非后续任务）——现由 complete() 末尾的 announceQuestNpcDelivery 承担
-        chr.sendPacket(PacketCreator.showSpecialEffect(9)); // Quest completion
         chr.getMapRef().broadcastMessage(chr.ref(), PacketCreator.showForeignEffect(chr.getId(), 9), false); //use 9 instead of 12 for both
         return true;
     }
