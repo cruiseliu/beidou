@@ -274,6 +274,22 @@ public class CharacterQuests implements QuestModule.Handler {
                 Quest info = (Quest) objs[0];
                 quest.updateQuestNpcDelivery(info.getId(), info.getNpc());
                 break;
+
+            case START:
+                // 接取全量通知（多帧合一）：冲刷期解析（与旧 lazy 语义一致），读各任务当前状态；
+                // infoNumber 条件已在入队时点求值（objs[1]），关联任务经 getQuest 取用
+                //（不存在则照旧自动建项）
+                Quest started = (Quest) objs[0];
+                if ((Boolean) objs[1]) {
+                    Quest infoQuest = owner.getQuest(started.getInfoNumber());
+                    quest.questStarted(started.getId(), started.getStatus().getValue(), started.getNpc(),
+                            started.getProgressData(), infoQuest.getId(), infoQuest.getStatus().getValue(),
+                            infoQuest.getProgressData());
+                } else {
+                    quest.questStarted(started.getId(), started.getStatus().getValue(), started.getNpc(),
+                            started.getProgressData());
+                }
+                break;
         }
     }
 

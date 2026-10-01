@@ -352,11 +352,10 @@ public class Quest {
         //     chr.questTimeLimit2(id, expirationTime);
         // }
 
-        chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, this, false);
-        if (wz.getInfoNumber(status) > 0) {
-            chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, this, true);
-        }
-        chr.announceUpdateQuest(DelayedQuestUpdate.INFO, this);
+        // 状态帧 + infoNumber 关联任务同步 + NPC 交付确认：多帧合一次 QuestStartEvent
+        // （会话期间照旧入延迟队列，冲刷期展开读各任务当前状态；infoNumber 条件按旧序
+        // 在调用时点求值——status 此刻必为 STARTED）
+        chr.announceUpdateQuest(DelayedQuestUpdate.START, this, wz.getInfoNumber(status) > 0);
     }
 
     public boolean forceComplete(Character chr, int npc) {

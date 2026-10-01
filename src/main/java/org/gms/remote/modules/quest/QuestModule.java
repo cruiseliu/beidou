@@ -5,6 +5,7 @@ import org.gms.remote.modules.quest.server.QuestCompletedEvent;
 import org.gms.remote.modules.quest.server.QuestExpiredEvent;
 import org.gms.remote.modules.quest.server.QuestForfeitedEvent;
 import org.gms.remote.modules.quest.server.QuestNpcDeliveryEvent;
+import org.gms.remote.modules.quest.server.QuestStartEvent;
 import org.gms.remote.modules.quest.server.QuestStateEvent;
 import org.gms.remote.modules.quest.server.QuestTimeLimitEvent;
 import org.gms.remote.modules.quest.server.QuestTimeLimitRemovedEvent;
@@ -21,6 +22,21 @@ public abstract class QuestModule extends AbstractModule {
     /** 任务状态/进度更新（status = QuestStatus 枚举值；infoNumber 关联任务同步也走本入口）。 */
     public final void updateQuestState(int questId, int status, String progressData) {
         post(new QuestStateEvent(questId, status, progressData));
+    }
+
+    /** 任务接取（无 infoNumber 关联任务；status = QuestStatus 枚举值）。 */
+    public final void questStarted(int questId, int status, int npc, String progressData) {
+        post(new QuestStartEvent(questId, status, npc, progressData, null));
+    }
+
+    /**
+     * 任务接取全量通知：主任务状态帧 + infoNumber 关联任务状态同步（读该任务当前状态
+     * 传入）+ NPC 交付确认，由版本实现按序发多帧。
+     */
+    public final void questStarted(int questId, int status, int npc, String progressData,
+                                   int infoQuestId, int infoStatus, String infoProgress) {
+        post(new QuestStartEvent(questId, status, npc, progressData,
+                new QuestStateEvent(infoQuestId, infoStatus, infoProgress)));
     }
 
     /** 任务完成（completionTime = UTC ms；wire 文件时间换算归版本实现）。 */

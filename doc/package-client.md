@@ -32,8 +32,6 @@
   （Character/Pet/Item）或基础类型；事件（`XxxEvent`）由模块基类在方法体内构造
   （如 `BasicModule.initialize(Character)` → `post(new InitializeEvent(chr))`），
   版本 router 不参与事件构造。
-- **语义载荷（`XxxUpdate` / `SlotChange` / 事件 record）自包含**：携带编码所需的
-  全部事实，尽量避免实现层回读 `Character`。
 - **冻结纪律（统一冻结门）**：`AbstractModule.post = emit(freeze(event))`，`freeze` 是
   全部事件入域前的唯一拦截点，默认恒等——语义层不枚举、不决策任何单个事件的冻结策略。
   冻结时点 = 事件构造时点；携带活引用的事件由版本 route **按域统一重载 `freeze`** 做快照/

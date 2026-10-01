@@ -10,6 +10,7 @@ import org.gms.remote.modules.quest.server.QuestCompletedEvent;
 import org.gms.remote.modules.quest.server.QuestExpiredEvent;
 import org.gms.remote.modules.quest.server.QuestForfeitedEvent;
 import org.gms.remote.modules.quest.server.QuestNpcDeliveryEvent;
+import org.gms.remote.modules.quest.server.QuestStartEvent;
 import org.gms.remote.modules.quest.server.QuestStateEvent;
 import org.gms.remote.modules.quest.server.QuestTimeLimitEvent;
 import org.gms.remote.modules.quest.server.QuestTimeLimitRemovedEvent;
@@ -36,6 +37,14 @@ public final class QuestRouter extends QuestModule implements ServerEventDest {
         switch (r) {
             case QuestStateEvent(var questId, var status, var progressData) ->
                     client.send(new QuestStatusPacket(new QuestStatusPacket.Body.Update(questId, status, progressData)));
+            case QuestStartEvent(var questId, var status, var npc, var progressData, var infoSync) -> {
+                client.send(new QuestStatusPacket(new QuestStatusPacket.Body.Update(questId, status, progressData)));
+                if (infoSync != null) {
+                    client.send(new QuestStatusPacket(new QuestStatusPacket.Body.Update(
+                            infoSync.questId(), infoSync.status(), infoSync.progressData())));
+                }
+                client.send(new QuestInfoPacket(new QuestInfoPacket.Body.NpcDelivery(questId, npc)));
+            }
             case QuestCompletedEvent(var questId, var completionTime) ->
                     client.send(new QuestStatusPacket(new QuestStatusPacket.Body.Completed(questId, completionTime)));
             case QuestForfeitedEvent(var questId) ->
