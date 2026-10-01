@@ -145,11 +145,12 @@ public final class SetFieldTranslator {
     private static SetFieldPacket.Quests quests(Character chr) {
         var started = new ArrayList<SetFieldPacket.Quests.StartedQuest>();
         for (Quest qs : chr.getStartedQuests()) {
-            started.add(new SetFieldPacket.Quests.StartedQuest(qs.getId(), qs.getProgressData()));
+            started.add(new SetFieldPacket.Quests.StartedQuest(qs.getId(),
+                    QuestProgressFormat.toWire(qs.getProgress())));
             if (qs.getInfoNumber() > 0) {
                 var iqs = chr.getQuest(qs.getInfoNumber());
                 started.add(new SetFieldPacket.Quests.StartedQuest(qs.getInfoNumber(),
-                        iqs != null ? iqs.getProgressData() : ""));
+                        iqs != null ? QuestProgressFormat.toWire(iqs.getProgress()) : ""));
             }
         }
         var completed = new ArrayList<SetFieldPacket.Quests.CompletedQuest>();

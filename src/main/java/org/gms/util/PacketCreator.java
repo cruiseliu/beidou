@@ -347,13 +347,13 @@ public class PacketCreator {
         p.writeShort(startedSize);
         for (Quest qs : started) {
             p.writeShort(qs.getId());
-            p.writeString(qs.getProgressData());
+            p.writeString(questProgressData(qs));
 
             short infoNumber = (short) qs.getInfoNumber();
             if (infoNumber > 0) {
                 Quest iqs = chr.getQuest(infoNumber);
                 p.writeShort(infoNumber);
-                p.writeString(iqs.getProgressData());
+                p.writeString(questProgressData(iqs));
             }
         }
         List<Quest> completed = chr.getCompletedQuests();
@@ -2656,6 +2656,15 @@ public class PacketCreator {
         return p;
     }
 
+    /** v83 任务进度串：各 mob 进度值按表序串接（legacy 线材层自留；remote 路径归 gms083 QuestProgressFormat）。 */
+    private static String questProgressData(Quest qs) {
+        StringBuilder sb = new StringBuilder();
+        for (String v : qs.getProgress().values()) {
+            sb.append(v);
+        }
+        return sb.toString();
+    }
+
     public static Packet updateQuest(Character chr, Quest qs, boolean infoUpdate) {
         final OutPacket p = OutPacket.create(SendOpcode.SHOW_STATUS_INFO);
         p.writeByte(1);
@@ -2663,11 +2672,11 @@ public class PacketCreator {
             Quest iqs = chr.getQuest(qs.getInfoNumber());
             p.writeShort(iqs.getId());
             p.writeByte(1);
-            p.writeString(iqs.getProgressData());
+            p.writeString(questProgressData(iqs));
         } else {
             p.writeShort(qs.getId());
             p.writeByte(qs.getStatus().getValue());
-            p.writeString(qs.getProgressData());
+            p.writeString(questProgressData(qs));
         }
         p.skip(5);
         return p;

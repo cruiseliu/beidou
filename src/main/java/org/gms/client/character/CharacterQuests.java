@@ -255,9 +255,9 @@ public class CharacterQuests implements QuestModule.Handler {
                 Quest qs = (Quest) objs[0];
                 if ((Boolean) objs[1]) {
                     Quest iqs = owner.getQuest(qs.getInfoNumber());
-                    quest.updateQuestState(iqs.getId(), iqs.getStatus().getValue(), iqs.getProgressData());
+                    quest.updateQuestState(iqs.getId(), iqs.getStatus().getValue(), iqs.getProgress());
                 } else {
-                    quest.updateQuestState(qs.getId(), qs.getStatus().getValue(), qs.getProgressData());
+                    quest.updateQuestState(qs.getId(), qs.getStatus().getValue(), qs.getProgress());
                 }
                 break;
 
@@ -283,11 +283,11 @@ public class CharacterQuests implements QuestModule.Handler {
                 if ((Boolean) objs[1]) {
                     Quest infoQuest = owner.getQuest(started.getInfoNumber());
                     quest.questStarted(started.getId(), started.getStatus().getValue(), started.getNpc(),
-                            started.getProgressData(), infoQuest.getId(), infoQuest.getStatus().getValue(),
-                            infoQuest.getProgressData());
+                            started.getProgress(), infoQuest.getId(), infoQuest.getStatus().getValue(),
+                            infoQuest.getProgress());
                 } else {
                     quest.questStarted(started.getId(), started.getStatus().getValue(), started.getNpc(),
-                            started.getProgressData());
+                            started.getProgress());
                 }
                 break;
         }

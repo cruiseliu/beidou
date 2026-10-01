@@ -5,6 +5,7 @@ import org.gms.remote.ServerEventDest;
 import org.gms.remote.gms083.Gms083;
 import org.gms.remote.gms083.server.packets.QuestInfoPacket;
 import org.gms.remote.gms083.server.packets.QuestStatusPacket;
+import org.gms.remote.gms083.server.translators.QuestProgressFormat;
 import org.gms.remote.modules.quest.QuestModule;
 import org.gms.remote.modules.quest.server.QuestCompletedEvent;
 import org.gms.remote.modules.quest.server.QuestExpiredEvent;
@@ -35,13 +36,15 @@ public final class QuestRouter extends QuestModule implements ServerEventDest {
     @Override
     public void deliver(ServerEventBase r) {
         switch (r) {
-            case QuestStateEvent(var questId, var status, var progressData) ->
-                    client.send(new QuestStatusPacket(new QuestStatusPacket.Body.Update(questId, status, progressData)));
-            case QuestStartEvent(var questId, var status, var npc, var progressData, var infoSync) -> {
-                client.send(new QuestStatusPacket(new QuestStatusPacket.Body.Update(questId, status, progressData)));
-                if (infoSync != null) {
+            case QuestStateEvent(var questId, var status, var progress) ->
                     client.send(new QuestStatusPacket(new QuestStatusPacket.Body.Update(
-                            infoSync.questId(), infoSync.status(), infoSync.progressData())));
+                            questId, status, QuestProgressFormat.toWire(progress))));
+            case QuestStartEvent(var questId, var status, var npc, var progress, var infoSync) -> {
+                client.send(new QuestStatusPacket(new QuestStatusPacket.Body.Update(
+                        questId, status, QuestProgressFormat.toWire(progress))));
+                if (infoSync != null) {
+                    client.send(new QuestStatusPacket(new QuestStatusPacket.Body.Update(infoSync.questId(),
+                            infoSync.status(), QuestProgressFormat.toWire(infoSync.progress()))));
                 }
                 client.send(new QuestInfoPacket(new QuestInfoPacket.Body.NpcDelivery(questId, npc)));
             }

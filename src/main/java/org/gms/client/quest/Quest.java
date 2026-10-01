@@ -165,14 +165,6 @@ public class Quest {
         this.completionTime = completionTime;
     }
 
-    public String getProgressData() {
-        StringBuilder str = new StringBuilder();
-        for (String ps : progress.values()) {
-            str.append(ps);
-        }
-        return str.toString();
-    }
-
     // ── 动态操作（任务域裁定：状态迁移在本实例上就地生效，QuestWz 只读静态定义）──
     // 就地变异等价复刻旧"换新对象顶替 map 条目"形态的净状态效果（progress 清空/重播种、
     // forfeited/completed 归复规则逐项保留）；npcUpdateQuests 延迟队列持有本实例引用，
