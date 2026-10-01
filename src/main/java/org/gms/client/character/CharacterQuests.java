@@ -6,6 +6,7 @@ import org.gms.client.quest.QuestStatus;
 import org.gms.client.quest.QuestWz;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.model.json.CharacterQuestsData;
+import org.gms.model.json.QuestData;
 import org.gms.remote.modules.quest.QuestModule;
 import org.gms.remote.ClientEventHandlerRegistry;
 import org.slf4j.Logger;
@@ -58,22 +59,12 @@ public class CharacterQuests implements QuestModule.Handler {
 
     /** 持久化快照：无任务返回 null（不落库） */
     CharacterQuestsData toData() {
-        List<CharacterQuestsData.QuestEntryData> entries = null;
+        List<QuestData> entries = null;
         for (Quest qs : getQuestValues()) {
             if (entries == null) {
                 entries = new ArrayList<>();
             }
-            CharacterQuestsData.QuestEntryData e = new CharacterQuestsData.QuestEntryData();
-            e.quest = qs.getId();
-            e.status = qs.getStatus().getValue();
-            e.completionTime = qs.getCompletionTime();
-            if (!qs.getProgress().isEmpty()) {
-                e.progress = new java.util.LinkedHashMap<>(qs.getProgress());
-            }
-            if (!qs.getMedalMaps().isEmpty()) {
-                e.medalMaps = new ArrayList<>(qs.getMedalMaps());
-            }
-            entries.add(e);
+            entries.add(qs.toData());
         }
         if (entries == null) {
             return null;
@@ -89,19 +80,8 @@ public class CharacterQuests implements QuestModule.Handler {
             return;
         }
         quests.clear();
-        for (CharacterQuestsData.QuestEntryData e : data.quests) {
-            Quest qs = new Quest(QuestWz.getInstance(e.quest), QuestStatus.fromValue(e.status));
-            qs.setCompletionTime(e.completionTime);
-            if (e.progress != null) {
-                for (Map.Entry<Integer, String> p : e.progress.entrySet()) {
-                    qs.setProgress(p.getKey(), p.getValue());
-                }
-            }
-            if (e.medalMaps != null) {
-                for (int mapid : e.medalMaps) {
-                    qs.addMedalMap(mapid);
-                }
-            }
+        for (QuestData e : data.quests) {
+            Quest qs = Quest.fromData(owner, e);
             quests.put(qs.getId(), qs);
         }
     }

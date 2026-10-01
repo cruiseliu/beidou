@@ -23,6 +23,7 @@ package org.gms.client.quest;
 
 import org.gms.client.Player;
 import org.gms.client.character.Character;
+import org.gms.model.json.QuestData;
 import org.gms.scripting.quest.esm.EsmQuests;
 import org.gms.util.AssertUtil;
 import org.gms.util.StringUtil;
@@ -32,6 +33,7 @@ import org.gms.client.quest.actions.AbstractQuestAction;
 import org.gms.client.quest.actions.ItemAction;
 import org.gms.client.quest.requirements.AbstractQuestRequirement;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -65,8 +67,8 @@ public class Quest {
         this.completionTime = NEVER;
     }
 
-    public Quest(QuestWz wz, QuestStatus status) {
-        chr = Player.require("quest").character();
+    private Quest(QuestWz wz, QuestStatus status, Character owner) {
+        this.chr = owner;
         this.id = wz.getId();
         this.wz = wz;
         this.status = status;
@@ -74,6 +76,40 @@ public class Quest {
         if (status == QuestStatus.STARTED) {
             registerMobs();
         }
+    }
+
+    /**
+     * 装载恢复档：charlist 预览 / 选角装载路径（先于会话开始，无 actor 可达，装载线程
+     * 不在 player strand）——owner 显式传入，不设 strand 护栏。进场后的动态操作仍受
+     * player strand 纪律约束，本豁免仅覆盖装载。
+     */
+    public static Quest fromData(Character owner, QuestData data) {
+        Quest qs = new Quest(QuestWz.getInstance(data.quest), QuestStatus.fromValue(data.status), owner);
+        qs.completionTime = data.completionTime;
+        if (data.progress != null) {
+            qs.progress.putAll(data.progress);   // 覆盖 registerMobs 播种（与旧 setProgress 逐项 put 同序）
+        }
+        if (data.medalMaps != null) {
+            for (int mapid : data.medalMaps) {
+                qs.addMedalMap(mapid);   // 走实体去重路径
+            }
+        }
+        return qs;
+    }
+
+    /** 持久化快照（仿 Pet.toData；进度/探索图防御性拷贝，空集合留 null 不落库） */
+    public QuestData toData() {
+        QuestData data = new QuestData();
+        data.quest = id;
+        data.status = status.getValue();
+        data.completionTime = completionTime;
+        if (!progress.isEmpty()) {
+            data.progress = new LinkedHashMap<>(progress);
+        }
+        if (!medalProgress.isEmpty()) {
+            data.medalMaps = new ArrayList<>(medalProgress);
+        }
+        return data;
     }
 
     public int getId() {
