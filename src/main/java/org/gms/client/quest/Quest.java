@@ -298,7 +298,11 @@ public class Quest {
         npc = 0;
         completionTime = NEVER;
         progress.clear();
-        updateQuestStatus();
+        chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, this, false);
+        if (wz.getInfoNumber(status) > 0) {
+            chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, this, true);
+        }
+        // reminder: do not reset quest progress of infoNumbers, some quests cannot backtrack
     }
 
     public void forfeit() {
@@ -312,7 +316,11 @@ public class Quest {
         npc = 0;
         completionTime = NEVER;
         progress.clear();
-        updateQuestStatus();
+        chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, this, false);
+        if (wz.getInfoNumber(status) > 0) {
+            chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, this, true);
+        }
+        // reminder: do not reset quest progress of infoNumbers, some quests cannot backtrack
         return;
     }
 
@@ -344,7 +352,11 @@ public class Quest {
         //     chr.questTimeLimit2(id, expirationTime);
         // }
 
-        updateQuestStatus();
+        chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, this, false);
+        if (wz.getInfoNumber(status) > 0) {
+            chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, this, true);
+        }
+        chr.announceUpdateQuest(DelayedQuestUpdate.INFO, this);
     }
 
     public boolean forceComplete(Character chr, int npc) {
@@ -358,7 +370,8 @@ public class Quest {
         completionTime = System.currentTimeMillis();
         progress.clear();
 
-        updateQuestStatus();
+        chr.announceUpdateQuest(DelayedQuestUpdate.COMPLETE, id, completionTime);
+        //announceUpdateQuest(DelayedQuestUpdate.INFO, qs); // happens after giving rewards, for non-next quests only
         chr.sendPacket(PacketCreator.showSpecialEffect(9)); // Quest completion
         chr.getMapRef().broadcastMessage(chr.ref(), PacketCreator.showForeignEffect(chr.getId(), 9), false); //use 9 instead of 12 for both
         return true;
@@ -375,25 +388,6 @@ public class Quest {
         if (status == QuestStatus.STARTED) {
             forfeit();
             chr.getRemote().quest().questExpired(id);
-        }
-    }
-
-    private void updateQuestStatus() {
-        if (status.equals(QuestStatus.STARTED)) {
-            chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, this, false);
-            if (wz.getInfoNumber(status) > 0) {
-                chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, this, true);
-            }
-            chr.announceUpdateQuest(DelayedQuestUpdate.INFO, this);
-        } else if (status.equals(QuestStatus.COMPLETED)) {
-            chr.announceUpdateQuest(DelayedQuestUpdate.COMPLETE, id, completionTime);
-            //announceUpdateQuest(DelayedQuestUpdate.INFO, qs); // happens after giving rewards, for non-next quests only
-        } else if (status.equals(QuestStatus.NOT_STARTED)) {
-            chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, this, false);
-            if (wz.getInfoNumber(status) > 0) {
-                chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, this, true);
-            }
-            // reminder: do not reset quest progress of infoNumbers, some quests cannot backtrack
         }
     }
 }
