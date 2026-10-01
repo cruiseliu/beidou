@@ -236,11 +236,6 @@ public class CharacterQuests implements QuestModule.Handler {
         }
     }
 
-    /** 任务交付确认帧（任务在指定 NPC 处可交付）。 */
-    void announceQuestNpcDelivery(Quest qs) {
-        owner.remote().quest().updateQuestNpcDelivery(qs.getId(), qs.getNpc());
-    }
-
     // ── C→S 任务意图（QUEST_ACTION，QUEST_MODULE.Handler）──
 
     void bindClientHandlers(ClientEventHandlerRegistry registry) {

@@ -3228,7 +3228,6 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     public boolean needQuestItem(int questid, int itemid) { return quests.needQuestItem(questid, itemid); }
     public void setQuestProgress(int id, int infoNumber, String progress) { quests.setQuestProgress(id, infoNumber, progress); }
     public void announceQuestState(Quest qs, boolean companion) { quests.announceQuestState(qs, companion); }
-    public void announceQuestNpcDelivery(Quest qs) { quests.announceQuestNpcDelivery(qs); }
     public boolean forceStartQuest(int questId, int npc) { return quests.forceStartQuest(questId, npc); }
     public boolean forceCompleteQuest(int questId, int npc) { return quests.forceCompleteQuest(questId, npc); }
     public boolean isQuestCompleted(int questId) { return quests.isQuestCompleted(questId); }

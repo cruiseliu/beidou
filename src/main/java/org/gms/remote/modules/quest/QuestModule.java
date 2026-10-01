@@ -5,7 +5,7 @@ import org.gms.remote.AbstractModule;
 import org.gms.remote.modules.quest.server.QuestCompleteEvent;
 import org.gms.remote.modules.quest.server.QuestExpiredEvent;
 import org.gms.remote.modules.quest.server.QuestForfeitedEvent;
-import org.gms.remote.modules.quest.server.QuestNpcDeliveryEvent;
+import org.gms.remote.modules.quest.server.QuestSeriesCompleteEvent;
 import org.gms.remote.modules.quest.server.QuestStartEvent;
 import org.gms.remote.modules.quest.server.QuestStateEvent;
 import org.gms.remote.modules.quest.server.QuestTimeLimitEvent;
@@ -48,9 +48,9 @@ public abstract class QuestModule extends AbstractModule {
         post(new QuestForfeitedEvent(questId));
     }
 
-    /** 任务交付确认（任务在指定 NPC 处可交付）。 */
-    public final void updateQuestNpcDelivery(int questId, int npc) {
-        post(new QuestNpcDeliveryEvent(questId, npc));
+    /** 任务系列终结标记（任务链无下一环时的收尾；wire = UPDATE_QUEST_INFO type 8 交付分支）。 */
+    public final void questSeriesComplete(int questId, int npc) {
+        post(new QuestSeriesCompleteEvent(questId, npc));
     }
 
     /** 任务到期作废。 */

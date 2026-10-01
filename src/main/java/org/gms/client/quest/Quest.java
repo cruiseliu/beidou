@@ -262,7 +262,8 @@ public class Quest {
         }
 
         if (!wz.hasNextQuestAction()) {
-            chr.announceQuestNpcDelivery(this);
+            // 系列终结标记：客户端任务引导（该任务已可在交付 NPC 处交付）
+            chr.getRemote().quest().questSeriesComplete(id, npc);
         }
     }
 
@@ -405,7 +406,7 @@ public class Quest {
 
         // 完成状态帧 + 完成演出帧：多帧合一次 QuestCompleteEvent（仅本人帧）
         chr.getRemote().quest().questComplete(this);
-        // INFO 交付帧历史上在给完奖励后补发（仅非后续任务）——现由 complete() 末尾的 announceQuestNpcDelivery 承担
+        // INFO 交付帧历史上在给完奖励后补发（仅非后续任务）——现由 complete() 末尾的 questSeriesComplete 承担
         chr.getMapRef().broadcastQuestComplete(chr.getId()); // 他人流演出（9 = 任务完成，语义归 map 域中继）
         return true;
     }
