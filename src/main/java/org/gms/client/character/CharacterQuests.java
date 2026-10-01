@@ -1,16 +1,13 @@
 package org.gms.client.character;
 
-import org.gms.client.Client;
 import org.gms.client.quest.Quest;
 import org.gms.client.quest.QuestInfo;
 import org.gms.client.quest.QuestStatus;
 import org.gms.client.quest.QuestWz;
-import org.gms.constants.game.DelayedQuestUpdate;
 import org.gms.constants.inventory.ItemConstants;
 import org.gms.model.json.CharacterQuestsData;
 import org.gms.remote.modules.quest.QuestModule;
 import org.gms.remote.ClientEventHandlerRegistry;
-import org.gms.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,13 +20,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 任务模块组件：任务状态（quests map）+ 任务点数（questFame）+ 限时任务（questExpirations/questExpireTask）+ 任务封包延迟。
+ * 任务模块组件：任务状态（quests map）+ 任务点数（questFame）+ 限时任务（questExpirations/questExpireTask）。
  * 仿照 CharacterBuffs/CharacterChair 模式：数据 + 领域逻辑内聚于此，持有 owner 反向引用，
  * Character 保留公开具名门面（getQuest/updateQuestStatus/... 对外转发）。
  *
  * 线程纪律：任务状态全部属 owner strand（无锁）；跨线程入口（怪物击杀、到期 tick、
  * EIM 脚本）由调用方 strand 跳板进入，不在本类内加锁。
- * 边界：只承载任务语义——任务状态、任务点数、限时任务、任务更新封包（npcUpdateQuests 延迟队列）。
+ * 边界：只承载任务语义——任务状态、任务点数、限时任务；状态帧即时展开为语义调用，
+ * 会话内合并归 remote batch（doc/package-client.md §2），本组件不设发包队列。
  * 组队任务（party quest，AriantColiseum/MonsterCarnival/partyQuest 字段）不属本组件；
  * 持久化走 character_json 的 quests 域（toData/applyData，queststatus 三表已下线）；
  * 依赖经 owner 门面调用（sendPacket/getClient/getInventory/gainFame/...）。
@@ -42,9 +40,6 @@ public class CharacterQuests implements QuestModule.Handler {
     /** 任务状态表 */
     private final Map<Integer, Quest> quests;
     private final Map<Integer, QuestInfo> infos;
-
-    /** 任务更新封包延迟队列（NPC 脚本对话期间积压；全部读写已 strand 收口，无需队列锁） */
-    private final List<Pair<DelayedQuestUpdate, Object[]>> npcUpdateQuests = new LinkedList<>();
 
     CharacterQuests(Character owner) {
         this.owner = owner;
@@ -206,9 +201,9 @@ public class CharacterQuests implements QuestModule.Handler {
             qs.setProgress(infoNumber, progress);   // quest progress is thoroughly a string match, infoNumber is actually another questid
         }
 
-        announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, false);
+        announceQuestState(qs, false);
         if (qs.getInfoNumber() > 0) {
-            announceUpdateQuest(DelayedQuestUpdate.UPDATE, qs, true);
+            announceQuestState(qs, true);
         }
     }
 
@@ -232,9 +227,9 @@ public class CharacterQuests implements QuestModule.Handler {
                 }
 
                 if (quest.progress(id)) {
-                    announceUpdateQuest(DelayedQuestUpdate.UPDATE, quest, false);
+                    announceQuestState(quest, false);
                     if (quest.getInfoNumber() > 0) {
-                        announceUpdateQuest(DelayedQuestUpdate.UPDATE, quest, true);
+                        announceQuestState(quest, true);
                     }
                 }
             }
@@ -243,73 +238,45 @@ public class CharacterQuests implements QuestModule.Handler {
         }
     }
 
-    // ── 任务更新封包（延迟队列） ──
+    // ── 任务状态帧（即时展开；会话内合并归 remote batch——doc/package-client.md §2，无本地队列）──
 
-    private void announceUpdateQuestInternal(Pair<DelayedQuestUpdate, Object[]> questUpdate) {
-        Object[] objs = questUpdate.getRight();
+    /**
+     * 任务状态/进度帧（SHOW_STATUS_INFO quest 体）。{@code companion} = true 时发的是
+     * infoNumber 关联任务的当前状态帧（而非本任务）——沿用旧调用词汇，调用方按
+     * 「主帧恒发 + 关联任务条件发」两段书写。
+     */
+    void announceQuestState(Quest qs, boolean companion) {
         QuestModule quest = owner.remote().quest();
-
-        switch (questUpdate.getLeft()) {
-            case UPDATE:
-                // 冲刷期解析（与旧 lazy 语义一致）：infoNumber 分支读关联任务的当前进度
-                Quest qs = (Quest) objs[0];
-                if ((Boolean) objs[1]) {
-                    Quest iqs = owner.getQuest(qs.getInfoNumber());
-                    quest.updateQuestState(iqs.getId(), iqs.getStatus().getValue(), iqs.getProgress());
-                } else {
-                    quest.updateQuestState(qs.getId(), qs.getStatus().getValue(), qs.getProgress());
-                }
-                break;
-
-            case FORFEIT:
-                // 任务 id 生产方有 short（历史调用点）与 int（getId 迁移后）两种装箱——经 Number 取值
-                quest.questForfeited(((Number) objs[0]).intValue());
-                break;
-
-            case COMPLETE:
-                quest.questCompleted(((Number) objs[0]).intValue(), (Long) objs[1]);
-                break;
-
-            case INFO:
-                Quest info = (Quest) objs[0];
-                quest.updateQuestNpcDelivery(info.getId(), info.getNpc());
-                break;
-
-            case START:
-                // 接取全量通知（多帧合一）：冲刷期解析（与旧 lazy 语义一致），读各任务当前状态；
-                // infoNumber 条件已在入队时点求值（objs[1]），关联任务经 getQuest 取用
-                //（不存在则照旧自动建项）
-                Quest started = (Quest) objs[0];
-                if ((Boolean) objs[1]) {
-                    Quest infoQuest = owner.getQuest(started.getInfoNumber());
-                    quest.questStarted(started.getId(), started.getStatus().getValue(), started.getNpc(),
-                            started.getProgress(), infoQuest.getId(), infoQuest.getStatus().getValue(),
-                            infoQuest.getProgress());
-                } else {
-                    quest.questStarted(started.getId(), started.getStatus().getValue(), started.getNpc(),
-                            started.getProgress());
-                }
-                break;
-        }
-    }
-
-    void announceUpdateQuest(DelayedQuestUpdate questUpdateType, Object... params) {
-        Pair<DelayedQuestUpdate, Object[]> p = new Pair<>(questUpdateType, params);
-        Client c = owner.getClient();
-        if (c.getQM() != null || c.getCM() != null) {
-            npcUpdateQuests.add(p);
+        if (companion) {
+            // 关联任务经 getQuest 取用（不存在则照旧自动建项）
+            Quest iqs = owner.getQuest(qs.getInfoNumber());
+            quest.updateQuestState(iqs.getId(), iqs.getStatus().getValue(), iqs.getProgress());
         } else {
-            announceUpdateQuestInternal(p);
+            quest.updateQuestState(qs.getId(), qs.getStatus().getValue(), qs.getProgress());
         }
     }
 
-    void flushDelayedUpdateQuests() {
-        List<Pair<DelayedQuestUpdate, Object[]>> qmQuestUpdateList = new ArrayList<>(npcUpdateQuests);
-        npcUpdateQuests.clear();
-
-        for (Pair<DelayedQuestUpdate, Object[]> q : qmQuestUpdateList) {
-            announceUpdateQuestInternal(q);
+    /** 任务接取全量通知（多帧合一：主任务状态帧 + infoNumber 关联任务同步 + NPC 交付确认）。 */
+    void announceQuestStart(Quest qs) {
+        QuestModule quest = owner.remote().quest();
+        int infoNumber = qs.getInfoNumber();
+        if (infoNumber > 0) {
+            Quest iqs = owner.getQuest(infoNumber);
+            quest.questStarted(qs.getId(), qs.getStatus().getValue(), qs.getNpc(), qs.getProgress(),
+                    iqs.getId(), iqs.getStatus().getValue(), iqs.getProgress());
+        } else {
+            quest.questStarted(qs.getId(), qs.getStatus().getValue(), qs.getNpc(), qs.getProgress());
         }
+    }
+
+    /** 任务完成帧（completionTime = UTC ms）。 */
+    void announceQuestComplete(int questId, long completionTime) {
+        owner.remote().quest().questCompleted(questId, completionTime);
+    }
+
+    /** 任务交付确认帧（任务在指定 NPC 处可交付）。 */
+    void announceQuestNpcDelivery(Quest qs) {
+        owner.remote().quest().updateQuestNpcDelivery(qs.getId(), qs.getNpc());
     }
 
     // ── C→S 任务意图（QUEST_ACTION，QUEST_MODULE.Handler）──

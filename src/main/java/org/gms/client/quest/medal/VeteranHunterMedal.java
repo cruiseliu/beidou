@@ -4,7 +4,6 @@ import org.gms.client.character.Character;
 import org.gms.client.quest.Quest;
 import org.gms.client.quest.QuestStatus;
 import org.gms.client.quest.QuestWz;
-import org.gms.constants.game.DelayedQuestUpdate;
 import org.gms.server.life.Monster;
 
 public final class VeteranHunterMedal {
@@ -41,7 +40,7 @@ public final class VeteranHunterMedal {
 
         int progress = Math.min(getProgress(player) + 1, REQUIRED_KILLS);
         status.setProgress(PROGRESS_MOB_ID, Integer.toString(progress));
-        player.announceUpdateQuest(DelayedQuestUpdate.UPDATE, status, false);
+        player.announceQuestState(status, false);
     }
 
     private static boolean isEligibleKill(Character player, Monster monster) {

@@ -23,7 +23,6 @@ package org.gms.client.quest;
 
 import org.gms.client.Player;
 import org.gms.client.character.Character;
-import org.gms.constants.game.DelayedQuestUpdate;
 import org.gms.scripting.quest.esm.EsmQuests;
 import org.gms.util.AssertUtil;
 import org.gms.util.PacketCreator;
@@ -167,9 +166,9 @@ public class Quest {
 
     // ── 动态操作（任务域裁定：状态迁移在本实例上就地生效，QuestWz 只读静态定义）──
     // 就地变异等价复刻旧"换新对象顶替 map 条目"形态的净状态效果（progress 清空/重播种、
-    // forfeited/completed 归复规则逐项保留）；npcUpdateQuests 延迟队列持有本实例引用，
-    // NPC 对话期间同任务的连发更新在冲刷时呈现终态（帧数与末帧内容不变，中间帧为幂等
-    // 状态集被终态覆盖，客户端净状态一致）。
+    // forfeited/completed 归复规则逐项保留）。状态帧在变更点即时展开为语义调用（调用时点
+    // 快照）；NPC 会话内的合并归 remote batch（ESM 每拍对话一段，doc/package-client.md §2），
+    // 本类不经手任何发包时机。
 
     public void start(int npcId) {
         if (!canStart()) {
@@ -218,7 +217,7 @@ public class Quest {
         }
 
         if (!wz.hasNextQuestAction()) {
-            chr.announceUpdateQuest(DelayedQuestUpdate.INFO, this);
+            chr.announceQuestNpcDelivery(this);
         }
     }
 
@@ -290,9 +289,9 @@ public class Quest {
         npc = 0;
         completionTime = NEVER;
         progress.clear();
-        chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, this, false);
+        chr.announceQuestState(this, false);
         if (wz.getInfoNumber(status) > 0) {
-            chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, this, true);
+            chr.announceQuestState(this, true);
         }
         // reminder: do not reset quest progress of infoNumbers, some quests cannot backtrack
     }
@@ -308,9 +307,9 @@ public class Quest {
         npc = 0;
         completionTime = NEVER;
         progress.clear();
-        chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, this, false);
+        chr.announceQuestState(this, false);
         if (wz.getInfoNumber(status) > 0) {
-            chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, this, true);
+            chr.announceQuestState(this, true);
         }
         // reminder: do not reset quest progress of infoNumbers, some quests cannot backtrack
         return;
@@ -345,9 +344,7 @@ public class Quest {
         // }
 
         // 状态帧 + infoNumber 关联任务同步 + NPC 交付确认：多帧合一次 QuestStartEvent
-        // （会话期间照旧入延迟队列，冲刷期展开读各任务当前状态；infoNumber 条件按旧序
-        // 在调用时点求值——status 此刻必为 STARTED）
-        chr.announceUpdateQuest(DelayedQuestUpdate.START, this, wz.getInfoNumber(status) > 0);
+        chr.announceQuestStart(this);
     }
 
     public boolean forceComplete(Character chr, int npc) {
@@ -361,8 +358,8 @@ public class Quest {
         completionTime = System.currentTimeMillis();
         progress.clear();
 
-        chr.announceUpdateQuest(DelayedQuestUpdate.COMPLETE, id, completionTime);
-        //announceUpdateQuest(DelayedQuestUpdate.INFO, qs); // happens after giving rewards, for non-next quests only
+        chr.announceQuestComplete(id, completionTime);
+        // INFO 交付帧历史上在给完奖励后补发（仅非后续任务）——现由 complete() 末尾的 announceQuestNpcDelivery 承担
         chr.sendPacket(PacketCreator.showSpecialEffect(9)); // Quest completion
         chr.getMapRef().broadcastMessage(chr.ref(), PacketCreator.showForeignEffect(chr.getId(), 9), false); //use 9 instead of 12 for both
         return true;

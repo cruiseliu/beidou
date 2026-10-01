@@ -4,7 +4,6 @@ import org.gms.client.character.Character;
 import org.gms.client.pet.Pet;
 import org.gms.client.quest.Quest;
 import org.gms.client.quest.QuestStatus;
-import org.gms.constants.game.DelayedQuestUpdate;
 import org.gms.server.life.Monster;
 
 public final class SpecialChallengeMedal {
@@ -149,6 +148,6 @@ public final class SpecialChallengeMedal {
         }
 
         status.setProgress(progressId, Integer.toString(Math.min(progress + 1, cap)));
-        player.announceUpdateQuest(DelayedQuestUpdate.UPDATE, status, false);
+        player.announceQuestState(status, false);
     }
 }

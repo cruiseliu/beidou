@@ -60,8 +60,13 @@ public final class EsmQuests {
     private static void invoke(QuestApi api, String entry, int mode, int type, int selection) {
         Character chr = api.owner();
         chr.getScriptRunner().call(() -> {
-            JsModule module = chr.getScriptRunner().moduleFor(scriptPath(api.questId()));
-            return module.call(entry, mode, type, selection, api);
+            // 一拍对话 = 一个合并域（doc/package-client.md §2）：段内脚本的任务操作与对话页
+            // 同批出门，段尾 commit——对话页必先于挂起到达客户端（等回复前必须已渲染），
+            // 脚本异常/ESC 照常提交（状态已生效，帧须如实反映）。
+            try (var batch = chr.getRemote().batch()) {
+                JsModule module = chr.getScriptRunner().moduleFor(scriptPath(api.questId()));
+                return module.call(entry, mode, type, selection, api);
+            }
         });
     }
 }

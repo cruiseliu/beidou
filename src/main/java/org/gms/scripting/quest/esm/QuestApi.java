@@ -77,12 +77,11 @@ public final class QuestApi {
     // ── 会话控制 ──
 
     /**
-     * 终结对话：解除会话登记 + NPC 冷却 + 延迟任务记录 flush。脚本侧无可重置状态
-     * （异步模型状态寿命 = 会话 Promise 链，随终结自然消亡；回放模型的 reset() 钩子已废）。
+     * 终结对话：解除会话登记 + NPC 冷却。脚本侧无可重置状态（异步模型状态寿命 =
+     * 会话 Promise 链，随终结自然消亡；帧合并已归 remote batch，无延迟队列可冲刷）。
      */
     public void dispose() {
         owner.clearEsmQuest(this);
         owner.setNpcCooldown(System.currentTimeMillis());
-        owner.flushDelayedUpdateQuests();
     }
 }

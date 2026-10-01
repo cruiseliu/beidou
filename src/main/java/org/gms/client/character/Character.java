@@ -59,7 +59,6 @@ import org.gms.client.weaponType.WeaponTypeRegistry;
 import org.gms.client.keybind.KeyBinding;
 import org.gms.client.keybind.QuickslotBinding;
 import org.gms.config.GameConfig;
-import org.gms.constants.game.DelayedQuestUpdate;
 import org.gms.constants.game.GameConstants;
 import org.gms.constants.id.ItemId;
 import org.gms.constants.id.MapId;
@@ -3278,8 +3277,10 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     public List<Quest> getStartedQuests() { return quests.getStartedQuests(); }
     public boolean needQuestItem(int questid, int itemid) { return quests.needQuestItem(questid, itemid); }
     public void setQuestProgress(int id, int infoNumber, String progress) { quests.setQuestProgress(id, infoNumber, progress); }
-    public void announceUpdateQuest(DelayedQuestUpdate questUpdateType, Object... params) { quests.announceUpdateQuest(questUpdateType, params); }
-    public void flushDelayedUpdateQuests() { quests.flushDelayedUpdateQuests(); }
+    public void announceQuestState(Quest qs, boolean companion) { quests.announceQuestState(qs, companion); }
+    public void announceQuestStart(Quest qs) { quests.announceQuestStart(qs); }
+    public void announceQuestComplete(int questId, long completionTime) { quests.announceQuestComplete(questId, completionTime); }
+    public void announceQuestNpcDelivery(Quest qs) { quests.announceQuestNpcDelivery(qs); }
     public boolean forceStartQuest(int questId, int npc) { return quests.forceStartQuest(questId, npc); }
     public boolean forceCompleteQuest(int questId, int npc) { return quests.forceCompleteQuest(questId, npc); }
     public boolean isQuestCompleted(int questId) { return quests.isQuestCompleted(questId); }

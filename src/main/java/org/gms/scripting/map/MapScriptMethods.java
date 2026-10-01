@@ -24,7 +24,6 @@ package org.gms.scripting.map;
 import org.gms.client.Client;
 import org.gms.client.quest.Quest;
 import org.gms.client.quest.QuestWz;
-import org.gms.constants.game.DelayedQuestUpdate;
 import org.gms.constants.id.MapId;
 import org.gms.scripting.AbstractPlayerInteraction;
 import org.gms.server.TimerManager;

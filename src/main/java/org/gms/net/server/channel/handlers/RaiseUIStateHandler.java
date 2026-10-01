@@ -5,7 +5,6 @@ import org.gms.client.quest.Quest;
 import org.gms.client.quest.QuestStatus;
 import org.gms.client.quest.QuestWz;
 import org.gms.client.Client;
-import org.gms.constants.game.DelayedQuestUpdate;
 import org.gms.net.AbstractPacketHandler;
 import org.gms.net.packet.InPacket;
 import org.gms.scripting.quest.QuestScriptManager;
@@ -37,7 +36,7 @@ public class RaiseUIStateHandler extends AbstractPacketHandler {
                     mqs.forceStart(chr, 22000);
                     c.getAbstractPlayerInteraction().setQuestProgress(mqs.getId(), infoNumber, 0);
                 } else if (mqs.getStatus() == QuestStatus.STARTED) {
-                    chr.announceUpdateQuest(DelayedQuestUpdate.UPDATE, mqs, mqs.getInfoNumber() > 0);
+                    chr.announceQuestState(mqs, mqs.getInfoNumber() > 0);
                 }
             } finally {
                 c.releaseClient();
