@@ -4,13 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.gms</groupId>
-        <artifactId>BeiDou</artifactId>
-        <version>1.0-SNAPSHOT</version>
-    </parent>
-
+    <!-- server 目录单独构建，不再依赖旧上层 repo 的 parent pom -->
+    <groupId>org.gms</groupId>
     <artifactId>gms-server</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
     <repositories>
         <repository>
