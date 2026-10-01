@@ -508,16 +508,14 @@ public class World {
         return list;
     }
 
-    public List<Character> loadAndGetAllCharactersView() {
+    public List<CharacterView> loadAndGetAllCharactersView() {
         Server.getInstance().loadAllAccountsCharactersView();
         return getAllCharactersView();
     }
 
-    /** 全量枚举：条目实体恒为 Character（仅 loadCharacterEntryFromDB/generateCharacterEntry 两个生产入口）；
-     *  PlayerNPC 雕像流需要实体能力（setClient）——视图接口的已知豁免消费者。 */
-    @SuppressWarnings("unchecked")
-    public List<Character> getAllCharactersView() {    // sorting by accountid, charid
-        List<Character> chrList = new LinkedList<>();
+    /** 全量枚举（PlayerNPC 雕像流消费；条目 = CharacterViewEntry） */
+    public List<CharacterView> getAllCharactersView() {    // sorting by accountid, charid
+        List<CharacterView> chrList = new LinkedList<>();
         Map<Integer, SortedMap<Integer, CharacterView>> accChars;
 
         accountCharsLock.lock();
@@ -528,9 +526,7 @@ public class World {
         }
 
         for (Entry<Integer, SortedMap<Integer, CharacterView>> e : getSortedAccountCharacterView(accChars)) {
-            for (CharacterView cv : e.getValue().values()) {
-                chrList.add((Character) cv);   // 视图条目实体恒为 Character
-            }
+            chrList.addAll(e.getValue().values());
         }
 
         return chrList;

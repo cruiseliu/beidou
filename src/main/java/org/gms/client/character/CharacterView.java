@@ -7,9 +7,9 @@ import org.gms.client.inventory.ItemSlot;
 import java.util.Collection;
 
 /**
- * charlist 视图只读面：登录/选角列表期的角色条目。实现类恒为 {@link Character}——
- * 两个生产入口：{@code Character.loadCharacterEntryFromDB}（DB 装载档）与
- * {@code Character.generateCharacterEntry}（活角色快照）；均为非会话 actor 的惰性展示体。
+ * charlist 视图只读面：登录/选角列表期的角色条目。两个实现：
+ * {@link CharacterViewEntry}（不可变快照，charlist 流程的存储/装载形态）与
+ * {@link Character}（活体脸——enter-map 等共享包构建器的宽化入参）。
  *
  * <p>消费方显式限定 = charlist 包构建（{@code PacketCreator.addCharEntry} 系）与
  * World/Server 视图存储（accountChars）。方法面 = CHARLIST 包的字段事实，全部只读标量
@@ -23,6 +23,10 @@ public interface CharacterView {
     int getId();
 
     String getName();
+
+    int getAccountId();
+
+    int getWorld();
 
     int getGender();
 

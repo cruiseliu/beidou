@@ -26,6 +26,7 @@ import lombok.Setter;
 import org.gms.infra.DeadlineTimer;
 import org.gms.client.character.Character;
 import org.gms.client.character.CharacterView;
+import org.gms.client.character.CharacterViewEntry;
 import org.gms.client.Client;
 import org.gms.client.SkillFactory;
 import org.gms.client.command.CommandsExecutor;
@@ -1148,7 +1149,7 @@ public class Server {
             return;
         }
 
-        Character chrView = chr.generateCharacterEntry();
+        CharacterViewEntry chrView = CharacterViewEntry.ofLive(chr);
 
         lgnWLock.lock();
         try {
@@ -1173,7 +1174,7 @@ public class Server {
 
             worldChars.put(chrid, world);
 
-            Character chrView = chr.generateCharacterEntry();
+            CharacterViewEntry chrView = CharacterViewEntry.ofLive(chr);
 
             World wserv = this.getWorld(chrView.getWorld());
             if (wserv != null) {
@@ -1217,7 +1218,7 @@ public class Server {
 
             worldChars.put(chrid, toWorld);
 
-            Character chrView = chr.generateCharacterEntry();
+            CharacterViewEntry chrView = CharacterViewEntry.ofLive(chr);
 
             World wserv = this.getWorld(toWorld);
             if (wserv != null) {
@@ -1318,7 +1319,7 @@ public class Server {
                         }
 
                         Integer cid = rs.getInt("id");
-                        chars.add(Character.loadCharacterEntryFromDB(rs, accPlayerEquips.get(cid)));
+                        chars.add(CharacterViewEntry.fromDb(rs, accPlayerEquips.get(cid)));
                     }
                 }
             }
@@ -1375,7 +1376,7 @@ public class Server {
                 World wserv = this.getWorld(aw);
 
                 if (wserv != null) {
-                    for (Character chr : wserv.getAllCharactersView()) {
+                    for (CharacterView chr : wserv.getAllCharactersView()) {
                         if (gmLevel < chr.gmLevel()) {
                             gmLevel = chr.gmLevel();
                         }

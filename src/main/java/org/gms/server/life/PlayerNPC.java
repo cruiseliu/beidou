@@ -23,6 +23,7 @@ package org.gms.server.life;
 
 import lombok.Getter;
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterView;
 import org.gms.client.Client;
 import org.gms.client.inventory.InventoryType;
 import org.gms.config.GameConfig;
@@ -285,7 +286,7 @@ public class PlayerNPC extends AbstractMapObject {
         return availablesBranch.removeLast();
     }
 
-    private static PlayerNPC createPlayerNPCInternal(MapleMap map, Point pos, Character chr) {
+    private static PlayerNPC createPlayerNPCInternal(MapleMap map, Point pos, CharacterView chr) {
         int mapId = map.getId();
 
         if (!canSpawnPlayerNpc(chr.getName(), mapId)) {
@@ -342,7 +343,7 @@ public class PlayerNPC extends AbstractMapObject {
                 .worldjobrank(getAndIncrementRunningWorldJobRanks(worldId, jobId))
                 .job(jobId)
                 .build();
-        List<PlayernpcsEquipDO> playerNpcEquipDOS = chr.getInventory(InventoryType.EQUIPPED).list().stream()
+        List<PlayernpcsEquipDO> playerNpcEquipDOS = chr.getEquippedItems().stream()
                 .map(equip -> PlayernpcsEquipDO.builder()
                         .equipid(equip.getItemId())
                         .equippos((short) equip.getPosition())
@@ -351,7 +352,7 @@ public class PlayerNPC extends AbstractMapObject {
         return npcService.createPlayerNPC(playerNpcDO, playerNpcEquipDOS);
     }
 
-    private static List<Integer> removePlayerNPCInternal(MapleMap map, Character chr) {
+    private static List<Integer> removePlayerNPCInternal(MapleMap map, CharacterView chr) {
         Set<Integer> updateMapids = new HashSet<>();
 
         List<Integer> mapids = new LinkedList<>();
@@ -389,7 +390,7 @@ public class PlayerNPC extends AbstractMapObject {
         return mapids;
     }
 
-    private static synchronized Pair<PlayerNPC, List<Integer>> processPlayerNPCInternal(MapleMap map, Point pos, Character chr, boolean create) {
+    private static synchronized Pair<PlayerNPC, List<Integer>> processPlayerNPCInternal(MapleMap map, Point pos, CharacterView chr, boolean create) {
         if (create) {
             return new Pair<>(createPlayerNPCInternal(map, pos, chr), null);
         } else {
@@ -397,16 +398,18 @@ public class PlayerNPC extends AbstractMapObject {
         }
     }
 
-    public static boolean spawnPlayerNPC(int mapid, Character chr) {
+    public static boolean spawnPlayerNPC(int mapid, CharacterView chr) {
         return spawnPlayerNPC(mapid, null, chr);
     }
 
-    public static boolean spawnPlayerNPC(int mapid, Point pos, Character chr) {
+    public static boolean spawnPlayerNPC(int mapid, Point pos, CharacterView chr) {
         if (chr == null) {
             return false;
         }
 
-        PlayerNPC pn = processPlayerNPCInternal(chr.getClient().getChannelServer().getMapFactory().getMap(mapid), pos, chr, true).getLeft();
+        // 地图工厂解析不依赖会话（原经 chr.getClient() 的 mock 通道语义 = channel 1）
+        MapleMap map = Server.getInstance().getWorld(chr.getWorld()).getChannel(1).getMapFactory().getMap(mapid);
+        PlayerNPC pn = processPlayerNPCInternal(map, pos, chr, true).getLeft();
         if (pn != null) {
             for (Channel channel : Server.getInstance().getChannelsFromWorld(chr.getWorld())) {
                 MapleMap m = channel.getMapFactory().getMap(mapid);
@@ -435,7 +438,7 @@ public class PlayerNPC extends AbstractMapObject {
         return null;
     }
 
-    public static void removePlayerNPC(Character chr) {
+    public static void removePlayerNPC(CharacterView chr) {
         if (chr == null) {
             return;
         }
@@ -464,12 +467,7 @@ public class PlayerNPC extends AbstractMapObject {
             return;
         }
 
-        Client c = Client.createMock();
-        c.setWorld(world);
-        c.setChannel(1);
-
-        for (Character mc : wserv.loadAndGetAllCharactersView()) {
-            mc.setClient(c);
+        for (CharacterView mc : wserv.loadAndGetAllCharactersView()) {
             spawnPlayerNPC(mapid, mc);
         }
     }
