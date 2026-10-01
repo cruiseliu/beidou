@@ -24,6 +24,7 @@ import com.mybatisflex.annotation.Column;
 import org.gms.client.BuddylistEntry;
 import org.gms.client.EffectType;
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterView;
 import org.gms.client.Client;
 import org.gms.client.Disease;
 import org.gms.client.FamilyEntitlement;
@@ -140,7 +141,7 @@ public class PacketCreator {
         return p;
     }
 
-    private static void addRemainingSkillInfo(final OutPacket p, Character chr) {
+    private static void addRemainingSkillInfo(final OutPacket p, CharacterView chr) {
         int[] remainingSp = chr.getRemainingSps();
         int effectiveLength = 0;
         for (int j : remainingSp) {
@@ -158,7 +159,7 @@ public class PacketCreator {
         }
     }
 
-    public static void addCharStats(OutPacket p, Character chr) {
+    public static void addCharStats(OutPacket p, CharacterView chr) {
         p.writeInt(chr.getId()); // character id
         p.writeFixedString(StringUtil.getRightPaddedStr(chr.getName(), '\0', 13));
         p.writeByte(chr.getGender()); // gender (0 = male, 1 = female)
@@ -167,13 +168,7 @@ public class PacketCreator {
         p.writeInt(chr.getHair()); // hair
 
         for (int i = 0; i < 3; i++) {
-            Pet pet = chr.getPet(i);
-            if (pet != null) //Checked GMS.. and your pets stay when going into the cash shop.
-            {
-                p.writeLong(pet.getPetId());
-            } else {
-                p.writeLong(0);
-            }
+            p.writeLong(chr.getPetId(i)); // 宠物 id 占位（视图条目无宠物 = 0）
         }
 
         p.writeByte(chr.getLevel()); // level
@@ -200,7 +195,7 @@ public class PacketCreator {
         p.writeInt(0);
     }
 
-    protected static void addCharLook(final OutPacket p, Character chr, boolean mega) {
+    protected static void addCharLook(final OutPacket p, CharacterView chr, boolean mega) {
         p.writeByte(chr.getGender());
         p.writeByte(chr.getSkinColor().getId()); // skin color
         p.writeInt(chr.getFace()); // face
@@ -275,9 +270,8 @@ public class PacketCreator {
         }
     }
 
-    private static void addCharEquips(final OutPacket p, Character chr) {
-        InventoryTab equip = chr.getInventory(InventoryType.EQUIPPED);
-        Collection<ItemSlot> ii = ItemInformationProvider.getInstance().canWearEquipment(chr, equip.list());
+    private static void addCharEquips(final OutPacket p, CharacterView chr) {
+        Collection<ItemSlot> ii = ItemInformationProvider.getInstance().canWearEquipment(chr, chr.getEquippedItems());
         // 过滤非装备占位（金币伪 id=0 等），避免进入外观位图
         ii = ii.stream().filter(it -> it.getItemType() == 1)
                 .collect(java.util.stream.Collectors.toList());
@@ -307,18 +301,20 @@ public class PacketCreator {
             p.writeInt(entry.getValue());
         }
         p.writeByte(0xFF);
-        ItemSlot cWeapon = equip.getItem((short) -111);
+        ItemSlot cWeapon = null;
+        for (ItemSlot item : chr.getEquippedItems()) {   // 现金武器（-111 槽）
+            if (item.getPosition() == -111) {
+                cWeapon = item;
+                break;
+            }
+        }
         p.writeInt(cWeapon != null ? cWeapon.getItemId() : 0);
         for (int i = 0; i < 3; i++) {
-            if (chr.getPet(i) != null) {
-                p.writeInt(chr.getPet(i).getItemId());
-            } else {
-                p.writeInt(0);
-            }
+            p.writeInt(chr.getPetItemId(i));
         }
     }
 
-    private static void addCharEntry(OutPacket p, Character chr, boolean viewall) {
+    private static void addCharEntry(OutPacket p, CharacterView chr, boolean viewall) {
         addCharStats(p, chr);
         addCharLook(p, chr, false);
         if (!viewall) {
@@ -4366,12 +4362,12 @@ public class PacketCreator {
         return p;
     }
 
-    public static Packet showAllCharacterInfo(int worldid, List<Character> chars, boolean usePic) {
+    public static Packet showAllCharacterInfo(int worldid, List<CharacterView> chars, boolean usePic) {
         final OutPacket p = OutPacket.create(SendOpcode.VIEW_ALL_CHAR);
         p.writeByte(0);
         p.writeByte(worldid);
         p.writeByte(chars.size());
-        for (Character chr : chars) {
+        for (CharacterView chr : chars) {
             addCharEntry(p, chr, true);
         }
         p.writeByte(usePic ? 1 : 2);

@@ -22,6 +22,7 @@
 package org.gms.net.server.handlers.login;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterView;
 import org.gms.client.Client;
 import org.gms.config.GameConfig;
 import org.gms.net.AbstractPacketHandler;
@@ -52,7 +53,7 @@ public final class ViewAllCharHandler extends AbstractPacketHandler {
                 return;
             }
 
-            SortedMap<Integer, List<Character>> worldChrs = Server.getInstance().loadAccountCharlist(c.getAccID(), c.getVisibleWorlds());
+            SortedMap<Integer, List<CharacterView>> worldChrs = Server.getInstance().loadAccountCharlist(c.getAccID(), c.getVisibleWorlds());
             worldChrs = limitTotalChrs(worldChrs, CHARACTER_LIMIT);
 
             padChrsIfNeeded(worldChrs);
@@ -70,7 +71,7 @@ public final class ViewAllCharHandler extends AbstractPacketHandler {
         }
     }
     
-    private static SortedMap<Integer, List<Character>> limitTotalChrs(SortedMap<Integer, List<Character>> worldChrs,
+    private static SortedMap<Integer, List<CharacterView>> limitTotalChrs(SortedMap<Integer, List<CharacterView>> worldChrs,
                                                                       int limit) {
         if (countTotalChrs(worldChrs) <= limit) {
             return worldChrs;
@@ -79,25 +80,25 @@ public final class ViewAllCharHandler extends AbstractPacketHandler {
         }
     }
 
-    private static int countTotalChrs(Map<Integer, List<Character>> worldChrs) {
+    private static int countTotalChrs(Map<Integer, List<CharacterView>> worldChrs) {
         return worldChrs.values().stream()
                 .mapToInt(List::size)
                 .sum();
     }
 
-    private static SortedMap<Integer, List<Character>> cutAfterChrLimit(SortedMap<Integer, List<Character>> worldChrs,
+    private static SortedMap<Integer, List<CharacterView>> cutAfterChrLimit(SortedMap<Integer, List<CharacterView>> worldChrs,
                                                                         int limit) {
-        SortedMap<Integer, List<Character>> cappedCopy = new TreeMap<>();
+        SortedMap<Integer, List<CharacterView>> cappedCopy = new TreeMap<>();
         int runningChrTotal = 0;
-        for (Map.Entry<Integer, List<Character>> entry : worldChrs.entrySet()) {
+        for (Map.Entry<Integer, List<CharacterView>> entry : worldChrs.entrySet()) {
             int worldId = entry.getKey();
-            List<Character> chrs = entry.getValue();
+            List<CharacterView> chrs = entry.getValue();
             if (runningChrTotal + chrs.size() <= limit) { // Limit not reached, move them all
                 runningChrTotal += chrs.size();
                 cappedCopy.put(worldId, chrs);
             } else { // Limit would be reached if all chrs were moved. Move just enough to fit within limit.
                 int remainingSlots = limit - runningChrTotal;
-                List<Character> lastChrs = chrs.subList(0, remainingSlots);
+                List<CharacterView> lastChrs = chrs.subList(0, remainingSlots);
                 cappedCopy.put(worldId, lastChrs);
                 break;
             }
@@ -114,10 +115,10 @@ public final class ViewAllCharHandler extends AbstractPacketHandler {
      * @param totalChrs total amount of characters to display on 'View all characters' screen
      * @return if we need to pad the last row to include the characters that would otherwise not appear
      */
-    private static void padChrsIfNeeded(SortedMap<Integer, List<Character>> worldChrs) {
+    private static void padChrsIfNeeded(SortedMap<Integer, List<CharacterView>> worldChrs) {
         while (shouldPadLastRow(countTotalChrs(worldChrs))) {
-            final List<Character> lastWorldChrs = getLastWorldChrs(worldChrs);
-            final Character lastChrForPadding = getLastItem(lastWorldChrs);
+            final List<CharacterView> lastWorldChrs = getLastWorldChrs(worldChrs);
+            final CharacterView lastChrForPadding = getLastItem(lastWorldChrs);
             lastWorldChrs.add(lastChrForPadding);
         }
     }
@@ -128,7 +129,7 @@ public final class ViewAllCharHandler extends AbstractPacketHandler {
         return shouldScroll && !isLastRowFilled;
     }
 
-    private static List<Character> getLastWorldChrs(SortedMap<Integer, List<Character>> worldChrs) {
+    private static List<CharacterView> getLastWorldChrs(SortedMap<Integer, List<CharacterView>> worldChrs) {
         return worldChrs.get(worldChrs.lastKey());
     }
 

@@ -23,6 +23,7 @@ package org.gms.server;
 
 import org.gms.client.character.Stat;
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterView;
 import org.gms.client.Client;
 import org.gms.client.JobEnum;
 import org.gms.client.Skill;
@@ -1718,9 +1719,8 @@ public class ItemInformationProvider {
         return GameConfig.getServerBoolean("use_enforce_unmerchable_pet") && ItemConstants.isPet(itemId);
     }
 
-    public Collection<ItemSlot> canWearEquipment(Character chr, Collection<ItemSlot> items) {
-        InventoryTab inv = chr.getInventory(InventoryType.EQUIPPED);
-        if (inv.checked()) {
+    public Collection<ItemSlot> canWearEquipment(CharacterView chr, Collection<ItemSlot> items) {
+        if (chr.isEquippedChecked()) {
             return items;
         }
         Collection<ItemSlot> itemz = new LinkedList<>();
@@ -1745,7 +1745,7 @@ public class ItemInformationProvider {
          }*/
         int tdex = chr.getDex(), tstr = chr.getStr(), tint = chr.getInt(), tluk = chr.getLuk(), fame = chr.getFame();
         if (chr.getJob() != JobEnum.SUPERGM || chr.getJob() != JobEnum.GM) {
-            for (ItemSlot item : inv.list()) {
+            for (ItemSlot item : chr.getEquippedItems()) {
                 Equip equip = item.getEquipInfo();
                 if (equip == null) {
                     continue;   // 非装备占位（如金币伪 id=0）不参与需求聚合
@@ -1793,7 +1793,7 @@ public class ItemInformationProvider {
             }
             itemz.add(item);
         }
-        inv.checked(true);
+        chr.markEquippedChecked();
         return itemz;
     }
 

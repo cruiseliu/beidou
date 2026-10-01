@@ -131,7 +131,7 @@ import static org.gms.client.character.Stat.*;
 
 import static java.util.concurrent.TimeUnit.*;
 
-public class Character extends AbstractAnimatedMapObject implements CashShopModule.Handler {
+public class Character extends AbstractAnimatedMapObject implements CashShopModule.Handler, CharacterView {
     private static final Logger log = LoggerFactory.getLogger(Character.class);
 
     // ── 属性核心（原 AbstractCharacterObject 合并而来） ──
@@ -3044,6 +3044,36 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     /** 召唤槽位快照（0..2；协议组装/遍历用） */
     public Pet[] LEGACY_getSummonSlots() { return pets.LEGACY_getActivePets(); }
     public Pet getPet(int index) { return pets.getSummonedPet(index); }
+
+    // ── CharacterView（charlist 只读面；方法面 = CHARLIST 包字段事实）──
+
+    @Override
+    public long getPetId(int slot) {
+        Pet pet = pets.getSummonedPet(slot);
+        return pet != null ? pet.getPetId() : 0;
+    }
+
+    @Override
+    public int getPetItemId(int slot) {
+        Pet pet = pets.getSummonedPet(slot);
+        return pet != null ? pet.getItemId() : 0;
+    }
+
+    @Override
+    public boolean isEquippedChecked() {
+        return getInventory(InventoryType.EQUIPPED).checked();
+    }
+
+    @Override
+    public void markEquippedChecked() {
+        getInventory(InventoryType.EQUIPPED).checked(true);
+    }
+
+    @Override
+    public Collection<ItemSlot> getEquippedItems() {
+        return getInventory(InventoryType.EQUIPPED).list();
+    }
+
     public byte getPetIndex(int petId) { return (byte) pets.getSummonedPetIndex(petId); }
     public byte getPetIndex(Pet pet) { return (byte) pets.getSummonedPetIndex(pet); }
     public int getPetEquipItemId(byte petIndex) { return pets.getPetEquipItemId(petIndex); }

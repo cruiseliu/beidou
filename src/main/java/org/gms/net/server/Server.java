@@ -25,6 +25,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.gms.infra.DeadlineTimer;
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterView;
 import org.gms.client.Client;
 import org.gms.client.SkillFactory;
 import org.gms.client.command.CommandsExecutor;
@@ -1244,19 +1245,19 @@ public class Server {
     }
     */
 
-    public SortedMap<Integer, List<Character>> loadAccountCharlist(int accountId, int visibleWorlds) {
+    public SortedMap<Integer, List<CharacterView>> loadAccountCharlist(int accountId, int visibleWorlds) {
         List<World> worlds = this.getWorlds();
         if (worlds.size() > visibleWorlds) {
             worlds = worlds.subList(0, visibleWorlds);
         }
 
-        SortedMap<Integer, List<Character>> worldChrs = new TreeMap<>();
+        SortedMap<Integer, List<CharacterView>> worldChrs = new TreeMap<>();
         int chrTotal = 0;
 
         lgnRLock.lock();
         try {
             for (World world : worlds) {
-                List<Character> chrs = world.getAccountCharactersView(accountId);
+                List<CharacterView> chrs = world.getAccountCharactersView(accountId);
                 if (chrs == null) {
                     if (!accountChars.containsKey(accountId)) {
                         accountCharacterCount.put(accountId, (short) 0);
@@ -1273,14 +1274,14 @@ public class Server {
         return worldChrs;
     }
 
-    private static Pair<Short, List<List<Character>>> loadAccountCharactersViewFromDb(int accId, int wlen) {
+    private static Pair<Short, List<List<CharacterView>>> loadAccountCharactersViewFromDb(int accId, int wlen) {
         short characterCount = 0;
-        List<List<Character>> wchars = new ArrayList<>(wlen);
+        List<List<CharacterView>> wchars = new ArrayList<>(wlen);
         for (int i = 0; i < wlen; i++) {
             wchars.add(i, new LinkedList<>());
         }
 
-        List<Character> chars = new LinkedList<>();
+        List<CharacterView> chars = new LinkedList<>();
         int curWorld = 0;
         try {
             List<Pair<ItemSlot, Integer>> accEquips = ItemFactory.loadEquippedItems(accId, true, true);
@@ -1392,11 +1393,11 @@ public class Server {
 
     private int loadAccountCharactersView(Integer accId, int gmLevel, int fromWorldid) {    // returns the maximum gmLevel found
         List<World> wlist = this.getWorlds();
-        Pair<Short, List<List<Character>>> accCharacters = loadAccountCharactersViewFromDb(accId, wlist.size());
+        Pair<Short, List<List<CharacterView>>> accCharacters = loadAccountCharactersViewFromDb(accId, wlist.size());
 
         lgnWLock.lock();
         try {
-            List<List<Character>> accChars = accCharacters.getRight();
+            List<List<CharacterView>> accChars = accCharacters.getRight();
             accountCharacterCount.put(accId, accCharacters.getLeft());
 
             Set<Integer> chars = accountChars.get(accId);
@@ -1406,10 +1407,10 @@ public class Server {
 
             for (int wid = fromWorldid; wid < wlist.size(); wid++) {
                 World w = wlist.get(wid);
-                List<Character> wchars = accChars.get(wid);
+                List<CharacterView> wchars = accChars.get(wid);
                 w.loadAccountCharactersView(accId, wchars);
 
-                for (Character chr : wchars) {
+                for (CharacterView chr : wchars) {
                     int cid = chr.getId();
                     if (gmLevel < chr.gmLevel()) {
                         gmLevel = chr.gmLevel();
