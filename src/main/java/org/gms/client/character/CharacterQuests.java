@@ -256,19 +256,6 @@ public class CharacterQuests implements QuestModule.Handler {
         }
     }
 
-    /** 任务接取全量通知（多帧合一：主任务状态帧 + infoNumber 关联任务同步 + NPC 交付确认）。 */
-    void announceQuestStart(Quest qs) {
-        QuestModule quest = owner.remote().quest();
-        int infoNumber = qs.getInfoNumber();
-        if (infoNumber > 0) {
-            Quest iqs = owner.getQuest(infoNumber);
-            quest.questStarted(qs.getId(), qs.getStatus().getValue(), qs.getNpc(), qs.getProgress(),
-                    iqs.getId(), iqs.getStatus().getValue(), iqs.getProgress());
-        } else {
-            quest.questStarted(qs.getId(), qs.getStatus().getValue(), qs.getNpc(), qs.getProgress());
-        }
-    }
-
     /** 任务完成帧（completionTime = UTC ms）。 */
     void announceQuestComplete(int questId, long completionTime) {
         owner.remote().quest().questCompleted(questId, completionTime);

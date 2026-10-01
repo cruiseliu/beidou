@@ -1,10 +1,14 @@
 package org.gms.remote.gms083.server.routers;
 
+import org.gms.client.quest.Quest;
+import org.gms.remote.ServerEvent;
 import org.gms.remote.ServerEventBase;
 import org.gms.remote.ServerEventDest;
 import org.gms.remote.gms083.Gms083;
+import org.gms.remote.gms083.server.events.FrozenQuestStartEvent;
 import org.gms.remote.gms083.server.packets.QuestInfoPacket;
 import org.gms.remote.gms083.server.packets.QuestStatusPacket;
+import org.gms.remote.gms083.server.packets.V83Packet;
 import org.gms.remote.gms083.server.translators.QuestProgressFormat;
 import org.gms.remote.modules.quest.QuestModule;
 import org.gms.remote.modules.quest.server.QuestCompletedEvent;
@@ -16,10 +20,15 @@ import org.gms.remote.modules.quest.server.QuestStateEvent;
 import org.gms.remote.modules.quest.server.QuestTimeLimitEvent;
 import org.gms.remote.modules.quest.server.QuestTimeLimitRemovedEvent;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * 任务域 route：出脸继承自 {@link QuestModule}（API → 事件在基类），本类承载
- * emit/deliver/flush——语义事件 → quest 包 record 直发本连接（无 translator，
- * 事件即编码事实；无合并冲刷需求，flush 恒空）。
+ * 任务域 route：出脸继承自 {@link QuestModule}（API → 事件在基类），本类承载统一冻结门
+ * + emit/deliver/flush——QuestStartEvent（实体档）经冻结门在入域时点物化为成品帧
+ * FrozenQuestStartEvent（主任务状态帧 + infoNumber 关联任务同步 + 交付确认，wire 事实读于
+ * 调用时点）；其余语义事件 → quest 包 record 直发本连接（无 translator，事件即编码事实；
+ * 无合并冲刷需求，flush 恒空）。
  */
 public final class QuestRouter extends QuestModule implements ServerEventDest {
     private final Gms083 client;
@@ -33,21 +42,32 @@ public final class QuestRouter extends QuestModule implements ServerEventDest {
         client.schedule(this, event);
     }
 
+    /** 统一冻结门：接取帧在事件构造时点物化（其余事件恒等通过） */
+    @Override
+    protected ServerEventBase freeze(ServerEvent event) {
+        if (!(event instanceof QuestStartEvent start)) {
+            return event;
+        }
+        Quest quest = start.quest();
+        List<V83Packet> frames = new ArrayList<>(3);
+        frames.add(new QuestStatusPacket(new QuestStatusPacket.Body.Update(
+                quest.getId(), quest.getStatus().getValue(), QuestProgressFormat.toWire(quest.getProgress()))));
+        Quest info = quest.getInfo();
+        if (info != null) {
+            frames.add(new QuestStatusPacket(new QuestStatusPacket.Body.Update(
+                    info.getId(), info.getStatus().getValue(), QuestProgressFormat.toWire(info.getProgress()))));
+        }
+        frames.add(new QuestInfoPacket(new QuestInfoPacket.Body.NpcDelivery(quest.getId(), quest.getNpc())));
+        return new FrozenQuestStartEvent(frames);
+    }
+
     @Override
     public void deliver(ServerEventBase r) {
         switch (r) {
+            case FrozenQuestStartEvent f -> f.frames().forEach(client::send);
             case QuestStateEvent(var questId, var status, var progress) ->
                     client.send(new QuestStatusPacket(new QuestStatusPacket.Body.Update(
                             questId, status, QuestProgressFormat.toWire(progress))));
-            case QuestStartEvent(var questId, var status, var npc, var progress, var infoSync) -> {
-                client.send(new QuestStatusPacket(new QuestStatusPacket.Body.Update(
-                        questId, status, QuestProgressFormat.toWire(progress))));
-                if (infoSync != null) {
-                    client.send(new QuestStatusPacket(new QuestStatusPacket.Body.Update(infoSync.questId(),
-                            infoSync.status(), QuestProgressFormat.toWire(infoSync.progress()))));
-                }
-                client.send(new QuestInfoPacket(new QuestInfoPacket.Body.NpcDelivery(questId, npc)));
-            }
             case QuestCompletedEvent(var questId, var completionTime) ->
                     client.send(new QuestStatusPacket(new QuestStatusPacket.Body.Completed(questId, completionTime)));
             case QuestForfeitedEvent(var questId) ->

@@ -37,9 +37,10 @@
   冻结时点 = 事件构造时点；携带活引用的事件由版本 route **按域统一重载 `freeze`** 做快照/
   替换，产物为版本冻结事件——快照在入域时点抽取，翻译只读快照（翻译时机可能晚于构造，
   活引用会读到未来状态）。冻结所需的数据解析属于版本知识（例：宠物物品的数据在
-  语义层对 pet 盲，由版本实现在 freeze 时解析补齐）。现存两处：`FrozenInventoryEvent`
+  语义层对 pet 盲，由版本实现在 freeze 时解析补齐）。现存三处：`FrozenInventoryEvent`
   （宠物槽位 PetSnap）、`FrozenInitializeEvent`（入场 SET_FIELD + 键位/快捷键/宏/自动用药
-  帧在入域时点物化）。
+  帧在入域时点物化）、`FrozenQuestStartEvent`（任务接取多帧与 infoNumber 关联任务解析在
+  入域时点物化）。
 - **无需快照的事件**：不经过冻结（恒等通过），翻译按语义事件正常消费。
 - **事件基类**：`ServerEventBase` 为事务段（`EventLog`）可存储记录的最高类型；
   `ServerEvent` 是其 S→C 封闭子接口（语义事件词表，版本不得伪造语义事件）；版本派生的

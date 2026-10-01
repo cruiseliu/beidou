@@ -148,6 +148,16 @@ public class Quest {
         return wz.getInfoNumber(status);
     }
 
+    /**
+     * infoNumber 关联任务（客户端任务面板的进度显示绑在该任务条目上）。
+     * infoNumber &lt;= 0 返回 null；经 getQuestNAdd 取用——不存在则自动建项
+     * （NOT_STARTED 空进度，旧接取/同步路径原样保留的副作用）。
+     */
+    public Quest getInfo() {
+        int infoNumber = getInfoNumber();
+        return infoNumber > 0 ? chr.getQuestNAdd(infoNumber) : null;
+    }
+
     public String getInfoEx(int index) {
         return wz.getInfoEx(status, index);
     }
@@ -344,7 +354,7 @@ public class Quest {
         // }
 
         // 状态帧 + infoNumber 关联任务同步 + NPC 交付确认：多帧合一次 QuestStartEvent
-        chr.announceQuestStart(this);
+        chr.getRemote().quest().questStarted(this);
     }
 
     public boolean forceComplete(Character chr, int npc) {
