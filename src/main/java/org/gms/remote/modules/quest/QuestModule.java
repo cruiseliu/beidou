@@ -4,7 +4,7 @@ import org.gms.client.quest.Quest;
 import org.gms.remote.AbstractModule;
 import org.gms.remote.modules.quest.server.QuestCompleteEvent;
 import org.gms.remote.modules.quest.server.QuestExpiredEvent;
-import org.gms.remote.modules.quest.server.QuestForfeitedEvent;
+import org.gms.remote.modules.quest.server.QuestForfeitEvent;
 import org.gms.remote.modules.quest.server.QuestSeriesCompleteEvent;
 import org.gms.remote.modules.quest.server.QuestStartEvent;
 import org.gms.remote.modules.quest.server.QuestStateEvent;
@@ -43,9 +43,12 @@ public abstract class QuestModule extends AbstractModule {
         post(new QuestCompleteEvent(quest));
     }
 
-    /** 任务放弃。 */
-    public final void questForfeited(int questId) {
-        post(new QuestForfeitedEvent(questId));
+    /**
+     * 任务放弃全量通知：本任务状态帧（NOT_STARTED + 空进度）+ infoNumber 关联任务状态
+     * 同步（quest.getInfo()），由版本实现按序发多帧。实体档——帧物化归版本统一冻结门。
+     */
+    public final void questForfeit(Quest quest) {
+        post(new QuestForfeitEvent(quest));
     }
 
     /** 任务系列终结标记（任务链无下一环时的收尾；wire = UPDATE_QUEST_INFO type 8 交付分支）。 */

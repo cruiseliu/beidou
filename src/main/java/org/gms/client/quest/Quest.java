@@ -353,11 +353,9 @@ public class Quest {
         npc = 0;
         completionTime = NEVER;
         progress.clear();
-        chr.announceQuestState(this, false);
-        if (wz.getInfoNumber(status) > 0) {
-            chr.announceQuestState(this, true);
-        }
-        // reminder: do not reset quest progress of infoNumbers, some quests cannot backtrack
+        // 放弃状态帧 + infoNumber 关联任务同步：多帧合一次 QuestForfeitEvent
+        //（关联任务进度不清——部分任务不可回退）
+        chr.getRemote().quest().questForfeit(this);
         return;
     }
 
