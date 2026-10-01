@@ -2,6 +2,8 @@ package org.gms.remote.gms083.server.routers;
 
 import org.gms.client.quest.Quest;
 import org.gms.remote.ServerEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.gms.remote.ServerEventBase;
 import org.gms.remote.ServerEventDest;
 import org.gms.remote.gms083.Gms083;
@@ -36,6 +38,8 @@ import java.util.List;
  * 无合并冲刷需求，flush 恒空）。
  */
 public final class QuestRouter extends QuestModule implements ServerEventDest {
+    private static final Logger log = LoggerFactory.getLogger(QuestRouter.class);
+
     private final Gms083 client;
 
     public QuestRouter(Gms083 client) {
@@ -47,7 +51,7 @@ public final class QuestRouter extends QuestModule implements ServerEventDest {
         client.schedule(this, event);
     }
 
-    /** 统一冻结门：接取/完成全量帧在事件构造时点物化（其余事件恒等通过） */
+    /** 统一冻结门：接取/完成/放弃全量帧在事件构造时点物化（其余事件恒等通过） */
     @Override
     protected ServerEventBase freeze(ServerEvent event) {
         if (event instanceof QuestStartEvent start) {
@@ -55,6 +59,9 @@ public final class QuestRouter extends QuestModule implements ServerEventDest {
         }
         if (event instanceof QuestCompleteEvent complete) {
             return freezeComplete(complete);
+        }
+        if (event instanceof QuestForfeitEvent forfeit) {
+            return freezeForfeit(forfeit);
         }
         return event;
     }
@@ -113,7 +120,8 @@ public final class QuestRouter extends QuestModule implements ServerEventDest {
                     client.send(new QuestInfoPacket(new QuestInfoPacket.Body.TimeLimitRemoved(questId)));
             case QuestExpiredEvent(var questId) ->
                     client.send(new QuestInfoPacket(new QuestInfoPacket.Body.Expired(questId)));
-            default -> { }   // 非本模块事件不会到达（owner 标记保证）；防御静默
+            default -> log.error("quest route 收到未处理事件 {}（冻结门漏分支或装配不一致）",
+                    r.getClass().getName());   // 响亮：本域事件漏 case = 真缺陷，禁止静默丢弃
         }
     }
 
