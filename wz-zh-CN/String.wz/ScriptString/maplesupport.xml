@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="maplesupport">
+  <string name="$SCRIPTSTRING_MAPLESUPPORT_1$" value="#h0#，你好吗？&#13;&#10;为了您的快速成长，特意准备了#b#e成长补给站#n#k！"/>
+  <string name="$SCRIPTSTRING_MAPLESUPPORT_2$" value="每天只要#e签到#n就能获得#e有助于成长的道具#n!&#13;&#10;&#13;&#10;在商城中可购买#b#e专属成长补给包#n#k并使用时，可在指定期间内获得#r#e更好的奖励#n#k。"/>
+  <string name="$SCRIPTSTRING_MAPLESUPPORT_3$" value="所有奖励只能用#e世界内角色领取1次#n，还请务必记住。&#13;&#10;还有每天登录游戏领取奖励哦！&#13;&#10;&#13;&#10;#r#e※ 每天23点45分开始到0点15分为止，成长补给站是没办法领取的，还请注意！#n#k"/>
+</imgdir>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="face">
+  <string name="$SCRIPTSTRING_FACE_0$" value="可以让你的面容焕然一新…不想让你的面容变一变吗？ 只需要#b#t5152001##k就可以给你做整形手术.怎么样~慢慢挑选一下你想要的面容~"/>
+  <string name="$SCRIPTSTRING_FACE_1$" value="好~ 手术结束了。。。照下镜子吧。怎么样？我也不得不佩服我自己，多完美啊。。。哼哼~ 如果你又想换新面孔的话，再来找我吧。"/>
+  <string name="$SCRIPTSTRING_FACE_10$" value="固不好意思噢。目前我们医院有一些事情，所以无法当场帮你做手术。以后再来找我们吧。"/>
+  <string name="$SCRIPTSTRING_FACE_11$" value="不好意思，我们医院现在做整形手术出了点问题。以后再来找我们吧。"/>
+  <string name="$SCRIPTSTRING_FACE_12$" value="使用星缘的占卜券可以随机变换长相……真的要使用 . #b#t4055000##k换长相吗？"/>
+  <string name="$SCRIPTSTRING_FACE_13$" value="原来如此……再考虑考虑，等下定决心再跟我搭话吧。"/>
+  <string name="$SCRIPTSTRING_FACE_14$" value="好~ 手术结束了... 照照镜子. 如何? 我看我的技术太完美了... 呃哈哈~ 要是你再厌倦目前的脸就再来找我吧……"/>
+  <string name="$SCRIPTSTRING_FACE_15$" value="呃...你没有我们医院专用会员卡...不好意思无法帮你做整形手术噢。"/>
+  <string name="$SCRIPTSTRING_FACE_16$" value="不好意思噢。目前我们医院有一些事情，所以无法当场帮你做手术。以后再来找我们吧。"/>
+  <string name="$SCRIPTSTRING_FACE_17$" value="不好意思，我们医院现在做整形手术出了点问题。以后再来找我们吧。"/>
+  <string name="$SCRIPTSTRING_FACE_18$" value="可以让你的面容焕然一新…不想让你的面容变一变吗？只需要#b#t5152005##k就可以给你做整形手术.怎么样~慢慢挑选一下你想要的面容~"/>
+  <string name="$SCRIPTSTRING_FACE_19$" value="可以让你的面容焕然一新…不想让你的面容变一变吗？ 只需要#b#t5152005##k就可以给你做整形手术.怎么样~慢慢挑选一下你想要的面容~"/>
+  <string name="$SCRIPTSTRING_FACE_2$" value="嗯。。。你肯定没有我们医院的会员卡。。。不好意思如果你没会员卡，我不能给你做手术。"/>
+  <string name="$SCRIPTSTRING_FACE_20$" value="用一般会员卡脸型会随机变换，你不能指定你要的脸型…确定用#b#t5152004##k变换脸型吗？"/>
+  <string name="$SCRIPTSTRING_FACE_21$" value="是这样啊。。。那么你再考虑考虑吧，当你决定的时候再来找我吧。"/>
+  <string name="$SCRIPTSTRING_FACE_22$" value="好~ 手术结束了…照照镜子。怎么样？我也不得不佩服我自己，多完美阿…哈哈~ 什么时候对现在的脸型觉得厌倦了，那个时候再来找我吧。"/>
+  <string name="$SCRIPTSTRING_FACE_23$" value="嗯。。。你肯定没有我们医院的会员卡。。。不好意思如果你没会员卡，我不能给你做手术。"/>
+  <string name="$SCRIPTSTRING_FACE_24$" value="对不起。现在正在进行设备保养，不能做手术。以后再来用吧。"/>
+  <string name="$SCRIPTSTRING_FACE_25$" value="对不起。可能在手术过程中除了点问题。。。以后再来吧。"/>
+  <string name="$SCRIPTSTRING_FACE_26$" value="可以让你的面容焕然一新…不想让你的面容变一变吗？ 只需要#b#t5152007##k就可以给你做整形手术.怎么样~慢慢挑选一下你想要的面容~"/>
+  <string name="$SCRIPTSTRING_FACE_27$" value="可以让你的面容焕然一新…不想让你的面容变一变吗？只需要#b#t5152007##k就可以给你做整形手术.怎么样~慢慢挑选一下你想要的面容~"/>
+  <string name="$SCRIPTSTRING_FACE_28$" value="好~ 手术结束了…照照镜子。怎么样？我也不得不佩服我自己，多完美阿…哈哈~ 什么时候对现在的脸型觉得厌倦了，那个时候再来找我吧。"/>
+  <string name="$SCRIPTSTRING_FACE_29$" value="嗯。。。你肯定没有我们医院的会员卡。。。不好意思如果你没会员卡，我不能给你做手术呀。"/>
+  <string name="$SCRIPTSTRING_FACE_3$" value="对不起。现在正在进行设备保养，不能做手术。以后再来用吧。"/>
+  <string name="$SCRIPTSTRING_FACE_30$" value="不好意思。现在正在进行设备保养啊，不能做手术。以后再来用吧。"/>
+  <string name="$SCRIPTSTRING_FACE_31$" value="不好意思。可能在手术过程中出了点问题。。。以后再来吧。"/>
+  <string name="$SCRIPTSTRING_FACE_32$" value="用一般会员卡脸型会随机变换，你不能指定你要的脸型…确定用#b#t5152006##k变换脸型吗？"/>
+  <string name="$SCRIPTSTRING_FACE_33$" value="是这样啊。。。那么你再考虑考虑吧，当你决定的时候再来找我吧。"/>
+  <string name="$SCRIPTSTRING_FACE_34$" value="好~ 手术结束了…照照镜子。怎么样？我也不得不佩服我自己，多完美阿…呵呵~ 什么时候对现在的脸型觉得厌倦了，那个时候再来找我吧。"/>
+  <string name="$SCRIPTSTRING_FACE_35$" value="嗯。。。你肯定没有我们医院的会员卡。。。不好意思如果你没会员卡，我不能给你做手术。"/>
+  <string name="$SCRIPTSTRING_FACE_36$" value="对不起。现在正在进行设备保养，不能做手术。以后再来用吧。"/>
+  <string name="$SCRIPTSTRING_FACE_37$" value="对不起。可能在手术过程中出了点问题。。。以后再来吧。"/>
+  <string name="$SCRIPTSTRING_FACE_38$" value="可以让你的面容焕然一新…不想让你的面容变一变吗？只需要#b#t5152017##k就可以给你做整形手术.怎么样~慢慢挑选一下你想要的面容~"/>
+  <string name="$SCRIPTSTRING_FACE_39$" value="可以让你的面容焕然一新…不想让你的面容变一变吗？ 只需要#b#t5152017##k就可以给你做整形手术.怎么样~慢慢挑选一下你想要的面容~"/>
+  <string name="$SCRIPTSTRING_FACE_4$" value="对不起。可能在手术过程中除了点问题。。。以后再来吧。"/>
+  <string name="$SCRIPTSTRING_FACE_40$" value="好~ 手术结束了…照照镜子。怎么样？我也不得不佩服我自己，多完美呀…哈哈~ 什么时候对现在的脸型觉得厌倦了，那个时候再来找我吧。"/>
+  <string name="$SCRIPTSTRING_FACE_41$" value="嗯。。。你肯定没有我们医院的会员卡。。。不好意思如果你没会员卡，我不能给你做手术呀。"/>
+  <string name="$SCRIPTSTRING_FACE_42$" value="不好意思。现在正在进行设备保养啊，不能做手术。以后再来用吧。"/>
+  <string name="$SCRIPTSTRING_FACE_43$" value="不好意思。可能在手术过程中出了点问题。。。以后再来吧。"/>
+  <string name="$SCRIPTSTRING_FACE_44$" value="用一般会员卡脸型会随机变换，你不能指定你要的脸型…确定用#b#t5152016##k变换脸型吗？"/>
+  <string name="$SCRIPTSTRING_FACE_45$" value="是这样啊。。。那么你再考虑考虑吧，当你决定的时候再来找我吧。"/>
+  <string name="$SCRIPTSTRING_FACE_46$" value="好~ 手术结束了…照照镜子。怎么样？我也不得不佩服我自己，多完美阿…呵呵~ 什么时候对现在的脸型觉得厌倦了，那个时候再来找我吧。"/>
+  <string name="$SCRIPTSTRING_FACE_47$" value="嗯。。。你肯定没有我们医院的会员卡。。。不好意思如果你没会员卡，我不能给你做手术。"/>
+  <string name="$SCRIPTSTRING_FACE_48$" value="对不起。现在正在进行设备保养，不能做手术。以后再来用吧。"/>
+  <string name="$SCRIPTSTRING_FACE_49$" value="对不起。可能在手术过程中出了点问题。。。以后再来吧。"/>
+  <string name="$SCRIPTSTRING_FACE_5$" value="想换换长相吗? 看来是想以新的容貌重新出生的样子? 好~ 我帮你如愿以偿.&#13;&#10;#L0##b 整形(使用整形手术普通会员卡)#l"/>
+  <string name="$SCRIPTSTRING_FACE_50$" value="想换一个观相吗？观相变了，命运也会随着改变。只需 #b#t5152028##k我什么时候都可以为你换面容。慢慢看看喜欢哪种面容。。"/>
+  <string name="$SCRIPTSTRING_FACE_51$" value="只需 #b#t5152028##k我什么时候都可以为你换面容.慢慢看看喜欢哪种面容.."/>
+  <string name="$SCRIPTSTRING_FACE_52$" value="好了~手术很成功.怎么样？满意的话，欢迎你下次光临..."/>
+  <string name="$SCRIPTSTRING_FACE_53$" value="唔…你好像没有我们医院的专用会员卡.不好意思没有会员卡不能为你做手术"/>
+  <string name="$SCRIPTSTRING_FACE_54$" value="唔…医院出现了一些问题不能马上做手术…很抱歉，请下次再光临."/>
+  <string name="$SCRIPTSTRING_FACE_55$" value="很抱歉，有点儿小问题不能做手术，请下次再光临."/>
+  <string name="$SCRIPTSTRING_FACE_56$" value="持有一般会员卡只能随意的改变面容.只需 #b#t5152027##k就可以让你的面容焕然一新，决定了吗"/>
+  <string name="$SCRIPTSTRING_FACE_57$" value="相信我的技术.等你再想好了来找我."/>
+  <string name="$SCRIPTSTRING_FACE_58$" value="手术结束了~！唔…还很成功不是吗？想再换面容，欢迎你下次光临!"/>
+  <string name="$SCRIPTSTRING_FACE_59$" value="唔…你好像没有我们医院的专用会员卡.不好意思没有会员卡不能为你做手术."/>
+  <string name="$SCRIPTSTRING_FACE_6$" value="使用普通会员卡的话，会随机变换长相... 真的想使用#b#t5152000##k变换长相吗?"/>
+  <string name="$SCRIPTSTRING_FACE_60$" value="唔…医院出现了一些问题不能马上做手术…很抱歉，请下次再光临."/>
+  <string name="$SCRIPTSTRING_FACE_61$" value="很抱歉，有点儿小问题不能做手术，请下次再光临."/>
+  <string name="$SCRIPTSTRING_FACE_62$" value="呵呵……在炎热的沙漠即使蒙着脸，拥有出众长相的人也会发光。只要有 #b#t5152030##k我随时可以帮你变换长相。慢慢挑你喜欢的脸谱。用我绚烂的实力帮你焕然一新。"/>
+  <string name="$SCRIPTSTRING_FACE_63$" value="怎么样？您的脸变得光芒四射比太阳都耀眼！每当看到像您这样的顾客，我会心满意足。"/>
+  <string name="$SCRIPTSTRING_FACE_64$" value="呃...你没有我们医院专用会员卡...不好意思无法帮你做整形手术噢。"/>
+  <string name="$SCRIPTSTRING_FACE_65$" value="不好意思噢。目前我们医院有一些事情，所以无法当场帮你做手术。以后再来找我们吧。"/>
+  <string name="$SCRIPTSTRING_FACE_66$" value="不好意思，我们医院现在做整形手术出了点问题。以后再来找我们吧。"/>
+  <string name="$SCRIPTSTRING_FACE_67$" value="使用普通会员卡的话，会随机变换长相... 真的想使用 #b#t5152029##k变换长相吗？"/>
+  <string name="$SCRIPTSTRING_FACE_68$" value="还在考虑吗？虽然是偷学的技术，但是也被认可啦。放心交给我吧。"/>
+  <string name="$SCRIPTSTRING_FACE_69$" value="手术结束了。怎么样？还满意吗？在我看来非常棒！"/>
+  <string name="$SCRIPTSTRING_FACE_7$" value="好吧... 那你再考清楚后再来找我。"/>
+  <string name="$SCRIPTSTRING_FACE_70$" value="有会员卡我才能发挥实力。带会员卡来找我吧。"/>
+  <string name="$SCRIPTSTRING_FACE_71$" value="不好意思，现在医院出现了大问题，所以无法当场帮你做手术。以后再来找我们吧。"/>
+  <string name="$SCRIPTSTRING_FACE_72$" value="不好意思，现在医院出现了大问题，所以无法当场帮你做手术。以后再来找我们吧。"/>
+  <string name="$SCRIPTSTRING_FACE_8$" value="好~ 手术结束了... 照照镜子. 如何? 我看我的技术太完美了... 呃哈哈~ 要是你再厌倦目前的脸就再来找我吧……"/>
+  <string name="$SCRIPTSTRING_FACE_9$" value="呃...你没有我们医院专用会员卡...不好意思无法帮你做整形手术噢。"/>
+</imgdir>

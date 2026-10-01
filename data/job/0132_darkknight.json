@@ -1,0 +1,56 @@
+{
+    "jobId": 132,
+    "faction": "ADVENTURER",
+    "style": "WARRIOR",
+    "advancementCount": 4,
+    "advancementLevel": 120,
+    "advancementHint": 200,
+    "maxLevel": 200,
+    "previousJobId": 131,
+    "levelUp": [
+        {
+            "from": 1,
+            "to": 200,
+            "gainStats": {
+                "maxHp": {
+                    "addMin": 24,
+                    "addMax": 28,
+                    "multiply": 1.0
+                },
+                "maxMp": {
+                    "addMin": 4,
+                    "addMax": 6,
+                    "multiply": 1.0
+                },
+                "ap": 5,
+                "sp": 3
+            }
+        }
+    ],
+    "advancementGainStats": {
+        "maxHp": {
+            "addMin": 300,
+            "addMax": 350,
+            "multiply": 1.0
+        },
+        "maxMp": {
+            "addMin": 0,
+            "addMax": 0,
+            "multiply": 1.0
+        },
+        "ap": 5,
+        "sp": 1
+    },
+    "spChainShared": true,
+    "acquiredSkills": [
+        1321007,
+        1320005,
+        1321001
+    ],
+    "apAutoAssignKey": "default",
+    "weaponStatRules": {},
+    "modifiers": [],
+    "listeners": [],
+    "mpIntDivisor": 10,
+    "autoAssignAp": []
+}

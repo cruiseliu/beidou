@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="quest0">
+  <string name="$SCRIPTSTRING_QUEST0_0$" value="哈喽, 小家伙~跟我聊聊啊？哈哈！我是专门为初来这里的冒险家们提供信息的教官， #p2000#。"/>
+  <string name="$SCRIPTSTRING_QUEST0_1$" value="你问我是谁指认我为教官的？呵呵，你的好奇心还挺多啊！不错不错~是我自己喜欢当教官的。"/>
+  <string name="$SCRIPTSTRING_QUEST0_10$" value="你要把我给你的#t2010007#全部吃掉，停滞在一个地方什么都不做血量也会恢复的...你恢复了全部的血量再跟我聊聊吧。#I "/>
+  <string name="$SCRIPTSTRING_QUEST0_100$" value="蒙特鸠可以享受的福利你都已经获得了……虽然很遗憾，但是我不能再发给你蒙特鸠披风。"/>
+  <string name="$SCRIPTSTRING_QUEST0_101$" value="嗯？你不是不久前成为蒙特鸠的炼金术士吗？但是蒙特鸠披风上哪去了……怎么？看样子是把披风弄丢了吧。披风是证明你是蒙特鸠学派所属的重要的东西。怎么连这么重要的东西都弄丢了……怎么失魂落魄的？真是让人不快。你这样的人我不想再给你披风……不过有什么办法。你想重新得到披风吗？"/>
+  <string name="$SCRIPTSTRING_QUEST0_102$" value="如果你不愿意的话就没办法了。你已经不再属于蒙特鸠了。"/>
+  <string name="$SCRIPTSTRING_QUEST0_103$" value="我再给你一次机会。如果你想要制作蒙特鸠披风，需要向我提供#b10个#t4000021##k和#b5个#t4021003##k，以及支付给制作人的辛苦费#b10000金币#k。"/>
+  <string name="$SCRIPTSTRING_QUEST0_104$" value="喔喔！你来啦！看到你真是令人高兴，多亏有你...我最近就不会感到无聊呢！嗯？什么？曾经在这里进行研究的炼金术士是谁？嗯…我是知道他的名字…"/>
+  <string name="$SCRIPTSTRING_QUEST0_105$" value="什么呢？什么呢？我怎么会想不起来…难道…那人对你很重要吗？我劝你还是忘了吧…什么？不行？嗯... "/>
+  <string name="$SCRIPTSTRING_QUEST0_106$" value="这…不管了！还是你自己来看吧！"/>
+  <string name="$SCRIPTSTRING_QUEST0_107$" value="啊？不要？你说不要那就没办法了…那我也无法告诉你曾在这里进行研究的炼金术士是谁！"/>
+  <string name="$SCRIPTSTRING_QUEST0_108$" value="…我虽然不晓得你为何来到这里…炼金术士的实验室可不是多么令人愉快的地方，在非炼金术士的人眼中，听说会觉得非常无聊又无趣…这也是啦！她是妖精，应该更会觉得索然无味吧！"/>
+  <string name="$SCRIPTSTRING_QUEST0_109$" value="你问我她是谁啊？是我的妻子，回想起来已经好一阵子没见到她了，甚至不太能回想起我女儿的面孔….我想她应该很生气吧！当然亲切温柔的她，应该会马上就原谅我... "/>
+  <string name="$SCRIPTSTRING_QUEST0_11$" value="消耗道具...怎么样？很简单吧？可以在右下角设定#b快捷键#k，你还不知道吧？哈哈~"/>
+  <string name="$SCRIPTSTRING_QUEST0_110$" value="…但这也没办法！我已下定决心，在这项研究结束之前，决不再见我妻子！虽然我也很想她…但必须要等到完成研究…只要完成这项研究，就可以一直看到#b#p2111004##k的面孔。"/>
+  <string name="$SCRIPTSTRING_QUEST0_111$" value="话说回来，我还没能将#b吊坠#k送给她耶！为了避免被她发现，虽然把东西藏在#b相框后面#k…但因为不能再见到她的脸，连礼物也无法送给她…不知何时…我才能再次与她相见呢！ "/>
+  <string name="$SCRIPTSTRING_QUEST0_112$" value="抱歉…没想到发牢骚发太久了，我得继续进行研究了！那麻烦请你离开这间研究室吧！"/>
+  <string name="$SCRIPTSTRING_QUEST0_113$" value="你这人还真粗鲁无礼…"/>
+  <string name="$SCRIPTSTRING_QUEST0_114$" value="什么嘛！你身上并没有可供交易的母矿嘛！没有筹码就没有交易…知道吗？"/>
+  <string name="$SCRIPTSTRING_QUEST0_115$" value="喔喔…看你的表情，应该是做好要进行交易的准备吧！虽然我无法理解…你为何这么想要加入蒙特鸠，总之…你的筹码是什么？&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_QUEST0_116$" value="什么吗？你没能准备#t4020000#2个吗??拜托~想要交易就要把东西准备好嘛！"/>
+  <string name="$SCRIPTSTRING_QUEST0_117$" value="你稍等一下，我会把东西准备好，好让你可以通过蒙特鸠炼金协会会长的测试！"/>
+  <string name="$SCRIPTSTRING_QUEST0_118$" value="什么吗？你没能准备#t4020001#2个吗??拜托~想要交易就要把东西准备好嘛！"/>
+  <string name="$SCRIPTSTRING_QUEST0_119$" value="什么吗？你没能准备#t4020002#2个吗??拜托~想要交易就要把东西准备好嘛！"/>
+  <string name="$SCRIPTSTRING_QUEST0_12$" value="不错！学得很好应该给你礼物。这些都是在旅途中必需的，谢谢我吧！危机的时候好好使用。"/>
+  <string name="$SCRIPTSTRING_QUEST0_120$" value="什么吗？你没能准备#t4020003#2个吗??拜托~想要交易就要把东西准备好嘛！"/>
+  <string name="$SCRIPTSTRING_QUEST0_121$" value="什么吗？你没能准备#t4020004#2个吗??拜托~想要交易就要把东西准备好嘛！"/>
+  <string name="$SCRIPTSTRING_QUEST0_122$" value="什么吗？你没能准备#t4020005#2个吗??拜托~想要交易就要把东西准备好嘛！"/>
+  <string name="$SCRIPTSTRING_QUEST0_123$" value="什么吗？你没能准备#t4020006#2个吗??拜托~想要交易就要把东西准备好嘛！"/>
+  <string name="$SCRIPTSTRING_QUEST0_124$" value="什么吗？你没能准备#t4020007#2个吗??拜托~想要交易就要把东西准备好嘛！"/>
+  <string name="$SCRIPTSTRING_QUEST0_125$" value="什么吗？你没能准备#t4020008#2个吗??拜托~想要交易就要把东西准备好嘛！"/>
+  <string name="$SCRIPTSTRING_QUEST0_126$" value="什么吗？你没能准备#t4010004#2个吗??拜托~想要交易就要把东西准备好嘛！"/>
+  <string name="$SCRIPTSTRING_QUEST0_127$" value="什么吗？你没能准备#t4010006#2个吗??拜托~想要交易就要把东西准备好嘛！"/>
+  <string name="$SCRIPTSTRING_QUEST0_128$" value="什么嘛！你身上并没有可供酬劳的母矿嘛！没有筹码就没有交易…知道吗？"/>
+  <string name="$SCRIPTSTRING_QUEST0_129$" value="喔喔…看你的表情，应该是做好要进行交易的准备吧！虽然我无法理解…你为何这么想要加入卡帕莱特，总之…你的筹码是什么？&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_QUEST0_13$" value="我能教你的只有这些了。有点儿舍不得也没办法，到了要离别的时候。路上小心，一路顺风啊！！！&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_QUEST0_130$" value="你稍等一下，我会把东西准备好，好让你可以通过卡帕莱特炼金协会会长的测试！"/>
+  <string name="$SCRIPTSTRING_QUEST0_131$" value="你稍等一下，我会把东西准备好，好让你可以通过卡帕莱特炼金协会会长的测试！"/>
+  <string name="$SCRIPTSTRING_QUEST0_132$" value="我准备了你所必须的礼物喔！请选择你所要的箭矢。&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_QUEST0_133$" value="4/0&#13;&#10;&#13;&#10;#b#L0# #v2060000##t2060000# 6000?#l&#13;&#10;#L1# #v2061000##t2061000# 6000个#l"/>
+  <string name="$SCRIPTSTRING_QUEST0_134$" value="请确认消耗栏内的空位是否有3个以上。"/>
+  <string name="$SCRIPTSTRING_QUEST0_135$" value="我已把#b#t2060000##k6000个交给你了！请你更精进于身为弓箭手的训练。"/>
+  <string name="$SCRIPTSTRING_QUEST0_136$" value="我已把#b#t2061000##k6000个交给你了！请你更精进于身为弓箭手的训练。"/>
+  <string name="$SCRIPTSTRING_QUEST0_137$" value="喔喔~你来啦！亲爱的冒险家~好久不见！我还真有点想念你呢…为什么啊？呵呵呵…我终于知道了之前你问我的事情！啊就那件事情啊~就那个个性阴暗的炼金术士的邪念…"/>
+  <string name="$SCRIPTSTRING_QUEST0_138$" value="我得知那个人的另一个邪念，我想你应该会感兴趣，所以又去调查了一下，呵呵~那你快点去见他吧！"/>
+  <string name="$SCRIPTSTRING_QUEST0_139$" value="啊？不要？若你不愿意那我也没办法了，还以为你会感兴趣，我还特地辛辛苦苦进行调查呢！你竟然会不顾我疯老头的好意…呜呼~"/>
+  <string name="$SCRIPTSTRING_QUEST0_14$" value="4/0#&#13;&#10;#v2010000# #t2010000# 3个&#13;&#10;#v2010009# #t2010009# 3个&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_QUEST0_140$" value="呼…研究没有特别的进展…事实上，这项实验可说是已失败了！ 不管怎么研究，已确定在保有先前记忆的同时，不可能将人类的身体转换成机器…但是…我做出了更了不起的东西！"/>
+  <string name="$SCRIPTSTRING_QUEST0_141$" value="那就是…为我女儿琦尼制作的药！琦尼的身体非常虚弱，我还以为她体质本来就虚弱，但后来得知因为她是人类和妖精的混血，才会这样。因次我才会为她制作出可以改善体质的药物。 "/>
+  <string name="$SCRIPTSTRING_QUEST0_142$" value="哈哈..真是感到欣慰啊！虽然将人类转换成机械来延长寿命的实验失败，但就算无法像妖精长生不老，但人类可以得到不亚于此的幸福吧！啊~我得将研究告一段落了，因这边有太多爆破物还满危险的，我把你传送到研究室外面吧！"/>
+  <string name="$SCRIPTSTRING_QUEST0_143$" value="其实实验并没有完全结束，还有不少危险的实验器材，请你先避开吧！"/>
+  <string name="$SCRIPTSTRING_QUEST0_144$" value="喔！你来啦！你来的正好~我已经得知了可进出秘密通道的主通道密码啰！哈哈哈哈~很厉害吧！快告诉我说我很厉害~"/>
+  <string name="$SCRIPTSTRING_QUEST0_145$" value="来~这密码相当的复杂又长，你要牢牢记起来！我只会讲一次，你想办法记起来或是抄下来吧！准备好了吗？"/>
+  <string name="$SCRIPTSTRING_QUEST0_146$" value="快点快点！怕自己记不住，就快去准备一支笔把内容抄下来！"/>
+  <string name="$SCRIPTSTRING_QUEST0_147$" value="密码是#b"/>
+  <string name="$SCRIPTSTRING_QUEST0_148$" value="#k，记下来了吗？在秘密通道入口处输入这组密码，就可以自由出入通道。"/>
+  <string name="$SCRIPTSTRING_QUEST0_149$" value="什么事儿？听说过&#13;&#10;#b#L0#鬼树吗？#l"/>
+  <string name="$SCRIPTSTRING_QUEST0_15$" value="你携带的东西也太多了吧？"/>
+  <string name="$SCRIPTSTRING_QUEST0_150$" value="鬼树？啊，是说那个很久以前消失的木妖吗？父亲的父亲小时候听说过这种树。据传闻说是每个枝头都有红布，据说是魂的血染成的。不过我也没有亲眼见过。所以也无法辨别真伪。&#13;&#10;#b#L0#没听到其他传闻吗？#l"/>
+  <string name="$SCRIPTSTRING_QUEST0_151$" value="很可惜，我不是对传闻很有兴趣的人。"/>
+  <string name="$SCRIPTSTRING_QUEST0_152$" value="…什么事儿?&#13;&#10;#b#L0#听说过鬼树吗？#l"/>
+  <string name="$SCRIPTSTRING_QUEST0_153$" value="好像是听到了胆小鬼们的故事了吧。没有什么鬼树。我在勇士部落的石山上修炼了很多年，没见过也没听说过那种树。&#13;&#10;#b#L0#哦，是吗？...#l"/>
+  <string name="$SCRIPTSTRING_QUEST0_154$" value="不过最近东边石山中有一些奇怪的袭击事件，有点让人担心..."/>
+  <string name="$SCRIPTSTRING_QUEST0_155$" value="你好，旅行者你今天过来有什么事儿吗？&#13;&#10;#b#L0#听说过鬼树吗?#l"/>
+  <string name="$SCRIPTSTRING_QUEST0_156$" value="噢！听说过那个传闻吗？不久前射手村的卡米拉帮母亲去勇士部落做事，回来的路上见到了鬼。&#13;&#10;#b#L0#真的吗？#l"/>
+  <string name="$SCRIPTSTRING_QUEST0_157$" value="是很晚回到射手村的路上，好像在黑暗中踩到了树枝，看了下周围，发现有一个犀利的眼神，感觉像要吃掉卡米拉。"/>
+  <string name="$SCRIPTSTRING_QUEST0_158$" value="卡米拉吓得晕过去了。天亮后大人们重新去看了那地方，不过什么都没发现。肯定是鬼吧。怎么办？我都怕得不敢出去了。"/>
+  <string name="$SCRIPTSTRING_QUEST0_159$" value="找我有什么事儿吗？&#13;&#10;#b#L0#知道鬼树吗？#l"/>
+  <string name="$SCRIPTSTRING_QUEST0_16$" value="你的体力还没有完全恢复吗？我给你的#t2010007#都吃了吗？确定吗？"/>
+  <string name="$SCRIPTSTRING_QUEST0_160$" value="鬼树... 是说木妖吧。&#13;&#10;#b#L0#木妖是什么？#l"/>
+  <string name="$SCRIPTSTRING_QUEST0_161$" value="当勇士部落是个森林时，就开始存在的非常古老的树。不过经历了很长的岁月后树开始愤怒了。看着破坏森林的人们发怒，看着干枯的森林发怒。&#13;&#10;#b#L0#之后怎么样了？#l"/>
+  <string name="$SCRIPTSTRING_QUEST0_162$" value="结果树的愤怒使得它变成了怪兽，现在更是变成了肆意吸收大地养分的怪兽。不要了解太多。我能理解你的好奇心，但他是所有木妖之王。不要想得太简单。"/>
+  <string name="$SCRIPTSTRING_QUEST0_163$" value="快来吧。有什么事吗？&#13;&#10;#b#L0# 了解鬼树吗？#l"/>
+  <string name="$SCRIPTSTRING_QUEST0_164$" value="是在帮芳博士的研究吗？是啊，我也是受博士之托来调查，不过没有什么发现。只知道最近与勇士部落接壤的魔法林开始干枯。虽然速度较慢，但一定要引起警觉。&#13;&#10;#b#L0#好，感谢你抽空帮我。#l"/>
+  <string name="$SCRIPTSTRING_QUEST0_165$" value="很抱歉，没能帮上什么忙。"/>
+  <string name="$SCRIPTSTRING_QUEST0_166$" value="(雕像散发出耀眼的美丽。像冰块儿一样透明，但好像又不是冰块儿。我到雕像周围仔细看了一下。)"/>
+  <string name="$SCRIPTSTRING_QUEST0_167$" value="(雕像的一角碎掉了。周围也能看到几个大脚印。"/>
+  <string name="$SCRIPTSTRING_QUEST0_168$" value="好，这就是彩虹色蜗牛壳儿吧？&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_QUEST0_169$" value="请确认其他窗和消费窗是否有空位。"/>
+  <string name="$SCRIPTSTRING_QUEST0_17$" value="我不是让你把#r#t2010007##k都吃掉吗？你打开，道具窗点击#b消耗栏#k。看到#t2010007#了吧，双击一下。"/>
+  <string name="$SCRIPTSTRING_QUEST0_170$" value="不是说要分彩虹色蜗牛壳儿？不过把这个分成一半，可能会降低效果吧？先提供信息的是我这边，当然得我拿了！哈哈！"/>
+  <string name="$SCRIPTSTRING_QUEST0_171$" value="什，什么，这是？怎么变成了蜗牛了？！什么？戴了彩虹色蜗牛壳儿之后就变成这样了？这么说来，好像蜗牛传说中也提到过关于宝物的危险…… 呼，真是幸运啊。幸好没吃，贪心没有好报啊。"/>
+  <string name="$SCRIPTSTRING_QUEST0_172$" value="嗯... 还没找到#b#t2210006##k吗？可以去海岸草丛抓#b#o2220000##k啊？"/>
+  <string name="$SCRIPTSTRING_QUEST0_18$" value="你想去金银岛我随时都能送你去。当然需要#b150金币#k的路费哦...咦？你是#b#p12000##k介绍的？啊啊~你就是那个冒险家啊？那好，我就破例免费送你一程。 "/>
+  <string name="$SCRIPTSTRING_QUEST0_19$" value="一旦离开了彩虹岛，就再也不能回到这里了。在金银岛的第一站是#b#m104000000##k。比南港还要繁杂，你要打起精神。找到#b#p1002101##k不太难，别担心。"/>
+  <string name="$SCRIPTSTRING_QUEST0_2$" value="嗨，漂亮的冒险者！你有空吗？啊哈哈！我是专门为初来这里的漂亮冒险家们提供信息的教官， #p2000#。"/>
+  <string name="$SCRIPTSTRING_QUEST0_20$" value="你好没有准备好吗？我会等你一会儿准备好了再来。 "/>
+  <string name="$SCRIPTSTRING_QUEST0_21$" value="你拿来了章鱼钥匙装饰品了吗？很可爱的东东嘛。可是这个就是威胁我们地球的外星人的神秘物品...等等！"/>
+  <string name="$SCRIPTSTRING_QUEST0_22$" value="给我看看，你拿着的那个东西。就是在你手里的那个设计图。哦~你是从哪里得到的？有了这个就能对吹泡泡鱼进行一番深入地研究了。"/>
+  <string name="$SCRIPTSTRING_QUEST0_23$" value="真是以外的收获，很好。我送给你一件礼物吧，肯定对你有很大帮助的。哈哈哈~&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_QUEST0_24$" value="4/0#&#13;&#10;#v2040701# #t2040701# 1个&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_QUEST0_25$" value="你带了什么东西，那么多？确认一下你还有没有空地方。"/>
+  <string name="$SCRIPTSTRING_QUEST0_26$" value="吹泡泡鱼和外星人...怎么想都觉得差不多。不对，可能章鱼和外星人一样...呜，这也是一个新理论。"/>
+  <string name="$SCRIPTSTRING_QUEST0_27$" value="你拿来了章鱼钥匙装饰品了吗？很可爱的东东嘛。有了它就能揭开外星人的实体了。真得很感谢。&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_QUEST0_28$" value="4/0#&#13;&#10;#v2000011# #t2000011# 50个&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_QUEST0_29$" value="你好没有弄到章鱼钥匙装饰品吗？它在吹泡泡鱼那里。"/>
+  <string name="$SCRIPTSTRING_QUEST0_3$" value="喂！抽空跟我聊聊吧，我有很多可用的信息哦，对你一定有帮助的，啊哈哈！！！"/>
+  <string name="$SCRIPTSTRING_QUEST0_30$" value="这不是#p2101004#大人吗？真是好久不见，这次好不容易拿到了王妃爱不释手的丝绸喔！当然…品质也是一流！可是…您怎么一直在流汗啊？&#13;&#10;#L0##b(伪装声音)没什么，只是太热了点...#l"/>
+  <string name="$SCRIPTSTRING_QUEST0_31$" value="阿里安特哪有没热过啊？不就一直都这样嘛~可是我还以为#p2101004#大人您都不会怕热呢！不对…您的脸...变得愈来愈红啰！真的没关系吗？&#13;&#10;#L0##b(伪装声音)没…没关系，不需要担心...#l"/>
+  <string name="$SCRIPTSTRING_QUEST0_32$" value="真的没关系吗？我之前就觉得#p2101004#大人体质虚弱，是不是需要吃点什么药啊？刚好我有在冰封雪域那边採买来的感冒药，您要不要买些回去吃啊？我会算您便宜点的...&#13;&#10;#L0##b我说没关系啦！#l"/>
+  <string name="$SCRIPTSTRING_QUEST0_33$" value="真的吗？可是#p2101004#您的声音，和平常不太一样喔！是不是真的感冒啦？怎么看都不像是平时的#p2101004#大人喔！平常你都要我把#t4010007#算便宜一点给您…真是奇怪…您真的是#p2101004#大人吗？"/>
+  <string name="$SCRIPTSTRING_QUEST0_34$" value="您说您不是#p2101004#大人？怎么可能…怎么看您都是#p2101004#大人啊！看来您病得不轻…丝绸就等你康复后再交给你吧！请您多注意身子…晚点再来吧！"/>
+  <string name="$SCRIPTSTRING_QUEST0_35$" value="还真不像是平时的#p2101004#大人…据我所知，#p2101004#大人可不是这么沉默寡言的人，难道发生什么事情了吗？噗！看你脸变得愈来愈红，是不是生气啦？真的很抱歉…我马上去拿丝绸过来，请稍等一下~"/>
+  <string name="$SCRIPTSTRING_QUEST0_36$" value="天气真的很热吧？但不热怎么算是沙漠呢？话说回来...#p2101004#大人什么时候才会来呢？"/>
+  <string name="$SCRIPTSTRING_QUEST0_37$" value="来~在这里，请您小心拿回去吧！这丝绸…可不是随随便便就能到手的东西喔！若稍有破损，恐怕王妃会把#p2101004#大人关进天牢了呢！&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_QUEST0_38$" value="4/0#&#13;&#10;#v4031571# #t4031571# 1个&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_QUEST0_39$" value="您的道具栏的东西太多了，没办法装下丝绸耶！现在可是要搬运的重要物品呢…您就想办法空出一点空间来吧！"/>
+  <string name="$SCRIPTSTRING_QUEST0_4$" value="来...开个小玩笑怎么样？咦！"/>
+  <string name="$SCRIPTSTRING_QUEST0_40$" value="天气真的好热喔~喉咙好像有种快要燃烧的感觉…"/>
+  <string name="$SCRIPTSTRING_QUEST0_41$" value="没想到你会这么的强…以你的水平也许可以成为沙子图团的团员也说不定。对沙子图团员来说，最重要的就是力量的强大，而你…看来已经具备了足够的实力！但我还是要再进行一次测试…如何？可以接受吗？"/>
+  <string name="$SCRIPTSTRING_QUEST0_42$" value="若想要实际测试你的力量，应该需要亲自去体验吧？我想和你进行一场对战！别担心，我也不想伤害你…就用我的分身来对付你好了！可以马上进行对战吗？"/>
+  <string name="$SCRIPTSTRING_QUEST0_43$" value="需要心理准备吗？你也不要太过紧张…"/>
+  <string name="$SCRIPTSTRING_QUEST0_44$" value="好！充满自信是吗？"/>
+  <string name="$SCRIPTSTRING_QUEST0_45$" value="啊…稍等一下~好像有人在使用竞技场，请你稍后再来找我吧！"/>
+  <string name="$SCRIPTSTRING_QUEST0_46$" value="准备好要出发了吗？毕竟是第一次…难免会紧张吧！别担心…我相信你会做得很好。以我的能力，此后可将你送往该处五次。你要现在移动吗？"/>
+  <string name="$SCRIPTSTRING_QUEST0_47$" value="等你准备好，再来找我吧！"/>
+  <string name="$SCRIPTSTRING_QUEST0_48$" value="祝你一路顺风！"/>
+  <string name="$SCRIPTSTRING_QUEST0_49$" value="我们又见面了耶！上次去还好吗？看你这次也要前往哪里，应该是还有事情没有处理好吧？你还剩下四次机会了…那你现在要出发吗？"/>
+  <string name="$SCRIPTSTRING_QUEST0_5$" value="你怎么会拒绝我的好意呢？无法相信！"/>
+  <string name="$SCRIPTSTRING_QUEST0_50$" value="满常见到你耶！看来你很忙喔…现在你还剩下三次机会，你要现在出发吗？"/>
+  <string name="$SCRIPTSTRING_QUEST0_51$" value="看来沙漠是个充满魅力的所在吧！咦~你的脸也晒黑喔！现在你剩下两次机会了，你要现在马上前往吗？"/>
+  <string name="$SCRIPTSTRING_QUEST0_52$" value="今天也是要去那个地方吗？你说那里叫什么名字啊？我记得是阿里安特…对吧？看到你…让我觉得我也应该去一次看看。现在你只剩下一次机会，你要现在出发吗？"/>
+  <string name="$SCRIPTSTRING_QUEST0_53$" value="啊！是你吗？好久不见，这次你负责补给品？实在是很重要的任务。辛苦了&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_QUEST0_54$" value="4/0#&#13;&#10;#v2030000# #t2030000# 10个&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_QUEST0_55$" value="请你确认在消耗栏是否有空间。"/>
+  <string name="$SCRIPTSTRING_QUEST0_56$" value="辛苦了，周围人家还多，你先去忙吧&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_QUEST0_57$" value="4/0#&#13;&#10;#v2030000# #t2030000# 5个&#13;&#10;#v2022155# #t2022155# 5个&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_QUEST0_58$" value="如果你想打开洞穴的门，就要说出暗号..."/>
+  <string name="$SCRIPTSTRING_QUEST0_59$" value="芝麻开门"/>
+  <string name="$SCRIPTSTRING_QUEST0_6$" value="是不是吓了一跳？血量跌到0就坏了。来，给你#r#t2010007##k，把它吃掉就会恢复了。你打开道具窗看看。摁#bI键#k就可以轻松打开.#I"/>
+  <string name="$SCRIPTSTRING_QUEST0_60$" value="芝麻 开门"/>
+  <string name="$SCRIPTSTRING_QUEST0_61$" value="一说出暗号，一股神秘的力量驱使着进入洞穴。"/>
+  <string name="$SCRIPTSTRING_QUEST0_62$" value="洞穴的门，一动不动。"/>
+  <string name="$SCRIPTSTRING_QUEST0_63$" value="呵...呵呵呵呵。你是人类吗？拿到了这么多，你击败了多少只老桔梗精啊...？！呼。不论如何谢谢你了。你把收集到的#b#t4000294# "/>
+  <string name="$SCRIPTSTRING_QUEST0_64$" value="个#k交给我吧。&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_QUEST0_65$" value="这么多太上一定会晕倒的..."/>
+  <string name="$SCRIPTSTRING_QUEST0_66$" value="什么？这些都是你自己收集的？哇，你好强...可以弄到这么多...你真是了不起的冒险家。送给你什么都不可惜，你把收集到的#b#t4000294# "/>
+  <string name="$SCRIPTSTRING_QUEST0_67$" value="这么多，用什么办法能拿到武陵呢？"/>
+  <string name="$SCRIPTSTRING_QUEST0_68$" value="哇...你真了不起。能收集到这么多很不容易啊。谢谢你了。你把收集到的#b#t4000294# "/>
+  <string name="$SCRIPTSTRING_QUEST0_69$" value="哎呀。说不定一船都不够装这么多桔梗。"/>
+  <string name="$SCRIPTSTRING_QUEST0_7$" value="你要把我给你的#t2010007#全部吃掉，停滞在一个地方什么都不做血量也会恢复的...你恢复了全部的血量再跟我聊聊吧。#I "/>
+  <string name="$SCRIPTSTRING_QUEST0_70$" value="呵呵...这么多太上也没话说了吧。你还真行！你把收集到的#b#t4000294# "/>
+  <string name="$SCRIPTSTRING_QUEST0_71$" value="这么多桔梗能装到船上不容易，得找黄船长帮忙。"/>
+  <string name="$SCRIPTSTRING_QUEST0_72$" value="哦...这么多一时半会儿太上也不会说什么了。谢谢你了。你把收集到的#b#t4000294# "/>
+  <string name="$SCRIPTSTRING_QUEST0_73$" value="这些太上会满意的。"/>
+  <string name="$SCRIPTSTRING_QUEST0_74$" value="还好。这些也足以哄住太上了。谢谢你了。你把收集到的#b#t4000294# "/>
+  <string name="$SCRIPTSTRING_QUEST0_75$" value="那好。下一步就要好好晒干这些桔梗，做好药材。"/>
+  <string name="$SCRIPTSTRING_QUEST0_76$" value="哎呀。有点儿不够。不是很着急，就算了。你把收集到的#b#t4000294# "/>
+  <string name="$SCRIPTSTRING_QUEST0_77$" value="呜。太上又要唠叨了..."/>
+  <string name="$SCRIPTSTRING_QUEST0_78$" value="什么？就这么点儿嘛？虽然有点儿少...你把收集到的#b#t4000294# "/>
+  <string name="$SCRIPTSTRING_QUEST0_79$" value="不是被掠夺了...也不至于这么难弄到。"/>
+  <string name="$SCRIPTSTRING_QUEST0_8$" value="你携带的东西也太多了吧？"/>
+  <string name="$SCRIPTSTRING_QUEST0_80$" value="就这么点儿吗？你的能力就这么点...也没办法。你把收集到的#b#t4000294# "/>
+  <string name="$SCRIPTSTRING_QUEST0_81$" value="没脸见太上了..."/>
+  <string name="$SCRIPTSTRING_QUEST0_82$" value="...什么嘛...既然拿来了，你把收集到的#b#t4000294# "/>
+  <string name="$SCRIPTSTRING_QUEST0_83$" value="一时半会儿，不和太上联系为好..."/>
+  <string name="$SCRIPTSTRING_QUEST0_84$" value="你要没有收集到百年桔梗是不是？可以在老桔梗精那里得到..."/>
+  <string name="$SCRIPTSTRING_QUEST0_85$" value="…看来你还没有吃下药吧！是无法相信我罗赛伦吗？身为卡帕莱特前辈，还自认足以作为你的模范呢...."/>
+  <string name="$SCRIPTSTRING_QUEST0_86$" value="呼呼呼呼.... 看你面色苍白看来真的很有效果啊．这次的实验成功了！呃哈哈哈哈！果然可以用在能打倒洛伊德的坚强的人身上！&#13;&#10;#L0##b(果然真的是人体实验嘛!)#k#l"/>
+  <string name="$SCRIPTSTRING_QUEST0_87$" value="很惊讶的表情嘛？不用太担心．不是很危险的药…不，虽然是危险的药但是有解毒药…呼呼呼呼...&#13;&#10;#L0##b(给病又给药…天啊!)#k#l"/>
+  <string name="$SCRIPTSTRING_QUEST0_88$" value="如此一来，任意改变人体的状态会变得更为容易…这样...搞不好可以帮那家伙达成愿望...&#13;&#10;#L0##b那家伙？#k#l"/>
+  <string name="$SCRIPTSTRING_QUEST0_89$" value="是啊…那家伙…在生命进化领域可说是翘楚呢！拥有极为高超的能力…只要有他在，这种研究应该可以马上解决，但现在这也没办法吧…那家伙已经失踪了...&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_QUEST0_9$" value="是不是吓了一跳？血量跌到0就坏了。来，给你#r#t2010007##k，把它吃掉就会恢复了。你打开道具窗看看#I"/>
+  <string name="$SCRIPTSTRING_QUEST0_90$" value="消耗栏是否有空间？请你确认。"/>
+  <string name="$SCRIPTSTRING_QUEST0_91$" value="谁都不知道那家伙为什么会消失．不知从什么时候开始那家伙就变得暴躁，人们不知道他到底在做什么实验．那家伙大概半年左右一直是疯疯癫癫的状态．研究，研究，研究…不断地在做实验．有关生命炼金的...结果，#b那个事件#k终于发生了…"/>
+  <string name="$SCRIPTSTRING_QUEST0_92$" value="就算是号称练金术士之村的玛加提亚…也未曾发生过像那样的剧烈爆炸事件…不晓得那家伙到底做了什么实验，我怎么猜也猜不透…他到底是在做什么惊人的研究呢？既然已经对他家进行了调查，我想协会会长应该知道些什么，但他也不肯透露…"/>
+  <string name="$SCRIPTSTRING_QUEST0_93$" value="这项研究..其实一开始也是和他一起合作，但他却消失无踪，而这项研究也无法继续下去。我对药物虽然还算有自信，但还真不容易啊！既然是和那家伙一起开始的，虽然断断续续还在持续下去，但是…那家伙为什么会想要研究改变人体的状态呢？"/>
+  <string name="$SCRIPTSTRING_QUEST0_94$" value="那家伙应该还活着…那家伙…有活下去的理由！"/>
+  <string name="$SCRIPTSTRING_QUEST0_95$" value="卡帕莱特可以享受的福利你不是都已经得到了吗。虽然很遗憾，但是我不能再发给你卡帕莱特披风了。"/>
+  <string name="$SCRIPTSTRING_QUEST0_96$" value="你的脸我以前好像见过，你应该是隶属于卡帕莱特的炼金术士吧……为什么没有披着卡帕莱特披风呢？听说卡帕莱特所属的炼金术士，不管是谁都披着披风……什么？把披风给弄丢了……？你是不想再当卡帕莱特了吗？嗯……看样子又不像。那我就重新发给你一件披风，你接受吗？"/>
+  <string name="$SCRIPTSTRING_QUEST0_97$" value="你不愿意我也没办法。虽然没有披风并不是说就不再隶属于卡帕莱特……但是你要记住，这样的话谁都不会把你当作卡帕莱特。"/>
+  <string name="$SCRIPTSTRING_QUEST0_98$" value="虽然刚加入卡帕莱特的时候是免费发放的，不过重新发放的时候需要你把材料搜集回来。材料是#b10个#t4000021##k和#b5个#t4021006##k，以及支付给制作人的#b10000金币#k。你快去准备吧，不要弄错。"/>
+  <string name="$SCRIPTSTRING_QUEST0_99$" value="你已经有了卡帕莱特披风，看来你是不需要新的披风了。"/>
+  <string name="$SCRIPTSTRING_QUEST_TEXT_1$" value="经验值"/>
+</imgdir>

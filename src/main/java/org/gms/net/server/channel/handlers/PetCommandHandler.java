@@ -1,0 +1,69 @@
+/*
+ This file is part of the OdinMS Maple Story Server
+ Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
+ Matthias Butz <matze@odinms.de>
+ Jan Christian Meyer <vimes@odinms.de>
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation version 3 as published by
+ the Free Software Foundation. You may not use, modify or distribute
+ this program under any other version of the GNU Affero General Public
+ License.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.gms.net.server.channel.handlers;
+
+import org.gms.client.character.Character;
+import org.gms.client.Client;
+import org.gms.client.pet.Pet;
+import org.gms.client.pet.PetCommand;
+import org.gms.client.pet.PetDataFactory;
+import org.gms.net.AbstractPacketHandler;
+import org.gms.net.packet.InPacket;
+import org.gms.util.PacketCreator;
+import org.gms.util.Randomizer;
+
+public final class PetCommandHandler extends AbstractPacketHandler {
+
+    @Override
+    public boolean queued() {
+        return true;   // strand 迁移 M1-S1：宠物域入口（见 doc 设计，宠物子系统 strand 独占）
+    }
+
+
+    @Override
+    public final void handlePacket(InPacket p, Client c) {
+        Character chr = c.getPlayer();
+        int petId = p.readInt();
+        byte petIndex = chr.getPetIndex(petId);
+        Pet pet;
+        if (petIndex == -1) {
+            return;
+        } else {
+            pet = chr.getPet(petIndex);
+        }
+        p.readInt();
+        p.readByte();
+        byte command = p.readByte();
+        PetCommand petCommand = PetDataFactory.getPetCommand(pet.getItemId(), command);
+        if (petCommand == null) {
+            return;
+        }
+
+        if (Randomizer.nextInt(100) < petCommand.getProbability()) {
+            pet.addTameness(petCommand.getIncrease());
+            // pet.gainTamenessFullness(chr, petCommand.getIncrease(), 0, command);
+            chr.getMap().broadcastMessage(PacketCreator.commandResponse(chr.getId(), petIndex, false, command, chr.hasPetChatballoon(petIndex)));
+        } else {
+            chr.getMap().broadcastMessage(PacketCreator.commandResponse(chr.getId(), petIndex, true, command, chr.hasPetChatballoon(petIndex)));
+        }
+    }
+}

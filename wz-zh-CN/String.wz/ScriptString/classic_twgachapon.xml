@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="classic_twgachapon">
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_0$" value="当前无法使用道具。&#13;&#10;请稍后再试。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_1$" value="永久"/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_10$" value="&#13;&#10;#r#L999##b不交换，结束对话#k#l"/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_11$" value="#持有数量： "/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_12$" value="你要交换什么道具？&#13;&#10;&#13;&#10;#e&lt;交换道具&gt;#n"/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_14$" value="持有的#t"/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_15$" value="#数量不足，无法交换。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_16$" value="使用#k个#k "/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_17$" value="&#13;&#10;#r#e#i"/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_18$" value="交换为##n#k。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_19$" value="因未知原因交换失败，&#13;&#10;请稍后重新尝试。"/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_2$" value="装备"/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_20$" value="天"/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_21$" value="个[交换 "/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_22$" value="个]#k#l"/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_23$" value="个]#n#k&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_24$" value="交换道具。&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_3$" value="消耗"/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_4$" value="放置"/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_5$" value="其他"/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_6$" value="陷阱"/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_7$" value="装饰"/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_8$" value="窗请在空出"/>
+  <string name="$SCRIPTSTRING_CLASSIC_TWGACHAPON_9$" value="格以上尝试。"/>
+</imgdir>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="victoria1">
+  <string name="$SCRIPTSTRING_VICTORIA1_0$" value="你离草药丛太远，再走近一点。"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_1$" value="你真要拿#b#t4031020##k吗？"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_10$" value="虽然在草丛里有各式各样神秘的草根，但是你从#b#p1061005##k没听清楚了说明，所以你肯定不知道要拿走什么样的草根吧…"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_11$" value="在草丛里有各式各样神秘的草根。但是在草根的周围有神奇的气味，你不能接近。"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_12$" value="你想出去？是啊，这个地方的确又很累又难受。不过对我来说一点都没问题。我要过告诉你一旦我送你出去，你必须从头开始。怎么样？确定要出去吗？"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_13$" value="从头开始不是更可怕嘛？还不如加把劲！多做几次你也许能掌握诀窍的。到那时候闭着眼睛都可以呀。"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_14$" value="是#b#p1061005##k拜托你到这儿来收集药草的吗？但是这是我父亲留给我的土地，我不会随便让人进去的。不过，如果你付#r"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_15$" value="#k金币的话，我可以考虑一下。怎么样？你想付钱进去吗?"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_16$" value="这样阿？但是如果你不付钱，我是不会让你进去的。你看着办吧。"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_17$" value="你是不是钱不够？再确认你有#r"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_18$" value="#k以上的紧闭吧？我决不给你打折，你快打消这个念头。"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_19$" value="原来是上次来找过我的那个人啊. #p1061005#目前正在认真制作能减肥的药？总之，你能通过这里太令人惊讶了。作为奖励免费让你入场一段时间吧。在深处还可能发现一些东西…现在想进去么？"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_2$" value="你背包中其他窗满了，不能再获得物品。你应该在其他窗保留一个以上的空格。"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_20$" value="无缘无故给你这么好的机会，你不想就算了。"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_21$" value="等等！一天只能免费进入一次噢。今天不能再进去了！"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_22$" value="你想进去吗？我也听说里面有名贵的草药，但是我不会让我不认识的人进入去的。对不起你回去吧。"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_23$" value="你是上次来的那个人吧！？肯定是#b#p1061005##k叫你采什么东西来的吧？这次你想去更深的地方吗？幽深的地方更危险。好！要是你付#r"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_24$" value="#k金币，我就让你进去。怎么样？你进去吗？"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_25$" value="你是不是钱不够？再确认你的手里有#r"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_26$" value="#k金币以上的金钱。我决不能给你打折，你快断念更好了。"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_27$" value="原来是上次来找我的那个人啊. #p1061005#目前正在认真制作能年轻的药嘛？总之，你能通过这里太令人难以置信了。作为奖励免费让你入场一段时间吧。在深处还可能发现一些东西…现在想进去么？"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_28$" value="哎呀... 这个村庄的 #p1032100#偷偷进入这里面然后被我发现，所以在里面丢了 #b#t1032013##k. 我虽然找过但是找不到…你进去找找看怎么样？要不要现在进去呢？"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_3$" value="其他窗中至少有一个以上的空格，你才能拿走在花簇里发现的东西。等有空格后再来吧。"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_4$" value="虽然在花簇里有各式各样神秘的花，但是你从#b#p1061005##k没听清楚了说明，所以你肯定不知道要拿走什么样的花吧…"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_5$" value="在花簇里有各式各样神秘的花。但是在花草的周围有神奇的气味，你不能接近。"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_6$" value="离的太远，所以看不到草药丛，再走近一点。"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_7$" value="你真要拿#b#t4031032##k吗？"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_8$" value="你背包中装备窗或其他窗满了，不能再获得物品。你应该在其他窗保留一个以上的空格。"/>
+  <string name="$SCRIPTSTRING_VICTORIA1_9$" value="其他窗和装备窗中至少有一个以上的空格，你才能拿走在花簇里发现的东西。等有空格后再来吧。"/>
+</imgdir>

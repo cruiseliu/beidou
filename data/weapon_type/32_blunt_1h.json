@@ -1,0 +1,21 @@
+{
+    "actions": {
+        "swing": 4.4,
+        "stab": 3.2,
+        "shoot": 0
+    },
+    "statRule": {
+        "primary": [
+            "STR"
+        ],
+        "secondary": [
+            "DEX"
+        ]
+    },
+    "itemIdRange": {
+        "from": 1320000,
+        "to": 1329999
+    },
+    "twoHanded": false,
+    "type": "ONE_HANDED_BLUNT_WEAPON"
+}

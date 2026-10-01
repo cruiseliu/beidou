@@ -1,0 +1,23 @@
+{
+    "type": "CLAW",
+    "itemIdRange": {
+        "from": 1472063,
+        "to": 1472063
+    },
+    "actions": {
+        "swing": 3.6,
+        "stab": 3.6,
+        "shoot": 3.6
+    },
+    "statRule": {
+        "primary": [
+            "LUK"
+        ],
+        "secondary": [
+            "STR",
+            "DEX"
+        ]
+    },
+    "twoHanded": true,
+    "priority": 1
+}

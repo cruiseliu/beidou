@@ -1,0 +1,8 @@
+target
+build
+logs
+src/main/resources/static
+docker-db-data
+.idea
+
+/_hold/

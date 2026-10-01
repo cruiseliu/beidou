@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="davyjohn">
+  <string name="$SCRIPTSTRING_DAVYJOHN_0$" value="管理员，需要提供什么帮助？&#13;&#10;#b#L0# 查看昨天的统计资料#l&#13;&#10;#b#L1# 查看今天的统计资料#l"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_1$" value="昨天进行的组队任务统计数据为&#13;&#10;#b入场的组队数 : "/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_10$" value="拜托你一定要把#b#p2094001##k从邪恶的#b老海盗#k手里救出来啊。唯有那样，才能为我们桔梗和百草村找回和平。老海盗和无恙所乘坐的海盗船马上就要出发了！赶快搭上最东边的船吧！"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_100$" value="#b#t1002571##k变的更好了.. #b#t1002571##k要是消失的话得重新去击退老海盗，所以请小心."/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_101$" value="请确认装备栏是否有空地方，如果没有空地方将无法赠送#b#t1002574##k。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_102$" value="#k击退了老海盗#b"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_103$" value=" 次#k，将我们桔梗从邪恶的老海盗的控制当中拯救了出来，真的是非常感谢。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_104$" value="#k击退了老海盗#b10000次#k以上，将我们桔梗从邪恶的老海盗的控制当中拯救了出来，真的是非常感谢。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_105$" value="击退老海盗的次数不到 "/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_106$" value="次，或者没有得到老海盗帽子而无法初始化.."/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_107$" value="#k把老海盗击退了 #b"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_108$" value="次#k ，但是假如丢了#b#t1002573##k的话需要从头开始. 怎么样? 想把老海盗的击退次数初始化吗?"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_109$" value="请考虑清楚后再跟我说话."/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_11$" value="要做什么？&#13;&#10;#b#L0# 进行任务。#l&#13;&#10;#L1# 从海盗船上下去。#l"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_110$" value="真的要把老海盗击退次数初始化到 #b0次#k吗? 要是初始化的话要从 #b0次#k开始重新积累."/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_111$" value="已经拥有#b#t1002571##k了嘛. #b#t1002571##k存在的话无法把击退次数初始化."/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_112$" value="击退老海盗的次数 #b0次#k."/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_113$" value="请在限定时间内击退所有怪物，搭乘海盗船！"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_114$" value="请在限定时间内搜集各个阶段的海盗的证物各20个，然后交给我！"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_115$" value="请在限定时间内击退所有怪物，继续前进！"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_116$" value="请在限定时间内从怪物身上找到钥匙，关上所有的门！"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_117$" value="击退红鼻子海盗团的船长老海盗！"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_12$" value="小心！这里说不定随时都会有海盗出现。这个地方没那么容易就能通过的，老海盗已在前往下一个场所的入口上施加了三个封印。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_13$" value="解除封印需要#b海盗的证据#k。就是证明你是海盗的东西。在老海盗的封印前如果能证明你是海盗，封印自然就会解开。消灭这里的海盗，把#b海盗的证据#k拿来给我，就可以为你解开封印。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_14$" value="马上就会有大量海盗涌出来，消灭那些家伙，收集#b#t4001120##k20个以上拿来给我。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_15$" value="再确认一下，身上是否带有#b#t4001120##k20个。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_16$" value="久翁解开了入口的第一个封印。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_17$" value="#b#t4001120##k都收集齐了。那么，在做好消灭下一批海盗的准备之后再来找我说话吧。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_18$" value="#b#t4001120##k 20个还没有收集齐啊。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_19$" value="第二次，要收集20个以上的#b#t4001121##k凭证。小心！海盗马上就要涌过来了！"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_2$" value="&#13;&#10;完成的组队数 : "/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_20$" value="再确认一下，身上是否带有#b#t4001121##k20个以上。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_21$" value="久翁解开了入口的第二个封印。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_22$" value="#b#t4001121##k都收集齐了。那么，在做好消灭下一批海盗的准备之后再来找我说话吧。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_23$" value="#b#t4001121##k 20个还没有收集齐啊。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_24$" value="最后，要收集20个以上的#b#t4001122##k凭证。小心！海盗马上就要涌过来了！"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_25$" value="再确认一下，身上是否带有#b#t4001122##k20个以上。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_26$" value="久翁解开了入口最后一个封印，请移动到下一个场所。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_27$" value="#b#t4001122##k已经收集好了。你已成功消灭了这里所有的海盗。那么请移动到船右侧的入口吧。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_28$" value="#b#t4001122##k 20个还没有收集齐啊。是不是不想进行下去了，想从海盗船下去啊？"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_29$" value="这里的事情已全部结束，请移动到下一个场所。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_3$" value="&#13;&#10;完成平均等级 : "/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_30$" value="那么，请你们的代表进行吧。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_31$" value="成功解开了入口处老海盗的封印，赶快移动到下一个场所吧。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_32$" value="这里是老海盗的海盗船的甲板。老海盗就在这艘船的尽头，#b无恙#k也肯定在那里。快些消灭那些海盗，救出#b无恙#k吧！"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_33$" value="这里的桔梗们已完全被老海盗控制住了。他们受到邪恶力量的影响，药效都已经消失了。虽然这样做很痛心，但还是请你消灭他们吧。消灭完了之后再来找我说话吧。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_34$" value="你已成功击退了老海盗控制的桔梗了！那是什么？好像是他们看守的老海盗的宝物。把宝物拿走的话老海盗肯定会非常生气。打开宝箱好像还需要什么钥匙…"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_35$" value="把宝物取出来了，老海盗可能非常生气吧.."/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_36$" value="老海盗的桔梗全部击退了吗？"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_37$" value="这里驻扎着老海盗部下中的心腹。那些家伙具有瞬间出现后隐身的特殊能力。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_38$" value="听说老海盗给自己最为信任的心腹们留下了什么重要的东西..."/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_39$" value="这里的桔梗们已完全被老海盗控制住了。他们受到邪恶力量的影响，药效都已经消失了。虽然这样做很痛心，请你消灭他们吧。消灭完之后再来找我说话吧。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_4$" value="今天进行的组队任务统计数据为&#13;&#10;#b入场的组队数 : "/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_40$" value="这里驻扎着老海盗的心腹。那些家伙具有出击后瞬间隐身的特殊能力。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_41$" value="要做什么？&#13;&#10;#b#L0# 听取久翁的故事。#l&#13;&#10;#L1# 从海盗船上下去。#l"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_42$" value="你们上了海盗船的事情已经被所有的海盗发觉了。就连那些最隐蔽的家伙都涌向这里。照这样下去会没完没了，应该先想办法把海盗出来的门关掉了。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_43$" value="关门所需的#b#t4001117##k在海盗们身上，消灭他们，关闭海盗船的门吧！"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_44$" value="里面已有其他组队进入挑战任务，请稍候再尝试。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_45$" value="由于不明原因，暂时不能让大家进入，请稍候再尝试。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_46$" value="你还没有组队，只有组队之后才能进行挑战。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_47$" value="你所属的组队成员少于3人，所以不能接受任务，请调整成员至少到3人。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_48$" value="你或组队成员当中有不满足等级条件55级以上、100级以下的人。请先调整好等级。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_49$" value="让你们的代表来找我说话吧。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_5$" value="要中止任务从这里出去吗？"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_50$" value=" 宝物1 "/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_51$" value=" 宝物2 "/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_52$" value="老海盗出现了，因为宝箱里的宝物都消失了，所以非常愤怒的样子。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_53$" value="老海盗出现了，因为宝箱里的宝物消失了一个，所以很生气的样子。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_54$" value="现在还无法利用入口，请稍候再尝试。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_55$" value="必须消灭所有怪物，才能移动到下一个场所。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_56$" value="现在入口还处在封印状态。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_57$" value="时间已结束，无法进行到下一阶段。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_58$" value="您已作为老海盗的心腹 I入场，在50秒内可进入到相应地图。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_59$" value="时间已过太久，已无法再利用这个入口了。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_6$" value="想好了再来找我吧。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_60$" value="您已作为老海盗的心腹 II入场，在50秒内可进入到相应地图。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_61$" value="非常感谢您们把我救了出来，这样一来那些可怜的桔梗们也能逃离凶暴的老海盗的支配了。那么现在就让我把大家送到外面吧，到了外面之后请再与我说话。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_62$" value="组队成员中有等级超过70级的成员，任务完成经验值将被减少。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_63$" value="&lt;2007 咯抚 颇萍涅胶飘 捞亥飘&gt; 颇萍涅胶飘 努府绢 眠啊 版氰摹啊 瘤鞭邓聪促."/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_64$" value="请你们的代表来找我谈话。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_65$" value="您获得了愤怒的老海盗消灭次数奖励。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_66$" value="您获得了生气的老海盗消灭次数奖励。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_67$" value="真的很感谢把#b老海盗#k击退并解救了我.我能帮你什么吗?&#13;&#10;#b#L1# 初始化击退老海盗的次数.#l&#13;&#10;#b#L2# 从这里退出.#l"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_68$" value="真的很感谢你击退了#b老海盗#k 并解救了我. 能帮你什么吗? &#13;&#10;#b#L0# 确认击退老海盗的次数.#l&#13;&#10;#L1# 初始化老海盗击退次数.#l&#13;&#10;#L2# 从这里退出"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_69$" value="#k虽然帮我们把老海盗 #b"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_7$" value="要做什么？&#13;&#10;#b#L0# 听取久翁的故事。#l&#13;&#10;#L1# 从海盗船上下去。#l"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_70$" value="次#k 击退，但是我们还是没有从老海盗那里解脱. 首先 #b"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_71$" value=" 次#k击退的话，会对我们有很大的帮助."/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_72$" value="击退了老海盗#b"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_73$" value=" 次#k。为了感谢救出我们桔梗，超过#b"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_74$" value=" 次#k后赠送#b#t1002571##k。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_75$" value="击退了老海盗#b500次#k以上。 为了感谢救出我们桔梗，超过了#b"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_76$" value="#b#t1002571##k虽然给了，但是消失的话需要重头开始积累次数，所以千万要小心别弄丢."/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_77$" value="请确认装备栏中有没有空地方。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_78$" value="您身上已经有#b#t1002571##k了。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_79$" value="请确认装备栏是否有空地方，如果没有空地方将无法赠送#b#t1002571##k。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_8$" value="我是侍奉桔梗之王无恙的仆人 久翁。看到药草田里的桔梗们了吗？现在都变成了残暴的怪物正在攻击无辜的人们。可是那并不是我们桔梗们的本意。这都是因为邪恶的#b老海盗#k。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_80$" value="#k把老海盗击退了 #b"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_81$" value="次#k给了我们很大的帮助.但是我们还没有完全从老海盗那边解脱. #b"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_82$" value=" 次#k 击退的话会对我们有很大的帮助."/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_83$" value=" 次#k。为了对您为拯救我们桔梗而付出的努力表示感谢，因为超过了#b"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_84$" value=" 次#k，赠送给您变得更好的#b#t1002571##k。但是，如果是已经装备在身上的话，则一定要先卸下来并放在物品栏里。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_85$" value="击退了老海盗#b500次#k以上。 为了对您为拯救我们桔梗而付出的努力表示感谢，因为超过了#b"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_86$" value="#b#t1002571##k变的更好了.. #b#t1002571##k消失的话得从新开始积累次数，所以小心不要弄丢."/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_87$" value="还装备以前的 #b#t1002571##k的话，请解除装备. 要是弄丢了#b#t1002571##k的话，请初始化次数."/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_88$" value="请确认装备栏是否有空地方，如果没有空地方将无法赠送#b#t1002572##k。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_89$" value="次#k 给了我们很大的帮助.但是我们还没有完全从老海盗那里解脱.#b"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_9$" value="#b老海盗#k劫持了桔梗们的大王#b#p2094001##k，肆意的使唤着我们。我们桔梗因为得顾及#b#p2094001##k的生命安全，所以不得不屈服于它的命令。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_90$" value=" 次#k击退的话会对我们有很大的帮助."/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_91$" value="#b#t1002571##k已经过优化，赠送给您。#b#t1002571##k若丢失的话就无法再得到了，请小心保管。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_92$" value="还装备以前的 #b#t1002571##k的话，请接触装备. 要是弄丢了#b#t1002571##k的话，把击退次数初始化.."/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_93$" value="请确认装备栏是否有空地方，如果没有空地方将无法赠送#b#t1002573##k。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_94$" value="次#k 给了我们很大的帮助.但是我们还没有完全从老海盗那里解脱.#b"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_95$" value=" 次#k击退的话会对我们有很大的帮助."/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_96$" value=" 次#k。多亏您，我们桔梗们终于从老海盗的控制中得到了解放。为了对您拯救出我们表示感谢，因为超过了#b"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_97$" value=" 次#k，将#b#t1002574##k变得更好之后送给您。但是，如果是已经装备在身上的话，则一定要先卸下来并放在物品栏里。"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_98$" value="击退了老海盗#b500次#k以上。多亏您，我们桔梗们终于从老海盗的控制中得到了解放。为了对您拯救出我们表示感谢，因为超过了#b"/>
+  <string name="$SCRIPTSTRING_DAVYJOHN_99$" value=" 次#k，赠送给您变得更好的#b#t1002574##k。但是，如果是已经装备在身上的话，则一定要先卸下来并放在物品栏里。"/>
+</imgdir>

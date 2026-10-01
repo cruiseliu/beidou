@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="skin">
+  <string name="$SCRIPTSTRING_SKIN_0$" value="欢迎光临！欢迎来到我们射手村护肤中心。你是不是希望拥有像我一样健康、美丽的肌肤呢？如果你有#b#t5153000##k我们可以为你精心护理肌肤。请相信我们的能力，怎么样要不要试一试？"/>
+  <string name="$SCRIPTSTRING_SKIN_1$" value="用我们特殊开发的机器可查看护肤后的效果噢，想换成什么样的皮肤呢？请选择～~"/>
+  <string name="$SCRIPTSTRING_SKIN_10$" value="对不起。可能在皮肤护理过程中出了点问题...以后再来吧。"/>
+  <string name="$SCRIPTSTRING_SKIN_11$" value="欢迎光临！欢迎来到我们玩具城护肤中心。你是不是希望拥有像我一样健康、美丽的肌肤呢？如果你有#b#t5153002##k我们可以为你精心护理肌肤。请相信我们的能力，怎么样要不要试一试？"/>
+  <string name="$SCRIPTSTRING_SKIN_12$" value="来 照照镜子。皮肤护理结束了！怎么样？是不是和我的肌肤一样晶莹剔透？哈哈~ 你应该很满意吧。那下次再来呀~"/>
+  <string name="$SCRIPTSTRING_SKIN_13$" value="嗯… 不会是你没有我们护肤中心的会员卡吧！不好意思，如果没有会员卡，我们不可以给你皮肤护理。"/>
+  <string name="$SCRIPTSTRING_SKIN_14$" value="很抱歉出了点儿问题，请下次光临。"/>
+  <string name="$SCRIPTSTRING_SKIN_15$" value="欢迎光临！欢迎来到我们豫园护肤中心。你是不是希望拥有像我一样健康、美丽的肌肤呢？如果你有#b#t5153003##k我们可以为你精心护理肌肤。请相信我们的能力，怎么样要不要试一试？"/>
+  <string name="$SCRIPTSTRING_SKIN_16$" value="用我们特殊开发的机器可查看护肤后的效果噢，想换成什么样的皮肤呢？请选择想要的形象噢～~"/>
+  <string name="$SCRIPTSTRING_SKIN_17$" value="来 照照镜子。皮肤护理结束了！怎么样？是不是和我的肌肤一样晶莹剔透？哈哈~ 你应该很满意吧。那下次再来呀~"/>
+  <string name="$SCRIPTSTRING_SKIN_18$" value="嗯… 不会是你没有我们护肤中心的会员卡吧！不好意思，如果没有会员卡，我们不可以给你皮肤护理。"/>
+  <string name="$SCRIPTSTRING_SKIN_19$" value="很抱歉出了点儿问题，请下次光临。"/>
+  <string name="$SCRIPTSTRING_SKIN_2$" value="来照照镜子。皮肤护理结束了！怎么样？是不是和我的肌肤一样晶莹剔透？哈哈~ 你应该很满意吧。那下次再来呀~"/>
+  <string name="$SCRIPTSTRING_SKIN_20$" value="欢迎光临，来到武陵美容院。哎呀，最近好像没怎么管理好皮肤啊。如果有 #b#t5153006##k的话就可以做一次护肤。让我好好为你做个管理怎么样?"/>
+  <string name="$SCRIPTSTRING_SKIN_21$" value="来 照照镜子。皮肤护理结束了！怎么样？是不是和我的肌肤一样晶莹剔透？哈哈~ 你应该很满意吧。那下次再来呀~"/>
+  <string name="$SCRIPTSTRING_SKIN_22$" value="嗯… 不会是你没有我们护肤中心的会员卡吧！不好意思，如果没有会员卡，我们不可以给你皮肤护理。"/>
+  <string name="$SCRIPTSTRING_SKIN_23$" value="对不起。现在正在对我们护肤中心的设备进行保养，不能给你做护理。以后再来吧."/>
+  <string name="$SCRIPTSTRING_SKIN_24$" value="很抱歉出了点儿问题，请下次光临."/>
+  <string name="$SCRIPTSTRING_SKIN_25$" value="呼呼～ 快来吧。欢迎来阿里安特皮肤护理中心。这里是很有实力的高级皮肤护理中心，女王也经常光顾这里。只要有#b#t5153007##k的话，可以随时来这里接受护理。来试一下吗？"/>
+  <string name="$SCRIPTSTRING_SKIN_26$" value="来～ 看一下镜子。不愧是女王常来的护理中心吧～ 呼呼呼呼！虽然是我做的，但实在是太漂亮了～。以后常来，我会负责护理好您的皮肤的。"/>
+  <string name="$SCRIPTSTRING_SKIN_27$" value="恩…… 好像没有我们店的皮肤护理券哦。很抱歉，没有券的话，无法给你护理皮肤。"/>
+  <string name="$SCRIPTSTRING_SKIN_28$" value="很抱歉。现在我们店的皮肤护理仪器发生故障了，无法给你护理皮肤。欢迎以后再来。"/>
+  <string name="$SCRIPTSTRING_SKIN_29$" value="很抱歉，皮肤护理过程中好像出现了些问题。欢迎以后再来。"/>
+  <string name="$SCRIPTSTRING_SKIN_3$" value="嗯。。。你好像没有我们护肤中心的会员卡。不好意思如果你没会员卡，我不能给你做皮肤护理。"/>
+  <string name="$SCRIPTSTRING_SKIN_4$" value="对不起。现在正在对我们护肤中心的设备进行保养，不能给你做护理。以后再来吧。"/>
+  <string name="$SCRIPTSTRING_SKIN_5$" value="对不起。可能在皮肤护理过程中出了点问题...以后再来吧。"/>
+  <string name="$SCRIPTSTRING_SKIN_6$" value="欢迎光临！欢迎来到我们天空之城护肤中心。你是不是希望拥有像我一样健康、美丽的肌肤呢？如果你有#b#t5153001##k我们可以为你精心护理肌肤。请相信我们的能力，怎么样要不要试一试？"/>
+  <string name="$SCRIPTSTRING_SKIN_7$" value="用我们特殊开发的机器可查看护肤后的效果噢，想换成什么样的皮肤呢？请选择想要的形象噢～~"/>
+  <string name="$SCRIPTSTRING_SKIN_8$" value="来照照镜子。皮肤护理结束了！怎么样？是不是和我的肌肤一样晶莹剔透？哈哈~ 你应该很满意吧。那下次再来呀~"/>
+  <string name="$SCRIPTSTRING_SKIN_9$" value="嗯。。。你好像没有我们护肤中心的会员卡。不好意思如果你没会员卡，我不能给你做皮肤护理。"/>
+</imgdir>

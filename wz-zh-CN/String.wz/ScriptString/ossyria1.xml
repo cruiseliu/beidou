@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="ossyria1">
+  <string name="$SCRIPTSTRING_OSSYRIA1_0$" value="你需要这个东西#b#t"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_1$" value="##k对吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_10$" value="#k金币。."/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_11$" value="这样阿。我这里也有很多其他的东西，你慢慢逛吧。这些都是特地为你准备的，所以不会卖得很贵的。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_12$" value="不会是钱不够吧？请你确认一下背包的其他窗或消耗窗里是否有空间或有#r"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_13$" value="#k以上的金币。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_14$" value="谢谢。以后需要什么道具，尽管来找我吧。虽然我的能力不如以前，但我还能够制作一些魔法道具。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_15$" value="因为你的帮助我才可以顺利封印#b#t4031056##k，但是我也失去了800年功力的一半...不过，即使现在死去也没有遗憾了。啊...你是不是一直在找罕见的道具阿？作为对你的谢礼，我把我拥有的道具拿出来给你看，如果有需要的，尽管跟我说吧。&#13;&#10;#b#L0##t2050003#(价格: 300金币)#l&#13;&#10;#L1##t2050004#(价格: 400金币)#l&#13;&#10;#L2##t4006000#(价格: 5000金币)#l&#13;&#10;#L3##t4006001#(价格: 5000金币)#l"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_16$" value="可以恢复封印或状态异常。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_17$" value="可以恢复所有的状态异常。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_18$" value="有魔法力，使用于高级魔法。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_19$" value="有召回能力，使用于高级魔法。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_2$" value="。是非常不容易得到的东西，我特地给你便宜点，价格是一个#b"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_20$" value="如果你帮我， 我就卖给你我的物品。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_21$" value="我在这个村落研究了魔法已经300多年了。 我叫阿尔卡斯特。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_22$" value="你要找#b赫拉#k吗？她是住在这里，但你见不到她。因为几个月前她突然离开了村子，好像还没回来。不过她的保姆在那儿，去问问她吧…"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_23$" value="#b嘿拉#k到底去哪儿了？过的好么？什么？你也不知道详细情况？哼...我知道不可以相信陌生人的话，不过你说的像是真话。好吧，你去告诉杰德这件事，因为他最担心她。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_24$" value="最近怪物好像变的更凶暴了。怪物会不会到村子里来吗？希望不会发生这样的事情，是吧！"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_25$" value="赫拉原来是个善良的孩子。我让她做什么，她总能克服任何困难去完成。我相信她以后肯定会成为比我更优秀的魔法师。但是你找我有什么事情吗？&#13;&#10;#b#L0#我想制作#t4005004##k...#l&#13;&#10;#b#L1#没有什么事#k#l"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_26$" value="你说#b#t4005004##k吗？你怎么知道...哼...#b#p2020005##k告诉你了吗？我虽然知道制作办法，但那水晶的母矿很难得到...为了制作#b一个#t4005004##k需要#b10个#t4004004##k和50000金币。你要制作吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_27$" value="我也很长时间没看见过#b#t4005004##k。最后一次冶炼也在几百年前了...我知道你也没有那么贵重的东西..."/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_28$" value="是不是金币不够？请你确认确实有#b10个#t4004004##k和50000金币或在背包的其他窗里有一个以上的空格。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_29$" value="好...这里有一个#b#t4005004##k。我很久以前冶炼过的，不知道炼的没有什么错误...但是你也很了不起，竟然能收集齐了这些水晶的母矿。那你好好使用这贵重的东西吧。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_3$" value="金币#k。怎么样？你想买多少？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_30$" value="是吗...没有什么事，你快走吧。我现在要开始一个重要的魔法实验。不要打扰我。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_31$" value="我现在研究重要魔法。你快出去吧！我最讨厌在研究时有陌生人打扰我！"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_32$" value="现在其他玩家正在进行任务，你无法进入。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_33$" value="你已经拥有足够的#b#t4031508##k和 #b#t4031507##k了，不用再进去了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_34$" value="你已经成功的保护了你的猪。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_35$" value="你要保护猪是什么意思？从哪里听到的消息？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_36$" value="你成功的收集了#b#t4031508##k和 #b#t4031507##k各五个！那好我将把你送到 #m230000003#去。到了那里再跟我谈谈。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_37$" value="你还没收集好#b#t4031508##k或者 #b#t4031507##k。你想中断任务，出去吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_38$" value="想好了再告诉我。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_39$" value="我们到#m923010100#去吧。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_4$" value="如果什么都不买，那也没什么可卖的。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_5$" value="你真的要买#r"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_6$" value="#k个#b#t"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_7$" value="##k个吗？#t"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_8$" value="#的单价是"/>
+  <string name="$SCRIPTSTRING_OSSYRIA1_9$" value="金币。所以总价一共是#r"/>
+</imgdir>

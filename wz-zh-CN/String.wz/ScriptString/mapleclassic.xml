@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="mapleclassic">
+  <string name="$SCRIPTSTRING_MAPLECLASSIC_0$" value="使用道具后，只能在高级冒险岛会员时间不超过90天的情况下使用。"/>
+  <string name="$SCRIPTSTRING_MAPLECLASSIC_1$" value="使用时间超过最大90天，无法继续增加。"/>
+  <string name="$SCRIPTSTRING_MAPLECLASSIC_2$" value="获得了道具。"/>
+  <string name="$SCRIPTSTRING_MAPLECLASSIC_3$" value="道具发放失败"/>
+  <string name="$SCRIPTSTRING_MAPLECLASSIC_4$" value="消耗栏需要至少1个空位。"/>
+  <string name="$SCRIPTSTRING_MAPLECLASSIC_5$" value="#h0#，您好！&#13;&#10;为了助力勇士您更快成长、畅享冒险，我们特别准备了#b#e冒险岛会员#n#k!"/>
+  <string name="$SCRIPTSTRING_MAPLECLASSIC_6$" value="只需每天#e签到#n，即可获得药水和可兑换各种特别道具的枫叶纪念币，千万不要错过这次#e绝佳机会#n!&#13;&#10;&#13;&#10;枫叶纪念币可在#b#e兑换商店#n#k中使用，#r#e且自获得之日起可使用至次月月底#n#k，超过期限后将无法使用。"/>
+  <string name="$SCRIPTSTRING_MAPLECLASSIC_7$" value="除此之外，每天还可享受一次死亡时惩罚无效化的特别权益。&#13;&#10;&#13;&#10;如果您购买并激活了#b#e高级冒险岛会员#n#k，在有效期内还可额外享受#r#e更加丰富的奖励与权益#n#k！"/>
+  <string name="$SCRIPTSTRING_MAPLECLASSIC_8$" value="另外请记住，每日礼物#e世界内仅限领取一次#n。&#13;&#10;记得每天登录领取礼物哦！&#13;&#10;&#13;&#10;#r#e※每日23:45至次日00:15期间，无法领取每日礼物或使用枫叶纪念币，请务必留意!#n#k"/>
+</imgdir>

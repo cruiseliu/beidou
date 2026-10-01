@@ -1,0 +1,93 @@
+/*
+	This file is part of the OdinMS Maple Story Server
+    Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
+		       Matthias Butz <matze@odinms.de>
+		       Jan Christian Meyer <vimes@odinms.de>
+
+    Copyleft (L) 2016 - 2019 RonanLana (HeavenMS)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation version 3 as published by
+    the Free Software Foundation. You may not use, modify or distribute
+    this program under any other version of the GNU Affero General Public
+    License.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+package org.gms.client.processor.stat;
+
+import org.gms.client.character.Character;
+import org.gms.client.Client;
+import org.gms.client.Skill;
+import org.gms.client.SkillFactory;
+import org.gms.client.autoban.AutobanFactory;
+import org.gms.constants.game.GameConstants;
+import org.gms.constants.skills.Aran;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.gms.util.PacketCreator;
+
+/**
+ * @author RonanLana - synchronization of SP transaction modules
+ */
+public class AssignSPProcessor {
+    private static final Logger log = LoggerFactory.getLogger(AssignSPProcessor.class);
+
+    public static boolean canSPAssign(Client c, int skillid) {
+        if (skillid == Aran.HIDDEN_FULL_DOUBLE || skillid == Aran.HIDDEN_FULL_TRIPLE || skillid == Aran.HIDDEN_OVER_DOUBLE || skillid == Aran.HIDDEN_OVER_TRIPLE) {
+            c.sendPacket(PacketCreator.enableActions());
+            return false;
+        }
+
+        Character player = c.getPlayer();
+        if ((!GameConstants.isPqSkillMap(player.getMapId()) && GameConstants.isPqSkill(skillid)) || (!player.isGM() && GameConstants.isGMSkills(skillid)) || (!GameConstants.isInJobTree(skillid, player.getJob().getId()) && !player.isGM())) {
+            AutobanFactory.PACKET_EDIT.alert(player, "tried to packet edit in distributing sp.");
+            log.warn("Chr {} tried to use skill {} without it being in their job.", c.getPlayer().getName(), skillid);
+
+            c.disconnect(true, false);
+            return false;
+        }
+
+        return true;
+    }
+
+    public static void SPAssignAction(Client c, int skillid) {
+        c.lockClient();
+        try {
+            if (!canSPAssign(c, skillid)) {
+                return;
+            }
+
+            Character player = c.getPlayer();
+
+            // 新手 SP 已显式化：升级时按 JobDefinition.levelUp 区间发放到新手槽（新手 2~7 级每级 1 点，
+            // 与旧公式 min(level-1, 6) 数值等价），分配时直接读存储并扣减，不再用公式推算。
+            // 扣减优先级（CharacterSp.spendSpForSkill）：技能职业桶 → jobId 升序首个 compatible 桶 → 当前职业桶。
+            Skill skill = SkillFactory.getSkill(skillid);
+            int curLevel = player.getSkillLevel(skillid);
+            if (curLevel + 1 <= (skill.isFourthJob() ? player.getMasterLevel(skillid) : skill.getMaxLevel())
+                    && player.spendSpForSkill(skillid)) {
+                if (skill.getId() == Aran.FULL_SWING) {
+                    player.changeSkillLevel(skillid, (byte) (curLevel + 1), player.getMasterLevel(skillid), player.getSkillExpiration(skillid));
+                    player.changeSkillLevel(Aran.HIDDEN_FULL_DOUBLE, player.getSkillLevel(skillid), player.getMasterLevel(skillid), player.getSkillExpiration(skillid));
+                    player.changeSkillLevel(Aran.HIDDEN_FULL_TRIPLE, player.getSkillLevel(skillid), player.getMasterLevel(skillid), player.getSkillExpiration(skillid));
+                } else if (skill.getId() == Aran.OVER_SWING) {
+                    player.changeSkillLevel(skillid, (byte) (curLevel + 1), player.getMasterLevel(skillid), player.getSkillExpiration(skillid));
+                    player.changeSkillLevel(Aran.HIDDEN_OVER_DOUBLE, player.getSkillLevel(skillid), player.getMasterLevel(skillid), player.getSkillExpiration(skillid));
+                    player.changeSkillLevel(Aran.HIDDEN_OVER_TRIPLE, player.getSkillLevel(skillid), player.getMasterLevel(skillid), player.getSkillExpiration(skillid));
+                } else {
+                    player.changeSkillLevel(skillid, (byte) (curLevel + 1), player.getMasterLevel(skillid), player.getSkillExpiration(skillid));
+                }
+            }
+        } finally {
+            c.unlockClient();
+        }
+    }
+}

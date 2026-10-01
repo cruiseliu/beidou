@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="insideGS.img">
+    <imgdir name="house0">
+        <imgdir name="basic">
+            <imgdir name="0">
+                <canvas name="0" width="800" height="600">
+                    <vector name="origin" x="400" y="300"/>
+                    <int name="z" value="0"/>
+                </canvas>
+            </imgdir>
+            <imgdir name="1">
+                <canvas name="0" width="800" height="483">
+                    <vector name="origin" x="400" y="241"/>
+                    <int name="z" value="0"/>
+                </canvas>
+            </imgdir>
+            <imgdir name="2">
+                <canvas name="0" width="800" height="27">
+                    <vector name="origin" x="400" y="13"/>
+                    <int name="z" value="0"/>
+                </canvas>
+            </imgdir>
+        </imgdir>
+    </imgdir>
+    <imgdir name="house1">
+        <imgdir name="basic">
+            <imgdir name="0">
+                <canvas name="0" width="615" height="533">
+                    <vector name="origin" x="307" y="266"/>
+                    <int name="z" value="0"/>
+                </canvas>
+            </imgdir>
+            <imgdir name="1">
+                <canvas name="0" width="445" height="264">
+                    <vector name="origin" x="222" y="132"/>
+                    <int name="z" value="0"/>
+                </canvas>
+            </imgdir>
+            <imgdir name="2">
+                <canvas name="0" width="406" height="10">
+                    <vector name="origin" x="203" y="5"/>
+                    <int name="z" value="0"/>
+                </canvas>
+            </imgdir>
+            <imgdir name="3">
+                <canvas name="0" width="350" height="22">
+                    <vector name="origin" x="175" y="11"/>
+                    <int name="z" value="0"/>
+                </canvas>
+            </imgdir>
+            <imgdir name="4">
+                <canvas name="0" width="470" height="199">
+                    <vector name="origin" x="235" y="99"/>
+                    <int name="z" value="0"/>
+                </canvas>
+            </imgdir>
+        </imgdir>
+    </imgdir>
+</imgdir>

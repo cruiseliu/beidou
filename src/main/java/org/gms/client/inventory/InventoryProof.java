@@ -1,0 +1,98 @@
+/*
+    This file is part of the HeavenMS MapleStory Server
+    Copyleft (L) 2016 - 2019 RonanLana
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation version 3 as published by
+    the Free Software Foundation. You may not use, modify or distribute
+    this program under any other version of the GNU Affero General Public
+    License.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+package org.gms.client.inventory;
+
+import org.gms.client.character.Character;
+
+/**
+ * @author Ronan
+ */
+public class InventoryProof extends InventoryTab {
+
+    public InventoryProof(Character mc) {
+        super(mc, InventoryType.CANHOLD, 0, true);   // 证明物品不参与道具钩子语义
+    }
+
+    public void cloneContents(InventoryTab inv) {
+        inv.lockInventory();
+        lock.lock();
+        try {
+            inventory.clear();
+            this.setSlotLimit(inv.getSlotLimit());
+
+            for (ItemSlot it : inv.list()) {
+                ItemSlot item = new ItemSlot(it.getItemId(), it.getPosition(), it.getQuantity());
+                inventory.put(item.getPosition(), item);
+            }
+        } finally {
+            lock.unlock();
+            inv.unlockInventory();
+        }
+    }
+
+    public void flushContents() {
+        lock.lock();
+        try {
+            inventory.clear();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    protected int addSlot(ItemSlot item) {
+        if (item == null) {
+            return -1;
+        }
+
+        lock.lock();
+        try {
+            int slotId = getNextFreeSlot();
+            if (slotId < 0) {
+                return -1;
+            }
+            inventory.put(slotId, item);
+
+            return slotId;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    protected void addSlotFromDB(int slot, ItemSlot item) {
+        lock.lock();
+        try {
+            inventory.put(slot, item);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public void removeSlot(int slot) {
+        lock.lock();
+        try {
+            inventory.remove(slot);
+        } finally {
+            lock.unlock();
+        }
+    }
+}

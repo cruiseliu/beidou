@@ -1,0 +1,71 @@
+/*
+ This file is part of the OdinMS Maple Story Server
+ Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
+ Matthias Butz <matze@odinms.de>
+ Jan Christian Meyer <vimes@odinms.de>
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation version 3 as published by
+ the Free Software Foundation. You may not use, modify or distribute
+ this program under any other version of the GNU Affero General Public
+ License.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.gms.net.server.channel.handlers;
+
+import org.gms.client.character.Character;
+import org.gms.client.Client;
+import org.gms.net.AbstractPacketHandler;
+import org.gms.net.packet.InPacket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.gms.server.maps.MapObject;
+
+import java.awt.*;
+
+/**
+ * @author Matze
+ * @author Ronan
+ */
+public final class ItemPickupHandler extends AbstractPacketHandler {
+    private static final Logger log = LoggerFactory.getLogger(ItemPickupHandler.class);
+
+    @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §19）：拾取主体是 player 域（背包/meso/双检 pickedUp），
+        // 现状 netty 线程写背包——归 strand；map 域收尾（掉落移除+广播）由
+        // CharacterInventory.completePickup 经 shim actor post 交接。
+        return true;
+    }
+
+    @Override
+    public void handlePacket(final InPacket p, final Client c) {
+        p.readInt(); //Timestamp
+        p.readByte();
+        p.readPos(); //cpos
+        int oid = p.readInt();
+        Character chr = c.getPlayer();
+        MapObject ob = chr.getMap().getMapObject(oid);
+        if (ob == null) {
+            return;
+        }
+
+        Point charPos = chr.getPosition();
+        Point obPos = ob.getPosition();
+        if (Math.abs(charPos.getX() - obPos.getX()) > 800 || Math.abs(charPos.getY() - obPos.getY()) > 600) {
+            // 单机版：autoban 舍弃（doc/13 §19），距离守卫保留为防失步
+            log.warn("玩家{}地图ID：{}距离物品: {} {}", chr.getName(), chr.getMapId(), Math.abs(charPos.getX() - obPos.getX()), Math.abs(charPos.getY() - obPos.getY()));
+            return;
+        }
+
+        chr.pickupItem(ob);
+    }
+}

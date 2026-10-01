@@ -1,0 +1,285 @@
+/*
+	This file is part of the OdinMS Maple Story Server
+    Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
+		       Matthias Butz <matze@odinms.de>
+		       Jan Christian Meyer <vimes@odinms.de>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation version 3 as published by
+    the Free Software Foundation. You may not use, modify or distribute
+    this program under any other version of the GNU Affero General Public
+    License.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+package org.gms.net.server.channel.handlers;
+
+import org.gms.client.character.Stat;
+import org.gms.client.character.Character;
+import org.gms.client.Client;
+import org.gms.client.inventory.Equip;
+import org.gms.client.inventory.ItemSlot;
+import org.gms.config.GameConfig;
+import org.gms.constants.id.NpcId;
+import org.gms.net.AbstractPacketHandler;
+import org.gms.net.packet.InPacket;
+import org.gms.scripting.npc.NPCScriptManager;
+import org.gms.server.MTSItemInfo;
+import org.gms.server.maps.FieldLimit;
+import org.gms.server.maps.MiniDungeonInfo;
+import org.gms.util.DatabaseConnection;
+import org.gms.util.PacketCreator;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+
+public final class EnterMTSHandler extends AbstractPacketHandler {
+
+    @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20 全量收口）：player 域读写，经 queued 通道归会话 strand。
+        return true;
+    }
+
+
+    @Override
+    public void handlePacket(InPacket p, Client c) {
+        Character chr = c.getPlayer();
+
+        if (!GameConfig.getServerBoolean("use_mts")) {
+            openCenterScript(c);
+            return;
+        }
+
+        if (chr.getEventInstance() != null) {
+            c.sendPacket(PacketCreator.serverNotice(5, "Entering Cash Shop or MTS are disabled when registered on an event."));
+            c.sendPacket(PacketCreator.enableActions());
+            return;
+        }
+
+        if (MiniDungeonInfo.isDungeonMap(chr.getMapId())) {
+            c.sendPacket(PacketCreator.serverNotice(5, "Changing channels or entering Cash Shop or MTS are disabled when inside a Mini-Dungeon."));
+            c.sendPacket(PacketCreator.enableActions());
+            return;
+        }
+
+        if (FieldLimit.CANNOTMIGRATE.check(chr.getMap().getFieldLimit())) {
+            chr.dropMessage(1, "You can't do it here in this map.");
+            c.sendPacket(PacketCreator.enableActions());
+            return;
+        }
+
+        if (!chr.isAlive()) {
+            c.sendPacket(PacketCreator.enableActions());
+            return;
+        }
+        if (chr.getLevel() < 10) {
+            c.sendPacket(PacketCreator.blockedMessage2(5));
+            c.sendPacket(PacketCreator.enableActions());
+            return;
+        }
+
+        chr.closePlayerInteractions();
+        chr.closePartySearchInteractions();
+
+        chr.unregisterChairBuff();
+        chr.freezeBuffs(true);
+        chr.removeSummonsFromMap();
+        chr.setAwayFromChannelWorld();
+        chr.notifyMapTransferToPartner(-1);
+        chr.removeIncomingInvites();
+        chr.stopSkillTimers();
+        chr.cancelExpirationTask();
+
+        chr.saveCharToDB();
+
+        c.getChannelServer().removePlayer(chr);
+        chr.getMap().removePlayer(c.getPlayer());
+        try {
+            c.sendPacket(PacketCreator.openCashShop(c, true));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        chr.getCashShop().open(true);// xD
+        c.enableCSActions();
+        c.sendPacket(PacketCreator.MTSWantedListingOver(0, 0));
+        c.sendPacket(PacketCreator.showMTSCash(c.getPlayer()));
+        List<MTSItemInfo> items = new ArrayList<>();
+        int pages = 0;
+        try (Connection con = DatabaseConnection.getConnection()) {
+            try (PreparedStatement ps = con.prepareStatement("SELECT * FROM mts_items WHERE tab = 1 AND transfer = 0 ORDER BY id DESC LIMIT 16, 16");
+                 ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    if (rs.getInt("type") != 1) {
+                        ItemSlot i = new ItemSlot(rs.getInt("itemid"), (short) 0, (short) rs.getInt("quantity"));
+                        i.setOwner(rs.getString("owner"));
+                        items.add(new MTSItemInfo(i, rs.getInt("price") + 100 + (int) (rs.getInt("price") * 0.1), rs.getInt("id"), rs.getInt("seller"), rs.getString("sellername"), rs.getString("sell_ends")));
+                    } else {
+                        ItemSlot equipSlot = ItemSlot.equipItem(rs.getInt("itemid"), (byte) rs.getInt("position"));
+                        Equip equip = equipSlot.getEquipInfo();
+                        equipSlot.setOwner(rs.getString("owner"));
+                        equip.setStat(Stat.ACCURACY, (short) rs.getInt("acc"));
+                        equip.setStat(Stat.AVOIDABILITY, (short) rs.getInt("avoid"));
+                        equip.setStat(Stat.DEX, (short) rs.getInt("dex"));
+                        equip.setStat(Stat.HANDS, (short) rs.getInt("hands"));
+                        equip.setStat(Stat.MAX_HP, (short) rs.getInt("hp"));
+                        equip.setStat(Stat.INT, (short) rs.getInt("int"));
+                        equip.setStat(Stat.JUMP, (short) rs.getInt("jump"));
+                        equip.setVicious((short) rs.getInt("vicious"));
+                        equipSlot.getItem().setFlagsFromLegacy(rs.getInt("flag"));
+                        equip.setStat(Stat.LUK, (short) rs.getInt("luk"));
+                        equip.setStat(Stat.M_ATK, (short) rs.getInt("matk"));
+                        equip.setStat(Stat.M_DEF, (short) rs.getInt("mdef"));
+                        equip.setStat(Stat.MAX_MP, (short) rs.getInt("mp"));
+                        equip.setStat(Stat.SPEED, (short) rs.getInt("speed"));
+                        equip.setStat(Stat.STR, (short) rs.getInt("str"));
+                        equip.setStat(Stat.P_ATK, (short) rs.getInt("watk"));
+                        equip.setStat(Stat.P_DEF, (short) rs.getInt("wdef"));
+                        equip.setEnhancementSlots((byte) rs.getInt("upgradeslots"));
+                        equip.setEnhancementLevel((byte) rs.getInt("level"));
+                        equip.setItemLevel(rs.getByte("itemlevel"));
+                        equip.setItemExp(rs.getInt("itemexp"));
+                        equip.setRingId(rs.getInt("ringid"));
+                        equipSlot.setExpiration(rs.getLong("expiration"));
+                        if (equipSlot.getCashInfo() != null) equipSlot.getCashInfo().setGiftFrom(rs.getString("giftFrom"));   // 非现金装备不携带 giftFrom
+
+                        items.add(new MTSItemInfo(equipSlot, rs.getInt("price") + 100 + (int) (rs.getInt("price") * 0.1), rs.getInt("id"), rs.getInt("seller"), rs.getString("sellername"), rs.getString("sell_ends")));
+                    }
+                }
+            }
+
+            try (PreparedStatement ps = con.prepareStatement("SELECT COUNT(*) FROM mts_items");
+                 ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    pages = (int) Math.ceil(rs.getInt(1) / 16);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        c.sendPacket(PacketCreator.sendMTS(items, 1, 0, 0, pages));
+        c.sendPacket(PacketCreator.transferInventory(getTransfer(chr.getId())));
+        c.sendPacket(PacketCreator.notYetSoldInv(getNotYetSold(chr.getId())));
+    }
+
+    private List<MTSItemInfo> getNotYetSold(int cid) {
+        List<MTSItemInfo> items = new ArrayList<>();
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement("SELECT * FROM mts_items WHERE seller = ? AND transfer = 0 ORDER BY id DESC")) {
+            ps.setInt(1, cid);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    if (rs.getInt("type") != 1) {
+                        ItemSlot i = new ItemSlot(rs.getInt("itemid"), (short) 0, (short) rs.getInt("quantity"));
+                        i.setOwner(rs.getString("owner"));
+                        items.add(new MTSItemInfo(i, rs.getInt("price"), rs.getInt("id"), rs.getInt("seller"), rs.getString("sellername"), rs.getString("sell_ends")));
+                    } else {
+                        ItemSlot equipSlot = ItemSlot.equipItem(rs.getInt("itemid"), (byte) rs.getInt("position"));
+                        Equip equip = equipSlot.getEquipInfo();
+                        equipSlot.setOwner(rs.getString("owner"));
+                        equip.setStat(Stat.ACCURACY, (short) rs.getInt("acc"));
+                        equip.setStat(Stat.AVOIDABILITY, (short) rs.getInt("avoid"));
+                        equip.setStat(Stat.DEX, (short) rs.getInt("dex"));
+                        equip.setStat(Stat.HANDS, (short) rs.getInt("hands"));
+                        equip.setStat(Stat.MAX_HP, (short) rs.getInt("hp"));
+                        equip.setStat(Stat.INT, (short) rs.getInt("int"));
+                        equip.setStat(Stat.JUMP, (short) rs.getInt("jump"));
+                        equip.setVicious((short) rs.getInt("vicious"));
+                        equip.setStat(Stat.LUK, (short) rs.getInt("luk"));
+                        equip.setStat(Stat.M_ATK, (short) rs.getInt("matk"));
+                        equip.setStat(Stat.M_DEF, (short) rs.getInt("mdef"));
+                        equip.setStat(Stat.MAX_MP, (short) rs.getInt("mp"));
+                        equip.setStat(Stat.SPEED, (short) rs.getInt("speed"));
+                        equip.setStat(Stat.STR, (short) rs.getInt("str"));
+                        equip.setStat(Stat.P_ATK, (short) rs.getInt("watk"));
+                        equip.setStat(Stat.P_DEF, (short) rs.getInt("wdef"));
+                        equip.setEnhancementSlots((byte) rs.getInt("upgradeslots"));
+                        equip.setEnhancementLevel((byte) rs.getInt("level"));
+                        equip.setItemLevel(rs.getByte("itemlevel"));
+                        equip.setItemExp(rs.getInt("itemexp"));
+                        equip.setRingId(rs.getInt("ringid"));
+                        equipSlot.getItem().setFlagsFromLegacy(rs.getInt("flag"));
+                        equipSlot.setExpiration(rs.getLong("expiration"));
+                        if (equipSlot.getCashInfo() != null) equipSlot.getCashInfo().setGiftFrom(rs.getString("giftFrom"));   // 非现金装备不携带 giftFrom
+                        items.add(new MTSItemInfo(equipSlot, rs.getInt("price"), rs.getInt("id"), rs.getInt("seller"), rs.getString("sellername"), rs.getString("sell_ends")));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return items;
+    }
+
+    private List<MTSItemInfo> getTransfer(int cid) {
+        List<MTSItemInfo> items = new ArrayList<>();
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement("SELECT * FROM mts_items WHERE transfer = 1 AND seller = ? ORDER BY id DESC")) {
+            ps.setInt(1, cid);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    if (rs.getInt("type") != 1) {
+                        ItemSlot i = new ItemSlot(rs.getInt("itemid"), (short) 0, (short) rs.getInt("quantity"));
+                        i.setOwner(rs.getString("owner"));
+                        items.add(new MTSItemInfo(i, rs.getInt("price"), rs.getInt("id"), rs.getInt("seller"), rs.getString("sellername"), rs.getString("sell_ends")));
+                    } else {
+                        ItemSlot equipSlot = ItemSlot.equipItem(rs.getInt("itemid"), (byte) rs.getInt("position"));
+                        Equip equip = equipSlot.getEquipInfo();
+                        equipSlot.setOwner(rs.getString("owner"));
+                        equip.setStat(Stat.ACCURACY, (short) rs.getInt("acc"));
+                        equip.setStat(Stat.AVOIDABILITY, (short) rs.getInt("avoid"));
+                        equip.setStat(Stat.DEX, (short) rs.getInt("dex"));
+                        equip.setStat(Stat.HANDS, (short) rs.getInt("hands"));
+                        equip.setStat(Stat.MAX_HP, (short) rs.getInt("hp"));
+                        equip.setStat(Stat.INT, (short) rs.getInt("int"));
+                        equip.setStat(Stat.JUMP, (short) rs.getInt("jump"));
+                        equip.setVicious((short) rs.getInt("vicious"));
+                        equip.setStat(Stat.LUK, (short) rs.getInt("luk"));
+                        equip.setStat(Stat.M_ATK, (short) rs.getInt("matk"));
+                        equip.setStat(Stat.M_DEF, (short) rs.getInt("mdef"));
+                        equip.setStat(Stat.MAX_MP, (short) rs.getInt("mp"));
+                        equip.setStat(Stat.SPEED, (short) rs.getInt("speed"));
+                        equip.setStat(Stat.STR, (short) rs.getInt("str"));
+                        equip.setStat(Stat.P_ATK, (short) rs.getInt("watk"));
+                        equip.setStat(Stat.P_DEF, (short) rs.getInt("wdef"));
+                        equip.setEnhancementSlots((byte) rs.getInt("upgradeslots"));
+                        equip.setEnhancementLevel((byte) rs.getInt("level"));
+                        equip.setItemLevel(rs.getByte("itemlevel"));
+                        equip.setItemExp(rs.getInt("itemexp"));
+                        equip.setRingId(rs.getInt("ringid"));
+                        equipSlot.getItem().setFlagsFromLegacy(rs.getInt("flag"));
+                        equipSlot.setExpiration(rs.getLong("expiration"));
+                        if (equipSlot.getCashInfo() != null) equipSlot.getCashInfo().setGiftFrom(rs.getString("giftFrom"));   // 非现金装备不携带 giftFrom
+                        items.add(new MTSItemInfo(equipSlot, rs.getInt("price"), rs.getInt("id"), rs.getInt("seller"), rs.getString("sellername"), rs.getString("sell_ends")));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return items;
+    }
+
+    /**
+     * 打开拍卖行脚本菜单中心
+     *
+     * @param c 客户端
+     */
+    private void openCenterScript(Client c) {
+        NPCScriptManager.getInstance().start(c, NpcId.BEI_DOU_NPC_BASE, null);
+    }
+}

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="nautilus2">
+  <string name="$SCRIPTSTRING_NAUTILUS2_0$" value="这里有个不知是谁写到一半的信哦！不晓得是不是重要的信件，来看看内容吧！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_1$" value="已经有捡起过，看来是不必要重复捡起吧！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_10$" value="找到了阿别的眼镜！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_11$" value="没地方可保管寻获的眼镜。来检查其他栏吧！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_12$" value="找到眼镜了！但看来并不是阿别的眼镜哦！听说阿别的是黑色胶框眼镜..."/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_13$" value="没地方可保管寻获的眼镜。来检查其他栏吧！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_14$" value="啊！你说找到我的眼镜了吗？让我来戴戴看…因为有可能不是我的眼镜，除了由我亲自试戴看看，也没有其他可确认的方法。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_15$" value="真的是我的眼镜哦！谢谢你～咦？你手中好像有不少眼镜哦，你愿意把那些眼镜也都交给我吗？当然我不会要求你免费送我的。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_16$" value="哇！偶尔换戴这些眼镜来转换一下心情也不错哦！为了表达感谢之意，让我来送你特别的礼物吧！&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_17$" value="4/0#&#13;&#10;#v2030019# #t2030019# 10个&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_18$" value="嗯...你身上已经没有可保管物品的空间了哦！这样我无法把礼物送给你说..."/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_19$" value="呵呵～继续来享受钓鱼的乐趣吧！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_2$" value="已经没有位置保管皱折的信纸！来检查其他栏吧！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_20$" value="呵呵~继续来享受钓鱼的乐趣吧！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_21$" value="啊！你说找到我的眼镜了吗？让我来戴戴看…因为有可能不是我的眼镜，除了由我亲自试戴看看，也没有其他可确认的方法。真的是我的眼镜哦～谢谢你～ &#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_22$" value="4/0#&#13;&#10;#v2030019# #t2030019# 5个&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_23$" value="你还没找到我的眼镜吗？请你动作快一点喔！搞不好会因为看不清楚，而失足掉入海里呢！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_24$" value="准备好吗？好！那我马上把你送往黑魔法师的手下所在的地点吧！若你好好观察出现在那地方的猪猪，应该就可以找到。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_25$" value="当力量变弱时，他们就会露出真面目，因此若发现有可疑的家伙，记得要让它逼到力量耗尽！那我等你的好消息～"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_26$" value="黑魔法师与凯琳大人带领的诺特勒斯号之间是一种…像是永无止境的相互竞争、你追我逃的局面。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_27$" value="回到诺特勒斯号啰！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_28$" value="好~那我将你送往我珍贵的奶牛所在的牛舍吧！要小心那些会把牛奶喝光的奶牛宝宝，不然你花的精力将会化为泡沫。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_29$" value="你可能无法一眼分辨出奶牛宝宝和奶牛的差别，因为这些奶牛宝宝虽然出生没多久，但因为食量极大无比，体性已经不输奶牛了，而且长相也几乎一模一样，连我自己有时候也分辨不出来。那祝你好运了！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_3$" value="依稀看到上面写有凯琳的文字…"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_30$" value="道具字段已满无法保管牛奶瓶！请确认一下其他栏，要拿牛奶瓶才有办法装牛奶呀！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_31$" value="可不是随便都可以进入牛舍！你现在还不行～"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_32$" value="多亏有我梦幻般的料理手艺，诺特勒斯号的船员们才撑到现在，你说是不是啊？"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_33$" value="道具字段已满无法保管牛奶瓶！请确认一下其他栏。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_34$" value="饿肚子的奶牛宝宝把牛奶全部喝光了！牛奶瓶已经空无一物。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_35$" value="奶牛宝宝对空的牛奶瓶没有兴趣了！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_36$" value="适当地装盛牛奶，牛奶约满到牛奶瓶的2/3。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_37$" value="适当地装盛牛奶，牛奶瓶内已装满牛奶。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_38$" value="适当地装盛牛奶，牛奶约满到牛奶瓶的1/3。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_39$" value="牛奶瓶里已装满牛奶，已没有空间再继续装牛奶了。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_4$" value="是一个发出美丽光辉的石头，可以感受到一种神秘的力量。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_40$" value="回去见唐云。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_5$" value="当手指触及神秘的石头，可以感受到神秘的力量融入我的体内。"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_6$" value="打开了珍珠贝壳！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_7$" value="已经没有位置保管捡起的珍珠！来检查其他栏吧！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_8$" value="贝壳里有一颗巨大的珍珠！"/>
+  <string name="$SCRIPTSTRING_NAUTILUS2_9$" value="已经没有位置可以保管阿别的眼镜。来检查其他栏吧！"/>
+</imgdir>

@@ -1,0 +1,26 @@
+{
+    "actions": {
+        "swing": 3.6,
+        "stab": 3.6,
+        "shoot": 3.6
+    },
+    "statRule": {
+        "primary": [
+            "LUK"
+        ],
+        "secondary": [
+            "STR",
+            "DEX"
+        ]
+    },
+    "itemIdRange": {
+        "from": 1470000,
+        "to": 1479999
+    },
+    "ammoIdRange": {
+        "from": 2070000,
+        "to": 2079999
+    },
+    "twoHanded": true,
+    "type": "CLAW"
+}

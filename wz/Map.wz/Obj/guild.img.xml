@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="guild.img">
+    <imgdir name="syarenian">
+        <imgdir name="acc1">
+            <imgdir name="19">
+                <canvas name="0" width="94" height="106">
+                    <vector name="origin" x="47" y="53"/>
+                    <int name="z" value="0"/>
+                </canvas>
+            </imgdir>
+        </imgdir>
+    </imgdir>
+</imgdir>

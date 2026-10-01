@@ -1,0 +1,51 @@
+/*
+    This file is part of the HeavenMS MapleStory Server
+    Copyleft (L) 2016 - 2019 RonanLana
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation version 3 as published by
+    the Free Software Foundation. You may not use, modify or distribute
+    this program under any other version of the GNU Affero General Public
+    License.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+package org.gms.net.server.channel.handlers;
+
+import org.gms.client.character.Character;
+import org.gms.client.Client;
+import org.gms.net.AbstractPacketHandler;
+import org.gms.net.packet.InPacket;
+import org.gms.server.life.LifeFactory.BanishInfo;
+import org.gms.server.life.Monster;
+
+public final class MobBanishPlayerHandler extends AbstractPacketHandler {
+
+    @Override
+    public boolean queued() {
+        // strand 迁移 M2-batch3：怪物驱赶换图入口（纯 self-warp，体审计干净，doc/13 §10）
+        return true;
+    }
+
+    @Override
+    public final void handlePacket(InPacket p, Client c) {
+        int mobid = p.readInt();     // mob banish handling detected thanks to MedicOP
+
+        Character chr = c.getPlayer();
+        Monster mob = chr.getMap().getMonsterById(mobid);
+
+        if (mob != null) {
+            BanishInfo banishInfo = mob.getBanish();
+            if (banishInfo != null) {
+                chr.changeMapBanish(banishInfo.getMap(), banishInfo.getPortal(), banishInfo.getMsg());
+            }
+        }
+    }
+}

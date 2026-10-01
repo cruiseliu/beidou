@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="testserver_cn">
+  <string name="$SCRIPTSTRING_TESTSERVER_CN_0$" value="选择想领取的礼物。&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_TESTSERVER_CN_1$" value="(领取完毕)"/>
+  <string name="$SCRIPTSTRING_TESTSERVER_CN_2$" value="已领取奖励。"/>
+  <string name="$SCRIPTSTRING_TESTSERVER_CN_3$" value="在正式服务器上无法使用"/>
+  <string name="$SCRIPTSTRING_TESTSERVER_CN_4$" value="请空出1格以上特殊栏后重试。"/>
+</imgdir>

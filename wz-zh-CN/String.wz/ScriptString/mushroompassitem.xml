@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="mushroompassitem">
+  <string name="$SCRIPTSTRING_MUSHROOMPASSITEM_0$" value="请将其他栏清理出1格空格。"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSITEM_1$" value="##k已兑换。 请在其他栏里确认。"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSITEM_2$" value="发生未知错误。请稍后再试。"/>
+</imgdir>

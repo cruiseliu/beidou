@@ -1,0 +1,21 @@
+{
+    "actions": {
+        "swing": 4.4,
+        "stab": 3.2,
+        "shoot": 0
+    },
+    "statRule": {
+        "primary": [
+            "STR"
+        ],
+        "secondary": [
+            "DEX"
+        ]
+    },
+    "itemIdRange": {
+        "from": 1310000,
+        "to": 1319999
+    },
+    "twoHanded": false,
+    "type": "ONE_HANDED_AXE"
+}

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="xmas">
+  <string name="$SCRIPTSTRING_XMAS_0$" value="哟，你不是之前从#m101000000#去过圣诞村吗？你曾经帮过我的忙，如果你想去圣诞村，只要#r1000金币#k就行。现在就出发吗？"/>
+  <string name="$SCRIPTSTRING_XMAS_1$" value="你现在好像很忙吧？如果你今后有时间，可以再来找我。白雪覆盖的村庄……想想就让人心潮澎湃，不是吗？"/>
+  <string name="$SCRIPTSTRING_XMAS_10$" value="你真的有#b10个#t4000095#、10个#t4000106#和1000金币#k吗？如果没有那两样东西和金币，我不能免费把你送过去～~"/>
+  <string name="$SCRIPTSTRING_XMAS_11$" value="哟，你不是之前从#m240000000#去过圣诞村吗？你曾经帮过我的忙，如果你想去圣诞村，只要#r1000金币#k就行。现在就出发吗？"/>
+  <string name="$SCRIPTSTRING_XMAS_12$" value="你听说离#m240000000#不远的地方有一个白雪覆盖的圣诞村吗？那是一个到处覆盖着白雪的和平而美丽的地方。你想到那里去吗？嗯～我不能就这样送你过去……对了！如果你能给我#b10个#t4000226#、10个#t4000236#和1000金币#k，我就把你送过去。怎么样？你想去看看吗？"/>
+  <string name="$SCRIPTSTRING_XMAS_13$" value="你真的有#b10个#t4000226#、10个#t4000236#和1000金币#k吗？如果没有那两样东西和金币，我不能免费把你送过去～~"/>
+  <string name="$SCRIPTSTRING_XMAS_14$" value="你在这儿好像没有事情可做哦？我可以让你回到金银岛的#m101000000#，你想回去吗？"/>
+  <string name="$SCRIPTSTRING_XMAS_15$" value="你在这儿好像没有事情可做哦？我可以让你回到金银岛的#m211000000#，你想回去吗？"/>
+  <string name="$SCRIPTSTRING_XMAS_16$" value="你在这儿好像没有事情可做哦？我可以让你回到金银岛的#m240000000#，你想回去吗？"/>
+  <string name="$SCRIPTSTRING_XMAS_17$" value="你在这儿好像没有事情可做哦？我可以让你回到金银岛的#m220000300#，你想回去吗？"/>
+  <string name="$SCRIPTSTRING_XMAS_18$" value="你在这儿有事情做吧？如果感到疲倦了，就在这儿休息一会吧！"/>
+  <string name="$SCRIPTSTRING_XMAS_19$" value="看见在那边站的雪人了吗？如果你为他剪头发，他将你带去一个神秘的地方，那里有特别大的树木！掉下饰品，可以装饰圣诞树。 怎么样啊？ 有意思吧？"/>
+  <string name="$SCRIPTSTRING_XMAS_2$" value="不好意思，金币不够，我无法把你送到圣诞村去。"/>
+  <string name="$SCRIPTSTRING_XMAS_20$" value="圣诞树在的地方，每次只6个人进去，而且在这里不能#b交换或开商店#k。自己掉下的饰品，除了自己以外，谁都不能捡。 所以你可以安心地装饰圣诞树了。"/>
+  <string name="$SCRIPTSTRING_XMAS_21$" value="当然，在这里你掉下的背包也不会消失，通过雪人再出来的时候，你在这里掉的物品自动会回到背包，所以不要捡,也没关系。是不是很方便啊。"/>
+  <string name="$SCRIPTSTRING_XMAS_22$" value="你从那边那个#p2002001#那里，买各种各样的饰品来装饰圣诞树吧！哎！但是又大又漂亮的饰品被怪物拿走了，不能在他这儿购买。"/>
+  <string name="$SCRIPTSTRING_XMAS_23$" value="第一"/>
+  <string name="$SCRIPTSTRING_XMAS_24$" value="第二"/>
+  <string name="$SCRIPTSTRING_XMAS_25$" value="第三"/>
+  <string name="$SCRIPTSTRING_XMAS_26$" value="第四"/>
+  <string name="$SCRIPTSTRING_XMAS_27$" value="第五"/>
+  <string name="$SCRIPTSTRING_XMAS_28$" value="你要进入#b有"/>
+  <string name="$SCRIPTSTRING_XMAS_29$" value=" 圣诞树的房间#k吗？对不起，这个房间的人已经满了! 清你选择别的房间。"/>
+  <string name="$SCRIPTSTRING_XMAS_3$" value="你听说离#m101000000#不远的地方有一个白雪覆盖的圣诞村吗？那是一个到处覆盖着白雪的和平而美丽的地方。你想到那里去吗？嗯～我不能就这样送你过去……对了！如果你能给我#b10个#t4000004#、10个#t4000003#和1000金币#k，我就把你送过去。怎么样？你想去看看吗？"/>
+  <string name="$SCRIPTSTRING_XMAS_30$" value="您好~ 我是#p2001001#，你想进入哪间房间呢？#b#p2001000##k会向你详细说明。请选择。&#13;&#10;#b#L0#第一间#l&#13;&#10;#L1#第二间#l&#13;&#10;#L2#第三间#l&#13;&#10;#L3#第四间#l&#13;&#10;#L4#第五间#l"/>
+  <string name="$SCRIPTSTRING_XMAS_31$" value="您好~ 我是#p2001002#，你想进入哪间房间呢？#b#p2001000##k会向你详细说明。请选择。&#13;&#10;#b#L0#第一间#l&#13;&#10;#L1#第二间#l&#13;&#10;#L2#第三间#l&#13;&#10;#L3#第四间#l&#13;&#10;#L4#第五间#l"/>
+  <string name="$SCRIPTSTRING_XMAS_32$" value="您好~ 我是#p2001003#，你想进入哪间房间呢？#b#p2001000##k会向你详细说明。请选择。&#13;&#10;#b#L0#第一间#l&#13;&#10;#L1#第二间#l&#13;&#10;#L2#第三间#l&#13;&#10;#L3#第四间#l"/>
+  <string name="$SCRIPTSTRING_XMAS_33$" value="你装饰得很漂亮啊。其实跟大家一起装饰圣诞树也是不错的。哎！你真的要离开这里吗？"/>
+  <string name="$SCRIPTSTRING_XMAS_34$" value="看来你还想多装饰一会儿。如果你要离开，请随时跟我说。"/>
+  <string name="$SCRIPTSTRING_XMAS_35$" value="噢噢，你带来了圣诞鹿啊！真的很感谢你啊，这个家伙跑得很快应该不大好抓！真的是苦了你啦，呵呵～～像你这么善良的年轻人我不能就这么放你走…嘿嘿，送你什么礼物好呢…?"/>
+  <string name="$SCRIPTSTRING_XMAS_36$" value="啊，对了！给你这个好了，这是一个非常像圣诞鹿角的可爱的头饰。这东西最适合像你这么善良的人了～谢谢你！&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_XMAS_37$" value="4/0#&#13;&#10;#v1002728# #t1002728# 1个"/>
+  <string name="$SCRIPTSTRING_XMAS_38$" value="带来圣诞鹿了，在哪里呢？"/>
+  <string name="$SCRIPTSTRING_XMAS_39$" value="先看看道具栏中是否有空间。"/>
+  <string name="$SCRIPTSTRING_XMAS_4$" value="你真的有#b10个#t4000004#、10个#t4000003#和1000金币#k吗？如果没有那两样东西和金币，我不能免费把你送过去～~"/>
+  <string name="$SCRIPTSTRING_XMAS_5$" value="哟，你不是之前从#m211000000#去过圣诞村吗？你曾经帮过我的忙，如果你想去圣诞村，只要#r1000金币#k就行。现在就出发吗？"/>
+  <string name="$SCRIPTSTRING_XMAS_6$" value="你听说离#m211000000#不远的地方有一个白雪覆盖的圣诞村吗？那是一个到处覆盖着白雪的和平而美丽的地方。你想到那里去吗？嗯～我不能就这样送你过去……对了！如果你能给我#b10个#t4000086#、10个#t4000088#和1000金币#k，我就把你送过去。怎么样？你想去看看吗？"/>
+  <string name="$SCRIPTSTRING_XMAS_7$" value="你真的有#b10个#t4000086#、10个#t4000088#和1000金币#k吗？如果没有那两样东西和金币，我不能免费把你送过去～~"/>
+  <string name="$SCRIPTSTRING_XMAS_8$" value="哟，你不是之前从#m220000300#去过圣诞村吗？你曾经帮过我的忙，如果你想去圣诞村，只要#r1000金币#k就行。现在就出发吗？"/>
+  <string name="$SCRIPTSTRING_XMAS_9$" value="你听说离#m220000300#不远的地方有一个白雪覆盖的圣诞村吗？那是一个到处覆盖着白雪的和平而美丽的地方。你想到那里去吗？嗯～我不能就这样送你过去……对了！如果你能给我#b10个#t4000095#、10个#t4000106#和1000金币#k，我就把你送过去。怎么样？你想去看看吗？"/>
+</imgdir>

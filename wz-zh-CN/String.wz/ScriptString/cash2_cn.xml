@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="cash2_cn">
+  <string name="$SCRIPTSTRING_CASH2_CN_0$" value="仅限在村庄中召唤。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_1$" value="其他栏是否有3格空间，请确认下哦."/>
+  <string name="$SCRIPTSTRING_CASH2_CN_10$" value="由于未知错误，无法发放礼物。请稍后重试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_11$" value="已发放奖励。请查看背包。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_12$" value="请在其他窗中清理出1格以上，然后再重新尝试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_13$" value="现在用户太多,有延迟. 请稍候再试."/>
+  <string name="$SCRIPTSTRING_CASH2_CN_14$" value="由于未知错误，无法发放礼物。请稍后重试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_15$" value="已发放奖励。请查看背包。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_16$" value="请在其他窗中清理出1格以上，然后再重新尝试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_17$" value="现在用户太多,有延迟. 请稍候再试."/>
+  <string name="$SCRIPTSTRING_CASH2_CN_18$" value="由于未知错误，无法发放礼物。请稍后重试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_19$" value="已发放奖励。请查看背包。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_2$" value="这里无法召唤 #o9601115#.请移动到其他地方."/>
+  <string name="$SCRIPTSTRING_CASH2_CN_20$" value="请在其他窗中清理出1格以上，然后再重新尝试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_21$" value="现在用户太多,有延迟. 请稍候再试."/>
+  <string name="$SCRIPTSTRING_CASH2_CN_22$" value="由于未知错误，无法发放礼物。请稍后重试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_23$" value="已发放奖励。请查看背包。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_24$" value="请在其他窗中清理出1格以上，然后再重新尝试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_25$" value="现在用户太多,有延迟. 请稍候再试."/>
+  <string name="$SCRIPTSTRING_CASH2_CN_26$" value="由于未知错误，无法发放礼物。请稍后重试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_27$" value="已发放奖励。请查看背包。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_28$" value="请在其他窗中清理出1格以上，然后再重新尝试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_29$" value="现在用户太多,有延迟. 请稍候再试."/>
+  <string name="$SCRIPTSTRING_CASH2_CN_3$" value="这里无法再次召唤 #o9601115#.请移动到其他地区."/>
+  <string name="$SCRIPTSTRING_CASH2_CN_30$" value="由于未知错误，无法发放礼物。请稍后重试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_31$" value="已发放奖励。请查看背包。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_32$" value="请在其他窗中清理出1格以上，然后再重新尝试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_33$" value="现在用户太多,有延迟. 请稍候再试."/>
+  <string name="$SCRIPTSTRING_CASH2_CN_34$" value="由于未知错误，无法发放礼物。请稍后重试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_35$" value="已发放奖励。请查看背包。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_36$" value="请在其他窗中清理出1格以上，然后再重新尝试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_37$" value="现在用户太多,有延迟. 请稍候再试."/>
+  <string name="$SCRIPTSTRING_CASH2_CN_38$" value="由于未知错误，无法发放礼物。请稍后重试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_39$" value="已发放奖励。请查看背包。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_4$" value="请在其他窗中清理出1格以上，然后再重新尝试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_40$" value="请在其他窗中清理出1格以上，然后再重新尝试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_41$" value="现在用户太多,有延迟. 请稍候再试."/>
+  <string name="$SCRIPTSTRING_CASH2_CN_42$" value="由于未知错误，无法发放礼物。请稍后重试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_43$" value="已发放奖励。请查看背包。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_44$" value="请在其他窗中清理出1格以上，然后再重新尝试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_45$" value="现在用户太多,有延迟. 请稍候再试."/>
+  <string name="$SCRIPTSTRING_CASH2_CN_46$" value="由于未知错误，无法发放礼物。请稍后重试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_47$" value="已发放奖励。请查看背包。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_48$" value="请在其他窗中清理出1格以上，然后再重新尝试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_49$" value="现在用户太多,有延迟. 请稍候再试."/>
+  <string name="$SCRIPTSTRING_CASH2_CN_5$" value="现在用户太多,有延迟. 请稍候再试."/>
+  <string name="$SCRIPTSTRING_CASH2_CN_50$" value="由于未知错误，无法发放礼物。请稍后重试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_51$" value="已发放奖励。请查看背包。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_52$" value="当前版本无法使用。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_53$" value="现在无法使用。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_54$" value="现在无法使用。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_55$" value="现在无法使用。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_56$" value="请清空其他窗的一栏后再回来。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_57$" value="当前使用人数较多，系统延迟，请稍后再试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_58$" value="无法发放未知道具，请稍后再试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_59$" value="奖励已发放，请查看背包。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_6$" value="由于未知错误，无法发放礼物。请稍后重试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_60$" value="请清空其他窗的一栏后再回来。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_61$" value="当前使用人数较多，系统延迟，请稍后再试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_62$" value="无法发放未知道具，请稍后再试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_63$" value="奖励已发放，请查看背包。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_7$" value="已发放奖励。请查看背包。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_8$" value="请在其他窗中清理出1格以上，然后再重新尝试。"/>
+  <string name="$SCRIPTSTRING_CASH2_CN_9$" value="现在用户太多,有延迟. 请稍候再试."/>
+</imgdir>

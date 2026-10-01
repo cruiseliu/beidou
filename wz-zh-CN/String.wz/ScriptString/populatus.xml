@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="populatus">
+  <string name="$SCRIPTSTRING_POPULATUS_0$" value="未知的裂痕打开，被吸进里面。"/>
+  <string name="$SCRIPTSTRING_POPULATUS_1$" value="和帕普拉图斯的战斗已经开始了。你无法进去。"/>
+  <string name="$SCRIPTSTRING_POPULATUS_2$" value="里面人满了。"/>
+  <string name="$SCRIPTSTRING_POPULATUS_3$" value="时间塔的本源一天最多进去两次。"/>
+  <string name="$SCRIPTSTRING_POPULATUS_4$" value="我可以送你到安全的地方。你想出去吗？"/>
+</imgdir>

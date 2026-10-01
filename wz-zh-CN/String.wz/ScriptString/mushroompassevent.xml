@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="mushroompassevent">
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_0$" value="2025年1月1日 上午9点"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_1$" value="2027年12月31日 晚上11点59分"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_10$" value="你好！#e#ho##k#n！&#13;&#10;&#13;&#10;我们正在举办#b#e蘑菇通行证#n#k活动。"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_11$" value="#b#e蘑菇通行证#n#k是致力于帮助勇士们快速成长的活动。"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_12$" value="#r每个账号只有一名角色#k可以参与蘑菇通行证活动。"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_13$" value="参与活动的角色均可在每次#e达到指定等级#n时领取#b#e成长支援礼物#n#k！"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_14$" value="还有！&#13;&#10;&#13;&#10;激活#i"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_15$" value=":#的勇士还可领取我额外准备的#b#e特别礼物#n#k。"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_16$" value="快来参与蘑菇通行证吧！"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_17$" value="※ 在活动期间，#r每个账号只有一名角色#k可以参与蘑菇通行证活动。"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_18$" value="请使用参与蘑菇通行证的角色，再次来找我吧。"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_19$" value="你好，#e#ho##n！"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_2$" value="爆莉萌天使"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_20$" value="蘑菇通行证活动期间，我为勇士们准备了丰富多样助力成长的成长支援道具。"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_21$" value="想知道参与方法吗？非常简单！"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_22$" value="在左侧通知中点击蘑菇通行证，通过“查看蘑菇通行证”，可以查看各等级所对应的成长支援道具。&#13;&#10;每次#e达到指定等级#n，均可获得奖励。"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_23$" value="还有! #i"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_24$" value=":#激活后还可以获得 #b#e特别的礼物#n#k!&#13;&#10;&#13;&#10;(#i"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_25$" value=":#可在商城购买。)"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_26$" value="注意 ，每个账号#r只有一名角色#k可以参与蘑菇通行证活动，请慎重选择！"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_27$" value="#r#e※注意※#n#k&#13;&#10;&#13;&#10;#r#e参与角色被删除后，无法再次参与#n#k蘑菇通行证活动。&#13;&#10;此外，后续开展活动时，活动奖励可能发生#b#e变更#n#k。"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_28$" value="确定要使用#e#b#h0##k#n角色参与活动吗？&#13;&#10;&#13;&#10;※ #b#e每个账号只能有一个角色#n#k参与#r蘑菇通行证活动#n#k ，请慎重考虑后再做决定。"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_29$" value="如果你改变主意，打算再次参与，就来找我吧。"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_3$" value="2025年1月1日早上9点"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_30$" value="千万别忘记领取丰富多样的成长支援道具哦！"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_31$" value="&#13;&#10;&#13;&#10;#L1#询问#b#e&lt;蘑菇通行证&gt;#n#k相关情况。#l"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_32$" value="&#13;&#10;#L2#询问#b#e&lt;专属蘑菇通行证&gt;#n#k相关情况。#l"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_33$" value="&#13;&#10;#L3#询问#b#e&lt;活动时间&gt;#n#k。#l"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_34$" value="&#13;&#10;#L0#没有问题。#l"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_35$" value="你有什么想知道的吗？"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_36$" value=" 在蘑菇通行证活动期间新创建的#e#b#e"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_37$" value="#k#n角色中，参与活动的角色均可领取丰富多样的成长支援道具。"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_38$" value="在左侧通知点击蘑菇通行证，通过“查看蘑菇通行证”即可查看#e达到指定等级#n后，可以获得的成长支援道具。"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_39$" value="此外，每个账号#r只有一名角色#k可以参与蘑菇通行证活动。"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_4$" value="2027年12月31日晚上11点59分"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_40$" value="#r#e※注意※#n#k&#13;&#10;&#13;&#10;#r#e参与角色被删除后，无法再次参与#n#k蘑菇通行证活动。&#13;&#10;此外，后续开展活动时，活动奖励可能发生#b#e变更#n#k。"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_41$" value="&#13;&#10;&#13;&#10;(可以在商城内购得#b#e#i"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_42$" value="激活#i"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_43$" value=":#的勇士可以领取我额外准备的#b#e特别礼物#n#k！"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_44$" value="&#13;&#10;&#13;&#10;#e[活动时间]#k&#13;&#10;&#13;&#10;#e#b#e"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_45$" value="请先完成活动通知中的#b"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_46$" value="#k任务。"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_47$" value="很遗憾，#b#e&lt;蘑菇通行证&gt;#n#k活动已结束。 "/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_5$" value="&#13;&#10;&#13;&#10;#e[活动时间]#k&#13;&#10;&#13;&#10;#e#b#e"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_6$" value="发生未知错误。请稍后再试。"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_7$" value="2025年1月1日 上午9点"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_8$" value="2027年12月31日 晚上11点59分"/>
+  <string name="$SCRIPTSTRING_MUSHROOMPASSEVENT_9$" value="非蘑菇通行证活动角色，无法执行任务！"/>
+</imgdir>

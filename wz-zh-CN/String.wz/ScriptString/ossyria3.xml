@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="ossyria3">
+  <string name="$SCRIPTSTRING_OSSYRIA3_0$" value="得到出入王宫的许可。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_1$" value="没得到许可的人不能进入王宫。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_10$" value="绿洲的水好像很清澈。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_100$" value="请确认是否有东西可以与魔法阵等价交换。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_101$" value="第一个魔法阵有反应了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_102$" value="没有可以与魔法阵等价交换的东西。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_103$" value="没有任何变化。看起来就是一个画在墙上的画。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_104$" value="第二个魔法阵有反应了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_105$" value="是已经稳定的魔法阵。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_106$" value="第三个魔法阵有反应了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_107$" value="魔法阵开始发出光芒了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_108$" value="魔法阵好像已经稳定了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_109$" value="请在三个魔法阵都稳定之后操作。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_11$" value="绿洲的水一直都这么清澈。仔细看的话能清澈见底。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_110$" value="包含在出入许可名单。移动到秘密通道。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_111$" value="保安装置没有完全解除。请在对面通道输入密码。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_112$" value="无法出入秘密通道。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_113$" value="请输入密码。&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_114$" value="保安装置已解除。已登记到出入许可名单上。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_115$" value="保安装置已解除。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_116$" value="密码错误。无法出入秘密通道。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_117$" value="密码错误。无法出入秘密通道。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_118$" value="成功演奏完毕。可以听到艾利杰的平稳的呼吸声。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_119$" value="演奏失败。艾利杰看起来很不高兴。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_12$" value="我尝过绿洲的水。甘甜清爽的水帮我解了渴。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_120$" value="呜呜..请帮帮我吧。&#13;&#10;#b#L0# 发生什么事儿了? 我怎么帮你呢?#l&#13;&#10;#L1# 对不起，我很忙...#l"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_121$" value="呜呜呜... 太过分了…呜"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_122$" value="实际上…我哥哥病得很重。用了一百多种名药也没用…呜呜…不过有一个医生说熬#b#t2071012##k吃可以治愈我哥哥的病。你可以把你的#t2071012#给我吗？求您了…呜呜呜..."/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_123$" value="呜呜呜…您拥有的#t2071012#可是我唯一的希望，我哥哥可怎么办啊？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_124$" value="您真的有#t2071012#吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_125$" value="哈哈哈哈哈！愚蠢的家伙！真是愚蠢啊，刚才是我放松警惕，才被你这种家伙打败，我早晚要报这个仇。哈哈哈哈哈哈哈。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_126$" value="呜呜呜呜....呜呜呜…哥哥…呜呜..."/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_127$" value="从倒塌的柱子残骸之间，我感受到了某种吸引我的力量。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_128$" value="因为有倒塌的柱子残骸，无法再往里走了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_129$" value="因为有倒塌的柱子残骸，无法再往里走了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_13$" value="看来是个储存食物的好地方。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_130$" value="雾里感受到了某种吸引着我的力量。好像远处传来猫的哭声。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_131$" value="因为雾气重，无法再往里走了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_132$" value="虽然每次都会经过这里，但感觉和平时不一样。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_133$" value="嗯... 怎么出来的？你在那儿还有事儿要处理吧... 要再一次把你送到私念的世界。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_134$" value="嗯... 不想去就算了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_135$" value="来来，既然来到这里，就不要讲那些无聊的了，讲点有意思的故事吧！"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_136$" value="关得紧紧的，无法进去。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_14$" value="已经来过这里。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_15$" value="准备好的食物不见了。得回 #p2101011#再看看。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_16$" value="把拿来的食物轻轻地放下了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_17$" value="光明和黑暗是共存的……"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_18$" value="完成任务要随时禀报给我。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_19$" value="应该有我布置的任务……你在偷懒？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_2$" value="有贼！有警卫，不能再进去了。就像可疑的男人所说：宫殿戒备非常森严。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_20$" value="什么？丢了#b#t4031580##k？辛辛苦苦攒下来的该好好保管啊？！这次为了 #m260000000# 人再给你一次，但是……"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_21$" value="准备好迎接任务了吗？确认其他窗口是否空着。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_22$" value="看到装有宝石的王妃的装饰柜。任意打开的话会惊动警卫。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_23$" value="再拿的话会被警卫发现的。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_24$" value="物品太多不能拿戒指。请查看其他窗口。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_25$" value="小心翼翼地取出抽屉，拿出了王妃的戒指。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_26$" value="嘿，不要对每个人都找茬，我和你没什么好说的。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_27$" value="哦，回来了。以前不好意思。对练场有人在用。你今天来是为了证明你的力量吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_28$" value="那来找我做什么？没事儿的话请回吧。如果在这儿啰嗦的话，会引起警卫的怀疑。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_29$" value="你肯定深思熟虑过了？来，开始吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_3$" value="这是红蝎子团的巢穴。除非是红蝎子团，其他人不得出入。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_30$" value="什么，还有人在用对练场？不好意思，下次再来吧。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_31$" value="你不是打赢了我的分身吗？还想证明自己吗？你已经充分证明自己了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_32$" value="我不知道是谁叫你来的，不过来得很正确～ 为了尼哈沙漠中关在香水瓶中的人们，提供回到金银岛的特殊路线。忘记飞行船吧～ 在那拥挤的飞行船上长时间飞行，不觉得很闷吗？不想使用我提供的特别路线吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_33$" value="还挺胆小的哦～ 不相信我吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_34$" value="但是需要注意两点。一 这个路线是货物运送路线，不是正式路线，所以不能保证去#r哪个村子。#k 二 因为是为您特别准备的所以比较贵。手续费需要#e#b10000金币#k#n。有马上出发的运送线，要乘坐吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_35$" value="是钱不够吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_36$" value="好，出发～"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_37$" value="那个，好像钱不够？要起航的话需要#b10000#k金币．"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_38$" value="可以躲避阳光的阴面的墙。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_39$" value="虽然是堵平凡的墙，但细看的话，有一些怪异的纹样。想观察墙壁吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_4$" value="门里头有开锁的声音。门开了一点。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_40$" value="哪儿都能见到的平凡的墙。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_41$" value="墙后面写着很多怪异的词。&#13;&#10;&#13;&#10;#b若有铁锤和短刀，如果有弓和箭……#k"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_42$" value="是个放宝物的理想场所啊。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_43$" value="已经来过这里了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_44$" value="准备好的宝物消失了。得去红蝎子团的虎穴重新拿一个。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_45$" value="轻轻放下带来的宝物。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_46$" value="已经来过这里了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_47$" value="是个放宝物的理想场所啊。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_48$" value="已经来过这里了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_49$" value="准备好的宝物消失了。得去红蝎子团的虎穴重新拿一个。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_5$" value="门被锁上了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_50$" value="是个放宝物的理想场所啊。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_51$" value="已经来过这里了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_52$" value="准备好的宝物消失了。得去红蝎子团的虎穴重新拿一个。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_53$" value="是圈套！就如卡森所说，失踪的炼金术士家周边好像安装了什么东西。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_54$" value="黑暗中可以隐约看到有着蜘蛛网的墙壁。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_55$" value="透过蜘蛛网好像可以看到一些字迹…… 要观察墙壁吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_56$" value="透过脏乱的涂鸦明显可以看到一些字迹。&#10;&#10; #b它是一种吊坠形态...#k &#10;&#10; 是什么意思呢？#k"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_57$" value="是看起来很绅士的炼金术士的相片框。这个人是失踪的炼金术士吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_58$" value="是看起来很绅士的炼金术士的照片框。这个人是失踪的炼金术士吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_59$" value="相框里只有德朗博士的照片。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_6$" value="什么都没有的墙。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_60$" value="包袱太满，无法带走相框里的东西。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_61$" value="打开相框后面的结。相框的秘密空间有一个银色垂饰。小心翼翼地拿出垂饰后，合上相框并放在桌子上。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_62$" value="只能放置简单物品的简易桌子。桌上放着的书里写着各种复杂的公式，很难阅读... "/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_63$" value="只能放置简单物品的简易桌子。桌上放着的书里写着各种复杂的公式，很难阅读..."/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_64$" value="再把药拿过去，罗赛伦可能会发火。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_65$" value="包袱太满，无法把药拿过去。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_66$" value="桌子上有几个小药丸。先拿走一个吧..."/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_67$" value="太暗了，什么都看不清。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_68$" value="太暗了，什么都看不清。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_69$" value="黑暗中好像摸到了书柜... 好像是刚才那个桌子。再找下去估计也找不到什么东西，先出去吧。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_7$" value="推不开墙。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_70$" value="包袱太满，无法把书柜中的书带过去..."/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_71$" value="黑暗中好像摸到了书柜... 要瞪大眼睛，好好找。看到了奇怪的书籍... 这就是贝丁所说的那个文件吧。既然找到文件了，就回去找贝丁吧。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_72$" value="太远了，够不到。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_73$" value="想变成人类。想变成拥有温暖心脏的人类...  那样的话，也许可以握住她的手。但现在不能..."/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_74$" value="您来了... 准备好让雪原玫瑰盛开吗？您知道只有5月的露水才能让玫瑰绽放吧？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_75$" value="看来您还没有准备好让玫瑰绽放哦..."/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_76$" value="那我把您引到可以让雪原玫瑰绽放的孵化器那里..."/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_77$" value="这... 还没到雪原玫瑰盛开的时候。您得等一段时间。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_78$" value="不用再让雪原玫瑰开放了..."/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_79$" value="炼金术... 还有炼金术士... 都很重要。但更重要的是，可以包容这一切的玛加提亚村庄... 玛加提亚的名誉要保存下去。你有这个能力吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_8$" value="墙被推开了，出现了秘密的门。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_80$" value="可以去废弃的研究室制御哈闷吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_81$" value="还有其他事情吗？如果没有..."/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_82$" value="要提高警惕，要除去让哈闷变得凶暴的魔法阵并不是件容易的事儿。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_83$" value="这，因为魔法泛滥，无法进入研究室里头... 稍等。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_84$" value="已经制御哈闷了吗... 这足够了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_85$" value="内部维修中。请以后使用。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_86$" value="看到了盖着灰尘的书柜。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_87$" value="看到了盖着灰尘的书柜。拿一本看看吧，看到了#b机器和人类的差别#k的题目。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_88$" value="看到了盖着灰尘的书柜。仔细搜了一下周边，没发现什么特别的。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_89$" value="看到了乱糟糟的桌子。可能已经有很多人调查过了，有很多手印。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_9$" value="好像有人在房里。戒备太森严了，以后再来吧。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_90$" value="看到了乱糟糟的桌子。可能已经有很多人调查过了，有很多手印。有一些模糊的字迹，但无法辨认。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_91$" value="看到了乱糟糟的桌子。可能已经有很多人调查过了，有很多手印。仔细搜了一下周边，没发现什么特别的。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_92$" value="随着一声尖锐的铁击声，管子向右转动了一些。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_93$" value="好像操作顺序错了。管子把手发出尖锐的铁击声，回到了原位。得重新开始了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_94$" value="管子没有移动。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_95$" value="好像操作顺序错了。管子没有移动。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_96$" value="管子向下移动，出现了保安装置。需要输入密码。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_97$" value="琵丽雅是我的爱"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_98$" value="好像密码错了。管子把手发出尖锐的铁击声，回到了原位。得重新开始了。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA3_99$" value="随着一声尖锐的铁击声，管子向左转动了一些。"/>
+</imgdir>

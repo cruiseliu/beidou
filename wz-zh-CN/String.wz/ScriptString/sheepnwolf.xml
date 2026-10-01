@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="sheepnwolf">
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_0$" value="回到出发时的村庄。"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_1$" value="当前玩家数是"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_10$" value="已经有其他巡查组正在巡查。请稍等一下。(目标区域正在进行游戏)"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_11$" value="稍等一下，马上就开始了……请不要离开，稍等一会儿～运营员马上就会开始游戏！"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_12$" value="狼_ 地图 = "/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_13$" value="呜！"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_14$" value="没有获得炸弹的空间！请清空消费栏，然后再来说话。"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_15$" value="你想出去吗？&#13;&#10;&#13;&#10;#b#L1# 我还想获得炸弹#l&#13;&#10;#b#L0#离开#l"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_16$" value="把炸弹用掉之后再来找我！那样我就再给你补充一点。"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_17$" value="羊_ 地图 = "/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_18$" value="咩～"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_19$" value="要想获得羊毛，其他栏中必须有空格！！羊毛是我的生命！请在其他栏中清理出一格空格，然后再来和我说话！"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_2$" value="人。至少需要5人以上，才能开始游戏。&#13;&#10;90人是&lt;比较合适的人数&gt;。你要继续参加活动吗？"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_20$" value="我能帮你什么吗？&#13;&#10;&#13;&#10;#b&#13;&#10;#L0#我要出去。#l"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_21$" value="你说什么？你不是还能帮助其他羊吗！如果能在限制时间内活下来，你也可以获胜！&#13;&#10;&#13;&#10;#b&#13;&#10;#L0#知道了！！我去帮他们！#l&#13;&#10;#L1#我还是想出去#l"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_22$" value="这里？"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_23$" value="羊待机室 地图 = "/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_24$" value="40秒后移动到群羊牧场。"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_25$" value="狼待机室"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_26$" value="剥光的羊敲响了钟。狼的速度慢了下来。"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_27$" value="羊敲响了钟。"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_28$" value="狼敲响了钟。"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_3$" value="成功了。"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_4$" value="群羊牧场正在修理中。请稍候重新尝试。(目标区域异常)"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_5$" value="群羊牧场正在修理中。请稍候重新尝试。(玩家分组错误)"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_6$" value="你的身份很可疑。在身份未确定之前，你不能进去。请稍等一下。(错误的角色ID)"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_7$" value="群羊牧场正在修理中。请稍候重新尝试。(错误的区域编号)"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_8$" value="巡逻组构成不正确。(地图中的玩家数和狼+羊的数字不符)"/>
+  <string name="$SCRIPTSTRING_SHEEPNWOLF_9$" value="已经有其他巡查组正在巡查。请稍等一下。(区域地图正在使用中)"/>
+</imgdir>

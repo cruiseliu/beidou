@@ -1,0 +1,110 @@
+/*
+	This file is part of the OdinMS Maple Story Server
+    Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
+		       Matthias Butz <matze@odinms.de>
+		       Jan Christian Meyer <vimes@odinms.de>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation version 3 as published by
+    the Free Software Foundation. You may not use, modify or distribute
+    this program under any other version of the GNU Affero General Public
+    License.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+package org.gms.net.server.channel.handlers;
+
+import org.gms.client.character.Character;
+import org.gms.client.Client;
+import org.gms.client.Skill;
+import org.gms.client.SkillFactory;
+import org.gms.client.inventory.InventoryTab;
+import org.gms.client.inventory.InventoryType;
+import org.gms.client.inventory.ItemSlot;
+import org.gms.client.inventory.manipulator.InventoryManipulator;
+import org.gms.net.AbstractPacketHandler;
+import org.gms.net.packet.InPacket;
+import org.gms.server.ItemInformationProvider;
+import org.gms.util.PacketCreator;
+
+import java.util.Map;
+
+public final class SkillBookHandler extends AbstractPacketHandler {
+    @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20 全量收口）：player 域读写，经 queued 通道归会话 strand。
+        return true;
+    }
+
+
+    @Override
+    public final void handlePacket(InPacket p, Client c) {
+        if (!c.getPlayer().isAlive()) {
+            c.sendPacket(PacketCreator.enableActions());
+            return;
+        }
+
+        p.readInt();
+        short slot = p.readShort();
+        int itemId = p.readInt();
+
+        boolean canuse;
+        boolean success = false;
+        int skill = 0;
+        int maxlevel = 0;
+
+        Character player = c.getPlayer();
+        if (c.tryacquireClient()) {
+            try {
+                InventoryTab inv = c.getPlayer().getInventory(InventoryType.USE);
+                ItemSlot toUse = inv.getItem(slot);
+                if (toUse == null || toUse.getItemId() != itemId) {
+                    return;
+                }
+                Map<String, Integer> skilldata = ItemInformationProvider.getInstance().getSkillStats(toUse.getItemId(), c.getPlayer().getJob().getId());
+                if (skilldata == null) {
+                    return;
+                }
+                Skill skill2 = SkillFactory.getSkill(skilldata.get("skillid"));
+                if (skilldata.get("skillid") == 0) {
+                    canuse = false;
+                } else if ((player.getSkillLevel(skill2.getId()) >= skilldata.get("reqSkillLevel") || skilldata.get("reqSkillLevel") == 0) && player.getMasterLevel(skill2.getId()) < skilldata.get("masterLevel")) {
+                    inv.lockInventory();
+                    try {
+                        ItemSlot used = inv.getItem(slot);
+                        if (used != toUse || toUse.getQuantity() < 1) {    // thanks ClouD for noticing skillbooks not being usable when stacked
+                            return;
+                        }
+
+                        InventoryManipulator.removeFromSlot(c, InventoryType.USE, slot, (short) 1, false);
+                    } finally {
+                        inv.unlockInventory();
+                    }
+
+                    canuse = true;
+                    if (ItemInformationProvider.rollSuccessChance(skilldata.get("success"))) {
+                        success = true;
+                        player.changeSkillLevel(skill2.getId(), player.getSkillLevel(skill2.getId()), Math.max(skilldata.get("masterLevel"), player.getMasterLevel(skill2.getId())), -1);
+                    } else {
+                        success = false;
+                        //player.dropMessage("The skill book lights up, but the skill winds up as if nothing happened.");
+                    }
+                } else {
+                    canuse = false;
+                }
+            } finally {
+                c.releaseClient();
+            }
+
+            // thanks Vcoc for noting skill book result not showing for all in area
+            player.getMap().broadcastMessage(PacketCreator.skillBookResult(player, skill, maxlevel, canuse, success));
+        }
+    }
+}

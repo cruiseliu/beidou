@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="ossyria0">
+  <string name="$SCRIPTSTRING_OSSYRIA0_0$" value="天空之城站有很多机场。按目的地不同得去不同的机场。您想去到哪儿的通道呢？&#13;&#10;#b#L0# 前往魔法密林的船所在的机场#l&#13;&#10;#b#L1# 前往玩具城的船所在机场#l#k&#13;&#10;#b#L2# 前往神木村的船所在的机场#l&#13;&#10;#b#L3# 前往武陵的乘鹤所在的机场#l&#13;&#10;#b#L4# 前往阿里安特的飞艇所在的机场#l&#13;&#10;#b#L5# 前往圣地所在的机场#l#k"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_1$" value="即使你走错了也不用担心，我们开通了绿色通道，可以将你送回这里。你要去通往#b魔法密林的入口#k吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_10$" value="确认好目的地之后，通过我可以移动到相应的机场。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_11$" value="就算选错通道，也能通过入口回到我所在的位置，请放心。想移动到乘坐飞艇前往#b圣地的机场#k吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_12$" value="确认好目的地之后，通过我可以移动到相应的机场。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_13$" value="哈哈... 你真的拿来了#b#t4031450##k啊。真的是伯坚做的。那好我让你进#m921100100#。怎么样，要进&#13;&#10;#b#L0# #m921100100#吗？#l&#13;&#10;#L1# 我想去冰峰雪域深处.#l"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_14$" value="其他玩家正在执行任务你还不能进去。稍后再试..."/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_15$" value="你好像要继续往深处走嘛...你可要考虑清楚哦。据说深处有很多很可怕的怪物，曾经有数十位勇士闯了进去，但没有一个人回来……从此再也没有人敢进去了。不管你准备多么充分,千万不要冒然行动啊。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_16$" value="劝你还是打消这个念头吧，我不想再看到有人你执意要进去？好吧，让我看看你的资质。嗯～似乎还不错。你确定要进入吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_17$" value="做一个冒险的决定是很不容易的。如果你以后改变了想法再来找我。守卫在这里是我的使命。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_18$" value="劝你还是打消这个念头吧，我不想再看到有人你执意要进去？好吧，让我看看你的资质。啊～你还没到50级？！我决不会让你去冒险"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_19$" value="你真的想用100个#b#t"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_2$" value="请你再次确认目的地后，再通过我到搭乘口去。注意开船时刻表噢！"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_20$" value="##k跟我交换吗？交换前可要查看清楚你的消耗窗或其他窗中是否有空间？你确定要交换吗?"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_21$" value="不要以为不划算啊，这个条件还可以阿。如果你挑个好日子,也有可能交换到好东西。如果你改变主意了,随时来找我吧。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_22$" value="你确定有100个#b#t"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_23$" value="##k吗？那再确认一下你的背包还有没有空间吧？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_24$" value="你的100个#b#t"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_25$" value="##k和"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_26$" value="个#b#t"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_27$" value="##k已经交换成功了。怎么样？喜欢换来的东西吗？我暂时还不打算离开，你要是又想交换物品了，就来这里找我吧~"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_28$" value="你的物品窗和其他窗没有空间了。要想跟我换东西就快点腾出地方吧。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_29$" value="喂~ 仔细听我说。其实我是个生意人，就靠把这里的东西卖到其他村子去为生。可最近这里怪物好厉害呀，生意清淡啊你愿不愿意跟我交易呢？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_3$" value="即使你走错了也不用担心，我们开通了绿色通道，可以将你送回这里。你要去通往#b玩具城的入口#k吗？"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_30$" value="交易其实很简单的，你只要给我我需要的东西，我就把我所有的东西给你选。不过我也会与其他人交易，所以可能每次身上带的货物都不一样哦。别想了，跟我交易保你赚钱。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_31$" value="别以为不划算，只要你的条件恰当，也会交换到好东西的。你考虑清楚后再来找我吧。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_32$" value="好，你先决定拿什么东西换吧。你给我好东西就能换的更好的东西，信不信由你。&#13;&#10;#b#L0# #t4000073# 100个#l&#13;&#10;#L1# #t4000059# 100个#l&#13;&#10;#L2# #t4000076# 100个#l&#13;&#10;#L3# #t4000058# 100个#l&#13;&#10;#L4# #t4000078# 100个#l&#13;&#10;#L5# #t4000060# 100个#l&#13;&#10;#L6# #t4000062# 100个#l&#13;&#10;#L7# #t4000048# 100个#l&#13;&#10;#L8# #t4000081# 100个#l&#13;&#10;#L9# #t4000061# 100个#l&#13;&#10;#L10# #t4000070# 100个#l&#13;&#10;#L11# #t4000071# 100个#l&#13;&#10;#L12# #t4000072# 100个#l&#13;&#10;#L13# #t4000051# 100个#l&#13;&#10;#L14# #t4000055# 100个#l&#13;&#10;#L15# #t4000069# 100个#l&#13;&#10;#L16# #t4000052# 100个#l&#13;&#10;#L17# #t4000050# 100个#l&#13;&#10;#L18# #t4000057# 100个#l&#13;&#10;#L19# #t4000049# 100个#l&#13;&#10;#L20# #t4000056# 100个#l&#13;&#10;#L21# #t4000079# 100个#l&#13;&#10;#L22# #t4000053# 100个#l&#13;&#10;#L23# #t4000054# 100个#l&#13;&#10;#L24# #t4000080# 100个#l"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_4$" value="请你再次确认目的地后，再通过我到搭乘口去。注意开船时刻表噢！你应该注意不要迟到。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_5$" value="即使走错路，也不必担心。可以通过入口回到我这里。要移动到搭乘开往#b神木村之船的码头#k吗?"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_6$" value="请你再次确认目的地后，再通过我到搭乘口去。开船的时间是固定的，要遵守时间！"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_7$" value="即使走错路，也不必担心。可以通过入口回到我这里。要移动到搭乘开往#b武陵的仙鹤#k吗?"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_8$" value="请你再次确认目的地后，再通过我到搭乘口去。"/>
+  <string name="$SCRIPTSTRING_OSSYRIA0_9$" value="就算选错通道，也能通过入口回到我所在的位置，请放心。想移动到乘坐飞艇前往#b阿里安特的机场#k吗？"/>
+</imgdir>

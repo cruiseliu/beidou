@@ -1,0 +1,115 @@
+{
+    "jobId": 1511,
+    "faction": "CYGNUS",
+    "style": "PIRATE",
+    "advancementCount": 3,
+    "advancementLevel": 70,
+    "advancementHint": 120,
+    "maxLevel": 120,
+    "previousJobId": 1510,
+    "levelUp": [
+        {
+            "from": 1,
+            "to": 10,
+            "gainStats": {
+                "maxHp": {
+                    "addMin": 22,
+                    "addMax": 28,
+                    "multiply": 1.0
+                },
+                "maxMp": {
+                    "addMin": 18,
+                    "addMax": 23,
+                    "multiply": 1.0
+                },
+                "ap": 5,
+                "sp": 3
+            }
+        },
+        {
+            "from": 10,
+            "to": 17,
+            "gainStats": {
+                "maxHp": {
+                    "addMin": 22,
+                    "addMax": 28,
+                    "multiply": 1.0
+                },
+                "maxMp": {
+                    "addMin": 18,
+                    "addMax": 23,
+                    "multiply": 1.0
+                },
+                "ap": 7,
+                "sp": 3
+            }
+        },
+        {
+            "from": 17,
+            "to": 76,
+            "gainStats": {
+                "maxHp": {
+                    "addMin": 22,
+                    "addMax": 28,
+                    "multiply": 1.0
+                },
+                "maxMp": {
+                    "addMin": 18,
+                    "addMax": 23,
+                    "multiply": 1.0
+                },
+                "ap": 6,
+                "sp": 3
+            }
+        },
+        {
+            "from": 76,
+            "to": 120,
+            "gainStats": {
+                "maxHp": {
+                    "addMin": 22,
+                    "addMax": 28,
+                    "multiply": 1.0
+                },
+                "maxMp": {
+                    "addMin": 18,
+                    "addMax": 23,
+                    "multiply": 1.0
+                },
+                "ap": 5,
+                "sp": 3
+            }
+        }
+    ],
+    "advancementGainStats": {
+        "maxHp": {
+            "addMin": 300,
+            "addMax": 350,
+            "multiply": 1.0
+        },
+        "maxMp": {
+            "addMin": 150,
+            "addMax": 200,
+            "multiply": 1.0
+        },
+        "ap": 7,
+        "sp": 1
+    },
+    "spChainShared": true,
+    "acquiredSkills": [
+        15110000,
+        15111001,
+        15111002,
+        15111003,
+        15111004,
+        15111005,
+        15111006,
+        15111007
+    ],
+    "apAutoAssignKey": "default",
+    "weaponStatRules": {},
+    "modifiers": [],
+    "listeners": [],
+    "mpIntDivisor": 10,
+    "autoAssignAp": []
+}

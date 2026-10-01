@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="contimove">
+  <string name="$SCRIPTSTRING_CONTIMOVE_0$" value="你的等级太低了。对10级以下的人而言，在大陆之间旅行太危险，因此禁止搭乘。只有在冒险岛和维多利亚之间航行的桑克斯的船是个特例。请你在升级之后再来找我。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_1$" value="我负责为开往各地的船导航。你要到什么地方去旅行呢？我来为你确认飞行的区间。&#13;&#10;#b#L0#金银岛的魔法密林#l &#13;&#10;#b#L1#玩具城#l &#13;&#10;#b#L2#神木村#l &#13;&#10;#b#L3#武陵村#l &#13;&#10;#b#L4# 阿里安特#k &#13;&#10;#b#L5#圣地#k"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_10$" value="如果你想乘坐开往武陵的鹤的出租车，请和右边#b码头的引导员艺斯#k说话。她会把你带到开往武陵的出租车所在的码头那里去。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_100$" value="[CN]$$#b일본의 버섯신사#k를 여행하시겠어요? 버섯신사로 가려면 #b150메소#k만 내시면 됩니다. 지금 바로 출발하시겠어요?"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_101$" value="[CN]$$#b일본의 버섯신사#k를 여행하시겠어요? 버섯신사로 가려면 #b1500메소#k만 내시면 됩니다. 지금 바로 출발하시겠어요?"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_102$" value="[CN]$$메소를 충분히 가지고 계신지 확인해 보세요."/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_103$" value="[CN]$$#b태국의 플로팅 마켓#k을 여행하시겠어요? 플로팅 마켓으로 가려면 #b150메소#k만 내시면 됩니다. 지금 바로 출발하시겠어요?"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_104$" value="[CN]$$#b태국의 플로팅 마켓#k을 여행하시겠어요? 플로팅 마켓으로 가려면 #b1500메소#k만 내시면 됩니다. 지금 바로 출발하시겠어요?"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_105$" value="[CN]$$메소를 충분히 가지고 계신지 확인해 보세요."/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_106$" value="[CN]$$어느 곳을 여행하시겠어요? 초보자님은 특별히 90% 할인가로 모시고 있습니다.&#13;&#10;#b#L0# 대만의 서문정(100메소)#l&#13;&#10;#L1# 일본의 버섯신사(150메소)#l&#13;&#10;#L2# 태국의 플로팅 마켓(150메소)#l"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_107$" value="[CN]$$어느 곳을 여행하시겠어요?&#13;&#10;#b#L0# 대만의 서문정(1000메소)#l&#13;&#10;#L1# 일본의 버섯신사(1500메소)#l&#13;&#10;#L2# 태국의 플로팅 마켓(1500메소)#l"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_108$" value="[CN]$$#b대만의 서문정#k을 여행하시겠어요? 서문정으로 가려면 #b100메소#k만 내시면 됩니다. 지금 바로 출발하시겠어요?"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_109$" value="[CN]$$#b대만의 서문정#k을 여행하시겠어요? 서문정으로 가려면 #b1000메소#k만 내시면 됩니다. 지금 바로 출발하시겠어요?"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_11$" value="你要去尼哈沙漠的阿里安特吗？那里生活着一群和炎热的沙漠一样热情的人。去往阿里安特的基尼#b以整点为基准，每隔10分钟出发#k。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_110$" value="[CN]$$메소를 충분히 가지고 계신지 확인해 보세요."/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_111$" value="[CN]$$메소를 충분히 가지고 계신지 확인해 보세요."/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_112$" value="[CN]$$메소를 충분히 가지고 계신지 확인해 보세요."/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_113$" value="[CN]$$어느 곳을 여행하시겠어요? 초보자님은 특별히 90% 할인가로 모시고 있습니다.&#13;&#10;#b#L0# 대만의 서문정(150메소)#l&#13;&#10;#L1# 중국의 상해(150메소)#l&#13;&#10;#L2# 태국의 플로팅 마켓(150메소)#l"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_114$" value="[CN]$$어느 곳을 여행하시겠어요?&#13;&#10;#b#L0# 대만의 서문정(1500메소)#l&#13;&#10;#L1# 중국의 상해(1500메소)#l&#13;&#10;#L2# 태국의 플로팅 마켓(1500메소)#l"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_115$" value="[CN]$$#b대만의 서문정#k을 여행하시겠어요? 서문정으로 가려면 #b150메소#k만 내시면 됩니다. 지금 바로 출발하시겠어요?"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_116$" value="[CN]$$#b대만의 서문정#k을 여행하시겠어요? 서문정으로 가려면 #b1500메소#k만 내시면 됩니다. 지금 바로 출발하시겠어요?"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_117$" value="[CN]$$메소를 충분히 가지고 계신지 확인해 보세요."/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_118$" value="[CN]$$#b중국의 상해#k를 여행하시겠어요? 상해로 가려면 #b150메소#k만 내시면 됩니다. 지금 바로 출발하시겠어요?"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_119$" value="[CN]$$#b중국의 상해#k를 여행하시겠어요? 상해로 가려면 #b1500메소#k만 내시면 됩니다. 지금 바로 출발하시겠어요?"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_12$" value="如果你想前往阿里安特的话，请和右边#b码头的引导员艺斯#k说话。她会把你带到开往阿里安特船所在的码头那里去。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_120$" value="[CN]$$메소를 충분히 가지고 계신지 확인해 보세요."/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_121$" value="[CN]$$메소를 충분히 가지고 계신지 확인해 보세요."/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_122$" value="[CN]$$어느 곳을 여행하시겠어요? 초보자님은 특별히 90% 할인가로 모시고 있습니다.&#13;&#10;#b#L0# 대만의 서문정(150메소)#l&#13;&#10;#L1# 중국의 상해(150메소)#l&#13;&#10;#L2# 일본의 버섯신사(150메소)#l"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_123$" value="[CN]$$어느 곳을 여행하시겠어요?&#13;&#10;#b#L0# 대만의 서문정(1500메소)#l&#13;&#10;#L1# 중국의 상해(1500메소)#l&#13;&#10;#L2# 일본의 버섯신사(1500메소)#l"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_124$" value="[CN]$$메소를 충분히 가지고 계신지 확인해 보세요."/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_125$" value="[CN]$$메소를 충분히 가지고 계신지 확인해 보세요."/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_126$" value="[CN]$$메소를 충분히 가지고 계신지 확인해 보세요."/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_127$" value="[CN]$$안녕하세요. 여러분. 여러분의 큰 호응 속에서 해외여행 상품이 판매 종료되었습니다. 미처 본대륙으로 이동하지 못하신 분들은 출발지로 보내드리고 있습니다. 메이플월드의 #b#m"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_128$" value="[CN]$$##k(으)로 지금 이동하시겠습니까?"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_129$" value="[CN]$$더이상 해외여행을 즐기실 수 없으니， 메이플월드로 이동하시려면 말씀해 주세요."/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_13$" value="你要去圣地吗？那是个天鹅女皇和她的骑士一起守护着的美丽的岛。开往圣地的#b1人用船随时在这儿待机#k，你可以坐船快速到达圣地。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_130$" value="移动到时间之门的另一端。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_14$" value="如果你想乘坐开往圣地的船，请和右边#b码头的引导员艺斯#k说话。她会把你带到开往圣地的船所在的码头那里去。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_15$" value="你好。我是码头引导员美尔。你想离开玩具城，到其他地区去吗？从这里开往神秘岛的#b天空之城站#k的飞艇#b以整点为基准，每10分钟出发一班#k。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_16$" value="如果你想去天空之城，请通过右边的传送点前往码头，然后和#b田安#k说话。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_17$" value="呼……竟然免费运营飞艇……玛加提亚的炼金术士们还真是自找麻烦。每天都有这么多的旅客……真是烦死人了。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_18$" value="你好。我是码头的售票员。你想离开金银岛，前往其他地区吗？从这里开往神秘岛的#b天空之城站#k的飞艇#b以整点为基准，每15分钟出发一班#k。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_19$" value="如果你想去天空之城，请和右边的#b检票员#k说话。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_2$" value="你要去金银岛的魔法密林吗？那是个长着茂密的森林的美丽的地方。开往魔法密林的船#b以整点为基准，每15分钟出发一班#k。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_20$" value="事实上在不久之前，乘坐飞艇还必须花钱买票。但是玛加提亚的炼金术士们以惊人的魔力开发出了浮游石，因此我们才决定免费运行飞艇。嗯？我们职员靠什么生活？请别担心。政府会给我们补贴。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_21$" value="你好。我是码头引导员纽曼。你想离开神木村，前往其他地区吗？从这里开往神秘岛的#b天空之城站#k的飞艇#b以整点为基准，每10分钟出发一班#k。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_22$" value="如果您想去天空之城，请通过右边的传送点前往码头，和#b塔咪#k说话。啊，看到塔咪之后请不要惊讶。他和我长得一模一样，有人误以为我们是双胞胎。其实他是我三哥。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_23$" value="啊，还有……你一定要保密。听说在码头最高处的克鲁巴老人可以用奇特的力量把人变成龙，送到漂浮在遥远的虚空的神秘岛上去。如果你是100级以上的强大的冒险家，对这件事一定很感兴趣吧？"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_24$" value="你好。我是码头引导员西拉斯。你想离开阿里安特，前往其他地区吗？在码头上开往神秘岛的#b天空之城站#k的飞艇#b以整点为基准，每10分钟出发一班#k。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_25$" value="如果您想去天空之城，请和右边的#b阿世顺#k老人说话。他耳朵有点不方便，请你说话大声一点。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_26$" value="对了……有件事不知道是不是真的……听说沙漠某处有个奇怪的修炼师卡乐卡萨，付钱之后可以把人送到金银岛……没有获得许可就随便把人送来送去，这绝对是违法的！"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_27$" value="但是骆驼出租车是经过国王的许可运营的，你也可以做骆驼出租车。骆驼出租车不能把你送到所有的地区，现在只在玛加提亚之间运营。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_28$" value="出发前5分钟才可以进入。请稍等一下。不过也不能来得太晚。因为出发前1分钟会结束出航准备，就不再让客人上船了。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_29$" value="这次的船已经在准备出航。对不起，请你乘坐下一班船。运行时间表你可以和码头引导员确认。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_3$" value="要想搭乘前往魔法密林的飞艇的话，请和右边#b码头的引导员艺斯#k说话。她会把你带到开往魔法密林的飞艇所在的码头那里去。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_30$" value="你好，对不起。这次的船已经满员，再多坐人可能会发生危险。请乘坐下一班船。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_31$" value="坐上船之后，需要飞很久才能到达目的地。如果你在这里有急事要办的话，请先把事情办完。怎么样？你要上船吗？"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_32$" value="看样子你还有事情要办吧？"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_33$" value="出发前5分钟开始才可以入场。请稍等一下。不过也别来得太晚。出发前1分钟就会结束出航准备，无法让客人登船了。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_34$" value="本次航班已经进入出航准备阶段。不好意思，请你乘坐下一个航班。运行时间表你可以和码头引导员确认。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_35$" value="出发前5分钟开始才可以入场。请稍等一下。不过也别来得太晚。出发前1分钟就会结束出航准备，无法让客人登船了。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_36$" value="出发前5分钟开始才可以入场。请稍等一下。不过也别来得太晚。出发前1分钟就会结束出航准备，无法让客人登船了。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_37$" value="出发前5分钟开始才可以入场。请稍等一下。不过也别太晚。出发前1分钟就会结束出航准备，无法让客人登船了。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_38$" value="本次航班已经进入出航准备阶段。不好意思，请你乘坐下一个航班。运行时间表你可以和码头引导员确认。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_39$" value="不好意思，年轻人。这次的船已经满员，再多坐人可能会发生危险。请乘坐下一班船。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_4$" value="你要到时间停止之湖的玩具城去吗？那是个到处都是玩具的愉快的村庄。开往玩具城的船#b以整点为基准，每10分钟出发一班#k。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_40$" value="坐上船之后，需要飞很久才能到达目的地。如果你在这里有急事要办的话，请先把事情办完……怎么样？你要上船吗？"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_41$" value="看样子你还有事情要办吧？"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_42$" value="马上就要出发了，你想从这里出去吗？虽然可以出去，但你必须等到下一班飞艇到达为止。你真的要出去吗？"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_43$" value="各位乘客，我们即将到达目的地。如果你还觉得无聊，可以跟别的乘客聊天。那么,时间就会过的很快！"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_44$" value="现在你不能上船。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_45$" value="消耗一个魔法种子，向某个地方移动。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_46$" value="因没有魔法种子，无法进行移动。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_47$" value="你好？来到冒险家，凭双脚旅行很累吧？还不如出点金币飞过这块随时有怪兽袭击的大地，怎么样？初学者只需10%的价钱。那么选择想去的地方。&#13;&#10;#b#L0#天空之城 ("/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_48$" value=" 金币)#l&#13;&#10;#L1# 百草堂("/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_49$" value=" 金币)#l"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_5$" value="要想搭乘前往玩具城的飞艇的话，请和右边#b码头的引导员艺斯#k说话。她会把你带到开往玩具城的飞艇所在的码头那里去。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_50$" value="你有足够的金币吗？"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_51$" value="现有别的冒险家正飞往天空之城，过会儿再跟我搭话吧。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_52$" value="我正在和其他的冒险家飞往天空之城呢，稍等一会儿再跟我谈谈."/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_53$" value="要向 #b#m251000000##k移动吗？价钱是#b"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_54$" value=" 金币#k。还有，不乖乖地呆着的话会掉下去的哦。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_55$" value="想好了再跟我搭话吧。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_56$" value="看来你没有足够的金币。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_57$" value="你好？冒险家，旅途愉快吗？没有像我一样的翅膀，是不是有些不方便？最近在帮一些没翅膀的人移动。怎样？有兴趣吗？那么选择想去的地方。&#13;&#10;#b#L0# 天空之城("/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_58$" value="你有足够的金币吗？"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_59$" value="有别的冒险家正飞往天空之城，过会儿再跟我搭话吧。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_6$" value="你要去米纳尔森林的神木村吗？那是个和龙族一起生活的有趣的村子。开往神木村的船#b以整点为基准，每10分钟出发一班#k。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_60$" value="有别的冒险家正飞往天空之城，过会儿再跟我搭话吧。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_61$" value="要向 #b#m251000000##k移动吗？只要途中不做出危险的动作掉下去，很快就能到达。价钱是#b"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_62$" value=" 金币#k。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_63$" value="你好？新手冒险家，凭双脚旅行很累吧？徒步跨越怪物出没的地带，还不如出点金币飞过这块随时有怪兽袭击的大地，怎么样？只要乖乖地坐好就会安全的到达目的地。初学者只需10%的价钱。那么选择想去的地方。&#13;&#10;#b#L0#武陵 ("/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_64$" value="你有足够的金币吗?"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_65$" value="我正在和其他的冒险家飞往天空之城呢，稍等一会儿再跟我谈谈."/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_66$" value="我正在和其他的冒险家飞往天空之城呢，稍等一会儿再跟我谈谈."/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_67$" value="我正在和其他的冒险家飞往天空之城呢，稍等一会儿再跟我谈谈."/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_68$" value="你好？冒险家，旅途愉快吗？没有像我一样的翅膀，是不是有些不方便？最近在帮一些没翅膀的人移动。只要乖乖地坐好就能安全的移动。怎样？有兴趣吗？那么选择想去的地方。&#13;&#10;#b#L0# 武陵("/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_69$" value="你有足够的金币吗?"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_7$" value="要想搭乘前往神木村的飞艇的话，请和右边#b码头的引导员艺斯#k说话。她会把你带到开往神木村的飞艇所在的码头那里去。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_70$" value="我正在和其他的冒险家飞往天空之城呢，稍等一会儿再跟我谈谈"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_71$" value="我正在和其他的冒险家飞往天空之城呢，稍等一会儿再跟我谈谈."/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_72$" value="我正在和其他的冒险家飞往天空之城呢，稍等一会儿再跟我谈谈."/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_73$" value="你好？来到冒险家，旅途愉快吗？凭双脚旅行很累吧？还不如出点金币飞过这块随时有怪兽袭击的大地。只要乖乖地坐好就能安全的到达目的地。直接到#b武陵#k怎么样？初学者只需10%的价钱 #b"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_74$" value=" 金币#k就可以。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_75$" value="你好？冒险家，旅途愉快吗？没有像我一样的翅膀，是不是有些不方便？最近在帮一些没翅膀的人直接飞往 #b武陵#k。怎样？有兴趣吗？只需#b"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_76$" value="改变想法随时跟我搭话吧。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_77$" value="为了从繁忙的日常中解脱，去享受一趟旅游怎么样？不仅可以体验新颖的异国文化，还能学到不少东西的机会！我们冒险岛旅游公司为您准备了，丰富有趣的#b世界旅游#k套餐。谁说环游世界很贵？请放一万个心。我们特别为新手打折，只要#b300金币#k就能享乐全程。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_78$" value="为了从繁忙的日常中解脱，去享受一趟旅游怎么样？不仅可以体验新颖的异国文化，还能学到不少东西的机会！我们冒险岛旅游公司为您准备了，丰富有趣的#b世界旅游#k套餐。谁说环游世界很贵？请放一万个心。我们的#b冒险岛世界旅游套餐#k只需要#b3000金币#k就可以享乐全程。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_79$" value="现在就可以去往 #b泰国的水上市场#k、#b少林寺#k、#b日本古代神社#k游览一番。在每个旅游地我都会为大家提供满意热诚的服务。那么请准备好，我们出发去&#13;&#10;#b#L0# 水上市场（泰国）#l&#13;&#10;#L1# 少林寺（中国）#l&#13;&#10;#L2# 古代神社（日本）#l&#13;&#10;#L3# 新叶城（欧美）#l&#13;&#10;#b#L4# 中心商务区（新加坡）#l&#13;&#10;#b#L5# 吉隆大都市（马来西亚）#l"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_8$" value="你要去武陵桃园的武陵吗？现在天空之城和武陵之间没有船。但是武陵的居民#b鹤运营的1人用出租车随时在这儿待机#k。你可以乘坐出租车快速地到达武陵。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_80$" value="#b泰国的水上市场#k是最佳的旅游胜地。水上市场坐落在凉风爽爽的河边。热带雨林和泰国的传统建筑相结合，画出了优美的异国风情。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_81$" value="尤其引人注目的是，可以坐在小舟里穿越水上市场，形成了一道独特的风景。那好我们出发去自然和传统的胜地 #b泰国的水上市场#k！"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_82$" value="请确认你是否带有足够的金币。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_83$" value="#b少林寺#k在中国乃至世界声名远扬...学武之人梦寐以求的摇篮。少林功夫天下无敌，拳脚，兵器样样精通。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_84$" value="多少习武之人跨洋过海讨教武学...少林寺坐落在嵩山山顶，耸立在云海之中，美不胜收...准备好了吧 #b少林寺#k等着你呢！"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_85$" value="请确认你是否带有足够的盘缠。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_86$" value="#b日本古代神社#k在日本有悠久的历史，朴素勤劳的村民维护着村落的和平。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_87$" value="等了好久终于可以到日本游览一番别具特色的文化。 #b日本古代神社#k等着你呢！"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_88$" value="请确认你是否带有足够的盘缠。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_89$" value="#b新叶城市#k以欧式风情著名，现代化的建筑群，独特的异国风光。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_9$" value="但是和免费的飞艇不同，出租车要收取一定的费用。到武陵一共需要#b1500金币#k，请你在准备好足够的钱之后再去乘坐。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_90$" value="与泰国，日本相比具有完全不同的异国风情。 快去#b新叶城#k继续新的旅程吧！"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_91$" value="请确认你是否带有足够的盘缠。"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_92$" value="[CN]$$여행은 재미있게 즐기고 계신가요?&#13;&#10;#b#L0# 다른 곳을 여행하고 싶어요.#l&#13;&#10;#L1# 여행을 마치고 #m"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_93$" value="[CN]$$#에 돌아가고 싶어요.#l"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_94$" value="[CN]$$어느 곳을 여행하시겠어요? 초보자님은 특별히 90% 할인가로 모시고 있습니다.&#13;&#10;#b#L0# 중국의 상해(100메소)#l&#13;&#10;#L1# 일본의 버섯신사(150메소)#l&#13;&#10;#L2# 태국의 플로팅 마켓(150메소)#l"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_95$" value="[CN]$$어느 곳을 여행하시겠어요?&#13;&#10;#b#L0# 중국의 상해(1000메소)#l&#13;&#10;#L1# 일본의 버섯신사(1500메소)#l&#13;&#10;#L2# 태국의 플로팅 마켓(1500메소)#l"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_96$" value="[CN]$$#b중국의 상해#k를 여행하시겠어요? 상해로 가려면 #b100메소#k만 내시면 됩니다. 지금 바로 출발하시겠어요?"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_97$" value="[CN]$$#b중국의 상해#k를 여행하시겠어요? 상해로 가려면 #b1000메소#k만 내시면 됩니다. 지금 바로 출발하시겠어요?"/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_98$" value="[CN]$$메소를 충분히 가지고 계신지 확인해 보세요."/>
+  <string name="$SCRIPTSTRING_CONTIMOVE_99$" value="[CN]$$생각이 바뀌시면 다시 말을 걸어 주세요."/>
+</imgdir>

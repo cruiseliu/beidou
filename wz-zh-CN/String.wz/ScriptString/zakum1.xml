@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="zakum1">
+  <string name="$SCRIPTSTRING_ZAKUM1_0$" value="在当前频道中无法挑战#e&lt;扎昆远征队&gt;#n。普通扎昆可以使用4、5、6频道，进阶扎昆可以使用7频道。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_1$" value="进阶"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_10$" value="#e&lt;扎昆远征队："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_100$" value="&#13;&#10;26号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_101$" value="&#13;&#10;27号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_102$" value="&#13;&#10;28号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_103$" value="&#13;&#10;29号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_104$" value="&#13;&#10;30号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_105$" value="申请者总数是#b"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_106$" value="人#k，申请者清单如下。&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_107$" value="已经超出了可申请人数，无法申请。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_108$" value="参加了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_109$" value="已经登记在扎昆远征队了。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_11$" value="模式&gt;#n&#13;&#10;扎昆复活了。这样下去的话，它可能会让火山爆发，把整个冰峰雪域变成一片地狱。&#13;&#10;#b"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_110$" value="申请者已达到最大人数，无法继续申请。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_111$" value="加入了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_112$" value="加入了扎昆远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_113$" value="退出了远征队了。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_114$" value="退出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_115$" value="退出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_116$" value="退出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_117$" value="最多可以开除10名指定的队员。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_118$" value="你想把#b"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_119$" value="#k指定为要开除的队员吗？被指定的队员没有远征队长许可无法再次申请。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_12$" value="&#13;&#10;#L0#扎昆远征队申请入场。#l"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_120$" value="远征队长把你指定为要开除的队员。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_121$" value="制裁对象最多只能指定10个。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_122$" value="是否将  #k添加为制裁对象？成为制裁对象的玩家在远征队长允许之前无法再次申请。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_123$" value="远征队长把你列为制裁对象。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_124$" value="&#13;&#10;#L0#2号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_125$" value="&#13;&#10;#L1#3号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_126$" value="&#13;&#10;#L2#4号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_127$" value="&#13;&#10;#L3#5号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_128$" value="&#13;&#10;#L4#6号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_129$" value="&#13;&#10;#L5#7号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_13$" value="&#13;&#10;#L1#重新入场。#l"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_130$" value="&#13;&#10;#L6#8号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_131$" value="&#13;&#10;#L7#9号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_132$" value="&#13;&#10;#L8#10号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_133$" value="&#13;&#10;#L9#11号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_134$" value="&#13;&#10;#L10#12号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_135$" value="&#13;&#10;#L11#13号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_136$" value="&#13;&#10;#L12#14号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_137$" value="&#13;&#10;#L13#15号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_138$" value="&#13;&#10;#L14#16号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_139$" value="&#13;&#10;#L15#17号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_14$" value="模式&gt;#n&#13;&#10;扎昆复活了。这样下去的话，它可能会让火山爆发，把整个冰峰雪域变成一片地狱。&#13;&#10;#b&#13;&#10;现在的频道中有其他远征队正在游戏。请选择其他频道。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_140$" value="&#13;&#10;#L16#18号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_141$" value="&#13;&#10;#L17#19号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_142$" value="&#13;&#10;#L18#20号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_143$" value="&#13;&#10;#L19#21号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_144$" value="&#13;&#10;#L20#22号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_145$" value="&#13;&#10;#L21#23号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_146$" value="&#13;&#10;#L22#24号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_147$" value="&#13;&#10;#L23#25号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_148$" value="&#13;&#10;#L24#26号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_149$" value="&#13;&#10;#L25#27号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_15$" value="现在#b#h0##k组建的远征队不是"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_150$" value="&#13;&#10;#L26#28号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_151$" value="&#13;&#10;#L27#29号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_152$" value="&#13;&#10;#L28#30号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_153$" value="你想开除那名队员？&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_154$" value="没有队员申请。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_155$" value="已经脱离了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_156$" value="你已经被远征队长开除了。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_157$" value="已经脱离了远征队"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_158$" value="&#13;&#10;#L0#2号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_159$" value="&#13;&#10;#L1#3号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_16$" value="模式&lt;扎昆远征队&gt;。请重新确认。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_160$" value="&#13;&#10;#L2#4号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_161$" value="&#13;&#10;#L3#5号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_162$" value="&#13;&#10;#L4#6号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_163$" value="&#13;&#10;#L5#7号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_164$" value="&#13;&#10;#L6#8号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_165$" value="&#13;&#10;#L7#9号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_166$" value="&#13;&#10;#L8#10号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_167$" value="&#13;&#10;#L9#11号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_168$" value="&#13;&#10;#L10#12号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_169$" value="&#13;&#10;#L11#13号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_17$" value="无法连续担任远征队长。请更换远征队长，然后重新尝试。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_170$" value="&#13;&#10;#L12#14号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_171$" value="&#13;&#10;#L13#15号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_172$" value="&#13;&#10;#L14#16号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_173$" value="&#13;&#10;#L15#17号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_174$" value="&#13;&#10;#L16#18号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_175$" value="&#13;&#10;#L17#19号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_176$" value="&#13;&#10;#L18#20号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_177$" value="&#13;&#10;#L19#21号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_178$" value="&#13;&#10;#L20#22号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_179$" value="&#13;&#10;#L21#23号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_18$" value="远征队必须由"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_180$" value="&#13;&#10;#L22#24号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_181$" value="&#13;&#10;#L23#25号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_182$" value="&#13;&#10;#L24#26号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_183$" value="&#13;&#10;#L25#27号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_184$" value="&#13;&#10;#L26#28号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_185$" value="&#13;&#10;#L27#29号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_186$" value="&#13;&#10;#L28#30号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_187$" value="你想逐出哪个远征队员呢？&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_188$" value="没有申请的队员。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_189$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_19$" value="人以上组成，才能入场。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_190$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_191$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_192$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_193$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_194$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_195$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_196$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_197$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_198$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_199$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_2$" value="普通"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_20$" value="由于未知原因，无法入场。请稍后重新尝试。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_200$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_201$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_202$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_203$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_204$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_205$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_206$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_207$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_208$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_209$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_21$" value="必须组成组队才能挑战。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_210$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_211$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_212$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_213$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_214$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_215$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_216$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_217$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_218$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_219$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_22$" value="取消"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_220$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_221$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_222$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_223$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_224$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_225$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_226$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_227$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_228$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_229$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_23$" value="人以上的组队才能开始任务。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_230$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_231$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_232$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_233$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_234$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_235$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_236$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_237$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_238$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_239$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_24$" value="队员的等级最少必须达到"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_240$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_241$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_242$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_243$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_244$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_245$" value="是已经退出的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_246$" value="远征队长把你逐出了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_247$" value="在被制裁的名单里，无法参加。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_248$" value="是远征队长的制裁对象，无法参加。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_249$" value="许可那名玩家？"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_25$" value="级以上。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_250$" value="被制裁的玩家不在。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_251$" value="远征队长解除了制裁，可以重新申请。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_252$" value="你想允许谁的申请呢？"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_253$" value="没有制裁对象。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_254$" value="远征队长解除了制裁。现在可以重新申请。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_255$" value="远征队长解除了制裁。现在可以重新申请。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_256$" value="远征队长解除了制裁。现在可以重新申请。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_257$" value="远征队长解除了制裁。现在可以重新申请。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_258$" value="远征队长解除了制裁。现在可以重新申请。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_259$" value="远征队长解除了制裁。现在可以重新申请。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_26$" value="已有其他远征队进入，正在挑战完成任务。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_260$" value="远征队长解除了制裁。现在可以重新申请。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_261$" value="远征队长解除了制裁。现在可以重新申请。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_262$" value="远征队长解除了制裁。现在可以重新申请。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_263$" value="远征队长解除了制裁。现在可以重新申请。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_264$" value="远征队长已经入场了。请在组织成员的结束时间内入场。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_265$" value="远征队长进入了地图。请在远征队组建时间结束前进入地图。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_266$" value="组队里有等级不满50的角色。请确定等级。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_267$" value="组队中存在不满100级的角色。请确认等级。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_268$" value="只有级别50以上的玩家才能参加扎昆远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_269$" value="任务正在执行中，无法申请。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_27$" value="远征队还未开始组建。请稍后重新尝试。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_270$" value="无法连续担任队长。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_271$" value="你想成为扎昆远征队长吗？"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_272$" value="如果你想成为远征队长，再跟我谈谈。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_273$" value="已经任命 "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_274$" value="为远征队长了。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_275$" value="还没有准备好组织远征队，请稍后再试。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_276$" value="已经成为扎昆远征队长了。想要参加远征队的玩家请申请。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_277$" value="成为了扎昆远征队长了。在5分钟以内完成组织远征队，并且所有队员都入场。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_278$" value="拥有3名以上成员的组队长才可以成为远征队长。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_279$" value="可以申请成为远征队长。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_28$" value="宣布远征队入场。请在远征队组织时间结束前进入地图。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_280$" value="只有等级在50以上的拥有3名以上成员的组队长可以成为远征队长。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_281$" value="扎昆远征队长想要做什么？ &#13;&#10;#b#L0# 查看远征队员目录#l&#13;&#10;#L1#开除队员。#l&#13;&#10;#L2# 解除制裁。#l&#13;&#10;#r#L3# 决定远征队并且入场。#l#k"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_282$" value="没有玩家申请远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_283$" value="远征队员要在6名以上，才可以开始执行任务。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_284$" value="不是远征队员无法入场。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_285$" value="想做什么？&#13;&#10;#b#L0# 加入扎昆远征队。#l&#13;&#10;#L1# 脱离扎昆远征队。#l&#13;&#10;#L2# 察看远征队员名单。#k"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_286$" value="上一个远征队申请已经结束了。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_287$" value="远征队长正在考虑对你是否给与制裁。请稍后再试。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_288$" value="远征队长拒绝了#b"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_289$" value="#k的参加。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_29$" value="入场人数已达到人数上限。我无法把你送进去。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_290$" value="已经加入了远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_291$" value="远征队长拒绝了参加要求。远征队长许可之后，才能参加。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_292$" value="没有参加远征队，无法退出。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_293$" value="只有级别100以上的玩家才能参加扎昆远征队。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_294$" value="你想成为扎昆远征队长吗？"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_295$" value="还没有准备好组织远征队，请稍后再试。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_296$" value="已经成为扎昆远征队长了。想要参加远征队的玩家请申请。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_297$" value="成为了扎昆远征队长了。在5分钟以内完成组织远征队，并且所有队员都入场。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_298$" value="只有等级在100以上的拥有3名以上成员的组队长可以成为远征队长。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_299$" value="进阶扎昆远征队长，你想做什么？&#13;&#10;#b#L0#查看远征队清单#l&#13;&#10;#L1#逐出队员#l&#13;&#10;#L2#解除制裁#l&#13;&#10;#r#L3#确定远征队并入场#l#k"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_3$" value="扎昆是超出你想象的可怕的恶魔。因此只有拥有资格的勇士，才能参加#e&lt;扎昆远征队&gt;#n。&#13;&#10;当前所在的频道是"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_30$" value="不是目前正在执行任务的远征队的队员。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_300$" value="没有申请加入远征队的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_301$" value="没有申请加入远征队的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_302$" value="没有申请加入远征队的玩家。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_303$" value="远征队必须达到6人以上才可以开始任务。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_304$" value="不是进阶扎昆远征队员，无法进入。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_305$" value="你想干什么呢？&#13;&#10;#b#L0#加入进阶扎昆远征队#l&#13;&#10;#L1#退出进阶扎昆远征队#l&#13;&#10;#L2#查看远征队员清单。#k"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_306$" value="上一个远征队的申请时间已经结束。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_307$" value="当前远征队的队长正在决定是否对你进行制裁。请稍后重新尝试。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_308$" value="#k的加入申请被远征队长拒绝。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_309$" value="远征队长拒绝加入。必须有远征队长的许可才可以参加。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_31$" value="模式&gt;#n&#13;&#10;扎昆复活了。这样下去的话，它可能会让火山爆发，把整个冰峰雪域变成一片地狱。&#13;&#10;#b&#13;&#10;请通过远征队长入场。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_310$" value="未参加远征队，无法退出。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_32$" value="&#13;&#10;#L1#入场。#l"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_33$" value="模式&gt;#n&#13;&#10;扎昆复活了。这样下去的话，它可能会让火山爆发，把整个冰峰雪域变成一片地狱。&#13;&#10;#b&#13;&#10;现在的频道中有其他远征队正在游戏。请选择其他频道。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_34$" value="已达到可以入场的最大人数上限。无法进行进入。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_35$" value="模式&gt;#n&#13;&#10;扎昆复活了。这样下去的话，它可能会让火山爆发，把整个冰峰雪域变成一片地狱。&#13;&#10;&#13;&#10;#b请加入远征队，然后通过远征队长入场。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_36$" value="模式&gt;#n&#13;&#10;扎昆复活了。这样下去的话，它可能会让火山爆发，把整个冰峰雪域变成一片地狱。&#13;&#10;&#13;&#10;#b当前入场的远征队是"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_37$" value="的远征队。&#13;&#10;请加入远征队，然后通过远征队长入场。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_38$" value="扎昆的祭坛一天只能进2次。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_39$" value="已经丧失远征队长的权限。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_4$" value="模式频道"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_40$" value="已经丧失远征队长权限。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_41$" value="已经决定了入场。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_42$" value="已经决定入场。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_43$" value="1号 : #b"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_44$" value="#k (远征队长)"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_45$" value="&#13;&#10;2号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_46$" value="&#13;&#10;3号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_47$" value="&#13;&#10;4号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_48$" value="&#13;&#10;5号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_49$" value="&#13;&#10;6号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_5$" value="级到"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_50$" value="&#13;&#10;7号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_51$" value="&#13;&#10;8号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_52$" value="&#13;&#10;9号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_53$" value="&#13;&#10;10号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_54$" value="&#13;&#10;11号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_55$" value="&#13;&#10;12号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_56$" value="&#13;&#10;13号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_57$" value="&#13;&#10;14号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_58$" value="&#13;&#10;15号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_59$" value="&#13;&#10;16号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_6$" value="级之间的玩家可以参与。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_60$" value="&#13;&#10;17号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_61$" value="&#13;&#10;18号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_62$" value="&#13;&#10;19号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_63$" value="&#13;&#10;20号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_64$" value="&#13;&#10;21号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_65$" value="&#13;&#10;22号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_66$" value="&#13;&#10;23号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_67$" value="&#13;&#10;24号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_68$" value="&#13;&#10;25号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_69$" value="&#13;&#10;26号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_7$" value="在当前频道中，可以参加#b"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_70$" value="&#13;&#10;27号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_71$" value="&#13;&#10;28号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_72$" value="&#13;&#10;29号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_73$" value="&#13;&#10;30号 : "/>
+  <string name="$SCRIPTSTRING_ZAKUM1_74$" value="申请者总数为 #b"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_75$" value="名#k,申请者名单如下。&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_76$" value="&#13;&#10;2号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_77$" value="&#13;&#10;3号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_78$" value="&#13;&#10;4号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_79$" value="&#13;&#10;5号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_8$" value="模式扎昆远征队#k。如果你想参加其他模式，请移动到对应的频道。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_80$" value="&#13;&#10;6号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_81$" value="&#13;&#10;7号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_82$" value="&#13;&#10;8号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_83$" value="&#13;&#10;9号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_84$" value="&#13;&#10;10号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_85$" value="&#13;&#10;11号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_86$" value="&#13;&#10;12号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_87$" value="&#13;&#10;13号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_88$" value="&#13;&#10;14号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_89$" value="&#13;&#10;15号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_9$" value="今天你已经进去2次了。那样的话，你今天就不能再进去了。你明天再来试试吧。"/>
+  <string name="$SCRIPTSTRING_ZAKUM1_90$" value="&#13;&#10;16号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_91$" value="&#13;&#10;17号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_92$" value="&#13;&#10;18号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_93$" value="&#13;&#10;19号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_94$" value="&#13;&#10;20号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_95$" value="&#13;&#10;21号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_96$" value="&#13;&#10;22号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_97$" value="&#13;&#10;23号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_98$" value="&#13;&#10;24号："/>
+  <string name="$SCRIPTSTRING_ZAKUM1_99$" value="&#13;&#10;25号："/>
+</imgdir>

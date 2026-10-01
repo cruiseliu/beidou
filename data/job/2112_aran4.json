@@ -1,0 +1,56 @@
+{
+    "jobId": 2112,
+    "faction": "HERO",
+    "style": "WARRIOR",
+    "advancementCount": 4,
+    "advancementLevel": 120,
+    "advancementHint": 200,
+    "maxLevel": 200,
+    "previousJobId": 2111,
+    "levelUp": [
+        {
+            "from": 1,
+            "to": 200,
+            "gainStats": {
+                "maxHp": {
+                    "addMin": 44,
+                    "addMax": 48,
+                    "multiply": 1.0
+                },
+                "maxMp": {
+                    "addMin": 4,
+                    "addMax": 8,
+                    "multiply": 1.0
+                },
+                "ap": 5,
+                "sp": 3
+            }
+        }
+    ],
+    "advancementGainStats": {
+        "maxHp": {
+            "addMin": 300,
+            "addMax": 350,
+            "multiply": 1.0
+        },
+        "maxMp": {
+            "addMin": 0,
+            "addMax": 0,
+            "multiply": 1.0
+        },
+        "ap": 5,
+        "sp": 1
+    },
+    "spChainShared": true,
+    "acquiredSkills": [
+        21120002,
+        21120001,
+        21121003
+    ],
+    "apAutoAssignKey": "default",
+    "weaponStatRules": {},
+    "modifiers": [],
+    "listeners": [],
+    "mpIntDivisor": 10,
+    "autoAssignAp": []
+}

@@ -1,0 +1,37 @@
+{
+  "id": "thief_female",
+  "jobId": 400,
+  "level": 30,
+  "mapId": 103000000,
+  "ap": 133,
+  "sp": 61,
+  "meso": 100000,
+  "novice": false,
+  "noviceJobCode": -1,
+  "mapleLifeJobCode": 3,
+  "candidates": {
+    "male": null,
+    "female": "Info/CharFemale"
+  },
+  "baseData": {
+    "stats": { "str": 12, "dex": 25, "int_": 4, "luk": 4, "hp": 794, "mp": 407, "maxHp": 794, "maxMp": 407 },
+    "inventory": {
+      "EQUIP": [
+        { "itemId": 1041047, "position": -5, "quantity": 1 },
+        { "itemId": 1061043, "position": -6, "quantity": 1 },
+        { "itemId": 1072032, "position": -7, "quantity": 1 },
+        { "itemId": 1472008, "position": -11, "quantity": 1 },
+        { "itemId": 1332012, "position": 0, "quantity": 1 }
+      ],
+      "USE": [
+        { "itemId": 2070000, "position": 0, "quantity": 500 },
+        { "itemId": 2000002, "position": 0, "quantity": 100 },
+        { "itemId": 2000003, "position": 0, "quantity": 100 }
+      ],
+      "SETUP": [
+        { "itemId": 3010000, "position": 0, "quantity": 1 }
+      ]
+    },
+    "skills": {}
+  }
+}

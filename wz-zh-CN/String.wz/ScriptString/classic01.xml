@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="classic01">
+  <string name="$SCRIPTSTRING_CLASSIC01_0$" value="请确认特殊栏有无空栏。"/>
+  <string name="$SCRIPTSTRING_CLASSIC01_1$" value="道具发放失败，请稍后重新尝试。"/>
+  <string name="$SCRIPTSTRING_CLASSIC01_10$" value="请确认现金栏是否有空位。"/>
+  <string name="$SCRIPTSTRING_CLASSIC01_11$" value="道具发放失败，请稍后再试。"/>
+  <string name="$SCRIPTSTRING_CLASSIC01_12$" value="道具已发放，请查看背包。"/>
+  <string name="$SCRIPTSTRING_CLASSIC01_13$" value="请至少清出 1 个装饰栏空位后再试。"/>
+  <string name="$SCRIPTSTRING_CLASSIC01_14$" value="请选择想要领取的道具。"/>
+  <string name="$SCRIPTSTRING_CLASSIC01_15$" value="请至少清出 1 个装饰栏空位后再试。"/>
+  <string name="$SCRIPTSTRING_CLASSIC01_16$" value="当前使用人数较多，处理有所延迟，请稍后再试。"/>
+  <string name="$SCRIPTSTRING_CLASSIC01_17$" value="发生未知错误，请稍后再试。"/>
+  <string name="$SCRIPTSTRING_CLASSIC01_18$" value="道具已发放，请查看背包。"/>
+  <string name="$SCRIPTSTRING_CLASSIC01_19$" value="立即#b#i"/>
+  <string name="$SCRIPTSTRING_CLASSIC01_2$" value="已发放道具。请去道具栏看看吧。"/>
+  <string name="$SCRIPTSTRING_CLASSIC01_20$" value=":# #t"/>
+  <string name="$SCRIPTSTRING_CLASSIC01_21$" value="[CN]:##k 아이템을 받으시겠어요?"/>
+  <string name="$SCRIPTSTRING_CLASSIC01_3$" value="请确认装备栏和特殊栏有无空栏。"/>
+  <string name="$SCRIPTSTRING_CLASSIC01_4$" value="请检查装备栏是否有4格以上的空间。"/>
+  <string name="$SCRIPTSTRING_CLASSIC01_5$" value="发生未知错误。请稍后再试。"/>
+  <string name="$SCRIPTSTRING_CLASSIC01_6$" value="请确认装备栏有无空栏。"/>
+  <string name="$SCRIPTSTRING_CLASSIC01_7$" value="请选择你想领取的追忆之白色武器。#b"/>
+  <string name="$SCRIPTSTRING_CLASSIC01_8$" value="你确定要领取这个道具吗？"/>
+  <string name="$SCRIPTSTRING_CLASSIC01_9$" value="发生不明报错。"/>
+</imgdir>

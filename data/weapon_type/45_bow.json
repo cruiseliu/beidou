@@ -1,0 +1,25 @@
+{
+    "actions": {
+        "swing": 3.4,
+        "stab": 3.4,
+        "shoot": 3.4
+    },
+    "statRule": {
+        "primary": [
+            "DEX"
+        ],
+        "secondary": [
+            "STR"
+        ]
+    },
+    "itemIdRange": {
+        "from": 1450000,
+        "to": 1459999
+    },
+    "ammoIdRange": {
+        "from": 2060000,
+        "to": 2060999
+    },
+    "twoHanded": true,
+    "type": "BOW"
+}

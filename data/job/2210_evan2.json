@@ -1,0 +1,53 @@
+{
+    "jobId": 2210,
+    "faction": "HERO",
+    "style": "MAGICIAN",
+    "advancementCount": 2,
+    "advancementLevel": 20,
+    "advancementHint": 30,
+    "maxLevel": 200,
+    "previousJobId": 2200,
+    "levelUp": [
+        {
+            "from": 1,
+            "to": 200,
+            "gainStats": {
+                "maxHp": {
+                    "addMin": 10,
+                    "addMax": 14,
+                    "multiply": 1.0
+                },
+                "maxMp": {
+                    "addMin": 22,
+                    "addMax": 24,
+                    "multiply": 1.0,
+                    "multipy": 1.1
+                },
+                "ap": 5,
+                "sp": 3
+            }
+        }
+    ],
+    "advancementGainStats": {
+        "maxHp": {
+            "addMin": 0,
+            "addMax": 0,
+            "multiply": 1.0
+        },
+        "maxMp": {
+            "addMin": 450,
+            "addMax": 500,
+            "multiply": 1.0
+        },
+        "ap": 0,
+        "sp": 1
+    },
+    "spChainShared": true,
+    "acquiredSkills": [],
+    "apAutoAssignKey": "default",
+    "weaponStatRules": {},
+    "modifiers": [],
+    "listeners": [],
+    "mpIntDivisor": 20,
+    "autoAssignAp": []
+}

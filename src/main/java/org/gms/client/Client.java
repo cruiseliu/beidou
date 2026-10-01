@@ -1,0 +1,1815 @@
+/*
+This file is part of the OdinMS Maple Story Server
+Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
+Matthias Butz <matze@odinms.de>
+Jan Christian Meyer <vimes@odinms.de>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation version 3 as published by
+the Free Software Foundation. You may not use, modify or distribute
+this program under any other version of the GNU Affero General Public
+License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.gms.client;
+
+import lombok.Getter;
+import org.gms.client.inventory.InventoryType;
+import org.gms.config.GameConfig;
+import org.gms.constants.game.GameConstants;
+import org.gms.constants.id.MapId;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.timeout.IdleStateEvent;
+import org.gms.net.PacketHandler;
+import org.gms.net.PacketProcessor;
+import org.gms.net.netty.InvalidPacketHeaderException;
+import org.gms.net.packet.InPacket;
+import org.gms.net.packet.Packet;
+import org.gms.net.packet.logging.LoggingUtil;
+import org.gms.net.packet.logging.MonitoredChrLogger;
+import org.gms.net.server.Server;
+import org.gms.net.server.channel.Channel;
+import org.gms.net.server.coordinator.login.LoginBypassCoordinator;
+import org.gms.net.server.coordinator.session.Hwid;
+import org.gms.net.server.coordinator.session.PlayerSession;
+import org.gms.net.server.coordinator.session.SessionCoordinator;
+import org.gms.net.server.coordinator.session.SessionCoordinator.AntiMulticlientResult;
+import org.gms.net.server.guild.Guild;
+import org.gms.client.character.Character;
+import org.gms.infra.Strand;
+import org.gms.remote.RemoteClient;
+import org.gms.remote.RemoteClientBase;
+import org.gms.remote.gms083.Gms083;
+import org.gms.remote.gms083.client.Gms083ShimHandler;
+import org.gms.net.server.guild.GuildCharacter;
+import org.gms.net.server.guild.GuildPackets;
+import org.gms.net.server.world.MessengerCharacter;
+import org.gms.net.server.world.Party;
+import org.gms.net.server.world.PartyCharacter;
+import org.gms.net.server.world.PartyOperation;
+import org.gms.net.server.world.World;
+import org.gms.server.SystemRescue;
+import org.gms.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.gms.scripting.AbstractPlayerInteraction;
+import org.gms.scripting.event.EventInstanceManager;
+import org.gms.scripting.event.EventManager;
+import org.gms.scripting.npc.NPCConversationManager;
+import org.gms.scripting.npc.NPCScriptManager;
+import org.gms.scripting.quest.QuestActionManager;
+import org.gms.scripting.quest.QuestScriptManager;
+import org.gms.server.MapleLeafLogger;
+import org.gms.server.ThreadManager;
+import org.gms.server.TimerManager;
+import org.gms.server.life.Monster;
+import org.gms.server.maps.FieldLimit;
+import org.gms.server.maps.MapleMap;
+import org.gms.server.maps.MiniDungeonInfo;
+
+import javax.script.ScriptEngine;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
+
+public class Client extends ChannelInboundHandlerAdapter {
+    private static final Logger log = LoggerFactory.getLogger(Client.class);
+
+    public static final int LOGIN_NOTLOGGEDIN = 0;
+    public static final int LOGIN_SERVER_TRANSITION = 1;
+    public static final int LOGIN_LOGGEDIN = 2;
+
+    private final Type type;
+    private final long sessionId;
+    private final PacketProcessor packetProcessor;
+
+    private Hwid hwid;
+    private String remoteAddress;
+    private volatile boolean inTransition;
+
+    private io.netty.channel.Channel ioChannel;
+    private volatile RemoteClientBase remote;
+    /** 连接级临时引导 strand（惰性；attach 会话后闲置，连接关闭时排空） */
+    private volatile Strand strand;
+    /** 所属客户端进程会话（attach 后非空；过渡/终结后保留引用，用于代际校验，doc/12） */
+    private volatile PlayerSession session;
+    private Character player;
+    private int channel = 1;
+    private int accId = -4;
+    private boolean loggedIn = false;
+    private boolean serverTransition = false;
+    private Calendar birthday = null;
+    private String accountName = null;
+    private int world;
+    private volatile long lastPong;
+    private int gmlevel;
+    private Set<String> macs = new HashSet<>();
+    private Map<String, ScriptEngine> engines = new HashMap<>();
+    private byte characterSlots = 3;
+    private byte loginattempt = 0;
+    private String pin = "";
+    private int pinattempt = 0;
+    private String pic = "";
+    private int picattempt = 0;
+    private byte csattempt = 0;
+    private byte gender = -1;
+    private boolean disconnecting = false;
+    private final Semaphore actionsSemaphore = new Semaphore(7);
+    private final Lock lock = new ReentrantLock(true);
+    private final Lock encoderLock = new ReentrantLock(true);
+    private final Lock announcerLock = new ReentrantLock(true);
+    // thanks Masterrulax & try2hack for pointing out a bottleneck issue with shared locks, shavit for noticing an opportunity for improvement
+    private Calendar tempBanCalendar;
+    private int votePoints;
+    private int voteTime = -1;
+    private int visibleWorlds;
+    private long lastNpcClick;
+    private long lastPacket = System.currentTimeMillis();
+    private int lang = 0;
+    // 提供公共方法来获取 sysRescue
+    @Getter
+    private static SystemRescue sysRescue;
+
+    public enum Type {
+        LOGIN,
+        CHANNEL
+    }
+
+    public Client(Type type, long sessionId, String remoteAddress, PacketProcessor packetProcessor, int world, int channel) {
+        this.type = type;
+        this.sessionId = sessionId;
+        this.remoteAddress = remoteAddress;
+        this.packetProcessor = packetProcessor;
+        this.world = world;
+        this.channel = channel;
+    }
+
+    public static Client createLoginClient(long sessionId, String remoteAddress, PacketProcessor packetProcessor,
+                                           int world, int channel) {
+        return new Client(Type.LOGIN, sessionId, remoteAddress, packetProcessor, world, channel);
+    }
+
+    public static Client createChannelClient(long sessionId, String remoteAddress, PacketProcessor packetProcessor,
+                                             int world, int channel) {
+        return new Client(Type.CHANNEL, sessionId, remoteAddress, packetProcessor, world, channel);
+    }
+
+    public static Client createMock() {
+        return new Client(null, -1, null, null, -123, -123);
+    }
+
+    /**
+     * 本连接的串行执行队列。attach 会话后返回会话 strand（寿命 = 客户端进程会话，跨
+     * 过渡性重连存活，doc/12）；attach 前（登录/引导阶段，跳板域）惰性创建**裸 strand**
+     * （无 Player 上下文）——真正的 player actor 只在世界域入场时诞生
+     * （SessionCoordinator.attach → PlayerSession，跳板/世界分域的部署模拟见 doc/12）。
+     * actor 上下文经 Player.current() 环境获取，不经本方法导航。 */
+    public Strand getStrand() {
+        PlayerSession s = session;
+        if (s != null) {
+            return s.strand();
+        }
+        synchronized (this) {
+            if (strand == null) {
+                strand = Strand.create("login-conn-" + sessionId);
+            }
+            return strand;
+        }
+    }
+
+    /** 所属客户端进程会话；attach 前（登录/引导阶段）为 null */
+    public PlayerSession getSession() {
+        return session;
+    }
+
+    /** 绑定到会话（PlayerLoggedinHandler attach 成功后调用） */
+    public void attachTo(PlayerSession s) {
+        this.session = s;
+    }
+
+    /**
+     * 代际守卫（doc/12 §3.6）：本连接仍是其会话的当前传输，且 actor 已换绑到本连接。
+     * 会话 strand 上执行的任务以此判定去留——过渡窗口的迟到包整包丢弃。
+     */
+    public boolean isCurrentTransport() {
+        PlayerSession s = session;
+        if (s == null) {
+            return true;   // 引导期/登录期：无会话语义，沿用组件自身守卫
+        }
+        Character chr = player;
+        return s.client() == this && chr != null && chr.getClient() == this;
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) {
+        final io.netty.channel.Channel channel = ctx.channel();
+        if (!Server.getInstance().isOnline()) {
+            channel.close();
+            return;
+        }
+
+        this.remoteAddress = getRemoteAddress(channel);
+        this.ioChannel = channel;
+    }
+
+    private static String getRemoteAddress(io.netty.channel.Channel channel) {
+        String remoteAddress = "null";
+        try {
+            remoteAddress = ((InetSocketAddress) channel.remoteAddress()).getAddress().getHostAddress();
+        } catch (NullPointerException npe) {
+            log.warn("无法获取客户端的远程地址", npe);
+        }
+
+        return remoteAddress;
+    }
+
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        if (!(msg instanceof InPacket packet)) {
+            log.warn("收到无效封包: {}", msg);
+            return;
+        }
+
+        short opcode = packet.readShort();
+        // C→S 分派归语义层（RemoteClient 按连接域装配，doc/12 跳板/世界分域）；
+        // 管道机制（ThreadLocal 播种/queued 排队/异常兜底）留在本类。
+        final PacketHandler handler = remoteViewBase().resolveHandler(opcode);
+
+        // 已被 remote client 接管的 opcode 不进本日志（收侧有 [remote-in] 统一收口）
+        if (GameConfig.getServerBoolean("use_debug_show_rcvd_packet") && !LoggingUtil.isIgnoredRecvPacket(opcode)
+                && !(handler instanceof Gms083ShimHandler)) {
+            log.info("收到封包 包头ID [{}] 内容： {}", String.format("0x%02X", opcode),packet);
+        }
+
+        if (handler != null && handler.validateState(this)) {
+            Runnable dispatch = () -> dispatch(handler, packet, opcode);
+            if (handler.queued()) {
+                // 队列化迁移的 handler 跑在本连接 strand 上（attach 后为会话 strand）；
+                // 过渡窗口的迟到包按代际丢弃（doc/12 §3.6）：入队连接已非会话当前传输，
+                // 或 actor 尚未换绑到本连接时，任务体直接返回。
+                final Client cc = this;
+                getStrand().post(handler.getClass().getSimpleName(), () -> {
+                    if (!cc.isCurrentTransport()) {
+                        return;
+                    }
+                    dispatch.run();
+                });
+            } else {
+                dispatch.run();
+            }
+        }
+
+        updateLastPacket();
+    }
+
+    /**
+     * 包处理模板：ThreadLocal 上下文播种、监控日志、异常兜底（enableActions 解假死）。
+     * 事件循环路径与 strand 路径共用，保证行为一致。
+     */
+    private void dispatch(PacketHandler handler, InPacket packet, short opcode) {
+        try {
+            ThreadLocalUtil.setCurrentClient(this);
+            MonitoredChrLogger.logPacketIfMonitored(this, opcode, packet.getBytes());
+            handler.handlePacket(packet, this);
+        } catch (final Throwable t) {
+            final String chrInfo = player != null ? player.getName() + " 地图 [" + player.getMap().getMapName() + "] (" + player.getMapId() + ")" : "?";
+            log.warn("封包处理器 {} 出错. 账号 {}, 玩家 {}. 封包: {}", handler.getClass().getSimpleName(),
+                    getAccountName(), chrInfo, packet, t);
+            enableActions();//解除客户端假死
+        } finally {
+            ThreadLocalUtil.removeCurrentClient();
+        }
+    }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object event) {
+        if (event instanceof IdleStateEvent idleEvent) {
+            checkIfIdle(idleEvent);
+        }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        if (player != null && !player.isLoggedInWorld()) {  //判断玩家不为空且不在线才进行救援
+            String MapName = player.getMap().getMapName().isEmpty() ? I18nUtil.getLogMessage("SystemRescue.info.map.message1") : player.getMap().getMapName();  //读取出错地图名称，这里是读取服务端String.wz地图名称，不存在则设为 未知地图
+            log.warn(I18nUtil.getLogMessage("Client.warn.map.message1"), player, MapName , player.getMapId(), cause);
+            sysRescue.setMapChange(player);   // 尝试解救那些卡地图的倒霉蛋。
+        }
+
+        if (cause instanceof InvalidPacketHeaderException) {
+            SessionCoordinator.getInstance().closeSession(this, true);
+        } else if (cause instanceof IOException) {
+            closeMapleSession();
+        }
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) {
+        closeMapleSession();
+    }
+
+    private void closeMapleSession() {
+        switch (type) {
+            case LOGIN -> SessionCoordinator.getInstance().closeLoginSession(this);
+            case CHANNEL -> SessionCoordinator.getInstance().closeSession(this, null);
+        }
+
+        try {
+            PlayerSession s = session;
+            if (s != null) {
+                // 会话已建立：detach 做代际校验并决定"解绑留守"（过渡）或"终结"（真登出），
+                // 登出收尾由 finalizer 在会话 strand 上执行（doc/12 §3.4）
+                s.detach(this, () -> disconnectInternal(false, false));
+            } else if (!inTransition) {
+                // pre-attach（登录/引导阶段）：维持旧路径
+                disconnect(false, false);
+            }
+        } catch (Throwable t) {
+            log.warn("账号卡住", t);
+        } finally {
+            closeSession();
+        }
+    }
+
+    public void updateLastPacket() {
+        lastPacket = System.currentTimeMillis();
+    }
+
+    public long getLastPacket() {
+        return lastPacket;
+    }
+
+    /** 关闭本连接：排空引导 strand + 关 io 通道。会话 strand 的终结归 PlayerSession.finalize（doc/12） */
+    public void closeSession() {
+        if (strand != null) {
+            strand.close();
+        }
+        ioChannel.close();
+    }
+
+    public void disconnectSession() {
+        ioChannel.disconnect();
+    }
+
+    public Hwid getHwid() {
+        return hwid;
+    }
+
+    public void setHwid(Hwid hwid) {
+        this.hwid = hwid;
+    }
+
+    public String getRemoteAddress() {
+        return remoteAddress;
+    }
+
+    public boolean isInTransition() {
+        return inTransition;
+    }
+
+    public EventManager getEventManager(String event) {
+        return getChannelServer().getEventSM().getEventManager(event);
+    }
+
+    public Character getPlayer() {
+        return player;
+    }
+
+    /**
+     * 设置角色
+     * @param player
+     */
+    public void setPlayer(Character player) {
+        this.player = player;
+        this.sysRescue = new SystemRescue();
+    }
+
+    public AbstractPlayerInteraction getAbstractPlayerInteraction() {
+        return new AbstractPlayerInteraction(this);
+    }
+
+    public void sendCharList(int server) {
+        this.sendPacket(PacketCreator.getCharList(this, server, 0));
+    }
+
+    public List<Character> loadCharacters(int serverId) {
+        List<Character> chars = new ArrayList<>(15);
+        try {
+            for (CharNameAndId cni : loadCharactersInternal(serverId)) {
+                chars.add(Character.loadCharFromDB(cni.id, this, false));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return chars;
+    }
+
+    public List<String> loadCharacterNames(int worldId) {
+        List<String> chars = new ArrayList<>(15);
+        for (CharNameAndId cni : loadCharactersInternal(worldId)) {
+            chars.add(cni.name);
+        }
+        return chars;
+    }
+
+    private List<CharNameAndId> loadCharactersInternal(int worldId) {
+        List<CharNameAndId> chars = new ArrayList<>(15);
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement("SELECT id, name FROM characters WHERE accountid = ? AND world = ?")) {
+            ps.setInt(1, this.getAccID());
+            ps.setInt(2, worldId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    chars.add(new CharNameAndId(rs.getString("name"), rs.getInt("id")));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return chars;
+    }
+
+    public boolean isLoggedIn() {
+        return loggedIn;
+    }
+
+    public boolean hasBannedIP() {
+        boolean ret = false;
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement("SELECT COUNT(*) FROM ipbans WHERE ? LIKE ip || '%'")) {
+            ps.setString(1, remoteAddress);
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                if (rs.getInt(1) > 0) {
+                    ret = true;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return ret;
+    }
+
+    public int getVoteTime() {
+        if (voteTime != -1) {
+            return voteTime;
+        }
+
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement("SELECT date FROM bit_votingrecords WHERE UPPER(account) = UPPER(?)")) {
+            ps.setString(1, accountName);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return -1;
+                }
+                voteTime = rs.getInt("date");
+            }
+        } catch (SQLException e) {
+            log.error("获取投票时间时出错");
+            return -1;
+        }
+        return voteTime;
+    }
+
+    public void resetVoteTime() {
+        voteTime = -1;
+    }
+
+    public boolean hasVotedAlready() {
+        Date currentDate = new Date();
+        int timeNow = (int) (currentDate.getTime() / 1000);
+        int difference = (timeNow - getVoteTime());
+        return difference < 86400 && difference > 0;
+    }
+
+    public boolean hasBannedHWID() {
+        if (hwid == null) {
+            return false;
+        }
+
+        boolean ret = false;
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement("SELECT COUNT(*) FROM hwidbans WHERE hwid LIKE ?")) {
+            ps.setString(1, hwid.hwid());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs != null && rs.next()) {
+                    if (rs.getInt(1) > 0) {
+                        ret = true;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return ret;
+    }
+
+    public boolean hasBannedMac() {
+        if (macs.isEmpty()) {
+            return false;
+        }
+        boolean ret = false;
+        int i;
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM macbans WHERE mac IN (");
+        for (i = 0; i < macs.size(); i++) {
+            sql.append("?");
+            if (i != macs.size() - 1) {
+                sql.append(", ");
+            }
+        }
+        sql.append(")");
+
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql.toString())) {
+            i = 0;
+            for (String mac : macs) {
+                ps.setString(++i, mac);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                if (rs.getInt(1) > 0) {
+                    ret = true;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return ret;
+    }
+
+    private void loadHWIDIfNescessary() throws SQLException {
+        if (hwid == null) {
+            try (Connection con = DatabaseConnection.getConnection();
+                 PreparedStatement ps = con.prepareStatement("SELECT hwid FROM accounts WHERE id = ?")) {
+                ps.setInt(1, accId);
+
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        hwid = new Hwid(rs.getString("hwid"));
+                    }
+                }
+            }
+        }
+    }
+
+    // TODO: Recode to close statements...
+    private void loadMacsIfNescessary() throws SQLException {
+        if (macs.isEmpty()) {
+            try (Connection con = DatabaseConnection.getConnection();
+                 PreparedStatement ps = con.prepareStatement("SELECT macs FROM accounts WHERE id = ?")) {
+                ps.setInt(1, accId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        for (String mac : rs.getString("macs").split(", ")) {
+                            if (!mac.equals("")) {
+                                macs.add(mac);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public void banHWID() {
+        try {
+            loadHWIDIfNescessary();
+
+            try (Connection con = DatabaseConnection.getConnection();
+                 PreparedStatement ps = con.prepareStatement("INSERT INTO hwidbans (hwid) VALUES (?)")) {
+                ps.setString(1, hwid.hwid());
+                ps.executeUpdate();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void banMacs() {
+        try {
+            loadMacsIfNescessary();
+
+            List<String> filtered = new LinkedList<>();
+            try (Connection con = DatabaseConnection.getConnection()) {
+                try (PreparedStatement ps = con.prepareStatement("SELECT filter FROM macfilters");
+                     ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        filtered.add(rs.getString("filter"));
+                    }
+                }
+
+                try (PreparedStatement ps = con.prepareStatement("INSERT INTO macbans (mac, aid) VALUES (?, ?)")) {
+                    for (String mac : macs) {
+                        boolean matched = false;
+                        for (String filter : filtered) {
+                            if (mac.matches(filter)) {
+                                matched = true;
+                                break;
+                            }
+                        }
+                        if (!matched) {
+                            ps.setString(1, mac);
+                            ps.setString(2, String.valueOf(getAccID()));
+                            ps.executeUpdate();
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public int finishLogin() {
+        encoderLock.lock();
+        try {
+            if (getLoginState() > LOGIN_NOTLOGGEDIN) { // 0 = LOGIN_NOTLOGGEDIN, 1= LOGIN_SERVER_TRANSITION, 2 = LOGIN_LOGGEDIN
+                loggedIn = false;
+                return 7;
+            }
+            updateLoginState(Client.LOGIN_LOGGEDIN);
+        } finally {
+            encoderLock.unlock();
+        }
+
+        return 0;
+    }
+
+    public void setPin(String pin) {
+        this.pin = pin;
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement("UPDATE accounts SET pin = ? WHERE id = ?")) {
+            ps.setString(1, pin);
+            ps.setInt(2, accId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String getPin() {
+        return pin;
+    }
+
+    public boolean checkPin(String other) {
+        if (!(GameConfig.getServerBoolean("enable_pin") && !canBypassPin())) {
+            return true;
+        }
+
+        pinattempt++;
+        if (pinattempt > 5) {
+            SessionCoordinator.getInstance().closeSession(this, false);
+        }
+        if (pin.equals(other)) {
+            pinattempt = 0;
+            LoginBypassCoordinator.getInstance().registerLoginBypassEntry(hwid, accId, false);
+            return true;
+        }
+        return false;
+    }
+
+    public void setPic(String pic) {
+        this.pic = pic;
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement("UPDATE accounts SET pic = ? WHERE id = ?")) {
+            ps.setString(1, pic);
+            ps.setInt(2, accId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String getPic() {
+        return pic;
+    }
+
+    public boolean checkPic(String other) {
+        if (!(GameConfig.getServerBoolean("enable_pic") && !canBypassPic())) {
+            return true;
+        }
+
+        picattempt++;
+        if (picattempt > 5) {
+            SessionCoordinator.getInstance().closeSession(this, false);
+        }
+        if (pic.equals(other)) {    // thanks ryantpayton (HeavenClient) for noticing null pics being checked here
+            picattempt = 0;
+            LoginBypassCoordinator.getInstance().registerLoginBypassEntry(hwid, accId, true);
+            return true;
+        }
+        return false;
+    }
+
+    public int login(String login, String pwd, Hwid hwid) {
+        int loginok = 5;
+
+        loginattempt++;
+        if (loginattempt > 4) {
+            loggedIn = false;
+            SessionCoordinator.getInstance().closeSession(this, false);
+            return 6;   // thanks Survival_Project for finding out an issue with AUTOMATIC_REGISTER here
+        }
+
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement("SELECT id, password, gender, banned, pin, pic, characterslots, tos, language FROM accounts WHERE name = ?")) {
+            ps.setString(1, login);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                accId = -2;
+                if (rs.next()) {
+                    accId = rs.getInt("id");
+                    if (accId <= 0) {
+                        log.warn("尝试使用accId登录 {}", accId);
+                        return 15;
+                    }
+
+                    boolean banned = (rs.getByte("banned") == 1);
+                    gmlevel = 0;
+                    pin = rs.getString("pin");
+                    pic = rs.getString("pic");
+                    gender = rs.getByte("gender");
+                    characterSlots = rs.getByte("characterslots");
+                    lang = rs.getInt("language");
+                    String passhash = rs.getString("password");
+                    byte tos = rs.getByte("tos");
+
+                    if (banned) {
+                        return 3;
+                    }
+
+                    if (getLoginState() > LOGIN_NOTLOGGEDIN) { // already loggedin
+                        loggedIn = false;
+                        loginok = 7;
+                    } else if (GameConfig.getServerBoolean("use_debug") && GameConfig.getServerBoolean("no_password")) {
+                        return 0;
+                    } else if (passhash.charAt(0) == '$' && passhash.charAt(1) == '2' && BCrypt.checkpw(pwd, passhash)) {
+                        loginok = (tos == 0) ? 23 : 0;
+                    } else if (pwd.equals(passhash) || checkHash(passhash, "SHA-1", pwd) || checkHash(passhash, "SHA-512", pwd)) {
+                        // thanks GabrielSin for detecting some no-bcrypt inconsistencies here
+                        loginok = (tos == 0) ? (!GameConfig.getServerBoolean("bcrypt_migration") ? 23 : -23) : (!GameConfig.getServerBoolean("bcrypt_migration") ? 0 : -10); // migrate to bcrypt
+                    } else {
+                        loggedIn = false;
+                        loginok = 4;
+                    }
+                } else {
+                    accId = -3;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        if (loginok == 0 || loginok == 4) {
+            AntiMulticlientResult res = SessionCoordinator.getInstance().attemptLoginSession(this, hwid, accId, loginok == 4);  //loginok == 4，但是会导致限制多开参数 deterred_multi_client == true 时密码错误一次返回REMOTE_REACHED_LIMIT，需要重开客户端
+
+            return switch (res) {
+                case SUCCESS -> {
+                    if (loginok == 0) {
+                        loginattempt = 0;
+                    }
+                    yield loginok;
+                }
+                case REMOTE_LOGGEDIN -> 17;
+                case REMOTE_REACHED_LIMIT -> 13;
+                case REMOTE_PROCESSING -> 10;
+                case MANY_ACCOUNT_ATTEMPTS -> 16;
+                default -> 8;
+            };
+        } else {
+            return loginok;
+        }
+    }
+
+    public Calendar getTempBanCalendarFromDB() {
+        final Calendar lTempban = Calendar.getInstance();
+
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement("SELECT `tempban` FROM accounts WHERE id = ?")) {
+            ps.setInt(1, getAccID());
+
+            final Timestamp tempban;
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return null;
+                }
+
+                tempban = rs.getTimestamp("tempban");
+                if (tempban.toLocalDateTime().equals(DefaultDates.getTempban())) {
+                    return null;
+                }
+            }
+
+            lTempban.setTimeInMillis(tempban.getTime());
+            tempBanCalendar = lTempban;
+            return lTempban;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;//why oh why!?!
+    }
+
+    public Calendar getTempBanCalendar() {
+        return tempBanCalendar;
+    }
+
+    public boolean hasBeenBanned() {
+        return tempBanCalendar != null;
+    }
+
+    public static long dottedQuadToLong(String dottedQuad) throws RuntimeException {
+        String[] quads = dottedQuad.split("\\.");
+        if (quads.length != 4) {
+            throw new RuntimeException("IP地址格式无效。");
+        }
+        long ipAddress = 0;
+        for (int i = 0; i < 4; i++) {
+            int quad = Integer.parseInt(quads[i]);
+            ipAddress += (long) (quad % 256) * (long) Math.pow(256, 4 - i);
+        }
+        return ipAddress;
+    }
+
+    public void updateHwid(Hwid hwid) {
+        this.hwid = hwid;
+
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement("UPDATE accounts SET hwid = ? WHERE id = ?")) {
+            ps.setString(1, hwid.hwid());
+            ps.setInt(2, accId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateMacs(String macData) {
+        macs.addAll(Arrays.asList(macData.split(", ")));
+        StringBuilder newMacData = new StringBuilder();
+        Iterator<String> iter = macs.iterator();
+        while (iter.hasNext()) {
+            String cur = iter.next();
+            newMacData.append(cur);
+            if (iter.hasNext()) {
+                newMacData.append(", ");
+            }
+        }
+
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement("UPDATE accounts SET macs = ? WHERE id = ?")) {
+            ps.setString(1, newMacData.toString());
+            ps.setInt(2, accId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void setAccID(int id) {
+        this.accId = id;
+    }
+
+    public int getAccID() {
+        return accId;
+    }
+
+    public void updateLoginState(int newState) {
+        // rules out possibility of multiple account entries
+        if (newState == LOGIN_LOGGEDIN) {
+            SessionCoordinator.getInstance().updateOnlineClient(this);
+        }
+
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement("UPDATE accounts SET loggedin = ?, lastlogin = ? WHERE id = ?")) {
+            // using sql currenttime here could potentially break the login, thanks Arnah for pointing this out
+
+            ps.setInt(1, newState);
+            ps.setTimestamp(2, new java.sql.Timestamp(Server.getInstance().getCurrentTime()));
+            ps.setInt(3, getAccID());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        if (newState == LOGIN_NOTLOGGEDIN) {
+            loggedIn = false;
+            serverTransition = false;
+            setAccID(0);
+        } else {
+            serverTransition = (newState == LOGIN_SERVER_TRANSITION);
+            loggedIn = !serverTransition;
+        }
+    }
+
+    public int getLoginState() {  // 0 = LOGIN_NOTLOGGEDIN, 1= LOGIN_SERVER_TRANSITION, 2 = LOGIN_LOGGEDIN
+        try (Connection con = DatabaseConnection.getConnection()) {
+            int state;
+            try (PreparedStatement ps = con.prepareStatement("SELECT loggedin, lastlogin, birthday FROM accounts WHERE id = ?")) {
+                ps.setInt(1, getAccID());
+
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) {
+                        throw new RuntimeException("获取登录状态-客户端账号：" + getAccID());
+                    }
+
+                    birthday = Calendar.getInstance();
+                    try {
+                        birthday.setTime(rs.getDate("birthday"));
+                    } catch (SQLException e) {
+                    }
+
+                    state = rs.getInt("loggedin");
+                    if (state == LOGIN_SERVER_TRANSITION) {
+                        Timestamp lastlogin = rs.getTimestamp("lastlogin");
+                        // 兼容历史已经创建的账号，和自动注册但未登录的账号
+                        if (lastlogin == null || lastlogin.getTime() + 30000 < Server.getInstance().getCurrentTime()) {
+                            int accountId = accId;
+                            state = LOGIN_NOTLOGGEDIN;
+                            updateLoginState(Client.LOGIN_NOTLOGGEDIN);   // ACCID = 0, issue found thanks to Tochi & K u ssss o & Thora & Omo Oppa
+                            this.setAccID(accountId);
+                        }
+                    }
+                }
+            }
+            if (state == LOGIN_LOGGEDIN) {
+                loggedIn = true;
+            } else if (state == LOGIN_SERVER_TRANSITION) {
+                try (PreparedStatement ps2 = con.prepareStatement("UPDATE accounts SET loggedin = 0 WHERE id = ?")) {
+                    ps2.setInt(1, getAccID());
+                    ps2.executeUpdate();
+                }
+            } else {
+                loggedIn = false;
+            }
+            return state;
+        } catch (SQLException e) {
+            loggedIn = false;
+            e.printStackTrace();
+            throw new RuntimeException("登录状态");
+        }
+    }
+
+    public boolean checkBirthDate(Calendar date) {
+        return date.get(Calendar.YEAR) == birthday.get(Calendar.YEAR) && date.get(Calendar.MONTH) == birthday.get(Calendar.MONTH) && date.get(Calendar.DAY_OF_MONTH) == birthday.get(Calendar.DAY_OF_MONTH);
+    }
+
+    private void removePartyPlayer(World wserv) {
+        MapleMap map = player.getMap();
+        final Party party = player.getParty();
+        final int idz = player.getId();
+
+        if (party != null) {
+            final PartyCharacter chrp = new PartyCharacter(player);
+            chrp.setOnline(false);
+            wserv.updateParty(party.getId(), PartyOperation.LOG_ONOFF, chrp);
+            if (party.getLeader().getId() == idz && map != null) {
+                PartyCharacter lchr = null;
+                for (PartyCharacter pchr : party.getMembers()) {
+                    if (pchr != null && pchr.getId() != idz && (lchr == null || lchr.getLevel() <= pchr.getLevel()) && map.getCharacterById(pchr.getId()) != null) {
+                        lchr = pchr;
+                    }
+                }
+                if (lchr != null) {
+                    wserv.updateParty(party.getId(), PartyOperation.CHANGE_LEADER, lchr);
+                }
+            }
+        }
+    }
+
+    private void removePlayer(World wserv, boolean serverTransition) {
+        try {
+            player.setDisconnectedFromChannelWorld();
+            player.notifyMapTransferToPartner(-1);
+            player.removeIncomingInvites();
+            if (player.isBuffsFrozen() && serverTransition) {  // todo: [refactor] should not check frozen
+                // 过渡中冻结且对象存活（换频道/商城/MTS）：簿记保留，仅召唤物地图侧清理
+                player.removeSummonsFromMap();
+            } else {
+                // 常规断开/过渡中夭折：随对象消亡，重连按数据库状态重建
+                player.cancelAllBuffs(true);
+            }
+
+            player.closePlayerInteractions();
+            player.closePartySearchInteractions();
+
+            if (!serverTransition) {    // thanks MedicOP for detecting an issue with party leader change on changing channels
+                removePartyPlayer(wserv);
+
+                EventInstanceManager eim = player.getEventInstance();
+                if (eim != null) {
+                    eim.playerDisconnected(player);
+                }
+
+                if (player.getMonsterCarnival() != null) {
+                    player.getMonsterCarnival().playerDisconnected(getPlayer().getId());
+                }
+
+                if (player.getAriantColiseum() != null) {
+                    player.getAriantColiseum().playerDisconnected(getPlayer());
+                }
+            }
+
+        } catch (final Throwable t) {
+            log.error("账号卡住 (玩家清理)", t);
+        }
+
+        // 地图移除必须独立保证执行：即便上面的清理抛异常，也要把玩家从地图摘除并触发怪物 controller 重分配，
+        // 否则会留下"PlayerStorage 已移除、MapleMap 仍持有"的幽灵玩家，导致该图怪物 controller 卡死、怪物不动。
+        try {
+            final MapleMap map = player.getMap();
+            if (map != null) {
+                int mapId = player.getMapId();
+                // removePlayer shim 缝合点（doc/13）：与换图路径统一执行上下文。
+                // player 域收尾切片（原任务体段前置）：controller 重分配 + MiniDungeon 退场 +
+                // PUPPET 效果取消（removeFacts 内），随后载荷键控摘除（零 Character 触达），
+                // leaveMap 于摘除完成后补（原任务体尾段）。
+                player.releaseControlledMonsters();
+                player.leaveMiniDungeon();
+                MapleMap.RemoveFacts facts = player.removeFacts();
+                map.runIn("map-removePlayer", () -> map.removePlayer(facts));
+                player.leaveMap();
+                if (MapId.isDojo(mapId)) {
+                    this.getChannelServer().freeDojoSectionIfEmpty(mapId);
+                }
+
+                if (map.getHPDec() > 0) {
+                    getWorldServer().removePlayerHpDecrease(player);
+                }
+            }
+
+        } catch (final Throwable t) {
+            log.error("账号卡住 (地图移除)", t);
+        }
+    }
+
+    public final void disconnect(final boolean shutdown, final boolean cashshop) {
+        if (canDisconnect()) {
+            PlayerSession s = session;
+            if (s != null) {
+                // 登出收尾在会话 strand 上执行（与在途任务全序，doc/12 §3.4）
+                s.finalize(shutdown ? "shutdown" : "disconnect", () -> disconnectInternal(shutdown, cashshop));
+            } else {
+                ThreadManager.getInstance().newTask(() -> disconnectInternal(shutdown, cashshop));
+            }
+        }
+    }
+
+    public final void forceDisconnect() {
+        if (canDisconnect()) {
+            PlayerSession s = session;
+            if (s != null) {
+                s.finalize("force-disconnect", () -> disconnectInternal(true, false));
+                if (Strand.current() == null) {
+                    // 同步语义保留（调用方为非 strand 线程：shutdown/顶号/账号服务）；
+                    // strand 任务内调用时禁止跨 strand 互等，转 fire-and-forget
+                    s.awaitClosed();
+                }
+            } else {
+                disconnectInternal(true, false);
+            }
+        }
+    }
+
+    public void timeoutDisconnect() {
+        PlayerSession s = session;
+        if (s != null) {
+            s.finalize("timeout", () -> disconnectInternal(false, true));
+        } else {
+            disconnectInternal(false, true);
+        }
+    }
+
+    /**
+     * 发起会话终结（立即路径：封禁/协议异常/选角失败，SessionCoordinator.closeSession(immediately)
+     * 使用）。登出收尾在会话 strand 上执行；无会话（登录/引导阶段）走旧异步路径。
+     */
+    public void terminateSession(boolean shutdown) {
+        PlayerSession s = session;
+        if (s != null) {
+            s.finalize(shutdown ? "shutdown" : "terminate", () -> disconnectInternal(shutdown, false));
+        } else {
+            ThreadManager.getInstance().newTask(() -> disconnectInternal(shutdown, false));
+        }
+    }
+
+    /**
+     * 登出收尾体：由 {@link PlayerSession} 的 finalizer 在会话 strand 上调用（doc/12 §3.4）。
+     * 逻辑与迁移前一致（disconnectInternal 原样），仅执行线程从 ThreadManager 换为会话 strand。
+     */
+    public void logoutFinalizer(boolean shutdown, boolean cashshop) {
+        disconnectInternal(shutdown, cashshop);
+    }
+
+    private synchronized boolean canDisconnect() {
+        if (disconnecting) {
+            return false;
+        }
+
+        disconnecting = true;
+        return true;
+    }
+
+    private void disconnectInternal(boolean shutdown, boolean cashshop) {//once per Client instance
+        if (player != null && player.isLoggedIn() && player.getClient() != null) {
+            final int messengerid = player.getMessenger() == null ? 0 : player.getMessenger().getId();
+            //final int fid = player.getFamilyId();
+            final BuddyList bl = player.getBuddylist();
+            final MessengerCharacter chrm = new MessengerCharacter(player, 0);
+            final GuildCharacter chrg = player.getMGC();
+            final Guild guild = player.getGuild();
+
+            player.cancelMagicDoor();
+
+            final World wserv = getWorldServer();   // obviously wserv is NOT null if this player was online on it
+            try {
+                // 保存在线时间
+                player.updateOnlineTime();
+                removePlayer(wserv, this.serverTransition);
+
+                if (!(channel == -1 || shutdown)) {
+                    if (!cashshop) {
+                        if (!this.serverTransition) { // meaning not changing channels
+                            if (messengerid > 0) {
+                                wserv.leaveMessenger(messengerid, chrm);
+                            }
+                                                        /*      
+                                                        if (fid > 0) {
+                                                                final Family family = worlda.getFamily(fid);
+                                                                family.
+                                                        }
+                                                        */
+
+                            // player.forfeitExpirableQuests();    //This is for those quests that you have to stay logged in for a certain amount of time
+
+                            if (guild != null) {
+                                final Server server = Server.getInstance();
+                                server.setGuildMemberOnline(player, false, player.getClient().getChannel());
+                                player.sendPacket(GuildPackets.showGuildInfo(player));
+                            }
+                            if (bl != null) {
+                                wserv.loggedOff(player.getName(), player.getId(), channel, player.getBuddylist().getBuddyIds());
+                            }
+                        }
+                    } else {
+                        if (!this.serverTransition) { // if dc inside of cash shop.
+                            if (bl != null) {
+                                wserv.loggedOff(player.getName(), player.getId(), channel, player.getBuddylist().getBuddyIds());
+                            }
+                        }
+                    }
+                }
+            } catch (final Exception e) {
+                log.error("账号卡住", e);
+            } finally {
+                if (!this.serverTransition) {
+                    if (chrg != null) {
+                        chrg.setCharacter(null);
+                    }
+                    wserv.removePlayer(player);
+                    //getChannelServer().removePlayer(player); already being done
+
+                                player.saveCharToDB(true);
+
+                    player.logOff();
+                    if (GameConfig.getServerBoolean("instant_name_change")) {
+                        player.doPendingNameChange();
+                    }
+                    clear();
+                } else {
+                    getChannelServer().removePlayer(player);
+
+                                player.saveCharToDB();
+                }
+            }
+        }
+
+        SessionCoordinator.getInstance().closeSession(this, false);
+
+        if (!serverTransition && isLoggedIn()) {
+            updateLoginState(Client.LOGIN_NOTLOGGEDIN);
+
+            clear();
+        } else {
+            if (!Server.getInstance().hasCharacteridInTransition(this)) {
+                updateLoginState(Client.LOGIN_NOTLOGGEDIN);
+            }
+
+            engines = null; // thanks Tochi for pointing out a NPE here
+        }
+    }
+
+    private void clear() {
+        // player hard reference removal thanks to Steve (kaito1410)
+        if (this.player != null) {
+            this.player.empty(true); // clears schedules and stuff
+        }
+
+        Server.getInstance().unregisterLoginState(this);
+
+        this.accountName = null;
+        this.macs = null;
+        this.hwid = null;
+        this.birthday = null;
+        this.engines = null;
+        this.player = null;
+    }
+
+    public void setCharacterOnSessionTransitionState(int cid) {
+        this.updateLoginState(Client.LOGIN_SERVER_TRANSITION);
+        this.inTransition = true;
+        Server.getInstance().setCharacteridInTransition(this, cid);
+        PlayerSession s = session;
+        if (s != null) {
+            s.markTransition();   // 会话进入过渡（换频道/出商城/跨世界，doc/12 §3.5）
+        }
+    }
+
+    public int getChannel() {
+        return channel;
+    }
+
+    public Channel getChannelServer() {
+        return Server.getInstance().getChannel(world, channel);
+    }
+
+    public World getWorldServer() {
+        return Server.getInstance().getWorld(world);
+    }
+
+    public Channel getChannelServer(byte channel) {
+        return Server.getInstance().getChannel(world, channel);
+    }
+
+    public boolean deleteCharacter(int cid, int senderAccId) {
+        try {
+            Character chr = Character.loadCharFromDB(cid, this, false);
+
+            Integer partyid = chr.getWorldServer().getCharacterPartyid(cid);
+            if (partyid != null) {
+                this.setPlayer(chr);
+
+                Party party = chr.getWorldServer().getParty(partyid);
+                chr.setParty(party);
+                chr.getMPC();
+                chr.leaveParty();   // thanks Vcoc for pointing out deleted characters would still stay in a party
+
+                this.setPlayer(null);
+            }
+
+            return Character.deleteCharFromDB(chr, senderAccId);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        }
+    }
+
+    public String getAccountName() {
+        return accountName;
+    }
+
+    public void setAccountName(String a) {
+        this.accountName = a;
+    }
+
+    public void setChannel(int channel) {
+        this.channel = channel;
+    }
+
+    public int getWorld() {
+        return world;
+    }
+
+    public void setWorld(int world) {
+        this.world = world;
+    }
+
+    public void pongReceived() {
+        lastPong = System.currentTimeMillis();
+    }
+
+    public void checkIfIdle(final IdleStateEvent event) {
+        final long pingedAt = System.currentTimeMillis();
+        sendPacket(PacketCreator.getPing());
+        TimerManager.getInstance().schedule(() -> {
+            try {
+                if (lastPong < pingedAt) {
+                    if (ioChannel.isActive()) {
+                        log.info("由于空闲而断开连接 {}。原因：{}", remoteAddress, event.state());
+//                        updateLoginState(Client.LOGIN_NOTLOGGEDIN);
+//                        disconnectSession();
+                        // 按正常的规则去移除这个客户端，避免client被close了，但是对象还在内存中引发后续报错
+                        closeMapleSession();
+                    }
+                }
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+            }
+        }, SECONDS.toMillis(15));
+    }
+
+    public Set<String> getMacs() {
+        return Collections.unmodifiableSet(macs);
+    }
+
+    public int getGMLevel() {
+        return gmlevel;
+    }
+
+    public void setGMLevel(int level) {
+        gmlevel = level;
+    }
+
+    public void setScriptEngine(String name, ScriptEngine e) {
+        engines.put(name, e);
+    }
+
+    public ScriptEngine getScriptEngine(String name) {
+        return engines.get(name);
+    }
+
+    public void removeScriptEngine(String name) {
+        engines.remove(name);
+    }
+
+    public NPCConversationManager getCM() {
+        return NPCScriptManager.getInstance().getCM(this);
+    }
+
+    public QuestActionManager getQM() {
+        return QuestScriptManager.getInstance().getQM(this);
+    }
+
+    public boolean acceptToS() {
+        if (accountName == null) {
+            return true;
+        }
+
+        boolean disconnect = false;
+        try (Connection con = DatabaseConnection.getConnection()) {
+            try (PreparedStatement ps = con.prepareStatement("SELECT `tos` FROM accounts WHERE id = ?")) {
+                ps.setInt(1, accId);
+
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        if (rs.getByte("tos") == 1) {
+                            disconnect = true;
+                        }
+                    }
+                }
+            }
+
+            try (PreparedStatement ps = con.prepareStatement("UPDATE accounts SET tos = 1 WHERE id = ?")) {
+                ps.setInt(1, accId);
+                ps.executeUpdate();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return disconnect;
+    }
+
+    public void checkChar(int accid) {  /// issue with multiple chars from same account login found by shavit, resinate
+        if (!GameConfig.getServerBoolean("use_character_account_check")) {
+            return;
+        }
+
+        for (World w : Server.getInstance().getWorlds()) {
+            for (Character chr : w.getPlayerStorage().getAllCharacters()) {
+                if (accid == chr.getAccountId()) {
+                    log.warn("玩家 {} 已从世界 {} 中删除。可能存在重复尝试。", chr.getName(), GameConstants.WORLD_NAMES[w.getId()]);
+                    chr.getClient().forceDisconnect();
+                    w.getPlayerStorage().removePlayer(chr.getId());
+                }
+            }
+        }
+    }
+
+    public int getVotePoints() {
+        int points = 0;
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement("SELECT `votepoints` FROM accounts WHERE id = ?")) {
+            ps.setInt(1, accId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    points = rs.getInt("votepoints");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        votePoints = points;
+        return votePoints;
+    }
+
+    public void addVotePoints(int points) {
+        votePoints += points;
+        saveVotePoints();
+    }
+
+    public void useVotePoints(int points) {
+        if (points > votePoints) {
+            //Should not happen, should probably log this
+            return;
+        }
+        votePoints -= points;
+        saveVotePoints();
+        MapleLeafLogger.log(player, false, Integer.toString(points));
+    }
+
+    private void saveVotePoints() {
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement("UPDATE accounts SET votepoints = ? WHERE id = ?")) {
+            ps.setInt(1, votePoints);
+            ps.setInt(2, accId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void lockClient() {
+        lock.lock();
+    }
+
+    public void unlockClient() {
+        lock.unlock();
+    }
+
+    public boolean tryacquireClient() {
+        if (actionsSemaphore.tryAcquire()) {
+            lockClient();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public void releaseClient() {
+        unlockClient();
+        actionsSemaphore.release();
+    }
+
+    public boolean tryacquireEncoder() {
+        if (actionsSemaphore.tryAcquire()) {
+            encoderLock.lock();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public void unlockEncoder() {
+        encoderLock.unlock();
+        actionsSemaphore.release();
+    }
+
+    private static class CharNameAndId {
+
+        public String name;
+        public int id;
+
+        public CharNameAndId(String name, int id) {
+            super();
+            this.name = name;
+            this.id = id;
+        }
+    }
+
+    private static boolean checkHash(String hash, String type, String password) {
+        try {
+            MessageDigest digester = MessageDigest.getInstance(type);
+            digester.update(password.getBytes(StandardCharsets.UTF_8), 0, password.length());
+            return HexTool.toHexString(digester.digest()).replace(" ", "").toLowerCase().equals(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("对字符串进行编码失败", e);
+        }
+    }
+
+    public short getAvailableCharacterSlots() {
+        return (short) Math.max(0, characterSlots - Server.getInstance().getAccountCharacterCount(accId));
+    }
+
+    public short getAvailableCharacterWorldSlots() {
+        return (short) Math.max(0, characterSlots - Server.getInstance().getAccountWorldCharacterCount(accId, world));
+    }
+
+    public short getAvailableCharacterWorldSlots(int world) {
+        return (short) Math.max(0, characterSlots - Server.getInstance().getAccountWorldCharacterCount(accId, world));
+    }
+
+    public short getCharacterSlots() {
+        return characterSlots;
+    }
+
+    public void setCharacterSlots(byte slots) {
+        characterSlots = slots;
+    }
+
+    public boolean canGainCharacterSlot() {
+        return characterSlots < 15;
+    }
+
+    public synchronized boolean gainCharacterSlot() {
+        if (canGainCharacterSlot()) {
+            try (Connection con = DatabaseConnection.getConnection();
+                 PreparedStatement ps = con.prepareStatement("UPDATE accounts SET characterslots = ? WHERE id = ?")) {
+                ps.setInt(1, this.characterSlots += 1);
+                ps.setInt(2, accId);
+                ps.executeUpdate();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public final byte getGReason() {
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement("SELECT `greason` FROM `accounts` WHERE id = ?")) {
+            ps.setInt(1, accId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getByte("greason");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public byte getGender() {
+        return gender;
+    }
+
+    public void setGender(byte m) {
+        this.gender = m;
+
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement("UPDATE accounts SET gender = ? WHERE id = ?")) {
+            ps.setByte(1, gender);
+            ps.setInt(2, accId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void announceDisableServerMessage() {
+        if (!this.getWorldServer().registerDisabledServerMessage(player.getId())) {
+            sendPacket(PacketCreator.serverMessage(""));
+        }
+    }
+
+    public void announceServerMessage() {
+        sendPacket(PacketCreator.serverMessage(this.getChannelServer().getServerMessage()));
+    }
+
+    public synchronized void announceBossHpBar(Monster mm, final int mobHash, Packet packet) {
+        long timeNow = System.currentTimeMillis();
+        int targetHash = player.getTargetHpBarHash();
+
+        if (mobHash != targetHash) {
+            if (timeNow - player.getTargetHpBarTime() >= SECONDS.toMillis(5)) {
+                // is there a way to INTERRUPT this annoying thread running on the client that drops the boss bar after some time at every attack?
+                announceDisableServerMessage();
+                sendPacket(packet);
+
+                player.setTargetHpBarHash(mobHash);
+                player.setTargetHpBarTime(timeNow);
+            }
+        } else {
+            announceDisableServerMessage();
+            sendPacket(packet);
+
+            player.setTargetHpBarTime(timeNow);
+        }
+    }
+
+    public void sendPacket(Packet packet) {
+        announcerLock.lock();
+        try {
+            ioChannel.writeAndFlush(packet);
+        } finally {
+            announcerLock.unlock();
+        }
+    }
+
+    /**
+     * 语义层视图（世界域模块面）。<b>Client 不在公共面暴露语义层概念</b>（doc/12）——
+     * 世界域代码经 {@code Player.remote()}（strand 抽象）获取；本方法仅供同包
+     * {@link Player} 派生视图消费。按连接域装配（登录/世界端口共用 Gms083 实现类，
+     * 注入各自域的 handler 表）；连接建立前/mock 客户端返回空实现。
+     */
+    RemoteClient remoteView() {
+        if (ioChannel == null) {
+            return (RemoteClient) RemoteClientBase.DISCONNECTED;
+        }
+        return (RemoteClient) remoteViewBase();
+    }
+
+    /** 语义层实例（基类：分派 + 合并域机器）；惰性装配 */
+    private RemoteClientBase remoteViewBase() {
+        RemoteClientBase r = remote;
+        if (r == null) {
+            synchronized (this) {
+                if (remote == null) {
+                    remote = new Gms083(this, packetProcessor);
+                }
+                r = remote;
+            }
+        }
+        return r;
+    }
+
+    public void announceHint(String msg, int length) {
+        sendPacket(PacketCreator.sendHint(msg, length, 10));
+        enableActions();
+    }
+
+    public void changeChannel(int channel) {
+        if (!player.isAlive() || FieldLimit.CANNOTMIGRATE.check(player.getMap().getFieldLimit())) {
+            enableActions();
+            return;
+        } else if (MiniDungeonInfo.isDungeonMap(player.getMapId())) {
+            sendPacket(PacketCreator.serverNotice(5, "在迷你地牢内时，更改频道或进入现金商店或拍卖行将被禁用。"));
+            enableActions();
+            return;
+        }
+
+        String[] socket = Server.getInstance().getInetSocket(this, getWorld(), channel);
+        if (socket == null) {
+            sendPacket(PacketCreator.serverNotice(1, "频道 " + channel + " 当前已禁用。请尝试其他频道。"));
+            enableActions();
+            return;
+        }
+
+        player.closePlayerInteractions();
+        player.closePartySearchInteractions();
+
+        player.unregisterChairBuff();
+        player.freezeBuffs(true);
+        player.removeSummonsFromMap();
+        player.setDisconnectedFromChannelWorld();
+        player.notifyMapTransferToPartner(-1);
+        player.removeIncomingInvites();
+        player.stopSkillTimers();
+        //Cancelling magicdoor? Nope
+        //Cancelling mounts? Noty
+
+        player.getInventory(InventoryType.EQUIPPED).checked(false); //test
+        final MapleMap currentMap = player.getMap();
+        // 换频道离图，与换图路径同缝合点（doc/13）；player 域收尾切片前置 + leaveMap 后置（strict 载荷键控批次）
+        player.releaseControlledMonsters();
+        player.leaveMiniDungeon();
+        MapleMap.RemoveFacts facts = player.removeFacts();
+        currentMap.runIn("map-removePlayer", () -> currentMap.removePlayer(facts));
+        player.leaveMap();
+        player.clearBanishPlayerData();
+        player.getClient().getChannelServer().removePlayer(player);
+
+        player.saveCharToDB();
+
+        /*
+         saveCharToDB后，数据库中的地图已经保存为ForcedReturnId，如果在当前地图下线，再上线，就会传送到ForcedReturnId对应的地图
+         因为玩家登录时会优先取内存中的数据，没有才加载数据库，所以玩家切换频道取的是内存中的数据，而导致没有切换到ForcedReturnId对应的地图
+         玩家反馈切换频道不传送ForcedReturnId对应的地图反而比较友好，所以该参数默认为false，想贴近官方可以设置为true
+         */
+        if (GameConfig.getServerBoolean("change_channel_force_return")) {
+            int returnedMapId;
+            MapleMap map = player.getMap();
+            if (map.getForcedReturnId() != MapId.NONE) {
+                returnedMapId = player.getMap().getForcedReturnId();
+            } else {
+                returnedMapId = player.getHp() < 1 ? map.getReturnMapId() : map.getId();
+            }
+            player.setMap(getChannelServer((byte) channel).getMapFactory().getMap(returnedMapId));
+        }
+
+        player.setSessionTransitionState();
+        try {
+            sendPacket(PacketCreator.getChannelChange(InetAddress.getByName(socket[0]), Integer.parseInt(socket[1])));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public long getSessionId() {
+        return this.sessionId;
+    }
+
+    public boolean canRequestCharlist() {
+        return lastNpcClick + 877 < Server.getInstance().getCurrentTime();
+    }
+
+    public boolean canClickNPC() {
+        return lastNpcClick + 500 < Server.getInstance().getCurrentTime();
+    }
+
+    public void setClickedNPC() {
+        lastNpcClick = Server.getInstance().getCurrentTime();
+    }
+
+    public void removeClickedNPC() {
+        lastNpcClick = 0;
+    }
+
+    public int getVisibleWorlds() {
+        return visibleWorlds;
+    }
+
+    public void requestedServerlist(int worlds) {
+        visibleWorlds = worlds;
+        setClickedNPC();
+    }
+
+    public void closePlayerScriptInteractions() {
+        this.removeClickedNPC();
+        NPCScriptManager.getInstance().dispose(this);
+        QuestScriptManager.getInstance().dispose(this);
+    }
+
+    public boolean attemptCsCoupon() {
+        if (csattempt > 2) {
+            resetCsCoupon();
+            return false;
+        }
+
+        csattempt++;
+        return true;
+    }
+
+    public void resetCsCoupon() {
+        csattempt = 0;
+    }
+
+    public void enableCSActions() {
+        sendPacket(PacketCreator.enableCSUse(player));
+    }
+
+    public boolean canBypassPin() {
+        return LoginBypassCoordinator.getInstance().canLoginBypass(hwid, accId, false);
+    }
+
+    public boolean canBypassPic() {
+        return LoginBypassCoordinator.getInstance().canLoginBypass(hwid, accId, true);
+    }
+
+    public int getLanguage() {
+        return lang;
+    }
+
+    public void setLanguage(int lingua) {
+        this.lang = lingua;
+    }
+
+    /**
+     * 通知客户端启用操作，防止假死
+     */
+    public void enableActions() {
+        sendPacket(PacketCreator.enableActions());
+    }
+}

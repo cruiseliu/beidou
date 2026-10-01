@@ -1,0 +1,59 @@
+{
+    "jobId": 310,
+    "faction": "ADVENTURER",
+    "style": "BOWMAN",
+    "advancementCount": 2,
+    "advancementLevel": 30,
+    "advancementHint": 70,
+    "maxLevel": 200,
+    "previousJobId": 300,
+    "levelUp": [
+        {
+            "from": 1,
+            "to": 200,
+            "gainStats": {
+                "maxHp": {
+                    "addMin": 20,
+                    "addMax": 24,
+                    "multiply": 1.0
+                },
+                "maxMp": {
+                    "addMin": 14,
+                    "addMax": 16,
+                    "multiply": 1.0
+                },
+                "ap": 5,
+                "sp": 3
+            }
+        }
+    ],
+    "advancementGainStats": {
+        "maxHp": {
+            "addMin": 300,
+            "addMax": 350,
+            "multiply": 1.0
+        },
+        "maxMp": {
+            "addMin": 150,
+            "addMax": 200,
+            "multiply": 1.0
+        },
+        "ap": 0,
+        "sp": 1
+    },
+    "spChainShared": true,
+    "acquiredSkills": [
+        3100000,
+        3100001,
+        3101002,
+        3101003,
+        3101004,
+        3101005
+    ],
+    "apAutoAssignKey": "default",
+    "weaponStatRules": {},
+    "modifiers": [],
+    "listeners": [],
+    "mpIntDivisor": 10,
+    "autoAssignAp": []
+}

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="monsterkilling">
+  <string name="$SCRIPTSTRING_MONSTERKILLING_0$" value="由于未知原因，无法移动。请稍候重新尝试。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_1$" value="请结成组队后入场。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_10$" value="现在马上出发吗？&#13;&#10;&#13;&#10;#b#L0#独自出发。#l&#13;&#10;#L1#以2人以上的组队为单位出发。#l"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_11$" value="请通过队长进行。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_12$" value="要想前往999次列车，需要#b#t4001321##k。你有吗？&#13;&#10;&#13;&#10;#b#i4001321# #t4001321#"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_13$" value="#b#h0#k一共在地铁站清除了#b"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_14$" value="#k怪物。你愿意接受#b#t1142141:##k作为报答吗？"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_15$" value="必须在背包的装备栏中留一格以上的空格，才能领取奖励。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_16$" value="你获得了&lt;荣誉业务员&gt;的称号。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_17$" value="如果你改变了主意，请再来找我。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_18$" value="你还不具备成为荣誉业务员的条件。扫荡的怪物数量必须达到#b10,000#k只以上。&#13;&#10;&#13;&#10;#b目前扫荡数量："/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_19$" value="你已经获得了#b&lt;荣誉业务员&gt;#k称号。勋章只发放1次。&#13;&#10;#b目前扫荡数量："/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_2$" value="请结成2人以上的组队后入场。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_20$" value="你还不具备成为荣誉业务员的条件。我来把条件告诉你。你只要#b在积满灰尘的平台扫荡10,000以上的怪物#k就可以了。怎么样？很容易吧？"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_21$" value="平台的调查已经完成，你现在要回去吗？？&#13;&#10;&#13;&#10;#b#L0#回到积满灰尘的历史。#l"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_22$" value="等等，请稍等一下。刚才你表现得非常好，谢谢你的帮助。我特别给你一次前往999次列车的机会。你想现在过去吗？&#13;&#10;&#13;&#10;#b#L0#好的，现在马上过去。#l&#13;&#10;#L1#不，下次再过去。#l"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_23$" value="好的，那我给你一张999次列车的车票，你可以随时乘坐它。请确认其他栏中是否有一格以上的空格。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_24$" value="背包的其他栏必须有一格以上的空格，才能获得奖励。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_25$" value="必须在其他栏中留一格以上的空格，才能领取奖励。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_26$" value="你想放弃挑战并离开吗？&#13;&#10;&#13;&#10;#b#L0#离开。#l"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_27$" value="我是杜阿特。&#13;&#10;&#13;&#10;#b#L0#了解金字塔。#l&#13;&#10;#e#L1#进入金字塔。#l#n&#13;&#10;&#13;&#10;#L2#进入白雪人法老的石室。#l&#13;&#10;#L3#了解白雪人法老的宝物。#l&#13;&#10;#L4#领取&lt;法老的守护者&gt;勋章。#l"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_28$" value="这里是混沌和复仇之神奈特的金字塔，在漫长的岁月里一直埋藏在沙漠的地下，但最近按照奈特神的意志，升到了地上。如果你不惧怕未知的黑暗和由此带来的死亡，可以进入金字塔，向沉睡的白雪人法老挑战。结果永远是由选择者自己决定的……"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_29$" value="当你进入金字塔的瞬间，奈特神的考验就会开始。即便再愚蠢的人，我也得把基本的规则告诉他。你要好好记住。#b&#13;&#10;&#13;&#10;1.注意不要让#e#rAct值槽#b#n下降。必须不停地和怪物战斗，才能减缓行动值的下降。&#13;&#10;2.不熟练的人会付出代价。注意不要出现#rMiss#b。&#13;&#10;3. #v04032424#小心那些带标记的小白雪人法老。如果不小心攻击了他们，可能会引火烧身。&#13;&#10;4.击败怪物数量(每达到一定量时，可以使用绝技，请好好使用。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_3$" value="存在不符合入场等级条件的人。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_30$" value="通过奈特的考验的人会获得荣耀，在考验面前屈服的人只能自取灭亡。我能帮你的就只有这些，剩下的就要靠你的实力了。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_31$" value="只有40级以上的玩家可以参加。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_32$" value="不知道神的愤怒的愚蠢的人啊，请选择吧！&#13;&#10;&#13;&#10;#b#L0独自进入。#l&#13;&#10;#L1#以2人以上的组队为单位进入。#l"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_33$" value="必须通过队长进行。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_34$" value="不知道死亡的残忍的人啊，请选择吧！&#13;&#10;&#13;&#10;#L0##i3994115##l#L1##i3994116##l#L2##i3994117##l#L3##i3994118##l"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_35$" value="简单模式必须达到40级以上才可以进入。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_36$" value="普通模式必须达到45级以上才可以进入。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_37$" value="困难模式必须达到50级以上才可以进入。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_38$" value="地狱模式必须达到61级以上才可以进入。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_39$" value="只有达到61级以上，才可以参加地狱模式。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_4$" value="有人已经进入。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_40$" value="你拿来了什么宝石呢？&#13;&#10;&#13;&#10;#L0##i4001322# #t4001322##l&#13;&#10;#L1##i4001323# #t4001323##l&#13;&#10;#L2##i4001324# #t4001324##l&#13;&#10;#L3\##i4001325# #t4001325##l"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_41$" value="要想进入白雪人法老的石室，需要有宝石。你有宝石吗？"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_42$" value="在白雪人法老的石室捕捉法老的分身#b迷你白雪人法老#k，可以获得#e#b#t2022613##k#n。那个箱子里有非常特别的宝物，那就是#e#b#t1132012##k#n。&#13;&#10;#i1132012:# #t1132012#&#13;&#10;&#13;&#10;如果你能通过地狱模式，就可以获得#e#b#t1132013##k#n。&#13;&#10;#i1132013:# #t1132013#&#13;&#10;&#13;&#10;虽然奈特神绝对不会允许你那么去做。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_43$" value="你充分具备了获得#b&lt;法老的守护者&gt;#k勋章的资格。到现在为止，你在奈特的金字塔里一共扫荡了#b"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_44$" value="#k的怪物。好的，你想获得#b#t1142142:##k吗？"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_45$" value="必须在背包的装备栏中留一格以上的空格，才能领取勋章。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_46$" value="获得了&lt;法老的守护者&gt;称号。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_47$" value="如果你改变了主意，可以再来找我。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_48$" value="要成为法老的守护者，你还差得很远。扫荡的怪物数量必须达到#b50,000#k只以上才行。&#13;&#10;&#13;&#10;#b目前扫荡数量："/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_49$" value="你已经获得了#b&lt;法老的守护者&gt;#k称号。勋章只发放1次。&#13;&#10;#b目前扫荡数量："/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_5$" value="我是林列车长。&#13;&#10;&#13;&#10;#b#L0#聆听苦恼。#l&#13;&#10;&#13;&#10;#e#L1#前往积满灰尘的平台。#l#n&#13;&#10;#L2#前往999次列车。#l&#13;&#10;&#13;&#10;#L3#领取&lt;荣誉业务员&gt;勋章。#l"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_50$" value="你还不具备成为#b&lt;法老的守护者&gt;#k的条件。我来把条件告诉你。你只要在#b奈特的金字塔(和模式无关)扫荡50,000只以上的怪物#k就行。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_51$" value="给你的时间已经全部用光了。你想现在离开吗？&#13;&#10;&#13;&#10;#b#L0#离开。#l"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_52$" value="等等！你出色地通过了奈特的考验。按照奈特神的意志，我给你一次进入白雪人法老的石棺的机会。你现在就去吗？&#13;&#10;&#13;&#10;#b#L0#是的，现在就去。#l&#13;&#10;#L1#不，以后再去。#l"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_53$" value="那我给你一块白雪人法老的宝石。有了这块宝石，我就可以随时把你送到白雪人法老的石室里去。请确认其他栏中是否有一格以上的空格。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_6$" value="这里是以前未完工的地铁站。最近听说这里有怪物出没，所以过来进行调查，在平台那边可以找到怪物的痕迹。但是平台又黑又窄，调查起来非常困难。所以我让冬青帮我找一个可以帮我的人。谢谢你特地赶过来帮我。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_7$" value="在调查平台的时候，可能会遇到大群的怪物。但是不要慌张，请你尽自己最大的努力，击退所有的怪物。因为必须击退所有的怪物，才能离开平台。根据击退的怪物数量，我会给你相应的答谢。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_8$" value="只有25级以上的玩家可以参加。"/>
+  <string name="$SCRIPTSTRING_MONSTERKILLING_9$" value="只有25级以上，30级以下的玩家可以参加。"/>
+</imgdir>

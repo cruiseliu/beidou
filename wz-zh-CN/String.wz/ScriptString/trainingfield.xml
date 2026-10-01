@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="trainingfield">
+  <string name="$SCRIPTSTRING_TRAININGFIELD_0$" value="战士"/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_1$" value="魔法师"/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_10$" value="达到20级之后，我已经没什么好教你的了……"/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_11$" value="本修炼场只有20级以下的"/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_12$" value="可以进入。"/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_13$" value="&#13;&#10;#L0# #r勇气之屋("/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_14$" value="&#13;&#10;#L0# #b勇气之屋("/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_15$" value="&#13;&#10;#L1# #r智慧之屋("/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_16$" value="&#13;&#10;#L1# #b智慧之屋("/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_17$" value="&#13;&#10;#L2# #r技术之屋("/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_18$" value="&#13;&#10;#L2# #b技术之屋("/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_19$" value="&#13;&#10;#L3# #r修炼之屋("/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_2$" value="弓箭手"/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_20$" value="&#13;&#10;#L3# #b修炼之屋("/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_21$" value="&#13;&#10;#L4# #r力量之屋("/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_22$" value="&#13;&#10;#L4# #b力量之屋("/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_23$" value="#b#e[公告]#n#k &#13;&#10;各位冒险家！&#13;&#10;这里是20级以下的"/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_24$" value="的修炼场。独自修炼也是变得更强的一种方法，但和别人一起修炼，可以更快地变强。请选择想要进入的房间。#b"/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_25$" value="修炼场里人员太多。请选择其他修炼场。"/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_3$" value="飞侠"/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_4$" value="海盗"/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_5$" value="找到了修炼场。"/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_6$" value="达到20级之后，我已经没什么好教你的了……但是……你好像还没学会我所有的特殊技能。那就是“怪物的弱点”技能。我破例把它全部传授给你。"/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_7$" value="学会了猪猪的弱点。"/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_8$" value="学会了木妖的弱点。"/>
+  <string name="$SCRIPTSTRING_TRAININGFIELD_9$" value="学会了绿水灵的弱点。"/>
+</imgdir>

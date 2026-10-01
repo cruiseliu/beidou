@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="guildquest1">
+  <string name="$SCRIPTSTRING_GUILDQUEST1_0$" value="我们家族联盟是从很久以前就开始，一直在努力解读古代的遗物&lt;祖母绿碑&gt;。得到的结果是，我们了解这里沉睡着古代神秘圣瑞尼亚。而且还了解到传说中的宝石#t4001024#就在圣瑞尼亚的遗址中。因此，为了寻找#t4001024#,家族联盟开始了家族对抗战。&#13;&#10;#b#L0# 圣瑞尼亚是什么东西?#l &#13;&#10;#b#L1# #t4001024# 吗？#l&#13;&#10;#b#L3# 现在好了。#l"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_1$" value="还有要问的吗? &#13;&#10;#b#L0# 圣瑞尼亚是什么东西?#l &#13;&#10;#b#L1##t4001024#吗?#l &#13;&#10;#b#L3# 现在好了。#l"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_10$" value="恶魔艾里葛斯为了侵略圣瑞尼亚，封印了守护圣瑞尼亚的 #r隆奇努斯之枪#k。如果 #r隆奇努斯之枪#k恢复力量，也许能够打败邪恶之力量。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_100$" value="都说不是正确的供品...&#13; 这是第 "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_101$" value="次尝试。注意 &#13; 机会只剩一次了。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_102$" value="放的供品都不对，忠臣们发怒了！注意他们会叫出暗黑骑士。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_103$" value="寻找忠臣的供品失败！召唤出怪物。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_104$" value="都说不是正确的供品。&#13; 这是第 "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_105$" value="次尝试。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_106$" value=" 位说供品错了。&#13; 这是第 "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_107$" value="次尝试。 &#13; 机会只剩一次了。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_108$" value="放置忠臣的供品失败！召唤出怪物。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_109$" value=" 位说供品正确。&#13; "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_11$" value="进入圣瑞尼亚。入场3分钟后进入圣瑞尼亚的门将会打开。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_110$" value=" 位说供品错了。&#13; 这是第 "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_111$" value="次尝试。注意 &#13; 机会只剩一次了"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_112$" value="放置忠臣的供品失败！召唤出怪物"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_113$" value=" 位说供品正确。 &#13; "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_114$" value=" 位说供品错了 &#13; 这是第 "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_115$" value=" 位说供品错了 &#13; "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_116$" value=" 位说不认识供品 &#13; 这是第 "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_117$" value="放的供品都不对，忠臣们发怒了！注意他们会叫出暗黑骑士"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_118$" value=" 位说供品错了。&#13; "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_119$" value=" 位说不认识供品。 &#13; 这是第 "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_12$" value="加入家族对抗战的准备还没有好。请一会儿再试。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_120$" value=" 位说不认识供品&#13; 这是第 "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_121$" value=" 位说不认识供品。 &#13; 这是第 "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_122$" value=" 位说供品错了。 &#13; "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_123$" value="放置忠臣的供品失败！召唤出怪物"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_124$" value=" 位说供品错了。&#13; "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_13$" value="家族对抗战的入场人员已经达到30名人员，无法在入场了。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_14$" value="进入圣瑞尼亚.入场3分钟后进入圣瑞尼亚的门将会打开。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_15$" value="你好！我是遗址发掘部队员修安。我管理&lt;圣瑞尼亚&gt;遗址家族对抗战的申请。有关资格条件的详细内容请参考左边 &#13;&#10;#b#L0# 勘探队登记申请 #l &#13;&#10;#b#L1# 勘探队登记现状#l&#13;&#10;#b#L2# 取消勘探队登记#l "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_16$" value="只限家族长或副家族长能够申请。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_17$" value="已登记在第2频道了"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_18$" value="登记在 "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_19$" value="号频道了。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_2$" value="圣瑞尼亚是曾经统治金银岛全境的古代文明国家。在石人寺院或森林深处的神殿之类的古代建筑物都是圣瑞尼亚的遗址。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_20$" value="稍等一会儿就可以进入圣瑞尼亚了。轮到贵家族后，必须在三分钟之内，有6人以上的家族会员来向我报到喔！要申请吗?"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_21$" value="现在有一个家族在完成任务， "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_22$" value="个家族在等待。要申请等待吗?"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_23$" value="现在很忙，等决定好后再来找我吧！"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_24$" value="申请完毕，请稍微待命，轮到顺序后在跟我对话。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_25$" value="已登记在2频道了。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_26$" value="已经，登记在 "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_27$" value="频道了。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_28$" value="奇怪耶~怎么会无法申请呢…。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_29$" value="现在有 "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_3$" value="圣瑞尼亚最后的王是锡安列三世，据说他非常聪明而又仁慈。但是在某一天突然灭亡了，其原因还没有弄清楚。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_30$" value="个家族在等待。&#13; "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_31$" value="不是等待中的家族的一员。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_32$" value="现在 "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_33$" value="个的家族在的等待。&#13; "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_34$" value="是正在进行家族对抗战的家族的一员。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_35$" value="的家族是第2频道的第 "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_36$" value="号等待家族..."/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_37$" value="家族是 "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_38$" value="号频道第 "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_39$" value="号等待家族"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_4$" value="#t4001024#是传说中的能够使人永远年轻的宝石。听说拥有  #t4001024#的人都灭亡了，也许圣瑞尼亚的灭亡也于此有关。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_40$" value="只限家族长或副家族长能够取消。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_41$" value="登记在第2频道。取消的话要重新申请。取消吗?"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_42$" value="登记在"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_43$" value="号频道。取消的话要重新申请。取消吗?"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_44$" value="请等一下！"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_45$" value="您的申请已取消！"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_46$" value="已经轮到时，是无法取消的喔！请重新确认。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_47$" value="您的申请并未登录。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_48$" value="解开了原先所装备的守护石。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_49$" value="呦！你们找到 #t4001024#了？虽然听说有勇敢的家族挑战家族对抗战，但没想到真的成功了。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_5$" value="过去曾多次派勘探队到圣瑞尼亚。但是无人归还。所以我们这次决定展开公会对抗战。我相信你们这些一直在努力增强力量的公会。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_50$" value="你们所发现的 #t4001024#将会作为冒险岛珍贵的历史资料留下来。把你们送到营地。 "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_51$" value="把你们送到营地吧！"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_52$" value="放弃家族对抗战吗?现在放弃的话要从头开始。如果家族人员不足6人，家族对抗战会中断。 "/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_53$" value="真的要退出吗?"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_54$" value="中断家族对抗战移到回去的路。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_55$" value="中断了家族对抗战。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_56$" value="拥有 #t4001024# 的指挥官对话。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_57$" value="是你们打败了艾里葛斯找回了圣瑞尼亚的光荣！"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_58$" value="拥有 #t4001024# 之力量的人，将会带你到圣瑞尼亚宝库。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_59$" value="通过了家族对抗战。与努里斯对话可以退场。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_6$" value="这次公会对抗战的目的是到圣瑞尼亚探险，并找到 #t4001024#。这个任务并不是靠强大的力量就能完成的。最重要的是要与同伴合作。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_60$" value="具备 #t4001024# 的力量吗?"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_61$" value="觉得守护石耳环的力量不对。只能配备一个守护石耳环。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_62$" value="目前门是关闭的状态。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_63$" value="你已通过考验，可以进入城内。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_64$" value="来到圣瑞尼亚的无惧之人啊！我是守护城门的守卫。让我来考验你是否有资格进入这个地方吧！"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_65$" value="这里的石像都是我的分身。我现在要移动石像。你要找找我移动的痕迹。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_66$" value="那就由请申请家族对抗战的人来找我对话吧！"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_67$" value="这里的石像都是我的分身。我现在要移动石像，你要找找我移动的痕迹。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_68$" value="个的铜像会变换位置。记清楚顺序，打倒后再对话。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_69$" value="正确！你果然很聪明。开始下一步。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_7$" value="是吗？若有什么问题，请随时提出。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_70$" value="你已通过城门守卫的第一关考验。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_71$" value="你已通过城门守卫的第二关考验。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_72$" value="真棒！帮你打开通向下一关的大门。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_73$" value="通过的城门守卫的所有考验。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_74$" value="打倒铜像后进行对话。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_75$" value="错了。如果想再试一次，重新与我对话。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_76$" value="无法通过城门守卫的考验。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_77$" value="无形的结界阻挡着强大力量的入侵。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_78$" value="现在入口已关闭.."/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_79$" value="离宝座不远了。宝座的门因为艾里葛斯的邪恶结界紧闭着。 &#13; 解开邪恶结界需要 #r神圣的力量结晶.."/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_8$" value="&lt;公告&gt; &#13; 拥有勇气和信任的家族啊！请挑战家族对抗战吧。&#13; &#13; #b参加条件 :#k&#13; 1。6人以上的家族人员一起参加！&#13; 2。由家族长或副家族长作为指挥官参加！&#13; 3。请注意参加过程中如果家族人员不足6人，或指挥官中断的话则不能继续。！"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_80$" value="经过长久的沉睡，终于遇到了可以拯救圣瑞尼亚的勇士。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_81$" value="请你们的队长来说话。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_82$" value="经过长久的沉睡，终于遇到了可以拯救圣瑞尼亚的勇士。由我这个老人为你们创造前进的道路吧。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_83$" value="我，锡安列三世无法忍受悲痛，将死在这里。 &#13; 为了守住鲁碧安，唤出艾里葛斯是很大的错误。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_84$" value="艾里葛斯中了鲁碧安魔力，找来一群怪物侵略了圣瑞尼亚。而吉姆舍弃王袍逃跑时横死在水路中。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_85$" value="圣瑞尼亚因吉姆的过失而灭亡，这又能怪谁呢?死的时候连尸体都没有守住，这何尝不是千古之恨！看到遗言的后人，如果觉得吉姆可怜，能否为吉姆找到衣服?"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_86$" value="找到 #v4001032# #t4001032# &#13; #v4001031# #t4001031# &#13; #v4001033# #t4001033# &#13; #v4001034# #t4001034# &#13; 后按照生前的习惯穿上，吉姆就能够安息了。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_87$" value="非常感谢忠臣能够找回赏赐品。希望他们能够实现愿望..."/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_88$" value="喷水前的四个石像是古代圣瑞尼亚的忠臣，他们拥有国王生前赐予的贵重的宝物。如果将国王的赏赐品作为供品，就能打开通往城里的秘密之门。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_89$" value="#v4001027# #t4001027#&#13; #v4001028# #t4001028#&#13; #v4001029# #t4001029#&#13; #v4001030# #t4001030#&#13; 就是他们。但是不清楚谁要供品。而且，其中也会有不必要的供品。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_9$" value="#r&lt;警告&gt;#k 危险！圣瑞尼亚城中流动着恶魔的气息！&#13; 1。现在圣瑞尼亚城中流动着邪恶之力量，随便接近会很危险。&#13; 2。如果中途想放弃冒险，请用回传之石。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_90$" value="把供品放在石像前进行对话，会问是不是你所需要的。但是如果错的太多的话忠臣会发怒，一定要在7次内猜对。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_91$" value="请通过家族对抗战的指挥官进行。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_92$" value="喷水前的四个石像是古代圣瑞尼亚的忠臣，他们拥有国王生前赐予的贵重的宝物。如果将国王的赏赐品作为供品，将能打开通往城里的秘密之门。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_93$" value="#v4001027# #t4001027#&#13; #v4001028# #t4001028#&#13; #v4001029# #t4001029#&#13; #v4001030# #t4001030#&#13; 就是这些。但是我们不清楚谁需要哪种供品。而且其中也会有没用的供品。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_94$" value="把供品放在石像前进行对话，会问是不是你所需要的。但是如果错的太多忠臣会发怒，一定要在7次内猜对。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_95$" value="一个石像前放一个供品"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_96$" value="供品没有放好，或不是国王赐予的物品。"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_97$" value="所有的忠臣都认为供品正确"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_98$" value="哦~忠臣们因找到赏赐物品，而感到非常高兴。他们会打开秘密之门，但愿你们能够实现愿望"/>
+  <string name="$SCRIPTSTRING_GUILDQUEST1_99$" value="安放好忠臣的供品。秘密之门已打开。"/>
+</imgdir>

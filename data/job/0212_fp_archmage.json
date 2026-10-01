@@ -1,0 +1,56 @@
+{
+    "jobId": 212,
+    "faction": "ADVENTURER",
+    "style": "MAGICIAN",
+    "advancementCount": 4,
+    "advancementLevel": 120,
+    "advancementHint": 200,
+    "maxLevel": 200,
+    "previousJobId": 211,
+    "levelUp": [
+        {
+            "from": 1,
+            "to": 200,
+            "gainStats": {
+                "maxHp": {
+                    "addMin": 10,
+                    "addMax": 14,
+                    "multiply": 1.0
+                },
+                "maxMp": {
+                    "addMin": 22,
+                    "addMax": 24,
+                    "multiply": 1.0
+                },
+                "ap": 5,
+                "sp": 3
+            }
+        }
+    ],
+    "advancementGainStats": {
+        "maxHp": {
+            "addMin": 0,
+            "addMax": 0,
+            "multiply": 1.0
+        },
+        "maxMp": {
+            "addMin": 450,
+            "addMax": 500,
+            "multiply": 1.0
+        },
+        "ap": 5,
+        "sp": 1
+    },
+    "spChainShared": true,
+    "acquiredSkills": [
+        2121001,
+        2121002,
+        2121006
+    ],
+    "apAutoAssignKey": "default",
+    "weaponStatRules": {},
+    "modifiers": [],
+    "listeners": [],
+    "mpIntDivisor": 20,
+    "autoAssignAp": []
+}

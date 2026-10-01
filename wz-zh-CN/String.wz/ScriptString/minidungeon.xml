@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="minidungeon">
+  <string name="$SCRIPTSTRING_MINIDUNGEON_0$" value="夸盔O狼 格家府 : 30盒 饶俊 夸盔惑磊啊 葛嚼阑 靛矾尘 芭俊夸。 青款阑 呼绢夸。"/>
+  <string name="$SCRIPTSTRING_MINIDUNGEON_1$" value="泅犁 "/>
+  <string name="$SCRIPTSTRING_MINIDUNGEON_2$" value="个迷你副本正在被使用"/>
+  <string name="$SCRIPTSTRING_MINIDUNGEON_3$" value="迷你副本已满，无法入场。"/>
+  <string name="$SCRIPTSTRING_MINIDUNGEON_4$" value="因未知理由失败。"/>
+  <string name="$SCRIPTSTRING_MINIDUNGEON_5$" value="组队成员在其他地方，所以无法移动。"/>
+  <string name="$SCRIPTSTRING_MINIDUNGEON_6$" value="组队成员中有无法移动的成员，所以无法移动。"/>
+  <string name="$SCRIPTSTRING_MINIDUNGEON_7$" value="只有组队长才可以试图入场。"/>
+</imgdir>

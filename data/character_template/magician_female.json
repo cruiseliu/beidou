@@ -1,0 +1,43 @@
+{
+  "id": "magician_female",
+  "jobId": 200,
+  "level": 30,
+  "mapId": 101000000,
+  "ap": 138,
+  "sp": 67,
+  "meso": 100000,
+  "novice": false,
+  "noviceJobCode": -1,
+  "mapleLifeJobCode": 1,
+  "candidates": {
+    "male": null,
+    "female": "Info/CharFemale"
+  },
+  "mapleLifeEnhance": {
+    "hpGain": null,
+    "mpGain": [0, 40, 80, 118, 156, 194, 230, 266, 302, 336, 370],
+    "spCost": 5,
+    "enhanceSkill": 2000000,
+    "overflowSkill": 2000001
+  },
+  "baseData": {
+    "stats": { "str": 12, "dex": 5, "int_": 20, "luk": 4, "hp": 405, "mp": 729, "maxHp": 405, "maxMp": 729 },
+    "inventory": {
+      "EQUIP": [
+        { "itemId": 1041041, "position": -5, "quantity": 1 },
+        { "itemId": 1061034, "position": -6, "quantity": 1 },
+        { "itemId": 1072075, "position": -7, "quantity": 1 },
+        { "itemId": 1372003, "position": -11, "quantity": 1 },
+        { "itemId": 1382017, "position": 0, "quantity": 1 }
+      ],
+      "USE": [
+        { "itemId": 2000001, "position": 0, "quantity": 100 },
+        { "itemId": 2000006, "position": 0, "quantity": 100 }
+      ],
+      "SETUP": [
+        { "itemId": 3010000, "position": 0, "quantity": 1 }
+      ]
+    },
+    "skills": {}
+  }
+}

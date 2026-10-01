@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="party2">
+  <string name="$SCRIPTSTRING_PARTY2_0$" value="从这里往上到处都是很危险的东西，你不能继续往上走了。&#13;&#10;#b#L0# 我想参加组队任务。#l&#13;&#10;#L1# 想获得#t1022073#。#l"/>
+  <string name="$SCRIPTSTRING_PARTY2_1$" value="从这里往上到处都是很危险的东西，你不能继续往上走了。但是如果你是为了我们玩具城的和平，事情就不同了。如果想打倒塔顶的强大可怕的怪物，请你去召集队员吧。虽然会很困难……但不知为什么，我觉得你是可以信任的人。"/>
+  <string name="$SCRIPTSTRING_PARTY2_10$" value="次。你想获得#b#t1022073##k吗？"/>
+  <string name="$SCRIPTSTRING_PARTY2_11$" value="你可以随时来找我，我会把#b#t1022073##k送给你。"/>
+  <string name="$SCRIPTSTRING_PARTY2_12$" value="请确认装备栏中是否有空格。"/>
+  <string name="$SCRIPTSTRING_PARTY2_13$" value="每帮我35次，#i1022073会给你1个##b#t1022073##k。#b"/>
+  <string name="$SCRIPTSTRING_PARTY2_14$" value="再帮我   次#k的话，可以获得#b#t1022073##k。"/>
+  <string name="$SCRIPTSTRING_PARTY2_15$" value="我告诉你第一关的内容。在这里到处都有各种怪物。这里的怪物都有#b#t4001022##k。有这个你就可以去次元空间。&#13;&#10;你打退怪物收集#b25张#t4001022##k后给队长。队长带着#b25张#t4001022##k来找我，我就送你们到下一关。请加油！"/>
+  <string name="$SCRIPTSTRING_PARTY2_16$" value="我告诉你第二关的内容。在这里到处有箱子。破坏箱子你会被传送到别的地方或得到#b#t4001022##。你们收集#b15张#t4001022##k后给队长吧。队长给我那些东西就行了。&#13;&#10;但要注意的是打箱子后如果被移动到别的地方也不要马上出来。因为那里也会有别的箱子。如果出去了你就不能再进去，那你们就不能进入下一关了。请加油！"/>
+  <string name="$SCRIPTSTRING_PARTY2_17$" value="我告诉你第三关的内容。在这里有很多怪物和箱子。打退怪物你会得到#b#t4001022##k。而破坏箱子后会出来怪物，打退这个怪物时也会得到#b#t4001022##k。&#13;&#10;那我给队长一个问题。你们要收集与我提出的问题的回答一样数量的#b#t4001022##k。请加油！"/>
+  <string name="$SCRIPTSTRING_PARTY2_18$" value="我告诉你第四关的内容。这里有次元缺口产生的黑暗空间。在黑暗空间有#b#o9300008##k。这那里里你看不到任何东西。只有怪物睁眼的时候才能确认怪物位置。你们打退怪物后收集#b6张#t4001022##k来吧。&#13;&#10;但要注意的是那个怪物闭上眼睛的时候不会受伤。因为这个怪物在黑暗中是无敌的。请加油！"/>
+  <string name="$SCRIPTSTRING_PARTY2_19$" value="我告诉你第五关的内容。这里有多个空间。你们进去那些空间后打退怪物，然后收集#b24张#t4001022##k来吧。但要注意的是有的地方只有某个特定职业才会得到#b#t4001022##k。&#13;&#10;比方说这里有其他职业绝对打不退的#b#o9300013##k，只有飞侠能通过它。而有的地方则只有魔法师才可以通过。你们好好商量找办法吧。"/>
+  <string name="$SCRIPTSTRING_PARTY2_2$" value="由于未知原因，无法将各位送进去。请稍候重新尝试。"/>
+  <string name="$SCRIPTSTRING_PARTY2_20$" value="我告诉你第六关的内容。这里有写着数字的箱子。你们选择正确的箱子后上去按下↑ 键可以移动到别的箱子。我会告诉队长两个暗示。队长好好记住那暗示,按照暗示所有的队员上去就可以。&#13;&#10;到最上边有可以去下一关的门。所有队员通过门去下一关，本关就完全结束了。关键是要记住正确的箱子。请加油！"/>
+  <string name="$SCRIPTSTRING_PARTY2_21$" value="我告诉你第七关的内容。这里有很强大的怪物。就是#b#o9300010##k。打退这个怪物会得到#b#t4001022##k。收集#b3张#t4001022##k后给队长吧。&#13;&#10;召唤那怪物的办法是远距离攻击怪物。距离太远又没有远距离攻击很难...啊。#o9300010#不是那么容易打退的。请你们多多注意！请加油！"/>
+  <string name="$SCRIPTSTRING_PARTY2_22$" value="我告诉你第八关的内容。这里有几个跳板。这些跳板中#b5个是可以去下一关的#k队员中#b5个人到正确的跳板#k上去就可以。&#13;&#10;但要注意的是要在跳板的中间。而且必须5个人上去，6个，4个人都不行。队员都上跳板后队长找我确认是否正确。请加油！"/>
+  <string name="$SCRIPTSTRING_PARTY2_23$" value="我告诉你第九关的内容。你们终于来到这里了。这次你们要打退的是这些麻烦的根源。右边有一个怪物。打退它就会出现很大的#b#o9300012##k。它现在非常生气。所以你们要更小心。&#13;&#10;跟别的队员一起打退它后拿#b#t4001023##k给我。没有那个钥匙谁也打不开次元之门。我相信你们。加油！"/>
+  <string name="$SCRIPTSTRING_PARTY2_24$" value="欢迎你们来到奖励之地。我听说了你们打退#b#o9300012##k的消息。真是了不起！已经来不及多说了,我给你们说要点。这里有几个箱子。你们在限制时间内破坏箱子后获得的东西就归你们了。运气好的话，也会得到好道具。那就去吧。加油！"/>
+  <string name="$SCRIPTSTRING_PARTY2_25$" value="你们已经解决了本关的任务。请你们通过门去下一关吧。"/>
+  <string name="$SCRIPTSTRING_PARTY2_26$" value="队员还没到齐。所有队员都来这关，才可以挑战任务。你快让所有队员都来这里。"/>
+  <string name="$SCRIPTSTRING_PARTY2_27$" value="你好。欢迎你们来到第一关。这里有多种多样的怪物。你们打退这些怪物收集#b25张#t4001022##k来吧。收集#t4001022#后队长跟我说，我就把你们送到下一关。这里的怪物你们肯定已经很熟悉了，但也是很强大的，你们要小心点。"/>
+  <string name="$SCRIPTSTRING_PARTY2_28$" value="你们已经解决了本关的任务。请你们通过门去下一关吧。再见!"/>
+  <string name="$SCRIPTSTRING_PARTY2_29$" value="你们打退了所有怪物，而且收齐了#b25张#t4001022##k。真是辛苦了。"/>
+  <string name="$SCRIPTSTRING_PARTY2_3$" value="你好像没有组队。只有组队之后才可以挑战。"/>
+  <string name="$SCRIPTSTRING_PARTY2_30$" value="打开了通往下一关的门。"/>
+  <string name="$SCRIPTSTRING_PARTY2_31$" value="你好。欢迎你们来到第二关。在这里你们会找到很多箱子。破坏箱子你们会被传送到别的地方或会得到#t4001022#。你们调查箱子后收集#b15张#t4001022##k来吧。收齐了队长来跟我说就可以。请加油！"/>
+  <string name="$SCRIPTSTRING_PARTY2_32$" value="你们打退了所有怪物，而且收齐了#b15张#t4001022##k。真是辛苦了。"/>
+  <string name="$SCRIPTSTRING_PARTY2_33$" value="你好。欢迎你们来到第三关。这里有很多的怪物和箱子。打退怪物时会得到#b#t4001022##k，破坏箱子的话会从里边出现怪物。打退这个怪物时也会得到#b#t4001022##k。&#13;&#10;你们要收集跟我现在提出的问题的答案一样数量的#b#t4001022##k。只有队长会听到我提的问题。不知道答案跟别的队员商量一下。那我提问题。&#13;&#10;&#13;&#10;#b等级1新手的血量 - 魔法师一转等级 - 飞侠一转等级 = ？#k"/>
+  <string name="$SCRIPTSTRING_PARTY2_34$" value="你们打退了所有怪物，而且收齐了#b32张#t4001022##k。真是辛苦了。"/>
+  <string name="$SCRIPTSTRING_PARTY2_35$" value="你好。欢迎你们来到第四关。这里有次元缺口产生的黑暗空间。里面有#b#o9300008##k。打退这个怪物后收集#b6张#t4001022##k就可以。&#13;&#10;集齐的话队长带着#b6张#t4001022##k来找我。要注意的是#b#o9300008##k闭着眼睛的时候不受伤害。所以你们要更加小心。请加油！"/>
+  <string name="$SCRIPTSTRING_PARTY2_36$" value="你打退了所有的怪物,集齐了#b6张#t4001022##k。真是辛苦了"/>
+  <string name="$SCRIPTSTRING_PARTY2_37$" value="你好。欢迎你们来到第五关。这里有几个空间。你们进去那些空间打退怪物后收集#b24张#t4001022##k来吧。但要注意的是在有些地方只有特定职业才可以得到#b#t4001022##k。&#13;&#10;我给你举个例子。有的地方有#b#o9300013##k。只有飞侠才能过去。而且也有只有魔法师才能通过的地方。你们好好商量想出办法吧。请加油！"/>
+  <string name="$SCRIPTSTRING_PARTY2_38$" value="你打退了所有的怪物,集齐了#b24张#t4001022##k。真是辛苦了"/>
+  <string name="$SCRIPTSTRING_PARTY2_39$" value="队员中还有没来的。所有队员都来这关，才能开始挑战任务。你快让所有队员都过来。"/>
+  <string name="$SCRIPTSTRING_PARTY2_4$" value="你所属的组队的队员不是6人，因此无法执行任务。请召集满6个人。"/>
+  <string name="$SCRIPTSTRING_PARTY2_40$" value="你好。欢迎你们来到第六关。这里有写着数字的箱子。你们选择正确的箱子后站上去按下↑键就可以到另一个箱子。我给队长两次暗示。队长要好好记住，然后按照暗示让所有队员上去。&#13;&#10;顶上有可以去下一关的门。所有队员进门去下一关,本关的任务就完成了。关键是记好正确的箱子。那我给你暗示。请记住！&#13;&#10;&#13;&#10;#b 一，3，3，2，中间，1，三，3，3，左，二，3，1，一，？#k"/>
+  <string name="$SCRIPTSTRING_PARTY2_41$" value="你好。欢迎你们来到第六关。这里有写着数字的箱子。你们选择正确的箱子后站上去按下↑键就可以到另一个箱子。我给队长两次暗示。队长要好好记住，然后按照暗示让所有队员上去。&#13;&#10;顶上有可以去下一关的门。所有队员进门去下一关,本关的任务就完成了。关键是记好正确的箱子。2次暗示我已经都给过你们了,请加油！"/>
+  <string name="$SCRIPTSTRING_PARTY2_42$" value="你好。欢迎你们来到第七关。这里有很强大的怪物。就是#b#o9300010##k。打退这个怪物后收集#b3张#t4001022##k来吧。收齐后队长拿着#b#t4001022##k来找我。&#13;&#10;召唤那怪物的办法是远距离的攻击怪物。没有远距离攻击会很难。啊...#o9300010#不是一般的怪物。你要小心点。请加油！"/>
+  <string name="$SCRIPTSTRING_PARTY2_43$" value="你打退了所有的怪物,集齐了#b3张#t4001022##k。真是辛苦了"/>
+  <string name="$SCRIPTSTRING_PARTY2_44$" value="我告诉你第八关的内容。这里有几个跳板。这些跳板中#b5个是可以去下一关的#k队员中#b5个人站到正确的跳板#k上去就可以。&#13;&#10;但要注意的是要站到跳板的中间。而且必须5个人上去，6个，4个人都不行。队员都上跳板后队长通过我确认是否正确。请加油！"/>
+  <string name="$SCRIPTSTRING_PARTY2_45$" value="你还没找到5个正确的跳板。你们还要想点别的办法。而且不要忘记必须5个人上去，必须要在跳板的中间这些事情。请加油！"/>
+  <string name="$SCRIPTSTRING_PARTY2_46$" value="你好。你们终于来到这里了。这次你们要对付的是这些麻烦的根源。右边有一个怪物。打退它就出现很大的#b#o9300012##k。它现在非常生气。所以你们要更加小心。&#13;&#10;跟别的队员一起打退它后拿#b#t4001023##k给我。没有那个钥匙谁也打不开次元之门。我相信你们。加油！"/>
+  <string name="$SCRIPTSTRING_PARTY2_47$" value="你打退所有怪物,终于得到了#b#t4001023#k。真是辛苦了！"/>
+  <string name="$SCRIPTSTRING_PARTY2_48$" value="&lt;组队任务测试活动&gt;完成组队任务后，给予额外的经验值。"/>
+  <string name="$SCRIPTSTRING_PARTY2_49$" value="由于未知的原因，不能进去。请你稍后再来。"/>
+  <string name="$SCRIPTSTRING_PARTY2_5$" value="自己或队员中有不在35 ~ 50级之间的角色。请确认等级。"/>
+  <string name="$SCRIPTSTRING_PARTY2_50$" value="你没有组队。必须组队才可以挑战。"/>
+  <string name="$SCRIPTSTRING_PARTY2_51$" value="你解决了所有关卡来到这里了吗？真了不起！恭喜你获得成功，我准备了些小礼物。收礼前请你确认背包的消耗窗或其他窗有一个以上的空格。"/>
+  <string name="$SCRIPTSTRING_PARTY2_52$" value="你确实有正确数量的#t4001022#吗？请你再确认下。"/>
+  <string name="$SCRIPTSTRING_PARTY2_53$" value="你确实有正确数量的#t4001023#吗？请你再确认下。"/>
+  <string name="$SCRIPTSTRING_PARTY2_54$" value="嗯...你背包的消耗窗或其他窗有空间吗？没有空间我不能送你礼物。"/>
+  <string name="$SCRIPTSTRING_PARTY2_55$" value="[荐沥备狼 闭凯] 涅胶飘甫 肯丰窍看嚼聪促."/>
+  <string name="$SCRIPTSTRING_PARTY2_56$" value="你背包的消耗窗和其他窗里必须有一个以上的空格，我才能给你礼物。保证一个以上的空格后再来跟我说。"/>
+  <string name="$SCRIPTSTRING_PARTY2_57$" value="你现在出去，要是再来挑战任务，还要从第一关开始。你想出去吗？"/>
+  <string name="$SCRIPTSTRING_PARTY2_58$" value="是嘛...那你跟队员一起继续努力下去吧。"/>
+  <string name="$SCRIPTSTRING_PARTY2_59$" value="击退怪物，获取25张次元的通行证！"/>
+  <string name="$SCRIPTSTRING_PARTY2_6$" value="已经有其他组队正在里面挑战任务。请稍候重新尝试。"/>
+  <string name="$SCRIPTSTRING_PARTY2_60$" value="打碎箱子，获取15张次元的通行证！"/>
+  <string name="$SCRIPTSTRING_PARTY2_61$" value="搜集和气球上出的问题的答案数量相等的次元的通行证！"/>
+  <string name="$SCRIPTSTRING_PARTY2_62$" value="击退黑眼鬼，搜集6张张次元的通行证！"/>
+  <string name="$SCRIPTSTRING_PARTY2_63$" value="在塔的迷宫中搜集24张次元的通行证！"/>
+  <string name="$SCRIPTSTRING_PARTY2_64$" value="解开隐藏的箱子的密码，爬到塔顶"/>
+  <string name="$SCRIPTSTRING_PARTY2_65$" value="击退怪物，召唤战甲吹泡泡鱼，搜集3张次元的通行证！"/>
+  <string name="$SCRIPTSTRING_PARTY2_66$" value="在9个箱子中，找到5个正确的箱子！"/>
+  <string name="$SCRIPTSTRING_PARTY2_67$" value="击退怪物，召唤阿丽莎乐，并击败它！"/>
+  <string name="$SCRIPTSTRING_PARTY2_68$" value="在限定时间内打碎宝物箱！"/>
+  <string name="$SCRIPTSTRING_PARTY2_7$" value="谢谢你这段时间帮了我这么多忙。你一共帮了我 "/>
+  <string name="$SCRIPTSTRING_PARTY2_8$" value="次，获得了"/>
+  <string name="$SCRIPTSTRING_PARTY2_9$" value="次#b#t1022073##k，还能获得"/>
+</imgdir>

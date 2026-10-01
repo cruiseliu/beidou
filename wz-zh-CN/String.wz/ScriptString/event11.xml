@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="event11">
+  <string name="$SCRIPTSTRING_EVENT11_0$" value="你好，#b#h0##k！阿乐米正在枫树山丘焦急地等待阳光。这棵枫树是为了纪念#r冒险岛6周年#k种植的，如果能得到#t4001165#的照射，就会茁壮地成长，落满一地的枫叶。&#13;&#10;&#13;&#10;#L0##b我想去枫树山丘。#k#l"/>
+  <string name="$SCRIPTSTRING_EVENT11_1$" value="你想现在去枫树山坡吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_10$" value="请确认材料是否全部准备好了。"/>
+  <string name="$SCRIPTSTRING_EVENT11_100$" value="你想用1500张#t4001126#交换#b#t2044810##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_101$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_102$" value="你想用1500张#t4001126#交换#b#t2044905##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_103$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_104$" value="你想用1500张#t4001126#交换#b#t2041059##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_105$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_106$" value="你想用1500张#t4001126#交换#b#t2041060##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_107$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_108$" value="你想用1500张#t4001126#交换#b#t2041061##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_109$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_11$" value="祝你度过愉快的一天～~"/>
+  <string name="$SCRIPTSTRING_EVENT11_110$" value="你想用1500张#t4001126#交换#b#t2041062##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_111$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_112$" value="发放失败。"/>
+  <string name="$SCRIPTSTRING_EVENT11_113$" value="这里无法前往枫树山坡。"/>
+  <string name="$SCRIPTSTRING_EVENT11_114$" value="活动时间到5月27日为止。活动时间已结束，无法入场。"/>
+  <string name="$SCRIPTSTRING_EVENT11_115$" value="种植枫树活动已结束。"/>
+  <string name="$SCRIPTSTRING_EVENT11_116$" value="来到枫树山丘，感觉如何？这里有凉爽而柔和的风、温暖的阳光，是非常适合树木生长的地方。要种植枫树，需要有#b#t4001165##k。你愿意帮我吗？&#13;&#10;&#13;&#10;#b把#L0##t4001165#交给他#l&#13;&#10;#L1#确认枫树的成长进度#l"/>
+  <string name="$SCRIPTSTRING_EVENT11_117$" value="你要捐献多少#t4001165##呢？&#13;&#10;#b&lt;当前拥有的#t4001165#的数量："/>
+  <string name="$SCRIPTSTRING_EVENT11_118$" value="要想让枫树茁壮地成长，需要#b#t4001165##k。"/>
+  <string name="$SCRIPTSTRING_EVENT11_119$" value="你真的有那么多#t4001165#吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_12$" value="请选择想要交换的武器。&#13;&#10;#L0##v4001126# #b2000个#k + #v1382009# = #v1372034:##l&#13;&#10;#L1##v4001126# #b2000个#k + #v1382009# = #v1382039:##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_120$" value="谢谢你。枫树一定会长得更好的。好像已经窜高了一大截了，不是吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_121$" value="个 |"/>
+  <string name="$SCRIPTSTRING_EVENT11_122$" value="你真的有那么多#t4001165#吗？你不能捐献比自己拥有的更多的阳光。"/>
+  <string name="$SCRIPTSTRING_EVENT11_123$" value="啊～看啊。在大家的关心下，枫树正在茁壮成长。为了让枫树更快地成长，需要更多的阳光。&#13;&#10;#B"/>
+  <string name="$SCRIPTSTRING_EVENT11_124$" value="在大家的关心和爱护下，冒险岛6周年枫树已经长大了。你给了我很多枫叶了吗？特别是非常罕见的#b金枫叶#k，如果你能拿来给我，我会给你一份特别的礼物。捡到金枫叶的话，请你一定要拿来给我。"/>
+  <string name="$SCRIPTSTRING_EVENT11_125$" value="树消失了，觉得很可惜？结束永远意味着新的开始。新的苗木很快就会长起来的。"/>
+  <string name="$SCRIPTSTRING_EVENT11_126$" value="你把金枫叶带来了！哇～你捡到了金枫叶，运气真好。我会给送来金枫叶的人一份特别的礼物。你想得到礼物吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_127$" value="把它留作纪念也是不错的想法。"/>
+  <string name="$SCRIPTSTRING_EVENT11_128$" value="请确认一下你是否拥有金枫叶。"/>
+  <string name="$SCRIPTSTRING_EVENT11_129$" value="冒险岛的第六个生日，希望所有人都能乐在其中～"/>
+  <string name="$SCRIPTSTRING_EVENT11_13$" value="请选择想要交换的武器。&#13;&#10;#L0##v4001126# #b2000个#k + #v1452016# = #v1452045:##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_130$" value="请确认装备、消耗、设置栏是否有空格。"/>
+  <string name="$SCRIPTSTRING_EVENT11_14$" value="请选择想要交换的武器。&#13;&#10;#L0##v4001126# #b2000个#k + #v1462014# = #v1462040:##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_15$" value="请选择想要交换的武器。&#13;&#10;#L0##v4001126# #b2000个#k + #v1472030# = #v1472055:##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_16$" value="请选择想要交换的武器。&#13;&#10;#L0##v4001126# #b1500个#k + #v1302030# = #v1302064:##l&#13;&#10;#L1##v4001126# #b1500个#k + #v1302030# = #v1402039:##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_17$" value="请选择想要交换的武器。&#13;&#10;#L0##v4001126# #b1500个#k + #v1332025# = #v1332055:##l&#13;&#10;#L1##v4001126# #b1500个#k + #v1332025# = #v1332056:##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_18$" value="请选择想要交换的武器。&#13;&#10;#L0##v4001126# #b1500个#k + #v1382012# = #v1372034:##l&#13;&#10;#L1##v4001126# #b1500个#k + #v1382012# = #v1382039:##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_19$" value="请选择想要交换的武器。&#13;&#10;#L0##v4001126# #b1500个#k + #v1412011# = #v1412027:##l&#13;&#10;#L1##v4001126# #b1500个#k + #v1412011# = #v1312032:##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_2$" value="去枫树山坡观赏观赏风景也会是很愉快的经历～如果你改变了主意，请再来和我说话。"/>
+  <string name="$SCRIPTSTRING_EVENT11_20$" value="请选择想要交换的武器。&#13;&#10;#L0##v4001126# #b1500个#k + #v1422014# = #v1422029:##l&#13;&#10;#L1##v4001126# #b1500个#k + #v1422014# = #v1322054:##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_21$" value="请选择想要交换的武器。&#13;&#10;#L0##v4001126# #b1500个#k + #v1432012# = #v1432040:##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_22$" value="请选择想要交换的武器。&#13;&#10;#L0##v4001126# #b1500个#k + #v1442024# = #v1442051:##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_23$" value="请选择想要交换的武器。&#13;&#10;#L0##v4001126# #b1500个#k + #v1452022# = #v1452045:##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_24$" value="请选择想要交换的武器。&#13;&#10;#L0##v4001126# #b1500个#k + #v1462019# = #v1462040:##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_25$" value="请选择想要交换的武器。&#13;&#10;#L0##v4001126# #b1500个#k + #v1472032# = #v1472055:##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_26$" value="请选择想要交换的武器。&#13;&#10;#L0##v4001126# #b1500个#k + #v1482021# = #v1482022:##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_27$" value="请选择想要交换的武器。&#13;&#10;#L0##v4001126# #b1500个#k + #v1492021# = #v1492022:##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_28$" value="请选择想要交换的武器。&#13;&#10;#L0##v4001126# #b2000个#k + #v1482020# = #v1482022:##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_29$" value="请选择想要交换的武器。&#13;&#10;#L0##v4001126# #b2000个#k + #v1492020# = #v1492022:##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_3$" value="如果你想去枫树山坡，请再来和我说话！"/>
+  <string name="$SCRIPTSTRING_EVENT11_30$" value="你想要哪种帽子？请选择想要的枫叶头盔。&#13;&#10;#L0##b#v1002508:#领取#t1002508##l&#13;&#10;#L1##v1002509:#第1次升级#l&#13;&#10;#L2##v1002510:#第2次升级#l&#13;&#10;#L3##v1002511:#第3次升级#l&#13;&#10;#L4##v1002758:#第4次升级#l"/>
+  <string name="$SCRIPTSTRING_EVENT11_31$" value="要想获得#t1002508#，需要以下材料。对了！有件事需要注意。帽子的能力值是随机决定的。你真的要交换吗？&#13;&#10;&#13;&#10;#v4001126#600个"/>
+  <string name="$SCRIPTSTRING_EVENT11_32$" value="你好像已经有枫叶头盔了啊？枫叶头盔无法拥有2个以上。"/>
+  <string name="$SCRIPTSTRING_EVENT11_33$" value="你好像已经装备了枫叶头盔啊？枫叶头盔无法拥有2个以上。"/>
+  <string name="$SCRIPTSTRING_EVENT11_34$" value="要想获得#t1002509#，需要以下材料。对了！有件事需要注意。帽子的能力值是随机决定的。你真的要交换吗？&#13;&#10;&#13;&#10;#v4001126#700个 + #v1002508#"/>
+  <string name="$SCRIPTSTRING_EVENT11_35$" value="要想获得#t1002510#，需要以下材料。对了！有件事需要注意。帽子的能力值是随机决定的。你真的要交换吗？&#13;&#10;&#13;&#10;#v4001126#800个 + #v1002509#"/>
+  <string name="$SCRIPTSTRING_EVENT11_36$" value="要想获得#t1002511#，需要以下材料。对了！有件事需要注意。帽子的能力值是随机决定的。你真的要交换吗？&#13;&#10;&#13;&#10;#v4001126#900个 + #v1002510#"/>
+  <string name="$SCRIPTSTRING_EVENT11_37$" value="要想获得#t1002758#，需要以下材料。对了！有件事需要注意。帽子的能力值是随机决定的。你真的要交换吗？&#13;&#10;&#13;&#10;#v4001126#1000个 + #v1002511#"/>
+  <string name="$SCRIPTSTRING_EVENT11_38$" value="如果你有枫叶盾和枫叶，就可以交换#b各种冒险岛纪念盾牌#k。你想交换什么盾牌呢？&#13;&#10;#L0##v4001126# #b2000个#k + #v1092030# = #v1092045:##l&#13;&#10;#L1##v4001126# #b2000个#k + #v1092030# = #v1092046:##l&#13;&#10;#L2##v4001126# #b2000个#k + #v1092030# = #v1092047:##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_39$" value="哦，对了！有件事必须注意。盾牌的能力值是随机决定的。还有，如果你有2个相同的盾牌，会首先交换放在背包最前面的那个盾牌。这一点希望你能记住。你真的要交换吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_4$" value="现在不是活动时间。"/>
+  <string name="$SCRIPTSTRING_EVENT11_40$" value="你想要什么耳环呢？请选择想要的冒险岛耳环。&#13;&#10;#L0##b#v1032040:# #t1032040#获得#l&#13;&#10;#L1##v1032041:#第1次升级#l&#13;&#10;#L2##v1032042:#第2次升级#l"/>
+  <string name="$SCRIPTSTRING_EVENT11_41$" value="要想获得#t1032040#，需要以下材料。&#13;&#10;&#13;&#10;#v4001126#1000个"/>
+  <string name="$SCRIPTSTRING_EVENT11_42$" value="你好像已经有冒险岛耳环了啊？冒险岛耳环无法拥有2个以上。"/>
+  <string name="$SCRIPTSTRING_EVENT11_43$" value="你好像已经装备了冒险岛耳环啊？冒险岛耳环无法拥有2个以上。"/>
+  <string name="$SCRIPTSTRING_EVENT11_44$" value="要想获得#t1032041#，需要以下材料。&#13;&#10;&#13;&#10;#v4001126#1500个 + #v1032040:#"/>
+  <string name="$SCRIPTSTRING_EVENT11_45$" value="要想获得#t1032042#，需要以下材料。&#13;&#10;&#13;&#10;#v4001126#2000个 + #v1032041:#"/>
+  <string name="$SCRIPTSTRING_EVENT11_46$" value="你想要什么披风呢？请选择想要的披风。&#13;&#10;#L0##b#v1102166:# #t1102166#获得#l&#13;&#10;#L1##v1102167:#第1次升级#l&#13;&#10;#L2##v1102168:#第2次升级#l"/>
+  <string name="$SCRIPTSTRING_EVENT11_47$" value="要想获得#t1102166#，需要以下材料。&#13;&#10;&#13;&#10;#v4001126#1000个"/>
+  <string name="$SCRIPTSTRING_EVENT11_48$" value="你好像已经有枫叶披风了啊？枫叶披风无法拥有2个以上。"/>
+  <string name="$SCRIPTSTRING_EVENT11_49$" value="你好像已经装备了枫叶披风啊？枫叶披风无法拥有2个以上。"/>
+  <string name="$SCRIPTSTRING_EVENT11_5$" value="你相信吗？#e#r冒险岛#k#n已经#e#r6周年#k#n了。为了回报6年以来一直支持冒险岛的各位冒险家和冒险骑士团成员，我现在正在发放特别制作的纪念武器。&#13;&#10;#b#L0#我想获得冒险岛纪念武器。#l&#13;&#10;#L1#我想获得枫叶头盔。#l&#13;&#10;#L2#我想获得枫叶盾。#l&#13;&#10;#L3#我想获得冒险岛耳环。#l&#13;&#10;#L4#我想获得枫叶披风。#l&#13;&#10;#L5#我想获得6周年专用卷轴。#k"/>
+  <string name="$SCRIPTSTRING_EVENT11_50$" value="要想获得#t1102167#，需要以下材料。&#13;&#10;&#13;&#10;#v4001126#1500个 + #v1102166:#"/>
+  <string name="$SCRIPTSTRING_EVENT11_51$" value="要想获得#t1102168#，需要以下材料。&#13;&#10;&#13;&#10;#v4001126#2000个 + #v1102167:#"/>
+  <string name="$SCRIPTSTRING_EVENT11_52$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_53$" value="如果你有#b1500张#t4001126##k，就能获得可以在6周年武器上使用的卷轴。请在目录中选择想要的卷轴。&#13;&#10;#b#L0##t2049105##l&#13;&#10;#L1##t2049106##l&#13;&#10;#L2##t2049107##l&#13;&#10;#L3##t2049108##l&#13;&#10;#L4##t2049109##l&#13;&#10;#L5##t2049110##l&#13;&#10;#k#L6##t2040315##l&#13;&#10;#L7##t2040912##l&#13;&#10;#L8##t2043013##l&#13;&#10;#L9##t2043108##l&#13;&#10;#L10##t2043208##l&#13;&#10;#L11##t2043308##l&#13;&#10;#L12##t2043708##l&#13;&#10;#L13##t2043808##l&#13;&#10;#L14##t2044008##l&#13;&#10;#L15##t2044108##l&#13;&#10;#L16##t2044208##l&#13;&#10;#L17##t2044308##l&#13;&#10;#L18##t2044408##l&#13;&#10;#L19##t2044508##l&#13;&#10;#L20##t2044608##l&#13;&#10;#L21##t2044708##l&#13;&#10;#L22##t2044810##l&#13;&#10;#L23##t2044905##l&#13;&#10;#L24##t2041059##l&#13;&#10;#L25##t2041060##l&#13;&#10;#L26##t2041061##l&#13;&#10;#L27##t2041062##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_54$" value="你想用1500张#t4001126#交换#b#t2049105##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_55$" value="你改主意了吗？你可以好好考虑一下，然后再决定。"/>
+  <string name="$SCRIPTSTRING_EVENT11_56$" value="请确认是否有足够多的#t4001126#。或者消费栏中是否有空格。"/>
+  <string name="$SCRIPTSTRING_EVENT11_57$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_58$" value="你想用1500张#t4001126#交换#b#t2049106##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_59$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_6$" value="要想获得冒险岛纪念武器，需要有#b枫叶武器#k和#b枫叶#k。你拿来的是什么武器呢？&#13;&#10;#L0##v4001126# #b2000个#k + #v1302020##l&#13;&#10;#L1##v4001126# #b2000个#k + #v1382009##l&#13;&#10;#L2##v4001126# #b2000个#k + #v1452016##l&#13;&#10;#L3##v4001126# #b2000个#k + #v1462014##l&#13;&#10;#L4##v4001126# #b2000个#k + #v1472030##l&#13;&#10;#L17##v4001126# #b2000个#k + #v1482020##l&#13;&#10;#L18##v4001126# #b2000个#k + #v1492020##l&#13;&#10;#L5##v4001126# #b1500个#k + #v1302030##l&#13;&#10;#L6##v4001126# #b1500个#k + #v1332025##l&#13;&#10;#L7##v4001126# #b1500个#k + #v1382012##l&#13;&#10;#L8##v4001126# #b1500个#k + #v1412011##l&#13;&#10;#L9##v4001126# #b1500个#k + #v1422014##l&#13;&#10;#L10##v4001126# #b1500个#k + #v1432012##l&#13;&#10;#L11##v4001126# #b1500个#k + #v1442024##l&#13;&#10;#L12##v4001126# #b1500个#k + #v1452022##l&#13;&#10;#L13##v4001126# #b1500个#k + #v1462019##l&#13;&#10;#L14##v4001126# #b1500个#k + #v1472032##l&#13;&#10;#L15##v4001126# #b1500个#k + #v1482021##l&#13;&#10;#L16##v4001126# #b1500个#k + #v1492021##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_60$" value="你想用1500张#t4001126#交换#b#t2049107##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_61$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_62$" value="你想用1500张#t4001126#交换#b#t2049108##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_63$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_64$" value="你想用1500张#t4001126#交换#b#t2049109##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_65$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_66$" value="你想用1500张#t4001126#交换#b#t2049110##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_67$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_68$" value="你想用1500张#t4001126#交换#b#t2040315##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_69$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_7$" value="请选择想要交换的武器。&#13;&#10;#L0##v4001126# #b2000个#k + #v1302020# = #v1302064:##l&#13;&#10;#L1##v4001126# #b2000个#k + #v1302020# = #v1402039:##l"/>
+  <string name="$SCRIPTSTRING_EVENT11_70$" value="你想用1500张#t4001126#交换#b#t2040912##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_71$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_72$" value="你想用1500张#t4001126#交换#b#t2043013##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_73$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_74$" value="你想用1500张#t4001126#交换#b#t2043108##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_75$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_76$" value="你想用1500张#t4001126#交换#b#t2043208##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_77$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_78$" value="你想用1500张#t4001126#交换#b#t2043308##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_79$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_8$" value="哦，对了！有件事必须注意。武器的能力值是随机决定的。还有，如果你有2个相同的武器，会首先交换放在背包最前面的那个武器。这一点希望你能记住。你真的要交换吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_80$" value="你想用1500张#t4001126#交换#b#t2043708##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_81$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_82$" value="你想用1500张#t4001126#交换#b#t2043808##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_83$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_84$" value="你想用1500张#t4001126#交换#b#t2044008##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_85$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_86$" value="你想用1500张#t4001126#交换#b#t2044108##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_87$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_88$" value="你想用1500张#t4001126#交换#b#t2044208##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_89$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_9$" value="你改主意了吗？你可以仔细考虑一下，然后再决定。"/>
+  <string name="$SCRIPTSTRING_EVENT11_90$" value="你想用1500张#t4001126#交换#b#t2044308##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_91$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_92$" value="你想用1500张#t4001126#交换#b#t2044408##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_93$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_94$" value="你想用1500张#t4001126#交换#b#t2044508##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_95$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_96$" value="你想用1500张#t4001126#交换#b#t2044608##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_97$" value="祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_EVENT11_98$" value="你想用1500张#t4001126#交换#b#t2044708##k吗？"/>
+  <string name="$SCRIPTSTRING_EVENT11_99$" value="祝你度过愉快的一天～"/>
+</imgdir>

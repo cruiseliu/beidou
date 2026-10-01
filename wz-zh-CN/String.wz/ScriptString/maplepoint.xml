@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="maplepoint">
+  <string name="$SCRIPTSTRING_MAPLEPOINT_0$" value="在测试世界中无法使用. "/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_1$" value="请求太多，处理发生延迟。请稍后再重新尝试。"/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_10$" value="因不明报错，无法获取抵用券。"/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_11$" value="抵用券不足。"/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_12$" value="你的抵用券太多，无法领取。请先用完现有抵用券后再重试"/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_13$" value="现在无法发放抵用券。请稍后再重新尝试。"/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_14$" value="抵用券提升"/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_15$" value="点，当前所拥有的抵用券共计"/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_16$" value="点。"/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_17$" value="[测试消息]发放类型 : "/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_18$" value=" | 道具类型: "/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_19$" value=" | 充值前抵用券 : "/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_2$" value="发生未知错误。"/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_20$" value=" | 充值后抵用券 : "/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_21$" value=" | 详细内容: "/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_22$" value="抵用券异常增加 | "/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_23$" value="抵用券异常增加，因此回收 | before : "/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_24$" value=" | 之后 : "/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_25$" value="[测试消息] 失败 : "/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_26$" value=" | 发放类型 : "/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_27$" value=" | 使用道具 : "/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_28$" value="使用道具失败。请稍后再重新尝试。"/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_29$" value="超出可以拥有的抵用券上限。"/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_3$" value="脚本名错误。请将脚本名修改成'consume_0000000'或'cash_0000000'。"/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_30$" value="目前由于用户过多，出现延迟现象。请稍后再试。"/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_31$" value="发生未知错误。请稍后再重新尝试。"/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_4$" value="道具类型: "/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_5$" value=" | 详情: "/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_6$" value="[测试信息]发放类型："/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_7$" value=" | 道具类型："/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_8$" value=" | 充值前抵用券："/>
+  <string name="$SCRIPTSTRING_MAPLEPOINT_9$" value="请稍后再试"/>
+</imgdir>

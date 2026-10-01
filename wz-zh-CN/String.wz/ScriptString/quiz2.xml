@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="quiz2">
+  <string name="$SCRIPTSTRING_QUIZ2_0$" value="所有问题都已回答过了，无法继续挑战。"/>
+  <string name="$SCRIPTSTRING_QUIZ2_1$" value="初声问答活动(9月20日～10月3日)已全部结束。活动日程请参考官方主页公告。"/>
+  <string name="$SCRIPTSTRING_QUIZ2_10$" value="超出限定时间。请仔细想想哪个是正确答案，然后再进行尝试。"/>
+  <string name="$SCRIPTSTRING_QUIZ2_11$" value="回答错误。请再仔细想一想，然后再挑战。"/>
+  <string name="$SCRIPTSTRING_QUIZ2_12$" value="回答正确。让我们进入下一个问题。"/>
+  <string name="$SCRIPTSTRING_QUIZ2_13$" value="回答错误。请再仔细想一想，然后再挑战。"/>
+  <string name="$SCRIPTSTRING_QUIZ2_14$" value="发生错误。请稍候重新尝试。"/>
+  <string name="$SCRIPTSTRING_QUIZ2_15$" value="全体清单2："/>
+  <string name="$SCRIPTSTRING_QUIZ2_16$" value="回答正确。初声问答一直持续到10月3日，请一定要继续参加。"/>
+  <string name="$SCRIPTSTRING_QUIZ2_17$" value="回答正确。感谢你参加初声问答。以后我们会准备很多更好玩的活动，别忘了查看官方主页的公告。"/>
+  <string name="$SCRIPTSTRING_QUIZ2_18$" value="回答正确。初声问答全部完成了！？你一次都没缺席，真是太感谢了。以后我们会准备很多更好玩的活动，别忘了查看官方主页的公告。"/>
+  <string name="$SCRIPTSTRING_QUIZ2_19$" value="回答错误。请再仔细想一想，然后再挑战。"/>
+  <string name="$SCRIPTSTRING_QUIZ2_2$" value="只有10级以上的角色，才可以挑战初声问答。"/>
+  <string name="$SCRIPTSTRING_QUIZ2_20$" value="消费栏和其他栏没有空格，无法开始回答问题。请清理出空格，然后再参加初声问答。"/>
+  <string name="$SCRIPTSTRING_QUIZ2_21$" value="你好，运营员。你想回答第几天的问题？&#13;&#10;#b#L0#第1天#l&#13;&#10;#L1#第2天#l&#13;&#10;#L2#第3天#l&#13;&#10;#L3#第4天#l&#13;&#10;#L4#第5天#l&#13;&#10;#L5#第6天#l&#13;&#10;#L6#第7天#l&#13;&#10;#L7#第8天#l&#13;&#10;#L8#第9天#l&#13;&#10;#L9#第10天#l&#13;&#10;#L10#第11天#l&#13;&#10;#L11#第12天#l&#13;&#10;#L12#第13天#l&#13;&#10;#L13#第14天#l"/>
+  <string name="$SCRIPTSTRING_QUIZ2_22$" value="你想从第几个问题开始回答？(1~50)"/>
+  <string name="$SCRIPTSTRING_QUIZ2_23$" value="回答错误。请参考初声问答正确答案，如果问题或提示有什么问题，请和#bM能力点le Live开发组林民敬（音译）#k联系。(可能会发火;)祝你度过愉快的一天～"/>
+  <string name="$SCRIPTSTRING_QUIZ2_3$" value="初声问答活动目前不在进行中。请到官方主页的公告中确认活动日程。"/>
+  <string name="$SCRIPTSTRING_QUIZ2_4$" value="日期已过，无法回答问题。"/>
+  <string name="$SCRIPTSTRING_QUIZ2_5$" value="消费栏或其他栏没有空格，我无法把奖励给你。"/>
+  <string name="$SCRIPTSTRING_QUIZ2_6$" value="时间已过，无法解答问题。请重新确认日程。"/>
+  <string name="$SCRIPTSTRING_QUIZ2_7$" value="发生错误。请稍候重新尝试。"/>
+  <string name="$SCRIPTSTRING_QUIZ2_8$" value="冒险岛初声问答"/>
+  <string name="$SCRIPTSTRING_QUIZ2_9$" value="回答正确。让我们进入下一个问题。"/>
+</imgdir>

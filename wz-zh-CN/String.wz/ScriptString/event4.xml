@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="event4">
+  <string name="$SCRIPTSTRING_EVENT4_0$" value="你好，#b#h0##k。我来看看你照看的蜡烛怎么样了。啊！你照看得真好。星星图章每天#r最多可以获得5个#k，你已经全部获得了。虽然我不能给你更多的星星图章，但是你这么辛苦，我会给你#b加油的呐喊#k。加油加油！"/>
+  <string name="$SCRIPTSTRING_EVENT4_1$" value="活动从#r#e2月16日#n开始，一直持续到#e3月2日#n#k，希望大家踊跃参与。"/>
+  <string name="$SCRIPTSTRING_EVENT4_10$" value="你好，#e#b#h0##k#n。我来看看你照看的蜡烛怎么样了。啊！你照看得真好。星星图章每天#r最多可以获得5个#k，这是你今天获得的第一个图章。按照约定，我来给你盖1个星星图章。&#13;&#10;&#13;&#10;还有，为了表示感谢，我会给你#b加油的呐喊#k。加油加油！"/>
+  <string name="$SCRIPTSTRING_EVENT4_100$" value="由于未知原因，奖品发放失败。请稍候重新尝试。"/>
+  <string name="$SCRIPTSTRING_EVENT4_101$" value="测试服务器中并未进行抽奖活动。"/>
+  <string name="$SCRIPTSTRING_EVENT4_102$" value="#b！奖品会在活动结束后统一配送。请耐心等待#b官网#k公布中奖者名单。"/>
+  <string name="$SCRIPTSTRING_EVENT4_103$" value="你带来了枫叶50张！请稍等，我来鉴定一下。鉴定的时候必须安静。这是需要集中精力的事情……#b&#13;&#10;&#13;&#10;#L0#(……还没好吗？)#l"/>
+  <string name="$SCRIPTSTRING_EVENT4_104$" value="……&#13;&#10;&#13;&#10;\#b#L0#(……呼……看来还没有。我还得再去搜集吗？)#l"/>
+  <string name="$SCRIPTSTRING_EVENT4_105$" value="啊！找到了！！你的运气还真不错。据#p9000021#说，这是非常稀有的东西……"/>
+  <string name="$SCRIPTSTRING_EVENT4_106$" value="请确认装备栏是否有一格以上的空格，或是否有50张以上的枫叶。"/>
+  <string name="$SCRIPTSTRING_EVENT4_107$" value="好了，给你。#b#t01012098##k！你只要把它含在嘴里就行。至于神奇的效果嘛……你可以自己去体会。"/>
+  <string name="$SCRIPTSTRING_EVENT4_108$" value="好了，我来帮你制作#b冒险岛糖浆#k。村里的人需要一天时间才能做好……但我很快就能做出来，你稍等一下就行。对话结束的时候，可能就已经完成了。"/>
+  <string name="$SCRIPTSTRING_EVENT4_109$" value="请确认消费栏是否有一格以上的空格，或是否有25张以上的枫叶。"/>
+  <string name="$SCRIPTSTRING_EVENT4_11$" value="你好，#e#b#h0##k#n。我来看看你照看的蜡烛怎么样了。啊！你照看得真好。星星图章每天#r最多可以获得5个#k。按照约定，我来给你盖1个星星图章。&#13;&#10;&#13;&#10;还有，为了表示感谢，我会给你#b加油的呐喊#k。加油加油！"/>
+  <string name="$SCRIPTSTRING_EVENT4_110$" value="好了！……太快了吗？不过放心，质量绝对没有问题。啊，对了！#b冒险岛糖浆#k非常强烈，可能会腐蚀#t01012098#。那样的话，效果就会减半。所以使用的时候一定要小心。"/>
+  <string name="$SCRIPTSTRING_EVENT4_111$" value="祝贺你升到"/>
+  <string name="$SCRIPTSTRING_EVENT4_112$" value="级。作为升级的祝贺，我送你一个#t4001126#。希望你能在#r#e冒险岛#n#k度过愉快的一天～&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT4_113$" value="个"/>
+  <string name="$SCRIPTSTRING_EVENT4_114$" value="请确认其他栏是否有空格。"/>
+  <string name="$SCRIPTSTRING_EVENT4_115$" value="你好～&#13;&#10;#b#L0#我想获得120级武器。#l&#13;&#10;#L1#我想获得120级防具。#l&#13;&#10;#L2#我想学习锻造技能。#l&#13;&#10;#L4#我想获得三排喇叭。#l"/>
+  <string name="$SCRIPTSTRING_EVENT4_116$" value="你好～#b&#13;&#10;#L2#我想学习锻造技能。#l&#13;&#10;#L4#我想获得三排喇叭。#l"/>
+  <string name="$SCRIPTSTRING_EVENT4_117$" value="每天只能获得一次武器。"/>
+  <string name="$SCRIPTSTRING_EVENT4_118$" value="请选择想要的物品。"/>
+  <string name="$SCRIPTSTRING_EVENT4_119$" value="请确认装备栏是否有空格。"/>
+  <string name="$SCRIPTSTRING_EVENT4_12$" value="#e#b#h0##k#n，你好！由于大家的喜爱，#r冒险岛#k#e又迎来了5周年生日#n！&#13;&#10;为了报答喜爱冒险岛的玩家们的大力支持，我们在#r#e2月13日#n到#e2月28日#n期间准备了#k#e#b天上掉下的20万颗星星！#k#n活动。"/>
+  <string name="$SCRIPTSTRING_EVENT4_120$" value="祝你度过美好的一天。"/>
+  <string name="$SCRIPTSTRING_EVENT4_121$" value="只有120级以上的玩家才能领取武器。"/>
+  <string name="$SCRIPTSTRING_EVENT4_122$" value="每天只能获得一次防具。"/>
+  <string name="$SCRIPTSTRING_EVENT4_123$" value="只有120级以上的玩家才能领取防具。"/>
+  <string name="$SCRIPTSTRING_EVENT4_124$" value="45级以上的玩家才能学习[锻造]技能。"/>
+  <string name="$SCRIPTSTRING_EVENT4_125$" value="我可以为你提升[锻造]技能的等级。你需要升级吗？"/>
+  <string name="$SCRIPTSTRING_EVENT4_126$" value="好的，需要的时候，请你再来找我。"/>
+  <string name="$SCRIPTSTRING_EVENT4_127$" value="希望你积极参加测试。&#13;&#10;祝你在冒险岛玩得愉快～"/>
+  <string name="$SCRIPTSTRING_EVENT4_128$" value="技能等级无法继续提升。"/>
+  <string name="$SCRIPTSTRING_EVENT4_129$" value="发放的喇叭可以在现金商店中确认。感谢您参加测试。"/>
+  <string name="$SCRIPTSTRING_EVENT4_13$" value="只要你能照看好我给你的#b蜡烛#k，在#e#b1小时内#k#n不熄灭，每经过1小时，我就会给你盖1个#b星星图章#k。星星图章可以通过运营员确认，搜集到的星星图章可以交换#b超级药水#k。请你一定要好好照看蜡烛，不要让它熄灭。&#13;&#10;好的，#b1小时之后#k我会来确认蜡烛的情况。"/>
+  <string name="$SCRIPTSTRING_EVENT4_130$" value="由于未知原因，物品发放失败。"/>
+  <string name="$SCRIPTSTRING_EVENT4_131$" value="每天只发放3个。今天你已经获得了3个喇叭。"/>
+  <string name="$SCRIPTSTRING_EVENT4_132$" value="祝你玩得愉快～"/>
+  <string name="$SCRIPTSTRING_EVENT4_133$" value="#b#h0##k丛篮 泅犁 #b"/>
+  <string name="$SCRIPTSTRING_EVENT4_134$" value="#k 器牢飘甫 啊瘤绊 乐嚼聪促. 公均捞 鞘夸 窍技夸?#b&#13;&#10;#L0#拱绊扁甫 棱酒 吭绢夸.#l&#13;&#10;#L1#鞘夸茄 拱扒捞 乐绢夸.#l"/>
+  <string name="$SCRIPTSTRING_EVENT4_135$" value="历俊霸 绢恫 拱绊扁甫 林角 扒啊夸? #b&#13;&#10;#L0##t4001187##l&#13;&#10;#L1##t4001188##l&#13;&#10;#L2##t4001189##l"/>
+  <string name="$SCRIPTSTRING_EVENT4_136$" value="寐! 茄付府档 绝栏搁辑..."/>
+  <string name="$SCRIPTSTRING_EVENT4_137$" value="割 付府甫 棱酒 坷继唱夸?&#13;&#10;#b&lt; 泅犁 啊瘤绊 乐绰 #t4001187# 荐 : "/>
+  <string name="$SCRIPTSTRING_EVENT4_138$" value="#t4001187#啊 绝栏搁 畴贰甫 肋 何甫 荐 绝绰单..."/>
+  <string name="$SCRIPTSTRING_EVENT4_139$" value="客! 历档 捞力 畴贰甫 肋 何福霸 瞪 巴鞍酒夸. 皑荤窃狼 舵栏肺 器牢飘甫 利赋秦 靛副霸夸. 捞锅俊 #b"/>
+  <string name="$SCRIPTSTRING_EVENT4_14$" value="今天你还没有获得星星图章。"/>
+  <string name="$SCRIPTSTRING_EVENT4_140$" value="器牢飘#k甫 罐酒 醚 #b"/>
+  <string name="$SCRIPTSTRING_EVENT4_141$" value="#k 器牢飘啊 利赋登绢 乐嚼聪促. 器牢飘肺绰 鞘夸窍脚 拱扒栏肺 背券秦 靛副霸夸."/>
+  <string name="$SCRIPTSTRING_EVENT4_142$" value="割 付府甫 棱酒 坷继唱夸?&#13;&#10;#b&lt; 泅犁 啊瘤绊 乐绰 #t4001188# 荐 : "/>
+  <string name="$SCRIPTSTRING_EVENT4_143$" value="#t4001188#啊 绝栏搁 勉阑 肋 免 荐 绝绰单..."/>
+  <string name="$SCRIPTSTRING_EVENT4_144$" value="客! 历档 捞力 勉阑 肋 免 荐 乐阑 巴 鞍酒夸. 皑荤窃狼 舵栏肺 器牢飘甫 利赋秦 靛副霸夸.捞锅俊 #b"/>
+  <string name="$SCRIPTSTRING_EVENT4_145$" value="#k 器牢飘啊 利赋登绢 乐嚼聪促.  器牢飘肺绰 鞘夸窍脚 拱扒栏肺 背券秦 靛副霸夸.."/>
+  <string name="$SCRIPTSTRING_EVENT4_146$" value="割 付府甫 棱酒 坷继唱夸?&#13;&#10;#b&lt; 泅犁 啊瘤绊 乐绰 #t4001189# 荐 : "/>
+  <string name="$SCRIPTSTRING_EVENT4_147$" value="#t4001189#啊 绝栏搁 畴贰甫 肋 何甫 荐 绝绰单.."/>
+  <string name="$SCRIPTSTRING_EVENT4_148$" value="客! 捞力绰 冠磊俊 嘎苗 畴贰档 何福绊 勉档 肋 免 巴 鞍酒夸. 皑荤窃狼 舵栏肺 器牢飘甫 利赋秦 靛副霸夸.捞锅俊 #b"/>
+  <string name="$SCRIPTSTRING_EVENT4_149$" value="历档 岗柳 酒捞倒 胶鸥啊 登绊 酵绢夸."/>
+  <string name="$SCRIPTSTRING_EVENT4_15$" value="#e#b#h0##k#n，你一共搜集到了"/>
+  <string name="$SCRIPTSTRING_EVENT4_150$" value="#b#h0##k丛篮 泅犁#b "/>
+  <string name="$SCRIPTSTRING_EVENT4_151$" value="#k 器牢飘 啊 乐嚼聪促. 罐栏角 惑前阑 榜扼 林技夸. #b&#13;&#10;#L0##i1072360:##t1072360# 罐扁#l&#13;&#10;#L1##i2049103:##t2049103##l"/>
+  <string name="$SCRIPTSTRING_EVENT4_152$" value="#t1072360#阑 罐扁 困秦辑绰 #b300#k 器牢飘啊 鞘夸秦夸. 沥富 罐栏矫摆绢夸?"/>
+  <string name="$SCRIPTSTRING_EVENT4_153$" value="饺澜 且 荐 绝烈 构..."/>
+  <string name="$SCRIPTSTRING_EVENT4_154$" value="酒奖瘤父 器牢飘啊 何练秦辑 救蹬夸."/>
+  <string name="$SCRIPTSTRING_EVENT4_155$" value="厘厚 芒俊 后沫捞 何练秦夸"/>
+  <string name="$SCRIPTSTRING_EVENT4_156$" value="巢篮 器牢飘绰 #b"/>
+  <string name="$SCRIPTSTRING_EVENT4_157$" value="#k 涝聪促. 弊烦 亮篮 窍风 登技夸~"/>
+  <string name="$SCRIPTSTRING_EVENT4_158$" value="#t2049103#阑 罐扁 困秦辑绰 #b100#k 器牢飘啊 鞘夸秦夸. 沥富 罐栏矫摆绢夸?"/>
+  <string name="$SCRIPTSTRING_EVENT4_159$" value="器牢飘啊 何练秦辑 救蹬夸."/>
+  <string name="$SCRIPTSTRING_EVENT4_16$" value="个星星图章。你想交换什么商品呢？#b&#13;&#10;&#13;&#10;#L0#交换10个超级药水(消耗1个星星图章)#l&#13;&#10;#L1#交换60个超级药水(消耗星星图章5个)#l"/>
+  <string name="$SCRIPTSTRING_EVENT4_160$" value="家厚 芒俊 后沫捞 何练秦夸"/>
+  <string name="$SCRIPTSTRING_EVENT4_161$" value="鞘夸窍脚霸 乐栏矫促搁 7岿 20老 傈俊 坷技夸."/>
+  <string name="$SCRIPTSTRING_EVENT4_162$" value="付澜捞 官差脚促搁 7岿 20老 傈俊 坷技夸."/>
+  <string name="$SCRIPTSTRING_EVENT4_163$" value="捞 救栏肺 甸绢啊矫妨搁 饭骇 10 捞惑捞绢具 秦夸. "/>
+  <string name="$SCRIPTSTRING_EVENT4_164$" value="嘎酒夸! 历绰 畴贰档 肋 何福绊 勉档 肋 眠绰 酒捞倒 胶鸥啊 登绰 霸 厕捞俊夸. 倔付 傈 墨魂靛扼啊 促弗 荤恩甸俊霸绰 厚剐捞扼哥 历俊霸父 舅妨林菌绰单夸~ 臂疥 弊赤狼 官村啊俊 乐绰 澜摹， 个摹， 冠摹甫 棱酒 崔咯 冈栏搁 畴贰档 肋 何福绊 勉档 肋 冕促绊 窍歹扼绊夸. 历甫 困秦 #b#h0##k丛膊辑 #b澜摹， 个摹， 冠摹#k甫 备秦 林角贰夸? &#13;&#10;&#13;&#10;#L0##b匙. 力啊 档客靛副霸夸.#k#l"/>
+  <string name="$SCRIPTSTRING_EVENT4_165$" value="弊 锐蓖茄 拱绊扁甸阑 棱酒 坷妨搁 #b#t2270008##k捞 鞘夸窍摆烈? 酒付 辟贸 阁胶磐甸俊霸 备窍角 荐 乐阑 芭俊夸."/>
+  <string name="$SCRIPTSTRING_EVENT4_166$" value="付澜捞 官诧促搁 7岿 20老 傈俊 历甫 茫酒 客 林技夸."/>
+  <string name="$SCRIPTSTRING_EVENT4_17$" value="星星图章不足，无法交换超级药水。"/>
+  <string name="$SCRIPTSTRING_EVENT4_18$" value="请确认消费栏是否有一个以上的空格。"/>
+  <string name="$SCRIPTSTRING_EVENT4_19$" value="星星图章不足，无法交换超级药水。"/>
+  <string name="$SCRIPTSTRING_EVENT4_2$" value="你好，#e#b#h0##k#n。我来看看你照看的蜡烛怎么样了。啊！你照看得真好。星星图章每天#r最多可以获得5个#k，这是你今天获得的第一个图章。按照约定，我来给你盖1个星星图章。&#13;&#10;还有，为了表示感谢，我会给你#b加油的呐喊#k。加油加油！"/>
+  <string name="$SCRIPTSTRING_EVENT4_20$" value="救崇! 抄 酒风具! 抄 歹 碍秦瘤绊 酵绢. 唱客 郴 模备甸狼 捞具扁绰 #e#b4岿 1老何磐 概林 岿，拳 坷饶 4矫俊 SBS俊辑 规康#k#n登绊 乐绢."/>
+  <string name="$SCRIPTSTRING_EVENT4_21$" value="皋捞敲胶配府甫 飘饭捞爹 墨靛霸烙栏肺 榴辨 荐 乐绰 #b#e皋捞敲胶配府 iTCG#n#k啊 傍侥 免矫 登菌绢夸~ 皋捞敲胶配府TCG俊 措秦辑 舅绊 酵促搁 瘤陛 官肺 #bwww.m能力点lestory-itcg.com#k栏肺 立加秦 焊技夸."/>
+  <string name="$SCRIPTSTRING_EVENT4_22$" value="来到枫树山丘，感觉如何？这里有凉爽而柔和的风、温暖的阳光，是非常适合树木生长的地方."/>
+  <string name="$SCRIPTSTRING_EVENT4_23$" value="你要捐献多少温暖的阳光呢？&#13;&#10;#b&lt;当前拥有的温暖阳光的数量："/>
+  <string name="$SCRIPTSTRING_EVENT4_24$" value="要想让枫树茁壮地成长，需要温暖的阳光。"/>
+  <string name="$SCRIPTSTRING_EVENT4_25$" value="你真的有那么多温暖的阳光吗？"/>
+  <string name="$SCRIPTSTRING_EVENT4_26$" value="谢谢你。枫树一定会长得更好的。好像已经窜高了一大截了，不是吗？"/>
+  <string name="$SCRIPTSTRING_EVENT4_27$" value="个|"/>
+  <string name="$SCRIPTSTRING_EVENT4_28$" value="你真的有那么多温暖的阳光吗？你不能捐献比自己拥有的更多的阳光。"/>
+  <string name="$SCRIPTSTRING_EVENT4_29$" value="啊～看啊。在大家的关心下，枫树正在茁壮成长。为了让枫树更快地成长，需要更多的阳光。&#13;&#10;#B"/>
+  <string name="$SCRIPTSTRING_EVENT4_3$" value="你好，#e#b#h0##k#n。我来看看你照看的蜡烛怎么样了。啊！你照看得真好。星星图章每天#r最多可以获得5个#k。按照约定，我来给你盖1个星星图章。&#13;&#10;还有，为了表示感谢，我会给你#b加油的呐喊#k。加油加油！"/>
+  <string name="$SCRIPTSTRING_EVENT4_30$" value="在大家的关心和爱护下，冒险岛5周年枫树已经长大了。你给了我很多枫叶了吗？特别是非常罕见的#b金枫叶#k，如果你能拿来给我，我会给你一份特别的礼物。捡到金枫叶的话，请你一定要拿来给我。"/>
+  <string name="$SCRIPTSTRING_EVENT4_31$" value="树消失了，觉得很可惜？结束永远意味着新的开始。新的苗木很快就会长起来的。"/>
+  <string name="$SCRIPTSTRING_EVENT4_32$" value="你好，#b#h0##k！我是枫树管理人佳佳。#l&#13;&#10;#L1#我想获取蛋糕盒。#l"/>
+  <string name="$SCRIPTSTRING_EVENT4_33$" value="你现在要去枫树山丘吗？"/>
+  <string name="$SCRIPTSTRING_EVENT4_34$" value="欣赏枫树会是一种愉快的享受～如果你改变了主意，请跟我说。"/>
+  <string name="$SCRIPTSTRING_EVENT4_35$" value="你好像已经有蛋糕盒了啊？"/>
+  <string name="$SCRIPTSTRING_EVENT4_36$" value="请确认其他栏是否有一格以上的空格。"/>
+  <string name="$SCRIPTSTRING_EVENT4_37$" value="啊！蛋糕盒吗？你来的正好。我已经准备好了。来，请你把蛋糕块放进去吧。双击之后，可以把碟子拿出来查看，这你应该知道吧？蛋糕完成之后，请你拿来交给我～"/>
+  <string name="$SCRIPTSTRING_EVENT4_38$" value="你把金枫叶带来了！哇～你捡到了金枫叶，运气真好。我会给送来金枫叶的人一份特别的礼物。你想得到礼物吗？"/>
+  <string name="$SCRIPTSTRING_EVENT4_39$" value="把它留作纪念也是不错的想法。"/>
+  <string name="$SCRIPTSTRING_EVENT4_4$" value="今天你一共获得的星星图章的数量是#b"/>
+  <string name="$SCRIPTSTRING_EVENT4_40$" value="请确认一下你是否拥有金枫叶。"/>
+  <string name="$SCRIPTSTRING_EVENT4_41$" value="冒险岛的第五个生日，希望所有人都能乐在其中～"/>
+  <string name="$SCRIPTSTRING_EVENT4_42$" value="请确认装备、消耗、设置栏是否有空格。"/>
+  <string name="$SCRIPTSTRING_EVENT4_43$" value="&#13;&#10;#b#L90#下一页(1/2)#l"/>
+  <string name="$SCRIPTSTRING_EVENT4_44$" value="&#13;&#10;#b#L95#上一页(2/2)#l"/>
+  <string name="$SCRIPTSTRING_EVENT4_45$" value="&#13;&#10;#b#L90#下一页(1/3)#l"/>
+  <string name="$SCRIPTSTRING_EVENT4_46$" value="&#13;&#10;#b#L95#上一页(2/3)#l"/>
+  <string name="$SCRIPTSTRING_EVENT4_47$" value="&#13;&#10;#b#L91#下一页(2/3)#l"/>
+  <string name="$SCRIPTSTRING_EVENT4_48$" value="&#13;&#10;#b#L96#上一页(3/3)#l"/>
+  <string name="$SCRIPTSTRING_EVENT4_49$" value="你好！为了庆祝#e#r冒险岛#k#n#b5周年#k，现在可以交换到平时很难见到的稀有怪物卡片。&#13;&#10;#b#L0#我想得到怪物卡片#l"/>
+  <string name="$SCRIPTSTRING_EVENT4_5$" value="#k个。&#13;&#10;&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT4_50$" value="请选择需要的怪物卡片。"/>
+  <string name="$SCRIPTSTRING_EVENT4_51$" value="要想获得#b#t"/>
+  <string name="$SCRIPTSTRING_EVENT4_52$" value="##k，需要#i4001126##b"/>
+  <string name="$SCRIPTSTRING_EVENT4_53$" value="张枫叶#k。你想交换吗？"/>
+  <string name="$SCRIPTSTRING_EVENT4_54$" value="如果你想获得怪物卡片，可以随时来找我。"/>
+  <string name="$SCRIPTSTRING_EVENT4_55$" value="枫叶数量不足。"/>
+  <string name="$SCRIPTSTRING_EVENT4_56$" value="#无法获得更多。"/>
+  <string name="$SCRIPTSTRING_EVENT4_57$" value="30分钟内你照看蜡烛照看得很好。给你一块蛋糕块。请你把它放到蛋糕盒中妥善保管。"/>
+  <string name="$SCRIPTSTRING_EVENT4_58$" value="请确认其他栏是否有一格以上的空格。."/>
+  <string name="$SCRIPTSTRING_EVENT4_59$" value="你好！我是枫树管理人佳佳。冒险岛的第5个生日，你过得愉快吗？愿意和我一起参加5根蜡烛活动吗？"/>
+  <string name="$SCRIPTSTRING_EVENT4_6$" value="#e#b#h0##k#n，你好！由于大家的喜爱，#r冒险岛#k#e又迎来了5周年生日#n！&#13;&#10;为了报答喜爱冒险岛的玩家们的大力支持，我们在#r#e2月16日#n到#e3月2日#n期间准备了#k#e#b星星狂欢节！#k#n活动。"/>
+  <string name="$SCRIPTSTRING_EVENT4_60$" value="啊～，你问我5根蜡烛是什么？就是和我一起制作蛋糕的活动。#b#h0#照看#k蜡烛，不让它熄灭的时候，我会制作蛋糕，然后交给你。"/>
+  <string name="$SCRIPTSTRING_EVENT4_61$" value="为了这一天……我特地向射手村的明明女士学习了制作蛋糕的方法。#b#h0##k你只要在30分钟内保管好蜡烛，不让它熄灭就可以。我会制作好蛋糕，然后送给你一块。搜集到5块蛋糕块之后，就能拼成一整个蛋糕。怎么样？你想参加吗？"/>
+  <string name="$SCRIPTSTRING_EVENT4_62$" value="这是非常有意思的活动。你怎么能不参加一次呢？我特地准备了丰富的礼物……算了，就这样吧。"/>
+  <string name="$SCRIPTSTRING_EVENT4_63$" value="请确认设置栏和装备栏中是否有一格以上的空格。"/>
+  <string name="$SCRIPTSTRING_EVENT4_64$" value="请你把得到的蛋糕块放到盒子里……啊，蛋糕盒你可以在我这里用1张枫叶交换。好的，30分钟以后，我会给你一块蛋糕。"/>
+  <string name="$SCRIPTSTRING_EVENT4_65$" value="5块蛋糕已经全部集齐了吗？看着为我准备的蛋糕，真让人高兴。我想送你一件什么东西……请稍等一下。让我看看……有什么可送给你的呢？"/>
+  <string name="$SCRIPTSTRING_EVENT4_66$" value="嗯？不是为我准备的蛋糕，所以不能给我？怎么会这样……我是冒险岛……不，我是枫树管理人耶……"/>
+  <string name="$SCRIPTSTRING_EVENT4_67$" value="你有蛋糕盒吗？"/>
+  <string name="$SCRIPTSTRING_EVENT4_68$" value="我给你的礼物还满意吗？详细的日程，请参考冒险岛官方主页～"/>
+  <string name="$SCRIPTSTRING_EVENT4_69$" value="运营员。请输入0到9999之间的数字。"/>
+  <string name="$SCRIPTSTRING_EVENT4_7$" value="只要你能照看好我给你的#b蜡烛#k，在#e#b1小时内#k#n不熄灭，每经过1小时，我就会给你盖1个#b星星图章#k。星星图章可以在#b官网#k上确认，搜集星星图章，有机会参与20万个礼物的抽奖活动。请你一定要好好照看蜡烛，不要让它熄灭。&#13;&#10;好的，#b1小时之后#k我会来确认蜡烛的情况。"/>
+  <string name="$SCRIPTSTRING_EVENT4_70$" value="你有蛋糕盒吗？或者请确认一下消费栏是否有空格。"/>
+  <string name="$SCRIPTSTRING_EVENT4_71$" value="很遗憾，我没什么可送给你的。不久前来的那个人，把我准备的礼物全都拿走了……不过我可以给你一件小礼物。下次我会准备更多礼物的，请你再来挑战。"/>
+  <string name="$SCRIPTSTRING_EVENT4_72$" value="请确认背包中是否有空格。"/>
+  <string name="$SCRIPTSTRING_EVENT4_73$" value="5块蛋糕已经全部集齐了吗？请把蛋糕交给我吧。"/>
+  <string name="$SCRIPTSTRING_EVENT4_74$" value="如果你把完成的蛋糕给我，就可以参加抽奖活动。"/>
+  <string name="$SCRIPTSTRING_EVENT4_75$" value="祝贺你，你中奖了。"/>
+  <string name="$SCRIPTSTRING_EVENT4_76$" value="奖品是  。奖品可以在卡珊德拉那里领取。"/>
+  <string name="$SCRIPTSTRING_EVENT4_77$" value="请确认消费栏中是否有一格以上的空格。"/>
+  <string name="$SCRIPTSTRING_EVENT4_78$" value="很遗憾，你没有中奖。"/>
+  <string name="$SCRIPTSTRING_EVENT4_79$" value="运营员专用测试工具。请选择想要测试的奖品。&#13;&#10;&#13;&#10;#L0#索尼笔记本电脑#l&#13;&#10;#L1#PS 3#l&#13;&#10;#L2#iPod touch#l&#13;&#10;#L3#数码相机#l&#13;&#10;#L4#冒险岛iTCG#l&#13;&#10;#L5#射手村护肤券#l&#13;&#10;#L6#天空之城整容券#l&#13;&#10;#L7#废弃都市染发券#l&#13;&#10;#L8#道具喇叭#l&#13;&#10;#L9#包袱商人妙妙#l&#13;&#10;#L10#雅典娜的猫头鹰#l&#13;&#10;#L11#高级瞬移之石#l&#13;&#10;#L12#可爱天使熊#l"/>
+  <string name="$SCRIPTSTRING_EVENT4_8$" value="请确认设置栏中是否有一格以上的空格。"/>
+  <string name="$SCRIPTSTRING_EVENT4_80$" value="索尼笔记本电脑"/>
+  <string name="$SCRIPTSTRING_EVENT4_81$" value="$$PS 3"/>
+  <string name="$SCRIPTSTRING_EVENT4_82$" value="$$iPod touch"/>
+  <string name="$SCRIPTSTRING_EVENT4_83$" value="数码相机"/>
+  <string name="$SCRIPTSTRING_EVENT4_84$" value="冒险岛iTCG"/>
+  <string name="$SCRIPTSTRING_EVENT4_85$" value="射手村护肤店"/>
+  <string name="$SCRIPTSTRING_EVENT4_86$" value="天空之城美容店"/>
+  <string name="$SCRIPTSTRING_EVENT4_87$" value="废弃都市理发店"/>
+  <string name="$SCRIPTSTRING_EVENT4_88$" value="道具喇叭"/>
+  <string name="$SCRIPTSTRING_EVENT4_89$" value="包袱商人妙妙"/>
+  <string name="$SCRIPTSTRING_EVENT4_9$" value="活动从#r#e2月13日#n开始，一直持续到#e2月28日#n#k，希望大家踊跃参与。"/>
+  <string name="$SCRIPTSTRING_EVENT4_90$" value="商店搜索器"/>
+  <string name="$SCRIPTSTRING_EVENT4_91$" value="缩地石"/>
+  <string name="$SCRIPTSTRING_EVENT4_92$" value="可爱天使熊"/>
+  <string name="$SCRIPTSTRING_EVENT4_93$" value="你好像没有中奖啊？我的名单上没有你的名字。你这样随便过来要东西，会让我很为难的。"/>
+  <string name="$SCRIPTSTRING_EVENT4_94$" value="真奇怪？中奖信息好像不对。没办法。你去问问客服中心吧。"/>
+  <string name="$SCRIPTSTRING_EVENT4_95$" value="祝贺你～！你中奖获得了#b"/>
+  <string name="$SCRIPTSTRING_EVENT4_96$" value="#k！奖品会在活动结束后统一配送。请耐心等待#b官网#k公布中奖者名单。"/>
+  <string name="$SCRIPTSTRING_EVENT4_97$" value="#k！奖品会可以通过现金商店立即领取……怎么样？你想领取吗？"/>
+  <string name="$SCRIPTSTRING_EVENT4_98$" value="以后领取也可以，不过到6月30日为止如果仍未领取的话，奖品就会退还给冒险岛运营员。我也很忙，所以不能帮你保管太长时间。"/>
+  <string name="$SCRIPTSTRING_EVENT4_99$" value="奖品已发放。现在应该就能在现金商店中查看到。"/>
+</imgdir>

@@ -1,0 +1,246 @@
+/*
+	This file is part of the OdinMS Maple Story Server
+    Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
+		       Matthias Butz <matze@odinms.de>
+		       Jan Christian Meyer <vimes@odinms.de>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation version 3 as published by
+    the Free Software Foundation. You may not use, modify or distribute
+    this program under any other version of the GNU Affero General Public
+    License.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+package org.gms.net.server.channel.handlers;
+
+import org.gms.client.BuddyList;
+import org.gms.client.BuddyList.BuddyAddResult;
+import org.gms.client.BuddyList.BuddyOperation;
+import org.gms.client.BuddylistEntry;
+import org.gms.client.character.Character;
+import org.gms.client.CharacterNameAndId;
+import org.gms.client.Client;
+import org.gms.constants.game.GameConstants;
+import org.gms.net.AbstractPacketHandler;
+import org.gms.net.packet.InPacket;
+import org.gms.net.server.world.World;
+import org.gms.util.DatabaseConnection;
+import org.gms.util.PacketCreator;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class BuddylistModifyHandler extends AbstractPacketHandler {
+    private static class CharacterIdNameBuddyCapacity extends CharacterNameAndId {
+        private final int buddyCapacity;
+
+        public CharacterIdNameBuddyCapacity(int id, String name, int buddyCapacity) {
+            super(id, name);
+            this.buddyCapacity = buddyCapacity;
+        }
+
+        public int getBuddyCapacity() {
+            return buddyCapacity;
+        }
+    }
+
+    private void nextPendingRequest(Client c) {
+        CharacterNameAndId pendingBuddyRequest = c.getPlayer().getBuddylist().pollPendingRequest();
+        if (pendingBuddyRequest != null) {
+            c.sendPacket(PacketCreator.requestBuddylistAdd(pendingBuddyRequest.getId(), c.getPlayer().getId(), pendingBuddyRequest.getName()));
+        }
+    }
+
+    private CharacterIdNameBuddyCapacity getCharacterIdAndNameFromDatabase(String name) throws SQLException {
+        CharacterIdNameBuddyCapacity ret = null;
+
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement("SELECT id, name, buddyCapacity FROM characters WHERE name LIKE ?")) {
+            ps.setString(1, name);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    ret = new CharacterIdNameBuddyCapacity(rs.getInt("id"), rs.getString("name"), rs.getInt("buddyCapacity"));
+                }
+            }
+        }
+
+        return ret;
+    }
+
+    @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20 全量收口）：player 域读写，经 queued 通道归会话 strand。
+        return true;
+    }
+
+
+    @Override
+    public void handlePacket(InPacket p, Client c) {
+        int mode = p.readByte();
+        Character player = c.getPlayer();
+        BuddyList buddylist = player.getBuddylist();
+        if (mode == 1) { // add
+            String addName = p.readString();
+            String group = p.readString();
+            if (group.length() > 16 || addName.length() < 2 || addName.length() > 13) {
+                return; //hax.
+            }
+            BuddylistEntry ble = buddylist.get(addName);
+            if (ble != null && !ble.isVisible() && group.equals(ble.getGroup())) {
+                c.sendPacket(PacketCreator.serverNotice(1, "You already have \"" + ble.getName() + "\" on your Buddylist"));
+            } else if (buddylist.isFull() && ble == null) {
+                c.sendPacket(PacketCreator.serverNotice(1, "Your buddylist is already full"));
+            } else if (ble == null) {
+                try {
+                    World world = c.getWorldServer();
+                    CharacterIdNameBuddyCapacity charWithId;
+                    int channel;
+                    Character otherChar = c.getChannelServer().getPlayerStorage().getCharacterByName(addName);
+                    if (otherChar != null) {
+                        channel = c.getChannel();
+                        charWithId = new CharacterIdNameBuddyCapacity(otherChar.getId(), otherChar.getName(), otherChar.getBuddylist().getCapacity());
+                    } else {
+                        channel = world.find(addName);
+                        charWithId = getCharacterIdAndNameFromDatabase(addName);
+                    }
+                    if (charWithId != null) {
+                        BuddyAddResult buddyAddResult = null;
+                        if (channel != -1) {
+                            buddyAddResult = world.requestBuddyAdd(addName, c.getChannel(), player.getId(), player.getName());
+                        } else {
+                            try (Connection con = DatabaseConnection.getConnection()) {
+                                try (PreparedStatement ps = con.prepareStatement("SELECT COUNT(*) as buddyCount FROM buddies WHERE characterid = ? AND pending = 0")) {
+                                    ps.setInt(1, charWithId.getId());
+
+                                    try (ResultSet rs = ps.executeQuery()) {
+                                        if (!rs.next()) {
+                                            throw new RuntimeException("Result set expected");
+                                        } else if (rs.getInt("buddyCount") >= charWithId.getBuddyCapacity()) {
+                                            buddyAddResult = BuddyAddResult.BUDDYLIST_FULL;
+                                        }
+                                    }
+                                }
+
+                                try (PreparedStatement ps = con.prepareStatement("SELECT pending FROM buddies WHERE characterid = ? AND buddyid = ?")) {
+                                    ps.setInt(1, charWithId.getId());
+                                    ps.setInt(2, player.getId());
+
+                                    try (ResultSet rs = ps.executeQuery()) {
+                                        if (rs.next()) {
+                                            buddyAddResult = BuddyAddResult.ALREADY_ON_LIST;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (buddyAddResult == BuddyAddResult.BUDDYLIST_FULL) {
+                            c.sendPacket(PacketCreator.serverNotice(1, "\"" + addName + "\"'s Buddylist is full"));
+                        } else {
+                            int displayChannel;
+                            displayChannel = -1;
+                            int otherCid = charWithId.getId();
+                            if (buddyAddResult == BuddyAddResult.ALREADY_ON_LIST && channel != -1) {
+                                displayChannel = channel;
+                                notifyRemoteChannel(c, channel, otherCid, BuddyOperation.ADDED);
+                            } else if (buddyAddResult != BuddyAddResult.ALREADY_ON_LIST && channel == -1) {
+                                try (Connection con = DatabaseConnection.getConnection();
+                                     PreparedStatement ps = con.prepareStatement("INSERT INTO buddies (characterid, `buddyid`, `pending`, `group`) VALUES (?, ?, 1, ?)")) {
+                                    ps.setInt(1, charWithId.getId());
+                                    ps.setInt(2, player.getId());
+                                    ps.setString(3, GameConstants.DEFAULT_BUDDY_GROUP);
+                                    ps.executeUpdate();
+                                }
+                            }
+                            buddylist.put(new BuddylistEntry(charWithId.getName(), group, otherCid, displayChannel, true));
+                            c.sendPacket(PacketCreator.updateBuddylist(buddylist.getBuddies()));
+                        }
+                    } else {
+                        c.sendPacket(PacketCreator.serverNotice(1, "A character called \"" + addName + "\" does not exist"));
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                ble.changeGroup(group);
+                c.sendPacket(PacketCreator.updateBuddylist(buddylist.getBuddies()));
+            }
+        } else if (mode == 2) { // accept buddy
+            int otherCid = p.readInt();
+            if (!buddylist.isFull()) {
+                try {
+                    int channel = c.getWorldServer().find(otherCid);//worldInterface.find(otherCid);
+                    String otherName = null;
+                    Character otherChar = c.getChannelServer().getPlayerStorage().getCharacterById(otherCid);
+                    if (otherChar == null) {
+                        try (Connection con = DatabaseConnection.getConnection();
+                             PreparedStatement ps = con.prepareStatement("SELECT name FROM characters WHERE id = ?")) {
+                            ps.setInt(1, otherCid);
+
+                            try (ResultSet rs = ps.executeQuery()) {
+                                if (rs.next()) {
+                                    otherName = rs.getString("name");
+                                }
+                            }
+                        }
+                    } else {
+                        otherName = otherChar.getName();
+                    }
+                    if (otherName != null) {
+                        // 落库：接受后双方关系都持久化。
+                        // ① 我（被加方）持有发起方：DELETE+INSERT pending=0（正式好友）。
+                        // ② 发起方持有我：将其 pending=1 置为 pending=0（对方那边转正）。
+                        // buddies 表无 (characterid,buddyid) 唯一约束，DELETE+INSERT 保证幂等。
+                        try (Connection con = DatabaseConnection.getConnection()) {
+                            try (PreparedStatement ps = con.prepareStatement(
+                                    "DELETE FROM buddies WHERE characterid = ? AND buddyid = ?")) {
+                                ps.setInt(1, player.getId());
+                                ps.setInt(2, otherCid);
+                                ps.executeUpdate();
+                            }
+                            try (PreparedStatement ps = con.prepareStatement(
+                                    "INSERT INTO buddies (characterid, `buddyid`, `pending`, `group`) VALUES (?, ?, 0, ?)")) {
+                                ps.setInt(1, player.getId());
+                                ps.setInt(2, otherCid);
+                                ps.setString(3, GameConstants.DEFAULT_BUDDY_GROUP);
+                                ps.executeUpdate();
+                            }
+                            try (PreparedStatement ps = con.prepareStatement(
+                                    "UPDATE buddies SET pending = 0 WHERE characterid = ? AND buddyid = ?")) {
+                                ps.setInt(1, otherCid);
+                                ps.setInt(2, player.getId());
+                                ps.executeUpdate();
+                            }
+                        }
+                        buddylist.put(new BuddylistEntry(otherName, GameConstants.DEFAULT_BUDDY_GROUP, otherCid, channel, true));
+                        c.sendPacket(PacketCreator.updateBuddylist(buddylist.getBuddies()));
+                        notifyRemoteChannel(c, channel, otherCid, BuddyOperation.ADDED);
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            nextPendingRequest(c);
+        } else if (mode == 3) { // delete
+            int otherCid = p.readInt();
+            player.deleteBuddy(otherCid);
+        }
+    }
+
+    private void notifyRemoteChannel(Client c, int remoteChannel, int otherCid, BuddyOperation operation) {
+        Character player = c.getPlayer();
+        if (remoteChannel != -1) {
+            c.getWorldServer().buddyChanged(otherCid, player.getId(), player.getName(), c.getChannel(), operation);
+        }
+    }
+}

@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="event">
+  <string name="$SCRIPTSTRING_EVENT_0$" value="请选择你要参加的活动.&#13;&#10;#b#L0#设定活动地图#l&#13;&#10;#L1#确认进入活动地图的玩家数#l#k"/>
+  <string name="$SCRIPTSTRING_EVENT_1$" value="请选择活动。&#13;&#10;#b#L0#爬啊爬1(正确答案随机)#l&#13;&#10;#L1#爬啊爬2(B型)#l&#13;&#10;#L2#爬啊爬3(C型)#l&#13;&#10;#L3#爬啊爬4(D型)#l&#13;&#10;#L4#爬啊爬5(E型)#l&#13;&#10;#L5#向着高地#l&#13;&#10;#L6#OX问答 #l&#13;&#10;#L7#滚雪球(第1阶段) #l&#13;&#10;#L8#滚雪球(第2阶段) #l&#13;&#10;#L9#滚雪球(第3阶段) #l&#13;&#10;#L10#寻宝#l&#13;&#10;#L11#可乐季节1(难度:低)#l&#13;&#10;#L12#可乐季节2(难度:中)#l&#13;&#10;#L13#可乐季节3(难度:高)#l&#13;&#10;#L14#战斗领域1(需要5人以上)(玩家竞争："/>
+  <string name="$SCRIPTSTRING_EVENT_10$" value="门打开了。请点击活动工具人，进入活动地图。"/>
+  <string name="$SCRIPTSTRING_EVENT_100$" value="$$[CN]아이템으로 교환하기 위해서는 #b#t4031333# 8장#k이 필요하다고."/>
+  <string name="$SCRIPTSTRING_EVENT_101$" value="$$[CN]아이템으로 교환하기 위해서는 #b#t4031334# 6장#k이 필요하다고."/>
+  <string name="$SCRIPTSTRING_EVENT_102$" value="$$[CN]아이템으로 교환하기 위해서는 #b#t4031335# 5장#k이 필요하다고."/>
+  <string name="$SCRIPTSTRING_EVENT_103$" value="$$[CN]아이템으로 교환하기 위해서는 #b#t4031336# 4장#k이 필요하다고."/>
+  <string name="$SCRIPTSTRING_EVENT_104$" value="$$[CN]아이템으로 교환하기 위해서는 #b#t4031337# 3장#k이 필요하다고."/>
+  <string name="$SCRIPTSTRING_EVENT_105$" value="$$[CN]아이템으로 교환하기 위해서는 #b#t4031338# 2장#k이 필요하다고."/>
+  <string name="$SCRIPTSTRING_EVENT_106$" value="$$[CN]아이템으로 교환하기 위해서는 #b#t4031339# 1장#k이 필요하다고."/>
+  <string name="$SCRIPTSTRING_EVENT_107$" value="$$[CN]아이템으로 교환하기 위해서는 #b#t4031340# 1장#k이 필요하다고."/>
+  <string name="$SCRIPTSTRING_EVENT_108$" value="$$[CN]아이템으로 교환하기 위해서는 #b#t4031341# 1장#k이 필요하다고."/>
+  <string name="$SCRIPTSTRING_EVENT_109$" value="叭啦叭啦~ 恭喜你在#b活动游戏#k获得了冠军。真是恭喜你！"/>
+  <string name="$SCRIPTSTRING_EVENT_11$" value="门打开了。请点击活动工具人，进入活动地图。"/>
+  <string name="$SCRIPTSTRING_EVENT_110$" value="那么，冠军奖品#b#t4031019##k就送给你。在卷轴上以古代文字记录着关于恶魔的重要内容。"/>
+  <string name="$SCRIPTSTRING_EVENT_111$" value="听说,古代文字只有金银岛的#p1022002#的弟弟#r#p9000007##k才可以解释。找他吧。一定会有惊喜。"/>
+  <string name="$SCRIPTSTRING_EVENT_112$" value="可能在背包的其他窗里没有空间，你保证有一个以上的空格后再来跟我说吧。"/>
+  <string name="$SCRIPTSTRING_EVENT_113$" value="你身上已经有#r#t4031019##k。那卷轴里有很强大的魔力，如果你带两个以上，会很危险的。快去找#r#p9000007##k吧。"/>
+  <string name="$SCRIPTSTRING_EVENT_114$" value="你恐怕没见过#p9000001#或#p9000000#。怎么能进来这里？难道你是...？！？！"/>
+  <string name="$SCRIPTSTRING_EVENT_115$" value="你有#b#t4031018##k吧？首先你要跟#p9000006#说把#t4031018#换成奖品吧。&#13;&#10;&#13;&#10;#b#L0##p9000006#是谁？#l&#13;&#10;#b#L1#我想回到我来的地方去#l#k"/>
+  <string name="$SCRIPTSTRING_EVENT_116$" value="#b#p9000006##k可以送你到可以把#t4031018#兑换成奖品的地方。在我左边有，你肯定容易找得到吧。"/>
+  <string name="$SCRIPTSTRING_EVENT_117$" value="你把你的#b#t4031018##k在这里交换更好。在明珠港也能交换...如果你有急事，现在回去也没关系。你真想回去吗？"/>
+  <string name="$SCRIPTSTRING_EVENT_118$" value="你没有在活动中获奖。真可惜。有机会下次再来参加吧。现在我会让你回到来的地方。"/>
+  <string name="$SCRIPTSTRING_EVENT_119$" value="哟！真是了不起。做个船员跟我一起去旅行吧，怎么样？什么？忙啊？哼...那没办法了。那么我就送你去好地方。谢谢你的地图。"/>
+  <string name="$SCRIPTSTRING_EVENT_12$" value="门打开了。请点击活动工具人，进入活动地图。"/>
+  <string name="$SCRIPTSTRING_EVENT_120$" value="哎哟...你确定有#t4031018#吗？请你再确认一下。"/>
+  <string name="$SCRIPTSTRING_EVENT_121$" value="你的身上已经有#r#t4031019##k。那卷轴里有很强大的魔力，如果你带两个以上，会很危险。快去找#r#p9000007##k吧。"/>
+  <string name="$SCRIPTSTRING_EVENT_122$" value="喂。喂...快把#t4031018#给找出来...因为我弄丢了那地图，无法去航海。"/>
+  <string name="$SCRIPTSTRING_EVENT_123$" value="这个小伙子很了不起。居然带有这么贵重的东西。什么？我能破译这个东西吗？不可以。很卓越的退魔师也无法轻易应付这被封印恶魔之力的卷轴。"/>
+  <string name="$SCRIPTSTRING_EVENT_124$" value="那么你...把这卷轴能给我吗？如果能安全破译这卷轴，对于制服这世界上的恶魔，一定会有很大的帮助。"/>
+  <string name="$SCRIPTSTRING_EVENT_125$" value="为了安全地破译这个文件，需要#b50张#t4000008##k。如果你给我那些东西和卷轴。我会给你我收藏品中的一个好东西。"/>
+  <string name="$SCRIPTSTRING_EVENT_126$" value="好。按约定我给你好东西。这是#r#t4031017##k。就是以前我打退古代恶魔时获得的。这一般是很难得到的！"/>
+  <string name="$SCRIPTSTRING_EVENT_127$" value="那箱子里有很贵重的东西。但是我弄丢了钥匙，无法给你打开。可能在#b废都#k有能打开箱子的#r锁匠#k。"/>
+  <string name="$SCRIPTSTRING_EVENT_128$" value="你可能在背包的其他窗里没有空间。保证一个以上的空格后再来找我吧。"/>
+  <string name="$SCRIPTSTRING_EVENT_129$" value="你这个小伙子。别来麻烦我。"/>
+  <string name="$SCRIPTSTRING_EVENT_13$" value="门打开了。请点击活动工具人，进入活动地图。"/>
+  <string name="$SCRIPTSTRING_EVENT_130$" value="欢迎光临。这里是除了无法打开的以外，都能打开的锁匠。如果你有丢失了钥匙而无法打开的东西都给我吧！"/>
+  <string name="$SCRIPTSTRING_EVENT_131$" value="我晕。你怎么得到了这么贵重的东西？但是这个铁锁上施加的魔法很巧妙。为了打开它需要很多材料..."/>
+  <string name="$SCRIPTSTRING_EVENT_132$" value="我已经有别的材料，但是还没有一个#t4021005#和五个#t4000010#... 如果你把这些材料收集来。我免费给你打开。&#13;&#10;#b#L0# 收集材料。#k#l&#13;&#10;#L1# 付钱#l#k"/>
+  <string name="$SCRIPTSTRING_EVENT_133$" value="你确定有一个#t4021005#和五个#t4000010#吗？请你再确认一下。"/>
+  <string name="$SCRIPTSTRING_EVENT_134$" value="我免费帮你打开了。那么慢走吧。"/>
+  <string name="$SCRIPTSTRING_EVENT_135$" value="那么把#b一个#t4021005##k和#b五个#t4000010##k收集来吧。我给你免费打开。"/>
+  <string name="$SCRIPTSTRING_EVENT_136$" value="那么我只好用更贵的材料。所以需要更多钱...就是#b10000金币#k...你愿意付钱吗？"/>
+  <string name="$SCRIPTSTRING_EVENT_137$" value="10000金币不是小数目。还有收集材料的办法...请你下次再来。"/>
+  <string name="$SCRIPTSTRING_EVENT_138$" value="金币不够！我说需要#b10000金币#k呀..."/>
+  <string name="$SCRIPTSTRING_EVENT_139$" value="我收好了金币。好，打开了。那么再见。"/>
+  <string name="$SCRIPTSTRING_EVENT_14$" value="门打开了。请点击活动工具人，进入活动地图。"/>
+  <string name="$SCRIPTSTRING_EVENT_140$" value="在背包的消耗窗，装备窗和其他窗都要有一个以上的空格才行。你保证有空格后再来吧。"/>
+  <string name="$SCRIPTSTRING_EVENT_141$" value="今天好热啊。好，需要什么帮助？&#13;&#10;#b#L0# 从活动游戏出去。#l&#13;&#10;#b#L1# 购买武器。(#t1322005# 1金币)#l"/>
+  <string name="$SCRIPTSTRING_EVENT_142$" value="现在出去，你24小时之内就不能再参加这活动了。你真想出去吗？"/>
+  <string name="$SCRIPTSTRING_EVENT_143$" value="好，别放弃，再去挑战吧。挑战精神是最重要的。只要你努力，一定会有好的回报的。那么加油！"/>
+  <string name="$SCRIPTSTRING_EVENT_144$" value="这是新手用#t1322005#。价格1金币。怎么样？要购买吗？"/>
+  <string name="$SCRIPTSTRING_EVENT_145$" value="在活动中，攻击力高的武器，攻击速度快的武器更有利。如果需要，随时来找我吧。"/>
+  <string name="$SCRIPTSTRING_EVENT_146$" value="请你确认一下在背包的装备窗是否有空间，并且有1金币。虽然是价格1金币的东西，但我也不能白给你啊！"/>
+  <string name="$SCRIPTSTRING_EVENT_147$" value="你把#t1322005#收好了吧？那么我祝你成功。加油！"/>
+  <string name="$SCRIPTSTRING_EVENT_148$" value="$$[CN]코-크플레이 시즌에 참가한 것을 환영해. 뭘 도와줄까?&#13;&#10;#b#L0# 이벤트 게임에서 나간다.#l&#13;&#10;#b#L1# 무기를 구입한다.(#t1322005# 1메소)#l"/>
+  <string name="$SCRIPTSTRING_EVENT_149$" value="$$[CN]지금 이벤트 게임에서 나가면 24시간 이내에는 참여가 불가능할텐데... 정말 나가겠어?"/>
+  <string name="$SCRIPTSTRING_EVENT_15$" value="现在游戏正在进行中。请选择其他房间。"/>
+  <string name="$SCRIPTSTRING_EVENT_150$" value="$$[CN]그래. 포기하지 말고 일단 한번 도전해 보는 정신이 중요하지. 열심히 하면 좋은 보상도 뒤따를 테니까 힘내라고!"/>
+  <string name="$SCRIPTSTRING_EVENT_151$" value="$$[CN]초보자용 #t1322005#는 1메소라구. 어때? 구입하겠어?"/>
+  <string name="$SCRIPTSTRING_EVENT_152$" value="$$[CN]이벤트 에서는 공격력이 높은 무기보다는 공격속도가 빠른 무기가 유리하지. 필요하게 된다면 언제든 다시 찾아줘."/>
+  <string name="$SCRIPTSTRING_EVENT_153$" value="$$[CN]장비창에 빈 칸은 있는지， 1메소는 분명히 가지고 있는지 다시 한 번 확인해 주겠어? 아무리 1메소 짜리라곤 하지만 공짜로 팔 수는 없으니까 말야."/>
+  <string name="$SCRIPTSTRING_EVENT_154$" value="$$[CN]#t1322005# 하나 잘 받았겠지? 그럼 열심히 해서 꼭 상품을 타도록 해. 힘내~!"/>
+  <string name="$SCRIPTSTRING_EVENT_155$" value="$$[CN]언제나 마시면 즐거운 코-크에는 여러 종류가 있지. 달콤하고 톡 쏘는 코카-콜라와 제로칼로리의 부담 없는 코카-콜라 라이트처럼 말이야.&#13;&#10;그럼 다음 중 #r코카-콜라가 아닌 것#k은 무엇일까?&#13;&#10;#b#L0# 코카-콜라#l&#13;&#10;#L1# 코카-콜라 라이트#l&#13;&#10;#L2# 코카-콜라 레프트#l"/>
+  <string name="$SCRIPTSTRING_EVENT_156$" value="$$[CN]코카-콜라는 달콤하고 톡쏘는 맛이 특징인 코-크의 대표라구. 다시 잘 생각해 봐~"/>
+  <string name="$SCRIPTSTRING_EVENT_157$" value="$$[CN]코카-콜라 라이트는 제로칼로리의 부담없는 코-크 라구. 다시 잘 생각해 봐~"/>
+  <string name="$SCRIPTSTRING_EVENT_158$" value="$$[CN]그렇지! 코카-콜라 레프트라는 코-크는 없어. &#13;&#10;그럼 다음 문제로 넘어갈게."/>
+  <string name="$SCRIPTSTRING_EVENT_159$" value="$$[CN]코카-콜라를 마시고 플레이포인트를 모으면 메이플스토리 아이템을 얻을 수 있다는 건 알고 있지? 그럼 아이템을 얻으려면 어느 사이트를 방문해야 할까?&#13;&#10;#b#L0# www.CocoPLAY.com#l&#13;&#10;#L1# www.CokePLAY.com#l&#13;&#10;#L2# www.KekePLAY.com#l&#13;&#10;#L3# www.CococoPLAY.com#l"/>
+  <string name="$SCRIPTSTRING_EVENT_16$" value="门打开了。请点击活动工具人，进入活动地图。"/>
+  <string name="$SCRIPTSTRING_EVENT_160$" value="$$[CN]맞았어! #rwww.CokePLAY.com#k 이지. &#13;&#10;코카-콜라를 마시고 플레이포인트를 입력해서 메이플스토리 아이템을 받아봐~"/>
+  <string name="$SCRIPTSTRING_EVENT_161$" value="$$[CN]그건 CokePLAY 사이트의 주소가 아니야. 다시 잘 생각해 보고 골라줘~"/>
+  <string name="$SCRIPTSTRING_EVENT_162$" value="$$[CN]코카-콜라를 마실 때 #r바르지 못한 행동#k은 무엇일까?&#13;&#10;#b#L0# 코-크 캔을 열기 전에 마구 흔든다.#l&#13;&#10;#L1# 다 마신 코-크 캔이나 병은 재활용한다.#l&#13;&#10;#L2# 코-크를 시원하게 해서 더욱 맛있게 즐긴다.#l"/>
+  <string name="$SCRIPTSTRING_EVENT_163$" value="$$[CN]그렇지! 코카-콜라에는 톡쏘는 탄산이 들어 있어서 마구 흔들면 거품이 흘러나와 맛있게 즐길 수 없게 된다구."/>
+  <string name="$SCRIPTSTRING_EVENT_164$" value="$$[CN]다 마신 캔과 병은 꼭 재활용 해야해. 코카-콜라는 언제나 환경을 소중히 생각한다구."/>
+  <string name="$SCRIPTSTRING_EVENT_165$" value="$$[CN]코카-콜라는 차게해서 마시면 더욱 맛있게 즐길 수 있어. 꼭 기억해 두라구."/>
+  <string name="$SCRIPTSTRING_EVENT_166$" value="$$[CN]이거 미안해서 어떡하지? #m219000000#은 레벨 8 이상의 유저만 갈 수 있어. 레벨 8이 되면 다시 와 주겠어?"/>
+  <string name="$SCRIPTSTRING_EVENT_167$" value="$$[CN]안녕? 나는 #r#m219000000##k에서 온 코-크베어 운영자야.&#13;&#10;자자， 우선 시원한 #r코카-콜라#k 한잔 하라구~"/>
+  <string name="$SCRIPTSTRING_EVENT_168$" value="$$[CN]어때， 톡 쏘는 코카-콜라 맛이 끝내주지? 더 마시고 싶다고? 나도 주고 싶지만 가져온 코카-콜라가 많지 않아서 한 사람에 한잔 밖에 줄 수가 없어.&#13;&#10;하지만 #r#m219000000##k이라면 이야기가 틀리지. 그곳에 가면 맛있는 코카-콜라를 얼마든지  마실 수 있다구.&#13;&#10;#b#L0# #m219000000#에 어떻게 갈 수 있죠? 빨리 가르쳐 주세요!#l"/>
+  <string name="$SCRIPTSTRING_EVENT_169$" value="$$[CN]그래서 내가 온거야. 나는 메이플스토리의 여행자들을 #r#m219000000##k으로 초대하고 있어. 하지만 아무나 보내줄 순 없어. #r#m219000000##k에 있는 사람이 코카-콜라를 모른다는 건 있을 수 없는 일이거든."/>
+  <string name="$SCRIPTSTRING_EVENT_17$" value="门打开了。请点击活动工具人，进入活动地图。"/>
+  <string name="$SCRIPTSTRING_EVENT_170$" value="$$[CN]코카-콜라에 대한 간단한 문제만 풀면 널 #m219000000#으로 보내줄게. 아주 간단하니까 걱정 말라구."/>
+  <string name="$SCRIPTSTRING_EVENT_171$" value="$$[CN]이야~ 코카-콜라에 대해 이렇게 잘 알고 있는 사람이 많다니 너무 기쁜걸? &#13;&#10;즐겁고 신나는 세상， #r#m219000000##k으로 보내줄게.&#13;&#10;돌아오고 싶으면 #m219000000#에 있는 운영자에게 말을 걸어줘. 언제나 코카-콜라♬"/>
+  <string name="$SCRIPTSTRING_EVENT_172$" value="$$[CN]그럼 지금 #m219000000#으로 출발할래?"/>
+  <string name="$SCRIPTSTRING_EVENT_173$" value="$$[CN]그럼 준비가 되면 다시 말을 걸어줘."/>
+  <string name="$SCRIPTSTRING_EVENT_174$" value="$$[CN]지금은 뭔가 이상한데? 잠시 후에 다시 말을 걸어줘."/>
+  <string name="$SCRIPTSTRING_EVENT_175$" value="$$[CN]톡 쏘는 코카-콜라 맛이 끝내주지? 더 마시고 싶다구? 나도 주고 싶지만 가져온 코카-콜라가 많지 않아서 한 사람에 한잔 밖에 줄 수가 없어. 하지만 #r#m219000000##k이라면 이야기가 틀리지. 그곳에 가면 맛있는 코카-콜라를 얼마든지  마실 수 있다구.&#13;&#10;#b#L0# #m219000000#에 어떻게 갈 수 있죠? 빨리 가르쳐 주세요!#l"/>
+  <string name="$SCRIPTSTRING_EVENT_176$" value="$$[CN]이야~ 코카-콜라에 대해 이렇게 잘 알고 있는 사람이 많다니 너무 기쁜걸? 즐겁고 신나는 세상， #m219000000#으로 보내줄게.&#13;&#10;돌아오고 싶으면 #r#m219000000##k에 있는 운영자에게 말을 걸어줘. 언제나 코카-콜라♬"/>
+  <string name="$SCRIPTSTRING_EVENT_177$" value="$$[CN]이야~ 코카-콜라에 대해 이렇게 잘 알고 있는 사람이 많다니 너무 기쁜걸? &#13;&#10;즐겁고 신나는 세상， #m219000000#으로 보내줄게.&#13;&#10;돌아오고 싶으면 #r#m219000000##k에 있는 운영자에게 말을 걸어줘. 언제나 코카-콜라♬"/>
+  <string name="$SCRIPTSTRING_EVENT_178$" value="$$[CN]그럼 지금 #r#m219000000##k으로 출발할래?"/>
+  <string name="$SCRIPTSTRING_EVENT_179$" value="$$[CN]내게 온 걸 보니 다시 #r#m219000000##k에 가고 싶은 거구나. #r#m219000000##k은 언제나 여행자들을 환영하지. 그럼 지금 출발할래?"/>
+  <string name="$SCRIPTSTRING_EVENT_18$" value="门打开了。请点击活动工具人，进入活动地图。"/>
+  <string name="$SCRIPTSTRING_EVENT_180$" value="$$[CN]#r#m219000000##k은 어때? 정말 멋지고 신나는 곳이지!? 이곳에 더 머물러도 되지만， 할 일이 있다면 돌아가도 돼. 그럼 지금 #b#m"/>
+  <string name="$SCRIPTSTRING_EVENT_181$" value="$$[CN]##k에 돌아가겠어?"/>
+  <string name="$SCRIPTSTRING_EVENT_182$" value="$$[CN]그래, 좀 더 즐기다 가라구~ &#13;&#10;#r언제나 코카-콜라♬#k"/>
+  <string name="$SCRIPTSTRING_EVENT_183$" value="您好? 我是阿乐米. 我知道怎么做礼花。只要你帮我搜集火药桶的话，我就可以帮你放漂亮的烟花。火药桶可以通过打猎获得哦．"/>
+  <string name="$SCRIPTSTRING_EVENT_184$" value="火药桶收集完就可以放烟火.&#13;&#10;#b#L0# 我拿来了火药桶.#l#k&#13;&#10;#b#L1# 让我看看目前为止的火药桶收集情况.#l#k"/>
+  <string name="$SCRIPTSTRING_EVENT_185$" value="拿来火药桶了么？赶紧把 #b火药桶#k都给我吧. 我会帮你做漂亮的礼花。 你要给我几个呢?&#13;&#10;#b&lt; 目前所拥有的火药桶数量 : "/>
+  <string name="$SCRIPTSTRING_EVENT_186$" value="要想玩烟花，一定需要火药桶. 请考虑清楚后再与我对话."/>
+  <string name="$SCRIPTSTRING_EVENT_187$" value="真的拿来火药桶了么? 请重新确认."/>
+  <string name="$SCRIPTSTRING_EVENT_188$" value="哇哈~真的搜集了全部的火药桶嘛. 现在开始要放烟火咯.~"/>
+  <string name="$SCRIPTSTRING_EVENT_189$" value="获得火药桶的话，请不要忘记要拿给我啊."/>
+  <string name="$SCRIPTSTRING_EVENT_19$" value="门打开了。请点击活动工具人，进入活动地图。"/>
+  <string name="$SCRIPTSTRING_EVENT_190$" value="你没有火药桶嘛."/>
+  <string name="$SCRIPTSTRING_EVENT_191$" value="这是火药桶收集状况.&#13;&#10;#B"/>
+  <string name="$SCRIPTSTRING_EVENT_192$" value="#&#13;&#10;收集所有的火药桶，就可以开始放烟花了.."/>
+  <string name="$SCRIPTSTRING_EVENT_193$" value="                : 01-答案  23-出发点  4-未动作"/>
+  <string name="$SCRIPTSTRING_EVENT_194$" value="           : 012-答案  34-出发点  5-最低面  67-未动作"/>
+  <string name="$SCRIPTSTRING_EVENT_195$" value=" : 01-答案  23456-出发点  789-另外索地们  abcdef-未动作"/>
+  <string name="$SCRIPTSTRING_EVENT_196$" value="[CN]소환하려는 工具人를 선택하세요.&#13;&#10;&#13;&#10;#L0##i3994121##l#L2##i3994123##l&#13;&#10;#L3##i3994124##l#L4##i3994125##l#L1##i3994122##l"/>
+  <string name="$SCRIPTSTRING_EVENT_197$" value="[CN]요원이 나타났습니다."/>
+  <string name="$SCRIPTSTRING_EVENT_198$" value="[CN]제거하려는 工具人를 선택하세요.&#13;&#10;&#13;&#10;#L0##i3994121##l#L2##i3994123##l&#13;&#10;#L3##i3994124##l#L4##i3994125##l#L1##i3994122##l"/>
+  <string name="$SCRIPTSTRING_EVENT_199$" value="[CN]요원이 사라졌습니다."/>
+  <string name="$SCRIPTSTRING_EVENT_2$" value="人)#l&#13;&#10;#L15#战斗领域2(需要5人以上)(玩家竞争："/>
+  <string name="$SCRIPTSTRING_EVENT_20$" value="门打开了。请点击活动工具人，进入活动地图。"/>
+  <string name="$SCRIPTSTRING_EVENT_200$" value="[CN]25개의 문제 세트가 준비되어 있습니다. 몇 번째 문제를 테스트하시겠습니까?"/>
+  <string name="$SCRIPTSTRING_EVENT_201$" value="[CN]메소레인저는 총 몇 명으로 구성되어 있지?"/>
+  <string name="$SCRIPTSTRING_EVENT_202$" value="[CN]#L0# 4명#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_203$" value="[CN]#L1# 5명#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_204$" value="[CN]#L2# 6명#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_205$" value="[CN]#L3# 7명#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_206$" value="[CN]메소레인저의 리더는 누구지?"/>
+  <string name="$SCRIPTSTRING_EVENT_207$" value="[CN]#L0# 레드#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_208$" value="[CN]#L1# 블랙#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_209$" value="[CN]#L2# 블루#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_21$" value="请选择活动。&#13;&#10;#b#L0#爬啊爬1(随机传送点)#l&#13;&#10;#L1#爬啊爬2(B型)#l&#13;&#10;#L2#爬啊爬3(C型)#l&#13;&#10;#L3#爬啊爬4(D型)#l&#13;&#10;#L4#爬啊爬5(E型)#l&#13;&#10;#L5#向着高地#l&#13;&#10;#L6#OX问答 #l&#13;&#10;#L7#椰子季节1(难度:低)#l&#13;&#10;#L8#椰子季节2(难度:中)#l&#13;&#10;#L9#椰子季节3(难度:高)#l&#13;&#10;#L10#滚雪球(第1阶段) #l&#13;&#10;#L11#滚雪球(第2阶段) #l\\r&#10;#L12#滚雪球(第3阶段) #l\\r&#10;#L13#寻宝#l&#13;&#10;#L14#可乐季节1(难度:低)#l&#13;&#10;#L15#可乐季节2(难度:中)#l&#13;&#10;#L16#可乐季节3(难度:高)#l&#13;&#10;#L17#战斗领域1(玩家竞争)#l&#13;&#10;#L18#战斗领域2(玩家竞争)#l&#13;&#10;#L19#战斗领域3(玩家竞争)#l&#13;&#10;#L20#战斗领域4(玩家竞争)#l&#13;&#10;#L21#战斗领域5(玩家竞争)#l#k"/>
+  <string name="$SCRIPTSTRING_EVENT_210$" value="[CN]#L3# 그린#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_211$" value="[CN]기본 비밀번호 이외에 핸드폰을 이용하여 1회용 비밀번호를 발급받아 입력하여 로그인하는 이중 보안 시스템은 무엇인가요?"/>
+  <string name="$SCRIPTSTRING_EVENT_212$" value="[CN]#L0# 방화벽#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_213$" value="[CN]#L1# 2차 비밀번호#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_214$" value="[CN]#L3# 키보드보안#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_215$" value="[CN]핸드폰을 이용하여 1회용 비밀번호를 발급받아 입력하여 로그인하는 이중 보안 시스템인 U-OTP는 무료일까요? 유료일까요?"/>
+  <string name="$SCRIPTSTRING_EVENT_216$" value="[CN]#L0# 유료#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_217$" value="[CN]#L1# 무료#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_218$" value="[CN]김박사의 보안본부가 오픈한 날짜는?"/>
+  <string name="$SCRIPTSTRING_EVENT_219$" value="[CN]#L0# 2007년 10월 1일#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_22$" value="可容纳50人入场的上楼上楼1地图( 109030001 )中，已有#r"/>
+  <string name="$SCRIPTSTRING_EVENT_220$" value="[CN]#L1# 2008년 10월 14일#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_221$" value="[CN]#L2# 2009년 1월 1일#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_222$" value="[CN]#L3# 2009년 4월 14일#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_223$" value="[CN]김박사의 보안본부에서 각종 공지사항과 안내를 확인 할 수 있는 메뉴는?"/>
+  <string name="$SCRIPTSTRING_EVENT_224$" value="[CN]#L0# 보안사령실#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_225$" value="[CN]#L1# 보안경보실#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_226$" value="[CN]#L2# 보안강화실#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_227$" value="[CN]#L3# 보안홍보실#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_228$" value="[CN]다음 중 메소레인저의 멤버가 아닌 사람은? "/>
+  <string name="$SCRIPTSTRING_EVENT_229$" value="[CN]#L0# 메소레인저 블루#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_23$" value="#k人进入。"/>
+  <string name="$SCRIPTSTRING_EVENT_230$" value="[CN]#L1# 메소레인저 옐로우#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_231$" value="[CN]#L2# 메소레인저 핑크#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_232$" value="[CN]#L3# 메소레인저 그레이#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_233$" value="[CN]다음 중 지구방위본부의 설명으로 틀린 것은? "/>
+  <string name="$SCRIPTSTRING_EVENT_234$" value="[CN]#L0# 포터는 김박사님을 도와 신형 로봇을 연구 중이다.#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_235$" value="[CN]#L1# 사령실에는 노틸러스 항해실로 이어지는 포탈이 있다.#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_236$" value="[CN]#L2# 메소레인저 핑크는 통제구역에서 만날 수 있다.#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_237$" value="[CN]#L3# 마스터몬스터 제노는 그레이의 초원 나타난다.#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_238$" value="[CN]다음 중 지구방위본부에 나타나는 그레이의 종류가 아닌것은? "/>
+  <string name="$SCRIPTSTRING_EVENT_239$" value="[CN]#L0# 바나드 그레이#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_24$" value="现在还没开始上楼上楼( 109030001 )活动。"/>
+  <string name="$SCRIPTSTRING_EVENT_240$" value="[CN]#L1# 알파 그레이#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_241$" value="[CN]#L2# 울트라 그레이#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_242$" value="[CN]#L3# 원로 그레이#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_243$" value="[CN]다음 중 지구방위본부에서 만날 수 없는 工具人는? "/>
+  <string name="$SCRIPTSTRING_EVENT_244$" value="[CN]#L0# 병사 케빈#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_245$" value="[CN]#L1# 부사관 메딘#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_246$" value="[CN]#L2# 의무병 라이스#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_247$" value="[CN]#L3# 마에스트로 장군#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_248$" value="[CN]년 겨울방학 전야 이벤트에서 외계인 그레이에게 납치된 메소레인저의 멤버는? "/>
+  <string name="$SCRIPTSTRING_EVENT_249$" value="[CN]#L0# 블루#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_25$" value="可容纳50人入场的上楼上楼2地图( 109030101 )中，已有#r"/>
+  <string name="$SCRIPTSTRING_EVENT_250$" value="[CN]#L2# 그린#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_251$" value="[CN]#L3# 레드#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_252$" value="[CN]김박사의 보안본부 구성 메뉴에 포함되지 않는 것은?"/>
+  <string name="$SCRIPTSTRING_EVENT_253$" value="[CN]#L2# 보안홍보실#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_254$" value="[CN]#L3# 보안장영실#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_255$" value="[CN]메소레인저와 좋아하는 음식이 바르게 짝지어진 것은? "/>
+  <string name="$SCRIPTSTRING_EVENT_256$" value="[CN]#L0# 메소레인저레드 - 이블아이 꼬리구이#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_257$" value="[CN]#L1# 메소레인저그린 - 루팡의 바나나#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_258$" value="[CN]#L2# 메소레인저블랙 - 네펜데스 초무침#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_259$" value="[CN]#L3# 메소레인저핑크 - 연근조림#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_26$" value="现在还没开始上楼上楼2( 109030101 )活动。"/>
+  <string name="$SCRIPTSTRING_EVENT_260$" value="[CN]인터넷을 통해 국내외 유명기관을 사칭하여 개인정보(이름/주민번호/전화번호)나 금융정보 등을 수집한 뒤 이를 악용하여 금전적인 이익을 노리는 사기의 일종은? "/>
+  <string name="$SCRIPTSTRING_EVENT_261$" value="[CN]#L0# 피싱#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_262$" value="[CN]#L1# 바이러스#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_263$" value="[CN]#L2# 도배#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_264$" value="[CN]#L3# 악성코드#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_265$" value="[CN]해킹 피해 예방을 위한 조치로 적절하지 않은 것은?"/>
+  <string name="$SCRIPTSTRING_EVENT_266$" value="[CN]#L0# 주기적인 비밀번호 변경#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_267$" value="[CN]#L1# 본인의 계정은 친구 또는 주변 사람들과 함께 사용한다.#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_268$" value="[CN]#L2# U-OTP 서비스 이용#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_269$" value="[CN]#L3# 정기적인 바이러스 점검 및 윈도우 업데이트 실시#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_27$" value="可容纳50人入场的上楼上楼3地图( 109030201 )中，已有#r"/>
+  <string name="$SCRIPTSTRING_EVENT_270$" value="[CN]다음 중 김박사의 보안본부:보안강화실의 메뉴가 아닌 것은?"/>
+  <string name="$SCRIPTSTRING_EVENT_271$" value="[CN]#L0# 키보드보안 &amp; 개인방화벽#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_272$" value="[CN]#L1# 2차비밀번호#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_273$" value="[CN]#L3# 윈도우보안업데이트#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_274$" value="[CN]다음 중 2008년 여름 진행한 김박사와 메소레인저의 이벤트 명 중 올바른 것은?"/>
+  <string name="$SCRIPTSTRING_EVENT_275$" value="[CN]#L0# 김박사와 메소레인저의 해킹 방지 대작전#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_276$" value="[CN]#L1# 김박사와 메소레인저의 환상의 짝궁#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_277$" value="[CN]#L2# 김박사와 메소레인저, 우리 결혼 해도 될까요?#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_278$" value="[CN]#L3# 김박사와 메소레인저의 무한도전 메이플 편#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_279$" value="[CN]다음 중 해킹 피해 예방을 위한 올바른 태도를 보이는 사람은?"/>
+  <string name="$SCRIPTSTRING_EVENT_28$" value="现在还没开始上楼上楼3( 109030201 )活动。"/>
+  <string name="$SCRIPTSTRING_EVENT_280$" value="[CN]#L0# 치호: 2차 비밀번호 따위 필요없어 그냥 로그인이나 해야지~#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_281$" value="[CN]#L1# 영하: 내 여자친구는 소중하니까 내 계정과 비밀번호를 알려 주었다.#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_282$" value="[CN]#L2# 상희: 주민등록번호는 숫자일 뿐 중요하지않아 모두에게 공유 되어야 해#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_283$" value="[CN]#L3# 진옥: 불편하더라도 U-OTP를 사용해야겠어, 내 캐릭터는 소중하니까#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_284$" value="[CN]다음은 각 메소레인저의 상징 동물을 연결 한 것이다. 잘못 된 연결은?"/>
+  <string name="$SCRIPTSTRING_EVENT_285$" value="[CN]#L0# 레드 - 독수리#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_286$" value="[CN]#L1# 핑크 - 장수하늘소#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_287$" value="[CN]#L2# 블루 - 상어#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_288$" value="[CN]#L3# 블랙 - 팬더#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_289$" value="[CN]어느날 메이플스토리에 접속 해 보니 메소와 아이템이 모두 사라져 해킹 피해로 의심 된다. 이때 취해야하는 행동 중 잘못 된 것은? "/>
+  <string name="$SCRIPTSTRING_EVENT_29$" value="可容纳50人入场的上楼上楼4地图( 109030301 )中，已有#r"/>
+  <string name="$SCRIPTSTRING_EVENT_290$" value="[CN]#L0# 로그인 비밀번호를 바꾼다.#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_291$" value="[CN]#L1# 고객지원센터로 전화하여 해킹 추적 서비스를 접수한다.#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_292$" value="[CN]#L2# 추가적인 피해를 막기 위해 U-OTP를 가입한다.#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_293$" value="[CN]#L3# 왜사냐건 웃지요， 버림으로서 얻음을 아는 계기로 무소유의 경지를 깨닫는다.#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_294$" value="[CN]깨끗한 메이플스토리를 만들기 위해 김박사와 메소레인저가 운영하는 통합 보안관련 웹 페이지의 이름은 #b'김박사의 ( )본부이다.'#k"/>
+  <string name="$SCRIPTSTRING_EVENT_295$" value="[CN]#L0# 해킹#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_296$" value="[CN]#L1# 운동#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_297$" value="[CN]#L2# 보안#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_298$" value="[CN]#L3# 방지#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_299$" value="[CN]'김박사와 메소레인저' 가 진행하는 메이플스토리 게임 이벤트에 참여하여 얻을 수 있는 훈장의 이름은?"/>
+  <string name="$SCRIPTSTRING_EVENT_3$" value="人)#l&#13;&#10;#L16#战斗领域3(需要5人以上)(玩家竞争："/>
+  <string name="$SCRIPTSTRING_EVENT_30$" value="现在还没开始上楼上楼4( 109030301 )活动。"/>
+  <string name="$SCRIPTSTRING_EVENT_300$" value="[CN]#L0# 김박사의 보은 훈장#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_301$" value="[CN]#L1# 지구방위대 훈장#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_302$" value="[CN]#L2# 포터의 하룻밤 꿈 훈장#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_303$" value="[CN]#L3# 명예 메소레인저 훈장#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_304$" value="[CN]다음 중 보안본부의 개구쟁이 메소레인저 블루의 취미가 아닌것은 무엇일까요? "/>
+  <string name="$SCRIPTSTRING_EVENT_305$" value="[CN]#L0# 좀비버섯 부적 떼기#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_306$" value="[CN]#L1# 파이어보어에게 물총쏘기#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_307$" value="[CN]#L2# 블록골렘등에 낙서 하기#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_308$" value="[CN]#L3# 루팡의 바나나 뺏어먹기#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_309$" value="[CN]해킹 발생 후 몇일 이내에 고객센터에 신고하여야, 해킹추적 서비스를 받을 수 있을까요?"/>
+  <string name="$SCRIPTSTRING_EVENT_31$" value="可容纳50人入场的上楼上楼5地图( 109030401 )中，已有#r"/>
+  <string name="$SCRIPTSTRING_EVENT_310$" value="[CN]#L0# 1일#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_311$" value="[CN]#L1# 7일#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_312$" value="[CN]#L2# 15일#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_313$" value="[CN]#L3# 30일#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_314$" value="[CN]다음 중 해킹방지를 위해 해서는 안되는 행동은 무엇일까요?"/>
+  <string name="$SCRIPTSTRING_EVENT_315$" value="[CN]#L0# 친한 친구에게만 계정의 비밀번호를 공유했다.#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_316$" value="[CN]#L1# 보안 강화실에 있는 보안예방법을 모두 사용하였다.#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_317$" value="[CN]#L2# 해킹신고 접수 시 임시차단을 요청하였다.#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_318$" value="[CN]#L3# 해킹 발생 후 비밀번호를 즉각 변경하였다.#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_319$" value="[CN]정말 대단하군요. 시간안에 도착하시다니... 조건이 충분해 보이시는데， 메소레인저에 가입하시겠습니까?"/>
+  <string name="$SCRIPTSTRING_EVENT_32$" value="现在还没开始上楼上楼5( 109030401 )活动。"/>
+  <string name="$SCRIPTSTRING_EVENT_320$" value="[CN]거절하시는군요."/>
+  <string name="$SCRIPTSTRING_EVENT_321$" value="[CN]장비창이 한 칸 이상 비었는지 확인하세요."/>
+  <string name="$SCRIPTSTRING_EVENT_322$" value="[CN]님이 1등으로 도착하셨습니다."/>
+  <string name="$SCRIPTSTRING_EVENT_323$" value="[CN]님이 2등으로 도착하셨습니다."/>
+  <string name="$SCRIPTSTRING_EVENT_324$" value="[CN]님이 3등으로 도착하셨습니다."/>
+  <string name="$SCRIPTSTRING_EVENT_325$" value="[CN]기타창이 한 칸 이상 비었는지 확인하세요."/>
+  <string name="$SCRIPTSTRING_EVENT_326$" value="[CN]당신은 이제， 명예 메소레인저입니다. 쉿! 절대 비밀이니 아무에게도 말해서는 안됩니다."/>
+  <string name="$SCRIPTSTRING_EVENT_327$" value="[CN]알 수 없는 오류로 실행할 수 없습니다."/>
+  <string name="$SCRIPTSTRING_EVENT_328$" value="[CN]틀렸어. 공부하라고!"/>
+  <string name="$SCRIPTSTRING_EVENT_329$" value="[CN]자， 그럼 어서 GM에게 힌트를 받아 다음 요원을 만나봐."/>
+  <string name="$SCRIPTSTRING_EVENT_33$" value="可容纳50人入场的向高地地图( 109040000 )中，已有#r"/>
+  <string name="$SCRIPTSTRING_EVENT_330$" value="不知道今天水晶球里会出现什么。&#13;&#10;&#13;&#10;#b#L0#我想知道最近正在进行的活动。#l"/>
+  <string name="$SCRIPTSTRING_EVENT_331$" value="[CN]&#13;&#10;#L0# 나의 출석 빙고판을 확인한다.#l&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_332$" value="目前没有正在进行的活动。"/>
+  <string name="$SCRIPTSTRING_EVENT_333$" value="您好！在冒险岛世界的旅程还愉快吗？&#13;&#10;&#13;&#10;#b"/>
+  <string name="$SCRIPTSTRING_EVENT_334$" value="&#13;&#10;#b#e#L1000# 达成30级奖励#l#n#k&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_335$" value="&#13;&#10;#b#e#L9999# 结束对话#l#n#k&#13;&#10;"/>
+  <string name="$SCRIPTSTRING_EVENT_336$" value="截止时间：2026年9月9日（星期三）23:59"/>
+  <string name="$SCRIPTSTRING_EVENT_337$" value="【30级达成纪念奖励】"/>
+  <string name="$SCRIPTSTRING_EVENT_338$" value="奖励仅可按规定数量, #e#b每个服务器领取一次。&#13;&#10;#r（领取时间："/>
+  <string name="$SCRIPTSTRING_EVENT_339$" value="个）#k#l"/>
+  <string name="$SCRIPTSTRING_EVENT_34$" value="现在还没开始向高地( 109040000 )活动。"/>
+  <string name="$SCRIPTSTRING_EVENT_340$" value=": #（已领取）#k#l"/>
+  <string name="$SCRIPTSTRING_EVENT_341$" value="&#13;&#10;#L9999# 暂时不领取。"/>
+  <string name="$SCRIPTSTRING_EVENT_342$" value="#b您选择的道具为已领取道具。#k"/>
+  <string name="$SCRIPTSTRING_EVENT_343$" value=":##k道具已选中。&#13;&#10;是否使用角色 #b#e&lt;#h0#&gt;#n#k 领取？"/>
+  <string name="$SCRIPTSTRING_EVENT_344$" value="请稍后再来对话。&#13;&#10;奖励设有领取期限，请务必在期限内领取。&#13;&#10;#r（领取期限："/>
+  <string name="$SCRIPTSTRING_EVENT_345$" value="#b您选择的道具为已领取道具。#k&#13;&#10;请选择其他道具。"/>
+  <string name="$SCRIPTSTRING_EVENT_346$" value="#e请输入要领取的数量。#n（"/>
+  <string name="$SCRIPTSTRING_EVENT_347$" value="个）"/>
+  <string name="$SCRIPTSTRING_EVENT_348$" value="装备"/>
+  <string name="$SCRIPTSTRING_EVENT_349$" value="消耗"/>
+  <string name="$SCRIPTSTRING_EVENT_35$" value="可容纳50人入场的OX问答地图( 109020001 )中，已有#r"/>
+  <string name="$SCRIPTSTRING_EVENT_350$" value="设置"/>
+  <string name="$SCRIPTSTRING_EVENT_351$" value="其他"/>
+  <string name="$SCRIPTSTRING_EVENT_352$" value="现金"/>
+  <string name="$SCRIPTSTRING_EVENT_353$" value="装饰"/>
+  <string name="$SCRIPTSTRING_EVENT_354$" value="请确认栏位至少有1个空位。"/>
+  <string name="$SCRIPTSTRING_EVENT_355$" value="发生未知错误，请稍后再试。"/>
+  <string name="$SCRIPTSTRING_EVENT_356$" value="道具已发放，请确认背包。&#13;&#10;&#13;&#10;#e&lt;已领取道具&gt;#b&#13;&#10;#i"/>
+  <string name="$SCRIPTSTRING_EVENT_357$" value="个"/>
+  <string name="$SCRIPTSTRING_EVENT_36$" value="现在还没开始OX问答( 109020001 )活动。"/>
+  <string name="$SCRIPTSTRING_EVENT_37$" value="可容纳50人入场的椰子比赛1地图( 109080000 )中，已有#r"/>
+  <string name="$SCRIPTSTRING_EVENT_38$" value="现在还没开始椰子比赛1( 109080000 )活动。"/>
+  <string name="$SCRIPTSTRING_EVENT_39$" value="可容纳50人入场的椰子比赛2地图( 109080001 )中，已有#r"/>
+  <string name="$SCRIPTSTRING_EVENT_4$" value="人)#l&#13;&#10;#L17#战斗领域4(需要5人以上)(玩家竞争："/>
+  <string name="$SCRIPTSTRING_EVENT_40$" value="现在还没开始椰子比赛1( 109080001 )活动。"/>
+  <string name="$SCRIPTSTRING_EVENT_41$" value="可容纳50人入场的椰子比赛3地图( 109080002 )中，已有#r"/>
+  <string name="$SCRIPTSTRING_EVENT_42$" value="现在还没开始椰子比赛3( 109080002 )活动。"/>
+  <string name="$SCRIPTSTRING_EVENT_43$" value="总共可以容纳40人的#b滚雪球#k地图中入场了#r"/>
+  <string name="$SCRIPTSTRING_EVENT_44$" value="#k人。"/>
+  <string name="$SCRIPTSTRING_EVENT_45$" value="滚雪球( 109060003 )活动目前不在进行。"/>
+  <string name="$SCRIPTSTRING_EVENT_46$" value="总共可以容纳60人的#b滚雪球#k地图中入场了#r"/>
+  <string name="$SCRIPTSTRING_EVENT_47$" value="#k人。"/>
+  <string name="$SCRIPTSTRING_EVENT_48$" value="滚雪球( 109060005 )活动目前不在进行。"/>
+  <string name="$SCRIPTSTRING_EVENT_49$" value="可容纳50人入场的雪球赛地图( 109060001 )中，已有#r"/>
+  <string name="$SCRIPTSTRING_EVENT_5$" value="人)#l&#13;&#10;#L18#战斗领域5(需要5人以上)(玩家竞争："/>
+  <string name="$SCRIPTSTRING_EVENT_50$" value="现在还没开始雪球赛( 109060001 )活动。"/>
+  <string name="$SCRIPTSTRING_EVENT_51$" value="可容纳50人入场的找宝物地图( 109010000 )中，已有#r"/>
+  <string name="$SCRIPTSTRING_EVENT_52$" value="现在还没开始找宝物( 109010000 )活动。"/>
+  <string name="$SCRIPTSTRING_EVENT_53$" value="总共可以容纳60人的#b可乐季节1(难度:低)#k地图中入场了#r"/>
+  <string name="$SCRIPTSTRING_EVENT_54$" value="#k人。"/>
+  <string name="$SCRIPTSTRING_EVENT_55$" value="可乐季节1( 109080010 )活动目前不在进行。"/>
+  <string name="$SCRIPTSTRING_EVENT_56$" value="总共可以容纳60人的#b可乐季节2(难度:中)#k地图中入场了#r"/>
+  <string name="$SCRIPTSTRING_EVENT_57$" value="#k人。"/>
+  <string name="$SCRIPTSTRING_EVENT_58$" value="可乐季节2( 109080011 )活动目前不在进行。"/>
+  <string name="$SCRIPTSTRING_EVENT_59$" value="总共可以容纳60人的#b可乐季节3(难度:高)#k地图中入场了#r"/>
+  <string name="$SCRIPTSTRING_EVENT_6$" value="人)#l&#13;&#10;#L19#取消活动#l#k"/>
+  <string name="$SCRIPTSTRING_EVENT_60$" value="#k人。"/>
+  <string name="$SCRIPTSTRING_EVENT_61$" value="可乐季节3( 109080012 )活动目前不在进行。"/>
+  <string name="$SCRIPTSTRING_EVENT_62$" value="总共可以容纳90人的#b战斗领域1 #k地图中入场了#r"/>
+  <string name="$SCRIPTSTRING_EVENT_63$" value="#k人。(只有5人以上入场时，活动才能进行。)"/>
+  <string name="$SCRIPTSTRING_EVENT_64$" value="战斗领域1( 109090000 )活动目前不在进行。"/>
+  <string name="$SCRIPTSTRING_EVENT_65$" value="总共可以容纳90人的#b战斗领域2 #k地图中入场了#r"/>
+  <string name="$SCRIPTSTRING_EVENT_66$" value="战斗领域2( 109090001 )活动目前不在进行。"/>
+  <string name="$SCRIPTSTRING_EVENT_67$" value="总共可以容纳90人的#b战斗领域3 #k地图中入场了#r"/>
+  <string name="$SCRIPTSTRING_EVENT_68$" value="战斗领域3( 109090002 )活动目前不在进行。"/>
+  <string name="$SCRIPTSTRING_EVENT_69$" value="总共可以容纳90人的#b战斗领域4 #k地图中入场了#r"/>
+  <string name="$SCRIPTSTRING_EVENT_7$" value="门已经打开了. 请点击活动工具人， 进入活动地图"/>
+  <string name="$SCRIPTSTRING_EVENT_70$" value="战斗领域4( 109090003 )活动目前不在进行。"/>
+  <string name="$SCRIPTSTRING_EVENT_71$" value="总共可以容纳90人的#b战斗领域5 #k地图中入场了#r"/>
+  <string name="$SCRIPTSTRING_EVENT_72$" value="战斗领域5( 109090004 )活动目前不在进行。"/>
+  <string name="$SCRIPTSTRING_EVENT_73$" value="你好，我是#b#p9000000##k。天气这么热，不喜欢一个人呆在家里，就跟哥哥一起出来玩。可是我哥哥不知道跑到哪里去了…只有我一个人了。啊~ 哥哥不在好无聊啊…"/>
+  <string name="$SCRIPTSTRING_EVENT_74$" value="那个...如果现在你不忙的话，跟我一起玩儿。好吗？听说在这附近开了非常有意思的的活动，但我不想我一个人去...怎么样？你想不想跟我一起去？"/>
+  <string name="$SCRIPTSTRING_EVENT_75$" value="嗯？你说这是什么样的活动？这就是...&#13;&#10;#b#L0# 是什么样的活动？#l&#13;&#10;#L1# 关于活动给我说明一下。#l&#13;&#10;#L2# 好的。我们快走吧！#l#k"/>
+  <string name="$SCRIPTSTRING_EVENT_76$" value="你好，我是#b#p9000001##k。我跟弟弟#b珀尔#k一起来这儿玩，弟弟说坐下一班船来的，可是我在这里等了好久也没见到他，真奇怪，怎么还没来呢？"/>
+  <string name="$SCRIPTSTRING_EVENT_77$" value="我们虽然是双胞胎，但是常常各自去别的地方。怎么办？活动马上要开始... 已经很多人过去了。可能没有几个空座..."/>
+  <string name="$SCRIPTSTRING_EVENT_78$" value="那个...如果你现在不忙的话，和我一起走，好吗？我想弟弟应该会跟别人一起来。&#13;&#10;#b#L0# 什么样的活动?#l&#13;&#10;#L1# 请你给我说明一下。#l&#13;&#10;#L2# 好！跟我一起走吧！#l#k"/>
+  <string name="$SCRIPTSTRING_EVENT_79$" value="你好？我是#b#p9000011##k。我正在等哥哥们回来...但是，他们怎么都还没来啊？我不想再自己一个人玩下去了。有活动的时候会有很多人来跟我一起玩，所以我不会觉得孤单。因为活动有人员限制，如果不快走，不能参加..."/>
+  <string name="$SCRIPTSTRING_EVENT_8$" value="门打开了。请点击活动工具人，进入活动地图。"/>
+  <string name="$SCRIPTSTRING_EVENT_80$" value="我们虽然是双胞胎，但是常常各自去别的地方。怎么办？活动马上要开始... 已经很多人过去了。可能没有几个空座…"/>
+  <string name="$SCRIPTSTRING_EVENT_81$" value="怎么样？和我一起去活动吧？&#13;&#10;#b#L0# 什么样的活动?#l&#13;&#10;#L1# 请你给我说明一下。#l&#13;&#10;#L2# 好！跟我一起走吧！#l#k"/>
+  <string name="$SCRIPTSTRING_EVENT_82$" value="你好？我是#b#p9000013##k。我正在等哥哥们回来...但是，他们怎么都还没来啊？我不想再自己一个人玩下去了。有活动的时候会有很多人来跟我一起玩，所以我不会觉得孤单。因为活动有人员限制，如果不快走，不能参加了..."/>
+  <string name="$SCRIPTSTRING_EVENT_83$" value="我们虽然是亲戚，但是常常各自去别的地方。怎么办？活动马上要开始... 已经很多人过去了。可能没有几个空座..."/>
+  <string name="$SCRIPTSTRING_EVENT_84$" value="非常高兴你能来，我们为你准备了许多有趣的活动！建议你查看活动说明以便了解活动规则。这些活动是由管理员开启才能进行，否则将不能进入专用的活动地图。有些活动是个人赛，有些需要团队合作，还会有丰富的奖品等着你。祝你好运！"/>
+  <string name="$SCRIPTSTRING_EVENT_85$" value="在活动得到了冠军，就有金币或道具等多种多样的奖品。"/>
+  <string name="$SCRIPTSTRING_EVENT_86$" value="我们准备各种各样的活动。先了解游戏规吧。想了解的游戏，请选择~!&#13;&#10;#b#L0# 上楼上楼#l&#13;&#10;#L1# 向高地#l&#13;&#10;#L2# 雪球赛#l&#13;&#10;#L3# 椰子比赛#l&#13;&#10;#L4# 快速OX问答#l&#13;&#10;#L5# 寻找宝物#l&#13;&#10;#L6# 群羊牧场#l#k"/>
+  <string name="$SCRIPTSTRING_EVENT_87$" value="#b[上楼上楼]是一种类似爬梯子游戏的。#k方法是，爬上梯子后，在许多的入口当中，选择其中一个，接着往下一阶段移动。&#13;&#10;&#13;&#10;一共有3个阶段，#r时间限制是6分钟#k。在[上楼上楼]游戏内#b不能使用跳跃，缩地大法，轻功，提高速度的药水，道具等。#k其中有的入口，会使玩家移动到别地方。请你小心点儿。"/>
+  <string name="$SCRIPTSTRING_EVENT_88$" value="#b[向高地]是一种障碍赛跑游戏。#k与金银岛的沉睡森林和忍苦树林差不多。只要在时间限制之内，克服所有的难关，到达终点，就会得到冠军。&#13;&#10;&#13;&#10;游戏有4个阶段。#b时间限制是15分钟#k。在[向高地]游戏里不能使用缩地大法和轻功。"/>
+  <string name="$SCRIPTSTRING_EVENT_89$" value="#b[雪球赛]#k是分两个队伍进行的比赛#b把雪球送到最远地方的队就获胜#k。如果在规定时间内没有队伍到终点，那么雪球距离起点最远的队就获胜。&#13;&#10;&#13;&#10;接近雪球后进行攻击(默认：Ctrl键)雪球就会慢慢前进。远距离攻击和所有的技能攻击都无效，只有近距离攻击才有效。&#13;&#10;&#13;&#10;要是角色的身体接触了雪球，他就被送到起点。如果攻击位于起点的雪人，可以妨碍对方雪球的前进。大家需要好好商量谁打雪球，谁打雪人。"/>
+  <string name="$SCRIPTSTRING_EVENT_9$" value="门打开了。请点击活动工具人，进入活动地图。"/>
+  <string name="$SCRIPTSTRING_EVENT_90$" value="#b[椰子比赛]#k是分两个队伍进行的比赛#b在规定时间内获取椰子最多的队就获胜#k。游戏的#r时间限制是5分钟#k。如果第一次结果是平局的话，需要加赛2分钟。如果还没有分出胜负，比赛就以平局结束。&#13;&#10;&#13;&#10;不能使用远距离攻击和技能攻击，只有#r近距离攻击才有效#k。要是你没有近距离攻击的武器，可以找活动地图里的工具人购买。不管角色的等级和武器的种类攻击力都一样。&#13;&#10;&#13;&#10;地图的很多地方有障碍物和陷阱。如果角色死掉，该角色将离开活动地图。椰子掉下的时候最后打的人就获得椰子。只有掉下的椰子才计算分数，不掉下的或破坏的不算分数。地图的下面有隐藏的跳转点。你好好使用吧。"/>
+  <string name="$SCRIPTSTRING_EVENT_91$" value="#b[快速OX问答]#k是判断问题的答案对错的游戏。参加游戏后，按M键可以打开小地图，查看O和X的位置。答对所有问题即可获胜。&#13;&#10;&#13;&#10;阅读问题后，沿着梯子到达自己认为是正确答案的位置。必须在限定时间内做出选择。如果未选中正确答案，或悬挂在梯子上，在记分时会自动按失败处理。请一定要在画面上的[回答正确]消失之后，再进行移动。"/>
+  <string name="$SCRIPTSTRING_EVENT_92$" value="#b[寻找宝物]#k游戏是在10分钟之内从这里找到隐藏的#b宝物文件#k。这里处处有神秘的宝物箱。打破箱子会爆出来多样的道具，其中重要的是宝物文件。&#13;&#10;&#13;&#10;打宝物箱的时候只能用一般攻击。找到宝物文件后交给工具人，他会换给你恶魔卷轴。该工具人在这里有，如果你愿意，在明珠港的#b[贝干]#k也可以交换。&#13;&#10;&#13;&#10;在这个游戏里存在很多秘密传送点。你在某个地方停下，按下#b↑键#k就可以到另一个地方。也有秘密梯和绳子，虽然什么也看不见，你去试试吧。还有的宝物箱能让你移动到别的地方。这样你可以发现更多的宝物箱。&#13;&#10;&#13;&#10;请注意在寻找宝物的游戏里不能使用技能。"/>
+  <string name="$SCRIPTSTRING_EVENT_93$" value="#b[群羊牧场]#k游戏是分为羊阵营和狼阵营，在限定时间内看剩余人数谁多谁少的游戏。"/>
+  <string name="$SCRIPTSTRING_EVENT_94$" value="可能在背包的其他窗里没有空间？你要保证一个以上的空格，才可以收到#b#t4000038##k啊！"/>
+  <string name="$SCRIPTSTRING_EVENT_95$" value="活动还没开始，或已经带着#t4031019#，或活动人数已满，就无法参加活动。以后再来一起玩吧~"/>
+  <string name="$SCRIPTSTRING_EVENT_96$" value="你没有票或, 或活动还没开始，或已经带着#t4031019#，或活动人数已满，就无法参加活动。以后再来一起玩吧~"/>
+  <string name="$SCRIPTSTRING_EVENT_97$" value="$$[CN]어떤 연승증명서를 교환해 줄까? &#13;&#10;#b#L0##t4031332# 교환하기(10장)#l&#13;&#10;#L1##t4031333# 교환하기(8장)#l&#13;&#10;#L2##t4031334# 교환하기(6장)#l&#13;&#10;#L3##t4031335# 교환하기(5장)#l&#13;&#10;#L4##t4031336# 교환하기(4장)#l&#13;&#10;#L5##t4031337# 교환하기(3장)#l&#13;&#10;#L6##t4031338# 교환하기(2장)#l&#13;&#10;#L7##t4031339# 교환하기(1장)#l&#13;&#10;#L8##t4031340# 교환하기(1장)#l&#13;&#10;#L9##t4031341# 교환하기(1장)#l"/>
+  <string name="$SCRIPTSTRING_EVENT_98$" value="$$[CN]소비창에 빈칸이 없는건 아닌지 확인해 줘."/>
+  <string name="$SCRIPTSTRING_EVENT_99$" value="$$[CN]아이템으로 교환하기 위해서는 #b#t4031332# 10장#k이 필요하다고."/>
+</imgdir>

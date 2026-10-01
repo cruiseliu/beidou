@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="job4">
+  <string name="$SCRIPTSTRING_JOB4_0$" value="你已经具备了英雄本色。 &#13;&#10;想要转职吗？&#13;&#10;#b#L0# 我想转职为英雄。#l&#13;&#10;#b#L1# 我再想一想。#l"/>
+  <string name="$SCRIPTSTRING_JOB4_1$" value="你已经具备了英雄本色。 &#13;&#10;想要转职吗？&#13;&#10;#b#L0# 我想转职为圣骑士。#l&#13;&#10;#b#L1# 我再想一想。#l"/>
+  <string name="$SCRIPTSTRING_JOB4_10$" value="这仅仅是一小部分，圣骑士是迅速攻击和防御能力超强的战士。勤于修炼还可以使用新的迅速攻击术，也可以打破属性攻击的界限。"/>
+  <string name="$SCRIPTSTRING_JOB4_100$" value="用#b#t4031450##k破坏上古冰， 流出了冰石的粉末。"/>
+  <string name="$SCRIPTSTRING_JOB4_101$" value="因为有一些无法得知的原因，无法让各位进入。 过会儿，请重新尝试。"/>
+  <string name="$SCRIPTSTRING_JOB4_102$" value="你原来没有组队啊。 组队后才可以挑战哦。"/>
+  <string name="$SCRIPTSTRING_JOB4_103$" value="你的组队人数不是2名，所以无法做任务。请调整为2名。"/>
+  <string name="$SCRIPTSTRING_JOB4_104$" value="你的组队成员中有等级没达到120以上的成员。 请调整好等级。"/>
+  <string name="$SCRIPTSTRING_JOB4_105$" value="已经有其他队伍在里面做任务。 过会儿，请重新尝试。"/>
+  <string name="$SCRIPTSTRING_JOB4_106$" value="组队成员的职业不是魔导师或者组队成员不是2名而无法进入。"/>
+  <string name="$SCRIPTSTRING_JOB4_107$" value="已经拥有#b#t4031470##k。 没必要进入死亡使者之屋。"/>
+  <string name="$SCRIPTSTRING_JOB4_108$" value="组队长可以申请入场。"/>
+  <string name="$SCRIPTSTRING_JOB4_109$" value="不知道你在说什么。"/>
+  <string name="$SCRIPTSTRING_JOB4_11$" value="你能成为哪一种圣骑士，全部靠你自己的修炼，切记！"/>
+  <string name="$SCRIPTSTRING_JOB4_110$" value="已经拥有#b#t4031469##k。 没必要进入死亡使者之屋。"/>
+  <string name="$SCRIPTSTRING_JOB4_111$" value="你的属性好像没必要去死亡使者之屋?"/>
+  <string name="$SCRIPTSTRING_JOB4_112$" value="因为有一些无法得知的原因，无法让各位进入。 请稍后再尝试。"/>
+  <string name="$SCRIPTSTRING_JOB4_113$" value="你的组队人数不是2名，所以无法做任务。请调整为2名。"/>
+  <string name="$SCRIPTSTRING_JOB4_114$" value="你的组队成员中有等级没达到120以上的成员。 请调整好等级。"/>
+  <string name="$SCRIPTSTRING_JOB4_115$" value="已经有其他队伍在里面做任务。 过会儿，请重新尝试。"/>
+  <string name="$SCRIPTSTRING_JOB4_116$" value="组队成员的职业不是箭神或者组队成员不是2名而无法进入。"/>
+  <string name="$SCRIPTSTRING_JOB4_117$" value="4次转职的弓箭手2名组队，组队长跟我说话哦"/>
+  <string name="$SCRIPTSTRING_JOB4_118$" value="不知道你在说什么。"/>
+  <string name="$SCRIPTSTRING_JOB4_119$" value="已经拥有火凤凰的卵，而无法进入"/>
+  <string name="$SCRIPTSTRING_JOB4_12$" value="从现在开始，你就是最勇猛的战士#b黑骑士#k了。可以消灭多数敌人的 #b突进#k技能和 #b稳如泰山#k或者和 #b阿基里斯#k技能结合，在战场上给你战无不胜的勇气。"/>
+  <string name="$SCRIPTSTRING_JOB4_120$" value="没有火凤凰的卵，而无法进入。"/>
+  <string name="$SCRIPTSTRING_JOB4_121$" value="没有冰凤凰的卵，而无法进入。"/>
+  <string name="$SCRIPTSTRING_JOB4_122$" value="已经拥有冰凤凰的卵，而无法进入"/>
+  <string name="$SCRIPTSTRING_JOB4_123$" value="组队成员的职业不是战士或者组队成员不是2名而无法进入。"/>
+  <string name="$SCRIPTSTRING_JOB4_124$" value="4次转职的战士2名组队，组队长跟我说话哦。"/>
+  <string name="$SCRIPTSTRING_JOB4_125$" value="好，我把你送到盾牌的修炼场，到那里再跟我说话吧。"/>
+  <string name="$SCRIPTSTRING_JOB4_126$" value="去修炼场之前有件事情要告诉你。 去盾牌的修炼场的时候一定要装备好我给你的#b#t1092041##k，不然的话会死掉哦。 "/>
+  <string name="$SCRIPTSTRING_JOB4_127$" value="去修炼场之前别忘了#r装备盾牌#k! &#13;&#10;#b#L0#想得到#t1092041#。 #l&#13;&#10;#L1# 让我进去#m924000001#。 #l&#13;&#10;#L2#从这个地方送我出去。#l"/>
+  <string name="$SCRIPTSTRING_JOB4_128$" value="成功卸下来学习技能型盾。"/>
+  <string name="$SCRIPTSTRING_JOB4_129$" value="装备窗没有空位无法给你 #t1092041##k。 留出空间后再跟我对话。"/>
+  <string name="$SCRIPTSTRING_JOB4_13$" value="这仅仅是一小部分，黑骑士最善于利用黑暗力量的战士。勤于修炼可以借用黑暗力量发挥超出想象的强大的攻击，还可以召唤黑暗的存在。"/>
+  <string name="$SCRIPTSTRING_JOB4_130$" value="已经给了#t1092041#，请查收一下。 进修炼场之前一定要装备好!"/>
+  <string name="$SCRIPTSTRING_JOB4_131$" value="已经拥有#t1092041##k。 不需要再拿。"/>
+  <string name="$SCRIPTSTRING_JOB4_132$" value="其他玩家在任务进行中，所以无法入场。 请稍后再试。"/>
+  <string name="$SCRIPTSTRING_JOB4_133$" value="从这里出去么?"/>
+  <string name="$SCRIPTSTRING_JOB4_134$" value="从这里让你出去。 出去的时候要反还#t1092041#。"/>
+  <string name="$SCRIPTSTRING_JOB4_135$" value="好啊，那我送你去盾牌的修炼场。 去那里再跟我对话吧。"/>
+  <string name="$SCRIPTSTRING_JOB4_136$" value="盾牌的修炼场? 在哪里听过?"/>
+  <string name="$SCRIPTSTRING_JOB4_137$" value="其他角色在执行任务中，而无法进入..."/>
+  <string name="$SCRIPTSTRING_JOB4_138$" value="已经搞到杉峰的信物，不需要再次进入。"/>
+  <string name="$SCRIPTSTRING_JOB4_139$" value="没有得到杉峰的信物，无法进入。"/>
+  <string name="$SCRIPTSTRING_JOB4_14$" value="你能成为哪一种黑骑士，全部靠你自己的修炼，切记！"/>
+  <string name="$SCRIPTSTRING_JOB4_140$" value="真的很感谢护送我，托你的福能顺利完成了任务，现在出去后再跟我对话吧。"/>
+  <string name="$SCRIPTSTRING_JOB4_141$" value="其他窗口没有空间而不能给道具。 留出足够的空间后再跟我对话吧。"/>
+  <string name="$SCRIPTSTRING_JOB4_142$" value="还没有护卫泰勒斯。"/>
+  <string name="$SCRIPTSTRING_JOB4_143$" value="队伍中没有4次转职的成员就无法入场。"/>
+  <string name="$SCRIPTSTRING_JOB4_144$" value="因无法得知的原因，而无法进入。 请稍后再尝试。"/>
+  <string name="$SCRIPTSTRING_JOB4_145$" value="你还没有组队。组队了才能挑战。"/>
+  <string name="$SCRIPTSTRING_JOB4_146$" value="你的组队成员中有等级没达到120以上的成员。 请调整好等级。"/>
+  <string name="$SCRIPTSTRING_JOB4_147$" value="已经有其他队伍在里面做任务。 过会儿，请重新尝试。"/>
+  <string name="$SCRIPTSTRING_JOB4_148$" value="没有#b#t4000175##k就无法进入次元空间。"/>
+  <string name="$SCRIPTSTRING_JOB4_149$" value="已经收集#b#t4031472##k40个就不必再搜集。"/>
+  <string name="$SCRIPTSTRING_JOB4_15$" value="你还没有做好4转职的准备。做备好了再跟我谈谈吧！"/>
+  <string name="$SCRIPTSTRING_JOB4_150$" value="组队长能申请入场，你们的组队长请跟我对话。"/>
+  <string name="$SCRIPTSTRING_JOB4_151$" value="次元空间? 在哪里听过?"/>
+  <string name="$SCRIPTSTRING_JOB4_152$" value="其他窗口没有空间而无法放入枫叶珠。 其他窗口请留出新空间，重新尝试。"/>
+  <string name="$SCRIPTSTRING_JOB4_153$" value="枫叶被透明的玻璃球吸进。"/>
+  <string name="$SCRIPTSTRING_JOB4_154$" value="其他窗口没有空间而无法把圣水放进圣杯里。 请在其他窗留出足够空间，重新尝试。"/>
+  <string name="$SCRIPTSTRING_JOB4_155$" value="打好圣水了。"/>
+  <string name="$SCRIPTSTRING_JOB4_156$" value="已经拥有#bt4031455##k。"/>
+  <string name="$SCRIPTSTRING_JOB4_157$" value="准备好了吗？那就在两分钟的时间里接受我的攻击吧。我不会让着你的……你自求多福吧。呵呵~"/>
+  <string name="$SCRIPTSTRING_JOB4_158$" value="不知道谁正用着训练场，好像要稍微等一会儿了。"/>
+  <string name="$SCRIPTSTRING_JOB4_159$" value="很优秀吧？关于这次考试的事情从这里出去以后在外面说吧。"/>
+  <string name="$SCRIPTSTRING_JOB4_16$" value="你还很弱，想成为顶级的战士还有点儿距离。等你变得足够强的时候，再来找我。"/>
+  <string name="$SCRIPTSTRING_JOB4_160$" value="好好把考试完成然后回来啊。"/>
+  <string name="$SCRIPTSTRING_JOB4_161$" value="考试还没有结束。"/>
+  <string name="$SCRIPTSTRING_JOB4_162$" value="准备好回到原来的世界了吗？次元的空间已经打开了。因为是第一次试验有可能会失败的。不过我还是有自信不会失败。我一定会把你送回原来的世界的。"/>
+  <string name="$SCRIPTSTRING_JOB4_163$" value="好了，在走进次元空间之前想想你现在在的这个世界和要回去的世界吧。这样的话次元空间里的力量会把你引导回那个地方的。好了，我们在未来见吧。"/>
+  <string name="$SCRIPTSTRING_JOB4_164$" value="你说原来的世界？"/>
+  <string name="$SCRIPTSTRING_JOB4_165$" value="好了！那么我要出第一个问题了。紧张吧。是一道比较难的问题。这个问题是从海鸥们觉得难的问题里选出来的一道。很高难度的。"/>
+  <string name="$SCRIPTSTRING_JOB4_166$" value="有一天，我为了填饱肚子在海边钓了20条刀鱼。但是基德又送给了我15条刀鱼当礼物！！那么我现在一共有多少条刀鱼呢？"/>
+  <string name="$SCRIPTSTRING_JOB4_167$" value="不会吧！居然有这么聪明的人！！居然会算两位数的加法……真不简单！！在我们海鸥的世界里数学这么好的话连博士学位都可以拿到的。真是个厉害的人啊……真让人惊讶~真惊讶！"/>
+  <string name="$SCRIPTSTRING_JOB4_168$" value="问题确实有一点难了。不过为了得到我们的认证，还是要有能解开这种问题的智慧的。我有点失望啊。"/>
+  <string name="$SCRIPTSTRING_JOB4_169$" value="这世界上有很多人，可是最强大最勇敢的人却只有一个，这个人是谁呢？"/>
+  <string name="$SCRIPTSTRING_JOB4_17$" value="你已经成为战士的最高境界 #b英雄#k了。强悍的力量伴随着强大的责任。为了追求更高的境界，希望你能坚强地克服遇到的种种磨练..."/>
+  <string name="$SCRIPTSTRING_JOB4_170$" value="海鸥爷爷。"/>
+  <string name="$SCRIPTSTRING_JOB4_171$" value="哈哈哈~！只是看了看我就知道了啊……你还挺有看人的眼光的。果然没让我失望啊！"/>
+  <string name="$SCRIPTSTRING_JOB4_172$" value="有一天，我为了填饱肚子在海边钓了62条章鱼。但是基德又送给了我10条章鱼当礼物！！那么我现在一共有多少条章鱼呢？"/>
+  <string name="$SCRIPTSTRING_JOB4_173$" value="这世界上有很多人，可是最有正义的人却只有一个，这个人是谁呢？"/>
+  <string name="$SCRIPTSTRING_JOB4_174$" value="好了~那现在我要出第二道问题了。这道问题更难了。这次是和巴特一起做的一道题。你知道巴特吧？"/>
+  <string name="$SCRIPTSTRING_JOB4_175$" value="我会把你送到诺特勒斯号的一个空房间里。那里有9个巴特。哈哈哈……你问我巴特是不是多胞胎？当然不是了。我只不过是为了考试稍微使用了一下魔法而已。"/>
+  <string name="$SCRIPTSTRING_JOB4_176$" value="反正9个巴特里只有1个是真的。海盗是在友情和同伴感情支持下可以发挥出强大力量的人们。你想当一个真正的海盗的话那一定能很快找到自己的同伴吧？好了，现在就去巴特在的那个房间吧。"/>
+  <string name="$SCRIPTSTRING_JOB4_177$" value="已经有人在考试了。因为一次只能有一个人考试，请稍微等一下吧。"/>
+  <string name="$SCRIPTSTRING_JOB4_178$" value="好了~现在是最后一个问题。这次也是需要去别的地方考试的。"/>
+  <string name="$SCRIPTSTRING_JOB4_179$" value="要去圣瑞尼亚城城门的门卫那里进行考试。通过了门卫的考试的话你就会成为海盗的一员，并成为我们海鸥的朋友。好了，那么我要把你送到考试地点去了。"/>
+  <string name="$SCRIPTSTRING_JOB4_18$" value="你已经成为战士的最高境界 #b圣骑士#k了。强悍的力量伴随着强大的责任。为了追求更高的境界，希望你能坚强地克服遇到的种种磨练..."/>
+  <string name="$SCRIPTSTRING_JOB4_180$" value="你已经通过了所有考试。祝贺你！"/>
+  <string name="$SCRIPTSTRING_JOB4_181$" value="很容易就把巴特找出来了啊。不过因为是海盗同伴，能找出来是当然的事情。不过最近的年轻人对自己的同伴都不太关心，我还真有点担心……现在知道你不是这样的年轻人，我就放心了。"/>
+  <string name="$SCRIPTSTRING_JOB4_182$" value="第二次考试也通过了……只剩下最后一次考试了。准备好最后一次考试了以后来找我吧。"/>
+  <string name="$SCRIPTSTRING_JOB4_183$" value="还没有找到巴特吗？果然是假的和真的太相像了……不过再仔细看一次吧。现在我要把你送到巴特的房间了。"/>
+  <string name="$SCRIPTSTRING_JOB4_184$" value="哈哈~至于见到你了。很高兴见到你。首先我做一下自我介绍。我是海鸥们的帝王海鸥爷爷3世。叫我海鸥爷爷就行了。我治理海鸥王国已经快要1000年的时间了。我想见你的理由应该说就是作为海盗谁都要具有的意识吗？就是为了这个想见你的。"/>
+  <string name="$SCRIPTSTRING_JOB4_185$" value="我们海鸥们和海盗之间有很深厚的友谊。现在你也成为了海盗我们也会产生友谊的。不过！！！是有条件的。我们海鸥喜欢并尊敬聪明的人。我们觉得只有发光的智能才能算真正强大。所以如果你能回答上来我出的问题我们海鸥就会承认你的。"/>
+  <string name="$SCRIPTSTRING_JOB4_186$" value="你觉得你的智慧够了的话再来找我吧。知道了吗？"/>
+  <string name="$SCRIPTSTRING_JOB4_187$" value="你是和我们海鸥分享真正友谊的同盟！"/>
+  <string name="$SCRIPTSTRING_JOB4_188$" value="谁在和我说话？无聊的话去找别人说话去。"/>
+  <string name="$SCRIPTSTRING_JOB4_189$" value="你通过了我的考试。我已经向海鸥爷爷说了你的情况。我会把你重新送回到海鸥爷爷那里，你要好好跟他聊聊。"/>
+  <string name="$SCRIPTSTRING_JOB4_19$" value="你已经成为战士的最高境界 #b黑骑士#k了。强悍的力量伴随着强大的责任。为了追求更高的境界，希望你能坚强地克服遇到的种种磨练..."/>
+  <string name="$SCRIPTSTRING_JOB4_190$" value="我是守护圣门的门卫。我已经从海鸥爷爷那里听说了你的事情。从现在开始你要接受我的考试了。我给你说一下考试内容。"/>
+  <string name="$SCRIPTSTRING_JOB4_191$" value="这个地方的石像全部都是我的分身。我从现在开始移动石像。我会跟着移动的痕迹移动。如果你把我的痕迹都找出来了的话你就通过这次考试了。"/>
+  <string name="$SCRIPTSTRING_JOB4_192$" value="会有"/>
+  <string name="$SCRIPTSTRING_JOB4_193$" value="个铜像闪烁。你好好记住顺序然后击破以后再来找我。"/>
+  <string name="$SCRIPTSTRING_JOB4_194$" value="有智慧的人啊，你对了。请到下一个台阶去吧。"/>
+  <string name="$SCRIPTSTRING_JOB4_195$" value="你通过了圣门门卫第1阶段的考试。"/>
+  <string name="$SCRIPTSTRING_JOB4_196$" value="你通过了圣门门卫第2阶段的考试。"/>
+  <string name="$SCRIPTSTRING_JOB4_197$" value="真是太优秀了！你已经通过了我所有的考试。"/>
+  <string name="$SCRIPTSTRING_JOB4_198$" value="你通过了圣门门卫所有的考试。"/>
+  <string name="$SCRIPTSTRING_JOB4_199$" value="击破铜像后来跟我说话。"/>
+  <string name="$SCRIPTSTRING_JOB4_2$" value="你已经具备了英雄本色。 &#13;&#10;想要转职吗？&#13;&#10;#b#L0# 我想转职为黑骑士。#l&#13;&#10;#b#L1# 我再想一想。#l"/>
+  <string name="$SCRIPTSTRING_JOB4_20$" value="找我有什么事？好像没有什么我能帮你的..."/>
+  <string name="$SCRIPTSTRING_JOB4_200$" value="错了。如果想再试一次的话就跟我说。"/>
+  <string name="$SCRIPTSTRING_JOB4_201$" value="你没有通过圣门门卫的考试。"/>
+  <string name="$SCRIPTSTRING_JOB4_202$" value="谢谢你帮我。好了，我去东边找找。请你帮我去西边附近找找。我会把你送到武陵附近的。虽然很谢谢你帮了我不过这是很基本的了。找到红粉天书的话一定要救出她啊！！"/>
+  <string name="$SCRIPTSTRING_JOB4_203$" value="托你的福红粉天书已经安全救出来了。真是谢谢你。因为红粉天书的救出，把怪兽们从恶势力中解放出来也变得更简单了。"/>
+  <string name="$SCRIPTSTRING_JOB4_204$" value="突然找我有什么事啊？"/>
+  <string name="$SCRIPTSTRING_JOB4_205$" value="嘿！你是谁？是受了秀林茨托付而来的吗？你是为了救我们而来的吗？真是好感动啊。好了，快点从这个地方跑出去吧。如果知道你来到这里的话他们就不会不管不问了。他们可能会追过来的，你一定要救救我们啊。"/>
+  <string name="$SCRIPTSTRING_JOB4_206$" value="啊！他们已经追到附近了！从那边跟他们对抗的话比较好。如果不这样的话他们会一直追的。适当的对抗一下的话他们就会放弃的。拿出力气来抵挡一下他们的攻击吧。"/>
+  <string name="$SCRIPTSTRING_JOB4_207$" value="有人把守着能逃出去的地方呢。稍微等一下找个空隙溜出去吧。"/>
+  <string name="$SCRIPTSTRING_JOB4_208$" value="谢谢。武陵的怪兽追着我们还一直把我们送到诺特勒斯号上……到了这里我们就安心了。放松一下身体和天书爷爷见面后还要再回一次武陵。我不能把陷在恶势力里的朋友们留在那里不管。"/>
+  <string name="$SCRIPTSTRING_JOB4_209$" value="从这里出发之前，我有一些话一定要跟让我觉得很亲切的你说。"/>
+  <string name="$SCRIPTSTRING_JOB4_21$" value="你已经具备了英雄本色。 &#13;&#10;想要转职吗？&#13;&#10;#b#L0# 我想转职为魔导师。#l&#13;&#10;#b#L1# 我再想一想。#l"/>
+  <string name="$SCRIPTSTRING_JOB4_210$" value="好了~那我就出去了。下次再见吧。"/>
+  <string name="$SCRIPTSTRING_JOB4_211$" value="虽然不知道你是谁，不过还是谢谢你救了我。先从这里出去吧。"/>
+  <string name="$SCRIPTSTRING_JOB4_212$" value="和红粉天书一起回诺特勒斯号。"/>
+  <string name="$SCRIPTSTRING_JOB4_213$" value="红粉天书还不能把武陵的怪兽们都消灭掉。"/>
+  <string name="$SCRIPTSTRING_JOB4_214$" value="没有找到红粉天书吗？呃……去别的地方找找吧。难道不再找了吗？"/>
+  <string name="$SCRIPTSTRING_JOB4_215$" value="好吧~那就再找一次。"/>
+  <string name="$SCRIPTSTRING_JOB4_216$" value="那也就只能这样了。从这里出去吧。"/>
+  <string name="$SCRIPTSTRING_JOB4_22$" value="你已经具备了英雄本色。 &#13;&#10;想要转职吗？&#13;&#10;#b#L0# 我想转职为主教。#l&#13;&#10;#b#L1# 我再想一想。#l"/>
+  <string name="$SCRIPTSTRING_JOB4_23$" value="这是你能成为顶级魔法师的最佳机会，不要犹豫不决...什么时候下定决心了再来找我。只要你准备好了，我随时能帮你4转职。"/>
+  <string name="$SCRIPTSTRING_JOB4_24$" value="呜...你的#b技能点#k太多了。技能点太多无法进行4转职。"/>
+  <string name="$SCRIPTSTRING_JOB4_25$" value="消耗栏没有空格无法进行转职，请增加空格之后再试一试。"/>
+  <string name="$SCRIPTSTRING_JOB4_26$" value="你已经成为最高级别的魔法师 #b魔导师#k了。魔导师不仅可以利用自己魔力发挥#b终极无限#k和#b创世之破#k等技能，还可以运用超自然的能力。"/>
+  <string name="$SCRIPTSTRING_JOB4_27$" value="这只是魔导师能力的一小部分，魔导师可以自由自在的驱使火性和毒性。勤于修炼不仅可以达到终极法力，还可以随意变换自己或敌人的属性。"/>
+  <string name="$SCRIPTSTRING_JOB4_28$" value="你能成为哪一种魔导师，全部靠你自己的修炼，切记！"/>
+  <string name="$SCRIPTSTRING_JOB4_29$" value="你已经成为最高级别的魔法师 #b魔导师#k了。魔导师不仅可以利用自己魔力发挥#b终极无限#k和#b创世之破#k等技能，还可以运用超自然的能力。"/>
+  <string name="$SCRIPTSTRING_JOB4_3$" value="这是你能成为勇士的最佳机会，不要犹豫不决...什么时候下定决心了再来找我。只要你准备好了，我随时能帮你4转职。"/>
+  <string name="$SCRIPTSTRING_JOB4_30$" value="这只是魔导师能力的一小部分，魔导师可以自由自在的驱使雷性和冰性。勤于修炼不仅可以达到终极法力，还可以随意变换自己或敌人的属性。"/>
+  <string name="$SCRIPTSTRING_JOB4_31$" value="你已经成为最高级别的魔法师 #b主教#k了。魔导师不仅可以利用自己魔力发挥#b终极无限#k和#b创世之破#k等技能，还可以运用超自然的能力。"/>
+  <string name="$SCRIPTSTRING_JOB4_32$" value="这只是主教能力的一小部分，主教可以借用神的力量。勤于修炼不仅可以使用具有神圣力量的法力，还可以让死者复生。"/>
+  <string name="$SCRIPTSTRING_JOB4_33$" value="你能成为哪一种主教，全部靠你自己的修炼，切记！"/>
+  <string name="$SCRIPTSTRING_JOB4_34$" value="你还没有做好4转职的准备。做备好了再跟我谈谈吧！"/>
+  <string name="$SCRIPTSTRING_JOB4_35$" value="你还很弱，想成为顶级的魔法师还有点儿距离。等你变得足够强的时候，再来找我。"/>
+  <string name="$SCRIPTSTRING_JOB4_36$" value="你已经成为魔法师的最高境界 #b魔导师#k了。强悍的力量伴随着强大的责任。为了追求更高的境界，希望你能坚强地克服遇到的种种磨练..."/>
+  <string name="$SCRIPTSTRING_JOB4_37$" value="你已经成为魔法师的最高境界 #b主教#k了。强悍的力量伴随着强大的责任。为了追求更高的境界，希望你能坚强地克服遇到的种种磨练..."/>
+  <string name="$SCRIPTSTRING_JOB4_38$" value="找我有什么事？好像没有什么我能帮你的..."/>
+  <string name="$SCRIPTSTRING_JOB4_39$" value="你已经具备了英雄本色。 &#13;&#10;想要转职吗？&#13;&#10;#b#L0# 我想转职为神射手。#l&#13;&#10;#b#L1# 我再想一想。#l"/>
+  <string name="$SCRIPTSTRING_JOB4_4$" value="呜...你的#b技能点#k太多了。技能点太多无法进行4转职。"/>
+  <string name="$SCRIPTSTRING_JOB4_40$" value="你已经具备了英雄本色。 &#13;&#10;想要转职吗？&#13;&#10;#b#L0# 我想转职为弓箭手。#l&#13;&#10;#b#L1# 我再想一想。#l"/>
+  <string name="$SCRIPTSTRING_JOB4_41$" value="你已经通过了考试，还这样犹豫不决...什么时候下定决心了再来找我。只要你准备好了，我随时能帮你4转职。"/>
+  <string name="$SCRIPTSTRING_JOB4_42$" value="呜...你的#b技能点#k太多了。技能点太多无法进行4转职。"/>
+  <string name="$SCRIPTSTRING_JOB4_43$" value="消耗栏没有空格无法进行转职，请增加空格之后再试一试"/>
+  <string name="$SCRIPTSTRING_JOB4_44$" value="你已经成为最高级别的弓箭手 #b神射手#k了。神射手能使用#b火眼晶晶#k技能，迅速地提高同伴们的战斗力。成为在组队里不可缺少的重要职业。"/>
+  <string name="$SCRIPTSTRING_JOB4_45$" value="这只是神射手能力的一小部分。神射手擅长于快速的战斗。勤于修炼可以发挥超越想象的速度供给敌人，还具备了惊人的攻击力量。"/>
+  <string name="$SCRIPTSTRING_JOB4_46$" value="你能成为哪一种神射手，全部靠你自己的修炼，切记！"/>
+  <string name="$SCRIPTSTRING_JOB4_47$" value="你已经成为最高级别的弓箭手 #b箭神#k了。箭神能使用#b火眼晶晶#k技能，迅速地提高同伴们的战斗力。成为在组队里不可缺少的重要职业。"/>
+  <string name="$SCRIPTSTRING_JOB4_48$" value="这只是箭神能力的一小部分。箭神善于一击致命。勤于修炼可以一次发出强烈的攻击力，一击消灭多数敌人"/>
+  <string name="$SCRIPTSTRING_JOB4_49$" value="你能成为哪一种箭神，全部靠你自己的修炼，切记！"/>
+  <string name="$SCRIPTSTRING_JOB4_5$" value="消耗栏没有空格无法进行转职，请增加空格之后再试一试。"/>
+  <string name="$SCRIPTSTRING_JOB4_50$" value="你还没有做好4转职的准备。做备好了再跟我谈谈吧！"/>
+  <string name="$SCRIPTSTRING_JOB4_51$" value="你还很弱，想成为顶级的弓箭手还有点儿距离。等你变得足够强的时候，再来找我。"/>
+  <string name="$SCRIPTSTRING_JOB4_52$" value="你已经成为弓箭手的最高境界 #b神射手#k了。强悍的力量伴随着强大的责任。为了追求更高的境界，希望你能坚强地克服遇到的种种磨练..."/>
+  <string name="$SCRIPTSTRING_JOB4_53$" value="你已经成为弓箭手的最高境界 #b箭神#k了。强悍的力量伴随着强大的责任。为了追求更高的境界，希望你能坚强地克服遇到的种种磨练..."/>
+  <string name="$SCRIPTSTRING_JOB4_54$" value="你已经具备了作为英雄的条件。 &#13;&#10;现在要转职吗？&#13;&#10;#b#L0# 我想转为隐士。#l&#13;&#10;#b#L1# 需要再三考虑一下。#l"/>
+  <string name="$SCRIPTSTRING_JOB4_55$" value="你已经具备了作为英雄的条件。 &#13;&#10;现在要转职吗？&#13;&#10;#b#L0# 我想转为侠盗。#l&#13;&#10;#b#L1# 需要再三考虑一下。#l"/>
+  <string name="$SCRIPTSTRING_JOB4_56$" value="为了成为超强的飞侠，用不着考虑太多... 要是决定好了，随时欢迎 要是准备好了，就马上帮你4次转职。"/>
+  <string name="$SCRIPTSTRING_JOB4_57$" value="恩... 你携带太多的#b技能点#k.有那么多技能点的状态下，无法4次转职哟。"/>
+  <string name="$SCRIPTSTRING_JOB4_58$" value="消耗窗口没空间，无法进行。. 请留出新空间，重新尝试."/>
+  <string name="$SCRIPTSTRING_JOB4_59$" value="现在你成为超强的飞侠 #b隐士#k。 隐士擅长以 #b假动作#k躲避敌人的攻击或#b忍者伏击#k召唤隐藏的同伴。"/>
+  <string name="$SCRIPTSTRING_JOB4_6$" value="从现在开始，你就是最勇猛的战士#b英雄#k了。可以消灭多数敌人的 #b突进#k技能和 #b稳如泰山#k或者和 #b阿基里斯#k技能结合，在战场上给你战无不胜的勇气。"/>
+  <string name="$SCRIPTSTRING_JOB4_60$" value="但是这个不是隐士的全部. 隐士擅长快节奏的战斗. 根据修炼程度的不同，一次可以扔更多的飞镖，而且一次也可以对付多个敌人。"/>
+  <string name="$SCRIPTSTRING_JOB4_61$" value="不要忘记你能成为怎样的隐士取决于你的修炼"/>
+  <string name="$SCRIPTSTRING_JOB4_62$" value="现在你成为超强的飞侠 #b侠盗#k。 侠盗以#b假动作#k躲避敌人的攻击或或以#b忍者伏击#k召唤隐藏的同伴。"/>
+  <string name="$SCRIPTSTRING_JOB4_63$" value="但是这个不是侠盗的全部. 侠盗是擅长偷袭的飞侠.根据修炼的不同，可以让敌人无法察觉的情况下攻击，而且在黑暗中也可以把敌人关起来再攻击。"/>
+  <string name="$SCRIPTSTRING_JOB4_64$" value="不要忘记你能成为怎样的侠盗取决于你的修炼。"/>
+  <string name="$SCRIPTSTRING_JOB4_65$" value="你还没有具备第4次转职的条件. 准备好以后再跟我说话。."/>
+  <string name="$SCRIPTSTRING_JOB4_66$" value="作为飞侠你现在还比较弱，变强以后再来找我。"/>
+  <string name="$SCRIPTSTRING_JOB4_67$" value="你已经坐上了飞侠最闪耀的职位 #b隐士#k. 但是越高的位置所担当的责任更重大，希望你能克服眼前的困难，勇往直前..."/>
+  <string name="$SCRIPTSTRING_JOB4_68$" value="你已经坐上了飞侠最闪耀的职位 #b侠盗#k. 但是越高的位置所担当的责任更重大，希望你能克服眼前的困难，勇往直前..."/>
+  <string name="$SCRIPTSTRING_JOB4_69$" value="来找我有什么事么？你好像没有拜托过我什么..."/>
+  <string name="$SCRIPTSTRING_JOB4_7$" value="这仅仅是一小部分，英雄是攻击能力和防御能力均匀的出色的战士。 勤于修炼还可以习得更强化的连环攻击术和可以攻击众多敌人的超强的攻击术。"/>
+  <string name="$SCRIPTSTRING_JOB4_70$" value="你的英雄资质已经证明了。 &#13;&#10;现在想转职吗？我想转职成&#13;&#10;#b#L0# 冲锋队长。&#13;&#10;#b#L1# 我需要一点考虑的时间。"/>
+  <string name="$SCRIPTSTRING_JOB4_71$" value="你的英雄资质已经证明了。现在想转职吗？我想转职成&#13;&#10;#b#L0# 船长。&#13;&#10;#b#L1# 需要一点考虑的时间。"/>
+  <string name="$SCRIPTSTRING_JOB4_72$" value="做一个最优秀的海盗这种事没有什么好犹豫的……有决心的话什么时候跟我说都可以。你准备好了的话直接可以转到4转海盗。"/>
+  <string name="$SCRIPTSTRING_JOB4_73$" value="嗯……你的技能点太多了。在拥有这么多#b技能点#k的状态下不能转职成4转海盗。"/>
+  <string name="$SCRIPTSTRING_JOB4_74$" value="消费窗口现在没有空，不能转职。等到有空以后再来试试吧。"/>
+  <string name="$SCRIPTSTRING_JOB4_75$" value="现在你已经成为最优秀的海盗——#b冲锋队长#k了。冲锋队长可以使乘员们的攻击速度提高或者以#b快得看不见的速度#k破坏攻击敌人。"/>
+  <string name="$SCRIPTSTRING_JOB4_76$" value="不过这还不是冲锋队长的全部。冲锋队长是可以很熟练的使用自己的身体参加战斗的一种海盗。根据自己的修炼程度可以用拳头来击退敌人。"/>
+  <string name="$SCRIPTSTRING_JOB4_77$" value="你会成为什么样的冲锋队长是由你的修炼程度决定的，一定要好好修炼。"/>
+  <string name="$SCRIPTSTRING_JOB4_78$" value="现在你已经成为最优秀的海盗——#b船长#k了。比起掌握整个船只的航行来说更重要的是船长需要使用自己的头脑想法来使战斗向对自己有利的方向拉近。"/>
+  <string name="$SCRIPTSTRING_JOB4_79$" value="不过这还不是船长的全部。船长是不论对一个敌人快速射击还是对很多敌人强力攻击都可以战斗的多才多艺的海盗。根据自己的修炼程度和战斗时的状况使用合适的技巧，可以轻易的击退敌人。"/>
+  <string name="$SCRIPTSTRING_JOB4_8$" value="你能成为哪一种英雄，全都靠你自己的修炼，切记！"/>
+  <string name="$SCRIPTSTRING_JOB4_80$" value="你会成为什么样的船长是由你的修炼程度决定的，一定要好好修炼。"/>
+  <string name="$SCRIPTSTRING_JOB4_81$" value="你还没有做好转职成4转的准备。请你准备好了以后再来吧。"/>
+  <string name="$SCRIPTSTRING_JOB4_82$" value="你想做海盗好像还有点不够强大。再变强大一点以后再来找我吧。"/>
+  <string name="$SCRIPTSTRING_JOB4_83$" value="你已经成长为海盗里地位最高的#b冲锋队长#k了。不过力量越大要担负的责任也就越大，希望你可以继续不断增强自己实力，把你面临的每一次试练都优秀的做好……"/>
+  <string name="$SCRIPTSTRING_JOB4_84$" value="现在你已经成为最优秀的海盗——#b船长#k了。比起掌握整个船只的航行来说更重要的是船长需要使用自己的头脑想法来使战斗向对自己有利的方向拉近。"/>
+  <string name="$SCRIPTSTRING_JOB4_85$" value="来找我有什么事？你应该没有什么可以求我的事情啊……"/>
+  <string name="$SCRIPTSTRING_JOB4_86$" value="其他角色在任务中，无法进入。"/>
+  <string name="$SCRIPTSTRING_JOB4_87$" value="想入场需要神殿之钥匙。"/>
+  <string name="$SCRIPTSTRING_JOB4_88$" value="已经拥有世易兰的盾牌。"/>
+  <string name="$SCRIPTSTRING_JOB4_89$" value="被封印的空间，所以无法进入。"/>
+  <string name="$SCRIPTSTRING_JOB4_9$" value="从现在开始，你就是最勇猛的战士#b圣骑士#k了。可以消灭多数敌人的 #b突进#k技能和 #b稳如泰山#k或者和 #b阿基里斯#k技能结合，在战场上给你战无不胜的勇气。"/>
+  <string name="$SCRIPTSTRING_JOB4_90$" value="现在无法传送。"/>
+  <string name="$SCRIPTSTRING_JOB4_91$" value="冰冷的洞穴里面有人的样子..."/>
+  <string name="$SCRIPTSTRING_JOB4_92$" value="已经拥有卡伦的册子，所以无法进入。"/>
+  <string name="$SCRIPTSTRING_JOB4_93$" value="因为从洞口那边传来的冷气，无法进入。"/>
+  <string name="$SCRIPTSTRING_JOB4_94$" value="门被锁了，无法进入。"/>
+  <string name="$SCRIPTSTRING_JOB4_95$" value="你是克服了黑暗的强者，黑暗无法允许。 "/>
+  <string name="$SCRIPTSTRING_JOB4_96$" value="从门那边感觉到一丝丝恐惧。 门被锁了，无法进入。"/>
+  <string name="$SCRIPTSTRING_JOB4_97$" value="其他窗口没有空间，无法进行下去。 请留出新空间，重新尝试。"/>
+  <string name="$SCRIPTSTRING_JOB4_98$" value="#b#t4031450##k? 要破坏上古冰么?"/>
+  <string name="$SCRIPTSTRING_JOB4_99$" value="消耗窗口请留出空间，重新尝试。"/>
+</imgdir>

@@ -1,0 +1,21 @@
+{
+    "actions": {
+        "swing": 4.8,
+        "stab": 4.8,
+        "shoot": 0
+    },
+    "statRule": {
+        "primary": [
+            "STR"
+        ],
+        "secondary": [
+            "DEX"
+        ]
+    },
+    "itemIdRange": {
+        "from": 1480000,
+        "to": 1489999
+    },
+    "twoHanded": true,
+    "type": "KNUCKLE"
+}

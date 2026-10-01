@@ -1,0 +1,109 @@
+/*
+	This file is part of the OdinMS Maple Story Server
+    Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
+		       Matthias Butz <matze@odinms.de>
+		       Jan Christian Meyer <vimes@odinms.de>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation version 3 as published by
+    the Free Software Foundation. You may not use, modify or distribute
+    this program under any other version of the GNU Affero General Public
+    License.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+package org.gms.net.server.channel.handlers;
+
+import org.gms.client.character.Character;
+import org.gms.client.Client;
+import org.gms.client.Mount;
+import org.gms.client.inventory.InventoryTab;
+import org.gms.client.inventory.InventoryType;
+import org.gms.client.inventory.ItemSlot;
+import org.gms.client.inventory.manipulator.InventoryManipulator;
+import org.gms.constants.game.ExpTable;
+import org.gms.net.AbstractPacketHandler;
+import org.gms.net.packet.InPacket;
+import org.gms.util.PacketCreator;
+
+/**
+ * @author PurpleMadness
+ * @author Ronan
+ */
+public final class UseMountFoodHandler extends AbstractPacketHandler {
+    @Override
+    public boolean queued() {
+        // strand 迁移（doc/13 §20 全量收口）：player 域读写，经 queued 通道归会话 strand。
+        return true;
+    }
+
+
+    @Override
+    public final void handlePacket(InPacket p, Client c) {
+        p.skip(4);
+        short pos = p.readShort();
+        int itemid = p.readInt();
+
+        Character chr = c.getPlayer();
+        Mount mount = chr.getMapleMount();
+        InventoryTab useInv = chr.getInventory(InventoryType.USE);
+
+        if (c.tryacquireClient()) {
+            try {
+                Boolean mountLevelup = null;
+
+                useInv.lockInventory();
+                try {
+                    ItemSlot item = useInv.getItem(pos);
+                    if (item != null && item.getItemId() == itemid && mount != null) {
+                        int curTiredness = mount.getTiredness();
+                        int healedTiredness = Math.min(curTiredness, 30);
+
+                        float healedFactor = (float) healedTiredness / 30;
+                        mount.setTiredness(curTiredness - healedTiredness);
+
+                        if (healedFactor > 0.0f) {
+                            mount.setExp(mount.getExp() + (int) Math.ceil(healedFactor * (2 * mount.getLevel() + 6)));
+                            //坐骑目前等级
+                            int level = mount.getLevel();
+                            //最高等级
+                            int maxMountLevel = ExpTable.getMountMaxLevel();
+                            //是否升级
+                            boolean levelup = false;
+                            //如果没满级
+                            if (level < maxMountLevel) {
+                                //如果经验值达到升级条件
+                                if (mount.getExp() >= ExpTable.getMountExpNeededForLevel(level)) {
+                                    levelup = true;
+                                    mount.setLevel(level + 1);
+                                }
+                            //如果满级
+                            } else if (level == maxMountLevel) {
+                                chr.dropMessage(5, "坐骑已达到最高等级");
+                            }
+
+                            mountLevelup = levelup;
+                        }
+
+                        InventoryManipulator.removeById(c, InventoryType.USE, itemid, 1, true, false);
+                    }
+                } finally {
+                    useInv.unlockInventory();
+                }
+
+                if (mountLevelup != null) {
+                    chr.getMap().broadcastMessage(PacketCreator.updateMount(chr.getId(), mount, mountLevelup));
+                }
+            } finally {
+                c.releaseClient();
+            }
+        }
+    }
+}

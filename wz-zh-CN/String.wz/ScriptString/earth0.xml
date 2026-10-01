@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="earth0">
+  <string name="$SCRIPTSTRING_EARTH0_0$" value="发现了好似是从太空来的陨石，但破坏得太厉害找不到任何有用的东西。"/>
+  <string name="$SCRIPTSTRING_EARTH0_1$" value="发现了好似从太空来的陨石，却是已经被开采过碎片。不能再次开采。你应该调查别的陨石。"/>
+  <string name="$SCRIPTSTRING_EARTH0_2$" value="发现了好似从太空来的陨石，仔细调查后找到了状态良好的碎片。但背包的其他窗里没有空间不能带走。"/>
+  <string name="$SCRIPTSTRING_EARTH0_3$" value="发现了好似从太空来的陨石。仔细调查后就找到了状态良好的碎片。"/>
+</imgdir>

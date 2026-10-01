@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<imgdir name="victoria4">
+  <string name="$SCRIPTSTRING_VICTORIA4_0$" value="什么？你想挑战蝙蝠魔的封印？像你这样的小毛孩去挑战的话，很可能会丢掉性命……不过和我倒是没什么关系。一共需要#b10000金币#k的手续费，你应该有吧？"/>
+  <string name="$SCRIPTSTRING_VICTORIA4_1$" value="没达到50级的小毛孩连去那里的资格都没有。快走开。"/>
+  <string name="$SCRIPTSTRING_VICTORIA4_2$" value="好，你可别怨我。到了之后，你去找我的徒弟#b#p"/>
+  <string name="$SCRIPTSTRING_VICTORIA4_3$" value="##k，就可以参加远征队。"/>
+  <string name="$SCRIPTSTRING_VICTORIA4_4$" value="你拥有的金币不足。连那些钱都没有，还想挑战！快从我眼前消失。"/>
+  <string name="$SCRIPTSTRING_VICTORIA4_5$" value="由于某种奇怪的气息的影响，我现在不能把你送过去。你过一会儿再来找我。"/>
+  <string name="$SCRIPTSTRING_VICTORIA4_6$" value="看来你是个懂得珍惜生命的人。别再来烦我，快走吧。"/>
+</imgdir>
