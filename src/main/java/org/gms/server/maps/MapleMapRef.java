@@ -322,6 +322,11 @@ public final class MapleMapRef {
         shim.post("broadcastCharacterMove", () -> map.broadcastCharacterMove(charId, movements));
     }
 
+    /** 角色完成任务他人流中继：map actor 内按受众逐连接语义投递（同 broadcastCharacterMove 形态） */
+    public void broadcastQuestComplete(int charId) {
+        shim.post("broadcastQuestComplete", () -> map.broadcastQuestComplete(charId));
+    }
+
     /**
      * mob 控制移动应用（player→map 通知，异步）：载荷为不可变 {@link MapleMap.MoveLifeMsg}
      * （零 player 可变状态导航）。本方法在 player strand 上调用——shim 任务体内不得再绕回

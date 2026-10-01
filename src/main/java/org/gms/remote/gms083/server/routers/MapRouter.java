@@ -7,11 +7,13 @@ import org.gms.remote.gms083.Gms083;
 import org.gms.remote.gms083.client.packets.MoveLifePacket;
 import org.gms.remote.gms083.client.packets.MovePlayerPacket;
 import org.gms.remote.gms083.server.packets.SetFieldPacket;
+import org.gms.remote.gms083.server.packets.ShowForeignEffectPacket;
 import org.gms.remote.gms083.server.translators.Filetimes;
 import org.gms.remote.modules.map.client.MapModule;
 import org.gms.remote.modules.map.server.AckMoveMonsterEvent;
 import org.gms.remote.modules.map.server.ChangeMapServerEvent;
 import org.gms.remote.modules.map.server.CharacterMoveEvent;
+import org.gms.remote.modules.map.server.CharacterQuestCompleteEvent;
 import org.gms.remote.modules.map.server.MonsterMoveEvent;
 
 /**
@@ -35,6 +37,9 @@ public final class MapRouter extends MapModule implements ServerEventDest {
         switch (r) {
             case CharacterMoveEvent(var charId, var movements) ->
                     client.send(MovePlayerPacket.relay(charId, movements));
+            case CharacterQuestCompleteEvent(var charId) ->
+                    // 效果码 9 = 任务完成（他人流；本人帧归 quest 域 QuestCompleteEvent）
+                    client.send(new ShowForeignEffectPacket(new ShowForeignEffectPacket.Body.Effect(charId, (byte) 9)));
             case MonsterMoveEvent(var move) ->
                     client.send(new MoveLifePacket.Relay(move.oid(), move.skillPossible(), move.skill(),
                             move.skillId(), move.skillLevel(), move.pOption(), move.startPos(), move.elements()));

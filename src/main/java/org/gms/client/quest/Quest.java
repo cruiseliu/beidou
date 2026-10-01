@@ -25,7 +25,6 @@ import org.gms.client.Player;
 import org.gms.client.character.Character;
 import org.gms.scripting.quest.esm.EsmQuests;
 import org.gms.util.AssertUtil;
-import org.gms.util.PacketCreator;
 import org.gms.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -371,7 +370,7 @@ public class Quest {
         // 完成状态帧 + 完成演出帧：多帧合一次 QuestCompleteEvent（仅本人帧）
         chr.getRemote().quest().questComplete(this);
         // INFO 交付帧历史上在给完奖励后补发（仅非后续任务）——现由 complete() 末尾的 announceQuestNpcDelivery 承担
-        chr.getMapRef().broadcastMessage(chr.ref(), PacketCreator.showForeignEffect(chr.getId(), 9), false); //use 9 instead of 12 for both
+        chr.getMapRef().broadcastQuestComplete(chr.getId()); // 他人流演出（9 = 任务完成，语义归 map 域中继）
         return true;
     }
 

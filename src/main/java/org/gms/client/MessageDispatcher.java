@@ -1,6 +1,7 @@
 package org.gms.client;
 
 import org.gms.client.messages.MapCharacterMoveMessage;
+import org.gms.client.messages.MapQuestCompleteMessage;
 import org.gms.infra.ActorMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,7 @@ public final class MessageDispatcher {
     public void dispatch(ActorMessage msg) {
         switch (msg) {
             case MapCharacterMoveMessage m -> player.remote().map().characterMove(m.charId(), m.movements());
+            case MapQuestCompleteMessage m -> player.remote().map().characterQuestComplete(m.charId());
             case org.gms.client.messages.MapMonsterMoveMessage m -> player.remote().map().monsterMove(m.move());
             default -> log.warn("未知 actor 消息: {}", msg.name());   // 响亮：infra 不封闭，未知类型 = 装配漏配
         }

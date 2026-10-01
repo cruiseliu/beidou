@@ -29,6 +29,7 @@ import org.gms.client.autoban.AutobanFactory;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.messages.MapCharacterMoveMessage;
+import org.gms.client.messages.MapQuestCompleteMessage;
 import org.gms.client.messages.MapMonsterMoveMessage;
 import org.gms.client.pet.Pet;
 import org.gms.client.status.MonsterStatus;
@@ -3219,6 +3220,24 @@ public class MapleMap {
                     continue;
                 }
                 cr.post(new MapCharacterMoveMessage(charId, movements));
+            }
+        } finally {
+            chrRLock.unlock();
+        }
+    }
+
+    /**
+     * 角色完成任务他人流中继（map actor，同 broadcastCharacterMove 形态）：受众=本图非断连
+     * 角色，source 按自持 id 排除；投递为接收方连接视角的语义通知（remote.map().characterQuestComplete）。
+     */
+    public void broadcastQuestComplete(int charId) {
+        chrRLock.lock();
+        try {
+            for (CharacterRef cr : characters) {
+                if (cr.isClientDisconnected() || cr.getId() == charId) {
+                    continue;
+                }
+                cr.post(new MapQuestCompleteMessage(charId));
             }
         } finally {
             chrRLock.unlock();

@@ -5,6 +5,7 @@ import org.gms.remote.modules.map.client.movement.MoveElement;
 import org.gms.remote.modules.map.server.AckMoveMonsterEvent;
 import org.gms.remote.modules.map.server.ChangeMapServerEvent;
 import org.gms.remote.modules.map.server.CharacterMoveEvent;
+import org.gms.remote.modules.map.server.CharacterQuestCompleteEvent;
 import org.gms.remote.modules.map.server.MonsterMoveEvent;
 
 import java.awt.Point;
@@ -25,6 +26,14 @@ public abstract class MapModule extends AbstractModule {
      */
     public final void characterMove(int charId, List<MoveElement> movements) {
         post(new CharacterMoveEvent(charId, movements));
+    }
+
+    /**
+     * 某角色完成了任务（他人流中继，接收方连接视角的语义投递；演出形态归版本实现）。
+     * 由地图域在广播时点对每个接收方调用。
+     */
+    public final void characterQuestComplete(int charId) {
+        post(new CharacterQuestCompleteEvent(charId));
     }
 
     /**

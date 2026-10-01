@@ -55,7 +55,7 @@ public final class PetTranslator {
     }
 
     public ShowForeignEffectPacket petLevelUpForeign(Character chr, int index) {
-        return new ShowForeignEffectPacket(chr.getId(), (byte) index);
+        return new ShowForeignEffectPacket(new ShowForeignEffectPacket.Body.PetLevelUp(chr.getId(), (byte) index));
     }
 
     /** 喂食反馈（全图气球） */
