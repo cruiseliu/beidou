@@ -4,6 +4,6 @@ logs
 src/main/resources/static
 docker-db-data
 .idea
+.vscode
 
 /database
-/_hold/

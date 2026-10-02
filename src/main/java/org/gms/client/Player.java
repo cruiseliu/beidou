@@ -65,7 +65,7 @@ public final class Player {
 
     /** actor 本体内部的传输附件访问（enterWorld/bindCharacter/remote——actor 触自己的
      * 传输附件不属跨域导航）；包私有 = 外部导航只能走受 canary 管辖的 {@link #client()}。 */
-    Client clientRaw() {
+    private Client clientRaw() {
         return client;
     }
 
