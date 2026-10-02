@@ -60,17 +60,27 @@ public abstract class AbstractInRouter {
      * strictMode，期间经 CharacterRef 直调本体（含 unref 解包）即断言失败——fail-safe
      * 记日志（doc/16 §4.1）。同一窗口同时开启 packet-strict 哨（legacy-Client 导航
      * canary，{@code Player.assertNoLegacyClientNavigation}）——strict 粒度 = opcode，
-     * 由各 case 增量迁移逐个纳入；PLAYER_LOGGEDIN 等大段窗口只开 ref 哨。
+     * 由各 case 增量迁移逐个纳入；涉及面过广暂缓纳入的 op 走
+     * {@link #strictWindow(Player, Runnable, boolean)} 传 false（只开 ref 哨）。
      */
     protected final void strictWindow(Player player, Runnable body) {
+        strictWindow(player, body, true);
+    }
+
+    /** ref 哨恒开；{@code packetStrict} = 是否同时开启 legacy-Client 导航哨。 */
+    protected final void strictWindow(Player player, Runnable body, boolean packetStrict) {
         Character chr = player.character();
         chr.setStrictMode(true);
-        chr.setPacketStrictMode(true);
+        if (packetStrict) {
+            chr.setPacketStrictMode(true);
+        }
         try {
             body.run();
         } finally {
             chr.setStrictMode(false);
-            chr.setPacketStrictMode(false);
+            if (packetStrict) {
+                chr.setPacketStrictMode(false);
+            }
         }
     }
 

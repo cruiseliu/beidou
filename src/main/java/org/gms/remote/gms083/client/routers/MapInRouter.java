@@ -17,8 +17,10 @@ import org.gms.remote.gms083.utils.ByteBufReader;
 /**
  * 地图域 in-route：MOVE_PLAYER（全服最高频包，strict canary 窗口）+ MOVE_LIFE
  * （mob 控制移动汇报）+ PLAYER_MAP_TRANSFER（切图完成确认，strict canary 窗口）+
- * CHANGE_MAP_SPECIAL（脚本传送门入口，strict canary 窗口）+ CHANGE_MAP（走门/复活/
- * 白名单 warp，strict canary 窗口）。
+ * CHANGE_MAP_SPECIAL（脚本传送门入口）+ CHANGE_MAP（走门/复活/白名单 warp）——
+ * 两个换图 op 只开 ref 哨：换图主干经 legacy Client 触达 MapFactory/PlayerStorage/
+ * disconnect 等，涉及面太广，packet-strict 哨暂缓纳入（踩点清单见 tmp/portal-bug.log，
+ * 待导航迁移后改回 strictWindow(player, body)）。
  * 应用与广播编排全部在 gameplay/地图侧；本类只编排解码与翻译。
  */
 public final class MapInRouter extends AbstractInRouter {
@@ -32,9 +34,9 @@ public final class MapInRouter extends AbstractInRouter {
             case PLAYER_MAP_TRANSFER -> strictWindow(player, () ->
                     emit(opcode, in, MapTransferPacket::decode, MapTransitionTranslator::new, player));
             case CHANGE_MAP_SPECIAL -> strictWindow(player, () ->
-                    emit(opcode, in, ChangeMapSpecialPacket::decode, EnterPortalTranslator::new, player));
+                    emit(opcode, in, ChangeMapSpecialPacket::decode, EnterPortalTranslator::new, player), false);
             case CHANGE_MAP -> strictWindow(player, () ->
-                    emit(opcode, in, ChangeMapPacket::decode, ChangeMapTranslator::new, player));
+                    emit(opcode, in, ChangeMapPacket::decode, ChangeMapTranslator::new, player), false);
             default -> {
                 return false;
             }
