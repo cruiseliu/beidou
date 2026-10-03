@@ -24,13 +24,9 @@ package org.gms.client.quest.actions;
 import org.gms.client.character.Character;
 import org.gms.client.inventory.ItemPool;
 import org.gms.client.inventory.ItemStack;
-import org.gms.client.inventory.ItemStackWeight;
 import org.gms.client.inventory.InventoryTransaction;
-import org.gms.client.inventory.InventoryType;
-import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.client.quest.QuestWz;
 import org.gms.client.quest.QuestActionType;
-import org.gms.constants.inventory.ItemConstants;
 import org.gms.util.AssertUtil;
 import org.gms.util.I18nUtil;
 import org.slf4j.Logger;
@@ -38,13 +34,9 @@ import org.slf4j.LoggerFactory;
 import org.gms.provider.Data;
 import org.gms.provider.DataTool;
 import org.gms.server.ItemInformationProvider;
-import org.gms.util.PacketCreator;
-import org.gms.util.Randomizer;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static java.util.concurrent.TimeUnit.MINUTES;
 
 /**
  * @author Tyler (Twdtwd)
@@ -52,7 +44,6 @@ import static java.util.concurrent.TimeUnit.MINUTES;
  */
 public class ItemAction extends AbstractQuestAction {
     private static final Logger log = LoggerFactory.getLogger(ItemAction.class);
-    List<ItemData> items = new ArrayList<>();
 
     private List<ItemData> negativeItems = new ArrayList<>();
     private List<ItemData> zeroItems = new ArrayList<>();
@@ -62,11 +53,12 @@ public class ItemAction extends AbstractQuestAction {
 
     public ItemAction(QuestWz quest, Data data) {
         super(QuestActionType.ITEM, quest);
-        processData(data);
+        processData_(data);
     }
 
-    @Override
-    public void processData(Data data) {
+    private void processData_(Data data) {
+        List<ItemData> items = new ArrayList<>();
+
         for (Data iEntry : data.getChildren()) {
             int id = DataTool.getInt(iEntry.getChildByPath("id"));
             int count = DataTool.getInt(iEntry.getChildByPath("count"), 0);
@@ -115,6 +107,8 @@ public class ItemAction extends AbstractQuestAction {
     }
 
     private boolean perform(Character chr, int selection, InventoryTransaction tx) {
+        // FIXME: [refactor] expiring items
+
         for (ItemData item : negativeItems) {
             // "act" is not responsible for "check"
             tx.removeAtMost(item.getId(), -item.getCount());
@@ -126,6 +120,7 @@ public class ItemAction extends AbstractQuestAction {
         for (ItemData item : positiveItems) {
             if (canGetItem(item, chr)) {
                 tx.add(item.getId(), item.getCount());
+                AssertUtil.isTrue(item.getPeriod() <= 0);
             }
         }
 
@@ -155,133 +150,23 @@ public class ItemAction extends AbstractQuestAction {
 
     @Override
     public void run(Character chr, Integer extSelection) {
-        /*
-        List<ItemData> takeItem = new ArrayList<>();
-        List<ItemData> giveItem = new ArrayList<>();
-
-        int props = 0, rndProps = 0, accProps = 0;
-        for (ItemData item : items) {
-            if (item.getProp() != null && item.getProp() != -1 && canGetItem(item, chr)) {
-                props += item.getProp();
-            }
-        }
-
-        int extNum = 0;
-        if (props > 0) {
-            rndProps = Randomizer.nextInt(props);
-        }
-        for (ItemData iEntry : items) {
-            if (!canGetItem(iEntry, chr)) {
-                continue;
-            }
-
-            if (iEntry.getProp() != null) {
-                if (iEntry.getProp() == -1) {
-                    if (extSelection != extNum++) {
-                        continue;
-                    }
-                } else {
-                    accProps += iEntry.getProp();
-
-                    if (accProps <= rndProps) {
-                        continue;
-                    } else {
-                        accProps = Integer.MIN_VALUE;
-                    }
-                }
-            }
-
-            if (iEntry.getCount() < 0) { // Remove Item
-                takeItem.add(iEntry);
-            } else {                    // Give Item
-                giveItem.add(iEntry);
-            }
-        }
-
-        // must take all needed items before giving others
-
-        for (ItemData iEntry : takeItem) {
-            int itemid = iEntry.getId(), count = iEntry.getCount();
-
-            InventoryType type = ItemConstants.getInventoryType(itemid);
-            int quantity = count * -1; // Invert
-
-            InventoryManipulator.removeById(chr.getClient(), type, itemid, quantity, true, false);
-            chr.sendPacket(PacketCreator.getShowItemGain(itemid, (short) count, true));
-        }
-
-        for (ItemData iEntry : giveItem) {
-            int itemid = iEntry.getId(), count = iEntry.getCount(), period = iEntry.getPeriod();    // thanks Vcoc for noticing quest milestone item not getting removed from inventory after a while
-
-            InventoryManipulator.REFACTOR6_addById(chr.getClient(), itemid, (short) count, "", -1, period > 0 ? (System.currentTimeMillis() + MINUTES.toMillis(period)) : -1);
-            chr.sendPacket(PacketCreator.getShowItemGain(itemid, (short) count, true));
-        }
-        */
-        InventoryTransaction tx = chr.getInventory().tryUpdate();
-        boolean feasible = perform(chr, extSelection == null ? -1 : extSelection, tx);
-        AssertUtil.isTrue(feasible);
+        int selection = extSelection == null ? -1 : extSelection;
+        boolean success = perform(chr, selection, chr.getInventory().tryUpdate());
+        AssertUtil.isTrue(success);
     }
 
     @Override
     public boolean check(Character chr, Integer extSelection) {
-        // List<ItemStack> removes = new ArrayList<>();          // 固定收取（count<0）
-        // List<ItemStack> gains = new ArrayList<>();            // 固定发放（count>0）
-        // List<ItemStackWeight> poolOptions = new ArrayList<>(); // 随机池（prop>=0）
-        // List<Integer> allItemIds = new ArrayList<>();          // 失败提示用（事务无法定位失败项，整体报告）
+        int selection = extSelection == null ? -1 : extSelection;
+        boolean success = perform(chr, selection, chr.getInventory().testUpdate());
 
-        // int extNum = 0;
-        // for (ItemData item : items) {
-        //     if (!canGetItem(item, chr)) {
-        //         continue;
-        //     }
-
-        //     Integer prop = item.getProp();
-        //     if (prop == null) {
-        //         collectBySign(item.getCount() < 0 ? removes : gains, item.getId(), Math.abs(item.getCount()));
-        //         allItemIds.add(item.getId());
-        //     } else if (prop < 0) {
-        //         if (extSelection != extNum++) {
-        //             continue;
-        //         }
-        //         // 玩家选择项按数量符号归入收取/发放
-        //         collectBySign(item.getCount() < 0 ? removes : gains, item.getId(), Math.abs(item.getCount()));
-        //         allItemIds.add(item.getId());
-        //     } else {
-        //         poolOptions.add(new ItemStackWeight(item.getId(), item.getCount(), prop));
-        //         allItemIds.add(item.getId());
-        //     }
-        // }
-
-        // 先取后给（run 语义），随机池收尾（验全 = roll 样本空间冻结）；
-        // testUpdate：commit 不落真，addPoolAndCommit 的 roll 被丢弃，仅返回可行性
-        InventoryTransaction tx = chr.getInventory().testUpdate();
-        // tx.remove(removes).add(gains);
-        // boolean feasible = poolOptions.isEmpty() ? tx.commit() : tx.addPoolAndCommit(new ItemPool(poolOptions));
-        boolean feasible = perform(chr, extSelection == null ? -1 : extSelection, tx);
-
-        if (!feasible) {
-            // announceInventoryLimit(allItemIds, chr);
+        if (!success) {
+            // fixme: [refactor] check official inventory full message
             chr.dropMessage(1, I18nUtil.getMessage("ItemAction.Message1"));
             return false;
         }
         return true;
     }
-
-    private static void collectBySign(List<ItemStack> target, int itemId, int count) {
-        target.add(ItemStack.fromExternal(itemId, count));
-    }
-
-    private void announceInventoryLimit(List<Integer> itemids, Character chr) {
-        for (Integer id : itemids) {
-            if (ItemInformationProvider.getInstance().isPickupRestricted(id) && chr.haveItemWithId(id, true)) {
-                chr.dropMessage(1, "Please check if you already have a similar one-of-a-kind item in your inventory.");
-                return;
-            }
-        }
-
-        chr.dropMessage(1, I18nUtil.getMessage("ItemAction.Message1"));
-    }
-
 
     private boolean canGetItem(ItemData item, Character chr) {
         if (item.getGender() != 2 && item.getGender() != chr.getGender()) {
@@ -304,12 +189,14 @@ public class ItemAction extends AbstractQuestAction {
     }
 
     public boolean restoreLostItem(Character chr, int itemid) {
+        // fixme: [refactor] legacy inventory api
+
         if (!ItemInformationProvider.getInstance().isQuestItem(itemid)) {
             return false;
         }
 
         // thanks danielktran (MapleHeroesD)
-        for (ItemData item : items) {
+        for (ItemData item : positiveItems) {
             if (item.getId() == itemid) {
                 int missingQty = item.getCount() - chr.countItem(itemid);
                 if (missingQty > 0) {
@@ -327,22 +214,6 @@ public class ItemAction extends AbstractQuestAction {
 
         return false;
     }
-
-    // private List<ItemData> filterAndSort(Character chr) {
-    //     List<ItemData> neg = new ArrayList<>();
-    //     List<ItemData> zero = new ArrayList<>();
-    //     List<ItemData> pos = new ArrayList<>();
-    //     List<ItemData> pool = new ArrayList<>();
-
-    //     for (ItemData item : items) {
-    //         if (!canGetItem(item, chr)) {
-    //             continue;
-    //         }
-
-
-    //     }
-    //     return null;
-    // }
 
     private class ItemData {
         private final int map, id, count, job, gender, period;
