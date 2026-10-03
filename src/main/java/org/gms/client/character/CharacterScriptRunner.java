@@ -143,6 +143,10 @@ public class CharacterScriptRunner implements ScriptTimers.Host {
                     .option("js.ecmascript-version", "2022")
                     // eval 直接返回模块的 exports 命名空间（默认是 undefined）
                     .option("js.esm-eval-returns-exports", "true")
+                    // 微任务续体的 promise rejection 转抛（interaction.js 瀑布重抛的落点）：
+                    // 排空点 PolyglotException 出宿主调用，executeScript fail-safe 记日志——
+                    // 默认行为下悬空 rejection 静默，脚本异常不可见
+                    .option("js.unhandled-rejections", "throw")
                     // 允许相对 import 读取磁盘上的依赖文件
                     .allowIO(true)
                     .allowAllAccess(true)
