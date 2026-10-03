@@ -77,10 +77,7 @@ class CharacterSp {
     }
 
     private void announceSp() {
-        try (var _b = owner.remote().batch()) {
-            owner.remote().skills().updateSp(new SpUpdate(owner.job.def().jobId(), remainingSp));
-            owner.remote().basic().unlockActions();
-        }
+        owner.remote().skills().updateSp(new SpUpdate(owner.job.def().jobId(), remainingSp));
     }
 
     /** 全部桶（jobId 升序的值数组；v83 SP 表职业分桶块用，Evan 未实现语义待定） */

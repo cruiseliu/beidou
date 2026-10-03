@@ -50,7 +50,7 @@ public class ApCommand extends Command {
                 newAp = GameConfig.getServerInt("max_ap");
             }
 
-            player.changeRemainingAp(newAp, false);
+            player.changeRemainingAp(newAp);
         } else {
             Character victim = c.getWorldServer().getPlayerStorage().getCharacterByName(params[0]);
             if (victim != null) {
@@ -61,7 +61,7 @@ public class ApCommand extends Command {
                     newAp = GameConfig.getServerInt("max_ap");
                 }
 
-                victim.changeRemainingAp(newAp, false);
+                victim.changeRemainingAp(newAp);
                 player.dropMessage(5, I18nUtil.getMessage("ApCommand.message3"));
             } else {
                 player.message(I18nUtil.getMessage("SpCommand.message4", params[0]));

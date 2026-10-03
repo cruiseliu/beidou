@@ -32,12 +32,12 @@ public class CharacterAp {
         return hpMpApUsed;
     }
 
-    void changeRemainingAp(int x, boolean silent) {
-        owner.stats.setAp(x, silent);
+    void changeRemainingAp(int x) {
+        owner.stats.setAp(x, false);
     }
 
-    void gainAp(int deltaAp, boolean silent) {
-        owner.stats.addAp(deltaAp, silent);
+    void gainAp(int deltaAp) {
+        owner.stats.addAp(deltaAp);
     }
 
     /** 单维分配：assignAttr(STR, x) 等 */
@@ -69,11 +69,11 @@ public class CharacterAp {
         }
 
         try (var _b = owner.remote().batch()) {   // 四维+AP 同批收口单包（0x4040/0x4080 包结构保持）
-            owner.stats.setBaseStat(STR, newAttrs[STR.ordinal()], false);
-            owner.stats.setBaseStat(DEX, newAttrs[DEX.ordinal()], false);
-            owner.stats.setBaseStat(INT, newAttrs[INT.ordinal()], false);
-            owner.stats.setBaseStat(LUK, newAttrs[LUK.ordinal()], false);
-            owner.stats.addAp(-apUsed, false);
+            owner.stats.setBaseStat(STR, newAttrs[STR.ordinal()]);
+            owner.stats.setBaseStat(DEX, newAttrs[DEX.ordinal()]);
+            owner.stats.setBaseStat(INT, newAttrs[INT.ordinal()]);
+            owner.stats.setBaseStat(LUK, newAttrs[LUK.ordinal()]);
+            owner.stats.addAp(-apUsed);
         }
         return true;
     }
@@ -85,7 +85,7 @@ public class CharacterAp {
 
         try (var _b = owner.remote().batch()) {
             owner.stats.addBaseStat(MAX_HP, deltaHP);
-            owner.stats.addAp(-deltaAp, false);
+            owner.stats.addAp(-deltaAp);
         }
         hpMpApUsed += deltaAp;
         return true;
@@ -98,7 +98,7 @@ public class CharacterAp {
 
         try (var _b = owner.remote().batch()) {
             owner.stats.addBaseStat(MAX_MP, deltaMP);
-            owner.stats.addAp(-deltaAp, false);
+            owner.stats.addAp(-deltaAp);
         }
         hpMpApUsed += deltaAp;
         return true;

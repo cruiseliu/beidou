@@ -80,37 +80,39 @@ public class CharacterStats {
     // ── 写路径（无锁直写 API，全部单属性原语：捕获旧值 → 就地写 → base 脏则重算 total → 收尾 clamp → 净 diff 公告）──
     //
     // 不提供跨字段组合 setter：跨字段的包合并由调用方 RemoteClient.batch 表达（一次收口一个净 diff 包）。
-    // silent = 历史上有静默语义的入口（装配/加载/老兵卡），调用方自行公告。原 StatUpdateBuilder/Change 已退役。
+    // 静默只存在于装配/加载入口（applyData / setAp(true)）——运行期写即公告。原 StatUpdateBuilder/Change 已退役。
 
     // ══ HP/MP/AP（资源语义：无 total 联动）══
 
-    /** 设置 HP（silent = 老兵卡强化等调用方自行公告的路径） */
-    void setHp(int value, boolean silent) {
+    /** 设置 HP（公告） */
+    void setHp(int value) {
         int oldHp = hp;
 
         hp = value;
-        finish(silent, base, oldHp, mp, ap, false);
+        finish(false, base, oldHp, mp, ap, false);
     }
 
-    /** 设置 MP（silent 同 setHp） */
-    void setMp(int value, boolean silent) {
+    /** 设置 MP（公告） */
+    void setMp(int value) {
         int oldMp = mp;
 
         mp = value;
-        finish(silent, base, hp, oldMp, ap, false);
+        finish(false, base, hp, oldMp, ap, false);
     }
 
     /** 增加 HP（公告，收尾 clamp 到 total 上限） */
     void addHp(int delta) {
-        setHp(hp + delta, false);
+        setHp(hp + delta);
     }
 
     /** 增加 MP（公告，收尾 clamp 到 total 上限） */
     void addMp(int delta) {
-        setMp(mp + delta, false);
+        setMp(mp + delta);
     }
 
-    /** 设置剩余 AP（silent = 装配/加载路径，调用方自行公告） */
+    /**
+     * 设置剩余 AP。全域唯一带 silent 的写入口：装配/加载路径传 true（不经公告管道），运行期传 false。
+     */
     void setAp(int value, boolean silent) {
         int oldAp = ap;
 
@@ -118,29 +120,29 @@ public class CharacterStats {
         finish(silent, base, hp, mp, oldAp, false);
     }
 
-    /** 增加剩余 AP（收尾下限 0；silent 透传见 setAp） */
-    void addAp(int delta, boolean silent) {
+    /** 增加剩余 AP（公告，收尾下限 0） */
+    void addAp(int delta) {
         int oldAp = ap;
 
         ap += delta;
-        finish(silent, base, hp, mp, oldAp, false);
+        finish(false, base, hp, mp, oldAp, false);
     }
 
     // ══ base 槽（面板属性：写后重算 total；MAX_HP/MAX_MP 变化附带封顶显示值 + 当前资源）══
 
-    /** 设置单个 base 槽（silent = 老兵卡强化等静默路径） */
-    void setBaseStat(Stat s, int value, boolean silent) {
+    /** 设置单个 base 槽（公告） */
+    void setBaseStat(Stat s, int value) {
         int[] oldBase = captureBase();
         int oldHp = hp;
         int oldMp = mp;
 
         boolean dirty = writeBase(s, value);
-        finish(silent, oldBase, oldHp, oldMp, ap, dirty);
+        finish(false, oldBase, oldHp, oldMp, ap, dirty);
     }
 
     /** 增加单个 base 槽（公告） */
     void addBaseStat(Stat s, int delta) {
-        setBaseStat(s, base[s.ordinal()] + delta, false);
+        setBaseStat(s, base[s.ordinal()] + delta);
     }
 
     /**
@@ -148,7 +150,7 @@ public class CharacterStats {
      * 原为 builder 的 add(gain)→multiply(mult) 两步链，数值等价（中间值无 clamp 发生）。
      */
     void growBaseStat(Stat s, int gain, double mult) {
-        setBaseStat(s, (int) ((base[s.ordinal()] + gain) * mult), false);
+        setBaseStat(s, (int) ((base[s.ordinal()] + gain) * mult));
     }
 
     /**
@@ -183,7 +185,9 @@ public class CharacterStats {
 
     /**
      * 直写收尾：base 脏则重算 total → 统一 clamp（hp/mp 到 total 上限、ap 下限 0——与旧事务收尾
-     * 无条件 clamp 一致）→ 净 diff + HP 联动 + 公告（stats+unlockActions 一个 batch）。
+     * 无条件 clamp 一致）→ 净 diff + HP 联动 + post 事件。
+     * 不管理 batch/发包时机：无开域时 schedule 立即 deliver+flushAll（单事件单包），
+     * 开域中随批收口合并——合并是调用方的 batch 表达；unlockActions 由 gms083 版本层自动置位。
      */
     private void finish(boolean silent, int[] oldBase, int oldHp, int oldMp, int oldAp, boolean baseDirty) {
         if (baseDirty) {
@@ -196,10 +200,7 @@ public class CharacterStats {
             hpChangeAction(oldHp);
         }
         if (!silent && !statUpdates.isEmpty()) {
-            try (var _b = owner.remote().batch()) {
-                owner.remote().stats().updateStats(statUpdates);
-                owner.remote().basic().unlockActions();
-            }
+            owner.remote().stats().updateStats(statUpdates);
         }
     }
 
@@ -462,8 +463,8 @@ public class CharacterStats {
         }
 
         try (var _b = owner.remote().batch()) {   // hp+mp 同批收口（0x1400 单包语义保持）
-            setHp(nextHp, false);
-            setMp(nextMp, false);
+            setHp(nextHp);
+            setMp(nextMp);
         }
 
         if (GameConfig.getServerBoolean("use_server_auto_pot") || GameConfig.getServerBoolean("use_compulsory_auto_pot")) {

@@ -164,7 +164,7 @@ class CharacterJob {
             }
 
             if (gain != null && gain.ap() > 0) {
-                owner.gainAp(gain.ap(), false);
+                owner.gainAp(gain.ap());
             }
 
             if (!owner.isGM()) {
@@ -183,7 +183,6 @@ class CharacterJob {
             }
 
             owner.remote().basic().updateJob(getId());
-            owner.remote().basic().unlockActions();
         }
 
         owner.setMPC(new PartyCharacter(owner));
@@ -281,7 +280,7 @@ class CharacterJob {
             owner.stats.growBaseStat(Stat.MAX_HP, rollGrowthGain(gs.maxHp(), fixed), gs.maxHp().multiply());
             owner.stats.growBaseStat(Stat.MAX_MP, rollGrowthGain(gs.maxMp(), fixed), gs.maxMp().multiply());
             if (gs.ap() > 0) {
-                owner.gainAp(gs.ap(), false);
+                owner.gainAp(gs.ap());
             }
             if (gs.sp() > 0) {
                 owner.gainSp(gs.sp(), job.jobId(), false);

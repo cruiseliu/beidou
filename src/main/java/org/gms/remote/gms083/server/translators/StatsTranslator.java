@@ -15,7 +15,8 @@ import java.util.List;
 
 /**
  * stats 域翻译（含骑 STAT_CHANGED 便车的跨域字段）：面板/hp/mp/ap、level/jobId/exp、
- * SP（技能域语义）、unlockActions。last-wins 绝对值合并 = 净 diff。
+ * SP（技能域语义）；unlockActions 首字节由本层自动置位（携带变更即解锁，显式事件仅剩纯解锁空包）。
+ * last-wins 绝对值合并 = 净 diff。
  * 语义→wire 映射（多对多）：P_ATK/M_ATK 无 wire 位丢弃；SP 非表职业出单个 short、
  * 表职业出分桶变长块；新手职业显示新手桶单值，其余显示非新手桶之和。
  */
@@ -114,20 +115,20 @@ public final class StatsTranslator implements ServerTranslator {
         if (exp != null) {
             entries.add(new StatChangedPacket.StatEntry(MASK_EXP, Math.toIntExact(exp)));
         }
-        if (entries.isEmpty() && !unlockActions && spBucketsUnused(spTable)) {
-            return List.of();   // 全空且无 unlockActions：不发包
+        boolean spBucketsUsed = spTable && sp != null;
+        if (entries.isEmpty() && !unlockActions && !spBucketsUsed) {
+            return List.of();   // 全空且无 unlock：不发包
         }
-        var spBuckets = spTable && sp != null
+        // v83 语义：STAT_CHANGED 首字节 = 解除客户端动作锁——凡携带任何字段变更即自动置位
+        // （原游戏侧逐处配对的 unlockActions() 下沉到版本层；显式 UnlockActionsEvent 仅剩
+        //   纯解锁空包一条路径，即旧 enableActions 语义）。
+        var spBuckets = spBucketsUsed
                 ? StatChangedPacket.SpBuckets.of(
                         sp.spByJob().values().stream().mapToInt(Integer::intValue).toArray())
                 : null;
-        var packet = StatChangedPacket.of(unlockActions, entries, spBuckets);
+        var packet = StatChangedPacket.of(true, entries, spBuckets);
         reset();
         return List.of(packet);
-    }
-
-    private boolean spBucketsUnused(boolean spTable) {
-        return !(spTable && sp != null);
     }
 
     private void reset() {

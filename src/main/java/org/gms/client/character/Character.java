@@ -447,10 +447,10 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     /** 四维全部设为 x（管理命令用） */
     public void updateStrDexIntLuk(int x) {
         try (var _b = remote().batch()) {   // 四维 + 同批收口单包
-            stats.setBaseStat(Stat.STR, x, false);
-            stats.setBaseStat(Stat.DEX, x, false);
-            stats.setBaseStat(Stat.INT, x, false);
-            stats.setBaseStat(Stat.LUK, x, false);
+            stats.setBaseStat(Stat.STR, x);
+            stats.setBaseStat(Stat.DEX, x);
+            stats.setBaseStat(Stat.INT, x);
+            stats.setBaseStat(Stat.LUK, x);
         }
     }
 
@@ -1836,10 +1836,10 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         if (tap >= 0) {
             // 一个语义域（重置属性）：四维+AP 逐条直写，域收口合并为一个包
             try (var _u = remote().batch()) {
-                stats.setBaseStat(Stat.STR, tstr, false);
-                stats.setBaseStat(Stat.DEX, tdex, false);
-                stats.setBaseStat(Stat.INT, tint, false);
-                stats.setBaseStat(Stat.LUK, tluk, false);
+                stats.setBaseStat(Stat.STR, tstr);
+                stats.setBaseStat(Stat.DEX, tdex);
+                stats.setBaseStat(Stat.INT, tint);
+                stats.setBaseStat(Stat.LUK, tluk);
                 stats.setAp(tap, false);
                 sp.changeRemainingSp(tsp, job.getId(), false);
             }
@@ -1923,15 +1923,20 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         int eff = improveSp + e.spCost();
         sp.setRemainingSp(sp.getRemainingSp(job.getId()) - eff, job.getId());
 
-        if (e.hpGain() != null) {
-            int newMaxHp = getMaxHp() + e.hpGain()[improveSp];
-            stats.setBaseStat(Stat.MAX_HP, newMaxHp, true);   // 静默：调用方自行公告
-            stats.setHp(newMaxHp, true);
-        }
-        if (e.mpGain() != null) {
-            int newMaxMp = getMaxMp() + e.mpGain()[improveSp];
-            stats.setBaseStat(Stat.MAX_MP, newMaxMp, true);
-            stats.setMp(newMaxMp, true);
+        if (e.hpGain() != null || e.mpGain() != null) {
+            // 老兵卡强化 = 应用前改数据：stats 域与模板/DB 角色同构（CharacterStatsData），
+            // 取当前结构改字段后 applyData 写回（类内直写，装配期无公告）
+            CharacterStatsData d = stats.toData();
+            if (e.hpGain() != null) {
+                d.maxHp += e.hpGain()[improveSp];
+                d.hp = d.maxHp;
+            }
+            if (e.mpGain() != null) {
+                d.maxMp += e.mpGain()[improveSp];
+                d.mp = d.maxMp;
+            }
+            stats.applyData(d);
+            stats.recalc();
         }
 
         Skill primary = SkillFactory.getSkill(e.enhanceSkill());
@@ -3105,8 +3110,8 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     public boolean assignDex(int x) { return ap.assignAttr(DEX, x); }
     public boolean assignInt(int x) { return ap.assignAttr(INT, x); }
     public boolean assignLuk(int x) { return ap.assignAttr(LUK, x); }
-    public void changeRemainingAp(int x, boolean silent) { ap.changeRemainingAp(x, silent); }
-    public void gainAp(int deltaAp, boolean silent) { ap.gainAp(deltaAp, silent); }
+    public void changeRemainingAp(int x) { ap.changeRemainingAp(x); }
+    public void gainAp(int deltaAp) { ap.gainAp(deltaAp); }
 
     // ── sp 门面 ──
 
@@ -3124,28 +3129,28 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     public int getLuk() { return stats.getBase(LUK); }
     public void healHpMp() {
         try (var _b = remote().batch()) {   // hp+mp 同批收口单包
-            stats.setHp(30000, false);
-            stats.setMp(30000, false);
+            stats.setHp(30000);
+            stats.setMp(30000);
         }
     }
     public void updateHpMp(int x) {
         try (var _b = remote().batch()) {
-            stats.setHp(x, false);
-            stats.setMp(x, false);
+            stats.setHp(x);
+            stats.setMp(x);
         }
     }
     public void updateHpMp(int newhp, int newmp) {
         try (var _b = remote().batch()) {
-            stats.setHp(newhp, false);
-            stats.setMp(newmp, false);
+            stats.setHp(newhp);
+            stats.setMp(newmp);
         }
     }
-    public void updateHp(int hp) { stats.setHp(hp, false); }
-    public void updateMp(int mp) { stats.setMp(mp, false); }
+    public void updateHp(int hp) { stats.setHp(hp); }
+    public void updateMp(int mp) { stats.setMp(mp); }
     public void updateMaxHpMaxMp(int maxhp, int maxmp) {
         try (var _b = remote().batch()) {   // maxHp+maxMp 同批收口单包
-            stats.setBaseStat(Stat.MAX_HP, maxhp, false);
-            stats.setBaseStat(Stat.MAX_MP, maxmp, false);
+            stats.setBaseStat(Stat.MAX_HP, maxhp);
+            stats.setBaseStat(Stat.MAX_MP, maxmp);
         }
     }
     public int safeAddHP(int delta) { return stats.safeAddHP(delta); }
