@@ -18,62 +18,68 @@ import org.gms.constants.skills.Marauder;
 import org.gms.constants.skills.ThunderBreaker;
 import org.gms.model.json.CharacterStatsData;
 
-import org.gms.remote.RemoteClientBatch;
 import org.gms.remote.modules.stats.server.StatsUpdate;
 import org.gms.server.BuffEffectData;
 import org.gms.server.ItemInformationProvider;
-import org.gms.util.Locks;
 import org.gms.util.PacketCreator;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 /**
- * 角色属性数据：update transaction + volatile snapshot 模型。
+ * 角色属性数据：直写模型（player strand 单线程纪律下无锁直读写）。
  * <p>
- * 所有状态收敛到 {@link StatsSnapshot}base/local/hp/mp/ap），volatile 发布；
- * 写路径持 wLock（单写者）经 {@link #updateInternal(boolean, Change...)} 事务重建快照（copy-on-write，未变数组按引用复用），
- * 读路径无锁读 snapshot 引用——永远看到某个已完成事务的一致视图（与 ActiveBuffs 的 volatile effects 同思路）。
+ * 状态为裸字段（base/total 数组 + hp/mp/ap 标量），写路径就地变异并在写点产净 diff
+ * 公告客户端；无锁、无快照——锁时代的 volatile snapshot + RW lock 已随 actor 模型迁移退役。
  * <p>
- * base/local 数组语义上不可改（caller guarantee：写路径新建数组，旧数组发布后不再修改）。
+ * 已知 off-strand 残留触点（椅子恢复定时器/跨角色 HP 读/保存采集）无同步保护，
+ * 竞态留 FIXME 由相应模块重构时收敛（caller 纪律问题，测试场景不覆盖）。
  */
 public class CharacterStats {
     private final Character owner;
 
-    private final ReadWriteLock statLock = new ReentrantReadWriteLock(true);
-    final Lock rLock = statLock.readLock();
-    final Lock wLock = statLock.writeLock();
-
-    volatile StatsSnapshot snapshot = StatsSnapshot.initial();
+    // 直写状态（裸字段；数组下标 = Stat.ordinal()）。total 由 recalc/事务收尾整体换新数组，
+    // base 只就地变异、引用永不换。跨线程访问无同步——见类注 FIXME 纪律。
+    private final int[] base = new int[Stat.count()];
+    private int[] total = new int[Stat.count()];
+    private int hp;
+    private int mp;
+    private int ap;
 
     CharacterStats(Character owner) {
         this.owner = owner;
+        total[Stat.MAX_HP.ordinal()] = 50;   // recalc 前的初始上限（与历史字段默认一致）
+        total[Stat.MAX_MP.ordinal()] = 5;
     }
 
-    // ── 读路径（无锁 volatile） ──
+    // ── 读路径（strand 内直读） ──
 
     int getBase(Stat stat) {
-        return snapshot.base()[stat.ordinal()];
+        return base[stat.ordinal()];
     }
 
     int getTotal(Stat stat) {
-        return snapshot.total()[stat.ordinal()];
+        return total[stat.ordinal()];
     }
 
     int getHp() {
-        return snapshot.hp();
+        return hp;
     }
 
     int getMp() {
-        return snapshot.mp();
+        return mp;
     }
 
-    // ── 写事务（单写者：持 wLock 重建快照并 volatile 发布） ──
+    /**
+     * base 数组只读视图（验证类调用方立即拷贝，不得持有/修改）。
+     * 返回活引用是直写模型的固有约定：调用方与写路径同在 strand 上时无撕裂窗口。
+     */
+    int[] base() {
+        return base;
+    }
+
+    // ── 写路径（无锁直写；事务语义 = Change 批次的收尾 clamp） ──
 
     /**
      * 属性更新语法糖入口：stats.update().set(STR, x).add(MAX_HP, y).commit()。
-     * builder 链在锁外构建（commit 才持 wLock），禁止先读后写（相对修改用 add 增量，见 StatUpdateBuilder）。
+     * builder 链构建与 commit 之间无锁（strand 串行保证），相对修改用 add 增量表达（见 StatUpdateBuilder）。
      */
     StatUpdateBuilder update() {
         return new StatUpdateBuilder(this);
@@ -81,52 +87,47 @@ public class CharacterStats {
 
     /**
      * 重算 total stats（API 层面独立调用，非 Change 变更）：装备/buff 变化后触发，
-     * 直接计算并发布新快照（不进入 update 事务的变更折叠）。
+     * 就地换新 total 并按新上限 clamp hp/mp（静默，不公告——面板 total 由客户端自算）。
      */
     void recalc() {
-        try (var ignored = Locks.acquire(wLock)) {
-            StatsSnapshot old = snapshot;
-            int[] newTotal = computeTotal(old.base());
-            int hp = Math.clamp(old.hp(), 0, newTotal[Stat.MAX_HP.ordinal()]);
-            int mp = Math.clamp(old.mp(), 0, newTotal[Stat.MAX_MP.ordinal()]);
-            snapshot = new StatsSnapshot(old.base(), newTotal, hp, mp, old.ap());
-        }
+        int[] newTotal = computeTotal(base);
+        hp = Math.clamp(hp, 0, newTotal[Stat.MAX_HP.ordinal()]);
+        mp = Math.clamp(mp, 0, newTotal[Stat.MAX_MP.ordinal()]);
+        total = newTotal;
     }
 
     /** 重算 total stats 并在 maxHp 变化时同步队伍成员 HP（buff 变化/换装后的联动） */
     void recalcAndSyncParty() {
-        try (var ignored = Locks.acquire(owner.party.lock, wLock)) {
-            int oldmaxhp = snapshot.total()[Stat.MAX_HP.ordinal()];
-            recalc();
-            if (oldmaxhp != snapshot.total()[Stat.MAX_HP.ordinal()]) {   // thanks Wh1SK3Y (Suwaidy) for pointing out a deadlock occuring related to party members HP
-                owner.updatePartyMemberHP();
-            }
+        int oldmaxhp = total[Stat.MAX_HP.ordinal()];
+        recalc();
+        if (oldmaxhp != total[Stat.MAX_HP.ordinal()]) {
+            owner.updatePartyMemberHP();
         }
     }
 
-    /** 受击扣血钳制（HP 不低于 1）：非纯一行式，保留；原子边界由 update()...commit() 显式表达 */
+    /** 受击扣血钳制（HP 不低于 1）：先按旧 hp 定实际 delta 再走公告事务 */
     int safeAddHP(int delta) {
-        try (var ignored = Locks.acquire(wLock)) {
-            if (snapshot.hp() + delta <= 0) {
-                delta = 1 - snapshot.hp();
-            }
-            update().addHp(delta).commit();
-            return delta;
+        if (hp + delta <= 0) {
+            delta = 1 - hp;
         }
+        update().addHp(delta).commit();
+        return delta;
     }
 
     // ── private methods ──
 
-    /** 应用变更并立即发包通知客户端（updateStats + 解锁 + commit 一个事务） */
+    /** 应用变更并立即发包通知客户端（updateStats + unlockActions 一个 batch） */
     void updateInternal(boolean silent, Change... changes) {
-        StatsUpdate statUpdates;
-        try (var ignored = Locks.acquire(wLock)) {
-            StatsSnapshot old = snapshot;
-            snapshot = applyChanges(old, changes);
-            statUpdates = diffStats(old, snapshot);
-            if (old.hp() != snapshot.hp()) {
-                hpChangeAction(old.hp());
-            }
+        int[] oldBase = base.clone();
+        int oldHp = hp;
+        int oldMp = mp;
+        int oldAp = ap;
+
+        applyChanges(changes);
+
+        StatsUpdate statUpdates = diff(oldBase, oldHp, oldMp, oldAp);
+        if (oldHp != hp) {
+            hpChangeAction(oldHp);
         }
         if (!silent && !statUpdates.isEmpty()) {
             try (var _b = owner.remote().batch()) {
@@ -136,40 +137,19 @@ public class CharacterStats {
         }
     }
 
-    /** 应用变更并写入外部事务（调用方负责后续 updateSp 等与最终 commit） */
-    void updateInternal(RemoteClientBatch tx, Change... changes) {
-        StatsUpdate statUpdates;
-        try (var ignored = Locks.acquire(wLock)) {
-            StatsSnapshot old = snapshot;
-            snapshot = applyChanges(old, changes);
-            statUpdates = diffStats(old, snapshot);
-            if (old.hp() != snapshot.hp()) {
-                hpChangeAction(old.hp());
-            }
-        }
-        if (!statUpdates.isEmpty()) {
-            owner.remote().stats().updateStats(statUpdates);
-        }
-    }
-
     /**
-     * 锁内纯函数：从旧快照按变更意图产出新快照。
-     * 惰性 copy-on-write——只新建实际变化的数组，未变的按引用复用；
-     * attrs 任何槽变化或显式 Recalc 都会触发 localAttrs 重算（hyperbody/maple warrior 等耦合使增量不可行）。
+     * 就地应用变更（无锁直写）：SDIL 槽经 {@link #setBase}（下限兜底/同值跳过），
+     * 任何槽变化触发 total 重算；收尾统一 clamp hp/mp 到新 total 上限——
+     * 同批内 maxHp 提高时 hp 随之放行（与旧快照事务收尾语义一致）。
      */
-    private StatsSnapshot applyChanges(StatsSnapshot old, Change[] changes) {
-        // 直接 clone（8 元素成本可忽略）：消除惰性 clone 标志样板，Set/Add/Multiply 统一经 setBase 写入
-        int[] clonedBase = old.base().clone();
+    private void applyChanges(Change[] changes) {
         boolean baseDirty = false;
-        int hp = old.hp();
-        int mp = old.mp();
-        int ap = old.ap();
 
         for (Change c : changes) {
             switch (c) {
                 case Change.Set(Change.Prop p, int value) -> {
                     if (p.isAttrSlot()) {
-                        baseDirty |= setBase(clonedBase, p, value);
+                        baseDirty |= setBase(p, value);
                     } else if (p == Change.Prop.HP) {
                         hp = value;
                     } else if (p == Change.Prop.MP) {
@@ -180,7 +160,7 @@ public class CharacterStats {
                 }
                 case Change.Add(Change.Prop p, int delta) -> {
                     if (p.isAttrSlot()) {
-                        baseDirty |= setBase(clonedBase, p, clonedBase[p.slot.ordinal()] + delta);
+                        baseDirty |= setBase(p, base[p.slot.ordinal()] + delta);
                     } else if (p == Change.Prop.HP) {
                         hp += delta;
                     } else if (p == Change.Prop.MP) {
@@ -192,59 +172,61 @@ public class CharacterStats {
                 case Change.Multiply(Change.Prop p, double multiplier) -> {
                     // NEW = OLD * multiplier（int 截断）；Multiply 仅支持面板属性（HP/MP/AP 无槽位不可乘）
                     assert p.isAttrSlot() : "Multiply 仅支持面板属性槽: " + p;
-                    baseDirty |= setBase(clonedBase, p, (int) (clonedBase[p.slot.ordinal()] * multiplier));
+                    baseDirty |= setBase(p, (int) (base[p.slot.ordinal()] * multiplier));
                 }
             }
         }
 
-        // 事务收尾：面板属性变化 时重算 total；
-        // hp/mp 在所有变更算完后统一截断到（recalc 后的）total 上限——同 commit 内 maxHp 提高时 hp 随之放行。
-        int[] newTotal = baseDirty ? computeTotal(clonedBase) : this.snapshot.total();
-        hp = Math.clamp(hp, 0, newTotal[Stat.MAX_HP.ordinal()]);
-        mp = Math.clamp(mp, 0, newTotal[Stat.MAX_MP.ordinal()]);
+        if (baseDirty) {
+            total = computeTotal(base);
+        }
+        hp = Math.clamp(hp, 0, total[Stat.MAX_HP.ordinal()]);
+        mp = Math.clamp(mp, 0, total[Stat.MAX_MP.ordinal()]);
         ap = Math.max(0, ap);
-        return new StatsSnapshot(clonedBase, newTotal, hp, mp, ap);
     }
 
     /** 写 base 槽（含四维下限兜底与同值跳过），返回是否实际变化 */
-    private static boolean setBase(int[] clonedBase, Change.Prop p, int newValue) {
+    private boolean setBase(Change.Prop p, int newValue) {
         int idx = p.slot.ordinal();
         if (Stat.SDIL_INDEX_BEGIN <= idx && idx < Stat.SDIL_INDEX_END) {
             if (newValue < 4) {   // 四维下限兜底（原 applyUpdateSilently 语义）
                 return false;
             }
         }
-        if (clonedBase[idx] == newValue) {
+        if (base[idx] == newValue) {
             return false;   // 同值跳过，避免无谓 recalc
         }
-        clonedBase[idx] = newValue;
+        base[idx] = newValue;
         return true;
     }
 
-    /** 对比新旧快照产出客户端变更集（localAttrs 变化不经 packet，通过 maxHp/hp 等派生体现） */
-    private StatsUpdate diffStats(StatsSnapshot old, StatsSnapshot next) {
+    /**
+     * 对比写前捕获值与当前状态产净 diff（localAttrs 变化不经 packet，通过 maxHp/hp 等派生体现）。
+     * 派生规则：MAX_HP/MAX_MP base 变化 → 封顶显示值 + 附带当前 hp/mp（客户端 max 变更时重置资源显示）。
+     */
+    private StatsUpdate diff(int[] oldBase, int oldHp, int oldMp, int oldAp) {
         StatsUpdate updates = new StatsUpdate();
         for (int i = Stat.SDIL_INDEX_BEGIN; i < Stat.SDIL_INDEX_END; i++) {
-            if (old.base()[i] != next.base()[i]) {
-                updates.set(Stat.values()[i], next.base()[i]);
+            if (oldBase[i] != base[i]) {
+                updates.set(Stat.values()[i], base[i]);
             }
         }
-        if (old.base()[Stat.MAX_HP.ordinal()] != next.base()[Stat.MAX_HP.ordinal()]) {
+        if (oldBase[Stat.MAX_HP.ordinal()] != base[Stat.MAX_HP.ordinal()]) {
             updates.set(Stat.MAX_HP, getClientMaxHp());
-            updates.hp(next.hp());
+            updates.hp(hp);
         }
-        if (old.base()[Stat.MAX_MP.ordinal()] != next.base()[Stat.MAX_MP.ordinal()]) {
+        if (oldBase[Stat.MAX_MP.ordinal()] != base[Stat.MAX_MP.ordinal()]) {
             updates.set(Stat.MAX_MP, getClientMaxMp());
-            updates.mp(next.mp());
+            updates.mp(mp);
         }
-        if (old.hp() != next.hp()) {
-            updates.hp(next.hp());
+        if (oldHp != hp) {
+            updates.hp(hp);
         }
-        if (old.mp() != next.mp()) {
-            updates.mp(next.mp());
+        if (oldMp != mp) {
+            updates.mp(mp);
         }
-        if (old.ap() != next.ap()) {
-            updates.ap(next.ap());
+        if (oldAp != ap) {
+            updates.ap(ap);
         }
         return updates;
     }
@@ -252,8 +234,8 @@ public class CharacterStats {
     /** HP 变化联动：死亡判定 + 队伍 HP 同步 + 狂暴检查 */
     private void hpChangeAction(int oldHp) {
         boolean playerDied = false;
-        if (snapshot.hp() <= 0) {
-            if (oldHp > snapshot.hp()) {
+        if (hp <= 0) {
+            if (oldHp > hp) {
                 playerDied = true;
             }
         }
@@ -383,78 +365,74 @@ public class CharacterStats {
     // ── 持久化数据转换（stats 域的映射；信封 CharacterData 的组装/应用在 Character.toData/applyData） ──
 
     CharacterStatsData toData() {
-        StatsSnapshot s = snapshot;
         CharacterStatsData d = new CharacterStatsData();
-        d.str = s.base()[Stat.STR.ordinal()];
-        d.dex = s.base()[Stat.DEX.ordinal()];
-        d.int_ = s.base()[Stat.INT.ordinal()];
-        d.luk = s.base()[Stat.LUK.ordinal()];
-        d.hp = s.hp();
-        d.mp = s.mp();
-        d.maxHp = s.base()[Stat.MAX_HP.ordinal()];
-        d.maxMp = s.base()[Stat.MAX_MP.ordinal()];
+        d.str = base[Stat.STR.ordinal()];
+        d.dex = base[Stat.DEX.ordinal()];
+        d.int_ = base[Stat.INT.ordinal()];
+        d.luk = base[Stat.LUK.ordinal()];
+        d.hp = hp;
+        d.mp = mp;
+        d.maxHp = base[Stat.MAX_HP.ordinal()];
+        d.maxMp = base[Stat.MAX_MP.ordinal()];
         return d;
     }
 
     void applyData(CharacterStatsData d) {
-        try (var ignored = Locks.acquire(wLock)) {
-            int[] attrs = new int[Stat.count()];
-            attrs[Stat.STR.ordinal()] = d.str;
-            attrs[Stat.DEX.ordinal()] = d.dex;
-            attrs[Stat.INT.ordinal()] = d.int_;
-            attrs[Stat.LUK.ordinal()] = d.luk;
-            attrs[Stat.MAX_HP.ordinal()] = d.maxHp;
-            attrs[Stat.MAX_MP.ordinal()] = d.maxMp;
-            // P_ATK/M_ATK 裸体 0（仅装备/buff 累加，localAttrs 从 attrs 起步）
-            int[] local = new int[Stat.count()];
-            local[Stat.MAX_HP.ordinal()] = 50;   // recalc 前的初始上限
-            local[Stat.MAX_MP.ordinal()] = 5;
-            snapshot = new StatsSnapshot(attrs, local, d.hp, d.mp, snapshot.ap());
-        }
+        base[Stat.STR.ordinal()] = d.str;
+        base[Stat.DEX.ordinal()] = d.dex;
+        base[Stat.INT.ordinal()] = d.int_;
+        base[Stat.LUK.ordinal()] = d.luk;
+        base[Stat.MAX_HP.ordinal()] = d.maxHp;
+        base[Stat.MAX_MP.ordinal()] = d.maxMp;
+        // P_ATK/M_ATK 裸体 0（仅装备/buff 累加，total 从 base 起步）
+        total = new int[Stat.count()];
+        total[Stat.MAX_HP.ordinal()] = 50;   // recalc 前的初始上限
+        total[Stat.MAX_MP.ordinal()] = 5;
+        hp = d.hp;
+        mp = d.mp;
+        // ap 不属 stats 域加载，保持现值（CharacterAp.applyData 负责）
     }
 
     // ══════════════════ legacy APIs (to be refactored) ══════════════════
 
     /** 客户端可见最大 HP（封顶 30000，客户端上限） */
     int getClientMaxHp() {  // fixme: [refactor] move to packet
-        return Math.min(30000, snapshot.base()[Stat.MAX_HP.ordinal()]);
+        return Math.min(30000, base[Stat.MAX_HP.ordinal()]);
     }
 
     /** 客户端可见最大 MP（封顶 30000，客户端上限） */
     int getClientMaxMp() {  // fixme: [refactor] move to packet
-        return Math.min(30000, snapshot.base()[Stat.MAX_MP.ordinal()]);
+        return Math.min(30000, base[Stat.MAX_MP.ordinal()]);
     }
 
     /** 魔法攻击强度 = 魔法攻击力 + 智力（魔法侧两步合并成一步数值等价；与物理的"攻击力存储 + 强度现算"对称） */
     int getMagicPower() {  // fixme: [refactor] move outside
-        return snapshot.total()[Stat.M_ATK.ordinal()] + snapshot.total()[Stat.INT.ordinal()];
+        return total[Stat.M_ATK.ordinal()] + total[Stat.INT.ordinal()];
     }
 
     int getRemainingAp() {  // fixme: [refactor] move outside
-        return snapshot.ap();
+        return ap;
     }
 
     /** HP/MP 变更（含自动药水触发与 GM 保护），返回是否成功应用 */
     boolean applyHpMpChange(int hpCon, int hpchange, int mpchange) {
         boolean zombify = owner.hasDisease(Disease.ZOMBIFY);
 
-        try (var ignored = Locks.acquire(wLock)) {
-            int nextHp = snapshot.hp() + hpchange, nextMp = snapshot.mp() + mpchange;
-            boolean cannotApplyHp = hpchange != 0 && nextHp <= 0 && (!zombify || hpCon > 0);
-            boolean cannotApplyMp = mpchange != 0 && nextMp < 0;
+        int nextHp = hp + hpchange, nextMp = mp + mpchange;
+        boolean cannotApplyHp = hpchange != 0 && nextHp <= 0 && (!zombify || hpCon > 0);
+        boolean cannotApplyMp = mpchange != 0 && nextMp < 0;
 
-            if (cannotApplyHp || cannotApplyMp) {
-                if (!owner.isGM()) {
-                    return false;
-                }
-
-                if (cannotApplyHp) {
-                    nextHp = 1;
-                }
+        if (cannotApplyHp || cannotApplyMp) {
+            if (!owner.isGM()) {
+                return false;
             }
 
-            update().setHp(nextHp).setMp(nextMp).commit();
+            if (cannotApplyHp) {
+                nextHp = 1;
+            }
         }
+
+        update().setHp(nextHp).setMp(nextMp).commit();
 
         if (GameConfig.getServerBoolean("use_server_auto_pot") || GameConfig.getServerBoolean("use_compulsory_auto_pot")) {
             float autoHpAlert, autoMpAlert;

@@ -184,6 +184,8 @@ class CharacterChair {
             }
 
             chairRecoveryTask = TimerManager.getInstance().register(() -> {
+                // FIXME(actor 纪律): 恢复拍在 TimerManager 线程直读直写 stats（getHp/getTotal/addMPHP），
+                //  无同步保护——post 回 player strand 留 chair 域重构时兑现（actor 模型迁移欠账）。
                 updateChairHealStats();
                 final int healHP = healHp;
                 final int healMP = healMp;

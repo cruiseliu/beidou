@@ -213,10 +213,9 @@ class CharacterParty {
     }
 
     void receivePartyMemberHP() {
-        // 不在此处包一层 lock:getPartyMembersOnSameMap 内部已持 lock 保护 party 引用。
-        // 若再包一层,会在持 lock 的同时对同图队友逐个取 getHp()(对方 stats.rLock),
-        // 与 recalcAndSyncParty(本角色 stats.wLock 后再 updatePartyMemberHP 取 lock)形成
-        // 跨角色反向锁顺序,存在死锁窗口。
+        // FIXME(actor 纪律): 跨 actor 直读队友 hp/maxHp（对方 strand 的 stats 直写状态），
+        // 无同步保护——可见性/一致性由 caller 纪律兜底，队友 HP 读的 post 化/快照化留 party 域重构时收敛。
+        // 不在此处包 lock:getPartyMembersOnSameMap 内部已持 lock 保护 party 引用。
         for (Character partychar : this.getPartyMembersOnSameMap()) {
             owner.sendPacket(PacketCreator.updatePartyMemberHP(partychar.getId(), partychar.getHp(), partychar.getCurrentMaxHp()));
         }

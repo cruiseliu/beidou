@@ -1792,57 +1792,55 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
 
     public synchronized void resetStats() {
         // 注：原 use_auto_assign_starters_ap 全局开关已废弃（恒 true），此守卫不再需要
-        // effLock 已冗余：reset 仅动 stats/ap + applyUpdateSilently
-        try (var _l = Locks.acquire(stats.wLock)) {
-            int tap = ap.getRemainingAp() + stats.getBase(STR) + stats.getBase(DEX) + stats.getBase(INT) + stats.getBase(LUK), tsp = 1;
-            int tstr = 4, tdex = 4, tint = 4, tluk = 4;
+        // effLock/wLock 均已冗余：strand 串行 + stats 直写（原 stats.wLock 随快照机制退役）
+        int tap = ap.getRemainingAp() + stats.getBase(STR) + stats.getBase(DEX) + stats.getBase(INT) + stats.getBase(LUK), tsp = 1;
+        int tstr = 4, tdex = 4, tint = 4, tluk = 4;
 
-            switch (job.getId()) {
-                case 100:
-                case 1100:
-                case 2100:
-                    tstr = 35;
-                    tsp += ((getLevel() - 10) * 3);
-                    break;
-                case 200:
-                case 1200:
-                    tint = 20;
-                    tsp += ((getLevel() - 8) * 3);
-                    break;
-                case 300:
-                case 1300:
-                case 400:
-                case 1400:
-                    tdex = 25;
-                    tsp += ((getLevel() - 10) * 3);
-                    break;
-                case 500:
-                case 1500:
-                    tdex = 20;
-                    tsp += ((getLevel() - 10) * 3);
-                    break;
+        switch (job.getId()) {
+            case 100:
+            case 1100:
+            case 2100:
+                tstr = 35;
+                tsp += ((getLevel() - 10) * 3);
+                break;
+            case 200:
+            case 1200:
+                tint = 20;
+                tsp += ((getLevel() - 8) * 3);
+                break;
+            case 300:
+            case 1300:
+            case 400:
+            case 1400:
+                tdex = 25;
+                tsp += ((getLevel() - 10) * 3);
+                break;
+            case 500:
+            case 1500:
+                tdex = 20;
+                tsp += ((getLevel() - 10) * 3);
+                break;
+        }
+
+        tap -= tstr;
+        tap -= tdex;
+        tap -= tint;
+        tap -= tluk;
+
+        if (tap >= 0) {
+            // 一个语义域（重置属性）：stats 与 sp 各自正常公告，域收口合并为一个包
+            try (var _u = remote().batch()) {
+                stats.update()
+                        .set(STR, tstr)
+                        .set(DEX, tdex)
+                        .set(INT, tint)
+                        .set(LUK, tluk)
+                        .setAp(tap)
+                        .commit();
+                sp.changeRemainingSp(tsp, job.getId(), false);
             }
-
-            tap -= tstr;
-            tap -= tdex;
-            tap -= tint;
-            tap -= tluk;
-
-            if (tap >= 0) {
-                // 一个语义域（重置属性）：stats 与 sp 各自正常公告，域收口合并为一个包
-                try (var _u = remote().batch()) {
-                    stats.update()
-                            .set(STR, tstr)
-                            .set(DEX, tdex)
-                            .set(INT, tint)
-                            .set(LUK, tluk)
-                            .setAp(tap)
-                            .commit();
-                    sp.changeRemainingSp(tsp, job.getId(), false);
-                }
-            } else {
-                log.warn("Chr {} tried to have its stats reset without enough AP available", getName());
-            }
+        } else {
+            log.warn("Chr {} tried to have its stats reset without enough AP available", getName());
         }
     }
 
@@ -2103,12 +2101,13 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
                     ps.setInt(1, level.getLevel());    // thanks CanIGetaPR for noticing an unnecessary "level" limitation when persisting DB data
                     ps.setInt(2, fame.getFame());
 
-                    try (var ignored = Locks.acquire(stats.wLock)) {   // 仅序列化 stats + 读原子字段
-                        statsJson = toData(petBundle.petsData()).serialize();
+                    // FIXME(actor 纪律): 保存采集可能在非 strand 线程（SaveAllCommand/定时保存），
+                    //  stats 直写化后此处序列化无快照/锁保护，跨线程读可见性与字段一致性由 caller 纪律兜底；
+                    //  采集等 strand 的规范做法（doc/07 保存路径纪律）留保存域重构时兑现。
+                    statsJson = toData(petBundle.petsData()).serialize();
 
-                        ps.setInt(3, Math.abs(level.getExp()));
-                        ps.setInt(4, Math.abs(level.getGachaExp()));
-                    }
+                    ps.setInt(3, Math.abs(level.getExp()));
+                    ps.setInt(4, Math.abs(level.getGachaExp()));
 
                     ps.setInt(5, gm.gmLevel());
                     ps.setInt(6, appearance.getSkinColor().getId());

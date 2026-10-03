@@ -211,9 +211,9 @@ class ActiveBuffs {
     }
 
     /** 激活表变更后刷新派生属性（本地 maxHp/maxMp/watk 等，池变化时顺带发 STAT_CHANGED）。
-     *  必须在管线释放 buff 锁后调用：recalcAndSyncParty 内部按 prtLock→effLock→stats.wLock 取锁，
-     *  且持 wLock 期间经 recalc 再取 chrLock——若在管线持锁（eff-only 或 chr）时调用，
-     *  会分别形成 eff→prt 逆序与 chr→wLock 环，与定时器线程的锁序交叉死锁。 */
+     *  必须在管线释放 buff 锁后调用：recalcAndSyncParty 内部经 computeTotal 读激活表（effLock 语义）
+     *  且 updatePartyMemberHP 取 party.lock——若在管线持锁（eff-only 或 chr）时调用，
+     *  会与定时器线程形成 prtLock 逆序交叉（原 stats.wLock 已随快照机制退役，不再参与锁序）。 */
     void refreshLocalStats() {
         owner.stats.recalcAndSyncParty();
     }

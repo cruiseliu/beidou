@@ -5,11 +5,12 @@ import java.util.concurrent.locks.Lock;
 /**
  * AutoCloseable 多锁工具——按传入顺序加锁，close 时逆序解锁，配合 try-with-resources 使用。
  * <pre>
- * try (var ignored = Locks.acquire(buffs.lock, stats.wLock)) {
+ * try (var ignored = Locks.acquire(buffs.lock, party.lock)) {
  *     ...
  * }
  * </pre>
- * 多锁场景必须遵守全局加锁顺序（如 buffs.lock → stats.wLock）以防死锁。
+ * 多锁场景必须遵守全局加锁顺序（如 buffs.lock → party.lock）以防死锁。
+ * 注：旧示例中的 stats.wLock 已随快照机制退役——stats 域现为直写模型（无锁）。
  */
 public final class Locks implements AutoCloseable {
     private final Lock[] locks;

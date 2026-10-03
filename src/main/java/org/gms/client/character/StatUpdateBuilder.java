@@ -12,9 +12,13 @@ import java.util.List;
  * silent 是提交时机的属性，由提交变体表达：{@link #commit()} 发包通知客户端、
  * {@link #commitSilently()} 静默应用（调用方自行公告/组装包）——builder 本身不携带 silent 状态。
  * <p>
- * 注意：builder 链在【锁外】构建，仅 commit 时才持 wLock。禁止"先读后写"——例如
- * {@code set(getXxx() - delta)}：getXxx() 在锁外读的是并发前快照，写覆盖会丢并发更新；
- * 相对修改一律用增量 {@code add(...)}（如 {@code addAp(-delta)}），事务内读旧快照值，原子。
+ * 注意：builder 链构建与 commit 之间无锁（strand 串行保证，原 wLock 已随快照机制退役）。
+ * "先读后写"仍建议避免——例如 {@code set(getXxx() - delta)} 的读写在两次独立调用间展开，
+ * 语义上应表达为一次相对修改：相对变更一律用增量 {@code add(...)}（如 {@code addAp(-delta)}），
+ * 应用时读旧值，单次写语义完整。
+ * <p>
+ * 本类为迁移期薄壳（fade out 计划）：调用点将逐步改为 CharacterStats 直写方法 + RemoteClient.batch
+ * 合并表达，全部迁移后本类与 {@link Change} 一起删除。
  */
 public final class StatUpdateBuilder {
     private final CharacterStats stats;
