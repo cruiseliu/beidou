@@ -12,7 +12,6 @@ import org.gms.net.encryption.ClientCyphers;
 import org.gms.net.encryption.InitializationVector;
 import org.gms.net.encryption.PacketCodec;
 import org.gms.net.encryption.protocol.ProtocolFactory;
-import org.gms.net.packet.logging.InPacketLogger;
 import org.gms.net.packet.logging.OutPacketLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +23,6 @@ public abstract class ServerChannelInitializer extends ChannelInitializer<Socket
     private static final Logger log = LoggerFactory.getLogger(ServerChannelInitializer.class);
     private static final int IDLE_TIME_SECONDS = 30;
     private static final ChannelHandler sendPacketLogger = new OutPacketLogger();
-    private static final ChannelHandler receivePacketLogger = new InPacketLogger();
 
     static final AtomicLong sessionId = new AtomicLong(7777);
 
@@ -53,6 +51,5 @@ public abstract class ServerChannelInitializer extends ChannelInitializer<Socket
         pipeline.addLast("Client", client);
 
         pipeline.addBefore("Client", "SendPacketLogger", sendPacketLogger);
-        pipeline.addBefore("Client", "ReceivePacketLogger", receivePacketLogger);
     }
 }

@@ -264,15 +264,19 @@ public class Client extends ChannelInboundHandlerAdapter {
             return;
         }
 
+        // 收向日志快照：getBytes 是游标敏感的（返回 readerIndex 之后的内容），
+        // 必须在 readShort 消费 opcode 前取全帧。
+        final byte[] recvSnapshot = GameConfig.getServerBoolean("use_debug_show_packet") ? packet.getBytes() : null;
+
         short opcode = packet.readShort();
         // C→S 分派归语义层（RemoteClient 按连接域装配，doc/12 跳板/世界分域）；
         // 管道机制（ThreadLocal 播种/queued 排队/异常兜底）留在本类。
         final PacketHandler handler = remoteViewBase().resolveHandler(opcode);
 
-        // 已被 remote client 接管的 opcode 不进本日志（收侧有 [remote-in] 统一收口）
-        if (GameConfig.getServerBoolean("use_debug_show_rcvd_packet") && !LoggingUtil.isIgnoredRecvPacket(opcode)
-                && !(handler instanceof Gms083ShimHandler)) {
-            log.info("收到封包 包头ID [{}] 内容： {}", String.format("0x%02X", opcode),packet);
+        // 收向日志单点（分派点即知识点）：remote 接管的 opcode 由 [remote-in]（AbstractInRouter）
+        // 结构化单源记录，legacy handler 才打 ClientSend hex 行——判定源自分发表，无平行 opcode 清单。
+        if (recvSnapshot != null && !(handler instanceof Gms083ShimHandler)) {
+            LoggingUtil.logClientSend(recvSnapshot);
         }
 
         if (handler != null && handler.validateState(this)) {

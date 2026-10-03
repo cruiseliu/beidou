@@ -39,8 +39,8 @@ public class ShowPacketsCommand extends Command {
         GameConfig.update(GameConfigDO.builder()
                 .configType("server")
                 .configSubType("Debug")
-                .configCode("use_debug_show_rcvd_packet")
-                .configValue(String.valueOf(!GameConfig.getServerBoolean("use_debug_show_rcvd_packet")))
+                .configCode("use_debug_show_packet")
+                .configValue(String.valueOf(!GameConfig.getServerBoolean("use_debug_show_packet")))
                 .build());
     }
 }
