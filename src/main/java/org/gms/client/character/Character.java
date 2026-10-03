@@ -192,6 +192,14 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     @Getter
     @Setter
     private int world;
+    /**
+     * 所在频道（运行时镜像，非持久化——world 取自 DB，channel 写点收口在 Player 绑定/
+     * 换绑传输附件时）。party/guild/messenger 等世界域快照一律读本镜像，禁止绕行
+     * legacy Client。
+     */
+    @Getter
+    @Setter
+    private int channel;
     @Getter
     @Setter
     int id;

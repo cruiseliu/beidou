@@ -119,6 +119,9 @@ public final class Player {
             throw new IllegalStateException("rebind 必须在本 actor strand 上执行（跨 actor 访问纪律）");
         }
         this.client = c;
+        if (characterSlot != null) {
+            characterSlot.setChannel(c.getChannel());   // 频道镜像跟随换绑（换频道 = 换绑新传输）
+        }
     }
 
     /**
@@ -138,6 +141,7 @@ public final class Player {
             throw new IllegalStateException("bindCharacter 必须在本 actor strand 上执行");
         }
         this.characterSlot = c;
+        c.setChannel(clientRaw().getChannel());   // 频道镜像：绑定传输附件时同步（写点收口见 rebind）
         clientRaw().setPlayer(c);
     }
 

@@ -39,7 +39,7 @@ public class PartyCharacter {
         this.character = maplechar;
         this.name = maplechar.getName();
         this.level = maplechar.getLevel();
-        this.channel = maplechar.getClient().getChannel();
+        this.channel = maplechar.getChannel();   // 频道镜像（Character 字段，不绕行 legacy Client）
         this.world = maplechar.getWorld();
         this.id = maplechar.getId();
         this.jobid = maplechar.getJob().getId();
