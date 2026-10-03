@@ -107,6 +107,10 @@ public class InventoryTransaction {
         return add(new ItemStack(item, quantity));
     }
 
+    public InventoryTransaction add(int itemId, int quantity) {
+        return add(new ItemStack(itemId, quantity));
+    }
+
     public InventoryTransaction add(List<ItemStack> items) {
         for (ItemStack item : items) {
             add(item);
@@ -134,6 +138,10 @@ public class InventoryTransaction {
         return remove(new ItemStack(item, quantity));
     }
 
+    public InventoryTransaction remove(int itemId, int quantity) {
+        return remove(new ItemStack(itemId, quantity));
+    }
+
     public InventoryTransaction remove(List<ItemStack> items) {
         for (ItemStack item : items) {
             remove(item);
@@ -148,11 +156,19 @@ public class InventoryTransaction {
         return this;
     }
 
+    public InventoryTransaction removeAtMost(int itemId, int quantity) {
+        return removeAtMost(new ItemStack(itemId, quantity));
+    }
+
     public InventoryTransaction removeAtMost(List<ItemStack> items) {
         for (ItemStack item : items) {
             removeAtMost(item);
         }
         return this;
+    }
+
+    public InventoryTransaction removeAll(int itemId) {
+        return removeAtMost(new ItemStack(itemId, Integer.MAX_VALUE));
     }
 
     /**

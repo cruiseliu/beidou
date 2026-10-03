@@ -2411,12 +2411,10 @@
                 <imgdir name="0">
                     <int name="id" value="4032283"/>
                     <int name="count" value="-10"/>
-                    <int name="prop" value="-1"/>
                 </imgdir>
                 <imgdir name="1">
                     <int name="id" value="4032280"/>
                     <int name="count" value="-10"/>
-                    <int name="prop" value="-1"/>
                 </imgdir>
             </imgdir>
         </imgdir>

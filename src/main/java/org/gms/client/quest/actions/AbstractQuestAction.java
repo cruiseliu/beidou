@@ -44,7 +44,7 @@ public abstract class AbstractQuestAction {
         run(chr, null);
     }
 
-    public abstract void processData(Data data);
+    protected abstract void processData(Data data);
 
     public boolean check(Character chr, Integer extSelection) {
         return true;

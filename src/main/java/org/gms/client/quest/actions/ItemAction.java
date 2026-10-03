@@ -31,6 +31,7 @@ import org.gms.client.inventory.manipulator.InventoryManipulator;
 import org.gms.client.quest.QuestWz;
 import org.gms.client.quest.QuestActionType;
 import org.gms.constants.inventory.ItemConstants;
+import org.gms.util.AssertUtil;
 import org.gms.util.I18nUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +54,12 @@ public class ItemAction extends AbstractQuestAction {
     private static final Logger log = LoggerFactory.getLogger(ItemAction.class);
     List<ItemData> items = new ArrayList<>();
 
+    private List<ItemData> negativeItems = new ArrayList<>();
+    private List<ItemData> zeroItems = new ArrayList<>();
+    private List<ItemData> positiveItems = new ArrayList<>();
+    private List<ItemData> selectItems = new ArrayList<>();
+    private List<ItemData> poolItems = new ArrayList<>();
+
     public ItemAction(QuestWz quest, Data data) {
         super(QuestActionType.ITEM, quest);
         processData(data);
@@ -62,7 +69,7 @@ public class ItemAction extends AbstractQuestAction {
     public void processData(Data data) {
         for (Data iEntry : data.getChildren()) {
             int id = DataTool.getInt(iEntry.getChildByPath("id"));
-            int count = DataTool.getInt(iEntry.getChildByPath("count"), 1);
+            int count = DataTool.getInt(iEntry.getChildByPath("count"), 0);
             int period = DataTool.getInt(iEntry.getChildByPath("period"), 0);
 
             Integer prop = null;
@@ -81,14 +88,74 @@ public class ItemAction extends AbstractQuestAction {
                 job = DataTool.getInt(iEntry.getChildByPath("job"));
             }
 
-            items.add(new ItemData(Integer.parseInt(iEntry.getName()), id, count, prop, job, gender, period));
+            ItemData item = new ItemData(Integer.parseInt(iEntry.getName()), id, count, prop, job, gender, period);
+            items.add(item);
         }
 
         items.sort((o1, o2) -> o1.map - o2.map);
+
+        for (ItemData item : items) {
+            if (item.getProp() == null || item.getProp() == 0) {
+                if (item.getCount() < 0) {
+                    negativeItems.add(item);
+                } else if (item.getCount() > 0) {
+                    positiveItems.add(item);
+                } else {
+                    zeroItems.add(item);
+                }
+            } else {
+                AssertUtil.isTrue(item.getCount() > 0);
+                if (item.getProp() > 0) {
+                    poolItems.add(item);
+                } else {
+                    selectItems.add(item);
+                }
+            }
+        }
+    }
+
+    private boolean perform(Character chr, int selection, InventoryTransaction tx) {
+        for (ItemData item : negativeItems) {
+            // "act" is not responsible for "check"
+            tx.removeAtMost(item.getId(), item.getCount());
+        }
+        for (ItemData item : zeroItems) {
+            tx.removeAll(item.getId());
+        }
+
+        for (ItemData item : positiveItems) {
+            if (canGetItem(item, chr)) {
+                tx.add(item.getId(), item.getCount());
+            }
+        }
+
+        if (selection >= 0) {
+            int index = -1;
+            for (ItemData item : selectItems) {
+                if (canGetItem(item, chr)) {
+                    index += 1;
+                    if (index == selection) {
+                        tx.add(item.getId(), item.getCount());
+                        break;
+                    }
+                }
+            }
+            AssertUtil.isTrue(index == selection);
+        }
+
+        ItemPool pool = new ItemPool();
+        for (ItemData item : poolItems) {
+            if (canGetItem(item, chr)) {
+                pool.add(item.getId(), item.getCount(), item.getProp());
+            }
+        }
+
+        return pool.isEmpty() ? tx.commit() : tx.addPoolAndCommit(pool);
     }
 
     @Override
     public void run(Character chr, Integer extSelection) {
+        /*
         List<ItemData> takeItem = new ArrayList<>();
         List<ItemData> giveItem = new ArrayList<>();
 
@@ -149,46 +216,52 @@ public class ItemAction extends AbstractQuestAction {
             InventoryManipulator.REFACTOR6_addById(chr.getClient(), itemid, (short) count, "", -1, period > 0 ? (System.currentTimeMillis() + MINUTES.toMillis(period)) : -1);
             chr.sendPacket(PacketCreator.getShowItemGain(itemid, (short) count, true));
         }
+        */
+        InventoryTransaction tx = chr.getInventory().tryUpdate();
+        boolean feasible = perform(chr, extSelection == null ? -1 : extSelection, tx);
+        AssertUtil.isTrue(feasible);
     }
 
     @Override
     public boolean check(Character chr, Integer extSelection) {
-        List<ItemStack> removes = new ArrayList<>();          // 固定收取（count<0）
-        List<ItemStack> gains = new ArrayList<>();            // 固定发放（count>0）
-        List<ItemStackWeight> poolOptions = new ArrayList<>(); // 随机池（prop>=0）
-        List<Integer> allItemids = new ArrayList<>();          // 失败提示用（事务无法定位失败项，整体报告）
+        // List<ItemStack> removes = new ArrayList<>();          // 固定收取（count<0）
+        // List<ItemStack> gains = new ArrayList<>();            // 固定发放（count>0）
+        // List<ItemStackWeight> poolOptions = new ArrayList<>(); // 随机池（prop>=0）
+        // List<Integer> allItemIds = new ArrayList<>();          // 失败提示用（事务无法定位失败项，整体报告）
 
-        int extNum = 0;
-        for (ItemData item : items) {
-            if (!canGetItem(item, chr)) {
-                continue;
-            }
+        // int extNum = 0;
+        // for (ItemData item : items) {
+        //     if (!canGetItem(item, chr)) {
+        //         continue;
+        //     }
 
-            Integer prop = item.getProp();
-            if (prop == null) {
-                collectBySign(item.getCount() < 0 ? removes : gains, item.getId(), Math.abs(item.getCount()));
-                allItemids.add(item.getId());
-            } else if (prop < 0) {
-                if (extSelection != extNum++) {
-                    continue;
-                }
-                // 玩家选择项按数量符号归入收取/发放
-                collectBySign(item.getCount() < 0 ? removes : gains, item.getId(), Math.abs(item.getCount()));
-                allItemids.add(item.getId());
-            } else {
-                poolOptions.add(new ItemStackWeight(item.getId(), item.getCount(), prop));
-                allItemids.add(item.getId());
-            }
-        }
+        //     Integer prop = item.getProp();
+        //     if (prop == null) {
+        //         collectBySign(item.getCount() < 0 ? removes : gains, item.getId(), Math.abs(item.getCount()));
+        //         allItemIds.add(item.getId());
+        //     } else if (prop < 0) {
+        //         if (extSelection != extNum++) {
+        //             continue;
+        //         }
+        //         // 玩家选择项按数量符号归入收取/发放
+        //         collectBySign(item.getCount() < 0 ? removes : gains, item.getId(), Math.abs(item.getCount()));
+        //         allItemIds.add(item.getId());
+        //     } else {
+        //         poolOptions.add(new ItemStackWeight(item.getId(), item.getCount(), prop));
+        //         allItemIds.add(item.getId());
+        //     }
+        // }
 
         // 先取后给（run 语义），随机池收尾（验全 = roll 样本空间冻结）；
         // testUpdate：commit 不落真，addPoolAndCommit 的 roll 被丢弃，仅返回可行性
         InventoryTransaction tx = chr.getInventory().testUpdate();
-        tx.remove(removes).add(gains);
-        boolean feasible = poolOptions.isEmpty() ? tx.commit() : tx.addPoolAndCommit(new ItemPool(poolOptions));
+        // tx.remove(removes).add(gains);
+        // boolean feasible = poolOptions.isEmpty() ? tx.commit() : tx.addPoolAndCommit(new ItemPool(poolOptions));
+        boolean feasible = perform(chr, extSelection == null ? -1 : extSelection, tx);
 
         if (!feasible) {
-            announceInventoryLimit(allItemids, chr);
+            // announceInventoryLimit(allItemIds, chr);
+            chr.dropMessage(1, I18nUtil.getMessage("ItemAction.Message1"));
             return false;
         }
         return true;
@@ -216,7 +289,7 @@ public class ItemAction extends AbstractQuestAction {
         }
 
         if (item.job > 0) {
-            final List<Integer> code = getJobBy5ByteEncoding(item.getJob());
+            List<Integer> code = getJobBy5ByteEncoding(item.getJob());
             boolean jobFound = false;
             for (int codec : code) {
                 if (codec / 100 == chr.getJob().getId() / 100) {
@@ -254,6 +327,22 @@ public class ItemAction extends AbstractQuestAction {
 
         return false;
     }
+
+    // private List<ItemData> filterAndSort(Character chr) {
+    //     List<ItemData> neg = new ArrayList<>();
+    //     List<ItemData> zero = new ArrayList<>();
+    //     List<ItemData> pos = new ArrayList<>();
+    //     List<ItemData> pool = new ArrayList<>();
+
+    //     for (ItemData item : items) {
+    //         if (!canGetItem(item, chr)) {
+    //             continue;
+    //         }
+
+
+    //     }
+    //     return null;
+    // }
 
     private class ItemData {
         private final int map, id, count, job, gender, period;
