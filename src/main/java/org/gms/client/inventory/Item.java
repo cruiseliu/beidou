@@ -39,7 +39,7 @@ public class Item implements Comparable<Item> {
     /** 钩子脚本包装（ItemDefinition.hooks 接线；未登记道具 null，随 copy 共享引用） */
     private ItemScript script;
 
-    Item(int id) {
+    public Item(int id) {
         assertNotPet(id);
         this.id = id;
         this.script = ItemScript.forItem(id);

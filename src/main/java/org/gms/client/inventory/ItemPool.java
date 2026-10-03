@@ -14,8 +14,12 @@ public class ItemPool {
         items = new ArrayList<>();
     }
 
-    public void add(int itemId, int quantity, double weight) {
-        items.add(new ItemStackWeight(itemId, quantity, weight));
+    // public void add(int itemId, int quantity, double weight) {
+    //     items.add(new ItemStackWeight(itemId, quantity, weight));
+    // }
+
+    public void add(ItemStack stack, double weight) {
+        items.add(new ItemStackWeight(stack.item, stack.quantity, weight));
     }
 
     public boolean isEmpty() {

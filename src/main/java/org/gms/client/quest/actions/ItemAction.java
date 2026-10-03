@@ -25,6 +25,7 @@ import org.gms.client.character.Character;
 import org.gms.client.inventory.ItemPool;
 import org.gms.client.inventory.ItemStack;
 import org.gms.client.inventory.InventoryTransaction;
+import org.gms.client.inventory.Item;
 import org.gms.client.quest.QuestWz;
 import org.gms.client.quest.QuestActionType;
 import org.gms.util.AssertUtil;
@@ -37,6 +38,7 @@ import org.gms.server.ItemInformationProvider;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Tyler (Twdtwd)
@@ -107,8 +109,6 @@ public class ItemAction extends AbstractQuestAction {
     }
 
     private boolean perform(Character chr, int selection, InventoryTransaction tx) {
-        // FIXME: [refactor] expiring items
-
         for (ItemData item : negativeItems) {
             // "act" is not responsible for "check"
             tx.removeAtMost(item.getId(), -item.getCount());
@@ -119,7 +119,7 @@ public class ItemAction extends AbstractQuestAction {
 
         for (ItemData item : positiveItems) {
             if (canGetItem(item, chr)) {
-                tx.add(item.getId(), item.getCount());
+                tx.add(toItemStack(item));
                 AssertUtil.isTrue(item.getPeriod() <= 0);
             }
         }
@@ -130,7 +130,7 @@ public class ItemAction extends AbstractQuestAction {
                 if (canGetItem(item, chr)) {
                     index += 1;
                     if (index == selection) {
-                        tx.add(item.getId(), item.getCount());
+                        tx.add(toItemStack(item));
                         break;
                     }
                 }
@@ -141,11 +141,23 @@ public class ItemAction extends AbstractQuestAction {
         ItemPool pool = new ItemPool();
         for (ItemData item : poolItems) {
             if (canGetItem(item, chr)) {
-                pool.add(item.getId(), item.getCount(), item.getProp());
+                pool.add(toItemStack(item), item.getProp());
             }
         }
 
         return pool.isEmpty() ? tx.commit() : tx.addPoolAndCommit(pool);
+    }
+
+    private ItemStack toItemStack(ItemData actItem) {
+        Item item = new Item(actItem.getId());
+        if (actItem.getPeriod() > 0) {
+            // todo: [refactor]
+            // 1. use strand task start time as now
+            // 2. register expire task on enter inventory?
+            long expire = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(actItem.getPeriod());
+            item.setExpiration(expire);
+        }
+        return new ItemStack(item, actItem.getCount());
     }
 
     @Override
@@ -159,13 +171,11 @@ public class ItemAction extends AbstractQuestAction {
     public boolean check(Character chr, Integer extSelection) {
         int selection = extSelection == null ? -1 : extSelection;
         boolean success = perform(chr, selection, chr.getInventory().testUpdate());
-
         if (!success) {
             // fixme: [refactor] check official inventory full message
             chr.dropMessage(1, I18nUtil.getMessage("ItemAction.Message1"));
-            return false;
         }
-        return true;
+        return success;
     }
 
     private boolean canGetItem(ItemData item, Character chr) {
@@ -188,28 +198,22 @@ public class ItemAction extends AbstractQuestAction {
         return true;
     }
 
-    public boolean restoreLostItem(Character chr, int itemid) {
-        // fixme: [refactor] legacy inventory api
+    public boolean restoreLostItem(Character chr, int itemId) {
+        AssertUtil.isTrue(ItemInformationProvider.getInstance().isQuestItem(itemId));
 
-        if (!ItemInformationProvider.getInstance().isQuestItem(itemid)) {
-            return false;
-        }
-
-        // thanks danielktran (MapleHeroesD)
         for (ItemData item : positiveItems) {
-            if (item.getId() == itemid) {
-                int missingQty = item.getCount() - chr.countItem(itemid);
-                if (missingQty > 0) {
-                    if (!chr.canHold(itemid, missingQty)) {
-                        chr.dropMessage(1, I18nUtil.getMessage("ItemAction.Message1"));
-                        return false;
-                    }
-
-                    chr.getInventory().add(ItemStack.fromExternal(item.getId(), missingQty));
-                    log.debug("Chr {} obtained {}x {} from questId {}", chr, itemid, missingQty, questID);
-                }
-                return true;
+            if (item.getId() != itemId) {
+                continue;
             }
+
+            boolean success = chr.getInventory().tryUpdate()
+                    .removeAll(itemId)
+                    .add(toItemStack(item))
+                    .commit();
+            if (!success) {
+                chr.dropMessage(1, I18nUtil.getMessage("ItemAction.Message1"));
+            }
+            return success;
         }
 
         return false;
