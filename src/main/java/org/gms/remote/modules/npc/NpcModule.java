@@ -29,4 +29,19 @@ public abstract class NpcModule extends AbstractModule {
     public final void dropMessage(int type, String message) {
         post(new ServerNoticeEvent(type, message));
     }
+
+    // ── C→S：对话续行意图 ──
+
+    /**
+     * 对话续行意图入口（player actor strand 上执行；ESM 会话 / 任务脚本 / NPC 脚本的
+     * 重入分流归 gameplay）。
+     *
+     * @param lastMsg   客户端回显的上一页对话类型（脚本续行路由依据）
+     * @param action    0 = 结束对话，1 = 继续
+     * @param text      文本输入页的输入内容（非文本页 null）
+     * @param selection 选择项（无选择 -1；文本页恒 -1）
+     */
+    public interface Handler {
+        void talkMore(int lastMsg, int action, String text, int selection);
+    }
 }

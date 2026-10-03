@@ -175,7 +175,7 @@ public final class PacketProcessor {
         registerHandler(RecvOpcode.GENERAL_CHAT, new GeneralChatHandler());
         registerHandler(RecvOpcode.WHISPER, new WhisperHandler());
         registerHandler(RecvOpcode.NPC_TALK, new NPCTalkHandler());
-        registerHandler(RecvOpcode.NPC_TALK_MORE, new NPCMoreTalkHandler());
+        registerHandler(RecvOpcode.NPC_TALK_MORE, new Gms083ShimHandler(RecvOpcode.NPC_TALK_MORE));
         registerHandler(RecvOpcode.GRENADE_EFFECT, new GrenadeEffectHandler());
         registerHandler(RecvOpcode.NPC_SHOP, new NPCShopHandler());
         registerHandler(RecvOpcode.ITEM_SORT, new InventoryMergeHandler());

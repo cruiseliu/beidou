@@ -47,6 +47,7 @@ import org.gms.client.PacketStat;
 import org.gms.remote.ClientEventHandlerRegistry;
 import org.gms.remote.RemoteClient;
 import org.gms.remote.modules.cashshop.CashShopModule;
+import org.gms.remote.modules.npc.NpcModule;
 import org.gms.client.creator.CharacterTemplate;
 import org.gms.client.pet.Pet;
 import org.gms.client.quest.Quest;
@@ -93,6 +94,9 @@ import org.gms.net.server.world.*;
 import org.gms.scripting.item.ItemScript;
 import org.gms.scripting.AbstractPlayerInteraction;
 import org.gms.scripting.event.EventInstanceManager;
+import org.gms.scripting.npc.NPCScriptManager;
+import org.gms.scripting.quest.QuestScriptManager;
+import org.gms.scripting.quest.esm.EsmQuests;
 import org.gms.server.*;
 import org.gms.server.events.Events;
 import org.gms.server.events.RescueGaga;
@@ -131,7 +135,7 @@ import static org.gms.client.character.Stat.*;
 
 import static java.util.concurrent.TimeUnit.*;
 
-public class Character extends AbstractAnimatedMapObject implements CashShopModule.Handler, CharacterView {
+public class Character extends AbstractAnimatedMapObject implements CashShopModule.Handler, NpcModule.Handler, CharacterView {
     private static final Logger log = LoggerFactory.getLogger(Character.class);
 
     // ── 属性核心（原 AbstractCharacterObject 合并而来） ──
@@ -572,6 +576,61 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
 
     public long getNpcCooldown() {
         return npcCd;
+    }
+
+    // ── npc 域 C→S（对话续行；ESM/任务/NPC 脚本重入分流，原 NPCMoreTalkHandler 语义体）──
+
+    @Override
+    public void talkMore(int lastMsg, int action, String text, int selection) {
+        // ESM 会话分流（doc/13 §15）：活跃 ESM 任务会话 → 重入其状态机（文本输入变体
+        // 未支持，1021 不涉及；mode=-1 由脚本首分支 dispose）。旧路径原样跟随。
+        if (esmQuest() != null) {
+            if (lastMsg == 2 && action == 0) {
+                esmQuest().dispose();
+            } else if (lastMsg != 2) {
+                EsmQuests.more(this, (byte) action, (byte) lastMsg, selection);
+            }
+            return;
+        }
+        // lastMsg 等于 2 为文本输入页（有 returnText），否则为选择/按钮页
+        Client c = getClient();
+        if (lastMsg == 2) {
+            if (action != 0) {
+                if (c.getQM() != null) {
+                    c.getQM().setGetText(text);
+                    if (c.getQM().isStart()) {
+                        QuestScriptManager.getInstance().start(c, (byte) action, (byte) lastMsg, -1);
+                    } else {
+                        QuestScriptManager.getInstance().end(c, (byte) action, (byte) lastMsg, -1);
+                    }
+                } else {
+                    c.getCM().setGetText(text);
+                    npcScriptRouting(c, (byte) action, (byte) lastMsg, -1);
+                }
+            } else if (c.getQM() != null) {
+                c.getQM().dispose();
+            } else {
+                c.getCM().dispose();
+            }
+        } else {
+            if (c.getQM() != null) {
+                if (c.getQM().isStart()) {
+                    QuestScriptManager.getInstance().start(c, (byte) action, (byte) lastMsg, selection);
+                } else {
+                    QuestScriptManager.getInstance().end(c, (byte) action, (byte) lastMsg, selection);
+                }
+            } else {
+                npcScriptRouting(c, (byte) action, (byte) lastMsg, selection);
+            }
+        }
+    }
+
+    private void npcScriptRouting(Client c, byte action, byte lastMsg, int selection) {
+        if (c.getCM().getNextLevelContext().getLevelType() == null) {
+            NPCScriptManager.getInstance().action(c, action, lastMsg, selection);
+        } else {
+            NPCScriptManager.getInstance().nextLevel(c, action, lastMsg, selection);
+        }
     }
 
     public void setNpcCooldown(long d) {
@@ -3220,6 +3279,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         map.bindClientHandlers(registry);
         quests.bindClientHandlers(registry);
         registry.registerCashShop(this);
+        registry.registerNpc(this);
     }
 
     // ── skills 门面 ──
