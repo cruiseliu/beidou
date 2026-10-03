@@ -1,6 +1,7 @@
-package org.gms.remote.modules.npc.client;
+package org.gms.remote.modules.npc;
 
 import org.gms.remote.AbstractModule;
+import org.gms.remote.modules.npc.client.DialogButtons;
 import org.gms.remote.modules.npc.server.NpcTalkEvent;
 import org.gms.remote.modules.npc.server.ServerNoticeEvent;
 import org.gms.remote.modules.npc.server.ShowInfoEvent;

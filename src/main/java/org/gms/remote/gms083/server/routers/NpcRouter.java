@@ -5,7 +5,7 @@ import org.gms.remote.ServerEventDest;
 import org.gms.remote.gms083.Gms083;
 import org.gms.remote.gms083.server.packets.ServerMessagePacket;
 import org.gms.remote.gms083.server.packets.ShowInfoPacket;
-import org.gms.remote.modules.npc.client.NpcModule;
+import org.gms.remote.modules.npc.NpcModule;
 import org.gms.remote.modules.npc.server.NpcTalkEvent;
 import org.gms.remote.modules.npc.server.ServerNoticeEvent;
 import org.gms.remote.modules.npc.server.ShowInfoEvent;

@@ -2,7 +2,7 @@ package org.gms.remote;
 
 import org.gms.remote.modules.cashshop.CashShopModule;
 import org.gms.remote.modules.inventory.InventoryModule;
-import org.gms.remote.modules.map.client.MapModule;
+import org.gms.remote.modules.map.MapModule;
 import org.gms.remote.modules.pet.PetModule;
 import org.gms.remote.modules.quest.QuestModule;
 

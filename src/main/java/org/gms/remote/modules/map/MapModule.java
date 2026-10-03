@@ -1,6 +1,10 @@
-package org.gms.remote.modules.map.client;
+package org.gms.remote.modules.map;
 
 import org.gms.remote.AbstractModule;
+import org.gms.remote.modules.map.client.ChangeMapEvent;
+import org.gms.remote.modules.map.client.MonsterMove;
+import org.gms.remote.modules.map.client.MoveLife;
+import org.gms.remote.modules.map.client.ReviveHereEvent;
 import org.gms.remote.modules.map.client.movement.MoveElement;
 import org.gms.remote.modules.map.server.AckMoveMonsterEvent;
 import org.gms.remote.modules.map.server.ChangeMapServerEvent;

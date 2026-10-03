@@ -2,9 +2,9 @@ package org.gms.remote;
 
 import org.gms.remote.modules.basic.BasicModule;
 import org.gms.remote.modules.inventory.InventoryModule;
-import org.gms.remote.modules.map.client.MapModule;
+import org.gms.remote.modules.map.MapModule;
 import org.gms.remote.modules.message.MessageModule;
-import org.gms.remote.modules.npc.client.NpcModule;
+import org.gms.remote.modules.npc.NpcModule;
 import org.gms.remote.modules.quest.QuestModule;
 import org.gms.remote.modules.pet.PetModule;
 import org.gms.remote.modules.skills.SkillsModule;

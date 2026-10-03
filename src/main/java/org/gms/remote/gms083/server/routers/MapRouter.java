@@ -9,7 +9,7 @@ import org.gms.remote.gms083.client.packets.MovePlayerPacket;
 import org.gms.remote.gms083.server.packets.SetFieldPacket;
 import org.gms.remote.gms083.server.packets.ShowForeignEffectPacket;
 import org.gms.remote.gms083.server.translators.Filetimes;
-import org.gms.remote.modules.map.client.MapModule;
+import org.gms.remote.modules.map.MapModule;
 import org.gms.remote.modules.map.server.AckMoveMonsterEvent;
 import org.gms.remote.modules.map.server.ChangeMapServerEvent;
 import org.gms.remote.modules.map.server.CharacterMoveEvent;
