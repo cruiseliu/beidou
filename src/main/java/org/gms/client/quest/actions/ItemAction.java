@@ -117,7 +117,7 @@ public class ItemAction extends AbstractQuestAction {
     private boolean perform(Character chr, int selection, InventoryTransaction tx) {
         for (ItemData item : negativeItems) {
             // "act" is not responsible for "check"
-            tx.removeAtMost(item.getId(), item.getCount());
+            tx.removeAtMost(item.getId(), -item.getCount());
         }
         for (ItemData item : zeroItems) {
             tx.removeAll(item.getId());
