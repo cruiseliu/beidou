@@ -1232,10 +1232,6 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         }
     }
 
-    public boolean isMale() {
-        return getGender() == 0;
-    }
-
     public static int getAccountIdByName(String name) {
         final int id;
         try (Connection con = DatabaseConnection.getConnection();
@@ -3420,10 +3416,11 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
 
     // ── inventory 门面 ──
 
+    public CharacterInventory inventory() { return inventory; }
     public Inventory getInventory() { return inventory.getInventory(); }
     public InventoryTab getInventory(InventoryType type) { return inventory.getInventory(type); }
     public int countItem(int itemid) { return inventory.countItem(itemid); }
-    public ItemSlot gainItem(int itemId, int quantity) { return inventory.gainItem(itemId, quantity); }
+    // public ItemSlot gainItem(int itemId, int quantity) { return inventory.LEGACY_gainItem(itemId, quantity); }
     public boolean canHold(int itemid) { return inventory.canHold(itemid); }
     public boolean canHold(int itemid, int quantity) { return inventory.canHold(itemid, quantity); }
     public boolean canHoldUniques(List<Integer> itemids) { return inventory.canHoldUniques(itemids); }
@@ -3626,6 +3623,20 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     public void setBuddylist(BuddyList buddylist) { buddy.setBuddylist(buddylist); }
     public void deleteBuddy(int otherCid) { buddy.deleteBuddy(otherCid); }
     public void setBuddyCapacity(int capacity) { buddy.setBuddyCapacity(capacity); }
+
+    // -- Script Helpers: should not be used outside JS scripts --
+
+    public boolean isMale() {
+        return getGender() == 0;
+    }
+
+    public boolean gainItem(int itemId) {
+        return gainItem(itemId, 1);
+    }
+
+    public boolean gainItem(int itemId, int quantity) {
+        return inventory.inventory.tryUpdate().add(itemId, quantity).commit();
+    }
 
     // ── 世界入场（doc/12 §21 追记 4）：服务端初始化 + 初始化数据发送（保序拆分）──
 

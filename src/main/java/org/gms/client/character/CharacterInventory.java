@@ -186,7 +186,7 @@ class CharacterInventory implements InventoryModule.Handler {
      * AbstractPlayerInteraction.gainItem 终端实现按本组件用到的重载归位
      * （randomStats/expires/pet-from 通路未被脚本使用，留在 legacy，doc/13 §16）。
      */
-    public ItemSlot gainItem(int itemId, int quantity) {
+    ItemSlot LEGACY_gainItem(int itemId, int quantity) {
         Client client = owner.getClient();
         ItemSlot item = null;
         if (quantity >= 0) {
