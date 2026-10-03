@@ -73,7 +73,7 @@ public final class Player {
     private enum StrictClientLevel { OFF, LOG, FAIL }
 
     /** 现值 LOG：已迁移 opcode 路径内的存量踩点以 WARN 浮出（迁移清单），清完翻 FAIL。 */
-    private static final StrictClientLevel PACKET_STRICT_CLIENT = StrictClientLevel.LOG;
+    private static final StrictClientLevel PACKET_STRICT_CLIENT = StrictClientLevel.FAIL;
 
     /**
      * packet-strict canary（迁移期 develop helper）：strict 收包窗口（由各 InRouter case
