@@ -26,8 +26,10 @@ import org.gms.util.PacketCreator;
 /**
  * 角色属性数据：直写模型（player strand 单线程纪律下无锁直读写）。
  * <p>
- * 状态为裸字段（base/total 数组 + hp/mp/ap 标量），写路径就地变异并在写点产净 diff
- * 公告客户端；无锁、无快照——锁时代的 volatile snapshot + RW lock 已随 actor 模型迁移退役。
+ * 状态为裸字段（base/total 数组 + hp/mp/ap 标量）；写路径 = 单属性直写原语（本类公开面），
+ * 每个方法捕获旧值 → 就地变异 → base 脏则重算 total → 收尾 clamp → 净 diff 公告。
+ * 不提供跨字段组合 setter——跨字段的包合并由调用方 RemoteClient.batch 表达。
+ * 无锁、无快照——锁时代的 volatile snapshot + RW lock + StatUpdateBuilder/Change 已随 actor 模型迁移退役。
  * <p>
  * 已知 off-strand 残留触点（椅子恢复定时器/跨角色 HP 读/保存采集）无同步保护，
  * 竞态留 FIXME 由相应模块重构时收敛（caller 纪律问题，测试场景不覆盖）。
@@ -75,18 +77,82 @@ public class CharacterStats {
         return base;
     }
 
-    // ── 写路径（无锁直写；事务语义 = Change 批次的收尾 clamp） ──
+    // ── 写路径（无锁直写 API，全部单属性原语：捕获旧值 → 就地写 → base 脏则重算 total → 收尾 clamp → 净 diff 公告）──
+    //
+    // 不提供跨字段组合 setter：跨字段的包合并由调用方 RemoteClient.batch 表达（一次收口一个净 diff 包）。
+    // silent = 历史上有静默语义的入口（装配/加载/老兵卡），调用方自行公告。原 StatUpdateBuilder/Change 已退役。
 
-    /**
-     * 属性更新语法糖入口：stats.update().set(STR, x).add(MAX_HP, y).commit()。
-     * builder 链构建与 commit 之间无锁（strand 串行保证），相对修改用 add 增量表达（见 StatUpdateBuilder）。
-     */
-    StatUpdateBuilder update() {
-        return new StatUpdateBuilder(this);
+    // ══ HP/MP/AP（资源语义：无 total 联动）══
+
+    /** 设置 HP（silent = 老兵卡强化等调用方自行公告的路径） */
+    void setHp(int value, boolean silent) {
+        int oldHp = hp;
+
+        hp = value;
+        finish(silent, base, oldHp, mp, ap, false);
+    }
+
+    /** 设置 MP（silent 同 setHp） */
+    void setMp(int value, boolean silent) {
+        int oldMp = mp;
+
+        mp = value;
+        finish(silent, base, hp, oldMp, ap, false);
+    }
+
+    /** 增加 HP（公告，收尾 clamp 到 total 上限） */
+    void addHp(int delta) {
+        setHp(hp + delta, false);
+    }
+
+    /** 增加 MP（公告，收尾 clamp 到 total 上限） */
+    void addMp(int delta) {
+        setMp(mp + delta, false);
+    }
+
+    /** 设置剩余 AP（silent = 装配/加载路径，调用方自行公告） */
+    void setAp(int value, boolean silent) {
+        int oldAp = ap;
+
+        ap = value;
+        finish(silent, base, hp, mp, oldAp, false);
+    }
+
+    /** 增加剩余 AP（收尾下限 0；silent 透传见 setAp） */
+    void addAp(int delta, boolean silent) {
+        int oldAp = ap;
+
+        ap += delta;
+        finish(silent, base, hp, mp, oldAp, false);
+    }
+
+    // ══ base 槽（面板属性：写后重算 total；MAX_HP/MAX_MP 变化附带封顶显示值 + 当前资源）══
+
+    /** 设置单个 base 槽（silent = 老兵卡强化等静默路径） */
+    void setBaseStat(Stat s, int value, boolean silent) {
+        int[] oldBase = captureBase();
+        int oldHp = hp;
+        int oldMp = mp;
+
+        boolean dirty = writeBase(s, value);
+        finish(silent, oldBase, oldHp, oldMp, ap, dirty);
+    }
+
+    /** 增加单个 base 槽（公告） */
+    void addBaseStat(Stat s, int delta) {
+        setBaseStat(s, base[s.ordinal()] + delta, false);
     }
 
     /**
-     * 重算 total stats（API 层面独立调用，非 Change 变更）：装备/buff 变化后触发，
+     * 单槽成长写：NEW = (OLD + gain) * mult（int 截断；公告）——升级/转职"有加有乘"公式。
+     * 原为 builder 的 add(gain)→multiply(mult) 两步链，数值等价（中间值无 clamp 发生）。
+     */
+    void growBaseStat(Stat s, int gain, double mult) {
+        setBaseStat(s, (int) ((base[s.ordinal()] + gain) * mult), false);
+    }
+
+    /**
+     * 重算 total stats（API 层面独立调用，非属性写入）：装备/buff 变化后触发，
      * 就地换新 total 并按新上限 clamp hp/mp（静默，不公告——面板 total 由客户端自算）。
      */
     void recalc() {
@@ -110,20 +176,20 @@ public class CharacterStats {
         if (hp + delta <= 0) {
             delta = 1 - hp;
         }
-        update().addHp(delta).commit();
+        addHp(delta);
         return delta;
     }
+    // ── private methods（直写内核）──
 
-    // ── private methods ──
-
-    /** 应用变更并立即发包通知客户端（updateStats + unlockActions 一个 batch） */
-    void updateInternal(boolean silent, Change... changes) {
-        int[] oldBase = base.clone();
-        int oldHp = hp;
-        int oldMp = mp;
-        int oldAp = ap;
-
-        applyChanges(changes);
+    /**
+     * 直写收尾：base 脏则重算 total → 统一 clamp（hp/mp 到 total 上限、ap 下限 0——与旧事务收尾
+     * 无条件 clamp 一致）→ 净 diff + HP 联动 + 公告（stats+unlockActions 一个 batch）。
+     */
+    private void finish(boolean silent, int[] oldBase, int oldHp, int oldMp, int oldAp, boolean baseDirty) {
+        if (baseDirty) {
+            total = computeTotal(base);
+        }
+        clampResources();
 
         StatsUpdate statUpdates = diff(oldBase, oldHp, oldMp, oldAp);
         if (oldHp != hp) {
@@ -137,57 +203,20 @@ public class CharacterStats {
         }
     }
 
-    /**
-     * 就地应用变更（无锁直写）：SDIL 槽经 {@link #setBase}（下限兜底/同值跳过），
-     * 任何槽变化触发 total 重算；收尾统一 clamp hp/mp 到新 total 上限——
-     * 同批内 maxHp 提高时 hp 随之放行（与旧快照事务收尾语义一致）。
-     */
-    private void applyChanges(Change[] changes) {
-        boolean baseDirty = false;
-
-        for (Change c : changes) {
-            switch (c) {
-                case Change.Set(Change.Prop p, int value) -> {
-                    if (p.isAttrSlot()) {
-                        baseDirty |= setBase(p, value);
-                    } else if (p == Change.Prop.HP) {
-                        hp = value;
-                    } else if (p == Change.Prop.MP) {
-                        mp = value;
-                    } else if (p == Change.Prop.AP) {
-                        ap = value;
-                    }
-                }
-                case Change.Add(Change.Prop p, int delta) -> {
-                    if (p.isAttrSlot()) {
-                        baseDirty |= setBase(p, base[p.slot.ordinal()] + delta);
-                    } else if (p == Change.Prop.HP) {
-                        hp += delta;
-                    } else if (p == Change.Prop.MP) {
-                        mp += delta;
-                    } else if (p == Change.Prop.AP) {
-                        ap += delta;
-                    }
-                }
-                case Change.Multiply(Change.Prop p, double multiplier) -> {
-                    // NEW = OLD * multiplier（int 截断）；Multiply 仅支持面板属性（HP/MP/AP 无槽位不可乘）
-                    assert p.isAttrSlot() : "Multiply 仅支持面板属性槽: " + p;
-                    baseDirty |= setBase(p, (int) (base[p.slot.ordinal()] * multiplier));
-                }
-            }
-        }
-
-        if (baseDirty) {
-            total = computeTotal(base);
-        }
+    /** 资源收尾钳制：hp/mp clamp 到当前 total 上限（同批内 maxHp 提高时 hp 随之放行），ap 下限 0 */
+    private void clampResources() {
         hp = Math.clamp(hp, 0, total[Stat.MAX_HP.ordinal()]);
         mp = Math.clamp(mp, 0, total[Stat.MAX_MP.ordinal()]);
         ap = Math.max(0, ap);
     }
 
+    private int[] captureBase() {
+        return base.clone();
+    }
+
     /** 写 base 槽（含四维下限兜底与同值跳过），返回是否实际变化 */
-    private boolean setBase(Change.Prop p, int newValue) {
-        int idx = p.slot.ordinal();
+    private boolean writeBase(Stat s, int newValue) {
+        int idx = s.ordinal();
         if (Stat.SDIL_INDEX_BEGIN <= idx && idx < Stat.SDIL_INDEX_END) {
             if (newValue < 4) {   // 四维下限兜底（原 applyUpdateSilently 语义）
                 return false;
@@ -432,7 +461,10 @@ public class CharacterStats {
             }
         }
 
-        update().setHp(nextHp).setMp(nextMp).commit();
+        try (var _b = owner.remote().batch()) {   // hp+mp 同批收口（0x1400 单包语义保持）
+            setHp(nextHp, false);
+            setMp(nextMp, false);
+        }
 
         if (GameConfig.getServerBoolean("use_server_auto_pot") || GameConfig.getServerBoolean("use_compulsory_auto_pot")) {
             float autoHpAlert, autoMpAlert;

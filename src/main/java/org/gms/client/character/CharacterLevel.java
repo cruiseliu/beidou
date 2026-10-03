@@ -230,10 +230,8 @@ class CharacterLevel {
             // effLock/wLock 均已冗余：strand 串行 + stats 直写（原 stats.wLock 随快照机制退役）
             // fixme: [refactor] add heal hp/mp
             owner.stats.recalc();
-            owner.stats.update()
-                    .setHp(owner.stats.getTotal(Stat.MAX_HP))
-                    .setMp(owner.stats.getTotal(Stat.MAX_MP))
-                    .commit();
+            owner.stats.setHp(owner.stats.getTotal(Stat.MAX_HP), false);   // 外层 _u batch 内，自动合并单包
+            owner.stats.setMp(owner.stats.getTotal(Stat.MAX_MP), false);
             owner.remote().basic().updateLevel(level);
         owner.remote().basic().updateExp(exp.get());   // 与上一调用同段（外层 _u batch）合并为一个 STAT_CHANGED
             owner.remote().basic().unlockActions();

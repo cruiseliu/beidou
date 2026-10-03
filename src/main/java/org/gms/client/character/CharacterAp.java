@@ -10,10 +10,10 @@ import static org.gms.client.character.Stat.*;
 /**
  * AP（能力点）：数据 + 全部"仅与 AP 相关"和"将 AP 分配到属性"的逻辑。
  * <p>
- * remainingAp 收敛在 {@link CharacterStats} 直写状态（ap 标量，与 attrs 同批应用——
- * 分配 AP 时"属性已加且剩余 AP 已减"在同一次写内生效）；本组件保留校验与分配编排，
- * 写操作经 owner.stats.update()...commit()/commitSilently() 事务。hpMpApUsed 是"洗点消耗累计"，
- * 与 stats 状态无耦合，保持本组件字段。
+ * remainingAp 收敛在 {@link CharacterStats} 直写状态（ap 标量，分配 AP 时"属性已加且剩余 AP 已减"
+ * 在同一 batch 内收口生效）；本组件保留校验与分配编排，写操作走 owner.stats 的单属性直写原语
+ * （setBaseStat/addBaseStat/addAp，RemoteClient.batch 表达合并）。
+ * hpMpApUsed 是"洗点消耗累计"，与 stats 状态无耦合，保持本组件字段。
  */
 public class CharacterAp {
     private final Character owner;
@@ -33,20 +33,11 @@ public class CharacterAp {
     }
 
     void changeRemainingAp(int x, boolean silent) {
-        if (silent) {
-            owner.stats.update().setAp(x).commitSilently();
-        } else {
-            owner.stats.update().setAp(x).commit();
-        }
+        owner.stats.setAp(x, silent);
     }
 
     void gainAp(int deltaAp, boolean silent) {
-        // 增量在事务内读旧快照（addAp 自带 >=0 下限），避免锁外先读后写
-        if (silent) {
-            owner.stats.update().addAp(deltaAp).commitSilently();
-        } else {
-            owner.stats.update().addAp(deltaAp).commit();
-        }
+        owner.stats.addAp(deltaAp, silent);
     }
 
     /** 单维分配：assignAttr(STR, x) 等 */
@@ -77,13 +68,13 @@ public class CharacterAp {
             }
         }
 
-        owner.stats.update()
-                .set(STR, newAttrs[STR.ordinal()])
-                .set(DEX, newAttrs[DEX.ordinal()])
-                .set(INT, newAttrs[INT.ordinal()])
-                .set(LUK, newAttrs[LUK.ordinal()])
-                .addAp(-apUsed)   // 增量而非 set(getRemainingAp()-apUsed)：事务内读旧值
-                .commit();
+        try (var _b = owner.remote().batch()) {   // 四维+AP 同批收口单包（0x4040/0x4080 包结构保持）
+            owner.stats.setBaseStat(STR, newAttrs[STR.ordinal()], false);
+            owner.stats.setBaseStat(DEX, newAttrs[DEX.ordinal()], false);
+            owner.stats.setBaseStat(INT, newAttrs[INT.ordinal()], false);
+            owner.stats.setBaseStat(LUK, newAttrs[LUK.ordinal()], false);
+            owner.stats.addAp(-apUsed, false);
+        }
         return true;
     }
 
@@ -92,10 +83,10 @@ public class CharacterAp {
             return false;
         }
 
-        owner.stats.update()
-                .add(MAX_HP, deltaHP)
-                .addAp(-deltaAp)   // 增量而非 set(getRemainingAp()-deltaAp)：事务内读旧值
-                .commit();
+        try (var _b = owner.remote().batch()) {
+            owner.stats.addBaseStat(MAX_HP, deltaHP);
+            owner.stats.addAp(-deltaAp, false);
+        }
         hpMpApUsed += deltaAp;
         return true;
     }
@@ -105,10 +96,10 @@ public class CharacterAp {
             return false;
         }
 
-        owner.stats.update()
-                .add(MAX_MP, deltaMP)
-                .addAp(-deltaAp)   // 增量而非 set(getRemainingAp()-deltaAp)：事务内读旧值
-                .commit();
+        try (var _b = owner.remote().batch()) {
+            owner.stats.addBaseStat(MAX_MP, deltaMP);
+            owner.stats.addAp(-deltaAp, false);
+        }
         hpMpApUsed += deltaAp;
         return true;
     }
@@ -124,7 +115,7 @@ public class CharacterAp {
 
     void applyData(CharacterApData d) {
         hpMpApUsed = d.hpMpApUsed;
-        owner.stats.update().setAp(d.remainingAp).commitSilently();
+        owner.stats.setAp(d.remainingAp, true);   // 加载路径静默
     }
 
     private boolean canSpendAp(int deltaAp, boolean capReached) {

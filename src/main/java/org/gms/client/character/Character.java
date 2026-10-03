@@ -446,7 +446,12 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
 
     /** 四维全部设为 x（管理命令用） */
     public void updateStrDexIntLuk(int x) {
-        stats.update().set(STR, x).set(DEX, x).set(INT, x).set(LUK, x).commit();
+        try (var _b = remote().batch()) {   // 四维 + 同批收口单包
+            stats.setBaseStat(Stat.STR, x, false);
+            stats.setBaseStat(Stat.DEX, x, false);
+            stats.setBaseStat(Stat.INT, x, false);
+            stats.setBaseStat(Stat.LUK, x, false);
+        }
     }
 
     private void updateRemainingSp(int remainingSp, int jobId) {
@@ -457,16 +462,17 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         Character ret = new Character();
         ret.client = c;
         ret.gm.setGMLevel(0);
-        ret.stats.update()
-                .set(MAX_HP, 50)
-                .set(MAX_MP, 5)
-                .setHp(50)
-                .setMp(5)
-                .set(STR, 12)
-                .set(DEX, 5)
-                .set(INT, 4)
-                .set(LUK, 4)
-                .commitSilently();
+        CharacterStatsData d = new CharacterStatsData();   // 装配期裸字段直写（静默，不公告）
+        d.str = 12;
+        d.dex = 5;
+        d.int_ = 4;
+        d.luk = 4;
+        d.maxHp = 50;
+        d.maxMp = 5;
+        d.hp = 50;
+        d.mp = 5;
+        ret.stats.applyData(d);
+        ret.stats.recalc();   // 重算 total（对齐旧 commitSilently 链的 computeTotal 副作用）
         ret.setMap((MapleMap) null);
         ret.setJob(JobEnum.BEGINNER);
         ret.level.setLevel(1);
@@ -1828,15 +1834,13 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         tap -= tluk;
 
         if (tap >= 0) {
-            // 一个语义域（重置属性）：stats 与 sp 各自正常公告，域收口合并为一个包
+            // 一个语义域（重置属性）：四维+AP 逐条直写，域收口合并为一个包
             try (var _u = remote().batch()) {
-                stats.update()
-                        .set(STR, tstr)
-                        .set(DEX, tdex)
-                        .set(INT, tint)
-                        .set(LUK, tluk)
-                        .setAp(tap)
-                        .commit();
+                stats.setBaseStat(Stat.STR, tstr, false);
+                stats.setBaseStat(Stat.DEX, tdex, false);
+                stats.setBaseStat(Stat.INT, tint, false);
+                stats.setBaseStat(Stat.LUK, tluk, false);
+                stats.setAp(tap, false);
                 sp.changeRemainingSp(tsp, job.getId(), false);
             }
         } else {
@@ -1883,17 +1887,9 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
      */
     public void applyCharacterTemplate(CharacterTemplate t) {
         CharacterStatsData s = t.baseData().stats();
-        stats.update()
-                .set(Stat.STR, s.str)
-                .set(Stat.DEX, s.dex)
-                .set(Stat.INT, s.int_)
-                .set(Stat.LUK, s.luk)
-                .set(Stat.MAX_HP, s.maxHp)
-                .set(Stat.MAX_MP, s.maxMp)
-                .setHp(s.hp)
-                .setMp(s.mp)
-                .setAp(t.ap())
-                .commitSilently();
+        stats.applyData(s);               // 装配期裸字段直写（静默）
+        stats.setAp(t.ap(), true);
+        stats.recalc();                   // 重算 total（对齐旧 commitSilently 链的 computeTotal 副作用）
         level.setLevel(t.level());
         setJob(JobEnum.getById(t.jobId()));
         setMapId(t.mapId());
@@ -1929,11 +1925,13 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
 
         if (e.hpGain() != null) {
             int newMaxHp = getMaxHp() + e.hpGain()[improveSp];
-            stats.update().set(Stat.MAX_HP, newMaxHp).setHp(newMaxHp).commitSilently();
+            stats.setBaseStat(Stat.MAX_HP, newMaxHp, true);   // 静默：调用方自行公告
+            stats.setHp(newMaxHp, true);
         }
         if (e.mpGain() != null) {
             int newMaxMp = getMaxMp() + e.mpGain()[improveSp];
-            stats.update().set(Stat.MAX_MP, newMaxMp).setMp(newMaxMp).commitSilently();
+            stats.setBaseStat(Stat.MAX_MP, newMaxMp, true);
+            stats.setMp(newMaxMp, true);
         }
 
         Skill primary = SkillFactory.getSkill(e.enhanceSkill());
@@ -3124,32 +3122,43 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     public int getDex() { return stats.getBase(DEX); }
     public int getInt() { return stats.getBase(INT); }
     public int getLuk() { return stats.getBase(LUK); }
-    public void healHpMp() { stats.update().setHp(30000).setMp(30000).commit(); }
-    public void updateHpMp(int x) { stats.update().setHp(x).setMp(x).commit(); }
-    public void updateHpMp(int newhp, int newmp) { stats.update().setHp(newhp).setMp(newmp).commit(); }
-    public void updateHp(int hp) { stats.update().setHp(hp).commit(); }
-    public void updateMaxHp(int maxhp) { stats.update().set(MAX_HP, maxhp).commit(); }
-    public void updateHpMaxHp(int hp, int maxhp) { stats.update().setHp(hp).set(MAX_HP, maxhp).commit(); }
-    public void updateMp(int mp) { stats.update().setMp(mp).commit(); }
-    public void updateMaxMp(int maxmp) { stats.update().set(MAX_MP, maxmp).commit(); }
-    public void updateMpMaxMp(int mp, int maxmp) { stats.update().setMp(mp).set(MAX_MP, maxmp).commit(); }
-    public void updateMaxHpMaxMp(int maxhp, int maxmp) { stats.update().set(MAX_HP, maxhp).set(MAX_MP, maxmp).commit(); }
-    public int safeAddHP(int delta) { return stats.safeAddHP(delta); }
-    public void addHP(int delta) { stats.update().addHp(delta).commit(); }
-    public void addMP(int delta) { stats.update().addMp(delta).commit(); }
-    public void addMPHP(int hpDelta, int mpDelta) { stats.update().addHp(hpDelta).addMp(mpDelta).commit(); }
-    public void addMaxHP(int delta) { stats.update().add(Stat.MAX_HP, delta).commit(); }
-    public void addMaxMP(int delta) { stats.update().add(Stat.MAX_MP, delta).commit(); }
-    public void recalc() { stats.recalc(); }
-    public boolean applyHpMpChange(int hpCon, int hpchange, int mpchange) { return stats.applyHpMpChange(hpCon, hpchange, mpchange); }
-
-    public void changeHpMp(int newhp, int newmp, boolean silent) {
-        if (silent) {
-            stats.update().setHp(newhp).setMp(newmp).commitSilently();
-        } else {
-            stats.update().setHp(newhp).setMp(newmp).commit();
+    public void healHpMp() {
+        try (var _b = remote().batch()) {   // hp+mp 同批收口单包
+            stats.setHp(30000, false);
+            stats.setMp(30000, false);
         }
     }
+    public void updateHpMp(int x) {
+        try (var _b = remote().batch()) {
+            stats.setHp(x, false);
+            stats.setMp(x, false);
+        }
+    }
+    public void updateHpMp(int newhp, int newmp) {
+        try (var _b = remote().batch()) {
+            stats.setHp(newhp, false);
+            stats.setMp(newmp, false);
+        }
+    }
+    public void updateHp(int hp) { stats.setHp(hp, false); }
+    public void updateMp(int mp) { stats.setMp(mp, false); }
+    public void updateMaxHpMaxMp(int maxhp, int maxmp) {
+        try (var _b = remote().batch()) {   // maxHp+maxMp 同批收口单包
+            stats.setBaseStat(Stat.MAX_HP, maxhp, false);
+            stats.setBaseStat(Stat.MAX_MP, maxmp, false);
+        }
+    }
+    public int safeAddHP(int delta) { return stats.safeAddHP(delta); }
+    public void addHP(int delta) { stats.addHp(delta); }
+    public void addMP(int delta) { stats.addMp(delta); }
+    public void addMPHP(int hpDelta, int mpDelta) {
+        try (var _b = remote().batch()) {   // hp+mp 同批收口单包
+            stats.addHp(hpDelta);
+            stats.addMp(mpDelta);
+        }
+    }
+    public void recalc() { stats.recalc(); }
+    public boolean applyHpMpChange(int hpCon, int hpchange, int mpchange) { return stats.applyHpMpChange(hpCon, hpchange, mpchange); }
 
     // ── rates 门面 ──
 

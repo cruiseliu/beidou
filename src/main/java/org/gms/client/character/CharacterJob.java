@@ -178,12 +178,8 @@ class CharacterJob {
             // fixme: [refactor] check Aran's max hp/mp
 
             if (gain != null) {
-                owner.stats.update()
-                        .add(Stat.MAX_HP, rollGrowthGain(gain.maxHp(), fixedLevelUpHpMp))
-                        .multiply(Stat.MAX_HP, gain.maxHp().multiply())
-                        .add(Stat.MAX_MP, rollGrowthGain(gain.maxMp(), fixedLevelUpHpMp))
-                        .multiply(Stat.MAX_MP, gain.maxMp().multiply())
-                        .commit();
+                owner.stats.growBaseStat(Stat.MAX_HP, rollGrowthGain(gain.maxHp(), fixedLevelUpHpMp), gain.maxHp().multiply());
+                owner.stats.growBaseStat(Stat.MAX_MP, rollGrowthGain(gain.maxMp(), fixedLevelUpHpMp), gain.maxMp().multiply());
             }
 
             owner.remote().basic().updateJob(getId());
@@ -282,12 +278,8 @@ class CharacterJob {
         // 奖励按升级后的新等级查——"N 级才能获得的属性"到达 N 级才生效
         GainStats gs = job.gainStatsAtLevel(newLevel);
         if (gs != null) {
-            owner.stats.update()
-                    .add(Stat.MAX_HP, rollGrowthGain(gs.maxHp(), fixed))
-                    .multiply(Stat.MAX_HP, gs.maxHp().multiply())
-                    .add(Stat.MAX_MP, rollGrowthGain(gs.maxMp(), fixed))
-                    .multiply(Stat.MAX_MP, gs.maxMp().multiply())
-                    .commit();
+            owner.stats.growBaseStat(Stat.MAX_HP, rollGrowthGain(gs.maxHp(), fixed), gs.maxHp().multiply());
+            owner.stats.growBaseStat(Stat.MAX_MP, rollGrowthGain(gs.maxMp(), fixed), gs.maxMp().multiply());
             if (gs.ap() > 0) {
                 owner.gainAp(gs.ap(), false);
             }
@@ -306,7 +298,8 @@ class CharacterJob {
         // 技能被动加成（Improving MaxHP/MaxMP）：遍历已学技能查 SkillDefinition 的
         // increaseMaxHpOnLevelUp / increaseMaxMpOnLevelUp（wz effect 字段名），
         // 不再按职业特判挑技能——学到对应被动即生效。INT 加成（非 JobDefinition 数据）
-        StatUpdateBuilder statUpdates = owner.stats.update();
+        int passiveHpBonus = 0;
+        int passiveMpBonus = 0;
         for (Map.Entry<Integer, SkillEntry> e : owner.getSkills().entrySet()) {
             Skill skill = e.getValue().skill;
             SkillDefinition skillDef = SkillRegistry.of(e.getKey());
@@ -320,22 +313,22 @@ class CharacterJob {
             BuffEffectData effect = skill.getEffect(level);
             SkillDefinition.Passive passive = skillDef.passive();
             if (passive.increaseMaxHpOnLevelUp() != null) {
-                statUpdates.add(Stat.MAX_HP, effect.getValue(passive.increaseMaxHpOnLevelUp()));
+                passiveHpBonus += effect.getValue(passive.increaseMaxHpOnLevelUp());
             }
             if (passive.increaseMaxMpOnLevelUp() != null) {
-                statUpdates.add(Stat.MAX_MP, effect.getValue(passive.increaseMaxMpOnLevelUp()));
+                passiveMpBonus += effect.getValue(passive.increaseMaxMpOnLevelUp());
             }
         }
 
         if (GameConfig.getServerBoolean("use_randomize_hpmp_gain")) {
             // 升级按智力授予 MP：除数由职业定义决定（MAGICIAN 系 20，其他 10）
-            int intBonus = owner.stats.getTotal(Stat.INT) / job.mpIntDivisor();
-            statUpdates.add(Stat.MAX_MP, intBonus);
+            passiveMpBonus += owner.stats.getTotal(Stat.INT) / job.mpIntDivisor();
         }
-        statUpdates.commit();
+        owner.stats.addBaseStat(Stat.MAX_HP, passiveHpBonus);
+        owner.stats.addBaseStat(Stat.MAX_MP, passiveMpBonus);
     }
 
-    // ── 成长工具（升级/转职"有加有乘"的加数部分；乘法由 Change.Multiply 在事务内完成） ──
+    // ── 成长工具（升级/转职"有加有乘"的加数部分；乘法由 stats.growBaseStat 在写内完成） ──
 
     /** 成长加成量：fixed = 区间平均值，否则随机；NEW = (OLD + gain) * multiply 中的 gain */
     static int rollGrowthGain(GainStats.Growth growth, boolean fixed) {
