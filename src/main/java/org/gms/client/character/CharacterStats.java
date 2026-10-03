@@ -27,7 +27,7 @@ import org.gms.util.PacketCreator;
  * 角色属性数据：直写模型（player strand 单线程纪律下无锁直读写）。
  * <p>
  * 状态为裸字段（base/total 数组 + hp/mp/ap 标量）；写路径 = 单属性直写原语（本类公开面），
- * 每个方法捕获旧值 → 就地变异 → base 脏则重算 total → 收尾 clamp → 净 diff 公告。
+ * setter 自产自己的 diff（写哪个槽、带什么派生字段由各 setter 明示），无变化即无事件。
  * 不提供跨字段组合 setter——跨字段的包合并由调用方 RemoteClient.batch 表达。
  * 无锁、无快照——锁时代的 volatile snapshot + RW lock + StatUpdateBuilder/Change 已随 actor 模型迁移退役。
  * <p>
@@ -77,35 +77,41 @@ public class CharacterStats {
         return base;
     }
 
-    // ── 写路径（无锁直写 API，全部单属性原语：捕获旧值 → 就地写 → base 脏则重算 total → 收尾 clamp → 净 diff 公告）──
+    // ── 写路径（无锁直写 API，全部单属性原语）──
     //
-    // 不提供跨字段组合 setter：跨字段的包合并由调用方 RemoteClient.batch 表达（一次收口一个净 diff 包）。
-    // 静默只存在于装配/加载入口（applyData / setAp(true)）——运行期写即公告。原 StatUpdateBuilder/Change 已退役。
+    // setter 自产自己的 diff（它清楚自己改了哪个槽），不做新旧状态对比；无变化即无事件。
+    // 跨字段包合并由调用方 RemoteClient.batch 表达（一次收口一个净 diff 包）；
+    // 静默只存在于装配/加载入口（applyData / setAp(true)）。原 StatUpdateBuilder/Change 已退役。
 
     // ══ HP/MP/AP（资源语义：无 total 联动）══
 
-    /** 设置 HP（公告） */
+    /** 设置 HP（公告；clamp 到当前 total 上限） */
     void setHp(int value) {
         int oldHp = hp;
-
-        hp = value;
-        finish(false, base, oldHp, mp, ap, false);
+        hp = Math.clamp(value, 0, total[Stat.MAX_HP.ordinal()]);
+        if (hp == oldHp) {
+            return;
+        }
+        hpChangeAction(oldHp);   // 死亡判定/队伍同步/狂暴（跨 actor 延迟，与包序无关）
+        owner.remote().stats().updateStats(new StatsUpdate().hp(hp));
     }
 
-    /** 设置 MP（公告） */
+    /** 设置 MP（公告；clamp 到当前 total 上限） */
     void setMp(int value) {
         int oldMp = mp;
-
-        mp = value;
-        finish(false, base, hp, oldMp, ap, false);
+        mp = Math.clamp(value, 0, total[Stat.MAX_MP.ordinal()]);
+        if (mp == oldMp) {
+            return;
+        }
+        owner.remote().stats().updateStats(new StatsUpdate().mp(mp));
     }
 
-    /** 增加 HP（公告，收尾 clamp 到 total 上限） */
+    /** 增加 HP（公告） */
     void addHp(int delta) {
         setHp(hp + delta);
     }
 
-    /** 增加 MP（公告，收尾 clamp 到 total 上限） */
+    /** 增加 MP（公告） */
     void addMp(int delta) {
         setMp(mp + delta);
     }
@@ -115,29 +121,55 @@ public class CharacterStats {
      */
     void setAp(int value, boolean silent) {
         int oldAp = ap;
-
-        ap = value;
-        finish(silent, base, hp, mp, oldAp, false);
+        ap = Math.max(0, value);
+        if (silent || ap == oldAp) {
+            return;
+        }
+        owner.remote().stats().updateStats(new StatsUpdate().ap(ap));
     }
 
-    /** 增加剩余 AP（公告，收尾下限 0） */
+    /** 增加剩余 AP（公告，下限 0） */
     void addAp(int delta) {
         int oldAp = ap;
-
-        ap += delta;
-        finish(false, base, hp, mp, oldAp, false);
+        ap = Math.max(0, ap + delta);
+        if (ap == oldAp) {
+            return;
+        }
+        owner.remote().stats().updateStats(new StatsUpdate().ap(ap));
     }
 
     // ══ base 槽（面板属性：写后重算 total；MAX_HP/MAX_MP 变化附带封顶显示值 + 当前资源）══
 
-    /** 设置单个 base 槽（公告） */
+    /**
+     * 设置单个 base 槽（公告）：SDIL 槽带下限兜底与同值跳过。
+     * MAX_HP/MAX_MP 变化附带封顶显示值 + 当前资源（客户端 max 变更时重置资源显示）；
+     * 装备段槽位（P_DEF..HANDS）不产 STAT_CHANGED，仅 total 随写重算（与旧 diff 扫描范围一致）。
+     */
     void setBaseStat(Stat s, int value) {
-        int[] oldBase = captureBase();
+        if (!writeBase(s, value)) {
+            return;   // 四维下限兜底或同值：无变化无事件
+        }
         int oldHp = hp;
-        int oldMp = mp;
+        total = computeTotal(base);
+        clampResources();
 
-        boolean dirty = writeBase(s, value);
-        finish(false, oldBase, oldHp, oldMp, ap, dirty);
+        StatsUpdate updates = new StatsUpdate();
+        if (s == Stat.MAX_HP) {
+            updates.set(Stat.MAX_HP, getClientMaxHp());
+            updates.hp(hp);
+        } else if (s == Stat.MAX_MP) {
+            updates.set(Stat.MAX_MP, getClientMaxMp());
+            updates.mp(mp);
+        } else if (isSdil(s)) {
+            updates.set(s, base[s.ordinal()]);
+        } else {
+            return;
+        }
+
+        if (oldHp != hp) {
+            hpChangeAction(oldHp);   // max 降导致的 clamp 可能减 hp
+        }
+        owner.remote().stats().updateStats(updates);
     }
 
     /** 增加单个 base 槽（公告） */
@@ -147,7 +179,6 @@ public class CharacterStats {
 
     /**
      * 单槽成长写：NEW = (OLD + gain) * mult（int 截断；公告）——升级/转职"有加有乘"公式。
-     * 原为 builder 的 add(gain)→multiply(mult) 两步链，数值等价（中间值无 clamp 发生）。
      */
     void growBaseStat(Stat s, int gain, double mult) {
         setBaseStat(s, (int) ((base[s.ordinal()] + gain) * mult));
@@ -183,42 +214,21 @@ public class CharacterStats {
     }
     // ── private methods（直写内核）──
 
-    /**
-     * 直写收尾：base 脏则重算 total → 统一 clamp（hp/mp 到 total 上限、ap 下限 0——与旧事务收尾
-     * 无条件 clamp 一致）→ 净 diff + HP 联动 + post 事件。
-     * 不管理 batch/发包时机：无开域时 schedule 立即 deliver+flushAll（单事件单包），
-     * 开域中随批收口合并——合并是调用方的 batch 表达；unlockActions 由 gms083 版本层自动置位。
-     */
-    private void finish(boolean silent, int[] oldBase, int oldHp, int oldMp, int oldAp, boolean baseDirty) {
-        if (baseDirty) {
-            total = computeTotal(base);
-        }
-        clampResources();
-
-        StatsUpdate statUpdates = diff(oldBase, oldHp, oldMp, oldAp);
-        if (oldHp != hp) {
-            hpChangeAction(oldHp);
-        }
-        if (!silent && !statUpdates.isEmpty()) {
-            owner.remote().stats().updateStats(statUpdates);
-        }
-    }
-
-    /** 资源收尾钳制：hp/mp clamp 到当前 total 上限（同批内 maxHp 提高时 hp 随之放行），ap 下限 0 */
+    /** 资源收尾钳制：hp/mp clamp 到当前 total 上限，ap 下限 0（base 写后收尾用） */
     private void clampResources() {
         hp = Math.clamp(hp, 0, total[Stat.MAX_HP.ordinal()]);
         mp = Math.clamp(mp, 0, total[Stat.MAX_MP.ordinal()]);
         ap = Math.max(0, ap);
     }
 
-    private int[] captureBase() {
-        return base.clone();
+    private static boolean isSdil(Stat s) {
+        return Stat.SDIL_INDEX_BEGIN <= s.ordinal() && s.ordinal() < Stat.SDIL_INDEX_END;
     }
 
     /** 写 base 槽（含四维下限兜底与同值跳过），返回是否实际变化 */
     private boolean writeBase(Stat s, int newValue) {
         int idx = s.ordinal();
-        if (Stat.SDIL_INDEX_BEGIN <= idx && idx < Stat.SDIL_INDEX_END) {
+        if (isSdil(s)) {
             if (newValue < 4) {   // 四维下限兜底（原 applyUpdateSilently 语义）
                 return false;
             }
@@ -228,37 +238,6 @@ public class CharacterStats {
         }
         base[idx] = newValue;
         return true;
-    }
-
-    /**
-     * 对比写前捕获值与当前状态产净 diff（localAttrs 变化不经 packet，通过 maxHp/hp 等派生体现）。
-     * 派生规则：MAX_HP/MAX_MP base 变化 → 封顶显示值 + 附带当前 hp/mp（客户端 max 变更时重置资源显示）。
-     */
-    private StatsUpdate diff(int[] oldBase, int oldHp, int oldMp, int oldAp) {
-        StatsUpdate updates = new StatsUpdate();
-        for (int i = Stat.SDIL_INDEX_BEGIN; i < Stat.SDIL_INDEX_END; i++) {
-            if (oldBase[i] != base[i]) {
-                updates.set(Stat.values()[i], base[i]);
-            }
-        }
-        if (oldBase[Stat.MAX_HP.ordinal()] != base[Stat.MAX_HP.ordinal()]) {
-            updates.set(Stat.MAX_HP, getClientMaxHp());
-            updates.hp(hp);
-        }
-        if (oldBase[Stat.MAX_MP.ordinal()] != base[Stat.MAX_MP.ordinal()]) {
-            updates.set(Stat.MAX_MP, getClientMaxMp());
-            updates.mp(mp);
-        }
-        if (oldHp != hp) {
-            updates.hp(hp);
-        }
-        if (oldMp != mp) {
-            updates.mp(mp);
-        }
-        if (oldAp != ap) {
-            updates.ap(ap);
-        }
-        return updates;
     }
 
     /** HP 变化联动：死亡判定 + 队伍 HP 同步 + 狂暴检查 */
