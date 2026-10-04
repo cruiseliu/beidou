@@ -59,10 +59,7 @@ async function end(interact, quest) {
         MSG.give_reward,
         `${MSG.bye}#fUI/UIWindow.img/QuestIcon/${MSG.rewards}#fUI/UIWindow.img/QuestIcon/8/0# 10 ${MSG.exp}`
     ], NEXT_PREV);
-    const success = player.getInventory().tryUpdate()
-            .add(APPLE, 3)
-            .add(GREEN_APPLE, 3)
-            .commit();
+    const success = player.gainItems([[APPLE, 3], [GREEN_APPLE, 3]]);
     if (success) {
         player.gainExp(10);
         quest.forceComplete();

@@ -22,7 +22,7 @@ public final class NpcInRouter extends AbstractInRouter {
         switch (opcode) {
             case NPC_ACTION -> emit(opcode, in, NPCActionPacket::decode, NpcEchoTranslator::new, player);
             case NPC_TALK_MORE -> strictWindow(player, () ->
-                    emit(opcode, in, NPCTalkMorePacket::decode, NpcTalkMoreTranslator::new, player), false);
+                    emit(opcode, in, NPCTalkMorePacket::decode, NpcTalkMoreTranslator::new, player));
             default -> {
                 return false;
             }
