@@ -2,8 +2,8 @@ package org.gms.remote.gms083.client.routers;
 
 import org.gms.client.Player;
 import org.gms.net.opcodes.RecvOpcode;
-import org.gms.remote.gms083.client.packets.InventoryPacket;
-import org.gms.remote.gms083.client.translate.InventoryInTranslator;
+import org.gms.remote.gms083.client.packets.PetFootPacket;
+import org.gms.remote.gms083.client.translate.PetFoodTranslator;
 import org.gms.remote.gms083.utils.ByteBufReader;
 
 /**
@@ -15,7 +15,7 @@ public final class InventoryInRouter extends AbstractInRouter {
     @Override
     public boolean route(RecvOpcode opcode, ByteBufReader in, Player player) {
         switch (opcode) {
-            case PET_FOOD -> emit(opcode, in, InventoryPacket::decode, InventoryInTranslator::new, player);
+            case PET_FOOD -> emit(opcode, in, PetFootPacket::decode, PetFoodTranslator::new, player);
             default -> {
                 return false;
             }

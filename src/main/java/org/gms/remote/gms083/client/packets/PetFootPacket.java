@@ -7,9 +7,9 @@ import org.gms.remote.gms083.utils.ByteBufReader;
  * decode 读序即协议序：客户端时间戳（服务端不消费）+ USE 槽位 + itemId。
  * 目标宠物不在包内——选宠由 gameplay 按角色状态完成（no-peek）。
  */
-public final class InventoryPacket {
+public final class PetFootPacket {
 
-    private InventoryPacket() {
+    private PetFootPacket() {
     }
 
     public record PetFood(short slot, int itemId) {

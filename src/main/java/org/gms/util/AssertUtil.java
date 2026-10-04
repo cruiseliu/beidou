@@ -27,4 +27,8 @@ public final class AssertUtil {
     public static AssertionError never(String message) {
         throw new AssertionError(message);
     }
+
+    public static AssertionError never() {
+        throw new AssertionError();
+    }
 }

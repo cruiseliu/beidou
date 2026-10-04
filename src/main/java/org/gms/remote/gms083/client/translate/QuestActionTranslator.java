@@ -8,6 +8,7 @@ import org.gms.remote.modules.quest.client.RestoreLostItemEvent;
 import org.gms.remote.modules.quest.client.ScriptedEndQuestEvent;
 import org.gms.remote.modules.quest.client.ScriptedStartQuestEvent;
 import org.gms.remote.modules.quest.client.StartQuestEvent;
+import org.gms.util.AssertUtil;
 
 /**
  * QUEST_ACTION 翻译：action 分支 1:1 映射到任务域语义事件（纯映射，NPC 临近/接取完成
@@ -31,7 +32,7 @@ public final class QuestActionTranslator implements InTranslator<QuestActionPack
                     new ScriptedStartQuestEvent(questId, npc);
             case QuestActionPacket.ScriptedEnd(var action, var questId, var npc, var claimedPos) ->
                     new ScriptedEndQuestEvent(questId, npc);
-            case QuestActionPacket.Unknown unknown -> null;
+            case QuestActionPacket.Unknown unknown -> throw AssertUtil.never();
         };
     }
 }
