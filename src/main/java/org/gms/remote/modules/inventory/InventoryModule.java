@@ -21,6 +21,10 @@ public abstract class InventoryModule extends AbstractModule {
     }
 
     public interface Handler {
+        /** PET_FOOD：脚本钩子道具使用（喂食等，onUse 钩子驱动）。 */
         void useItem(int slotIndex, int slotId);
+
+        /** USE_ITEM：消耗品使用（效果型道具——药水/卷轴/解除药水，效果应用归 gameplay）。 */
+        void consumeItem(int slotIndex, int itemId);
     }
 }

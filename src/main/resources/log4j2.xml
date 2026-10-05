@@ -5,7 +5,7 @@
         <property name="basePath">logs</property>
         <!-- Console 按级别整行着色；noConsoleNoAnsi=true：stdout 重定向到文件时（probe.sh）自动去 ANSI，
              不污染 grep 的日志内容。文件 appender 恒为素文本。%ex（堆栈）不参与染色。 -->
-        <property name="console_log_pattern">%highlight{%d{yyyy-MM-dd HH:mm:ss.SSS} [%5level] ==> %m%n}{FATAL=bright red, ERROR=red, WARN=bright yellow, INFO=cyan, DEBUG=green, TRACE=white}{noConsoleNoAnsi=true}%ex</property>
+        <property name="console_log_pattern">%highlight{%d{yyyy-MM-dd HH:mm:ss.SSS} [%5level] ==> %m%n}{FATAL=bright red, ERROR=bright red, WARN=bright yellow, INFO=green, DEBUG=cyan, TRACE=blue}{noConsoleNoAnsi=true}%ex</property>
         <property name="log_pattern">%d{yyyy-MM-dd HH:mm:ss.SSS} [%5level] ==> %m%n%ex</property>
         <property name="every_file_size">10MB</property>
         <property name="rolling_fileName">${basePath}/out.log</property>

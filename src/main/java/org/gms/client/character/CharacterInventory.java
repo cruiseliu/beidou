@@ -4,12 +4,15 @@ import java.util.Map;
 import java.util.LinkedHashMap;
 import org.gms.model.json.ItemData;
 import org.gms.client.Client;
+import org.gms.client.Disease;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Inventory;
 import org.gms.client.inventory.InventoryTab;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.Item;
 import org.gms.client.inventory.ItemSlot;
+import org.gms.net.server.Server;
+import org.gms.server.BuffEffectData;
 import org.gms.server.CashShop;
 import org.gms.server.maps.MapItem;
 import org.gms.server.maps.MapleMapRef;
@@ -112,6 +115,116 @@ class CharacterInventory implements InventoryModule.Handler {
             if (consumed) {
                 tab.removeItem(slotIndex, 1, false);
             }
+        }
+    }
+
+    /**
+     * USE_ITEM 消耗品使用（原 UseItemHandler 语义体；wire 解析已上移 codec/translator）。
+     * 特判分支（解除药水系/回城卷/反回城卷）套 packet-strict 断言窗：分支内的存量
+     * legacy-Client 导航（InventoryManipulator/公告的 getClient）会响亮失败——迁移欠账标记；
+     * 默认路径（普通药水/效果道具）不设窗，tutorial 吃药等高频路径不受哨影响。
+     */
+    @Override
+    public void consumeItem(int slotIndex, int itemId) {
+        if (!owner.isAlive()) {
+            owner.remote().basic().unlockActions();
+            return;
+        }
+        ItemSlot toUse = inventory.getTab(InventoryType.USE).getItem(slotIndex);
+        if (toUse == null || toUse.getQuantity() <= 0 || toUse.getItemId() != itemId) {
+            return;
+        }
+
+        switch (itemId) {
+            case ItemId.ALL_CURE_POTION -> packetStrict(() -> {
+                owner.dispelDebuffs();
+                remove(slotIndex);
+            });
+            case ItemId.EYEDROP -> packetStrict(() -> {
+                owner.dispelDebuff(Disease.DARKNESS);
+                remove(slotIndex);
+            });
+            case ItemId.TONIC -> packetStrict(() -> {
+                owner.dispelDebuff(Disease.WEAKEN);
+                owner.dispelDebuff(Disease.SLOW);
+                remove(slotIndex);
+            });
+            case ItemId.HOLY_WATER -> packetStrict(() -> {
+                owner.dispelDebuff(Disease.SEAL);
+                owner.dispelDebuff(Disease.CURSE);
+                remove(slotIndex);
+            });
+            default -> {
+            }
+        }
+        if (itemId == ItemId.ALL_CURE_POTION || itemId == ItemId.EYEDROP
+                || itemId == ItemId.TONIC || itemId == ItemId.HOLY_WATER) {
+            return;
+        }
+
+        if (ItemConstants.isTownScroll(itemId)) {
+            packetStrict(() -> townScroll(slotIndex, itemId, toUse));
+            return;
+        }
+        if (ItemConstants.isAntibanishScroll(itemId)) {
+            packetStrict(() -> {
+                if (ItemInformationProvider.getInstance().getItemEffect(toUse.getItemId()).applyTo(owner)) {
+                    remove(slotIndex);
+                } else {
+                    owner.dropMessage(5, I18nUtil.getMessage("UseItemHandler.message1"));
+                }
+            });
+            return;
+        }
+
+        remove(slotIndex);
+
+        ItemInformationProvider ii = ItemInformationProvider.getInstance();
+        if (itemId != ItemId.HAPPY_BIRTHDAY) {
+            ii.getItemEffect(toUse.getItemId()).applyTo(owner);
+        } else {
+            BuffEffectData mse = ii.getItemEffect(toUse.getItemId());
+            for (CharacterRef playerr : owner.getMap().getCharacters()) {
+                mse.applyTo(playerr.unref());
+            }
+        }
+    }
+
+    /** 回城卷（含不可用时的公告分支；banish 快照为 use_banishable_town_scroll 服务） */
+    private void townScroll(int slot, int itemId, ItemSlot toUse) {
+        int banMap = owner.getMapId();
+        int banSp = owner.getMap().findClosestPlayerSpawnpoint(owner.getPosition()).getId();
+        long banTime = Server.getInstance().getCurrentTime();
+
+        if (ItemInformationProvider.getInstance().getItemEffect(toUse.getItemId()).applyTo(owner)) {
+            if (GameConfig.getServerBoolean("use_banishable_town_scroll")) {
+                owner.setBanishPlayerData(banMap, banSp, banTime);
+            }
+            remove(slot);
+        } else if (itemId == 2030009 || itemId == 2030010) {
+            Client c = owner.getClient();
+            c.sendPacket(PacketCreator.serverNotice(1, I18nUtil.getMessage("UseItemHandler.message2")));
+            owner.remote().basic().unlockActions();
+        }
+    }
+
+    /** USE 槽位消耗 + 解锁动作（旧 enableActions 语义走 basic().unlockActions） */
+    private void remove(int slot) {
+        InventoryManipulator.removeFromSlot(owner.getClient(), InventoryType.USE, (short) slot, (short) 1, false);
+        owner.remote().basic().unlockActions();
+    }
+
+    /**
+     * packet-strict 断言窗（原 handler 特判分支专用）：窗口内 legacy-Client 导航
+     * （Character.getClient）按全局级别响亮失败——分支的迁移欠账标记。
+     * discipline 同 AbstractInRouter.strictWindow 的 packet-strict 哨，仅关闭时机由分支自持。
+     */
+    private void packetStrict(Runnable body) {
+        owner.setPacketStrictMode(true);
+        try {
+            body.run();
+        } finally {
+            owner.setPacketStrictMode(false);
         }
     }
 
