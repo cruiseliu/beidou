@@ -9,6 +9,7 @@ const Server = Java.type("org.gms.net.server.Server");
 const ScriptTimers = Java.type("org.gms.scripting.ScriptTimers");
 const TimeZone = Java.type("java.util.TimeZone");
 const RateBucketEnum = Java.type("org.gms.client.character.RateBucket");
+const ExpSourceEnum = Java.type("org.gms.client.character.ExpSource");
 const WzJsonConverter = Java.type("org.gms.scripting.WzJsonConverter");
 const DataProviderFactory = Java.type("org.gms.provider.DataProviderFactory");
 const WZFiles = Java.type("org.gms.provider.wz.WZFiles");
@@ -70,6 +71,9 @@ export function clearTimeout(id) {
 
 /** 倍率贡献桶枚举（Java enum 原生透传，RateBucket.ITEM） */
 export const RateBucket = RateBucketEnum;
+
+/** 经验来源枚举（Java enum 原生透传，ExpSource.QUEST——gainExp 演出形态由此决定） */
+export const ExpSource = ExpSourceEnum;
 
 /** wz 道具数据（整树 JS 对象：imgdir → 对象、标量原样、画布/向量省略）；无该物品 null */
 export function getWzItemData(itemId) {

@@ -1,4 +1,4 @@
-import { player } from "../../lib/bind.js";
+import { player, ExpSource } from "../../lib/bind.js";
 import { InteractionManager, NEXT_PREV, i18n } from "../../lib/interaction.js";
 
 const MSG = {
@@ -61,7 +61,7 @@ async function end(interact, quest) {
     ], NEXT_PREV);
     const success = player.gainItems([[APPLE, 3], [GREEN_APPLE, 3]]);
     if (success) {
-        player.gainExp(10);
+        player.gainExp(10, ExpSource.QUEST);
         quest.forceComplete();
     } else {
         interact.sendNext(MSG.inv_full);
