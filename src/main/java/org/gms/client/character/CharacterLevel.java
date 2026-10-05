@@ -120,11 +120,7 @@ class CharacterLevel {
         owner.remote().basic().gainExp(gain, exp, source);
 
         while (exp >= ExpTable.getExpNeededForLevel(level)) {
-            levelUp(true);
-            if (level == owner.getMaxLevel()) {
-                exp = 0;
-                owner.updateSingleStat(PacketStat.EXP, 0);   // 满级清零帧暂留 legacy（后续并入 levelUp）
-            }
+            levelUp(true);   // 满级 exp=0 由 levelUp 内清零并随 LevelUpEvent 出门
         }
         // owner.lastExpGainTime = System.currentTimeMillis();
     }
@@ -283,8 +279,7 @@ class CharacterLevel {
             owner.stats.setHp(owner.stats.getTotal(Stat.MAX_HP));   // 外层 _u batch 内，自动合并单包
             owner.stats.setMp(owner.stats.getTotal(Stat.MAX_MP));
 
-            owner.remote().basic().updateLevel(level);
-            owner.remote().basic().updateExp(exp);   // 与上一调用同段（外层 _u batch）合并为一个 STAT_CHANGED
+            owner.remote().basic().levelUp(level, exp);   // level + exp 合并一帧 STAT_CHANGED
         }   // try-with-resources close = 统一发送
 
         levelUpForeignEffects();
