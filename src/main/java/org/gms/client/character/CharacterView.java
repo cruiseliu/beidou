@@ -76,7 +76,7 @@ public interface CharacterView {
     /** SP 表（hasSPTable 职业的多分位剩余 SP，下标 = 分位-1；单分位职业恒空/零表） */
     int[] getRemainingSps();
 
-    int getExp();
+    int LEGACY_getExp();
 
     int getFame();
 

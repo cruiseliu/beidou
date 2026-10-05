@@ -381,7 +381,7 @@ public class GiveService {
     }
 
     private void doGainExp(Character chr, int quantity) {
-        int exp = chr.getExp();
+        int exp = chr.LEGACY_getExp();
         long sum = (long) exp + (long) quantity;
         // 最低只能把经验清0
         if (sum < 0) {

@@ -162,7 +162,7 @@ public final class CharacterViewEntry implements CharacterView {
                 chr.getRemainingAp(),
                 chr.getRemainingSp(),
                 chr.getRemainingSps(),
-                chr.getExp(),
+                chr.LEGACY_getExp(),
                 chr.getFame(),
                 chr.getGachaExp(),
                 chr.getMapId(),
@@ -293,7 +293,7 @@ public final class CharacterViewEntry implements CharacterView {
     }
 
     @Override
-    public int getExp() {
+    public int LEGACY_getExp() {
         return exp;
     }
 

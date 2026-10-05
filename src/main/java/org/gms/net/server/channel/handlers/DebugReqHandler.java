@@ -38,7 +38,7 @@ public final class DebugReqHandler extends AbstractPacketHandler {
         json.put("maxhp", chr.getClientMaxHp());
         json.put("mp", chr.getMp());
         json.put("maxmp", chr.getClientMaxMp());
-        json.put("exp", chr.getExp());
+        json.put("exp", chr.LEGACY_getExp());
         json.put("ap", chr.getRemainingAp());
         json.put("sp", chr.getRemainingSp());
         json.put("map", chr.getMapId());

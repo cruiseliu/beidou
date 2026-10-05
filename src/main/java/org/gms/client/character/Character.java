@@ -2164,7 +2164,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
                     //  采集等 strand 的规范做法（doc/07 保存路径纪律）留保存域重构时兑现。
                     statsJson = toData(petBundle.petsData()).serialize();
 
-                    ps.setInt(3, Math.abs(level.getExp()));
+                    ps.setInt(3, Math.abs(level.LEGACY_getExp()));
                     ps.setInt(4, Math.abs(level.getGachaExp()));
 
                     ps.setInt(5, gm.gmLevel());
@@ -3526,7 +3526,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
 
     public int getLevel() { return level.getLevel(); }
     public void setLevel(int level) { this.level.setLevel(level); }
-    public int getExp() { return level.getExp(); }
+    public int LEGACY_getExp() { return level.LEGACY_getExp(); }
     public void setExp(int amount) { level.setExp(amount); }
     public int getGachaExp() { return level.getGachaExp(); }
     public void setGachaExp(int amount) { level.setGachaExp(amount); }

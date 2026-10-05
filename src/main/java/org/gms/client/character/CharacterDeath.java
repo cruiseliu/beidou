@@ -80,7 +80,7 @@ class CharacterDeath {
                     }
                 }
 
-                int curExp = owner.getExp();
+                int curExp = owner.LEGACY_getExp();
                 if (curExp > XPdummy) {
                     owner.loseExp(XPdummy, false, false);
                 } else {

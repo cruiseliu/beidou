@@ -42,7 +42,7 @@ public class LevelCommand extends Command {
             return;
         }
 
-        player.loseExp(player.getExp(), false, false);
+        player.loseExp(player.LEGACY_getExp(), false, false);
         player.setLevel(Math.min(Integer.parseInt(params[0]), player.getMaxLevel()) - 1);
 
         player.resetPlayerRates();

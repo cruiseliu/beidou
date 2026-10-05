@@ -38,7 +38,7 @@ public class MaxStatCommand extends Command {
     @Override
     public void execute(Client c, String[] params) {
         Character player = c.getPlayer();
-        player.loseExp(player.getExp(), false, false);
+        player.loseExp(player.LEGACY_getExp(), false, false);
         player.setLevel(255);
         player.resetPlayerRates();
         if (GameConfig.getServerBoolean("use_add_rates_by_level")) {

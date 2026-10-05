@@ -55,7 +55,7 @@ public final class SetFieldTranslator {
                 (short) chr.getRemainingAp(),
                 hasSpTable ? null : (short) chr.getRemainingSp(),
                 hasSpTable ? chr.getRemainingSps() : null,
-                chr.getExp(), (short) chr.getFame(), chr.getGachaExp(), chr.getMapId(),
+                chr.LEGACY_getExp(), (short) chr.getFame(), chr.getGachaExp(), chr.getMapId(),
                 (byte) chr.getInitialSpawnPoint());
     }
 

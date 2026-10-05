@@ -235,8 +235,12 @@ class CharacterLevel {
         owner.sendPacket(PacketCreator.getShowExpGain((int) gain, equip, party, inChat, white));
     }
 
-    public int getExp() {
+    public int LEGACY_getExp() {
         return (int) Math.min(exp, Integer.MAX_VALUE);   // long exp → int 消费点截断（20 亿）
+    }
+
+    public long getExp() {
+        return exp;
     }
 
     public int getGachaExp() {
@@ -244,20 +248,19 @@ class CharacterLevel {
     }
 
     public void levelUp(boolean takeexp) {
-        // 一个语义域（升级）：全程变更（授予/自动分配/满血满蓝/等级/经验）的公告自动合并为
-        // 一个净 diff 包，未变化字段不出现——替代旧的全量 statup 拼装
         try (var _u = owner.remote().batch()) {
-            // 职业强相关授予（新手自动分配 / maxHp·maxMp·AP·SP / 技能加成 / INT 加成）全在 CharacterJob
-            owner.job.applyLevelUpRewards(level + 1);
+            level += 1;
 
             if (takeexp) {
-                exp -= ExpTable.getExpNeededForLevel(level);
+                // ExpTable[x] indicates the exp needed to level up from x to x+1
+                exp -= ExpTable.getExpNeededForLevel(level - 1);
                 if (exp < 0) {
                     exp = 0;
                 }
             }
 
-            level++;
+            owner.job.applyLevelUpRewards(level);
+
             if (level >= owner.getMaxLevel()) {
                 exp = 0;
 
@@ -276,23 +279,22 @@ class CharacterLevel {
                 level = maxClassLevel; //To prevent levels past the maximum
             }
 
-            // effLock/wLock 均已冗余：strand 串行 + stats 直写（原 stats.wLock 随快照机制退役）
-            // fixme: [refactor] add heal hp/mp
             owner.stats.recalc();
             owner.stats.setHp(owner.stats.getTotal(Stat.MAX_HP));   // 外层 _u batch 内，自动合并单包
             owner.stats.setMp(owner.stats.getTotal(Stat.MAX_MP));
+
             owner.remote().basic().updateLevel(level);
             owner.remote().basic().updateExp(exp);   // 与上一调用同段（外层 _u batch）合并为一个 STAT_CHANGED
         }   // try-with-resources close = 统一发送
 
+        levelUpForeignEffects();
+    }
+
+    private void levelUpForeignEffects() {
         owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.showForeignEffect(owner.getId(), 0), false);
+
         owner.setMPC(new PartyCharacter(owner));
         owner.silentPartyUpdate();
-
-        if (owner.guild.getGuildId() > 0) {
-            owner.getGuild().broadcast(PacketCreator.levelUpMessage(2, level, owner.getName()), owner.getId());
-        }
-
         // if (level == 10) {
         //     ThreadManager.getInstance().newTask(() -> {
         //         if (owner.leaveParty()) {
@@ -301,6 +303,9 @@ class CharacterLevel {
         //     });
         // }
 
+        if (owner.guild.getGuildId() > 0) {
+            owner.getGuild().broadcast(PacketCreator.levelUpMessage(2, level, owner.getName()), owner.getId());
+        }
         owner.guild.guildUpdate();
 
         FamilyEntry familyEntry = owner.family.getFamilyEntry();
@@ -314,8 +319,6 @@ class CharacterLevel {
                 }
             }
         }
-
-        // owner.updateMobExpRate();
     }
 
     // ── 查询 ──
