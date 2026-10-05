@@ -1,7 +1,7 @@
-package org.gms.remote.modules.basic.server;
+package org.gms.client.character;
 
 /**
- * 经验来源语义（GainExpEvent 载荷）：版本 translator 据此决定演出形态
+ * 经验来源语义（GainExpEvent 载荷，gameplay 侧词汇）：版本 translator 据此决定演出形态
  * （显示方式/白字/聊天栏）。增量添加来源时 switch 穷尽性强制补显示分支。
  */
 public enum ExpSource {

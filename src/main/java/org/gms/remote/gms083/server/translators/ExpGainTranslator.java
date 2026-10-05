@@ -1,7 +1,7 @@
 package org.gms.remote.gms083.server.translators;
 
-import org.gms.remote.gms083.server.packets.ExpGainPacket;
-import org.gms.remote.modules.basic.server.ExpSource;
+import org.gms.client.character.ExpSource;
+import org.gms.remote.gms083.server.packets.ShowStatusInfoPacket;
 
 /**
  * 经验获得翻译：source → 显示形态。仅 QUEST（in-chat、非白字）；新增来源在此
@@ -9,9 +9,9 @@ import org.gms.remote.modules.basic.server.ExpSource;
  */
 public final class ExpGainTranslator {
 
-    public ExpGainPacket display(int gain, ExpSource source) {
+    public ShowStatusInfoPacket display(int gain, ExpSource source) {
         return switch (source) {
-            case QUEST -> new ExpGainPacket(false, gain, true);
+            case QUEST -> new ShowStatusInfoPacket(new ShowStatusInfoPacket.Body.ExpGain(false, gain, true));
         };
     }
 }

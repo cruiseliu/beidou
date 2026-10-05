@@ -11,7 +11,7 @@ import org.gms.remote.gms083.server.events.FrozenQuestCompleteEvent;
 import org.gms.remote.gms083.server.events.FrozenQuestForfeitEvent;
 import org.gms.remote.gms083.server.events.FrozenQuestStartEvent;
 import org.gms.remote.gms083.server.packets.QuestInfoPacket;
-import org.gms.remote.gms083.server.packets.QuestStatusPacket;
+import org.gms.remote.gms083.server.packets.ShowStatusInfoPacket;
 import org.gms.remote.gms083.server.packets.ShowItemGainInchatPacket;
 import org.gms.remote.gms083.server.packets.V83Packet;
 import org.gms.remote.gms083.server.translators.QuestProgressFormat;
@@ -70,11 +70,11 @@ public final class QuestRouter extends QuestModule implements ServerEventDest {
     private FrozenQuestStartEvent freezeStart(QuestStartEvent start) {
         Quest quest = start.quest();
         List<V83Packet> frames = new ArrayList<>(3);
-        frames.add(new QuestStatusPacket(new QuestStatusPacket.Body.Update(
+        frames.add(new ShowStatusInfoPacket(new ShowStatusInfoPacket.Body.QuestStatus(
                 quest.getId(), quest.getStatus().getValue(), QuestProgressFormat.toWire(quest.getProgress()))));
         Quest info = quest.getInfo();
         if (info != null) {
-            frames.add(new QuestStatusPacket(new QuestStatusPacket.Body.Update(
+            frames.add(new ShowStatusInfoPacket(new ShowStatusInfoPacket.Body.QuestStatus(
                     info.getId(), info.getStatus().getValue(), QuestProgressFormat.toWire(info.getProgress()))));
         }
         frames.add(new QuestInfoPacket(new QuestInfoPacket.Body.NpcDelivery(quest.getId(), quest.getNpc())));
@@ -84,7 +84,7 @@ public final class QuestRouter extends QuestModule implements ServerEventDest {
     private FrozenQuestCompleteEvent freezeComplete(QuestCompleteEvent complete) {
         Quest quest = complete.quest();
         List<V83Packet> frames = List.of(
-                new QuestStatusPacket(new QuestStatusPacket.Body.Completed(quest.getId(), quest.getCompletionTime())),
+                new ShowStatusInfoPacket(new ShowStatusInfoPacket.Body.Completed(quest.getId(), quest.getCompletionTime())),
                 // 效果码 9 = 任务完成（本人 SHOW_ITEM_GAIN_INCHAT；全图 SHOW_FOREIGN_EFFECT 归地图广播）
                 new ShowItemGainInchatPacket(new ShowItemGainInchatPacket.Body.Effect((byte) 9)));
         return new FrozenQuestCompleteEvent(frames);
@@ -93,12 +93,12 @@ public final class QuestRouter extends QuestModule implements ServerEventDest {
     private FrozenQuestForfeitEvent freezeForfeit(QuestForfeitEvent event) {
         Quest quest = event.quest();
         List<V83Packet> frames = new ArrayList<>(2);
-        frames.add(new QuestStatusPacket(new QuestStatusPacket.Body.Update(
+        frames.add(new ShowStatusInfoPacket(new ShowStatusInfoPacket.Body.QuestStatus(
                 quest.getId(), quest.getStatus().getValue(), QuestProgressFormat.toWire(quest.getProgress()))));
         // 关联任务状态原样同步（进度不清——部分任务不可回退）
         Quest info = quest.getInfo();
         if (info != null) {
-            frames.add(new QuestStatusPacket(new QuestStatusPacket.Body.Update(
+            frames.add(new ShowStatusInfoPacket(new ShowStatusInfoPacket.Body.QuestStatus(
                     info.getId(), info.getStatus().getValue(), QuestProgressFormat.toWire(info.getProgress()))));
         }
         return new FrozenQuestForfeitEvent(frames);

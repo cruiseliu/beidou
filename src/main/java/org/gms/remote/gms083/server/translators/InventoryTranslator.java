@@ -5,7 +5,7 @@ import org.gms.client.inventory.Item;
 import org.gms.remote.gms083.ServerTranslator;
 import org.gms.remote.gms083.server.blocks.ItemBlock;
 import org.gms.remote.gms083.server.events.FrozenInventoryEvent;
-import org.gms.remote.gms083.server.packets.InventoryFullPacket;
+import org.gms.remote.gms083.server.packets.ShowStatusInfoPacket;
 import org.gms.remote.gms083.server.packets.InventoryOperationPacket;
 import org.gms.remote.gms083.server.packets.V83Packet;
 import org.gms.remote.modules.inventory.server.SlotChange;
@@ -67,7 +67,7 @@ import java.util.List;
         }
         if (full) {
             packets.add(InventoryOperationPacket.empty());
-            packets.add(new InventoryFullPacket());
+            packets.add(new ShowStatusInfoPacket(new ShowStatusInfoPacket.Body.InventoryFull()));
             full = false;
         }
         return packets;

@@ -48,7 +48,6 @@ import org.gms.remote.ClientEventHandlerRegistry;
 import org.gms.remote.RemoteClient;
 import org.gms.remote.modules.cashshop.CashShopModule;
 import org.gms.remote.modules.npc.NpcModule;
-import org.gms.remote.modules.basic.server.ExpSource;
 import org.gms.client.creator.CharacterTemplate;
 import org.gms.client.pet.Pet;
 import org.gms.client.quest.Quest;

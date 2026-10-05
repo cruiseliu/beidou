@@ -1,7 +1,7 @@
 package org.gms.remote.gms083.server.translators;
 
 import org.gms.remote.gms083.server.packets.QuestInfoPacket;
-import org.gms.remote.gms083.server.packets.QuestStatusPacket;
+import org.gms.remote.gms083.server.packets.ShowStatusInfoPacket;
 
 import java.util.Map;
 
@@ -14,8 +14,8 @@ import java.util.Map;
 public final class QuestTranslator {
 
     /** 任务状态/进度帧（status = QuestStatus 枚举值；infoNumber 关联任务同步同型） */
-    public QuestStatusPacket questState(int questId, int status, Map<Integer, String> progress) {
-        return new QuestStatusPacket(new QuestStatusPacket.Body.Update(
+    public ShowStatusInfoPacket questState(int questId, int status, Map<Integer, String> progress) {
+        return new ShowStatusInfoPacket(new ShowStatusInfoPacket.Body.QuestStatus(
                 questId, status, QuestProgressFormat.toWire(progress)));
     }
 

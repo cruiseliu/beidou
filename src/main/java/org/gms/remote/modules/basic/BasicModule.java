@@ -3,7 +3,7 @@ package org.gms.remote.modules.basic;
 import org.gms.client.character.Character;
 import org.gms.remote.AbstractModule;
 import org.gms.remote.ServerEvent;
-import org.gms.remote.modules.basic.server.ExpSource;
+import org.gms.client.character.ExpSource;
 import org.gms.remote.modules.basic.server.GainExpEvent;
 import org.gms.remote.modules.basic.server.InitializeEvent;
 import org.gms.remote.modules.basic.server.UnlockActionsEvent;
