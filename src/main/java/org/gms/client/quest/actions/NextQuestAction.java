@@ -27,7 +27,6 @@ import org.gms.client.quest.QuestActionType;
 import org.gms.client.quest.Quest;
 import org.gms.provider.Data;
 import org.gms.provider.DataTool;
-import org.gms.util.PacketCreator;
 
 /**
  * @author Tyler (Twdtwd)
@@ -49,6 +48,7 @@ public class NextQuestAction extends AbstractQuestAction {
     @Override
     public void run(Character chr, Integer extSelection) {
         Quest status = chr.getQuest(questID);
-        chr.sendPacket(PacketCreator.updateQuestFinish((short) questID, status.getNpc(), (short) nextQuest));
+        // 任务链续环引导（原 updateQuestFinish legacy 包 → 语义事件；wire 逐字节等价）
+        chr.getRemote().quest().questSeriesContinue(questID, status.getNpc(), nextQuest);
     }
 } 

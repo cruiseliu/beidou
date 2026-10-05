@@ -20,6 +20,7 @@ import org.gms.remote.modules.quest.server.QuestCompleteEvent;
 import org.gms.remote.modules.quest.server.QuestExpiredEvent;
 import org.gms.remote.modules.quest.server.QuestForfeitEvent;
 import org.gms.remote.modules.quest.server.QuestSeriesCompleteEvent;
+import org.gms.remote.modules.quest.server.QuestSeriesContinueEvent;
 import org.gms.remote.modules.quest.server.QuestStartEvent;
 import org.gms.remote.modules.quest.server.QuestStateEvent;
 import org.gms.remote.modules.quest.server.QuestTimeLimitEvent;
@@ -34,8 +35,8 @@ import java.util.List;
  * FrozenQuestStartEvent：主任务状态帧 + infoNumber 关联任务同步 + 交付确认；
  * QuestCompleteEvent → FrozenQuestCompleteEvent：完成状态帧 + 完成演出帧；
  * QuestForfeitEvent → FrozenQuestForfeitEvent：放弃状态帧 + 关联任务同步；wire 事实读于
- * 调用时点）；其余语义事件 → quest 包 record 直发本连接（无 translator，事件即编码事实；
- * 无合并冲刷需求，flush 恒空）。
+ * 调用时点）；其余语义事件经 {@link QuestTranslator} 翻译出包 record 直发本连接
+ * （无合并冲刷需求，flush 恒空）。
  */
 public final class QuestRouter extends QuestModule implements ServerEventDest {
     private static final Logger log = LoggerFactory.getLogger(QuestRouter.class);
@@ -110,16 +111,17 @@ public final class QuestRouter extends QuestModule implements ServerEventDest {
             case FrozenQuestCompleteEvent f -> f.frames().forEach(client::send);
             case FrozenQuestForfeitEvent f -> f.frames().forEach(client::send);
             case QuestStateEvent(var questId, var status, var progress) ->
-                    client.send(new QuestStatusPacket(new QuestStatusPacket.Body.Update(
-                            questId, status, QuestProgressFormat.toWire(progress))));
+                    client.send(client.translators().questT.questState(questId, status, progress));
             case QuestSeriesCompleteEvent(var questId, var npc) ->
-                    client.send(new QuestInfoPacket(new QuestInfoPacket.Body.NpcDelivery(questId, npc)));
+                    client.send(client.translators().questT.seriesComplete(questId, npc));
+            case QuestSeriesContinueEvent(var questId, var npc, var nextQuest) ->
+                    client.send(client.translators().questT.seriesContinue(questId, npc, nextQuest));
             case QuestTimeLimitEvent(var questId, var remainingMillis) ->
-                    client.send(new QuestInfoPacket(new QuestInfoPacket.Body.TimeLimitAdded(questId, remainingMillis)));
+                    client.send(client.translators().questT.timeLimitAdded(questId, remainingMillis));
             case QuestTimeLimitRemovedEvent(var questId) ->
-                    client.send(new QuestInfoPacket(new QuestInfoPacket.Body.TimeLimitRemoved(questId)));
+                    client.send(client.translators().questT.timeLimitRemoved(questId));
             case QuestExpiredEvent(var questId) ->
-                    client.send(new QuestInfoPacket(new QuestInfoPacket.Body.Expired(questId)));
+                    client.send(client.translators().questT.expired(questId));
             default -> log.error("quest route 收到未处理事件 {}（冻结门漏分支或装配不一致）",
                     r.getClass().getName());   // 响亮：本域事件漏 case = 真缺陷，禁止静默丢弃
         }

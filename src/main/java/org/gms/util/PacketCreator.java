@@ -6015,14 +6015,6 @@ public class PacketCreator {
         return p;
     }
 
-    public static Packet updateQuestFinish(short quest, int npc, short nextquest) { //Check
-        final OutPacket p = OutPacket.create(SendOpcode.UPDATE_QUEST_INFO); //0xF2 in v95
-        p.writeByte(8);//0x0A in v95
-        p.writeShort(quest);
-        p.writeInt(npc);
-        p.writeShort(nextquest);
-        return p;
-    }
 
     public static Packet showInfoText(String text) {
         final OutPacket p = OutPacket.create(SendOpcode.SHOW_STATUS_INFO);

@@ -6,6 +6,7 @@ import org.gms.remote.modules.quest.server.QuestCompleteEvent;
 import org.gms.remote.modules.quest.server.QuestExpiredEvent;
 import org.gms.remote.modules.quest.server.QuestForfeitEvent;
 import org.gms.remote.modules.quest.server.QuestSeriesCompleteEvent;
+import org.gms.remote.modules.quest.server.QuestSeriesContinueEvent;
 import org.gms.remote.modules.quest.server.QuestStartEvent;
 import org.gms.remote.modules.quest.server.QuestStateEvent;
 import org.gms.remote.modules.quest.server.QuestTimeLimitEvent;
@@ -54,6 +55,11 @@ public abstract class QuestModule extends AbstractModule {
     /** 任务系列终结标记（任务链无下一环时的收尾；wire = UPDATE_QUEST_INFO type 8 交付分支）。 */
     public final void questSeriesComplete(int questId, int npc) {
         post(new QuestSeriesCompleteEvent(questId, npc));
+    }
+
+    /** 任务链续环引导（complete 后 WZ 声明下一环任务；wire = UPDATE_QUEST_INFO type 8 续环分支）。 */
+    public final void questSeriesContinue(int questId, int npc, int nextQuest) {
+        post(new QuestSeriesContinueEvent(questId, npc, nextQuest));
     }
 
     /** 任务到期作废。 */
