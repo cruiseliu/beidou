@@ -76,8 +76,8 @@ public final class BasicRouter extends BasicModule implements ServerEventDest {
             case UpdateLevelEvent(var level) -> client.translators().statsT.onLevel(level);
             case UpdateExpEvent(var exp) -> client.translators().statsT.onExp(exp);
             case UnlockActionsEvent ue -> client.translators().statsT.onUnlockActions();
-            case GainExpEvent(var gain, var source) ->
-                    client.send(client.translators().expGainT.display(gain, source));
+            case GainExpEvent(var gain, var totalExp, var source) ->
+                    client.translators().expGainT.display(gain, totalExp, source).forEach(client::send);
             default -> { }   // 非本模块事件不会到达（owner 标记保证）；防御静默
         }
     }

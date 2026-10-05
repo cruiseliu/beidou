@@ -82,19 +82,59 @@ class CharacterLevel {
     }
 
     /**
-     * 语义经验路径（任务等语义来源调用方）：状态应用复用旧机器（CURSE 减半/溢出钳制；
-     * exp 数值帧仍走 updateSingleStat 既有路径），legacy 演出关闭——演出帧由 GainExpEvent
-     * 的版本翻译按 source 决定。legacy gainExp(gain, show, inChat) 家族保持原样。
+     * 语义经验路径（新 path，与 legacy gainExp 家族完全独立——不复用不互调，状态逻辑
+     * 就地复制）：状态应用 + exp 数值帧（updateSingleStat）+ 演出帧（GainExpEvent，显示
+     * 形态由版本 translator 按 source 决定）。
+     * GameConfig 分支按默认设置写死：use_level_up_protect=true（一次调用至多升一级）、
+     * use_announce_global_level_up=false（无全服升级广播）、use_exp_gain_log=false
+     * （无 ExpLogger 记账）。
      */
     public void gainExp(int gain, ExpSource source) {
+        if (gain <= 0) {
+            log.warn("gainExp: 零/负增量 {}（source {}）不处理", gain, source);
+            return;
+        }
         if (owner.hasDisease(Disease.CURSE)) {
-            gain *= 0.5;   // 与 legacy 同规：诅咒减半（含演出数值）
+            gain *= 0.5;   // 诅咒减半（与 legacy 同规，含演出数值）
         }
-        gainExp(gain, 0, false, false, false);
-        if (gain == 0) {
-            return;   // 与旧 announceExpGain 同规：零增量不演出
+        applyExp(gain, source);
+    }
+
+    /**
+     * 状态应用核心（player strand 串行执行，无锁——actor 纪律见 doc/07 §Player/PlayerStrand）。
+     * exp 数值帧并入 GainExpEvent（gain/totalExp/source → 版本 translator 双包：数值帧 +
+     * 演出帧，序同 legacy updateSingleStat → announceExpGain）；leftover 续算各发各自事件。
+     * GameConfig 写死同前：use_level_up_protect 视作 false（分支删除，一次调用可连升）、
+     * use_announce_global_level_up=false、use_exp_gain_log=false。
+     */
+    private void applyExp(long gain, ExpSource source) {
+        long total = Math.max(gain, -exp.get());
+        if (level >= owner.getMaxLevel() || !(owner.allowExpGain || owner.getEventInstance() != null)) {
+            return;   // 满级 / 经验获取禁止：状态与演出皆无（legacy 同规）
         }
-        owner.remote().basic().gainExp(gain, source);
+        long leftover = 0;
+        long nextExp = exp.get() + total;
+        if (nextExp > (long) Integer.MAX_VALUE) {
+            total = Integer.MAX_VALUE - exp.get();
+            leftover = nextExp - Integer.MAX_VALUE;
+        }
+        int newTotal = (int) exp.addAndGet((int) total);
+
+        owner.remote().basic().gainExp((int) Math.min(gain, Integer.MAX_VALUE), newTotal, source);   // 数值帧 + 演出帧，升级循环之前
+
+        while (exp.get() >= ExpTable.getExpNeededForLevel(level)) {
+            levelUp(true);
+            if (level == owner.getMaxLevel()) {
+                setExp(0);
+                owner.updateSingleStat(PacketStat.EXP, 0);   // 满级清零帧暂留 legacy（后续并入 levelUp）
+            }
+        }
+
+        if (leftover > 0) {
+            applyExp(leftover, source);
+            return;
+        }
+        owner.lastExpGainTime = System.currentTimeMillis();
     }
 
     public void gainExp(int gain, boolean show, boolean inChat, boolean white) {
