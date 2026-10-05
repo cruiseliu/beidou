@@ -24,10 +24,9 @@ package org.gms.client.quest.actions;
 import org.gms.client.character.Character;
 import org.gms.client.quest.QuestWz;
 import org.gms.client.quest.QuestActionType;
-import org.gms.config.GameConfig;
+import org.gms.remote.modules.basic.server.ExpSource;
 import org.gms.provider.Data;
 import org.gms.provider.DataTool;
-import org.gms.util.NumberTool;
 
 /**
  * @author Tyler (Twdtwd)
@@ -37,12 +36,10 @@ public class ExpAction extends AbstractQuestAction {
 
     public ExpAction(QuestWz quest, Data data) {
         super(QuestActionType.EXP, quest);
-        processData(data);
+        processData_(data);
     }
 
-
-    @Override
-    public void processData(Data data) {
+    private void processData_(Data data) {
         exp = DataTool.getInt(data);
     }
 
@@ -52,10 +49,6 @@ public class ExpAction extends AbstractQuestAction {
     }
 
     public static void runAction(Character chr, int gain) {
-        if (!GameConfig.getServerBoolean("use_quest_rate")) {
-            chr.gainExp(NumberTool.floatToInt(gain * chr.getExpRate()), true, true);
-        } else {
-            chr.gainExp(NumberTool.floatToInt(gain * chr.getQuestExpRate()), true, true);
-        }
+        chr.gainExp(gain, ExpSource.QUEST);
     }
 } 

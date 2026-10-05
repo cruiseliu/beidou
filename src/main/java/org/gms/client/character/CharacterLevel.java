@@ -10,6 +10,7 @@ import org.gms.constants.game.GameConstants;
 import org.gms.constants.net.ServerConstants;
 import org.gms.constants.id.ItemId;
 import org.gms.client.inventory.manipulator.InventoryManipulator;
+import org.gms.remote.modules.basic.server.ExpSource;
 import org.gms.server.ThreadManager;
 import org.gms.server.ExpLogger;
 import org.gms.server.ExpLogger.ExpLogRecord;
@@ -79,6 +80,22 @@ class CharacterLevel {
 
     public void gainExp(int gain, boolean show, boolean inChat) {
         gainExp(gain, show, inChat, true);
+    }
+
+    /**
+     * 语义经验路径（任务等语义来源调用方）：状态应用复用旧机器（CURSE 减半/溢出钳制；
+     * exp 数值帧仍走 updateSingleStat 既有路径），legacy 演出关闭——演出帧由 GainExpEvent
+     * 的版本翻译按 source 决定。legacy gainExp(gain, show, inChat) 家族保持原样。
+     */
+    public void gainExp(int gain, ExpSource source) {
+        if (owner.hasDisease(Disease.CURSE)) {
+            gain *= 0.5;   // 与 legacy 同规：诅咒减半（含演出数值）
+        }
+        gainExp(gain, 0, false, false, false);
+        if (gain == 0) {
+            return;   // 与旧 announceExpGain 同规：零增量不演出
+        }
+        owner.remote().basic().gainExp(gain, source);
     }
 
     public void gainExp(int gain, boolean show, boolean inChat, boolean white) {

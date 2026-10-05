@@ -2,6 +2,7 @@ package org.gms.remote.gms083;
 
 import java.nio.charset.Charset;
 
+import org.gms.remote.gms083.server.translators.ExpGainTranslator;
 import org.gms.remote.gms083.server.translators.InventoryTranslator;
 import org.gms.remote.gms083.server.translators.NpcTranslator;
 import org.gms.remote.gms083.server.translators.PetTranslator;
@@ -16,6 +17,7 @@ public class Gms083Translators {
     public StatsTranslator statsT = new StatsTranslator();
     public NpcTranslator npcT = new NpcTranslator();
     public QuestTranslator questT = new QuestTranslator();
+    public ExpGainTranslator expGainT = new ExpGainTranslator();
 
     public Gms083Translators(Charset charset) {
         this.petT = new PetTranslator(charset);

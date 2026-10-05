@@ -3,6 +3,8 @@ package org.gms.remote.modules.basic;
 import org.gms.client.character.Character;
 import org.gms.remote.AbstractModule;
 import org.gms.remote.ServerEvent;
+import org.gms.remote.modules.basic.server.ExpSource;
+import org.gms.remote.modules.basic.server.GainExpEvent;
 import org.gms.remote.modules.basic.server.InitializeEvent;
 import org.gms.remote.modules.basic.server.UnlockActionsEvent;
 import org.gms.remote.modules.basic.server.UpdateExpEvent;
@@ -25,6 +27,11 @@ public abstract class BasicModule extends AbstractModule {
     /** exp 变更。 */
     public final void updateExp(long exp) {
         post(new UpdateExpEvent(exp));
+    }
+
+    /** 获得经验演出（状态应用归 gameplay；source → 显示形态归版本 translator）。 */
+    public final void gainExp(int gain, ExpSource source) {
+        post(new GainExpEvent(gain, source));
     }
 
     public final void unlockActions() {

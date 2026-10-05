@@ -48,6 +48,7 @@ import org.gms.remote.ClientEventHandlerRegistry;
 import org.gms.remote.RemoteClient;
 import org.gms.remote.modules.cashshop.CashShopModule;
 import org.gms.remote.modules.npc.NpcModule;
+import org.gms.remote.modules.basic.server.ExpSource;
 import org.gms.client.creator.CharacterTemplate;
 import org.gms.client.pet.Pet;
 import org.gms.client.quest.Quest;
@@ -3531,6 +3532,8 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     public int getGachaExp() { return level.getGachaExp(); }
     public void setGachaExp(int amount) { level.setGachaExp(amount); }
     public void gainExp(int gain) { level.gainExp(gain); }
+    /** 语义路径：来源决定演出形态（GainExpEvent → 版本 translator）；legacy 家族不动。 */
+    public void gainExp(int gain, ExpSource source) { level.gainExp(gain, source); }
     public void gainExp(int gain, boolean show, boolean inChat) { level.gainExp(gain, show, inChat); }
     public void gainExp(int gain, boolean show, boolean inChat, boolean white) { level.gainExp(gain, show, inChat, white); }
     public void gainExp(int gain, int party, boolean show, boolean inChat, boolean white) { level.gainExp(gain, party, show, inChat, white); }

@@ -7,5 +7,6 @@ public sealed interface BasicEvent extends ServerEvent permits
     UpdateJobEvent,
     UpdateLevelEvent,
     UpdateExpEvent,
+    GainExpEvent,
     UnlockActionsEvent
 { }

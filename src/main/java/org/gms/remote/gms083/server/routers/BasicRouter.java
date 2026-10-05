@@ -12,9 +12,11 @@ import org.gms.remote.gms083.server.packets.V83Packet;
 import org.gms.remote.gms083.server.translators.KeymapTranslator;
 import org.gms.remote.gms083.server.translators.MacrosTranslator;
 import org.gms.remote.gms083.server.translators.QuickslotTranslator;
+import org.gms.remote.gms083.server.translators.ExpGainTranslator;
 import org.gms.remote.gms083.server.translators.SetFieldTranslator;
 import org.gms.remote.modules.basic.BasicModule;
 import org.gms.remote.modules.basic.server.InitializeEvent;
+import org.gms.remote.modules.basic.server.GainExpEvent;
 import org.gms.remote.modules.basic.server.UnlockActionsEvent;
 import org.gms.remote.modules.basic.server.UpdateExpEvent;
 import org.gms.remote.modules.basic.server.UpdateJobEvent;
@@ -74,6 +76,8 @@ public final class BasicRouter extends BasicModule implements ServerEventDest {
             case UpdateLevelEvent(var level) -> client.translators().statsT.onLevel(level);
             case UpdateExpEvent(var exp) -> client.translators().statsT.onExp(exp);
             case UnlockActionsEvent ue -> client.translators().statsT.onUnlockActions();
+            case GainExpEvent(var gain, var source) ->
+                    client.send(client.translators().expGainT.display(gain, source));
             default -> { }   // 非本模块事件不会到达（owner 标记保证）；防御静默
         }
     }
