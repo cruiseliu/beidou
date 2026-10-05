@@ -377,7 +377,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     @Getter
     private long targetHpBarTime = 0;
     private long nextWarningTime = 0;
-    long lastExpGainTime;    // 包内可见：CharacterLevel.gainExpInternal 写入
+    // long lastExpGainTime;    // 包内可见：CharacterLevel.gainExpInternal 写入
     private boolean pendingNameChange; //only used to change name on logout, not to be relied upon elsewhere
     @Getter
     @Setter
@@ -1636,7 +1636,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         chr.pq.setDataString(charactersDO.getDataString());
         chr.guild.setMGC(new GuildCharacter(chr));
         chr.buddy.setBuddylist(new BuddyList(charactersDO.getBuddyCapacity()));
-        chr.lastExpGainTime = charactersDO.getLastExpGainTime().getTime();
+        // chr.lastExpGainTime = charactersDO.getLastExpGainTime().getTime();
         chr.party.setCanRecvPartySearchInvite(charactersDO.getPartySearch());
         chr.getInventory(InventoryType.EQUIP).setSlotLimit(charactersDO.getEquipslots());
         chr.getInventory(InventoryType.USE).setSlotLimit(charactersDO.getUseslots());
@@ -2232,7 +2232,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
                     ps.setInt(37, 0);
                     ps.setInt(38, marriage.getPartnerId());
                     ps.setInt(39, marriage.getMarriageItemId());
-                    ps.setTimestamp(40, new Timestamp(lastExpGainTime));
+                    ps.setTimestamp(40, new Timestamp(0));
                     ps.setInt(41, pq.getAriantPoints());
                     ps.setBoolean(42, party.canRecvPartySearchInvite);
                     ps.setInt(43, id);

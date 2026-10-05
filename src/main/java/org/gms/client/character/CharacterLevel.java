@@ -94,8 +94,11 @@ class CharacterLevel {
             log.warn("gainExp: 零/负增量 {}（source {}）不处理", gain, source);
             return;
         }
-        if (owner.hasDisease(Disease.CURSE)) {
+        if (owner.hasDisease(Disease.CURSE)) {  // fixme: [refactor] only for mobs?
             gain *= 0.5;   // 诅咒减半（与 legacy 同规，含演出数值）
+        }
+        if (gain == 0) {
+            return;
         }
         applyExp(gain, source);
     }
@@ -107,14 +110,14 @@ class CharacterLevel {
      * GameConfig 写死同前：use_level_up_protect 视作 false（分支删除，一次调用可连升）、
      * use_announce_global_level_up=false、use_exp_gain_log=false。
      */
-    private void applyExp(long gain, ExpSource source) {
+    private void applyExp(int gain, ExpSource source) {
         if (level >= owner.getMaxLevel() || !(owner.allowExpGain || owner.getEventInstance() != null)) {
             return;   // 满级 / 经验获取禁止：状态与演出皆无（legacy 同规）
         }
         exp += gain;
 
         // exp 数值帧（STAT_CHANGED exp，translator 截断 int 上限）+ 演出帧，升级循环之前
-        owner.remote().basic().gainExp((int) Math.min(gain, Integer.MAX_VALUE), exp, source);
+        owner.remote().basic().gainExp(gain, exp, source);
 
         while (exp >= ExpTable.getExpNeededForLevel(level)) {
             levelUp(true);
@@ -123,7 +126,7 @@ class CharacterLevel {
                 owner.updateSingleStat(PacketStat.EXP, 0);   // 满级清零帧暂留 legacy（后续并入 levelUp）
             }
         }
-        owner.lastExpGainTime = System.currentTimeMillis();
+        // owner.lastExpGainTime = System.currentTimeMillis();
     }
 
     public void gainExp(int gain, boolean show, boolean inChat, boolean white) {
@@ -198,7 +201,7 @@ class CharacterLevel {
             if (leftover > 0) {
                 gainExpInternal(leftover, equip, party, false, inChat, white);
             } else {
-                owner.lastExpGainTime = System.currentTimeMillis();
+                // owner.lastExpGainTime = System.currentTimeMillis();
 
                 if (GameConfig.getServerBoolean("use_exp_gain_log")) {
                     ExpLogRecord expLogRecord = new ExpLogger.ExpLogRecord(
@@ -206,7 +209,7 @@ class CharacterLevel {
                             owner.getCouponExpRate(),
                             totalExpGained,
                             (int) Math.min(exp, Integer.MAX_VALUE),
-                            new Timestamp(owner.lastExpGainTime),
+                            new Timestamp(0),
                             owner.getId()
                     );
                     ExpLogger.putExpLogRecord(expLogRecord);
@@ -240,7 +243,7 @@ class CharacterLevel {
         return gachaExp.get();
     }
 
-    public synchronized void levelUp(boolean takeexp) {
+    public void levelUp(boolean takeexp) {
         // 一个语义域（升级）：全程变更（授予/自动分配/满血满蓝/等级/经验）的公告自动合并为
         // 一个净 diff 包，未变化字段不出现——替代旧的全量 statup 拼装
         try (var _u = owner.remote().batch()) {
@@ -279,7 +282,7 @@ class CharacterLevel {
             owner.stats.setHp(owner.stats.getTotal(Stat.MAX_HP));   // 外层 _u batch 内，自动合并单包
             owner.stats.setMp(owner.stats.getTotal(Stat.MAX_MP));
             owner.remote().basic().updateLevel(level);
-        owner.remote().basic().updateExp(exp);   // 与上一调用同段（外层 _u batch）合并为一个 STAT_CHANGED
+            owner.remote().basic().updateExp(exp);   // 与上一调用同段（外层 _u batch）合并为一个 STAT_CHANGED
         }   // try-with-resources close = 统一发送
 
         owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.showForeignEffect(owner.getId(), 0), false);
@@ -290,35 +293,13 @@ class CharacterLevel {
             owner.getGuild().broadcast(PacketCreator.levelUpMessage(2, level, owner.getName()), owner.getId());
         }
 
-        if (level % 20 == 0) {
-            if (GameConfig.getServerBoolean("use_add_slots_by_level")) {
-                if (!owner.isGM()) {
-                    for (byte i = 1; i < 5; i++) {
-                        owner.gainSlots(i, 4, true);
-                    }
-
-                    owner.yellowMessage(I18nUtil.getMessage("Character.levelUp.USE_ADD_SLOTS_BY_LEVEL", level));
-                }
-            }
-            if (GameConfig.getServerBoolean("use_add_rates_by_level")) { //For the rate upgrade
-                owner.revertLastPlayerRates();
-                owner.setPlayerRates();
-                owner.yellowMessage(I18nUtil.getMessage("Character.levelUp.USE_ADD_RATES_BY_LEVEL", level));
-            }
-        }
-
-        if (GameConfig.getServerBoolean("use_perfect_pitch") && level >= 30) {
-            //milestones?
-            if (InventoryManipulator.checkSpace(owner.client, ItemId.PERFECT_PITCH, (short) 1, "")) {
-                InventoryManipulator.REFACTOR5_addById(owner.client, ItemId.PERFECT_PITCH, (short) 1, "", -1);
-            }
-        } else if (level == 10) {
-            ThreadManager.getInstance().newTask(() -> {
-                if (owner.leaveParty()) {
-                    owner.showHint(I18nUtil.getMessage("Character.levelUp.LeaveStarterParty"));
-                }
-            });
-        }
+        // if (level == 10) {
+        //     ThreadManager.getInstance().newTask(() -> {
+        //         if (owner.leaveParty()) {
+        //             owner.showHint(I18nUtil.getMessage("Character.levelUp.LeaveStarterParty"));
+        //         }
+        //     });
+        // }
 
         owner.guild.guildUpdate();
 
@@ -334,7 +315,7 @@ class CharacterLevel {
             }
         }
 
-        owner.updateMobExpRate();
+        // owner.updateMobExpRate();
     }
 
     // ── 查询 ──
