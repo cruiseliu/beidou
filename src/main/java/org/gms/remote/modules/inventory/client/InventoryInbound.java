@@ -22,7 +22,6 @@ public final class InventoryInbound implements ClientEventReceiver {
     public void receive(Player player, ClientEvent event) {
         switch (event) {
             case UseItemEvent(var slot, var itemId) -> player.clientEventHandlers().inventory().useItem(slot, itemId);
-            case ConsumeItemEvent(var slot, var itemId) -> player.clientEventHandlers().inventory().consumeItem(slot, itemId);
             default -> log.error("InventoryInbound 收到非本模块事件 {}", event.getClass().getName());
         }
     }

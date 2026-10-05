@@ -73,7 +73,11 @@
   gameplay Handler 实现内（例：PET_FOOD 包内无目标宠物，选宠是 gameplay 的事）。
   GMS083 解码 record 在 `gms083/client/packets`（byte/short 版本词汇，`decode(ByteBufReader)`
   与 `encode()` 对称 codec）；语义事件 record 在 `modules/<域>/client`（int 词汇，
-  `ClientEvent` 基接口 + `module()`）。读侧 `ByteBufReader` 与写侧 `ByteBufBuilder`
+  `ClientEvent` 基接口 + `module()`）。
+  **一个 opcode 一个 packet class**（收侧对偶 §7 的"每种 opcode 一个 record"）；多个
+  opcode 同构 wire 时，共用解码下沉为 block class（`client/blocks/`，server 侧 ItemBlock
+  先例的收包对偶），packet class 各自持有 opcode 名并委托块解码，不得跨 opcode 共用
+  packet class。读侧 `ByteBufReader` 与写侧 `ByteBufBuilder`
   逐方法对称（charset 构造期固定，shim 按会话语言注入）。
   **Handler 槽位表 `ClientEventHandlerRegistry` 挂 Player**（actor 的收包插座，会话级寿命）：
   构造期不自注册（构造上下文无 actor 可达：autosave/charlist 装载）——角色入场绑定时经

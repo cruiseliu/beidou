@@ -94,100 +94,123 @@ class CharacterInventory implements InventoryModule.Handler {
         return equips;
     }
 
-    public void useItem(int slotIndex, int itemId) {
-        InventoryTab tab = inventory.getTab(Item.getInventoryTab(itemId));
-        ItemSlot slot = tab.getItem(slotIndex);
-
-        if (slot == null || slot.getItemId() != itemId) {
-            log.error("useItem bad item id {} (slotIndex:{} slot:{})", itemId, slotIndex, slot);
-            return;
-        }
-
-        ItemScript script = ItemScript.forItem(itemId);
-        if (script == null || !script.hasHook(owner, ItemScript.HOOK_USE)) {
-            log.error("useItem {} missing onUse script", itemId);
-            return;
-        }
-
-        // 合并域包住 hook + 消耗：一次使用的全部语义更新一次 flush
-        try (var batch = owner.remote().batch()) {
-            boolean consumed = script.invokeUse(owner, slot.getItem());
-            if (consumed) {
-                tab.removeItem(slotIndex, 1, false);
-            }
-        }
-    }
-
     /**
-     * USE_ITEM 消耗品使用（原 UseItemHandler 语义体；wire 解析已上移 codec/translator）。
-     * 特判分支（解除药水系/回城卷/反回城卷）套 packet-strict 断言窗：分支内的存量
-     * legacy-Client 导航（InventoryManipulator/公告的 getClient）会响亮失败——迁移欠账标记；
-     * 默认路径（普通药水/效果道具）不设窗，tutorial 吃药等高频路径不受哨影响。
+     * 使用道具共用入口（PET_FOOD / USE_ITEM / USE_RETURN_SCROLL）。
+     * 优先级：道具脚本钩子 → 特判（原 UseItemHandler 特判分支含生日蛋糕 AoE，集中于
+     * {@link #consumeSpecial}，packet-strict 断言窗，待重构迁移语义层）→ WZ 效果数据。
+     * 槽位不符/缺 wz 数据等异常一律 log error（不静默）；道具保留不消耗。
      */
     @Override
-    public void consumeItem(int slotIndex, int itemId) {
+    public void useItem(int slotIndex, int itemId) {
         if (!owner.isAlive()) {
+            log.error("useItem: dead character {} attempted to use item {} (slot {})", owner.getName(), itemId, slotIndex);
             owner.remote().basic().unlockActions();
             return;
         }
-        ItemSlot toUse = inventory.getTab(InventoryType.USE).getItem(slotIndex);
-        if (toUse == null || toUse.getQuantity() <= 0 || toUse.getItemId() != itemId) {
+        InventoryTab tab = inventory.getTab(Item.getInventoryTab(itemId));
+        ItemSlot slot = tab.getItem(slotIndex);
+        if (slot == null || slot.getQuantity() <= 0 || slot.getItemId() != itemId) {
+            log.error("useItem: 声明道具与槽位不符（itemId:{} slotIndex:{} 槽内:{})", itemId, slotIndex, slot);
             return;
         }
 
+        // 1. script：onUse 钩子驱动（喂食等）；合并域包住 hook + 消耗，一次 flush
+        ItemScript script = ItemScript.forItem(itemId);
+        if (script != null && script.hasHook(owner, ItemScript.HOOK_USE)) {
+            try (var batch = owner.remote().batch()) {
+                boolean consumed = script.invokeUse(owner, slot.getItem());
+                if (consumed) {
+                    tab.removeItem(slotIndex, 1, false);
+                }
+            }
+            return;
+        }
+
+        // 2. 特判：解除药水系/回城卷/反回城卷/生日蛋糕 AoE（集中见 consumeSpecial）
+        if (consumeSpecial(slotIndex, itemId, slot)) {
+            return;
+        }
+
+        // 3. wz 数据：效果道具（药水等）
+        remove(slotIndex);
+        BuffEffectData effect = ItemInformationProvider.getInstance().getItemEffect(itemId);
+        if (effect == null) {
+            log.error("useItem: 道具 {} 三档均无处理（缺 wz effect 数据）", itemId);
+            return;
+        }
+        effect.applyTo(owner);
+    }
+
+    /**
+     * 特判集中：原 UseItemHandler 的 itemId 特判分支（解除药水系/回城卷/反回城卷/
+     * 生日蛋糕 AoE）。每个动作套 packet-strict 断言窗——分支内存量 legacy-Client 导航
+     * （InventoryManipulator/公告的 getClient）响亮失败，迁移欠账标记。
+     *
+     * @return true = 特判已处理；false = 非特判道具（落 wz 档）
+     */
+    private boolean consumeSpecial(int slotIndex, int itemId, ItemSlot toUse) {
+        Runnable action = specialOf(itemId, slotIndex, toUse);
+        if (action == null) {
+            return false;
+        }
+        packetStrict(action);
+        return true;
+    }
+
+    /** 特判分派：itemId → 消耗动作；谓词型（卷轴类）在常量分派之后判定；非特判返回 null */
+    private Runnable specialOf(int itemId, int slotIndex, ItemSlot toUse) {
         switch (itemId) {
-            case ItemId.ALL_CURE_POTION -> packetStrict(() -> {
-                owner.dispelDebuffs();
-                remove(slotIndex);
-            });
-            case ItemId.EYEDROP -> packetStrict(() -> {
-                owner.dispelDebuff(Disease.DARKNESS);
-                remove(slotIndex);
-            });
-            case ItemId.TONIC -> packetStrict(() -> {
-                owner.dispelDebuff(Disease.WEAKEN);
-                owner.dispelDebuff(Disease.SLOW);
-                remove(slotIndex);
-            });
-            case ItemId.HOLY_WATER -> packetStrict(() -> {
-                owner.dispelDebuff(Disease.SEAL);
-                owner.dispelDebuff(Disease.CURSE);
-                remove(slotIndex);
-            });
+            case ItemId.ALL_CURE_POTION -> {
+                return () -> {
+                    owner.dispelDebuffs();
+                    remove(slotIndex);
+                };
+            }
+            case ItemId.EYEDROP -> {
+                return () -> {
+                    owner.dispelDebuff(Disease.DARKNESS);
+                    remove(slotIndex);
+                };
+            }
+            case ItemId.TONIC -> {
+                return () -> {
+                    owner.dispelDebuff(Disease.WEAKEN);
+                    owner.dispelDebuff(Disease.SLOW);
+                    remove(slotIndex);
+                };
+            }
+            case ItemId.HOLY_WATER -> {
+                return () -> {
+                    owner.dispelDebuff(Disease.SEAL);
+                    owner.dispelDebuff(Disease.CURSE);
+                    remove(slotIndex);
+                };
+            }
+            case ItemId.HAPPY_BIRTHDAY -> {
+                return () -> {
+                    remove(slotIndex);
+                    BuffEffectData mse = ItemInformationProvider.getInstance().getItemEffect(itemId);
+                    for (CharacterRef playerr : owner.getMap().getCharacters()) {
+                        mse.applyTo(playerr.unref());
+                    }
+                };
+            }
             default -> {
             }
         }
-        if (itemId == ItemId.ALL_CURE_POTION || itemId == ItemId.EYEDROP
-                || itemId == ItemId.TONIC || itemId == ItemId.HOLY_WATER) {
-            return;
-        }
-
         if (ItemConstants.isTownScroll(itemId)) {
-            packetStrict(() -> townScroll(slotIndex, itemId, toUse));
-            return;
+            return () -> townScroll(slotIndex, itemId, toUse);
         }
         if (ItemConstants.isAntibanishScroll(itemId)) {
-            packetStrict(() -> {
+            return () -> {
                 if (ItemInformationProvider.getInstance().getItemEffect(toUse.getItemId()).applyTo(owner)) {
                     remove(slotIndex);
                 } else {
                     owner.dropMessage(5, I18nUtil.getMessage("UseItemHandler.message1"));
                 }
-            });
-            return;
+            };
         }
-
-        remove(slotIndex);
-
-        ItemInformationProvider ii = ItemInformationProvider.getInstance();
-        if (itemId != ItemId.HAPPY_BIRTHDAY) {
-            ii.getItemEffect(toUse.getItemId()).applyTo(owner);
-        } else {
-            BuffEffectData mse = ii.getItemEffect(toUse.getItemId());
-            for (CharacterRef playerr : owner.getMap().getCharacters()) {
-                mse.applyTo(playerr.unref());
-            }
-        }
+        return null;
     }
 
     /** 回城卷（含不可用时的公告分支；banish 快照为 use_banishable_town_scroll 服务） */
@@ -215,7 +238,7 @@ class CharacterInventory implements InventoryModule.Handler {
     }
 
     /**
-     * packet-strict 断言窗（原 handler 特判分支专用）：窗口内 legacy-Client 导航
+     * packet-strict 断言窗（特判分支专用）：窗口内 legacy-Client 导航
      * （Character.getClient）按全局级别响亮失败——分支的迁移欠账标记。
      * discipline 同 AbstractInRouter.strictWindow 的 packet-strict 哨，仅关闭时机由分支自持。
      */

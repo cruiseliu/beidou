@@ -4,13 +4,15 @@ import org.gms.client.Player;
 import org.gms.net.opcodes.RecvOpcode;
 import org.gms.remote.gms083.client.packets.PetFootPacket;
 import org.gms.remote.gms083.client.packets.UseItemPacket;
+import org.gms.remote.gms083.client.packets.UseReturnScrollPacket;
 import org.gms.remote.gms083.client.translate.PetFoodTranslator;
 import org.gms.remote.gms083.client.translate.UseItemTranslator;
 import org.gms.remote.gms083.utils.ByteBufReader;
 
 /**
  * 背包域 in-route：PET_FOOD（使用道具意图——包型在 pet opcode 族，事件归属 inventory 域，
- * 由事件自报 module 决定接收方）、USE_ITEM（消耗品使用）。其余 item 系 opcode 迁移后归本 route。
+ * 由事件自报 module 决定接收方）、USE_ITEM / USE_RETURN_SCROLL（消耗品/回程卷，共用块
+ * 解码与翻译）。其余 item 系 opcode 迁移后归本 route。
  */
 public final class InventoryInRouter extends AbstractInRouter {
 
@@ -18,8 +20,8 @@ public final class InventoryInRouter extends AbstractInRouter {
     public boolean route(RecvOpcode opcode, ByteBufReader in, Player player) {
         switch (opcode) {
             case PET_FOOD -> emit(opcode, in, PetFootPacket::decode, PetFoodTranslator::new, player);
-            case USE_ITEM, USE_RETURN_SCROLL ->
-                    emit(opcode, in, UseItemPacket::decode, UseItemTranslator::new, player);
+            case USE_ITEM -> emit(opcode, in, UseItemPacket::decode, UseItemTranslator::new, player);
+            case USE_RETURN_SCROLL -> emit(opcode, in, UseReturnScrollPacket::decode, UseItemTranslator::new, player);
             default -> {
                 return false;
             }
