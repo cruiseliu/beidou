@@ -14,5 +14,5 @@ import org.gms.client.character.ExpSource;
  * @param totalExp 应用后的 exp 绝对总值（数值帧载荷）
  * @param source   经验来源
  */
-public record GainExpEvent(int gain, int totalExp, ExpSource source) implements BasicEvent {
+public record GainExpEvent(int gain, long totalExp, ExpSource source) implements BasicEvent {
 }

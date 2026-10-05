@@ -30,7 +30,7 @@ public abstract class BasicModule extends AbstractModule {
     }
 
     /** 获得经验（状态应用归 gameplay；exp 数值帧 + 演出帧由 source → 版本 translator 决定）。 */
-    public final void gainExp(int gain, int totalExp, ExpSource source) {
+    public final void gainExp(int gain, long totalExp, ExpSource source) {
         post(new GainExpEvent(gain, totalExp, source));
     }
 

@@ -37,7 +37,7 @@ class CharacterLevel {
     private final Character owner;
 
     private int level;
-    private final AtomicInteger exp = new AtomicInteger();
+    private long exp;
     private final AtomicInteger gachaExp = new AtomicInteger();
     private long totalExpGained = 0;
 
@@ -52,7 +52,7 @@ class CharacterLevel {
         int expgain = 0;
         long currentgexp = gachaExp.get();
 
-        int levelUpNeed = ExpTable.getExpNeededForLevel(level) - exp.get();
+        int levelUpNeed = ExpTable.getExpNeededForLevel(level) - (int) exp;
         if (currentgexp >= levelUpNeed) {
             expgain += Math.max(0, levelUpNeed);
 
@@ -108,31 +108,20 @@ class CharacterLevel {
      * use_announce_global_level_up=false、use_exp_gain_log=false。
      */
     private void applyExp(long gain, ExpSource source) {
-        long total = Math.max(gain, -exp.get());
         if (level >= owner.getMaxLevel() || !(owner.allowExpGain || owner.getEventInstance() != null)) {
             return;   // 满级 / 经验获取禁止：状态与演出皆无（legacy 同规）
         }
-        long leftover = 0;
-        long nextExp = exp.get() + total;
-        if (nextExp > (long) Integer.MAX_VALUE) {
-            total = Integer.MAX_VALUE - exp.get();
-            leftover = nextExp - Integer.MAX_VALUE;
-        }
-        int newTotal = (int) exp.addAndGet((int) total);
+        exp += gain;
 
-        owner.remote().basic().gainExp((int) Math.min(gain, Integer.MAX_VALUE), newTotal, source);   // 数值帧 + 演出帧，升级循环之前
+        // exp 数值帧（STAT_CHANGED exp，translator 截断 int 上限）+ 演出帧，升级循环之前
+        owner.remote().basic().gainExp((int) Math.min(gain, Integer.MAX_VALUE), exp, source);
 
-        while (exp.get() >= ExpTable.getExpNeededForLevel(level)) {
+        while (exp >= ExpTable.getExpNeededForLevel(level)) {
             levelUp(true);
             if (level == owner.getMaxLevel()) {
-                setExp(0);
+                exp = 0;
                 owner.updateSingleStat(PacketStat.EXP, 0);   // 满级清零帧暂留 legacy（后续并入 levelUp）
             }
-        }
-
-        if (leftover > 0) {
-            applyExp(leftover, source);
-            return;
         }
         owner.lastExpGainTime = System.currentTimeMillis();
     }
@@ -168,22 +157,23 @@ class CharacterLevel {
     }
 
     private synchronized void gainExpInternal(long gain, int equip, int party, boolean show, boolean inChat, boolean white) {   // need of method synchonization here detected thanks to MedicOP
-        long total = Math.max(gain + equip + party, -exp.get());
+        long total = Math.max(gain + equip + party, -exp);
 
         if (level < owner.getMaxLevel() && (owner.allowExpGain || owner.getEventInstance() != null)) {
             long leftover = 0;
-            long nextExp = exp.get() + total;
+            long nextExp = exp + total;
 
             if (nextExp > (long) Integer.MAX_VALUE) {
-                total = Integer.MAX_VALUE - exp.get();
+                total = Integer.MAX_VALUE - exp;
                 leftover = nextExp - Integer.MAX_VALUE;
             }
-            owner.updateSingleStat(PacketStat.EXP, exp.addAndGet((int) total));
+            exp += (int) total;
+            owner.updateSingleStat(PacketStat.EXP, (int) exp);
             totalExpGained += total;
             if (show) {
                 announceExpGain(gain, equip, party, inChat, white);
             }
-            while (exp.get() >= ExpTable.getExpNeededForLevel(level)) {
+            while (exp >= ExpTable.getExpNeededForLevel(level)) {
                 levelUp(true);
 
                 String msg = I18nUtil.getMessage("Character.levelUp.globalNotice", owner.getName(), owner.getMapRef().getMapName(), getLevel());
@@ -198,7 +188,7 @@ class CharacterLevel {
                     log.info(msg);
                 }
                 if (level == owner.getMaxLevel()) {
-                    setExp(0);
+                    exp = 0;
                     owner.updateSingleStat(PacketStat.EXP, 0);
                     break;
                 }
@@ -215,7 +205,7 @@ class CharacterLevel {
                             owner.getWorldServer().getExpRate(),
                             owner.getCouponExpRate(),
                             totalExpGained,
-                            exp.get(),
+                            (int) Math.min(exp, Integer.MAX_VALUE),
                             new Timestamp(owner.lastExpGainTime),
                             owner.getId()
                     );
@@ -243,7 +233,7 @@ class CharacterLevel {
     }
 
     public int getExp() {
-        return exp.get();
+        return (int) Math.min(exp, Integer.MAX_VALUE);   // long exp → int 消费点截断（20 亿）
     }
 
     public int getGachaExp() {
@@ -258,15 +248,15 @@ class CharacterLevel {
             owner.job.applyLevelUpRewards(level + 1);
 
             if (takeexp) {
-                exp.addAndGet(-ExpTable.getExpNeededForLevel(level));
-                if (exp.get() < 0) {
-                    exp.set(0);
+                exp -= ExpTable.getExpNeededForLevel(level);
+                if (exp < 0) {
+                    exp = 0;
                 }
             }
 
             level++;
             if (level >= owner.getMaxLevel()) {
-                exp.set(0);
+                exp = 0;
 
                 int maxClassLevel = owner.getMaxLevel();
                 if (level == maxClassLevel) {
@@ -289,7 +279,7 @@ class CharacterLevel {
             owner.stats.setHp(owner.stats.getTotal(Stat.MAX_HP));   // 外层 _u batch 内，自动合并单包
             owner.stats.setMp(owner.stats.getTotal(Stat.MAX_MP));
             owner.remote().basic().updateLevel(level);
-        owner.remote().basic().updateExp(exp.get());   // 与上一调用同段（外层 _u batch）合并为一个 STAT_CHANGED
+        owner.remote().basic().updateExp(exp);   // 与上一调用同段（外层 _u batch）合并为一个 STAT_CHANGED
         }   // try-with-resources close = 统一发送
 
         owner.getMapRef().broadcastMessage(owner.ref(), PacketCreator.showForeignEffect(owner.getId(), 0), false);
@@ -358,7 +348,7 @@ class CharacterLevel {
     }
 
     void setExp(int amount) {
-        exp.set(amount);
+        exp = amount;
     }
 
     void setGachaExp(int amount) {
