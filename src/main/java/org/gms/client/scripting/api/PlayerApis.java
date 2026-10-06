@@ -4,7 +4,7 @@ package org.gms.client.scripting.api;
  * 脚本 API 显式范围的 Java 侧聚合（player actor）：六分面 public 字段，JS 侧
  * {@code player.basic.isMale()} / {@code player.stats.getHp()} /
  * {@code player.inventory.gainItem(id)} / {@code player.message.showHint(...)} /
- * {@code player.talk.sendNext(npc, text)} / {@code player.quest.forceStartQuest(id, npc)}。
+ * {@code player.talk.sendNext(ctx, text)} / {@code player.quest.forceStartQuest(id, npc)}。
  * 聚合只圈范围（字段面 = 脚本可见面），语义与线程纪律归各 Api 类。
  *
  * <p><b>构造与状态</b>：无参工厂——bind_player.js 模块顶层 {@code new PlayerApis()}

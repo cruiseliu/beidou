@@ -1,7 +1,6 @@
 package org.gms.client.scripting;
 
 import org.gms.client.character.Character;
-import org.gms.scripting.JsModule;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,38 +40,23 @@ public final class QuestScript {
      */
     public static void start(Character chr, int questId, int npc, String entry) {
         InteractContext ctx = chr.getNpcInteract().beginContext(npc, entry, scriptPath(questId));
-        invoke(ctx, questId, entry, 1, 0, 0);
+        ctx.call(questId, 1, 0, 0);
     }
 
     /** 脚本化完成（QUEST_ACTION action=5 的 ESM 分支）：建上下文，按 WZ endscript 指定名首入。 */
     public static void end(Character chr, int questId, int npc, String entry) {
         InteractContext ctx = chr.getNpcInteract().beginContext(npc, entry, scriptPath(questId));
-        invoke(ctx, questId, entry, 1, 0, 0);
+        ctx.call(questId, 1, 0, 0);
     }
 
     /**
      * 对话重入（NPC_TALK_MORE 的 ESM 分支）：以登记上下文的重入函数名继续状态机。
      * context 由 CharacterNpcInteract.talkMore 从会话槽取出传入（非空保证在调用方）。
      */
-    public static void more(Character chr, InteractContext ctx, byte mode, byte type, int selection) {
+    public static void more(InteractContext ctx, int mode, int type, int selection) {
         // questId 占位 -1：重入恒走 interaction.js 的 #dispatch（会话身份相同），questId
         // 不可达消费；其唯一消费者 #begin 仅在首入发生，而首入只来自 start/end（带真值）。
         // 热重载已停用（CharacterScriptRunner），不存在"#ctx 归零后重入误入 #begin"的路径。
-        invoke(ctx, -1, ctx.getScriptEntry(), mode, type, selection);
-    }
-
-    private static void invoke(InteractContext ctx, int questId, String entry, int mode, int type, int selection) {
-        Character chr = ctx.owner();
-        chr.getScriptRunner().call(() -> {
-            // 一拍对话 = 一个合并域（doc/package-client.md §2）：段内脚本的任务操作与对话页
-            // 同批出门，段尾 commit——对话页必先于挂起到达客户端（等回复前必须已渲染），
-            // 脚本异常/ESC 照常提交（状态已生效，帧须如实反映）。
-            try (var batch = chr.getRemote().batch()) {
-                // 模块路径取会话冻结的 scriptPath（首入时由 questId 算好），重入免重算；
-                // questId 作为导出函数首参显式随调用传递（脚本直取，不经会话）。
-                JsModule module = chr.getScriptRunner().moduleFor(ctx.getScriptPath());
-                return module.call(entry, questId, mode, type, selection, ctx);
-            }
-        });
+        ctx.call(-1, mode, type, selection);
     }
 }

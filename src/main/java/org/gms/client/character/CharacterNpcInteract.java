@@ -7,6 +7,8 @@ import org.gms.remote.ClientEventHandlerRegistry;
 import org.gms.remote.modules.npc.NpcModule;
 import org.gms.scripting.npc.NPCScriptManager;
 import org.gms.scripting.quest.QuestScriptManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * NPC 对话交互组件（npc 域 C→S 状态收拢）：对话续行分流（原 NPCMoreTalkHandler 语义体）
@@ -18,6 +20,8 @@ import org.gms.scripting.quest.QuestScriptManager;
  * 分流）同在 player strand，volatile 只为登出清场竞态兜底。
  */
 public final class CharacterNpcInteract implements NpcModule.Handler {
+
+    private static final Logger log = LoggerFactory.getLogger(CharacterNpcInteract.class);
 
     private final Character owner;
 
@@ -36,8 +40,15 @@ public final class CharacterNpcInteract implements NpcModule.Handler {
     /**
      * 创建并登记脚本对话上下文（首入入口：QuestScript.start/end 调用）。
      * 返回登记后的实例——调用方仅作参数向后传递，不另存（槽位唯一真源在本组件）。
+     * 已有活跃上下文时照常覆盖（last-write-wins），但 log error——上一会话未走
+     * dispose 即被替换属异常流（对话中途再开新对话），须在线上排查。
      */
     public InteractContext beginContext(int npcId, String entry, String scriptPath) {
+        InteractContext prev = context;
+        if (prev != null) {
+            log.error("beginContext 覆盖未清理的活跃对话上下文（旧 npc={} / 新 npc={} entry={}）——上一会话未 dispose",
+                    prev.getNpcId(), npcId, entry);
+        }
         InteractContext ctx = new InteractContext(owner, npcId, scriptPath, entry);
         this.context = ctx;
         return ctx;
@@ -59,7 +70,7 @@ public final class CharacterNpcInteract implements NpcModule.Handler {
             if (lastMsg == 2 && action == 0) {
                 ctx.dispose();
             } else if (lastMsg != 2) {
-                QuestScript.more(owner, ctx, (byte) action, (byte) lastMsg, selection);
+                QuestScript.more(ctx, action, lastMsg, selection);
             }
             return;
         }

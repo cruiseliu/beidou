@@ -142,7 +142,7 @@ const PlayerApis = Java.type("org.gms.client.scripting.api.PlayerApis");
  * character 经 actor context（Player.require）现取。用法如
  * {@code player.stats.getHp()}、{@code player.inventory.gainItem(id)}、
  * {@code player.basic.gainExp(n, ExpSource.X)}、{@code player.message.showHint(...)}、
- * {@code player.talk.sendNext(npc, text)}（npc 由脚本提供，会话无绑定）、
+ * {@code player.talk.sendNext(ctx, text)}（对话 npc 取自会话上下文）、
  * {@code player.quest.forceStartQuest(questId, npcId)}。
  */
 export const player = new PlayerApis();

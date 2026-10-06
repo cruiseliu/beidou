@@ -178,19 +178,22 @@ export class InteractionManager {
     }
 
     /** 渲染当前页：按钮样式由位置推导（首页 00 01 / 中间 01 01），末页由哨兵决定。
-     *  对话页经 player.talk 发往构造时脚本提供的 npc（会话无绑定）。 */
+     *  统一经 player.talk.send 发往会话上下文（buttons 为 DialogButtons 枚举名，
+     *  Java 侧 valueOf 转换）；#npc 只用于开场一致性断言。 */
     #render() {
         const pd = this.#pending;
         const text = pd.pages[pd.index];
+        let buttons;
         if (pd.kind === "confirm") {
-            player.talk.sendAcceptDecline(this.#npc, text);
+            buttons = "ACCEPT_DECLINE";
         } else if (pd.index === pd.pages.length - 1 && pd.lastStyle !== NEXT_PREV) {
-            player.talk.sendPrevOk(this.#npc, text);
+            buttons = "PREV_OK";
         } else if (pd.index === 0) {
-            player.talk.sendNext(this.#npc, text);
+            buttons = "NEXT";
         } else {
-            player.talk.sendPrevNext(this.#npc, text);
+            buttons = "PREV_NEXT";
         }
+        player.talk.send(this.#ctx, text, buttons);
     }
 
     /** 事件解释（NPC_TALK_MORE）：mode -1 关闭；1 下一步；0 上一步。type 不对口的事件忽略。 */
