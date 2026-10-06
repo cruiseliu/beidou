@@ -20,8 +20,6 @@ export type ExpSourceName = "QUEST";
  * 会话身份）。演出类 API 已外移（showInfo → message 分面）。
  */
 export interface InteractContext {
-    /** 会话 npc（一致性断言 + 对话页路由）。 */
-    getNpcId(): number;
     /** 终结会话（登记清除 + NPC 冷却）。 */
     dispose(): void;
 }
@@ -68,8 +66,8 @@ export interface InventoryApi {
  * quest 分面（org.gms.client.scripting.api.QuestApi）：任务状态面。
  */
 export interface QuestApi {
-    forceStartQuest(questId: number, npcId: number): boolean;
-    forceCompleteQuest(questId: number, npcId: number): boolean;
+    forceStartQuest(questId: number): boolean;
+    forceCompleteQuest(questId: number): boolean;
 }
 
 /**

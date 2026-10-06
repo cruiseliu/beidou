@@ -369,7 +369,7 @@ public class Quest {
         Map<Integer, String> oldProgress = new LinkedHashMap<>(progress);
 
         status = QuestStatus.STARTED;
-        this.npc = npcId;
+        this.npc = npcId >= 0 ? npcId : wz.getNpcId(status);
         completionTime = NEVER;
         progress.clear();
         registerMobs();
@@ -391,14 +391,14 @@ public class Quest {
         chr.getRemote().quest().questStarted(this);
     }
 
-    public boolean forceComplete(Character chr, int npc) {
+    public boolean forceComplete(Character chr, int npcId) {
         AssertUtil.isTrue(wz.getTimeLimit() <= 0 && wz.getTimeLimit2() <= 0);
         // if (wz.getTimeLimit() > 0) {
         //     chr.getRemote().quest().removeQuestTimeLimit(id);
         // }
 
         status = QuestStatus.COMPLETED;
-        this.npc = npc;
+        this.npc = npcId >= 0 ? npcId : wz.getNpcId(status);
         completionTime = System.currentTimeMillis();
         progress.clear();
 

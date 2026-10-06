@@ -510,7 +510,7 @@ public class QuestWz {
         Map<QuestRequirementType, AbstractQuestRequirement> reqs = !checkEnd ? startReqs : completeReqs;
         AbstractQuestRequirement mqr = reqs.get(QuestRequirementType.NPC);
         if (mqr != null) {
-            return ((NpcRequirement) mqr).get();
+            return ((NpcRequirement) mqr).getNpcId();
         } else {
             return -1;
         }
@@ -598,5 +598,11 @@ public class QuestWz {
 
         QuestWz.quests = loadedQuests;
         QuestWz.infoNumberQuests = loadedInfoNumberQuests;
+    }
+
+    public int getNpcId(QuestStatus status) {
+        Map<QuestRequirementType, AbstractQuestRequirement> reqs = status == QuestStatus.NOT_STARTED ? startReqs : completeReqs;
+        NpcRequirement npcReq = (NpcRequirement) reqs.get(QuestRequirementType.NPC);
+        return npcReq == null ? -1 : npcReq.getNpcId();
     }
 }

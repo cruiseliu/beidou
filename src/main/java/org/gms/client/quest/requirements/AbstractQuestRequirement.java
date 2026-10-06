@@ -55,7 +55,7 @@ public abstract class AbstractQuestRequirement {
      *
      * @param data The data to process.
      */
-    public abstract void processData(Data data);
+    protected void processData(Data data) {}
 
     public QuestRequirementType getType() {
         return type;

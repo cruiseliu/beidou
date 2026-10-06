@@ -208,7 +208,7 @@ class TalkPage {
 
 export class InteractionManager {
 
-    /** @type {(interact: InteractApi, questId: number, npcId: number) => Promise<void>} */
+    /** @type {(interact: InteractApi, questId: number) => Promise<void>} */
     #startFn;          // 会话瀑布函数
     /** @type {InteractContext | null} */
     #ctx = null;       // 当前会话身份；实例变化 = 新会话开场
@@ -216,7 +216,7 @@ export class InteractionManager {
     #currentPage = null;  // 当前挂起页；null = 无对话——"上一对话尚未结束"判据
 
     /**
-     * @param {(interact: InteractApi, questId: number, npcId: number) => Promise<void>} startFn
+     * @param {(interact: InteractApi, questId: number) => Promise<void>} startFn
      */
     constructor(startFn) {
         this.#startFn = startFn;
@@ -249,7 +249,7 @@ export class InteractionManager {
         // 悬空无处理者，宿主/strand 均无感知（strict canary 排查实证）；重抛的 rejection
         // 由 context 的 js.unhandled-rejections=throw 在微任务排空点转 PolyglotException
         // 出宿主调用，落 CharacterScriptRunner 的 fail-safe ERROR 日志。
-        this.#startFn(this.#interact(ctx), questId, ctx.getNpcId()).then(
+        this.#startFn(this.#interact(ctx), questId).then(
             () => ctx.dispose(),
             (e) => {
                 ctx.dispose();

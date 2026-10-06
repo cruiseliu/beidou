@@ -15,12 +15,12 @@ import org.gms.client.Player;
 public final class QuestApi {
 
     /** 强制接取（任务状态 → STARTED）；返回 Quest.forceStart 结果。 */
-    public boolean forceStartQuest(int questId, int npcId) {
-        return Player.require("QuestApi.forceStartQuest").character().forceStartQuest(questId, npcId);
+    public boolean forceStartQuest(int questId) {
+        return Player.require("QuestApi.forceStartQuest").character().forceStartQuest(questId, -1);
     }
 
     /** 强制完成（任务状态 → COMPLETED）；返回 Quest.forceComplete 结果。 */
-    public boolean forceCompleteQuest(int questId, int npcId) {
-        return Player.require("QuestApi.forceCompleteQuest").character().forceCompleteQuest(questId, npcId);
+    public boolean forceCompleteQuest(int questId) {
+        return Player.require("QuestApi.forceCompleteQuest").character().forceCompleteQuest(questId, -1);
     }
 }

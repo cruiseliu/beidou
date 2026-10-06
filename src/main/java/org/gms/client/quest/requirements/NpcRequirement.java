@@ -31,16 +31,15 @@ import org.gms.provider.DataTool;
  * @author Tyler (Twdtwd)
  */
 public class NpcRequirement extends AbstractQuestRequirement {
-    private int reqNPC;
+    private int npcId;
 
     public NpcRequirement(QuestWz quest, Data data) {
         super(QuestRequirementType.NPC);
-        processData(data);
+        processData_(data);
     }
 
-    @Override
-    public void processData(Data data) {
-        reqNPC = DataTool.getInt(data);
+    private void processData_(Data data) {
+        npcId = DataTool.getInt(data);
     }
 
     @Override
@@ -49,7 +48,7 @@ public class NpcRequirement extends AbstractQuestRequirement {
         return true;  // checked by client; this class is not responsible for anti-cheat
     }
 
-    public int get() {
-        return reqNPC;
+    public int getNpcId() {
+        return npcId;
     }
 }
