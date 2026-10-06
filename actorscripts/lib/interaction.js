@@ -79,11 +79,13 @@ export class DialogClosed extends Error {
 }
 
 /**
- * sendPages 哨兵：声明"末页保留下一步"（01 01，按下一步整链才 resolve，上一步仍可回退）。
- * 缺省末页只渲染上一步（01 00，原版 sendPrev 页；按钮点击即整链 resolve）——末页样式
- * 是调用方知识（原版脚本末拍有 sendNextPrev/sendPrev 两种），位置推导不出来。
+ * sendPages 末页样式可选值（DialogButtons 枚举名）：末页样式是调用方知识（原版脚本
+ * 末拍有 sendNextPrev/sendPrev 两种），位置推导不出来——显式传入，缺省 "PREV_OK"
+ * （01 00，原版 sendPrev 末拍；按钮点击即整链 resolve）。传 "PREV_NEXT"（01 01）=
+ * 末页保留下一步，按下一步整链才 resolve，上一步仍可回退。"NEXT" 仅 sendNext 单页
+ * 形态内部使用。非法名在 #ask 响亮失败（typo 纪律）；Java 侧 valueOf 是第二道闸。
  */
-export const NEXT_PREV = Symbol("nextPrev");
+const LAST_BUTTONS = new Set(["PREV_OK", "PREV_NEXT", "NEXT"]);
 
 /** accept/decline 对话框的 gms083 类型字节（客户端在 NPC_TALK_MORE 回显） */
 const ACCEPT_DECLINE = 0x0C;
@@ -143,13 +145,14 @@ export class InteractionManager {
     #interact(ctx) {
         const self = this;
         return {
-            /** "上一步/下一步"连播链：整链一个 await，链内回退不跨越 await（脚本零状态）。 */
-            sendPages(pages, lastStyle) {
-                return self.#ask(pages, "pages", 0, lastStyle);
+            /** "上一步/下一步"连播链：整链一个 await，链内回退不跨越 await（脚本零状态）。
+             *  buttons = 末页样式（DialogButtons 枚举名："PREV_OK"|"PREV_NEXT"，缺省 PREV_OK）。 */
+            sendPages(pages, buttons) {
+                return self.#ask(pages, "pages", 0, buttons);
             },
             /** 单页"下一步"（00 01）；按下一步 resolve。 */
             sendNext(text) {
-                return self.#ask([text], "pages", 0, NEXT_PREV);
+                return self.#ask([text], "pages", 0, "NEXT");
             },
             /** 接受/拒绝：接受 → true（mode 1），拒绝 → false（mode 0），ESC → reject。 */
             sendAcceptDecline(text) {
@@ -163,31 +166,35 @@ export class InteractionManager {
     }
 
     /** 登记挂起对话并渲染首页。瀑布破坏（上一对话未结束就发下一对话）是脚本错误，响亮失败。 */
-    #ask(pages, kind, type, lastStyle) {
+    #ask(pages, kind, type, buttons) {
         if (this.#pending !== null) {
             throw new Error("interaction: 上一对话尚未结束");
         }
         if (!Array.isArray(pages) || pages.length === 0 || pages.some((p) => typeof p !== "string")) {
             throw new Error("interaction: pages 须为非空字符串数组");
         }
+        const lastButtons = buttons === undefined ? "PREV_OK" : buttons;
+        if (!LAST_BUTTONS.has(lastButtons)) {
+            throw new Error("interaction: 末页 buttons 非法: " + lastButtons);
+        }
         const self = this;
         return new Promise((resolve, reject) => {
-            self.#pending = { kind, type, lastStyle, pages, index: 0, resolve, reject };
+            self.#pending = { kind, type, buttons: lastButtons, pages, index: 0, resolve, reject };
             self.#render();
         });
     }
 
-    /** 渲染当前页：按钮样式由位置推导（首页 00 01 / 中间 01 01），末页由哨兵决定。
-     *  统一经 player.talk.send 发往会话上下文（buttons 为 DialogButtons 枚举名，
-     *  Java 侧 valueOf 转换）；#npc 只用于开场一致性断言。 */
+    /** 渲染当前页：非末页样式由位置推导（首页 00 01 / 中间 01 01），末页 = 调用方指定
+     *  的 buttons enum（缺省 PREV_OK；sendNext 单页为 NEXT）。经 player.talk.send 发往
+     *  会话上下文。 */
     #render() {
         const pd = this.#pending;
         const text = pd.pages[pd.index];
         let buttons;
         if (pd.kind === "confirm") {
             buttons = "ACCEPT_DECLINE";
-        } else if (pd.index === pd.pages.length - 1 && pd.lastStyle !== NEXT_PREV) {
-            buttons = "PREV_OK";
+        } else if (pd.index === pd.pages.length - 1) {
+            buttons = pd.buttons;
         } else if (pd.index === 0) {
             buttons = "NEXT";
         } else {

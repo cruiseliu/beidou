@@ -45,7 +45,7 @@ actorscripts/
 ├── lib/
 │   ├── bind_player.js    # player actor 绑定层（唯一允许的 Java.type 面，见 §4 约束 1；
 │   │                     #   其他 actor 将来另立 bind_<actor>.js）
-│   └── interaction.js   # 对话链 InteractionManager（NEXT_PREV 哨兵 / i18n）
+│   └── interaction.js   # 对话链 InteractionManager（末页 buttons enum / i18n）
 ├── map/
 │   ├── common/          # 地图脚本共享层（组合 util；模块相对引用 ./common/x.js）
 │   │   └── tutorial.js  # 教学门工厂 advice(n)/mapAdvice() + showInstruction
