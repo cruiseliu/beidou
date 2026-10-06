@@ -17,13 +17,11 @@ export type ExpSourceName = "QUEST";
 
 /**
  * InteractContext 的 JS 视图（org.gms.client.scripting.InteractContext，player strand
- * 会话身份）。
+ * 会话身份）。演出类 API 已外移（showInfo → message 分面）。
  */
 export interface InteractContext {
     /** 会话 npc（一致性断言 + 对话页路由）。 */
     getNpcId(): number;
-    /** 过场 UI 图。 */
-    showInfo(path: string): void;
     /** 终结会话（登记清除 + NPC 冷却）。 */
     dispose(): void;
 }
@@ -75,8 +73,17 @@ export interface QuestApi {
 }
 
 /**
+ * message 分面（org.gms.client.scripting.api.MessageApi）：提示消息面，解锁随语义拼装。
+ */
+export interface MessageApi {
+    /** 屏幕上方提示条（教学指引等）。 */
+    showHint(message: string, width: number, height: number): void;
+    /** 过场 UI 图（item-inchat 帧发 WZ UI 路径）。 */
+    showInfo(path: string): void;
+}
+
+/**
  * 脚本 API 显式范围（player actor，org.gms.client.scripting.api.PlayerApis 六分面）。
- * message 分面暂未被 JS 消费，按需补齐。
  */
 export declare const player: {
     basic: BasicApi;
@@ -84,6 +91,7 @@ export declare const player: {
     inventory: InventoryApi;
     talk: TalkApi;
     quest: QuestApi;
+    message: MessageApi;
 };
 
 /**

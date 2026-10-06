@@ -4,7 +4,6 @@ import org.gms.remote.AbstractModule;
 import org.gms.remote.modules.npc.client.DialogButtons;
 import org.gms.remote.modules.npc.server.NpcTalkEvent;
 import org.gms.remote.modules.npc.server.ServerNoticeEvent;
-import org.gms.remote.modules.npc.server.ShowInfoEvent;
 
 /**
  * 语义模块：NPC 对话域（对话页 self 流）。
@@ -18,11 +17,6 @@ public abstract class NpcModule extends AbstractModule {
     /** NPC 对话页（self 流）：按 buttons 语义编码并发送给本连接。 */
     public final void talk(int npc, String text, DialogButtons buttons, int speaker) {
         post(new NpcTalkEvent(npc, text, buttons, speaker));
-    }
-
-    /** 过场 UI 图（借 item-inchat 帧发 UI 路径；动作锁解除归 basic().unlockActions）。 */
-    public final void showInfo(String path) {
-        post(new ShowInfoEvent(path));
     }
 
     /** SERVERMESSAGE 通知（self 流；serverNotice(type, message) 形态）。 */

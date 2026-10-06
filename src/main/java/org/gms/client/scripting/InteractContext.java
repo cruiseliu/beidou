@@ -8,13 +8,14 @@ import org.gms.scripting.JsModule;
  * <b>零可变状态</b>——仅会话身份常量（owner/npc/entry/scriptPath）；状态机归 JS
  * 模块闭包，游戏状态归 chr 组件。全部方法在 player strand 上执行（actor 自身访问）。
  *
- * <p><b>权责边界（对话页外移后收窄）</b>：只承载"会话身份 + 会话控制 + 入口调用 +
- * showInfo"；对话页渲染（send* 族）归 {@code player.talk}（TalkApi，npc id 由脚本
- * 提供，会话无绑定）；任务状态推进归 {@code player.quest}；角色侧操作（道具/经验/
- * 通知）脚本经全局 {@code player} 直调 Character 门面，不经过本类。方法面白名单 =
- * 会话语义准入：绑定会话身份或对话流的才进得来。questId 不在会话内——模块路径以
- * 首入冻结的 scriptPath 为准，导出函数的 questId 参数由调用方（start/end 带真值，
- * more 传占位）显式传递。
+ * <p><b>权责边界（演出外移后收窄）</b>：只承载"会话身份 + 会话控制 + 入口调用"；
+ * 对话页渲染（send* 族）归 {@code player.talk}（TalkApi，npc 归会话上下文）；任务状态
+ * 推进归 {@code player.quest}；过场 UI 图（showInfo）归 {@code player.message}（与
+ * showHint 同款，unlock 随语义拼装）；角色侧操作（道具/经验/通知）脚本经全局
+ * {@code player} 直调 Character 门面，不经过本类。方法面白名单 = 会话语义准入：
+ * 绑定会话身份或对话流的才进得来。questId 不在会话内——模块路径以首入冻结的
+ * scriptPath 为准，导出函数的 questId 参数由调用方（start/end 带真值，more 传占位）
+ * 显式传递。
  */
 public final class InteractContext {
 
@@ -63,13 +64,6 @@ public final class InteractContext {
                 return module.call(scriptEntry, all);
             }
         });
-    }
-
-    /** 过场 UI 图（借 item-inchat 帧发 UI 路径 + 动作锁解除归 basic 模块）；会话演出，
-     * 不涉 npc 绑定，故留会话侧（对话页 send* 族已外移 TalkApi）。 */
-    public void showInfo(String path) {
-        owner.getRemote().npc().showInfo(path);
-        owner.getRemote().basic().unlockActions();
     }
 
     // ── 会话控制 ──

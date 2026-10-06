@@ -52,7 +52,7 @@ async function start(interact, questId, npcId) {
     }
     player.quest.forceStartQuest(questId, npcId);
     await interact.sendPages([MSG.intro_inv, MSG.intro_heal], "PREV_NEXT");
-    interact.showInfo("UI/tutorial.img/28");
+    player.message.showInfo("UI/tutorial.img/28");
 }
 
 /**

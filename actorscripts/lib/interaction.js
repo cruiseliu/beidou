@@ -123,7 +123,6 @@ const NEXT = Symbol("next");
  * @property {(pages: string[], lastPageButtons: "PREV_NEXT" | "PREV_OK") => Promise<void>} sendPages
  * @property {(text: string) => Promise<void>} sendNext
  * @property {(text: string) => Promise<boolean>} sendAcceptDecline
- * @property {(path: string) => void} showInfo
  */
 
 /**
@@ -202,6 +201,7 @@ class TalkPage {
 
     /** @type {() => Promise<PageResult>} */
     response() {
+        assert(this.#deferred !== null);
         return this.#deferred.promise;
     }
 }
@@ -310,13 +310,6 @@ export class InteractionManager {
                 const r = await self.#show(new TalkPage(text, "ACCEPT_DECLINE"));
                 assert(typeof r === "boolean");
                 return r;
-            },
-
-            /** 过场 UI 图（透传会话 API）。
-             *
-             *  @param {string} path */
-            showInfo(path) {
-                ctx.showInfo(path);
             },
         };
     }
