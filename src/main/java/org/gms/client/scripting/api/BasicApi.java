@@ -1,6 +1,7 @@
 package org.gms.client.scripting.api;
 
 import org.gms.client.Player;
+import org.gms.client.character.Character;
 import org.gms.client.character.ExpSource;
 
 /**
@@ -13,9 +14,14 @@ import org.gms.client.character.ExpSource;
  * {@code player.basic.gainExp(n, "QUEST")}。
  */
 public final class BasicApi {
+    private final Character chr;
+
+    public BasicApi(Character chr) {
+        this.chr = chr;
+    }
 
     public boolean isMale() {
-        return Player.require("BasicApi.isMale").character().isMale();
+        return chr.getGender() == 0;
     }
 
     /**
@@ -25,6 +31,6 @@ public final class BasicApi {
      * valueOf 抛 IllegalArgumentException，响亮失败。
      */
     public void gainExp(int gain, String source) {
-        Player.require("BasicApi.gainExp").character().gainExp(gain, ExpSource.valueOf(source));
+        chr.gainExp(gain, ExpSource.valueOf(source));
     }
 }

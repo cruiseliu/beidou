@@ -3552,31 +3552,6 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     public void deleteBuddy(int otherCid) { buddy.deleteBuddy(otherCid); }
     public void setBuddyCapacity(int capacity) { buddy.setBuddyCapacity(capacity); }
 
-    // -- Script Helpers: should not be used outside JS scripts --
-
-    public boolean isMale() {
-        return getGender() == 0;
-    }
-
-    public boolean gainItem(int itemId) {
-        return gainItem(itemId, 1);
-    }
-
-    public boolean gainItem(int itemId, int quantity) {
-        return inventory.inventory.tryUpdate().add(itemId, quantity).commit();
-    }
-
-    public boolean gainItems(int[][] entries) {
-        var tx = inventory.inventory.tryUpdate();
-        for (int[] entry : entries) {
-            if (entry.length != 2) {
-                throw new IllegalArgumentException("gainItems: bad entry " + entry);
-            }
-            tx.add(entry[0], entry[1]);
-        }
-        return tx.commit();
-    }
-
     // ── 世界入场（doc/12 §21 追记 4）：服务端初始化 + 初始化数据发送（保序拆分）──
 
     private static final HpMpAlertService HP_MP_ALERT_SERVICE =

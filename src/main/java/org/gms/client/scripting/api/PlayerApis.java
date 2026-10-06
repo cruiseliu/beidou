@@ -1,5 +1,8 @@
 package org.gms.client.scripting.api;
 
+import org.gms.client.Player;
+import org.gms.client.character.Character;
+
 /**
  * 脚本 API 显式范围的 Java 侧聚合（player actor）：六分面 public 字段，JS 侧
  * {@code player.basic.isMale()} / {@code player.stats.getHp()} /
@@ -22,11 +25,12 @@ public final class PlayerApis {
     public final QuestApi quest;
 
     public PlayerApis() {
-        this.basic = new BasicApi();
+        Character chr = Player.require("script_api").character();
+        this.basic = new BasicApi(chr);
         this.stats = new StatsApi();
-        this.inventory = new InventoryApi();
+        this.inventory = new InventoryApi(chr);
         this.message = new MessageApi();
-        this.talk = new TalkApi();
+        this.talk = new TalkApi(chr);
         this.quest = new QuestApi();
     }
 }

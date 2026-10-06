@@ -1,6 +1,7 @@
 package org.gms.client.scripting.api;
 
 import org.gms.client.Player;
+import org.gms.client.character.Character;
 import org.gms.client.scripting.InteractContext;
 import org.gms.remote.modules.npc.client.DialogButtons;
 
@@ -15,35 +16,10 @@ import org.gms.remote.modules.npc.client.DialogButtons;
  * PacketCreator（doc/script-engine.md §4.7）。
  */
 public final class TalkApi {
+    private final Character chr;
 
-    /** 单按钮"下一步"（00 01，gms083 实测） */
-    public void sendNext(InteractContext ctx, String text) {
-        Player.require("TalkApi.sendNext").character().getRemote().npc().talk(ctx.getNpcId(), text, DialogButtons.NEXT, 0);
-    }
-
-    /** 单按钮"上一步"（01 00，gms083 实测）；按钮点击即整链收尾（原版 sendPrev 页语义） */
-    public void sendPrevOk(InteractContext ctx, String text) {
-        Player.require("TalkApi.sendPrevOk").character().getRemote().npc().talk(ctx.getNpcId(), text, DialogButtons.PREV_OK, 0);
-    }
-
-    /** 双按钮"上一步/下一步"（01 01，gms083 实测） */
-    public void sendPrevNext(InteractContext ctx, String text) {
-        Player.require("TalkApi.sendPrevNext").character().getRemote().npc().talk(ctx.getNpcId(), text, DialogButtons.PREV_NEXT, 0);
-    }
-
-    /** 单按钮"确定" */
-    public void sendOk(InteractContext ctx, String text) {
-        Player.require("TalkApi.sendOk").character().getRemote().npc().talk(ctx.getNpcId(), text, DialogButtons.OK, 0);
-    }
-
-    /** 是/否（mode 1 = 是，0 = 否） */
-    public void sendYesNo(InteractContext ctx, String text) {
-        Player.require("TalkApi.sendYesNo").character().getRemote().npc().talk(ctx.getNpcId(), text, DialogButtons.YES_NO, 0);
-    }
-
-    /** 接受/拒绝（mode 1 = 接受，0 = 拒绝） */
-    public void sendAcceptDecline(InteractContext ctx, String text) {
-        Player.require("TalkApi.sendAcceptDecline").character().getRemote().npc().talk(ctx.getNpcId(), text, DialogButtons.ACCEPT_DECLINE, 0);
+    public TalkApi(Character chr) {
+        this.chr = chr;
     }
 
     /**
@@ -53,7 +29,7 @@ public final class TalkApi {
      * "Unsupported target type"）；非法名 valueOf 抛 IllegalArgumentException，响亮失败。
      */
     public void send(InteractContext ctx, String text, String buttons) {
-        talk(ctx, text, DialogButtons.valueOf(buttons));
+        chr.getRemote().npc().talk(ctx.getNpcId(), text, DialogButtons.valueOf(buttons), 0);
     }
 
     /**
@@ -61,10 +37,6 @@ public final class TalkApi {
      * 方法面不对 JS 开放）：解除会话登记（幂等——仅当仍登记同一实例时生效）。
      */
     public void end(InteractContext ctx) {
-        Player.require("TalkApi.end").character().getNpcInteract().clearContext(ctx);
-    }
-
-    private void talk(InteractContext ctx, String text, DialogButtons buttons) {
-        Player.require("TalkApi.send").character().getRemote().npc().talk(ctx.getNpcId(), text, buttons, 0);
+        chr.getNpcInteract().clearContext(ctx);
     }
 }

@@ -1,6 +1,7 @@
 package org.gms.client.scripting.api;
 
 import org.gms.client.Player;
+import org.gms.client.character.Character;
 
 /**
  * 脚本 API 白名单——背包道具面（hasItem/gainItem/gainItems）。方法面白名单 = 脚本语义
@@ -12,22 +13,38 @@ import org.gms.client.Player;
  * 零存槽。<b>无状态</b>——对应 JS 侧 {@code player.inventory.hasItem(id)} 等三个名字。
  */
 public final class InventoryApi {
+    private final Character chr;
+
+    public InventoryApi(Character chr) {
+        this.chr = chr;
+    }
 
     public boolean hasItem(int itemId) {
-        return Player.require("InventoryApi.hasItem").character().haveItem(itemId);
+        return chr.haveItem(itemId);
     }
 
     /** 发 1 件；背包满返回 false（脚本侧据此走 inv_full 对白分支）。 */
     public boolean gainItem(int itemId) {
-        return Player.require("InventoryApi.gainItem").character().gainItem(itemId);
+        return gainItem(itemId, 1);
     }
 
     public boolean gainItem(int itemId, int quantity) {
-        return Player.require("InventoryApi.gainItem").character().gainItem(itemId, quantity);
+        return chr.getInventory().tryUpdate().add(itemId, quantity).commit();
     }
 
     /** 批量发 {@code [itemId, 数量]} 对；任一失败即整批失败并回滚（语义同 Character）。 */
     public boolean gainItems(int[][] entries) {
-        return Player.require("InventoryApi.gainItems").character().gainItems(entries);
+        // TODO: [refactor] support negative quantity?
+        var tx = chr.getInventory().tryUpdate();
+        for (int[] entry : entries) {
+            if (entry.length != 2) {
+                throw new IllegalArgumentException("gainItems: bad entry " + entry);
+            }
+            int itemId = entry[0];
+            int quantity = entry[1];
+
+            tx.add(itemId, quantity);
+        }
+        return tx.commit();
     }
 }
