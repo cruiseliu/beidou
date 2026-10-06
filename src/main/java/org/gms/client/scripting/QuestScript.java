@@ -39,28 +39,28 @@ public final class QuestScript {
      * WZ 未声明入口名（非脚本任务）不应到达此处——由调用方的分流保证。
      */
     public static void start(Character chr, int questId, int npc, String entry) {
-        QuestApi api = new QuestApi(chr, questId, npc, entry);
-        chr.setEsmQuest(api);
+        QuestApi_OLD api = new QuestApi_OLD(chr, questId, npc, entry);
+        chr.getNpcInteract().setEsmQuest(api);
         invoke(api, entry, 1, 0, 0);
     }
 
     /** 脚本化完成（QUEST_ACTION action=5 的 ESM 分支）：建会话，按 WZ endscript 指定名首入。 */
     public static void end(Character chr, int questId, int npc, String entry) {
-        QuestApi api = new QuestApi(chr, questId, npc, entry);
-        chr.setEsmQuest(api);
+        QuestApi_OLD api = new QuestApi_OLD(chr, questId, npc, entry);
+        chr.getNpcInteract().setEsmQuest(api);
         invoke(api, entry, 1, 0, 0);
     }
 
     /** 对话重入（NPC_TALK_MORE 的 ESM 分支）：以会话登记的重入函数名继续状态机。 */
     public static void more(Character chr, byte mode, byte type, int selection) {
-        QuestApi api = chr.esmQuest();
+        QuestApi_OLD api = chr.getNpcInteract().esmQuest();
         if (api == null) {
             return;
         }
         invoke(api, api.entry(), mode, type, selection);
     }
 
-    private static void invoke(QuestApi api, String entry, int mode, int type, int selection) {
+    private static void invoke(QuestApi_OLD api, String entry, int mode, int type, int selection) {
         Character chr = api.owner();
         chr.getScriptRunner().call(() -> {
             // 一拍对话 = 一个合并域（doc/package-client.md §2）：段内脚本的任务操作与对话页

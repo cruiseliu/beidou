@@ -47,7 +47,6 @@ import org.gms.client.PacketStat;
 import org.gms.remote.ClientEventHandlerRegistry;
 import org.gms.remote.RemoteClient;
 import org.gms.remote.modules.cashshop.CashShopModule;
-import org.gms.remote.modules.npc.NpcModule;
 import org.gms.client.creator.CharacterTemplate;
 import org.gms.client.pet.Pet;
 import org.gms.client.quest.Quest;
@@ -92,12 +91,8 @@ import org.gms.net.server.services.task.world.CharacterSaveService;
 import org.gms.net.server.services.type.WorldServices;
 import org.gms.net.server.world.*;
 import org.gms.scripting.item.ItemScript;
-import org.gms.client.scripting.QuestApi;
-import org.gms.client.scripting.QuestScript;
 import org.gms.scripting.AbstractPlayerInteraction;
 import org.gms.scripting.event.EventInstanceManager;
-import org.gms.scripting.npc.NPCScriptManager;
-import org.gms.scripting.quest.QuestScriptManager;
 import org.gms.server.*;
 import org.gms.server.events.Events;
 import org.gms.server.events.RescueGaga;
@@ -136,7 +131,7 @@ import static org.gms.client.character.Stat.*;
 
 import static java.util.concurrent.TimeUnit.*;
 
-public class Character extends AbstractAnimatedMapObject implements CashShopModule.Handler, NpcModule.Handler, CharacterView {
+public class Character extends AbstractAnimatedMapObject implements CashShopModule.Handler, CharacterView {
     private static final Logger log = LoggerFactory.getLogger(Character.class);
 
     // ── 属性核心（原 AbstractCharacterObject 合并而来） ──
@@ -170,8 +165,8 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     private volatile Thread packetStrictThread;
     final CharacterRates rates = new CharacterRates(this);
     final CharacterScriptRunner scriptRunner = new CharacterScriptRunner(this::strand);
-    /** 活跃的 ESM 任务脚本会话（重放模型，doc/13 §15）；dispose/登出清理 */
-    private volatile QuestApi esmQuest;
+    /** NPC 对话交互组件（对话续行分流 + ESM 任务脚本会话槽，状态同址） */
+    final CharacterNpcInteract npcInteract = new CharacterNpcInteract(this);
     // final CharacterAntiCheat antiCheat = new CharacterAntiCheat(this);
     final CharacterMarket market = new CharacterMarket(this);
     final CharacterQuests quests = new CharacterQuests(this);
@@ -574,60 +569,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         }
     }
 
-    // ── npc 域 C→S（对话续行；ESM/任务/NPC 脚本重入分流，原 NPCMoreTalkHandler 语义体）──
-
-    @Override
-    public void talkMore(int lastMsg, int action, String text, int selection) {
-        // ESM 会话分流（doc/13 §15）：活跃 ESM 任务会话 → 重入其状态机（文本输入变体
-        // 未支持，1021 不涉及；mode=-1 由脚本首分支 dispose）。旧路径原样跟随。
-        if (esmQuest() != null) {
-            if (lastMsg == 2 && action == 0) {
-                esmQuest().dispose();
-            } else if (lastMsg != 2) {
-                QuestScript.more(this, (byte) action, (byte) lastMsg, selection);
-            }
-            return;
-        }
-        // lastMsg 等于 2 为文本输入页（有 returnText），否则为选择/按钮页
-        Client c = getClient();
-        if (lastMsg == 2) {
-            if (action != 0) {
-                if (c.getQM() != null) {
-                    c.getQM().setGetText(text);
-                    if (c.getQM().isStart()) {
-                        QuestScriptManager.getInstance().start(c, (byte) action, (byte) lastMsg, -1);
-                    } else {
-                        QuestScriptManager.getInstance().end(c, (byte) action, (byte) lastMsg, -1);
-                    }
-                } else {
-                    c.getCM().setGetText(text);
-                    npcScriptRouting(c, (byte) action, (byte) lastMsg, -1);
-                }
-            } else if (c.getQM() != null) {
-                c.getQM().dispose();
-            } else {
-                c.getCM().dispose();
-            }
-        } else {
-            if (c.getQM() != null) {
-                if (c.getQM().isStart()) {
-                    QuestScriptManager.getInstance().start(c, (byte) action, (byte) lastMsg, selection);
-                } else {
-                    QuestScriptManager.getInstance().end(c, (byte) action, (byte) lastMsg, selection);
-                }
-            } else {
-                npcScriptRouting(c, (byte) action, (byte) lastMsg, selection);
-            }
-        }
-    }
-
-    private void npcScriptRouting(Client c, byte action, byte lastMsg, int selection) {
-        if (c.getCM().getNextLevelContext().getLevelType() == null) {
-            NPCScriptManager.getInstance().action(c, action, lastMsg, selection);
-        } else {
-            NPCScriptManager.getInstance().nextLevel(c, action, lastMsg, selection);
-        }
-    }
+    // ── npc 域 C→S：对话续行分流 + ESM 会话槽归 CharacterNpcInteract 组件（getNpcInteract）──
 
     public int addDojoPointsByMap(int mapId) {
         int pts = 0;
@@ -3246,16 +3188,8 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     /** 脚本回调调度器（容器事件/定时器回调的唯一执行通道） */
     public CharacterScriptRunner getScriptRunner() { return scriptRunner; }
 
-    /** 活跃 ESM 任务脚本会话；无对话时 null（doc/13 §15） */
-    public QuestApi esmQuest() { return esmQuest; }
-
-    public void setEsmQuest(QuestApi session) { this.esmQuest = session; }
-
-    public void clearEsmQuest(QuestApi session) {
-        if (esmQuest == session) {
-            esmQuest = null;
-        }
-    }
+    /** NPC 对话交互组件（对话续行分流 + ESM 任务脚本会话槽） */
+    public CharacterNpcInteract getNpcInteract() { return npcInteract; }
 
     /**
      * 角色入场绑定：把收包组件接插到 actor 的 Handler 槽位（PlayerLoggedinHandler 入场任务
@@ -3267,7 +3201,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         map.bindClientHandlers(registry);
         quests.bindClientHandlers(registry);
         registry.registerCashShop(this);
-        registry.registerNpc(this);
+        npcInteract.bindClientHandlers(registry);
     }
 
     // ── skills 门面 ──

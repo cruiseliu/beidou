@@ -13,14 +13,14 @@ import org.gms.client.character.Character;
  * Character 门面，不经过本类。方法面白名单 = 会话语义准入：绑定会话身份或对话流
  * 的才进得来。
  */
-public final class QuestApi {
+public final class QuestApi_OLD {
 
     private final Character owner;
     private final int questId;
     private final int npc;
     private final String entry;                    // 重入函数名："start" | "end"
 
-    QuestApi(Character owner, int questId, int npc, String entry) {
+    QuestApi_OLD(Character owner, int questId, int npc, String entry) {
         this.owner = owner;
         this.questId = questId;
         this.npc = npc;
@@ -57,6 +57,6 @@ public final class QuestApi {
      * 会话 Promise 链，随终结自然消亡；帧合并已归 remote batch，无延迟队列可冲刷）。
      */
     public void dispose() {
-        owner.clearEsmQuest(this);
+        owner.getNpcInteract().clearEsmQuest(this);
     }
 }
