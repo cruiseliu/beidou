@@ -180,7 +180,6 @@ class CharacterBattle implements BattleModule.Handler {
 
         // Find the base damage to base further calculations on.
         // Several skills have their own formula in this section.
-        long calcDmgMax;
 
         AssertUtil.isTrue(ret.skill != Rogue.LUCKY_SEVEN);
         AssertUtil.isTrue(ret.skill != NightWalker.LUCKY_SEVEN);
@@ -192,7 +191,7 @@ class CharacterBattle implements BattleModule.Handler {
         AssertUtil.isTrue(ret.skill != Shadower.VENOMOUS_STAB);
 
 
-        calcDmgMax = chr.calculateMaxBaseDamage(chr.getTotalWatk());
+        ret.dmgCap = chr.calculateMaxBaseDamage(chr.getTotalWatk());
 
         BuffEffectData effect = null;
         AssertUtil.isTrue(ret.skill == 0);
@@ -203,11 +202,11 @@ class CharacterBattle implements BattleModule.Handler {
 
             if (ret.skill == Hermit.SHADOW_MESO) {
                 // Shadow Meso also has its own formula
-                calcDmgMax = effect.getMoneyCon() * 10;
-                calcDmgMax = (int) Math.floor(calcDmgMax * 1.5);
+                ret.dmgCap = effect.getMoneyCon() * 10;
+                ret.dmgCap = (int) Math.floor(ret.dmgCap * 1.5);
             } else {
                 // Normal damage formula for skills
-                calcDmgMax = calcDmgMax * effect.getDamage() / 100;
+                ret.dmgCap = ret.dmgCap * effect.getDamage() / 100;
             }
         }
         */
@@ -224,7 +223,7 @@ class CharacterBattle implements BattleModule.Handler {
 
         if (bonusDmgBuff != 100) {
             float dmgBuff = bonusDmgBuff / 100.0f;
-            calcDmgMax = (long) Math.ceil(calcDmgMax * dmgBuff);
+            ret.dmgCap = (long) Math.ceil(ret.dmgCap * dmgBuff);
         }
 
         AssertUtil.isTrue(chr.getMapId() < MapId.ARAN_TUTORIAL_START || chr.getMapId() > MapId.ARAN_TUTORIAL_MAX);
@@ -237,9 +236,7 @@ class CharacterBattle implements BattleModule.Handler {
         AssertUtil.isTrue(!chr.getJob().isA(JobEnum.ARAN4));
         AssertUtil.isTrue(!chr.getJob().isA(JobEnum.MARAUDER));
         AssertUtil.isTrue(!chr.getJob().isA(JobEnum.BUCCANEER));
-        boolean canCrit = false;
-        ret.dmgCap = calcDmgMax;
-        ret.canCrit = canCrit;
+        ret.canCrit = false;   // 全量版 = 职业判定（弓/贼/夜行者/风灵/战神3-4/拳手），本版断言排除
 
         AssertUtil.isTrue(chr.getBuffEffect(EffectType.SHARP_EYES) == null);
 
@@ -250,7 +247,7 @@ class CharacterBattle implements BattleModule.Handler {
         if (ret.skill != 0) {
             int fixed = ret.getAttackEffect(chr, SkillFactory.getSkill(ret.skill)).getFixDamage();
             if (fixed > 0) {
-                calcDmgMax = fixed;
+                ret.dmgCap = fixed;
             }
         }
         */
@@ -271,24 +268,24 @@ class CharacterBattle implements BattleModule.Handler {
                     if (monster != null) {
                         ElementalEffectiveness eff = monster.getElementalEffectiveness(skill.getElement());
                         if (eff == ElementalEffectiveness.WEAK) {
-                            calcDmgMax *= 1.5;
+                            ret.dmgCap *= 1.5;
                         } else if (eff == ElementalEffectiveness.STRONG) {
-                            //calcDmgMax *= 0.5;
+                            //ret.dmgCap *= 0.5;
                         }
                     } else {
                         // Since we already know the skill has an elemental attribute, but we dont know if the monster is weak or not, lets
                         // take the safe approach and just assume they are weak.
-                        calcDmgMax *= 1.5;
+                        ret.dmgCap *= 1.5;
                     }
                 }
                 if (ret.skill == FPWizard.POISON_BREATH || ret.skill == FPMage.POISON_MIST || ret.skill == FPArchMage.FIRE_DEMON || ret.skill == ILArchMage.ICE_DEMON) {
                     if (monster != null) {
                         // Turns out poison is completely server side, so I don't know why I added this. >.<
-                        //calcDmgMax = monster.getHp() / (70 - chr.getSkillLevel(skill));
+                        //ret.dmgCap = monster.getHp() / (70 - chr.getSkillLevel(skill));
                     }
                 } else if (ret.skill == Hermit.SHADOW_WEB) {
                     if (monster != null) {
-                        calcDmgMax = monster.getHp() / (50 - chr.getSkillLevel(ret.skill));
+                        ret.dmgCap = monster.getHp() / (50 - chr.getSkillLevel(ret.skill));
                     }
                 } else if (ret.skill == Hermit.SHADOW_MESO) {
                     if (monster != null) {
@@ -297,8 +294,8 @@ class CharacterBattle implements BattleModule.Handler {
                 } else if (ret.skill == Aran.BODY_PRESSURE) {
                     if (monster != null) {
                         int bodyPressureDmg = (int) Math.ceil(monster.getMaxHp() * SkillFactory.getSkill(Aran.BODY_PRESSURE).getEffect(ret.skilllevel).getDamage() / 100.0);
-                        if (bodyPressureDmg > calcDmgMax) {
-                            calcDmgMax = bodyPressureDmg;
+                        if (bodyPressureDmg > ret.dmgCap) {
+                            ret.dmgCap = bodyPressureDmg;
                         }
                     }
                 }
@@ -307,7 +304,7 @@ class CharacterBattle implements BattleModule.Handler {
 
             for (int j = 0; j < ret.numDamage; j++) {
                 int damage = target.damages().get(j);
-                long hitDmgMax = calcDmgMax;
+                long hitDmgMax = ret.dmgCap;
 
                 AssertUtil.isTrue(ret.skill != Buccaneer.BARRAGE);
                 AssertUtil.isTrue(ret.skill != ThunderBreaker.BARRAGE);
@@ -320,9 +317,9 @@ class CharacterBattle implements BattleModule.Handler {
                 AssertUtil.isTrue(ret.skill != Evan.BAMBOO_THRUST);
 
                 AssertUtil.isTrue(ret.skill != Marksman.SNIPE);
-                AssertUtil.isTrue(!canCrit || damage <= hitDmgMax);
+                AssertUtil.isTrue(!ret.canCrit || damage <= hitDmgMax);
                 /*
-                if (canCrit && damage > hitDmgMax) {
+                if (ret.canCrit && damage > hitDmgMax) {
                     // If the skill is a crit, inverse the damage to make it show up on clients.
                     damage = -Integer.MAX_VALUE + damage - 1;
                 }
@@ -342,6 +339,12 @@ class CharacterBattle implements BattleModule.Handler {
         return ret;
     }
 
+    /**
+     * 一次近战攻击的 attacker 侧结算单（目标无关工作态）：由 {@link CloseRangeAttack} 申报
+     * 构造，phase 1 的全部 attacker 侧推导与逐 hit 校验落在其上，终态即构造
+     * {@link Battle.CloseRangeAttackIntent} 的全部信息源。成员判据：申报回填、伤害上限
+     * 模型、逐 hit 标量进；目标/怪物知识（phase 2）与 actor 身份（intent 的 ref/cid）不进。
+     */
     public static class AttackInfo {
 
         public int numAttacked, numDamage, numAttackedAndDamage, skill, skilllevel, stance, direction, rangedirection, charge, display;
