@@ -19,6 +19,7 @@
  */
 
 import { player, getScriptStrings } from "./bind_player.js";
+import { assert } from "./utils.js";
 
 /** @typedef {import("./bind_player.js").DialogButtonsName} DialogButtonsName */
 /** @typedef {import("./bind_player.js").InteractContext} InteractContext */
@@ -105,9 +106,6 @@ const PREV = Symbol("prev");
  */
 const NEXT = Symbol("next");
 
-/** accept/decline 对话框的 gms083 类型字节（客户端在 NPC_TALK_MORE 回显） */
-const ACCEPT_DECLINE = 0x0C;
-
 /**
  * 翻页事件符号对。
  *
@@ -115,16 +113,14 @@ const ACCEPT_DECLINE = 0x0C;
  */
 
 /**
- * 翻页页 promise() 的落地值。
- *
- * @typedef {boolean | PageTurn} PageResolution
+ * @typedef {PageTurn | boolean} PageResult
  */
 
 /**
  * interact 对象（瀑布函数首参）的脚本面。
  *
  * @typedef {Object} InteractApi
- * @property {(pages: string[], buttons: "PREV_NEXT" | "PREV_OK") => Promise<void>} sendPages
+ * @property {(pages: string[], lastPageButtons: "PREV_NEXT" | "PREV_OK") => Promise<void>} sendPages
  * @property {(text: string) => Promise<void>} sendNext
  * @property {(text: string) => Promise<boolean>} sendAcceptDecline
  * @property {(path: string) => void} showInfo
@@ -169,62 +165,41 @@ class Deferred {
  * 回显的当前对话框类型才可信）；settled 后的后续事件经 Deferred 幂等吞掉。
  */
 class TalkPage {
-    /** @type {InteractContext} */
-    #ctx;
     /** @type {string} */
     #text;
     /** @type {DialogButtonsName} */
     #buttons;
-    /** @type {boolean} */
-    #isConfirm;
-    /** @type {number} */
-    #expectType;
-    /** @type {Deferred<PageResolution>} */
+    /** @type {Deferred<PageResult>} */
     #deferred = new Deferred();
 
     /**
-     * @param {InteractContext} ctx
      * @param {string} text
      * @param {DialogButtonsName} buttons
      */
-    constructor(ctx, text, buttons) {
-        this.#ctx = ctx;
+    constructor(text, buttons) {
         this.#text = text;
         this.#buttons = buttons;
-        this.#isConfirm = buttons === "ACCEPT_DECLINE";
-        this.#expectType = this.#isConfirm ? ACCEPT_DECLINE : 0;
     }
 
-    /** 渲染本页（player.talk.send；npc 归会话上下文）。 */
-    send() {
-        player.talk.send(this.#ctx, this.#text, this.#buttons);
+    /** @type {(ctx: InteractContext) => void} */
+    send(ctx) {
+        player.talk.send(ctx, this.#text, this.#buttons);
     }
 
-    /**
-     * 入口事件落点（InteractionManager.entry 转发；selection 本层暂不消费）。
-     *
-     * @param {number} mode
-     * @param {number} type
-     * @param {number} selection
-     * @returns {void}
-     */
+    /** @type {(mode: number, type: number, selection: number) => void} */
     resolve(mode, type, selection) {
-        if (type !== this.#expectType) {
-            return;
-        }
+        // TODO: [refactor] find concrete mode documentation
         if (mode === -1) {
             this.#deferred.reject(new DialogClosed());
-        } else if (this.#isConfirm) {
+        } else if (this.#buttons === "ACCEPT_DECLINE" || this.#buttons === "YES_NO") {
             this.#deferred.resolve(mode === 1);
-        } else if (mode === 1) {
-            this.#deferred.resolve(NEXT);
-        } else if (mode === 0) {
-            this.#deferred.resolve(PREV);
+        } else {
+            this.#deferred.resolve(mode === 0 ? PREV : NEXT);
         }
     }
 
-    /** @returns {Promise<PageResolution>} */
-    promise() {
+    /** @type {() => Promise<PageResult>} */
+    response() {
         return this.#deferred.promise;
     }
 }
@@ -233,8 +208,6 @@ export class InteractionManager {
 
     /** @type {(interact: InteractApi, questId: number, npcId: number) => Promise<void>} */
     #startFn;          // 会话瀑布函数
-    /** @type {number} */
-    #npc;              // 对话 npc（脚本提供；开场一致性断言用）
     /** @type {InteractContext | null} */
     #ctx = null;       // 当前会话身份；实例变化 = 新会话开场
     /** @type {TalkPage | null} */
@@ -242,11 +215,9 @@ export class InteractionManager {
 
     /**
      * @param {(interact: InteractApi, questId: number, npcId: number) => Promise<void>} startFn
-     * @param {number} npc
      */
-    constructor(startFn, npc) {
+    constructor(startFn) {
         this.#startFn = startFn;
-        this.#npc = npc;
     }
 
     /**
@@ -266,17 +237,8 @@ export class InteractionManager {
         }
     };
 
-    /**
-     * @param {InteractContext} ctx
-     * @param {number} questId
-     * @returns {void}
-     */
+    /** @type {(ctx: InteractContext, questId: number) => void} */
     #begin(ctx, questId) {
-        // 脚本提供的 npc 与会话 npc 不一致 = 脚本 typo（对话会发往错误的 npc token），
-        // 响亮失败（typo 响亮失败纪律，同 i18n）
-        if (ctx.getNpcId() !== this.#npc) {
-            throw new Error("interaction: npc 不匹配（脚本 " + this.#npc + " / 会话 " + ctx.getNpcId() + "）");
-        }
         this.#ctx = ctx;
         this.#currentPage = null;
         // 瀑布终结（正常 return / DialogClosed / 脚本异常 reject）即 dispose——脚本 reset
@@ -296,69 +258,58 @@ export class InteractionManager {
         );
     }
 
-    /**
-     * @param {InteractContext} ctx
-     * @returns {InteractApi}
-     */
+    /** @type {(ctx: InteractContext) => InteractApi} */
     #interact(ctx) {
         const self = this;
         return {
-            /** "上一步/下一步"连播链：整链一个 await，链内回退不跨越 await（脚本零状态）。
-             *  buttons = 末页样式；非末页样式由位置推导（首页 NEXT / 中间 PREV_NEXT）。
+            /**
+             * "上一步/下一步"连播链：整链一个 await，链内回退不跨越 await（脚本零状态）。
              *
-             *  @param {string[]} pages
-             *  @param {"PREV_NEXT" | "PREV_OK"} lastButtons
-             *  @returns {Promise<void>} */
-            async sendPages(pages, lastButtons) {
-                if (!Array.isArray(pages) || pages.length === 0 || pages.some((p) => typeof p !== "string")) {
-                    throw new Error("interaction: pages 须为非空字符串数组");
-                }
-                if (lastButtons !== "PREV_OK" && lastButtons !== "PREV_NEXT") {
-                    throw new Error("interaction: 末页 buttons 非法: " + lastButtons);
-                }
-                const talks = pages.map((text, i) => new TalkPage(
-                    ctx,
+             * @type {(pageTexts: string[], lastPageButtons: "PREV_NEXT" | "PREV_OK") => Promise<void>}
+             */
+            async sendPages(pageTexts, lastPageButtons) {
+                const pages = pageTexts.map((text, i) => new TalkPage(
                     text,
-                    i === pages.length - 1 ? lastButtons : (i === 0 ? "NEXT" : "PREV_NEXT"),
+                    i === pageTexts.length - 1 ? lastPageButtons : (i === 0 ? "NEXT" : "PREV_NEXT"),
                 ));
                 let index = 0;
                 while (true) {
-                    const ev = await self.#show(talks[index]);
-                    if (ev === PREV) {
+                    const r = await self.#show(pages[index]);
+                    assert(r === PREV || r === NEXT);
+                    if (r === PREV) {
+                        assert(index > 0);
                         // 首页无上一步按钮，PREV 理论不可达；防御性夹回首页（同页重渲染一次）
-                        index = Math.max(0, index - 1);
-                    } else if (index === talks.length - 1) {
-                        return;   // 末页 NEXT → 整链 resolve
+                        index -= 1;
                     } else {
                         index += 1;
+                        if (index >= pages.length) {
+                            return;
+                        }
                     }
                 }
             },
+
             /**
-             * 单页"下一步"（00 01）；按下一步 resolve（返回 undefined）。
+             * 单页"下一步"（00 01）。
              *
-             * @param {string} text
-             * @returns {Promise<void>}
+             * @type {(text: string) => Promise<void>}
              */
             async sendNext(text) {
-                const ev = await self.#show(new TalkPage(ctx, text, "NEXT"));
-                if (ev !== undefined) {
-                    throw new Error("interaction: 单页对话收到多按钮事件: " + String(ev));
-                }
+                const r = await self.#show(new TalkPage(text, "NEXT"));
+                assert(r === NEXT);
             },
+
             /**
-             * 接受/拒绝：接受 → true（mode 1），拒绝 → false（mode 0），ESC → reject。
+             * 接受/拒绝：接受 → true，拒绝 → false，ESC → reject。
              *
-             * @param {string} text
-             * @returns {Promise<boolean>}
+             * @type {(text: string) => Promise<boolean>}
              */
             async sendAcceptDecline(text) {
-                const ev = await self.#show(new TalkPage(ctx, text, "ACCEPT_DECLINE"));
-                if (typeof ev !== "boolean") {
-                    throw new Error("interaction: 确认页收到翻页事件: " + String(ev));
-                }
-                return ev;
+                const r = await self.#show(new TalkPage(text, "ACCEPT_DECLINE"));
+                assert(typeof r === "boolean");
+                return r;
             },
+
             /** 过场 UI 图（透传会话 API）。
              *
              *  @param {string} path */
@@ -373,20 +324,15 @@ export class InteractionManager {
      * 渲染、挂起。落地值翻译：PREV = 本页无上一步按钮却收到上一步（协议异常，响亮失败）；
      * NEXT → undefined；其余原样返回（确认页 true/false）。
      *
-     * @param {TalkPage} page
-     * @returns {Promise<PageResolution | undefined>}
+     * @type {(page: TalkPage) => Promise<PageResult>}
      */
     async #show(page) {
-        if (this.#currentPage !== null) {
-            throw new Error("interaction: 上一对话尚未结束");
-        }
+        assert(this.#ctx !== null);
+        assert(this.#currentPage === null);
         this.#currentPage = page;
-        page.send();
-        const ev = await page.promise();
+        page.send(this.#ctx);
+        const r = await page.response();
         this.#currentPage = null;
-        if (ev === PREV) {
-            throw new Error("interaction: 对话页收到上一步事件（本页无上一步按钮）");
-        }
-        return ev === NEXT ? undefined : ev;
+        return r;
     }
 }
