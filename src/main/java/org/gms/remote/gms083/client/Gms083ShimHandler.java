@@ -8,6 +8,7 @@ import org.gms.net.AbstractPacketHandler;
 import org.gms.net.opcodes.RecvOpcode;
 import org.gms.net.packet.InPacket;
 import org.gms.remote.gms083.client.routers.AbstractInRouter;
+import org.gms.remote.gms083.client.routers.BattleInRouter;
 import org.gms.remote.gms083.client.routers.InventoryInRouter;
 import org.gms.remote.gms083.client.routers.MapInRouter;
 import org.gms.remote.gms083.client.routers.NpcInRouter;
@@ -36,7 +37,8 @@ public final class Gms083ShimHandler extends AbstractPacketHandler {
 
     /** in-route 装配（版本内自声明；各 router 的 case 集合互斥） */
     private static final List<AbstractInRouter> ROUTERS = List.of(
-            new MapInRouter(), new NpcInRouter(), new PetInRouter(), new InventoryInRouter(), new QuestInRouter());
+            new MapInRouter(), new NpcInRouter(), new PetInRouter(), new InventoryInRouter(), new QuestInRouter(),
+            new BattleInRouter());
 
     private final RecvOpcode opcode;
 

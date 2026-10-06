@@ -184,7 +184,7 @@ public final class PacketProcessor {
         registerHandler(RecvOpcode.QUEST_ACTION, new Gms083ShimHandler(RecvOpcode.QUEST_ACTION));
         registerHandler(RecvOpcode.CHANGE_MAP, new Gms083ShimHandler(RecvOpcode.CHANGE_MAP));
         registerHandler(RecvOpcode.MOVE_LIFE, new Gms083ShimHandler(RecvOpcode.MOVE_LIFE));
-        registerHandler(RecvOpcode.CLOSE_RANGE_ATTACK, new CloseRangeDamageHandler());
+        registerHandler(RecvOpcode.CLOSE_RANGE_ATTACK, new Gms083ShimHandler(RecvOpcode.CLOSE_RANGE_ATTACK));
         registerHandler(RecvOpcode.RANGED_ATTACK, new RangedAttackHandler());
         registerHandler(RecvOpcode.MAGIC_ATTACK, new MagicDamageHandler());
         registerHandler(RecvOpcode.TAKE_DAMAGE, new TakeDamageHandler());

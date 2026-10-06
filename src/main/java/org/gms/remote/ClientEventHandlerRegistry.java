@@ -1,5 +1,6 @@
 package org.gms.remote;
 
+import org.gms.remote.modules.battle.BattleModule;
 import org.gms.remote.modules.cashshop.CashShopModule;
 import org.gms.remote.modules.inventory.InventoryModule;
 import org.gms.remote.modules.map.MapModule;
@@ -14,6 +15,7 @@ public class ClientEventHandlerRegistry {
     CashShopModule.Handler cashShop = null;
     QuestModule.Handler quest = null;
     NpcModule.Handler npc = null;
+    BattleModule.Handler battle = null;
 
     public void registerPet(PetModule.Handler petHandler) {
         pet = petHandler;
@@ -61,5 +63,13 @@ public class ClientEventHandlerRegistry {
 
     public NpcModule.Handler npc() {
         return npc;
+    }
+
+    public void registerBattle(BattleModule.Handler battleHandler) {
+        battle = battleHandler;
+    }
+
+    public BattleModule.Handler battle() {
+        return battle;
     }
 }

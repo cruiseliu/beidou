@@ -1,6 +1,7 @@
 package org.gms.remote;
 
 import org.gms.client.Player;
+import org.gms.remote.modules.battle.client.BattleInbound;
 import org.gms.remote.modules.cashshop.client.CashShopInbound;
 import org.gms.remote.modules.inventory.client.InventoryInbound;
 import org.gms.remote.modules.map.client.MapInbound;
@@ -32,7 +33,7 @@ public final class ClientEventDispatcher {
 
     private static Map<Module, ClientEventReceiver> build() {
         Map<Module, ClientEventReceiver> table = new EnumMap<>(Module.class);
-        for (ClientEventReceiver receiver : List.of(new MapInbound(), new PetInbound(), new InventoryInbound(), new CashShopInbound(), new QuestInbound(), new NpcInbound())) {
+        for (ClientEventReceiver receiver : List.of(new MapInbound(), new PetInbound(), new InventoryInbound(), new CashShopInbound(), new QuestInbound(), new NpcInbound(), new BattleInbound())) {
             if (table.putIfAbsent(receiver.module(), receiver) != null) {
                 throw new IllegalStateException("module " + receiver.module() + " 重复注册接收器");
             }

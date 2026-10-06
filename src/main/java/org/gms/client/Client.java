@@ -162,7 +162,7 @@ public class Client extends ChannelInboundHandlerAdapter {
     private int lang = 0;
     // 提供公共方法来获取 sysRescue
     @Getter
-    private static SystemRescue sysRescue;
+    private SystemRescue sysRescue;
 
     public enum Type {
         LOGIN,

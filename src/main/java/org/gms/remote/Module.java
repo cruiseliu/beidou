@@ -8,6 +8,7 @@ public enum Module {
     BASIC,
     STATS,
     SKILLS,
+    BATTLE,
     INVENTORY,
     PET,
     MAP,

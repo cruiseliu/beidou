@@ -175,6 +175,8 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     final CharacterPartyQuest pq = new CharacterPartyQuest(this);
     final CharacterGuild guild = new CharacterGuild(this);
     final CharacterInventory inventory = new CharacterInventory(this);
+    /** 战斗组件（CLOSE_RANGE_ATTACK gameplay 侧，机械复制自 legacy damage handler） */
+    final CharacterBattle battle = new CharacterBattle(this);
     final CharacterFamily family = new CharacterFamily(this);
     final CharacterMarriage marriage = new CharacterMarriage(this);
     final CharacterMiniGame miniGame = new CharacterMiniGame(this);
@@ -2771,7 +2773,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
             getWorldServer().registerTimedMapObject(() -> {
                 client = null;  // clients still triggers handlers a few times after disconnecting
                 ref.syncClientDisconnected();   // map 域快照回写（幽灵判定读，doc/16 §4.1）
-        setMap((MapleMap) null);
+                setMap(null);
 
                 // thanks Shavit for noticing a memory leak with inventories holding owner object
                 inventory.disposeAll();
@@ -3202,6 +3204,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         quests.bindClientHandlers(registry);
         registry.registerCashShop(this);
         npcInteract.bindClientHandlers(registry);
+        battle.bindClientHandlers(registry);
     }
 
     // ── skills 门面 ──
