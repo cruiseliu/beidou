@@ -22,8 +22,8 @@ legacy 路径。事件脚本（`scripts/event`）暂属 legacy（`Channel.getEve
   `normalizeKey` 规范化缓存键并做越界校验（路径不得逃出根目录）；
   `get(导出名)` 取命名导出、`call(函数, args)` 执行。
 - **`CharacterScriptRunner`**（client/character）：per 角色宿主。polyglot Context
-  归角色所有；模块注册表 `computeIfAbsent`（同角色同文件只 eval 一次；热重载预留
-  清空接口）。**线程模型**：所有方法必须在 owning strand 上调用（经宿主 run/call
+  归角色所有；模块注册表 `computeIfAbsent`（同角色同文件只 eval 一次；热重载已裁定
+  停用——更新代码不更新状态 error prone，见 CharacterScriptRunner 注释）。**线程模型**：所有方法必须在 owning strand 上调用（经宿主 run/call
   串行进 Context，无锁）。
 - **`player` 全局绑定**：宿主把 Player actor 注入 context bindings；`bind_player.js`
   的 `player` = Java 侧聚合 `org.gms.client.scripting.api.PlayerApis`——显式白名单
@@ -84,7 +84,7 @@ actorscripts/
 | 接入点 | 模块路径 | 派发形态 | 失败语义 |
 |---|---|---|---|
 | 道具钩子 | `item/<name>.js` | `onEnterInventory` / `onLeaveInventory` / `onUse` | 文件缺失 → dead（warn 一次） |
-| ESM 任务 | `quest/<id>.js` | InteractionManager entry 导出（`q<id>s`/`q<id>e`），async/await 瀑布对话（接入点 `client.scripting.QuestScript`，player strand） | 无文件 → legacy QuestScriptManager |
+| ESM 任务 | `quest/<id>.js` | 导出 `q<id>s`/`q<id>e`，签名 `(questId, mode, type, selection, q)`；async/await 瀑布对话（接入点 `client.scripting.QuestScript`，player strand；模块路径由会话冻结的 scriptPath 解析） | 无文件 → legacy QuestScriptManager |
 | portal 脚本 | `map/<MAP_ID>.js` | 按 WZ portal script 名同名导出；返回 true = 门已处理 | 无模块/无导出/异常 → unlock 兜底（GenericPortal 内围栏断言保留，防其他调用方） |
 | AP 分配器 | `server/ap_assigner/default.js` | export default APAssigner | |
 | map 脚本（onUserEnter/onFirstUserEnter） | 未接桥 | 围栏断言已按裁定关闭：遇脚本地图静默跳过（FIXME 桥接排期） | |

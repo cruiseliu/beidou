@@ -101,20 +101,21 @@ export class InteractionManager {
     }
 
     /**
-     * ESM 入口（QuestScript 首入与 NPC_TALK_MORE 重入共用，(mode, type, selection, q) 原样）。
+     * ESM 入口（QuestScript 首入与 NPC_TALK_MORE 重入共用，(questId, mode, type,
+     * selection, q) 原样——questId 由调用显式传递，不经会话取）。
      * 首入 (1, 0, 0) 与"下一步"事件同形，无法从事件本身区分——以会话身份判别：
      * QuestApi_OLD 实例变化 → 新会话开场（跑瀑布函数，完成/被关闭后自动 dispose）；
-     * 同会话 → 事件解释：驱动挂起 await 或 pages 链内推进（不回脚本）。
+     * 同会话 → 事件解释：驱动挂起 await 或 pages 链内推进（不回脚本，questId 不消费）。
      */
-    entry = (mode, type, selection, q) => {
+    entry = (questId, mode, type, selection, q) => {
         if (q !== this.#q) {
-            this.#begin(q);
+            this.#begin(q, questId);
         } else {
             this.#dispatch(mode, type);
         }
     };
 
-    #begin(q) {
+    #begin(q, questId) {
         // 脚本提供的 npc 与会话 npc 不一致 = 脚本 typo（对话会发往错误的 npc token），
         // 响亮失败（typo 响亮失败纪律，同 i18n）
         if (q.npc() !== this.#npc) {
@@ -128,7 +129,7 @@ export class InteractionManager {
         // 悬空无处理者，宿主/strand 均无感知（strict canary 排查实证）；重抛的 rejection
         // 由 context 的 js.unhandled-rejections=throw 在微任务排空点转 PolyglotException
         // 出宿主调用，落 CharacterScriptRunner 的 fail-safe ERROR 日志。
-        this.#startFn(this.#interact(q), q.questId(), q.npc()).then(
+        this.#startFn(this.#interact(q), questId, q.npc()).then(
             () => q.dispose(),
             (e) => {
                 q.dispose();

@@ -184,10 +184,13 @@ public class CharacterScriptRunner implements ScriptTimers.Host {
         }
     }
 
-    /** 热重载预留：清空模块注册表，此后 moduleFor 重新 eval（context 不重建） */
-    public void reload() {
-        run(modules::clear);
-    }
+    // ── 热重载（裁定停用）：更新代码不更新状态是 error prone——registry 清空后模块重新
+    //    eval，模块级状态（InteractionManager 实例、其 #q 会话身份、挂起对话）随新实例
+    //    归零，而 CharacterNpcInteract 登记的会话槽与脚本定时器持有的旧闭包仍指向旧模块
+    //    对象，续接行为未定义。将来若启用，须连会话/定时器状态一起迁移或作废。
+    // public void reload() {
+    //     run(modules::clear);
+    // }
 
     /** 登出清场：取消全部待触发定时器并关闭 context；此后入口静默跳过 */
     public void close() {
