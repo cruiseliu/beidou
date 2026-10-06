@@ -1,4 +1,4 @@
-import { player_old as player, ExpSource } from "../lib/bind_player.js";
+import { player, ExpSource } from "../lib/bind_player.js";
 import { InteractionManager, NEXT_PREV, i18n } from "../lib/interaction.js";
 
 const MSG = {
@@ -27,30 +27,30 @@ const ROGERS_APPLE = 2010007;
 const APPLE = 2010000;
 const GREEN_APPLE = 2010009;
 
-async function start(interact, quest) {
-    const intros = player.isMale() ? [MSG.intro1_m, MSG.intro2_m] : [MSG.intro1_f, MSG.intro2_f];
+async function start(interact, questId, npcId) {
+    const intros = player.basic.isMale() ? [MSG.intro1_m, MSG.intro2_m] : [MSG.intro1_f, MSG.intro2_f];
     await interact.sendPages(intros, NEXT_PREV);
     const accept = await interact.sendAcceptDecline(MSG.damage);
     if (!accept) {
         await interact.sendNext(MSG.reject);
         return;
     }
-    if (player.getHp() >= 50) {  // TODO: check official server
-        player.updateHp(25);
+    if (player.stats.getHp() >= 50) {  // TODO: check official server
+        player.stats.updateHp(25);
     }
-    if (!player.haveItem(ROGERS_APPLE)) {  // TODO: check official server
-        if (!player.gainItem(ROGERS_APPLE)) {
+    if (!player.inventory.hasItem(ROGERS_APPLE)) {  // TODO: check official server
+        if (!player.inventory.gainItem(ROGERS_APPLE)) {
             interact.sendNext(MSG.inv_full);
             return;
         }
     }
-    quest.forceStart();
+    player.quest.forceStartQuest(questId, npcId);
     await interact.sendPages([MSG.intro_inv, MSG.intro_heal], NEXT_PREV);
     interact.showInfo("UI/tutorial.img/28");
 }
 
-async function end(interact, quest) {
-    if (player.getHp() < 50) {
+async function end(interact, questId, npcId) {
+    if (player.stats.getHp() < 50) {
         await interact.sendNext(MSG.not_healed);
         return;
     }
@@ -59,10 +59,10 @@ async function end(interact, quest) {
         MSG.give_reward,
         `${MSG.bye}#fUI/UIWindow.img/QuestIcon/${MSG.rewards}#fUI/UIWindow.img/QuestIcon/8/0# 10 ${MSG.exp}`
     ], NEXT_PREV);
-    const success = player.gainItems([[APPLE, 3], [GREEN_APPLE, 3]]);
+    const success = player.inventory.gainItems([[APPLE, 3], [GREEN_APPLE, 3]]);
     if (success) {
-        player.gainExp(10, ExpSource.QUEST);
-        quest.forceComplete();
+        player.basic.gainExp(10, ExpSource.QUEST);
+        player.quest.forceCompleteQuest(questId, npcId);
     } else {
         interact.sendNext(MSG.inv_full);
     }

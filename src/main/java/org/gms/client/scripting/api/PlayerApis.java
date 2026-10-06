@@ -1,10 +1,10 @@
 package org.gms.client.scripting.api;
 
 /**
- * 脚本 API 显式范围的 Java 侧聚合（player actor）：五分面 public 字段，JS 侧
+ * 脚本 API 显式范围的 Java 侧聚合（player actor）：六分面 public 字段，JS 侧
  * {@code player.basic.isMale()} / {@code player.stats.getHp()} /
  * {@code player.inventory.gainItem(id)} / {@code player.message.showHint(...)} /
- * {@code player.talk.sendNext(npc, text)}。
+ * {@code player.talk.sendNext(npc, text)} / {@code player.quest.forceStartQuest(id, npc)}。
  * 聚合只圈范围（字段面 = 脚本可见面），语义与线程纪律归各 Api 类。
  *
  * <p><b>构造与状态</b>：无参工厂——bind_player.js 模块顶层 {@code new PlayerApis()}
@@ -18,6 +18,7 @@ public final class PlayerApis {
     public final InventoryApi inventory;
     public final MessageApi message;
     public final TalkApi talk;
+    public final QuestApi quest;
 
     public PlayerApis() {
         this.basic = new BasicApi();
@@ -25,5 +26,6 @@ public final class PlayerApis {
         this.inventory = new InventoryApi();
         this.message = new MessageApi();
         this.talk = new TalkApi();
+        this.quest = new QuestApi();
     }
 }

@@ -12,7 +12,7 @@
  * type 是客户端回显的当前对话框类型（0 = talk，0x0C = accept/decline），用于对口分发。
  */
 
-import { player, player_old, getScriptStrings } from "./bind_player.js";
+import { player, getScriptStrings } from "./bind_player.js";
 
 /**
  * 官方脚本文本的字面取用视图（纯 JS wrapper，key 格式解释在此，基础取表归 bind_player.js 的
@@ -90,9 +90,9 @@ const ACCEPT_DECLINE = 0x0C;
 
 export class InteractionManager {
 
-    #startFn;         // 会话瀑布函数 (interact, quest) => Promise
+    #startFn;         // 会话瀑布函数 (interact, questId, npcId) => Promise
     #npc;             // 对话 npc（脚本提供；对话页渲染经 player.talk 发往此 id）
-    #q = null;        // 当前会话身份（QuestApi 实例）；实例变化 = 新会话开场
+    #q = null;        // 当前会话身份（QuestApi_OLD 实例）；实例变化 = 新会话开场
     #pending = null;  // 挂起的对话（pages 链位置 + resolve/reject）；null = 无对话
 
     constructor(startFn, npc) {
@@ -103,7 +103,7 @@ export class InteractionManager {
     /**
      * ESM 入口（QuestScript 首入与 NPC_TALK_MORE 重入共用，(mode, type, selection, q) 原样）。
      * 首入 (1, 0, 0) 与"下一步"事件同形，无法从事件本身区分——以会话身份判别：
-     * QuestApi 实例变化 → 新会话开场（跑瀑布函数，完成/被关闭后自动 dispose）；
+     * QuestApi_OLD 实例变化 → 新会话开场（跑瀑布函数，完成/被关闭后自动 dispose）；
      * 同会话 → 事件解释：驱动挂起 await 或 pages 链内推进（不回脚本）。
      */
     entry = (mode, type, selection, q) => {
@@ -122,17 +122,13 @@ export class InteractionManager {
         }
         this.#q = q;
         this.#pending = null;
-        const quest = {
-            forceStart: () => player_old.forceStartQuest(q.questId(), q.npc()),
-            forceComplete: () => player_old.forceCompleteQuest(q.questId(), q.npc()),
-        };
         // 瀑布终结（正常 return / DialogClosed / 脚本异常 reject）即 dispose——脚本 reset
         // 钩子 + 会话清除 + NPC 冷却。DialogClosed（ESC）是正常用户行为，静默收尾；
         // 其余异常重新抛出——不被本层吞掉。吞掉即静默死：微任务续体的 rejection 成
         // 悬空无处理者，宿主/strand 均无感知（strict canary 排查实证）；重抛的 rejection
         // 由 context 的 js.unhandled-rejections=throw 在微任务排空点转 PolyglotException
         // 出宿主调用，落 CharacterScriptRunner 的 fail-safe ERROR 日志。
-        this.#startFn(this.#interact(q), quest).then(
+        this.#startFn(this.#interact(q), q.questId(), q.npc()).then(
             () => q.dispose(),
             (e) => {
                 q.dispose();

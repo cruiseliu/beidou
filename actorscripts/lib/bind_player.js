@@ -137,20 +137,20 @@ export function getMessage(code, ...args) {
 const PlayerApis = Java.type("org.gms.client.scripting.api.PlayerApis");
 
 /**
- * 脚本 API 显式范围（player actor）：{ basic, stats, inventory, message, talk } 五分面，
- * = PlayerApis 的 public 字段面。分面无状态，模块装载期 eager 构造安全；方法内
+ * 脚本 API 显式范围（player actor）：{ basic, stats, inventory, message, talk, quest }
+ * 六分面 = PlayerApis 的 public 字段面。分面无状态，模块装载期 eager 构造安全；方法内
  * character 经 actor context（Player.require）现取。用法如
  * {@code player.stats.getHp()}、{@code player.inventory.gainItem(id)}、
  * {@code player.basic.gainExp(n, ExpSource.X)}、{@code player.message.showHint(...)}、
- * {@code player.talk.sendNext(npc, text)}（npc 由脚本提供，会话无绑定）。
- * 任务会话（forceStart/forceComplete）不在此面——归 interaction.js 的 QuestApi 会话对象。
+ * {@code player.talk.sendNext(npc, text)}（npc 由脚本提供，会话无绑定）、
+ * {@code player.quest.forceStartQuest(questId, npcId)}。
  */
 export const player = new PlayerApis();
 
 /**
  * 旧全通代理（整个 Character public 面可达，每次属性访问经 actor 现取 character()）。
- * <b>过渡期保留</b>：存量脚本（quest/1021、lib/interaction、map/common/tutorial）迁移到
- * 分面 player 或 QuestApi 后删除；新脚本不得使用。
+ * <b>过渡期保留</b>：存量脚本（map/common/tutorial 的 getRemote 形态）迁移到分面后删除；
+ * 新脚本不得使用。
  */
 export const player_old = new Proxy({}, {
     get(_target, key) {
