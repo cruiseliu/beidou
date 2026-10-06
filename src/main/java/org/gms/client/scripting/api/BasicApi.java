@@ -10,7 +10,7 @@ import org.gms.client.character.ExpSource;
  * <p><b>线程模型</b>：脚本宿主把全部执行串行在 owning player strand 上；本类方法经
  * {@link Player#require} 现取 actor context（off-strand 响亮失败），character 派生视图
  * 零存槽。<b>无状态</b>——对应 JS 侧 {@code player.basic.isMale()} /
- * {@code player.basic.gainExp(n, ExpSource.X)}。
+ * {@code player.basic.gainExp(n, "QUEST")}。
  */
 public final class BasicApi {
 
@@ -18,8 +18,13 @@ public final class BasicApi {
         return Player.require("BasicApi.isMale").character().isMale();
     }
 
-    /** 经验入账；演出形态（白字/飘字/来源）由 ExpSource 决定，脚本不感知 wire。 */
-    public void gainExp(int gain, ExpSource source) {
-        Player.require("BasicApi.gainExp").character().gainExp(gain, source);
+    /**
+     * 经验入账；演出形态（白字/飘字/来源）由 source 决定，脚本不感知 wire。
+     * source 取 {@link ExpSource} 枚举名字符串，内部手动 valueOf 转换——GraalJS 不做
+     * string→enum 自动转换（GraalEnumProbe 实测 "Unsupported target type"）；非法名
+     * valueOf 抛 IllegalArgumentException，响亮失败。
+     */
+    public void gainExp(int gain, String source) {
+        Player.require("BasicApi.gainExp").character().gainExp(gain, ExpSource.valueOf(source));
     }
 }

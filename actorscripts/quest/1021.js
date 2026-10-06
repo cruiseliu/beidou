@@ -1,4 +1,4 @@
-import { player, ExpSource } from "../lib/bind_player.js";
+import { player } from "../lib/bind_player.js";
 import { InteractionManager, i18n } from "../lib/interaction.js";
 
 const MSG = {
@@ -27,6 +27,12 @@ const ROGERS_APPLE = 2010007;
 const APPLE = 2010000;
 const GREEN_APPLE = 2010009;
 
+/**
+ * @param {import("../lib/interaction.js").InteractApi} interact
+ * @param {number} questId
+ * @param {number} npcId
+ * @returns {Promise<void>}
+ */
 async function start(interact, questId, npcId) {
     const intros = player.basic.isMale() ? [MSG.intro1_m, MSG.intro2_m] : [MSG.intro1_f, MSG.intro2_f];
     await interact.sendPages(intros, "PREV_NEXT");
@@ -49,6 +55,12 @@ async function start(interact, questId, npcId) {
     interact.showInfo("UI/tutorial.img/28");
 }
 
+/**
+ * @param {import("../lib/interaction.js").InteractApi} interact
+ * @param {number} questId
+ * @param {number} npcId
+ * @returns {Promise<void>}
+ */
 async function end(interact, questId, npcId) {
     if (player.stats.getHp() < 50) {
         await interact.sendNext(MSG.not_healed);
@@ -61,7 +73,7 @@ async function end(interact, questId, npcId) {
     ], "PREV_NEXT");
     const success = player.inventory.gainItems([[APPLE, 3], [GREEN_APPLE, 3]]);
     if (success) {
-        player.basic.gainExp(10, ExpSource.QUEST);
+        player.basic.gainExp(10, "QUEST");
         player.quest.forceCompleteQuest(questId, npcId);
     } else {
         interact.sendNext(MSG.inv_full);

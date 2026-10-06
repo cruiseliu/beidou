@@ -10,7 +10,6 @@ const Server = Java.type("org.gms.net.server.Server");
 const ScriptTimers = Java.type("org.gms.scripting.ScriptTimers");
 const TimeZone = Java.type("java.util.TimeZone");
 const RateBucketEnum = Java.type("org.gms.client.character.RateBucket");
-const ExpSourceEnum = Java.type("org.gms.client.character.ExpSource");
 const WzJsonConverter = Java.type("org.gms.scripting.WzJsonConverter");
 const DataProviderFactory = Java.type("org.gms.provider.DataProviderFactory");
 const WZFiles = Java.type("org.gms.provider.wz.WZFiles");
@@ -72,9 +71,6 @@ export function clearTimeout(id) {
 
 /** 倍率贡献桶枚举（Java enum 原生透传，RateBucket.ITEM） */
 export const RateBucket = RateBucketEnum;
-
-/** 经验来源枚举（Java enum 原生透传，ExpSource.QUEST——gainExp 演出形态由此决定） */
-export const ExpSource = ExpSourceEnum;
 
 /** wz 道具数据（整树 JS 对象：imgdir → 对象、标量原样、画布/向量省略）；无该物品 null */
 export function getWzItemData(itemId) {
@@ -141,8 +137,8 @@ const PlayerApis = Java.type("org.gms.client.scripting.api.PlayerApis");
  * 六分面 = PlayerApis 的 public 字段面。分面无状态，模块装载期 eager 构造安全；方法内
  * character 经 actor context（Player.require）现取。用法如
  * {@code player.stats.getHp()}、{@code player.inventory.gainItem(id)}、
- * {@code player.basic.gainExp(n, ExpSource.X)}、{@code player.message.showHint(...)}、
- * {@code player.talk.sendNext(ctx, text)}（对话 npc 取自会话上下文）、
+ * {@code player.basic.gainExp(n, "QUEST")}、{@code player.message.showHint(...)}、
+ * {@code player.talk.send(ctx, text, buttons)}（对话 npc 取自会话上下文）、
  * {@code player.quest.forceStartQuest(questId, npcId)}。
  */
 export const player = new PlayerApis();
