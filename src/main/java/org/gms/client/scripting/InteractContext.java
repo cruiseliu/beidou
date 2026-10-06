@@ -15,35 +15,36 @@ import org.gms.client.character.Character;
  * scriptPath 为准，导出函数的 questId 参数由调用方（start/end 带真值，more 传占位）
  * 显式传递。
  */
-public final class QuestApi_OLD {
+public final class InteractContext {
 
     private final Character owner;
-    private final int npc;
-    private final String entry;                    // 重入函数名："start" | "end"
+    private final int npcId;
+
     /** 模块路径（actorscripts 相对；首入时冻结，more 重入免重算） */
     private final String scriptPath;
+    private final String scriptEntry;                    // 重入函数名："start" | "end"
 
-    QuestApi_OLD(Character owner, int npc, String entry, String scriptPath) {
+    InteractContext(Character owner, int npcId, String path, String entry) {
         this.owner = owner;
-        this.npc = npc;
-        this.entry = entry;
-        this.scriptPath = scriptPath;
-    }
-
-    public int npc() {
-        return npc;
-    }
-
-    String entry() {
-        return entry;
-    }
-
-    String scriptPath() {
-        return scriptPath;
+        this.npcId = npcId;
+        this.scriptPath = path;
+        this.scriptEntry = entry;
     }
 
     Character owner() {
         return owner;
+    }
+
+    public int getNpcId() {
+        return npcId;
+    }
+
+    String getScriptPath() {
+        return scriptPath;
+    }
+
+    String getScriptEntry() {
+        return scriptEntry;
     }
 
     /** 过场 UI 图（借 item-inchat 帧发 UI 路径 + 动作锁解除归 basic 模块）；会话演出，
@@ -60,6 +61,6 @@ public final class QuestApi_OLD {
      * 会话 Promise 链，随终结自然消亡；帧合并已归 remote batch，无延迟队列可冲刷）。
      */
     public void dispose() {
-        owner.getNpcInteract().clearEsmQuest(this);
+        owner.getNpcInteract().clearContext(this);
     }
 }

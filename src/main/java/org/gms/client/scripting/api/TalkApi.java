@@ -6,7 +6,7 @@ import org.gms.remote.modules.npc.client.DialogButtons;
 /**
  * 脚本 API 白名单——对话页面（send* 族）。会话无绑定：npc id 由脚本逐调用提供
  * （官方旧脚本本就以脚本知识持有自己的 npc），本类不登记会话、不持身份——任务会话
- * 身份与生命周期仍归 {@link org.gms.client.scripting.QuestApi_OLD}。
+ * 身份与生命周期仍归 {@link org.gms.client.scripting.InteractContext}。
  *
  * <p><b>线程模型</b>：脚本宿主把全部执行串行在 owning player strand 上；本类方法经
  * {@link Player#require} 现取 actor context（off-strand 响亮失败）。self 流经 remote

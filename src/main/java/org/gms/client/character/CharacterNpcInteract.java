@@ -1,7 +1,7 @@
 package org.gms.client.character;
 
 import org.gms.client.Client;
-import org.gms.client.scripting.QuestApi_OLD;
+import org.gms.client.scripting.InteractContext;
 import org.gms.client.scripting.QuestScript;
 import org.gms.remote.ClientEventHandlerRegistry;
 import org.gms.remote.modules.npc.NpcModule;
@@ -22,7 +22,7 @@ public final class CharacterNpcInteract implements NpcModule.Handler {
     private final Character owner;
 
     /** 活跃 ESM 任务脚本会话；无对话时 null（doc/13 §15） */
-    private volatile QuestApi_OLD esmQuest;
+    private volatile InteractContext context;
 
     CharacterNpcInteract(Character owner) {
         this.owner = owner;
@@ -37,9 +37,9 @@ public final class CharacterNpcInteract implements NpcModule.Handler {
     public void talkMore(int lastMsg, int action, String text, int selection) {
         // ESM 会话分流（doc/13 §15）：活跃 ESM 任务会话 → 重入其状态机（文本输入变体
         // 未支持，1021 不涉及；mode=-1 由脚本首分支 dispose）。旧路径原样跟随。
-        if (esmQuest != null) {
+        if (context != null) {
             if (lastMsg == 2 && action == 0) {
-                esmQuest.dispose();
+                context.dispose();
             } else if (lastMsg != 2) {
                 QuestScript.more(owner, (byte) action, (byte) lastMsg, selection);
             }
@@ -88,13 +88,13 @@ public final class CharacterNpcInteract implements NpcModule.Handler {
 
     // ── ESM 会话槽位 ──
 
-    public QuestApi_OLD esmQuest() { return esmQuest; }
+    public InteractContext esmQuest() { return context; }
 
-    public void setEsmQuest(QuestApi_OLD session) { this.esmQuest = session; }
+    public void setContext(InteractContext session) { this.context = session; }
 
-    public void clearEsmQuest(QuestApi_OLD session) {
-        if (esmQuest == session) {
-            esmQuest = null;
+    public void clearContext(InteractContext session) {
+        if (context == session) {
+            context = null;
         }
     }
 }
