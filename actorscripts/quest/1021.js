@@ -1,5 +1,5 @@
-import { player, ExpSource } from "../../lib/bind.js";
-import { InteractionManager, NEXT_PREV, i18n } from "../../lib/interaction.js";
+import { player, ExpSource } from "../lib/bind.js";
+import { InteractionManager, NEXT_PREV, i18n } from "../lib/interaction.js";
 
 const MSG = {
     intro1_m: i18n.quest0[0],

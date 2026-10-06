@@ -1,4 +1,4 @@
-package org.gms.scripting.quest.esm;
+package org.gms.client.scripting;
 
 import org.gms.client.character.Character;
 import org.gms.remote.modules.npc.client.DialogButtons;

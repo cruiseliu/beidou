@@ -1,4 +1,4 @@
-package org.gms.scripting.quest.esm;
+package org.gms.client.scripting;
 
 import org.gms.client.character.Character;
 import org.gms.scripting.JsModule;
@@ -9,21 +9,24 @@ import java.nio.file.Path;
 /**
  * ESM 任务脚本接入点（doc/13）：按脚本文件存在性分流——
  * <ul>
- *   <li>{@code actorscripts/quest/esm/<id>.mjs} 存在 → ESM 新系统（player actor context，
+ *   <li>{@code actorscripts/quest/<id>.js} 存在 → ESM 新系统（player actor context，
  *       NextLevel 之前的重放模型：模块级 status 状态机 + more 重入）；</li>
  *   <li>不存在 → 旧 QuestScriptManager 路径（并行共存，互不影响）。</li>
  * </ul>
  *
- * <p><b>线程模型</b>：全部方法须在 player strand 上调用（调用方 handler 已 queued）；
- * runner.call/moduleFor 保证 polyglot Context 的串行进入。
+ * <p><b>归置与线程模型</b>：本类属于 <b>player strand</b> 域——宿主是 per 角色的
+ * CharacterScriptRunner（polyglot Context 归角色所有），全部方法须在 owning player
+ * strand 上调用（调用方 handler 已 queued）；runner.call/moduleFor 保证 Context 的
+ * 串行进入。归入 {@code client.scripting} 以区别于 {@code org.gms.scripting} 下的
+ * 全局 legacy 脚本管理器（AbstractScriptManager 一族）。
  */
-public final class EsmQuests {
+public final class QuestScript {
 
-    private EsmQuests() {
+    private QuestScript() {
     }
 
     public static String scriptPath(int questId) {
-        return "quest/esm/" + questId + ".mjs";
+        return "quest/" + questId + ".js";
     }
 
     /** ESM 脚本是否存在（分流探测；文件级判断，不触发 eval）。 */

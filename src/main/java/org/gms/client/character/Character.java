@@ -92,11 +92,12 @@ import org.gms.net.server.services.task.world.CharacterSaveService;
 import org.gms.net.server.services.type.WorldServices;
 import org.gms.net.server.world.*;
 import org.gms.scripting.item.ItemScript;
+import org.gms.client.scripting.QuestApi;
+import org.gms.client.scripting.QuestScript;
 import org.gms.scripting.AbstractPlayerInteraction;
 import org.gms.scripting.event.EventInstanceManager;
 import org.gms.scripting.npc.NPCScriptManager;
 import org.gms.scripting.quest.QuestScriptManager;
-import org.gms.scripting.quest.esm.EsmQuests;
 import org.gms.server.*;
 import org.gms.server.events.Events;
 import org.gms.server.events.RescueGaga;
@@ -170,7 +171,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     final CharacterRates rates = new CharacterRates(this);
     final CharacterScriptRunner scriptRunner = new CharacterScriptRunner(this::strand);
     /** 活跃的 ESM 任务脚本会话（重放模型，doc/13 §15）；dispose/登出清理 */
-    private volatile org.gms.scripting.quest.esm.QuestApi esmQuest;
+    private volatile QuestApi esmQuest;
     // final CharacterAntiCheat antiCheat = new CharacterAntiCheat(this);
     final CharacterMarket market = new CharacterMarket(this);
     final CharacterQuests quests = new CharacterQuests(this);
@@ -588,7 +589,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
             if (lastMsg == 2 && action == 0) {
                 esmQuest().dispose();
             } else if (lastMsg != 2) {
-                EsmQuests.more(this, (byte) action, (byte) lastMsg, selection);
+                QuestScript.more(this, (byte) action, (byte) lastMsg, selection);
             }
             return;
         }
@@ -3255,11 +3256,11 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     public CharacterScriptRunner getScriptRunner() { return scriptRunner; }
 
     /** 活跃 ESM 任务脚本会话；无对话时 null（doc/13 §15） */
-    public org.gms.scripting.quest.esm.QuestApi esmQuest() { return esmQuest; }
+    public QuestApi esmQuest() { return esmQuest; }
 
-    public void setEsmQuest(org.gms.scripting.quest.esm.QuestApi session) { this.esmQuest = session; }
+    public void setEsmQuest(QuestApi session) { this.esmQuest = session; }
 
-    public void clearEsmQuest(org.gms.scripting.quest.esm.QuestApi session) {
+    public void clearEsmQuest(QuestApi session) {
         if (esmQuest == session) {
             esmQuest = null;
         }

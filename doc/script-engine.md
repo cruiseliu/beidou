@@ -13,7 +13,7 @@ Invocable）并行并存、互不引用；新脚本一律进 `actorscripts/`。
 | 状态作用域 | per-client（Context per 角色，模块级状态不跨角色） | 全局共享 |
 | 宿主 | `CharacterScriptRunner`（per 角色） | `AbstractScriptManager` 单例 |
 
-分流按**文件存在性**裁定（`EsmQuests.exists` 先例）：ESM 文件存在走新系统，否则落
+分流按**文件存在性**裁定（`QuestScript.exists` 先例）：ESM 文件存在走新系统，否则落
 legacy 路径。事件脚本（`scripts/event`）暂属 legacy（`Channel.getEvents`）。
 
 ## 2. 装载与宿主
@@ -43,7 +43,7 @@ actorscripts/
 │   ├── common/          # 地图脚本共享层（组合 util；模块相对引用 ./common/x.js）
 │   │   └── tutorial.js  # 教学门工厂 advice(n)/mapAdvice() + showInstruction
 │   └── <MAP_ID>.js      # 每图一模块：按 WZ portal script 名同名导出函数
-├── quest/esm/<id>.mjs   # ESM 任务
+├── quest/<id>.js         # ESM 任务（曾居 quest/esm/<id>.mjs，临时迁移态已归位）
 ├── item/<name>.js       # 道具钩子
 └── server/ap_assigner/default.js  # AP 自动分配器（export default）
 ```
@@ -77,7 +77,7 @@ actorscripts/
 | 接入点 | 模块路径 | 派发形态 | 失败语义 |
 |---|---|---|---|
 | 道具钩子 | `item/<name>.js` | `onEnterInventory` / `onLeaveInventory` / `onUse` | 文件缺失 → dead（warn 一次） |
-| ESM 任务 | `quest/esm/<id>.mjs` | InteractionManager entry 导出（`q<id>s`/`q<id>e`），async/await 瀑布对话 | 无文件 → legacy QuestScriptManager |
+| ESM 任务 | `quest/<id>.js` | InteractionManager entry 导出（`q<id>s`/`q<id>e`），async/await 瀑布对话（接入点 `client.scripting.QuestScript`，player strand） | 无文件 → legacy QuestScriptManager |
 | portal 脚本 | `map/<MAP_ID>.js` | 按 WZ portal script 名同名导出；返回 true = 门已处理 | 无模块/无导出/异常 → unlock 兜底（GenericPortal 内围栏断言保留，防其他调用方） |
 | AP 分配器 | `server/ap_assigner/default.js` | export default APAssigner | |
 | map 脚本（onUserEnter/onFirstUserEnter） | 未接桥 | 围栏断言已按裁定关闭：遇脚本地图静默跳过（FIXME 桥接排期） | |

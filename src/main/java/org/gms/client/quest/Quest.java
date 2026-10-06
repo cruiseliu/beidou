@@ -24,7 +24,7 @@ package org.gms.client.quest;
 import org.gms.client.Player;
 import org.gms.client.character.Character;
 import org.gms.model.json.QuestData;
-import org.gms.scripting.quest.esm.EsmQuests;
+import org.gms.client.scripting.QuestScript;
 import org.gms.util.AssertUtil;
 import org.gms.util.StringUtil;
 import org.slf4j.Logger;
@@ -240,8 +240,8 @@ public class Quest {
         }
 
         String script = wz.getQuestScriptName(status);
-        AssertUtil.isTrue(script != null && EsmQuests.exists(id));
-        EsmQuests.start(chr, id, npcId, script);
+        AssertUtil.isTrue(script != null && QuestScript.exists(id));
+        QuestScript.start(chr, id, npcId, script);
     }
 
     public void complete(int npcId, Integer selection) {
@@ -274,8 +274,8 @@ public class Quest {
         }
         
         String entry = wz.getQuestScriptName(status);
-        AssertUtil.isTrue(entry != null && EsmQuests.exists(id));
-        EsmQuests.end(chr, id, npcId, entry);
+        AssertUtil.isTrue(entry != null && QuestScript.exists(id));
+        QuestScript.end(chr, id, npcId, entry);
     }
 
     private boolean canStart() {
