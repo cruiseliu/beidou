@@ -132,39 +132,19 @@ export function getMessage(code, ...args) {
     return I18nUtil.getMessage(code, args);
 }
 
-// ── 显式 API 面（org.gms.client.scripting.api 白名单类）──
+// ── 显式 API 面（Java 侧聚合 org.gms.client.scripting.api.PlayerApis）──
 
-const BasicApi = Java.type("org.gms.client.scripting.api.BasicApi");
-const StatsApi = Java.type("org.gms.client.scripting.api.StatsApi");
-const InventoryApi = Java.type("org.gms.client.scripting.api.InventoryApi");
-const MessageApi = Java.type("org.gms.client.scripting.api.MessageApi");
-
-/**
- * 白名单分面工厂：每次属性访问现取 character() 构造对应 API 类实例（不存槽，与
- * player_old 同纪律；模块装载早于角色接绑，构造必须延到访问期）。分面可调方法 =
- * Java 类的方法面白名单，Character 其余 public 面不可达。
- */
-function facet(ApiClass) {
-    return new Proxy({}, {
-        get(_target, key) {
-            return new ApiClass(globalThis.player.character())[key];
-        },
-    });
-}
+const PlayerApis = Java.type("org.gms.client.scripting.api.PlayerApis");
 
 /**
  * 脚本 API 显式范围（player actor）：{ basic, stats, inventory, message } 四分面，
- * 分别背书 BasicApi/StatsApi/InventoryApi/MessageApi。用法如
+ * = PlayerApis 的 public 字段面。分面无状态，模块装载期 eager 构造安全；方法内
+ * character 经 actor context（Player.require）现取。用法如
  * {@code player.stats.getHp()}、{@code player.inventory.gainItem(id)}、
  * {@code player.basic.gainExp(n, ExpSource.X)}、{@code player.message.showHint(...)}。
  * 任务会话（forceStart/forceComplete）不在此面——归 interaction.js 的 QuestApi 会话对象。
  */
-export const player = {
-    basic: facet(BasicApi),
-    stats: facet(StatsApi),
-    inventory: facet(InventoryApi),
-    message: facet(MessageApi),
-};
+export const player = new PlayerApis();
 
 /**
  * 旧全通代理（整个 Character public 面可达，每次属性访问经 actor 现取 character()）。

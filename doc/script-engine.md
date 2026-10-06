@@ -26,12 +26,15 @@ legacy 路径。事件脚本（`scripts/event`）暂属 legacy（`Channel.getEve
   清空接口）。**线程模型**：所有方法必须在 owning strand 上调用（经宿主 run/call
   串行进 Context，无锁）。
 - **`player` 全局绑定**：宿主把 Player actor 注入 context bindings；`bind_player.js`
-  的 `player` 是显式白名单分面 `{ basic, stats, inventory, message }`（背书
-  `org.gms.client.scripting.api` 四类），分面实例每次属性访问经 `character()` 现取
-  （不存槽）；过渡期旧全通代理保留为 `player_old`（存量脚本迁移完成后删除）。
-  **模块装载可早于角色接绑**（charlist 预览即触发道具钩子装载）——模块顶层导出必须
-  装载期可求值，不得依赖角色；需要 Spring 的资源（WZ provider 等）用惰性初始化
-  （bind_player.js 先例）。
+  的 `player` = Java 侧聚合 `org.gms.client.scripting.api.PlayerApis`——显式白名单
+  分面 `{ basic, stats, inventory, message }`，模块顶层 eager 构造（分面无状态，构造
+  不触角色），方法内 character 经 actor context（`Player.require`）现取，不存槽；
+  过渡期旧全通代理保留为 `player_old`（存量脚本迁移完成后删除）。
+  **脚本装载只在 player 域发生**：Context/模块均惰性——首个脚本任务（钩子派发、
+  portal 门、任务脚本）才创建；auth/charlist 视图装载走 `CharacterViewEntry`
+  （纯 JDBC 快照，不构造 Character、不触脚本，[esm-audit] 打点实测）。模块顶层
+  导出必须装载期可求值、不依赖角色；需要 Spring 的资源（WZ provider 等）用惰性
+  初始化（bind_player.js 先例）。
 - **JS 侧访问语义层**：`player_old.getRemote()`（public）。注意 `Character.remote()`
   是包私有，GraalJS 按修饰符拦截，JS 里调用报 not a function。
 

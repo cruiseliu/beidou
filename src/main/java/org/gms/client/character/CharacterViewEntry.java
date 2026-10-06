@@ -25,6 +25,7 @@ import java.util.TreeMap;
  * isGM = gmLevel &gt; 1——漂移即 CHARLIST 字节漂移，改动需同步组件侧。
  */
 public final class CharacterViewEntry implements CharacterView {
+    // FIXME: [refactor] does not belong to player strand
 
     private final int accountId;
     private final int id;
