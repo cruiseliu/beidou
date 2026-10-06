@@ -169,8 +169,8 @@ class TalkPage {
     #text;
     /** @type {DialogButtonsName} */
     #buttons;
-    /** @type {Deferred<PageResult>} */
-    #deferred = new Deferred();
+    /** @type {Deferred<PageResult> | null} */
+    #deferred = null;
 
     /**
      * @param {string} text
@@ -183,12 +183,14 @@ class TalkPage {
 
     /** @type {(ctx: InteractContext) => void} */
     send(ctx) {
+        this.#deferred = new Deferred();
         player.talk.send(ctx, this.#text, this.#buttons);
     }
 
     /** @type {(mode: number, type: number, selection: number) => void} */
     resolve(mode, type, selection) {
         // TODO: [refactor] find concrete mode documentation
+        assert(this.#deferred !== null);
         if (mode === -1) {
             this.#deferred.reject(new DialogClosed());
         } else if (this.#buttons === "ACCEPT_DECLINE" || this.#buttons === "YES_NO") {
