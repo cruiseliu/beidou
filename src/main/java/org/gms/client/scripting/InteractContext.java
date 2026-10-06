@@ -24,7 +24,11 @@ public final class InteractContext {
     private final String scriptPath;
     private final String scriptEntry;                    // 重入函数名："start" | "end"
 
-    InteractContext(Character owner, int npcId, String path, String entry) {
+    /**
+     * 创建对话上下文。<b>管理入口归 {@link org.gms.client.character.CharacterNpcInteract#beginContext}</b>
+     * ——创建即登记（会话槽位随建随挂），勿在组件外散建；构造公开仅为跨包工厂可达。
+     */
+    public InteractContext(Character owner, int npcId, String path, String entry) {
         this.owner = owner;
         this.npcId = npcId;
         this.scriptPath = path;

@@ -10,18 +10,18 @@ import org.gms.scripting.quest.QuestScriptManager;
 
 /**
  * NPC 对话交互组件（npc 域 C→S 状态收拢）：对话续行分流（原 NPCMoreTalkHandler 语义体）
- * + ESM 任务脚本会话槽位——原散在 Character 的 talkMore 方法体与 esmQuest 槽移入本组件，
- * 会话状态与分流逻辑同址。
+ * + 脚本对话上下文（InteractContext）的全生命周期管理——创建（beginContext）/登记/查找
+ * （talkMore 分流）/清除（clearContext）同址，QuestScript 只经方法参数接收上下文。
  *
  * <p><b>线程模型</b>：talkMore 由收包插座直调（NpcInbound → Handler 槽位，player actor
- * strand 上执行）；esmQuest 槽 volatile，写点（QuestScript.start/end 首入）与读点
- * （talkMore 分流）同在 player strand，volatile 只为登出清场竞态兜底。
+ * strand 上执行）；context 槽 volatile，写点（start/end 首入登记）与读点（talkMore
+ * 分流）同在 player strand，volatile 只为登出清场竞态兜底。
  */
 public final class CharacterNpcInteract implements NpcModule.Handler {
 
     private final Character owner;
 
-    /** 活跃 ESM 任务脚本会话；无对话时 null（doc/13 §15） */
+    /** 活跃脚本对话上下文；无对话时 null（doc/13 §15） */
     private volatile InteractContext context;
 
     CharacterNpcInteract(Character owner) {
@@ -33,18 +33,37 @@ public final class CharacterNpcInteract implements NpcModule.Handler {
         registry.registerNpc(this);
     }
 
+    /**
+     * 创建并登记脚本对话上下文（首入入口：QuestScript.start/end 调用）。
+     * 返回登记后的实例——调用方仅作参数向后传递，不另存（槽位唯一真源在本组件）。
+     */
+    public InteractContext beginContext(int npcId, String entry, String scriptPath) {
+        InteractContext ctx = new InteractContext(owner, npcId, scriptPath, entry);
+        this.context = ctx;
+        return ctx;
+    }
+
+    /** 清除会话登记（InteractContext.dispose 回调；幂等——仅当仍登记同一实例时生效） */
+    public void clearContext(InteractContext ctx) {
+        if (context == ctx) {
+            context = null;
+        }
+    }
+
     @Override
     public void talkMore(int lastMsg, int action, String text, int selection) {
-        // ESM 会话分流（doc/13 §15）：活跃 ESM 任务会话 → 重入其状态机（文本输入变体
+        // 脚本会话分流（doc/13 §15）：活跃对话上下文 → 重入其状态机（文本输入变体
         // 未支持，1021 不涉及；mode=-1 由脚本首分支 dispose）。旧路径原样跟随。
-        if (context != null) {
+        InteractContext ctx = context;
+        if (ctx != null) {
             if (lastMsg == 2 && action == 0) {
-                context.dispose();
+                ctx.dispose();
             } else if (lastMsg != 2) {
-                QuestScript.more(owner, (byte) action, (byte) lastMsg, selection);
+                QuestScript.more(owner, ctx, (byte) action, (byte) lastMsg, selection);
             }
             return;
         }
+
         // lastMsg 等于 2 为文本输入页（有 returnText），否则为选择/按钮页
         Client c = owner.getClient();
         if (lastMsg == 2) {
@@ -83,18 +102,6 @@ public final class CharacterNpcInteract implements NpcModule.Handler {
             NPCScriptManager.getInstance().action(c, action, lastMsg, selection);
         } else {
             NPCScriptManager.getInstance().nextLevel(c, action, lastMsg, selection);
-        }
-    }
-
-    // ── ESM 会话槽位 ──
-
-    public InteractContext esmQuest() { return context; }
-
-    public void setContext(InteractContext session) { this.context = session; }
-
-    public void clearContext(InteractContext session) {
-        if (context == session) {
-            context = null;
         }
     }
 }
