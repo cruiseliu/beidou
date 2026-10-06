@@ -247,7 +247,6 @@ public class NPCScriptManager extends AbstractScriptManager {
     public void dispose(NPCConversationManager cm) {
         Client c = cm.getClient();
         c.getPlayer().setCS(false);
-        c.getPlayer().setNpcCooldown(System.currentTimeMillis());
         cms.remove(c);
         scripts.remove(c);
 

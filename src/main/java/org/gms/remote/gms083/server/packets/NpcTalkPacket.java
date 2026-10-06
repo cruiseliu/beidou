@@ -11,7 +11,7 @@ import org.gms.net.packet.OutPacket;
  * 与 PacketCreator.getNPCTalk 逐字节一致；writeString 的字符集走
  * ThreadLocalUtil（strand 任务已播种本 client）。
  */
-public record NPCTalkPacket(int npc, int msgType, int speaker, String talk, int[] endBytes)
+public record NpcTalkPacket(int npc, int msgType, int speaker, String talk, int[] endBytes)
         implements V83Packet {
 
     @Override

@@ -463,13 +463,6 @@ public class DueyProcessor {
     public static void dueySendTalk(Client c, boolean quickDelivery) {
         if (c.tryacquireClient()) {
             try {
-                long timeNow = System.currentTimeMillis();
-                if (timeNow - c.getPlayer().getNpcCooldown() < GameConfig.getServerInt("block_npc_race_condition")) {
-                    c.sendPacket(PacketCreator.enableActions());
-                    return;
-                }
-                c.getPlayer().setNpcCooldown(timeNow);
-
                 if (quickDelivery) {
                     c.sendPacket(PacketCreator.sendDuey(0x1A, null));
                 } else {

@@ -367,9 +367,8 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     @Getter
     @Setter
     private boolean loggedIn = false;
-    @Getter
-    private long npcCd;
-    byte extraHpRec = 0, extraMpRec = 0;
+    byte extraHpRec = 0;
+    byte extraMpRec = 0;
     short extraRecInterval;
     @Setter
     @Getter
@@ -575,10 +574,6 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         }
     }
 
-    public long getNpcCooldown() {
-        return npcCd;
-    }
-
     // ── npc 域 C→S（对话续行；ESM/任务/NPC 脚本重入分流，原 NPCMoreTalkHandler 语义体）──
 
     @Override
@@ -632,10 +627,6 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         } else {
             NPCScriptManager.getInstance().nextLevel(c, action, lastMsg, selection);
         }
-    }
-
-    public void setNpcCooldown(long d) {
-        npcCd = d;
     }
 
     public int addDojoPointsByMap(int mapId) {

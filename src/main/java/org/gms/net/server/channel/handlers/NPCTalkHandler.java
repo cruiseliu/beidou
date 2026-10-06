@@ -58,11 +58,6 @@ public final class NPCTalkHandler extends AbstractPacketHandler {
             return;
         }
 
-        if (currentServerTime() - c.getPlayer().getNpcCooldown() < GameConfig.getServerInt("block_npc_race_condition")) {
-            c.sendPacket(PacketCreator.enableActions());
-            return;
-        }
-
         int oid = p.readInt();
         MapObject obj = c.getPlayer().getMap().getMapObject(oid);
         if (obj instanceof NPC npc) {

@@ -183,7 +183,6 @@ public class QuestScriptManager extends AbstractScriptManager {
     public void dispose(QuestActionManager qm, Client c) {
         qms.remove(c);
         scripts.remove(c);
-        c.getPlayer().setNpcCooldown(System.currentTimeMillis());
         resetContext("quest/" + qm.getQuest() + ".js", c);
     }
 

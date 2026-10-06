@@ -48,11 +48,11 @@ public final class QuestApi {
         owner.getRemote().npc().talk(npc, text, DialogButtons.NEXT, 0);
     }
 
-    public void sendPrev(String text) {
+    public void sendPrevOk(String text) {
         owner.getRemote().npc().talk(npc, text, DialogButtons.PREV_OK, 0);
     }
 
-    public void sendNextPrev(String text) {
+    public void sendPrevNext(String text) {
         owner.getRemote().npc().talk(npc, text, DialogButtons.PREV_NEXT, 0);
     }
 
@@ -82,6 +82,5 @@ public final class QuestApi {
      */
     public void dispose() {
         owner.clearEsmQuest(this);
-        owner.setNpcCooldown(System.currentTimeMillis());
     }
 }

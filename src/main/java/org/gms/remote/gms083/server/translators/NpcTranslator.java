@@ -1,6 +1,6 @@
 package org.gms.remote.gms083.server.translators;
 
-import org.gms.remote.gms083.server.packets.NPCTalkPacket;
+import org.gms.remote.gms083.server.packets.NpcTalkPacket;
 import org.gms.remote.modules.npc.client.DialogButtons;
 
 /**
@@ -14,7 +14,7 @@ public final class NpcTranslator {
     private static final int MSG_ACCEPT_DECLINE = 0x0C;
 
     /** 对话页编码（route 直发本连接，不入合并冲刷）。 */
-    public NPCTalkPacket talk(int npc, String text, DialogButtons buttons, int speaker) {
+    public NpcTalkPacket talk(int npc, String text, DialogButtons buttons, int speaker) {
         int msgType;
         int[] endBytes;
         switch (buttons) {
@@ -44,6 +44,6 @@ public final class NpcTranslator {
             }
             default -> throw new IllegalArgumentException("未支持的对话框按钮配置: " + buttons);
         }
-        return new NPCTalkPacket(npc, msgType, speaker, text, endBytes);
+        return new NpcTalkPacket(npc, msgType, speaker, text, endBytes);
     }
 }

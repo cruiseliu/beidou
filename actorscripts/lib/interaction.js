@@ -180,11 +180,11 @@ export class InteractionManager {
         if (pd.kind === "confirm") {
             this.#q.sendAcceptDecline(text);
         } else if (pd.index === pd.pages.length - 1 && pd.lastStyle !== NEXT_PREV) {
-            this.#q.sendPrev(text);
+            this.#q.sendPrevOk(text);
         } else if (pd.index === 0) {
             this.#q.sendNext(text);
         } else {
-            this.#q.sendNextPrev(text);
+            this.#q.sendPrevNext(text);
         }
     }
 
