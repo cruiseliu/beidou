@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.LinkedHashMap;
 import org.gms.model.json.ItemData;
 import org.gms.client.Client;
+import org.gms.client.StrictWindow;
 import org.gms.client.Disease;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Inventory;
@@ -243,11 +244,11 @@ class CharacterInventory implements InventoryModule.Handler {
      * discipline 同 AbstractInRouter.strictWindow 的 packet-strict 哨，仅关闭时机由分支自持。
      */
     private void packetStrict(Runnable body) {
-        owner.setPacketStrictMode(true);
+        owner.openStrictWindow(StrictWindow.PACKET);
         try {
             body.run();
         } finally {
-            owner.setPacketStrictMode(false);
+            owner.closeStrictWindow(StrictWindow.PACKET);
         }
     }
 

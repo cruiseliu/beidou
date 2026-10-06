@@ -1,6 +1,7 @@
 package org.gms.client.character;
 
 import org.gms.client.Client;
+import org.gms.client.StrictWindow;
 import org.gms.client.PlayerStrand;
 import org.gms.client.quest.Quest;
 import org.gms.infra.ActorMessage;
@@ -36,7 +37,7 @@ import java.util.function.Consumer;
  * 读快照化）为独立批次，不在本轮。
  *
  * <p><b>strict canary</b>：本体的 strict 收包管线执行窗口内（按开窗线程判定，见
- * Character#inStrictPipelineOnThisThread），一切经 ref 触达本体（直调委托与
+ * Character#inStrictOnThisThread(StrictWindow.STRAND)），一切经 ref 触达本体（直调委托与
  * {@link #unref()} 解包）即断言失败——命中的调用链即 map 域同步跨域点，post 化欠账的
  * 定位输出（doc/16 §4.1）。
  */
@@ -141,7 +142,7 @@ public final class CharacterRef implements MapObject {
      * （如 map shim 上的 transitionMobView）不属管线违规，不 fire。
      */
     private void notInStrictPipeline() {
-        AssertUtil.isTrue(!chr.inStrictPipelineOnThisThread(), "strict 管线执行窗口内经 CharacterRef 触达本体 (cid=" + id + ")");
+        AssertUtil.isTrue(!chr.inStrictOnThisThread(StrictWindow.STRAND), "strict 管线执行窗口内经 CharacterRef 触达本体 (cid=" + id + ")");
     }
 
     /** 本体 id（首次读取捕获，见字段注；不访问 Character） */

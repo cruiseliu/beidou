@@ -2,6 +2,7 @@ package org.gms.remote.gms083.client.routers;
 
 import com.alibaba.fastjson2.JSON;
 import org.gms.client.Player;
+import org.gms.client.StrictWindow;
 import org.gms.client.character.Character;
 import org.gms.net.opcodes.RecvOpcode;
 import org.gms.remote.ClientEvent;
@@ -70,16 +71,16 @@ public abstract class AbstractInRouter {
     /** ref 哨恒开；{@code packetStrict} = 是否同时开启 legacy-Client 导航哨。 */
     protected final void strictWindow(Player player, Runnable body, boolean packetStrict) {
         Character chr = player.character();
-        chr.setStrictMode(true);
+        chr.openStrictWindow(StrictWindow.STRAND);
         if (packetStrict) {
-            chr.setPacketStrictMode(true);
+            chr.openStrictWindow(StrictWindow.PACKET);
         }
         try {
             body.run();
         } finally {
-            chr.setStrictMode(false);
+            chr.closeStrictWindow(StrictWindow.STRAND);
             if (packetStrict) {
-                chr.setPacketStrictMode(false);
+                chr.closeStrictWindow(StrictWindow.PACKET);
             }
         }
     }

@@ -22,6 +22,7 @@
 package org.gms.client.character;
 
 import org.gms.client.Player;
+import org.gms.client.StrictWindow;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -148,21 +149,15 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     /** 地图域侧句柄（doc/13 反向剥离）：MapleMap 只持 ref 不持 Character——规范唯一（identity 即本角色） */
     private final CharacterRef ref = new CharacterRef(this);
     /**
-     * strict 收包执行窗口标志（in-route strictWindow 置位/复位）：true = 本角色的
-     * strict 管线正在执行，期间经 {@link CharacterRef} 直调本体即断言失败（迁移 canary，
-     * doc/16 §4.1）。volatile：player strand 写、map shim 线程读。
+     * strict 收包窗口状态（迁移 canary，doc/16 §4.1）：开窗线程 + 窗口种类集
+     * {@link StrictWindow}。断言线程精确（{@link #inStrictOnThisThread}）——管线内的
+     * ref 直调违规必然发生在管线线程上；跨 actor 异步任务（map shim/timer）在窗口存续期
+     * 触达 ref 属合法域上下文（controller 移交等豁免载荷），非违规。volatile：player
+     * strand 写、map shim 线程读；kinds 换引用发布（EnumSet 不原地变），跨线程读恒见
+     * 一致快照。
      */
-    /** strict 管线执行窗口（canary 用，doc/16 §4.1）：值 = 开窗线程。断言只对同线程触达
-     *  生效——管线内的 ref 直调违规必然发生在管线线程上；跨 actor 异步任务（map shim/
-     *  timer）在窗口存续期触达 ref 属合法域上下文（controller 移交等豁免载荷），非违规。
-     *  null = 无窗口。 */
     private volatile Thread strictThread;
-    /**
-     * packet-strict 窗口（legacy-Client 导航 canary，{@link Player#assertNoLegacyClientNavigation}）：
-     * 仅 in-route strictWindow（各 InRouter case 按 opcode 增量迁移）开闭；PLAYER_LOGGEDIN
-     * 等大段窗口不开启——相关模块未迁移，Client 导航合法。null = 无窗口。
-     */
-    private volatile Thread packetStrictThread;
+    private volatile EnumSet<StrictWindow> strictKinds = EnumSet.noneOf(StrictWindow.class);
     final CharacterRates rates = new CharacterRates(this);
     final CharacterScriptRunner scriptRunner = new CharacterScriptRunner(this::strand);
     /** NPC 对话交互组件（对话续行分流 + ESM 任务脚本会话槽，状态同址） */
@@ -3073,13 +3068,36 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     /** 地图域侧句柄（规范唯一；MapleMap 只持 ref 不持本类型） */
     public CharacterRef ref() { return ref; }
     /** strict 管线执行窗口标志（窗口存续视角，跨线程可见——controller 选举过滤等语义过滤用） */
-    public boolean strictMode() { return strictThread != null; }
-    public void setStrictMode(boolean strictMode) { strictThread = strictMode ? Thread.currentThread() : null; }
     /** canary 断言谓词：当前线程正处本角色的管线窗口内（ref 触达守卫用，线程精确） */
-    public boolean inStrictPipelineOnThisThread() { return Thread.currentThread() == strictThread; }
+    /** 窗口存续视角（跨线程可见，CharacterRef.strictMode / MapleMapRef 守卫消费）：任一种类在窗即 true */
+    public boolean strictMode() { return !strictKinds.isEmpty(); }
+
+    /** 开窗（on strand）：种类并入集合，线程绑定为当前线程 */
+    public void openStrictWindow(StrictWindow w) {
+        strictThread = Thread.currentThread();
+        EnumSet<StrictWindow> next = EnumSet.copyOf(strictKinds);
+        next.add(w);
+        strictKinds = next;
+    }
+
+    /** 收窗（幂等；未开窗路径空写）：种类移出，集合清空即解除线程绑定 */
+    public void closeStrictWindow(StrictWindow w) {
+        EnumSet<StrictWindow> next = EnumSet.copyOf(strictKinds);
+        if (next.remove(w)) {
+            strictKinds = next;
+            if (next.isEmpty()) {
+                strictThread = null;
+            }
+        }
+    }
+
+    /** 线程精确窗口断言：当前线程 = 开窗线程且种类在窗 */
+    public boolean inStrictOnThisThread(StrictWindow w) {
+        Thread t = strictThread;
+        return t != null && t == Thread.currentThread() && strictKinds.contains(w);
+    }
     /** packet-strict 窗口标志（legacy-Client 导航 canary 用，线程精确；开闭归 in-route strictWindow） */
-    public boolean inPacketStrictOnThisThread() { return Thread.currentThread() == packetStrictThread; }
-    public void setPacketStrictMode(boolean on) { packetStrictThread = on ? Thread.currentThread() : null; }
+
     public MapleMap getMap() { MapleMapRef r = map.getMap(); return r != null ? r.unref() : null; }
     public int getMapId() { return map.getMapId(); }
     public void setMap(MapleMap to) { map.setMap(MapleMapRef.of(to)); }
@@ -3624,7 +3642,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
             // （party 快照 + ref 自持 id）与 enterMap（原 finishEnter 迁出，本体直调 + statics 直读）
             // 均已零 CharacterRef 直调，缺口闭合。已知在窗内的有序缝合：召回 EIM 的 playerEntry
             // 脚本走 chr.changeMap（fire 即发现）。
-            setStrictMode(true);
+            openStrictWindow(StrictWindow.STRAND);
 
             final boolean firstEnter = map.registerPlayer(this, pets);   // shim run：登记段缝合点
             map.enterMap(firstEnter, pets);                              // player strand：进图编排
@@ -3795,7 +3813,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            setStrictMode(false);   // strict 窗口收口（正常/异常统一；未开窗路径为幂等空写）
+            closeStrictWindow(StrictWindow.STRAND);   // strict 窗口收口（正常/异常统一；未开窗路径为幂等空写）
         }
         // releaseClient 归调用方（入场任务）的 try/finally；此处不再持有 client 锁
     }

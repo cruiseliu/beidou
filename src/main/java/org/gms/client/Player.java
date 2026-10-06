@@ -89,7 +89,7 @@ public final class Player {
             return;   // 非 actor 上下文（map shim 线程的合法域任务等）
         }
         Character chr = p.character();
-        if (chr == null || !chr.inPacketStrictOnThisThread()) {
+        if (chr == null || !chr.inStrictOnThisThread(StrictWindow.PACKET)) {
             return;   // charlist 阶段 / 不在 packet-strict 窗口（未迁移 op、脚本会话、登录布线）
         }
         switch (PACKET_STRICT_CLIENT) {
