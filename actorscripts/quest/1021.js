@@ -1,4 +1,4 @@
-import { player, ExpSource } from "../lib/bind.js";
+import { player_old as player, ExpSource } from "../lib/bind_player.js";
 import { InteractionManager, NEXT_PREV, i18n } from "../lib/interaction.js";
 
 const MSG = {

@@ -3,7 +3,7 @@ package org.gms.scripting;
 import org.graalvm.polyglot.Value;
 
 /**
- * 脚本定时器门面（bind.js 的 setTimeout/clearTimeout Java 背书，见 doc/10）。
+ * 脚本定时器门面（bind_player.js 的 setTimeout/clearTimeout Java 背书，见 doc/10）。
  * 实际登记/触发归当前脚本宿主（{@link Host}，即各角色的 CharacterScriptRunner）：
  * 到期任务 post 回 owner strand 串行执行；宿主关闭（登出）后静默丢弃。
  *

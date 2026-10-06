@@ -9,7 +9,7 @@
  * 状态：equippedAt 存穿戴时刻的时间戳，小时数由"现在 - 穿戴时刻"推导（不受节拍漂移影响）。
  * 加成通道：RateBucket.EQUIP 桶（与 ITEM 桶的倍率券相乘叠加、同桶取最大）。
  */
-import { RateBucket, getServerLocalTime, setTimeout, clearTimeout } from "../lib/bind.js";
+import { RateBucket, getServerLocalTime, setTimeout, clearTimeout } from "../lib/bind_player.js";
 
 const HOUR_MS = 3600 * 1000;
 const MAX_HOURS = 3;

@@ -63,7 +63,7 @@ public final class ItemRegistry {
         return DEFS.get(itemId);
     }
 
-    /** 条目原文（装载期树往返序列化，注释/排版已规范化）；未登记返回 null。脚本侧经 bind.js JSON.parse 消费 */
+    /** 条目原文（装载期树往返序列化，注释/排版已规范化）；未登记返回 null。脚本侧经 bind_player.js JSON.parse 消费 */
     public static String rawJson(int itemId) {
         return RAW.get(itemId);
     }

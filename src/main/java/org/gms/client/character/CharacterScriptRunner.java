@@ -30,7 +30,7 @@ import java.util.function.Supplier;
  * （道具↔宠物等耦合在此建立/拆除），调用方不得看到半Applied 状态；InventoryTransaction
  * 在 end() 释放背包锁之后才派发钩子，避免"持背包锁等 strand"的死锁配方。
  *
- * <p>脚本内的异步诉求经 setTimeout（bind.js）表达：回调到点 post 回本 strand 串行执行，
+ * <p>脚本内的异步诉求经 setTimeout（bind_player.js）表达：回调到点 post 回本 strand 串行执行，
  * 执行期间 {@link ScriptTimers} 的当前宿主指向本实例（嵌套 setTimeout 归属判定）。
  * {@link #close}（登出）后定时器静默丢弃、脚本入口跳过——整个 context 随之消亡，
  * 未及执行的清理钩子无碍。
@@ -161,7 +161,7 @@ public class CharacterScriptRunner implements ScriptTimers.Host {
         return c;
     }
 
-    // ── 脚本定时器（ScriptTimers.Host；bind.js 的 setTimeout/clearTimeout 背书） ──
+    // ── 脚本定时器（ScriptTimers.Host；bind_player.js 的 setTimeout/clearTimeout 背书） ──
 
     @Override
     public long setTimeout(Value fn, long delayMs) {

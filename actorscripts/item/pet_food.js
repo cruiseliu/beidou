@@ -7,7 +7,7 @@
  *
  * 返回契约（onUse 框架）：true = 已喂食，引擎统一消耗 1 个；false = 拒绝（脚本已自行反馈）。
  */
-import { getMessage, getItemDefinition } from "../lib/bind.js";
+import { getMessage, getItemDefinition } from "../lib/bind_player.js";
 
 const ALL_PETS = -1;
 

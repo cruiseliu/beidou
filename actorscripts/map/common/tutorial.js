@@ -1,5 +1,5 @@
 /**
- * 地图脚本共享库（map/common）：bind.js 只放纯 ECMAScript 写不出来的 Java 绑定，
+ * 地图脚本共享库（map/common）：bind_player.js 只放纯 ECMAScript 写不出来的 Java 绑定，
  * 组合式 util 与教学门工厂归本目录。
  *
  * 地图模块（actorscripts/map/<MAP_ID>.js）按 WZ portal script 名同名导出：
@@ -7,7 +7,7 @@
  *   export const adviceMap = mapAdvice();
  * 宽高沿用官方旧脚本（scripts/portal/advice*.js）原文参数；返回 true = 门已处理。
  */
-import { getScriptStrings, player } from "../../lib/bind.js";
+import { getScriptStrings, player_old as player } from "../../lib/bind_player.js";
 
 /**
  * 教学提示 balloon：解锁已并入 ShowHint 语义（版本 wire 拼装 HINT + unlock 双包），

@@ -12,10 +12,10 @@
  * type 是客户端回显的当前对话框类型（0 = talk，0x0C = accept/decline），用于对口分发。
  */
 
-import { player, getScriptStrings } from "./bind.js";
+import { player_old as player, getScriptStrings } from "./bind_player.js";
 
 /**
- * 官方脚本文本的字面取用视图（纯 JS wrapper，key 格式解释在此，基础取表归 bind.js 的
+ * 官方脚本文本的字面取用视图（纯 JS wrapper，key 格式解释在此，基础取表归 bind_player.js 的
  * getScriptStrings）：i18n.quest0[5] = quest0.xml 的 "$SCRIPTSTRING_QUEST0_5$"。
  * 两层全惰性——第一层（文件名）只建代理不触数据（模块装载期安全），第二层首次索引访问
  * 才装表（per-file 解析一次，序号来自键尾 _N$，_MOBILE 等变体键自然不匹配）。

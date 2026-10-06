@@ -16,7 +16,7 @@
  *   - 登出时引擎对每个在包道具回调 onLeaveInventory(chr, item, isLogout=true)（引擎侧 TODO，
  *     脚本按"回调必然触发"书写——定时器与状态因此总能被清干净）。
  *
- * import 的 API 契约（bind.js，本注释即约定）：
+ * import 的 API 契约（bind_player.js，本注释即约定）：
  *   getItemDefinition(itemId) -> data/item 条目原文对象 | null（字段集随数据文件：
  *       hooks / expRate / mesoRate / dropRate ...，缺失即 undefined）。
  *       rate 映射值 = wz 路径（如 "info/rate"），指向该 kind 倍率真值所在节点
@@ -36,7 +36,7 @@
  */
 
 import { getItemDefinition, getWzItemData, getServerLocalTime, setTimeout,
-         clearTimeout, RateBucket } from "../lib/bind.js";
+         clearTimeout, RateBucket } from "../lib/bind_player.js";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const WEEK_MS = 7 * DAY_MS;
