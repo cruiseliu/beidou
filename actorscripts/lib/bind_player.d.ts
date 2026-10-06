@@ -16,13 +16,10 @@ export type DialogButtonsName = "NEXT" | "PREV_OK" | "PREV_NEXT" | "OK" | "YES_N
 export type ExpSourceName = "QUEST";
 
 /**
- * InteractContext 的 JS 视图（org.gms.client.scripting.InteractContext，player strand
- * 会话身份）。演出类 API 已外移（showInfo → message 分面）。
+ * InteractContext 的 JS 视图（org.gms.client.scripting.InteractContext）：opaque 会话
+ * 令牌——方法面不对 JS 开放（终结归 player.talk.end；对话 npc 由后端自动选择）。
  */
-export interface InteractContext {
-    /** 终结会话（登记清除 + NPC 冷却）。 */
-    dispose(): void;
-}
+export interface InteractContext {}
 
 /**
  * talk 分面（org.gms.client.scripting.api.TalkApi）：对话页渲染，npc 归会话上下文。
@@ -30,6 +27,8 @@ export interface InteractContext {
 export interface TalkApi {
     /** 统一对话页入口：buttons 为 DialogButtons 枚举名，Java 侧 valueOf 转换。 */
     send(ctx: InteractContext, text: string, buttons: DialogButtonsName): void;
+    /** 终结对话（解除会话登记）。 */
+    end(ctx: InteractContext): void;
 }
 
 /**

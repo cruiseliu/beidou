@@ -68,7 +68,7 @@ public final class CharacterNpcInteract implements NpcModule.Handler {
         InteractContext ctx = context;
         if (ctx != null) {
             if (lastMsg == 2 && action == 0) {
-                ctx.dispose();
+                clearContext(ctx);
             } else if (lastMsg != 2) {
                 QuestScript.more(ctx, action, lastMsg, selection);
             }

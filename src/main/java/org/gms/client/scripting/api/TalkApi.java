@@ -56,6 +56,14 @@ public final class TalkApi {
         talk(ctx, text, DialogButtons.valueOf(buttons));
     }
 
+    /**
+     * 终结对话（原 InteractContext.dispose 的脚本面迁移；ctx 对 JS 为 opaque 令牌，
+     * 方法面不对 JS 开放）：解除会话登记（幂等——仅当仍登记同一实例时生效）。
+     */
+    public void end(InteractContext ctx) {
+        Player.require("TalkApi.end").character().getNpcInteract().clearContext(ctx);
+    }
+
     private void talk(InteractContext ctx, String text, DialogButtons buttons) {
         Player.require("TalkApi.send").character().getRemote().npc().talk(ctx.getNpcId(), text, buttons, 0);
     }

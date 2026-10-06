@@ -243,16 +243,16 @@ export class InteractionManager {
     #begin(ctx, questId) {
         this.#ctx = ctx;
         this.#currentPage = null;
-        // 瀑布终结（正常 return / DialogClosed / 脚本异常 reject）即 dispose——脚本 reset
-        // 钩子 + 会话清除 + NPC 冷却。DialogClosed（ESC）是正常用户行为，静默收尾；
+        // 瀑布终结（正常 return / DialogClosed / 脚本异常 reject）即 end——脚本 reset
+        // 钩子 + 会话清除。DialogClosed（ESC）是正常用户行为，静默收尾；
         // 其余异常重新抛出——不被本层吞掉。吞掉即静默死：微任务续体的 rejection 成
         // 悬空无处理者，宿主/strand 均无感知（strict canary 排查实证）；重抛的 rejection
         // 由 context 的 js.unhandled-rejections=throw 在微任务排空点转 PolyglotException
         // 出宿主调用，落 CharacterScriptRunner 的 fail-safe ERROR 日志。
         this.#startFn(this.#interact(ctx), questId).then(
-            () => ctx.dispose(),
+            () => player.talk.end(ctx),
             (e) => {
-                ctx.dispose();
+                player.talk.end(ctx);
                 if (!(e instanceof DialogClosed)) {
                     throw e;
                 }
