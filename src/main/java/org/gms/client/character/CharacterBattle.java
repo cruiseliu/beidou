@@ -323,6 +323,7 @@ class CharacterBattle implements BattleModule.Handler {
         public int speed = 4;
         public Point position = new Point();
 
+        /*
         public BuffEffectData getAttackEffect(Character chr, Skill theSkill) {
             Skill mySkill = theSkill;
             if (mySkill == null) {
@@ -344,6 +345,7 @@ class CharacterBattle implements BattleModule.Handler {
             }
             return mySkill.getEffect(skillLevel);
         }
+        */
     }
 
     public static void applyAttack(AttackInfo attack, final Character player, int attackCount) {

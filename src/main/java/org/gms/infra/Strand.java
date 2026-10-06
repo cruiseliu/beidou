@@ -249,13 +249,14 @@ public class Strand implements AutoCloseable {
     }
 
     /**
-     * 离散断言：当前线程不在本 strand 上时告警。迁移期（M0~M3）固定 warn 模式不抛异常，
-     * 由调用方撒在已迁移组件入口，暴露漏改道的调用路径；全量迁移后翻转为抛出。
+     * strand 归属断言（当前 strict ON）：当前线程不在本 strand 上时抛出。哨位由调用方
+     * 撒在已迁移组件入口（CharacterPets 读入口 / KeyedTimers.scheduleOrRun）；异常经
+     * strand 任务体隔离记日志吞掉（worker 存活），违规现场以日志栈为证。
      */
     public void checkOnStrand(String what) {
         if (!onStrand()) {
-            log.warn("off-strand 访问 [{}]，期望 strand [{}]，当前线程 {}",
-                    what, name, Thread.currentThread(), new IllegalStateException("off-strand"));
+            throw new IllegalStateException("off-strand 访问 [" + what + "]，期望 strand [" + name
+                    + "]，当前线程 " + Thread.currentThread());
         }
     }
 
