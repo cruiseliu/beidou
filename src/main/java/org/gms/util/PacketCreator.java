@@ -2076,9 +2076,9 @@ public class PacketCreator {
         return p;
     }
 
-    public static Packet closeRangeAttack(Character chr, int skill, int skilllevel, int stance, int numAttackedAndDamage, Map<Integer, List<Integer>> damage, int speed, int direction, int display) {
+    public static Packet closeRangeAttack(int cid, int skill, int skilllevel, int stance, int numAttackedAndDamage, Map<Integer, List<Integer>> damage, int speed, int direction, int display) {
         final OutPacket p = OutPacket.create(SendOpcode.CLOSE_RANGE_ATTACK);
-        addAttackBody(p, chr, skill, skilllevel, stance, numAttackedAndDamage, 0, damage, speed, direction, display);
+        addAttackBody(p, cid, skill, skilllevel, stance, numAttackedAndDamage, 0, damage, speed, direction, display);
         return p;
     }
 
@@ -2099,7 +2099,11 @@ public class PacketCreator {
     }
 
     private static void addAttackBody(OutPacket p, Character chr, int skill, int skilllevel, int stance, int numAttackedAndDamage, int projectile, Map<Integer, List<Integer>> damage, int speed, int direction, int display) {
-        p.writeInt(chr.getId());
+        addAttackBody(p, chr.getId(), skill, skilllevel, stance, numAttackedAndDamage, projectile, damage, speed, direction, display);
+    }
+
+    private static void addAttackBody(OutPacket p, int cid, int skill, int skilllevel, int stance, int numAttackedAndDamage, int projectile, Map<Integer, List<Integer>> damage, int speed, int direction, int display) {
+        p.writeInt(cid);
         p.writeByte(numAttackedAndDamage);
         p.writeByte(0x5B);//?
         p.writeByte(skilllevel);

@@ -166,6 +166,8 @@ public class MapleMap {
     private final Lock objectWLock;
     /** player strand 侧句柄（doc/13）：actor shim 归 ref 持有，本类的 shim 用点一律经 ref */
     final MapleMapRef ref;
+    /** 近战攻击 phase 2 执行器（map actor 域内，见 Battle） */
+    private final Battle battle = new Battle(this);
 
     private final Lock lootLock = new ReentrantLock(true);
 
@@ -2757,6 +2759,40 @@ public class MapleMap {
      * @param {Packet} packet - 要广播的数据包。The packet to be broadcasted.
      * @param {Point} rangedFrom - 广播的起点位置。The starting point for broadcasting.
      */
+    /**
+     * 近战攻击 phase 2 入口（player→map 通知，异步）：载荷 = 不可变 Battle.CloseRangeAttackIntent。
+     * 由 {@link MapleMapRef#applyCloseRangeAttack} post 进 shim，map actor 串行执行。
+     */
+    public void applyCloseRangeAttack(Battle.CloseRangeAttackIntent intent) {
+        battle.applyCloseRangeAttack(intent);
+    }
+
+    /**
+     * 攻击中继广播（map actor → 各接收方，postLegacyPacket 过渡桥）：受众语义与
+     * broadcastMessage(source, packet, false, true) 一致（排除 source + ranged 视野 +
+     * 断连清理），仅发送改 postLegacyPacket——接收方 strand 窗口收口后经 ref 触 client
+     * （map actor 直发 client 的过渡替代；攻击中继 S→C 语义化后删除）。
+     */
+    public void broadcastAttackRelay(CharacterRef source, Packet packet) {
+        final double rangeSq = getRangedDistance();
+        final Point rangedFrom = rangeSq < Double.POSITIVE_INFINITY ? source.getPosition() : null;
+        chrRLock.lock();
+        try {
+            Iterator<CharacterRef> iterator = characters.iterator();
+            while (iterator.hasNext()) {
+                CharacterRef chr = iterator.next();
+                if (chrDisconnected(iterator, chr)) {
+                    continue;
+                }
+                if (chr != source && (rangedFrom == null || rangedFrom.distanceSq(chr.getPosition()) <= rangeSq)) {
+                    chr.postLegacyPacket("close-range-relay", client -> client.sendPacket(packet));
+                }
+            }
+        } finally {
+            chrRLock.unlock();
+        }
+    }
+
     public void broadcastMessage(Packet packet, Point rangedFrom) {
         broadcastMessage(null, packet, getRangedDistance(), rangedFrom);
     }

@@ -332,6 +332,14 @@ public final class MapleMapRef {
      * （零 player 可变状态导航）。本方法在 player strand 上调用——shim 任务体内不得再绕回
      * ref 方法（ref 是 player 侧句柄，任务体直调 map 本体字段）。
      */
+    /**
+     * 近战攻击 phase 2 入口（player→map 通知，异步）：载荷 = 不可变 Battle.CloseRangeAttackIntent
+     * （attacker 身份 ref + relay 回声字段 + declared 伤害，零活引用）。player strand 上调用。
+     */
+    public void applyCloseRangeAttack(Battle.CloseRangeAttackIntent intent) {
+        shim.post("apply-close-range-attack", () -> map.applyCloseRangeAttack(intent));
+    }
+
     public void onMoveLife(MapleMap.MoveLifeMsg msg) {
         shim.post("move-life", () -> map.onMoveLife(msg));
     }

@@ -4,36 +4,31 @@ import org.gms.client.EffectType;
 import org.gms.client.JobEnum;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
-import org.gms.client.status.MonsterStatus;
 import org.gms.constants.game.GameConstants;
 import org.gms.constants.id.MapId;
-import org.gms.constants.id.MobId;
 import org.gms.constants.skills.*;
-import org.gms.net.packet.Packet;
 import org.gms.remote.ClientEventHandlerRegistry;
 import org.gms.remote.modules.battle.BattleModule;
 import org.gms.remote.modules.battle.client.CloseRangeAttack;
 import org.gms.server.BuffEffectData;
-import org.gms.server.life.Monster;
-import org.gms.server.maps.MapleMap;
+import org.gms.server.maps.Battle;
 import org.gms.util.AssertUtil;
-import org.gms.util.PacketCreator;
 
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * 战斗模块组件：CLOSE_RANGE_ATTACK 近战攻击的 gameplay 侧全量逻辑。
+ * 战斗模块组件：CLOSE_RANGE_ATTACK 近战攻击 phase 1（player actor，目标无关）。
  *
- * <p>机械复制自 legacy CloseRangeDamageHandler + AbstractDealDamageHandler 的近战路径
- * （handler 体 / AttackInfo / 伤害上限管线 / applyAttack），语义逐行等价，仅入口适配与
- * 死代码省略：wire 解码上移 gms083 codec（本组件收语义载荷后重建 AttackInfo 并执行
- * 伤害上限管线）；currentServerTime 改直调 Server；已注释停用的距离检测主体与其专用
- * 死变量不随迁（legacy 侧保留）。S→C 面仍走 legacy PacketCreator / map 广播（未语义化，
- * strict 哨暂缓）。远程/魔法/召唤/触怪（同基类其余 4 个 handler）仍在 legacy，复制体不回流。
+ * <p>机械复制自 legacy CloseRangeDamageHandler + AbstractDealDamageHandler 的近战路径，
+ * 语义逐行等价；未用的特判分支一律断言（最简版：普攻 skill==0），特判技能后续换更通用
+ * 的方式实现。phase 1 只做目标无关处理（attacker 伤害模型/状态守卫/申报校验），产出
+ * {@link Battle.CloseRangeAttackIntent} post map actor——目标相关处理、伤害最终化
+ * （暴击反转）与中继广播在 phase 2（org.gms.server.maps.Battle，map actor 域内）。
  */
 class CharacterBattle implements BattleModule.Handler {
 
@@ -58,8 +53,8 @@ class CharacterBattle implements BattleModule.Handler {
         BuffEffectData morph = chr.getBuffEffect(EffectType.MORPH);
         AssertUtil.isTrue(morph == null || !morph.isMorphWithoutAttack());
 
-        AssertUtil.isTrue(!MapId.isNettsPyramid(chr.getMap().getId()));
-        AssertUtil.isTrue(!MapId.isDojo(chr.getMap().getId()));
+        AssertUtil.isTrue(!MapId.isNettsPyramid(chr.getMapId()));
+        AssertUtil.isTrue(!MapId.isDojo(chr.getMapId()));
 
         AssertUtil.isTrue(!GameConstants.isFinisherSkill(attack.skill));
         AssertUtil.isTrue(chr.getBuffedValue(EffectType.COMBO) == null);
@@ -72,7 +67,6 @@ class CharacterBattle implements BattleModule.Handler {
         AssertUtil.isTrue(attack.skill != 1211002);
 
         AssertUtil.isTrue(attack.skill == 0);
-        int attackCount = 1;
         /*
         if (attack.skill != 0) {
             attackCount = attack.getAttackEffect(chr, null).getAttackCount();
@@ -100,31 +94,62 @@ class CharacterBattle implements BattleModule.Handler {
         AssertUtil.isTrue(chr.getSkillLevel(WindArcher.WIND_WALK) == 0);
         AssertUtil.isTrue(chr.getBuffedValue(EffectType.WIND_WALK) == null);
 
+        // —— on-hit 特效前置守卫（原 applyAttack 的 player 态断言，目标无关故上提；
+        // 全量版对应块展开为「player actor 内结算 → 数据并入意图」）——
+        AssertUtil.isTrue(chr.getBuffedValue(EffectType.PICKPOCKET) == null);
+        AssertUtil.isTrue(attack.skill != Marauder.ENERGY_DRAIN);
+        AssertUtil.isTrue(attack.skill != ThunderBreaker.ENERGY_DRAIN);
+        AssertUtil.isTrue(attack.skill != NightWalker.VAMPIRE);
+        AssertUtil.isTrue(attack.skill != Assassin.DRAIN);
+        AssertUtil.isTrue(attack.skill != Bandit.STEAL);
+        AssertUtil.isTrue(attack.skill != FPArchMage.FIRE_DEMON);
+        AssertUtil.isTrue(attack.skill != ILArchMage.ICE_DEMON);
+        AssertUtil.isTrue(attack.skill != Outlaw.HOMING_BEACON);
+        AssertUtil.isTrue(attack.skill != Corsair.BULLSEYE);
+        AssertUtil.isTrue(attack.skill != Outlaw.FLAME_THROWER);
+        AssertUtil.isTrue(!chr.isAran());
+        AssertUtil.isTrue(chr.getBuffedValue(EffectType.HAMSTRING) == null);
+        AssertUtil.isTrue(chr.getBuffedValue(EffectType.SLOW) == null);
+        AssertUtil.isTrue(chr.getBuffedValue(EffectType.BLIND) == null);
+        AssertUtil.isTrue(chr.getJob().getId() != 121);
+        AssertUtil.isTrue(chr.getJob().getId() != 122);
+        AssertUtil.isTrue(chr.getBuffedValue(EffectType.COMBO_DRAIN) == null);
+        AssertUtil.isTrue(chr.getJob().getId() != 412);
+        AssertUtil.isTrue(chr.getJob().getId() != 422);
+        AssertUtil.isTrue(chr.getJob().getId() != 1411);
+        AssertUtil.isTrue(chr.getJob().getId() < 311 || chr.getJob().getId() > 322);
 
-        // 伤害应用（player 域写复合体：buff/stats/弹药/装备经验）在 player strand 串行；
-        // 内部 mob 写（Monster.damage）为既有跨界语义（与迁移前等价，阶段二收编）。
-        // 中继广播异步交 map（可见性/他人流归 map 域；中继相对伤害包的跨线程序为
-        // 接受的渲染级偏差，solo 无观察者）。
-        applyAttack(attack, chr, attackCount);
-        final Packet relay = PacketCreator.closeRangeAttack(
-            chr,
-            attack.skill,
-            attack.skilllevel,
-            attack.stance,
-            attack.numAttackedAndDamage,
-            attack.allDamage,
-            attack.speed,
-            attack.direction,
-            attack.display
-        );
-        final MapleMap map = chr.getMap();
-        map.post("close-range-relay", () -> map.broadcastMessage(chr, relay, false, true));
+        if (!chr.isAlive()) {
+            return;
+        }
+
+        // phase 1 收口：意图 post map actor（phase 2 目标相关处理 + 伤害最终化 + 中继，
+        // 见 org.gms.server.maps.Battle）。declaredDamage 按 allDamage.keySet() 现序冻结
+        // ——即历史 relay 的 keySet 迭代序（HashMap 桶序），多目标字节一致性必需。
+        final Map<Integer, List<Integer>> declaredOrder = new LinkedHashMap<>();
+        for (Map.Entry<Integer, List<Integer>> entry : attack.allDamage.entrySet()) {
+            declaredOrder.put(entry.getKey(), entry.getValue());
+        }
+        owner.getMapRef().applyCloseRangeAttack(new Battle.CloseRangeAttackIntent(
+                chr.ref(),
+                chr.getId(),
+                attack.skill,
+                attack.skilllevel,
+                attack.stance,
+                attack.numAttackedAndDamage,
+                attack.speed,
+                attack.direction,
+                attack.display,
+                attack.dmgCap,
+                attack.canCrit,
+                declaredOrder
+        ));
     }
 
     /**
      * 语义载荷 → AttackInfo（历史 parseDamage 近战路径的 role 拆分）：字段回填 +
-     * 技能等级查表（含 PQ 技能豁免）+ 伤害上限管线与逐怪伤害改写。
-     * MESO_EXPLOSION 无上限管线（历史 parse 同款早退）。
+     * attacker 伤害上限模型（目标无关段）。逐 hit 的暴击反转与目标相关调整不再在此——
+     * 上限的最终值归 phase 2（map actor）才算齐。
      */
     private static AttackInfo parseCloseRange(CloseRangeAttack data, Character chr) {
         AttackInfo ret = new AttackInfo();
@@ -166,7 +191,7 @@ class CharacterBattle implements BattleModule.Handler {
         AssertUtil.isTrue(ret.skill != NightLord.VENOMOUS_STAR);
         AssertUtil.isTrue(ret.skill != Shadower.VENOMOUS_STAB);
 
-        
+
         calcDmgMax = chr.calculateMaxBaseDamage(chr.getTotalWatk());
 
         BuffEffectData effect = null;
@@ -213,6 +238,8 @@ class CharacterBattle implements BattleModule.Handler {
         AssertUtil.isTrue(!chr.getJob().isA(JobEnum.MARAUDER));
         AssertUtil.isTrue(!chr.getJob().isA(JobEnum.BUCCANEER));
         boolean canCrit = false;
+        ret.dmgCap = calcDmgMax;
+        ret.canCrit = canCrit;
 
         AssertUtil.isTrue(chr.getBuffEffect(EffectType.SHARP_EYES) == null);
 
@@ -286,7 +313,7 @@ class CharacterBattle implements BattleModule.Handler {
                 AssertUtil.isTrue(ret.skill != ThunderBreaker.BARRAGE);
 
                 AssertUtil.isTrue(ret.skill != Marksman.SNIPE);
-                    
+
                 AssertUtil.isTrue(ret.skill != Beginner.BAMBOO_RAIN);
                 AssertUtil.isTrue(ret.skill != Noblesse.BAMBOO_RAIN);
                 AssertUtil.isTrue(ret.skill != Evan.BAMBOO_THRUST);
@@ -322,6 +349,8 @@ class CharacterBattle implements BattleModule.Handler {
         public boolean ranged, magic;
         public int speed = 4;
         public Point position = new Point();
+        public long dmgCap;
+        public boolean canCrit;
 
         /*
         public BuffEffectData getAttackEffect(Character chr, Skill theSkill) {
@@ -347,186 +376,4 @@ class CharacterBattle implements BattleModule.Handler {
         }
         */
     }
-
-    public static void applyAttack(AttackInfo attack, final Character player, int attackCount) {
-        final MapleMap map = player.getMap();
-
-        BuffEffectData attackEffect = null;
-        final int job = player.getJob().getId();
-
-        AssertUtil.isTrue(attack.skill == 0);
-
-        /*
-        if (attack.skill != 0) {
-            theSkill = SkillFactory.getSkill(attack.skill); // thanks Conrad for noticing some Aran skills not consuming MP
-            attackEffect = attack.getAttackEffect(player, theSkill); //returns back the player's attack effect so we are gucci
-            if (attackEffect == null) {
-                player.sendPacket(PacketCreator.enableActions());
-                return;
-            }
-
-            int mobCount = attackEffect.getMobCount();
-            if (attack.skill != Cleric.HEAL) {
-                if (player.isAlive()) {
-                    if (attack.skill == Aran.BODY_PRESSURE || attack.skill == Marauder.ENERGY_CHARGE || attack.skill == ThunderBreaker.ENERGY_CHARGE) {  // thanks IxianMace for noticing Energy Charge skills refreshing on touch
-                        // prevent touch dmg skills refreshing
-                    } else if (attack.skill == DawnWarrior.FINAL_ATTACK || attack.skill == WindArcher.FINAL_ATTACK) {
-                        // prevent cygnus FA refreshing
-                        mobCount = 15;
-                    } else if (attack.skill == NightWalker.POISON_BOMB) {// Poison Bomb
-                        attackEffect.applyTo(player, new Point(attack.position.x, attack.position.y));
-                    } else {
-                        attackEffect.applyTo(player);
-
-                        if (attack.skill == Page.FINAL_ATTACK_BW || attack.skill == Page.FINAL_ATTACK_SWORD || attack.skill == Fighter.FINAL_ATTACK_SWORD
-                                || attack.skill == Fighter.FINAL_ATTACK_AXE || attack.skill == Spearman.FINAL_ATTACK_SPEAR || attack.skill == Spearman.FINAL_ATTACK_POLEARM
-                                || attack.skill == Hunter.FINAL_ATTACK || attack.skill == Crossbowman.FINAL_ATTACK) {
-
-                            mobCount = 15;//:(
-                        } else if (attack.skill == Aran.HIDDEN_FULL_DOUBLE || attack.skill == Aran.HIDDEN_FULL_TRIPLE || attack.skill == Aran.HIDDEN_OVER_DOUBLE || attack.skill == Aran.HIDDEN_OVER_TRIPLE) {
-                            mobCount = 12;
-                        }
-                    }
-                } else {
-                    player.sendPacket(PacketCreator.enableActions());
-                }
-            }
-
-            if (attack.numAttacked > mobCount) {
-                return;
-            }
-        }*/
-
-        if (!player.isAlive()) {
-            return;
-        }
-
-        AssertUtil.isTrue(attack.skill != ChiefBandit.MESO_EXPLOSION);
-
-        for (Integer oned : attack.allDamage.keySet()) {
-            final Monster monster = map.getMonsterByOid(oned);
-            if (monster != null) {
-                int totDamageToOneMonster = 0;
-                List<Integer> onedList = attack.allDamage.get(oned);
-
-                AssertUtil.isTrue(!monster.isBuffed(MonsterStatus.MAGIC_IMMUNITY));
-                AssertUtil.isTrue(!monster.isBuffed(MonsterStatus.WEAPON_IMMUNITY));
-
-                AssertUtil.isTrue(!MobId.isDojoBoss(monster.getId()));
-
-                for (Integer eachd : onedList) {
-                    if (eachd < 0) {
-                        eachd += Integer.MAX_VALUE;
-                    }
-                    totDamageToOneMonster += eachd;
-                }
-                monster.aggroMonsterDamage(player, totDamageToOneMonster);
-
-                AssertUtil.isTrue(player.getBuffedValue(EffectType.PICKPOCKET) == null);
-
-                AssertUtil.isTrue(attack.skill != Marauder.ENERGY_DRAIN);
-                AssertUtil.isTrue(attack.skill != ThunderBreaker.ENERGY_DRAIN);
-                AssertUtil.isTrue(attack.skill != NightWalker.VAMPIRE);
-                AssertUtil.isTrue(attack.skill != Assassin.DRAIN);
-
-                AssertUtil.isTrue(attack.skill != Bandit.STEAL);
-
-                AssertUtil.isTrue(attack.skill != FPArchMage.FIRE_DEMON);
-                AssertUtil.isTrue(attack.skill != ILArchMage.ICE_DEMON);
-
-                AssertUtil.isTrue(attack.skill != Outlaw.HOMING_BEACON);
-                AssertUtil.isTrue(attack.skill != Corsair.BULLSEYE);
-
-                AssertUtil.isTrue(attack.skill != Outlaw.FLAME_THROWER);
-
-                AssertUtil.isTrue(!player.isAran());
-
-                AssertUtil.isTrue(player.getBuffedValue(EffectType.HAMSTRING) == null);
-
-                AssertUtil.isTrue(player.getBuffedValue(EffectType.SLOW) == null);
-
-                AssertUtil.isTrue(player.getBuffedValue(EffectType.BLIND) == null);
-
-                AssertUtil.isTrue(job != 121);
-                AssertUtil.isTrue(job != 122);
-
-                AssertUtil.isTrue(player.getBuffedValue(EffectType.COMBO_DRAIN) == null);
-
-                AssertUtil.isTrue(job != 412);
-                AssertUtil.isTrue(job != 422);
-                AssertUtil.isTrue(job != 1411);
-
-                AssertUtil.isTrue(job < 311 || job > 322);
-
-                AssertUtil.isTrue(attack.skill == 0);
-                /*
-                if (attack.skill != 0) {
-                    if (attackEffect.getFixDamage() != -1) {
-                        int threeSnailsId = player.getJobType() * 10000000 + 1000;
-                        if (attack.skill == threeSnailsId) {
-                            if (GameConfig.getServerBoolean("use_ultra_three_snails")) {
-                                int skillLv = player.getSkillLevel(threeSnailsId);
-
-                                if (skillLv > 0) {
-                                    AbstractPlayerInteraction api = player.getAbstractPlayerInteraction();
-
-                                    int shellId = switch (skillLv) {
-                                        case 1 -> ItemId.SNAIL_SHELL;
-                                        case 2 -> ItemId.BLUE_SNAIL_SHELL;
-                                        default -> ItemId.RED_SNAIL_SHELL;
-                                    };
-
-                                    if (api.haveItem(shellId, 1)) {
-                                        api.gainItem(shellId, (short) -1, false);
-                                        totDamageToOneMonster *= player.getLevel();
-                                    } else {
-                                        player.dropMessage(5, "你的蜗牛壳已经用完了，无法使用蜗牛投掷术。");  //蜗牛壳消耗完了
-                                        totDamageToOneMonster = 0;
-                                    }
-                                } else {
-                                    totDamageToOneMonster = 0;
-                                }
-                            }
-                        }
-                    }
-                }
-                */
-
-                AssertUtil.isTrue(attackEffect == null);
-
-                AssertUtil.isTrue(attack.skill != Paladin.HEAVENS_HAMMER);
-
-                AssertUtil.isTrue(attack.skill != Aran.COMBO_TEMPEST);
-
-                AssertUtil.isTrue(attack.skill != Aran.BODY_PRESSURE);
-
-                map.damageMonster(player.ref(), monster, totDamageToOneMonster);
-
-                AssertUtil.isTrue(!monster.isBuffed(MonsterStatus.WEAPON_REFLECT));
-                AssertUtil.isTrue(!monster.isBuffed(MonsterStatus.MAGIC_REFLECT));
-            }
-        }
-    }
-
-    /*
-    private static void damageMonsterWithSkill(final Character attacker, final MapleMap map, final Monster monster, final int damage, int skillid, int fixedTime) {
-        int animationTime;
-
-        if (fixedTime == 0) {
-            animationTime = SkillFactory.getSkill(skillid).getAnimationTime();
-        } else {
-            animationTime = fixedTime;
-        }
-
-        if (animationTime > 0) { // be sure to only use LIMITED ATTACKS with animation time here
-            TimerManager.getInstance().schedule(() -> {
-                map.broadcastMessage(PacketCreator.damageMonster(monster.getObjectId(), damage), monster.getPosition());
-                map.damageMonster(attacker.ref(), monster, damage);
-            }, animationTime);
-        } else {
-            map.broadcastMessage(PacketCreator.damageMonster(monster.getObjectId(), damage), monster.getPosition());
-            map.damageMonster(attacker.ref(), monster, damage);
-        }
-    }
-    */
 }

@@ -2120,13 +2120,21 @@ Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god b
      * target update for the attacker shortly.
      */
     public void aggroMonsterDamage(Character attacker, int damage) {
+        aggroMonsterDamage(CharacterRef.of(attacker), damage);
+    }
+
+    /**
+     * ref 重载（map actor 域消费：phase 2 战斗任务体只有 attacker 身份 ref，不触本体）。
+     * 语义与本体入口一致——方法体只消费 id/ref。
+     */
+    public void aggroMonsterDamage(CharacterRef attacker, int damage) {
         MonsterAggroCoordinator mmac = this.getMapAggroCoordinator();
         mmac.addAggroDamage(this, attacker.getId(), damage);
 
         CharacterRef chrController = this.getController();    // aggro based on DPS rather than first-come-first-served, now live after suggestions thanks to MedicOP, Thora, Vcoc
         if (chrController == null || chrController.getId() != attacker.getId()) {
-            if (this.getMapAggroCoordinator().isLeadingCharacterAggro(this, CharacterRef.of(attacker))) {
-                this.aggroSwitchController(CharacterRef.of(attacker), true);
+            if (this.getMapAggroCoordinator().isLeadingCharacterAggro(this, attacker)) {
+                this.aggroSwitchController(attacker, true);
             } else {
                 this.setControllerHasAggro(true);
                 this.aggroUpdatePuppetVisibility();
