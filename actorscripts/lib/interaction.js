@@ -12,7 +12,7 @@
  * type 是客户端回显的当前对话框类型（0 = talk，0x0C = accept/decline），用于对口分发。
  */
 
-import { player_old as player, getScriptStrings } from "./bind_player.js";
+import { player, player_old, getScriptStrings } from "./bind_player.js";
 
 /**
  * 官方脚本文本的字面取用视图（纯 JS wrapper，key 格式解释在此，基础取表归 bind_player.js 的
@@ -91,11 +91,13 @@ const ACCEPT_DECLINE = 0x0C;
 export class InteractionManager {
 
     #startFn;         // 会话瀑布函数 (interact, quest) => Promise
+    #npc;             // 对话 npc（脚本提供；对话页渲染经 player.talk 发往此 id）
     #q = null;        // 当前会话身份（QuestApi 实例）；实例变化 = 新会话开场
     #pending = null;  // 挂起的对话（pages 链位置 + resolve/reject）；null = 无对话
 
-    constructor(startFn) {
+    constructor(startFn, npc) {
         this.#startFn = startFn;
+        this.#npc = npc;
     }
 
     /**
@@ -113,11 +115,16 @@ export class InteractionManager {
     };
 
     #begin(q) {
+        // 脚本提供的 npc 与会话 npc 不一致 = 脚本 typo（对话会发往错误的 npc token），
+        // 响亮失败（typo 响亮失败纪律，同 i18n）
+        if (q.npc() !== this.#npc) {
+            throw new Error("interaction: npc 不匹配（脚本 " + this.#npc + " / 会话 " + q.npc() + "）");
+        }
         this.#q = q;
         this.#pending = null;
         const quest = {
-            forceStart: () => player.forceStartQuest(q.questId(), q.npc()),
-            forceComplete: () => player.forceCompleteQuest(q.questId(), q.npc()),
+            forceStart: () => player_old.forceStartQuest(q.questId(), q.npc()),
+            forceComplete: () => player_old.forceCompleteQuest(q.questId(), q.npc()),
         };
         // 瀑布终结（正常 return / DialogClosed / 脚本异常 reject）即 dispose——脚本 reset
         // 钩子 + 会话清除 + NPC 冷却。DialogClosed（ESC）是正常用户行为，静默收尾；
@@ -173,18 +180,19 @@ export class InteractionManager {
         });
     }
 
-    /** 渲染当前页：按钮样式由位置推导（首页 00 01 / 中间 01 01），末页由哨兵决定。 */
+    /** 渲染当前页：按钮样式由位置推导（首页 00 01 / 中间 01 01），末页由哨兵决定。
+     *  对话页经 player.talk 发往构造时脚本提供的 npc（会话无绑定）。 */
     #render() {
         const pd = this.#pending;
         const text = pd.pages[pd.index];
         if (pd.kind === "confirm") {
-            this.#q.sendAcceptDecline(text);
+            player.talk.sendAcceptDecline(this.#npc, text);
         } else if (pd.index === pd.pages.length - 1 && pd.lastStyle !== NEXT_PREV) {
-            this.#q.sendPrevOk(text);
+            player.talk.sendPrevOk(this.#npc, text);
         } else if (pd.index === 0) {
-            this.#q.sendNext(text);
+            player.talk.sendNext(this.#npc, text);
         } else {
-            this.#q.sendPrevNext(text);
+            player.talk.sendPrevNext(this.#npc, text);
         }
     }
 

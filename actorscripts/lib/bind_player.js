@@ -137,11 +137,12 @@ export function getMessage(code, ...args) {
 const PlayerApis = Java.type("org.gms.client.scripting.api.PlayerApis");
 
 /**
- * 脚本 API 显式范围（player actor）：{ basic, stats, inventory, message } 四分面，
+ * 脚本 API 显式范围（player actor）：{ basic, stats, inventory, message, talk } 五分面，
  * = PlayerApis 的 public 字段面。分面无状态，模块装载期 eager 构造安全；方法内
  * character 经 actor context（Player.require）现取。用法如
  * {@code player.stats.getHp()}、{@code player.inventory.gainItem(id)}、
- * {@code player.basic.gainExp(n, ExpSource.X)}、{@code player.message.showHint(...)}。
+ * {@code player.basic.gainExp(n, ExpSource.X)}、{@code player.message.showHint(...)}、
+ * {@code player.talk.sendNext(npc, text)}（npc 由脚本提供，会话无绑定）。
  * 任务会话（forceStart/forceComplete）不在此面——归 interaction.js 的 QuestApi 会话对象。
  */
 export const player = new PlayerApis();

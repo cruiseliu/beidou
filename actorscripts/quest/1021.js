@@ -68,5 +68,7 @@ async function end(interact, quest) {
     }
 }
 
-export const q1021s = new InteractionManager(start).entry;
-export const q1021e = new InteractionManager(end).entry;
+const ROGER = 2000;   // 对话 npc（Roger）：TalkApi 会话无绑定，npc 由脚本提供
+
+export const q1021s = new InteractionManager(start, ROGER).entry;
+export const q1021e = new InteractionManager(end, ROGER).entry;

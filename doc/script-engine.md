@@ -27,7 +27,7 @@ legacy 路径。事件脚本（`scripts/event`）暂属 legacy（`Channel.getEve
   串行进 Context，无锁）。
 - **`player` 全局绑定**：宿主把 Player actor 注入 context bindings；`bind_player.js`
   的 `player` = Java 侧聚合 `org.gms.client.scripting.api.PlayerApis`——显式白名单
-  分面 `{ basic, stats, inventory, message }`，模块顶层 eager 构造（分面无状态，构造
+  分面 `{ basic, stats, inventory, message, talk }`，模块顶层 eager 构造（分面无状态，构造
   不触角色），方法内 character 经 actor context（`Player.require`）现取，不存槽；
   过渡期旧全通代理保留为 `player_old`（存量脚本迁移完成后删除）。
   **脚本装载只在 player 域发生**：Context/模块均惰性——首个脚本任务（钩子派发、
