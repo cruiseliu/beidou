@@ -146,15 +146,13 @@ public final class CharacterRef implements MapObject {
      */
     private void notInStrictPipeline() {
         PipelineContext ctx = PipelineContext.current();
-        if (ctx == null || ctx.ownerType != PipelineContext.OwnerType.CHARACTER
-                || ctx.ownerId != id || !ctx.kinds.contains(StrictWindow.STRAND)) {
-            return;   // 非本角色管线或种类未开：合法域上下文
+        if (ctx != null && ctx.kinds.contains(StrictWindow.STRAND)) {
+            AssertUtil.isTrue(
+                ctx.ownerType == PipelineContext.OwnerType.CHARACTER && ctx.ownerId == id,
+                "strict 管线执行窗口内经 CharacterRef 触达本体 (cid=" + id + ")"
+            );
+
         }
-        // 触的是管线 owner 本人：须正跑在 owner 的 actor 上（ref 触自己 = 自访，合法）；
-        // 跑在别的 actor（map actor / 他人 strand）即跨域触达，咬。
-        Player self = Player.current();
-        AssertUtil.isTrue(self != null && self.character() != null && self.character().getId() == id,
-                "strict 管线执行窗口内经 CharacterRef 触达本体 (cid=" + id + ")");
     }
 
     /** 本体 id（首次读取捕获，见字段注；不访问 Character） */

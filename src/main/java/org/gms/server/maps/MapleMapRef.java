@@ -79,7 +79,7 @@ public final class MapleMapRef {
      */
     private void assertNotInStrictPipeline(String what) {
         PipelineContext ctx = PipelineContext.current();
-        if (ctx != null) {
+        if (ctx != null && ctx.kinds.contains(StrictWindow.STRAND)) {
             AssertUtil.isTrue(
                 ctx.ownerType == PipelineContext.OwnerType.MAP && ctx.ownerId == mapId,
                 "strict 管线执行窗口内经 MapleMapRef 直调 map 本体: " + what + " (map=" + mapId + ")"
