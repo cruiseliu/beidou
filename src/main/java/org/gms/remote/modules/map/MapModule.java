@@ -7,6 +7,7 @@ import org.gms.remote.modules.map.client.MoveLife;
 import org.gms.remote.modules.map.client.ReviveHereEvent;
 import org.gms.remote.modules.map.client.movement.MoveElement;
 import org.gms.remote.modules.map.server.AckMoveMonsterEvent;
+import org.gms.remote.modules.map.server.UpdateMonsterHpEvent;
 import org.gms.remote.modules.map.server.ChangeMapServerEvent;
 import org.gms.remote.modules.map.server.CharacterMoveEvent;
 import org.gms.remote.modules.map.server.CharacterQuestCompleteEvent;
@@ -46,6 +47,14 @@ public abstract class MapModule extends AbstractModule {
      */
     public final void ackMoveMonster(int oid, short moveid, int currentMp, boolean useSkills, int skillId, int skillLevel) {
         post(new AckMoveMonsterEvent(oid, moveid, currentMp, useSkills, skillId, skillLevel));
+    }
+
+    /**
+     * 某怪物 HP 变化了（他人流/攻击者投递，接收方连接视角的语义通知；演出形态归版本实现）。
+     * 由地图域在伤害管线内对每个接收方调用。
+     */
+    public final void updateMonsterHp(int oid, int hpPercent) {
+        post(new UpdateMonsterHpEvent(oid, hpPercent));
     }
 
     /**

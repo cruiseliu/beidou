@@ -22,6 +22,7 @@
 package org.gms.server.life;
 
 import org.gms.client.character.CharacterRef;
+import org.gms.client.messages.MapMonsterHpMessage;
 import org.gms.client.quest.medal.SpecialChallengeMedal;
 import org.gms.client.quest.medal.VeteranHunterMedal;
 import org.gms.client.EffectType;
@@ -402,18 +403,17 @@ public class Monster extends AbstractLoadedLife {
             from.getMap().broadcastBossHpMessage(this, this.hashCode(), makeBossHPBarPacket(), getPosition());
         } else if (!isBoss()) {
             int remainingHP = (int) Math.max(1, hp.get() * 100f / getMaxHp());
-            Packet packet = PacketCreator.showMonsterHP(getObjectId(), remainingHP);
-            // HP 帧投递并入过渡桥（postLegacyPacket：接收方 strand 窗口收口后经 ref 触
-            // client，同攻击 relay 形态；map actor 直发 client 的过渡替代）。
+            // HP 变化 = 怪物域状态，语义消息逐接收方投递（接收方 strand 内经 remote 出包；
+            // 原 SHOW_MONSTER_HP 本体直发/桥形态的语义化，同 broadcastCharacterMove 形态）。
             if (from.getParty() != null) {
                 for (PartyCharacter mpc : from.getParty().getMembers()) {
                     CharacterRef member = from.getMap().getCharacterById(mpc.getId());
                     if (member != null) {
-                        member.postLegacyPacket("mob-hp-bar", client -> client.sendPacket(packet));
+                        member.post(new MapMonsterHpMessage(getObjectId(), remainingHP));
                     }
                 }
             } else {
-                from.ref().postLegacyPacket("mob-hp-bar", client -> client.sendPacket(packet));
+                from.ref().post(new MapMonsterHpMessage(getObjectId(), remainingHP));
             }
         }
     }

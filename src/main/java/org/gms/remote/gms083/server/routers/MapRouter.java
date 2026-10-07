@@ -45,6 +45,8 @@ public final class MapRouter extends MapModule implements ServerEventDest {
                             move.skillId(), move.skillLevel(), move.pOption(), move.startPos(), move.elements()));
             case AckMoveMonsterEvent(var oid, var moveid, var currentMp, var useSkills, var skillId, var skillLevel) ->
                     client.send(new MoveLifePacket.Response(oid, moveid, currentMp, useSkills, skillId, skillLevel));
+            case org.gms.remote.modules.map.server.UpdateMonsterHpEvent(var oid, var hpPercent) ->
+                    client.send(new org.gms.remote.gms083.server.packets.ShowMonsterHpPacket(oid, hpPercent));
             case ChangeMapServerEvent(var mapId, var spawnPoint, var hp, var spawnPosition) ->
                     client.send(new SetFieldPacket.Warp(client.getLegacyClient().getChannel() - 1, mapId,
                             spawnPosition != null ? 0x80 : spawnPoint, hp, spawnPosition != null,
