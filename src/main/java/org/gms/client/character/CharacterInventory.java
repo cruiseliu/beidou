@@ -1,10 +1,10 @@
 package org.gms.client.character;
 
+import org.gms.infra.StrictWindow;
 import java.util.Map;
 import java.util.LinkedHashMap;
 import org.gms.model.json.ItemData;
 import org.gms.client.Client;
-import org.gms.client.StrictWindow;
 import org.gms.client.Disease;
 import org.gms.client.inventory.Equip;
 import org.gms.client.inventory.Inventory;

@@ -1,7 +1,9 @@
 package org.gms.client.character;
 
 import org.gms.client.Client;
-import org.gms.client.StrictWindow;
+import org.gms.infra.StrictWindow;
+import org.gms.infra.PipelineContext;
+import org.gms.client.Player;
 import org.gms.client.PlayerStrand;
 import org.gms.client.quest.Quest;
 import org.gms.infra.ActorMessage;
@@ -115,6 +117,7 @@ public final class CharacterRef implements MapObject {
      */
     public void postLegacyPacket(String taskName, Consumer<Client> body) {
         post(taskName, () -> {
+            PipelineContext.clear();   // 上下文截断点：过渡桥的 legacy 直发合法（体内 getClient 免哨）
             Client c = chr.getClient();
             if (c != null) {
                 body.accept(c);
@@ -142,7 +145,16 @@ public final class CharacterRef implements MapObject {
      * （如 map shim 上的 transitionMobView）不属管线违规，不 fire。
      */
     private void notInStrictPipeline() {
-        AssertUtil.isTrue(!chr.inStrictOnThisThread(StrictWindow.STRAND), "strict 管线执行窗口内经 CharacterRef 触达本体 (cid=" + id + ")");
+        PipelineContext ctx = PipelineContext.current();
+        if (ctx == null || ctx.ownerType != PipelineContext.OwnerType.CHARACTER
+                || ctx.ownerId != id || !ctx.kinds.contains(StrictWindow.STRAND)) {
+            return;   // 非本角色管线或种类未开：合法域上下文
+        }
+        // 触的是管线 owner 本人：须正跑在 owner 的 actor 上（ref 触自己 = 自访，合法）；
+        // 跑在别的 actor（map actor / 他人 strand）即跨域触达，咬。
+        Player self = Player.current();
+        AssertUtil.isTrue(self != null && self.character() != null && self.character().getId() == id,
+                "strict 管线执行窗口内经 CharacterRef 触达本体 (cid=" + id + ")");
     }
 
     /** 本体 id（首次读取捕获，见字段注；不访问 Character） */

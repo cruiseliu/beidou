@@ -1,6 +1,8 @@
 package org.gms.server.maps;
 
 import org.gms.client.Client;
+import org.gms.infra.StrictWindow;
+import org.gms.infra.PipelineContext;
 import org.gms.client.Player;
 import org.gms.client.character.CharacterRef;
 import org.gms.client.pet.Pet;
@@ -34,10 +36,12 @@ import java.util.Map;
  */
 public final class MapleMapRef {
 
+    final int mapId;
     final MapleMap map;
     final ActorShim shim;
 
     MapleMapRef(MapleMap map, String shimName) {
+        this.mapId = map.getId();
         this.map = map;
         this.shim = ActorShim.create(shimName);
     }
@@ -74,9 +78,13 @@ public final class MapleMapRef {
      * 由 strand/shim fail-safe 记日志（定位用，不中断服务）。statics() 豁免（不可变读）。
      */
     private void assertNotInStrictPipeline(String what) {
-        Player player = Player.current();
-        AssertUtil.isTrue(player == null || !player.character().strictMode(),
-                "strict 管线执行窗口内经 MapleMapRef 直调 map 本体: " + what + " (map=" + map.getId() + ")");
+        PipelineContext ctx = PipelineContext.current();
+        if (ctx != null) {
+            AssertUtil.isTrue(
+                ctx.ownerType == PipelineContext.OwnerType.MAP && ctx.ownerId == mapId,
+                "strict 管线执行窗口内经 MapleMapRef 直调 map 本体: " + what + " (map=" + mapId + ")"
+            );
+        }
     }
 
     /**
@@ -103,7 +111,7 @@ public final class MapleMapRef {
     // ── 查询（supply：阻塞至 map actor 完成）──
 
     public int getId() {
-        return shim.supply("getId", map::getId);
+        return mapId;
     }
 
     /** 脚本门门禁快照（动态三元组入域时点抽取；查无门返回 null） */
@@ -274,7 +282,11 @@ public final class MapleMapRef {
      * 返回视野新增集（调用方回放到本体可见集，wire 无差）。
      */
     public List<MapObject> sendObjectPlacement(CharacterRef chr, Point pos, int cid, Collection<Summon> ownedSummons) {
-        return shim.supply("sendObjectPlacement", () -> map.sendObjectPlacement(chr, pos, cid, ownedSummons));
+        return shim.supply("sendObjectPlacement", () -> {
+            // 上下文截断（既有教义豁免，同 onTransitionMobView）：controller 选举/换届载荷
+            PipelineContext.clear();
+            return map.sendObjectPlacement(chr, pos, cid, ownedSummons);
+        });
     }
 
     /** 入场注册表登记（oid 快照）+  个人商店可空注册 */
@@ -346,7 +358,13 @@ public final class MapleMapRef {
 
     /** 切图完成的 mob 视图重建（player→map 通知，异步；载荷 = 本体引用，identity/移交专用） */
     public void onTransitionMobView(CharacterRef chr) {
-        shim.post("map-transitionMobView", () -> map.onTransitionMobView(chr));
+        shim.post("map-transitionMobView", () -> {
+            // 上下文截断（既有教义豁免）：controller 移交/选举载荷 = 合法域上下文
+            // （"跨 actor 异步任务在窗口存续期触达 ref 属合法域上下文"），候选遍历的
+            // ref 读随任务截断，不因传播而咬。
+            PipelineContext.clear();
+            map.onTransitionMobView(chr);
+        });
     }
 
     public List<MapItem> updatePlayerItemDropsToParty(int partyid, int charid,

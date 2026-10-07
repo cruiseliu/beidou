@@ -1,8 +1,8 @@
 package org.gms.remote.gms083.client.routers;
 
+import org.gms.infra.StrictWindow;
 import com.alibaba.fastjson2.JSON;
 import org.gms.client.Player;
-import org.gms.client.StrictWindow;
 import org.gms.client.character.Character;
 import org.gms.net.opcodes.RecvOpcode;
 import org.gms.remote.ClientEvent;

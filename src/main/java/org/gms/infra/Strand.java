@@ -36,7 +36,7 @@ public class Strand implements AutoCloseable {
 
     private static final long SLOW_TASK_WARN_MS = 5_000;
     private static final long STUCK_TASK_WARN_MS = 30_000;
-    private static final Task END = new Task("<close>", null, null);
+    private static final Task END = new Task("<close>", null, null, null);
 
     /** 当前线程正在执行的 strand（重入判定）；worker 任务执行期间置位 */
     private static final ThreadLocal<Strand> CURRENT = new ThreadLocal<>();
@@ -82,12 +82,16 @@ public class Strand implements AutoCloseable {
         return CURRENT.get();
     }
 
-    private record Task(String name, Runnable body, CountDownLatch done) {
+    /**
+     * @param ctx strict 管线因果上下文快照（post 时捕获，null = 无窗流量零包装）；
+     *            executor 建立执行期视图（PipelineContext），守卫静态读
+     */
+    private record Task(String name, Runnable body, CountDownLatch done, PipelineContext ctx) {
     }
 
     /** 入队不等待；close 后调用抛 IllegalStateException（响亮失败，迟到任务由调用侧静默） */
     public void post(String taskName, Runnable body) {
-        enqueue(new Task(taskName, body, null));
+        enqueue(new Task(taskName, body, null, PipelineContext.current()));
     }
 
     /**
@@ -106,7 +110,7 @@ public class Strand implements AutoCloseable {
             } finally {
                 done.countDown();
             }
-        }, done));
+        }, done, PipelineContext.current()));
         try {
             done.await();
         } catch (InterruptedException e) {
@@ -145,7 +149,7 @@ public class Strand implements AutoCloseable {
             } finally {
                 done.countDown();
             }
-        }, done));
+        }, done, PipelineContext.current()));
         try {
             done.await();
         } catch (InterruptedException e) {
@@ -179,7 +183,7 @@ public class Strand implements AutoCloseable {
                 if (task == END) {
                     Runnable fin = finalizerOnClose;
                     if (fin != null) {
-                        executeTask(new Task("<finalizer>", fin, null));
+                        executeTask(new Task("<finalizer>", fin, null, null));
                     }
                     return;
                 }
@@ -194,6 +198,10 @@ public class Strand implements AutoCloseable {
         CURRENT.set(this);
         currentTask = task;
         currentTaskStartNanos = System.nanoTime();
+        PipelineContext ctx = task.ctx();
+        if (ctx != null) {
+            PipelineContext.establish(ctx);
+        }
         try {
             task.body().run();
         } catch (Throwable t) {
@@ -205,6 +213,9 @@ public class Strand implements AutoCloseable {
             }
             currentTask = null;
             CURRENT.remove();
+            if (ctx != null) {
+                PipelineContext.clear();
+            }
         }
     }
 

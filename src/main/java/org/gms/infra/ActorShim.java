@@ -39,7 +39,8 @@ public final class ActorShim {
     /** worker 惰性启动（首个任务入队时），常驻直至 JVM 退出 */
     private boolean started = false;
 
-    private record Task(String name, Runnable body) {
+    /** @param ctx strict 管线因果上下文快照（post 捕获；null = 无窗流量零包装） */
+    private record Task(String name, Runnable body, PipelineContext ctx) {
     }
 
     private ActorShim(String name) {
@@ -58,7 +59,7 @@ public final class ActorShim {
 
     /** 入队即返（通知类调用）；无拒绝场景（无界队列，对齐 Strand） */
     public void post(String taskName, Runnable body) {
-        enqueue(new Task(taskName, body));
+        enqueue(new Task(taskName, body, PipelineContext.current()));
     }
 
     /**
@@ -89,7 +90,7 @@ public final class ActorShim {
             } finally {
                 done.countDown();
             }
-        }));
+        }, PipelineContext.current()));
         try {
             done.await();
         } catch (InterruptedException e) {
@@ -122,6 +123,10 @@ public final class ActorShim {
     private void execute(Task task) {
         CURRENT.set(this);
         long start = System.nanoTime();
+        PipelineContext ctx = task.ctx();
+        if (ctx != null) {
+            PipelineContext.establish(ctx);
+        }
         try {
             task.body().run();
         } catch (Throwable t) {
@@ -132,6 +137,9 @@ public final class ActorShim {
                 log.warn("shim [{}] 慢任务: {} 耗时 {}ms", name, task.name(), costMs);
             }
             CURRENT.remove();
+            if (ctx != null) {
+                PipelineContext.clear();
+            }
         }
     }
 

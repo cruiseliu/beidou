@@ -22,7 +22,6 @@
 package org.gms.client.character;
 
 import org.gms.client.Player;
-import org.gms.client.StrictWindow;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -32,6 +31,8 @@ import org.gms.client.BuddylistEntry;
 import org.gms.client.EffectType;
 import org.gms.client.Client;
 import org.gms.client.PlayerStrand;
+import org.gms.infra.PipelineContext;
+import org.gms.infra.StrictWindow;
 import org.gms.infra.Strand;
 import org.gms.client.Disease;
 import org.gms.client.Family;
@@ -909,6 +910,8 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         // post 到 map actor 执行——离开本图的玩家 strand 不越界触达 ref；与后续
         // removePlayer 任务同 shim FIFO，先换届再移除的顺序与旧内联实现一致。
         mapRef.post("release-controlled-monsters", () -> {
+            // 上下文截断（既有教义豁免）：controller 移交/换届载荷
+            PipelineContext.clear();
             for (Monster monster : controlledMonsters) {
                 monster.aggroRedirectController();
             }
@@ -3072,21 +3075,28 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     /** 窗口存续视角（跨线程可见，CharacterRef.strictMode / MapleMapRef 守卫消费）：任一种类在窗即 true */
     public boolean strictMode() { return !strictKinds.isEmpty(); }
 
-    /** 开窗（on strand）：种类并入集合，线程绑定为当前线程 */
+    /**
+     * 开窗（on strand）：种类并入集合；同时建立执行侧因果视图（PipelineContext
+     * ThreadLocal）——post 捕获随任务传播，strict 管线由此跨 actor 延续。
+     */
     public void openStrictWindow(StrictWindow w) {
         strictThread = Thread.currentThread();
         EnumSet<StrictWindow> next = EnumSet.copyOf(strictKinds);
         next.add(w);
         strictKinds = next;
+        PipelineContext.establish(new PipelineContext(PipelineContext.OwnerType.CHARACTER, getId(), next));
     }
 
-    /** 收窗（幂等；未开窗路径空写）：种类移出，集合清空即解除线程绑定 */
+    /** 收窗（幂等；未开窗路径空写）：种类移出，集合清空即解除线程绑定与因果视图 */
     public void closeStrictWindow(StrictWindow w) {
         EnumSet<StrictWindow> next = EnumSet.copyOf(strictKinds);
         if (next.remove(w)) {
             strictKinds = next;
             if (next.isEmpty()) {
                 strictThread = null;
+                PipelineContext.clear();
+            } else {
+                PipelineContext.establish(new PipelineContext(PipelineContext.OwnerType.CHARACTER, getId(), next));
             }
         }
     }

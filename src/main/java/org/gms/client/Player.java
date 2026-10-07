@@ -23,6 +23,9 @@ import org.slf4j.LoggerFactory;
  * （入口处 {@link #require} 断言）；{@link #current()} 的语义边界是"本线程正在作为该
  * actor 执行"，不是"本线程在为该 actor 等待"——阻塞在 strand.run 上的等待者拿到 null。
  */
+import org.gms.infra.PipelineContext;
+import org.gms.infra.StrictWindow;
+
 public final class Player {
     private static final Logger log = LoggerFactory.getLogger(Player.class);
 
@@ -89,7 +92,9 @@ public final class Player {
             return;   // 非 actor 上下文（map shim 线程的合法域任务等）
         }
         Character chr = p.character();
-        if (chr == null || !chr.inStrictOnThisThread(StrictWindow.PACKET)) {
+        PipelineContext ctx = PipelineContext.current();
+        if (ctx == null || chr == null || ctx.ownerType != PipelineContext.OwnerType.CHARACTER
+                || ctx.ownerId != chr.getId() || !ctx.kinds.contains(StrictWindow.PACKET)) {
             return;   // charlist 阶段 / 不在 packet-strict 窗口（未迁移 op、脚本会话、登录布线）
         }
         switch (PACKET_STRICT_CLIENT) {
