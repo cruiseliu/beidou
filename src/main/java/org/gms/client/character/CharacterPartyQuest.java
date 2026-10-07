@@ -5,6 +5,8 @@ import org.gms.server.partyquest.AriantColiseum;
 import org.gms.server.partyquest.MonsterCarnival;
 import org.gms.server.partyquest.MonsterCarnivalParty;
 import org.gms.server.partyquest.PartyQuest;
+import org.gms.server.partyquest.Pyramid;
+import org.gms.util.AssertUtil;
 import org.gms.util.PacketCreator;
 
 /**
@@ -54,6 +56,7 @@ class CharacterPartyQuest {
     }
 
     void setPartyQuest(PartyQuest partyQuest) {
+        AssertUtil.isTrue(!(partyQuest instanceof Pyramid));
         this.partyQuest = partyQuest;
     }
 
