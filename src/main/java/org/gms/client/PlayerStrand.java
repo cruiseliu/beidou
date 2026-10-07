@@ -1,6 +1,8 @@
 package org.gms.client;
 
+import org.gms.client.character.Character;
 import org.gms.infra.ActorMessage;
+import org.gms.infra.PipelineContext;
 import org.gms.infra.Strand;
 
 /**
@@ -42,6 +44,12 @@ public final class PlayerStrand extends Strand {
     /** 仅同包 {@link Player#current()} 消费；不作为导航出口 */
     Player player() {
         return player;
+    }
+
+    @Override
+    protected PipelineContext.Owner domain() {
+        Character chr = player.character();
+        return chr == null ? null : new PipelineContext.Owner(PipelineContext.OwnerType.CHARACTER, chr.getId());
     }
 
     /** 类型化消息投递（跨 actor 消息面）：入队后在 player 域内经分发器执行 */

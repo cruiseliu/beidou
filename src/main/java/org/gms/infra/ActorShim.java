@@ -43,13 +43,25 @@ public final class ActorShim {
     private record Task(String name, Runnable body, PipelineContext ctx) {
     }
 
+    private final PipelineContext.Owner domain;
+
     private ActorShim(String name) {
+        this(name, null);
+    }
+
+    private ActorShim(String name, PipelineContext.Owner domain) {
         this.name = name;
+        this.domain = domain;
     }
 
     /** 创建 shim；name 用于日志/线程名关联（自动追加序号） */
     public static ActorShim create(String name) {
         return new ActorShim(name + "-" + SEQ.incrementAndGet());
+    }
+
+    /** 带执行域 owner 的 shim（map actor = 其宿主地图）：任务体 establish 时盖章 */
+    public static ActorShim create(String name, PipelineContext.Owner domain) {
+        return new ActorShim(name + "-" + SEQ.incrementAndGet(), domain);
     }
 
     /** 当前线程正在执行的本 shim 任务；不在任何 shim 任务内返回 null */
@@ -125,7 +137,9 @@ public final class ActorShim {
         long start = System.nanoTime();
         PipelineContext ctx = task.ctx();
         if (ctx != null) {
-            PipelineContext.establish(ctx);
+            // domain 盖章（同 Strand.executeTask）：owner 换为执行域
+            PipelineContext.establish(domain == null ? ctx
+                    : new PipelineContext(domain.type(), domain.id(), ctx.kinds));
         }
         try {
             task.body().run();

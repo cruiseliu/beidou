@@ -18,6 +18,10 @@ public final class PipelineContext {
         CHARACTER, MAP
     }
 
+    /** 期望 actor 的 owner 标识（type + id），executor 在 establish 时盖章 */
+    public record Owner(OwnerType type, int id) {
+    }
+
     /** 期望 owner（"actor 与 owner 是否一致"的 owner 侧） */
     public OwnerType ownerType;
     public int ownerId;

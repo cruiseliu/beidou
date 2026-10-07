@@ -43,7 +43,8 @@ public final class MapleMapRef {
     MapleMapRef(MapleMap map, String shimName) {
         this.mapId = map.getId();
         this.map = map;
-        this.shim = ActorShim.create(shimName);
+        this.shim = ActorShim.create(shimName,
+                new PipelineContext.Owner(PipelineContext.OwnerType.MAP, map.getId()));
     }
 
     // ── 规范化边界 ──
@@ -81,8 +82,8 @@ public final class MapleMapRef {
         PipelineContext ctx = PipelineContext.current();
         if (ctx != null && ctx.kinds.contains(StrictWindow.STRAND)) {
             AssertUtil.isTrue(
-                ctx.ownerType == PipelineContext.OwnerType.MAP && ctx.ownerId == mapId,
-                "strict 管线执行窗口内经 MapleMapRef 直调 map 本体: " + what + " (map=" + mapId + ")"
+                    ctx.ownerType == PipelineContext.OwnerType.MAP && ctx.ownerId == mapId,
+                    "strict 管线执行窗口内经 MapleMapRef 直调 map 本体: " + what + " (map=" + mapId + ")"
             );
         }
     }

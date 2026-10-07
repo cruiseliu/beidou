@@ -200,7 +200,11 @@ public class Strand implements AutoCloseable {
         currentTaskStartNanos = System.nanoTime();
         PipelineContext ctx = task.ctx();
         if (ctx != null) {
-            PipelineContext.establish(ctx);
+            // domain 盖章：任务在本 actor 上执行，owner 换为执行域（跨 actor 后断言比对
+            // 执行域而非因果起点）；无域（基类裸 strand）保持原样。
+            PipelineContext.Owner domain = domain();
+            PipelineContext.establish(domain == null ? ctx
+                    : new PipelineContext(domain.type(), domain.id(), ctx.kinds));
         }
         try {
             task.body().run();
@@ -252,6 +256,11 @@ public class Strand implements AutoCloseable {
     /** 是否已 close（停止接收并进入排空/终止流程）；关闭后无并发写者，外部可直接读状态 */
     public synchronized boolean isClosed() {
         return closed;
+    }
+
+    /** 本 actor 的执行域 owner（ PlayerStrand = 其角色；基类裸 strand = null：不盖章） */
+    protected PipelineContext.Owner domain() {
+        return null;
     }
 
     /** 当前线程是否在本 strand 上执行 */

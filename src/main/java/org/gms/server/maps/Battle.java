@@ -52,6 +52,9 @@ public final class Battle {
         // 上下文截断（phase 3 前临时豁免）：伤害管线既有 legacy 债——monster.damage(chr.unref())
         // 与 broadcastMobHpBar 本体直发——在传播的 STRAND 窗口内会咬；不截断则教程红。
         // phase 3（monster 状态语义事件回 player actor）落地后本豁免随债消失。
+        // 上下文截断（phase 3 前临时豁免）：伤害管线既有债——monster.damage(chr.unref())
+        // 触 CHARACTER ref 而本域 owner 是 MAP，域不匹配即咬（已实测命中）。phase 3
+        // （monster 状态语义事件回 player actor）落地后本豁免随债消失。
         PipelineContext.clear();
         Map<Integer, List<Integer>> relayDamage = new LinkedHashMap<>();
         for (Map.Entry<Integer, List<Integer>> entry : intent.declaredDamage().entrySet()) {

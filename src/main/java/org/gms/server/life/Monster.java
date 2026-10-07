@@ -403,15 +403,17 @@ public class Monster extends AbstractLoadedLife {
         } else if (!isBoss()) {
             int remainingHP = (int) Math.max(1, hp.get() * 100f / getMaxHp());
             Packet packet = PacketCreator.showMonsterHP(getObjectId(), remainingHP);
+            // HP 帧投递并入过渡桥（postLegacyPacket：接收方 strand 窗口收口后经 ref 触
+            // client，同攻击 relay 形态；map actor 直发 client 的过渡替代）。
             if (from.getParty() != null) {
                 for (PartyCharacter mpc : from.getParty().getMembers()) {
-Character member = from.getMap().getCharacterById(mpc.getId()).unref(); // god bless
+                    CharacterRef member = from.getMap().getCharacterById(mpc.getId());
                     if (member != null) {
-                        member.sendPacket(packet);
+                        member.postLegacyPacket("mob-hp-bar", client -> client.sendPacket(packet));
                     }
                 }
             } else {
-                from.sendPacket(packet);
+                from.ref().postLegacyPacket("mob-hp-bar", client -> client.sendPacket(packet));
             }
         }
     }
