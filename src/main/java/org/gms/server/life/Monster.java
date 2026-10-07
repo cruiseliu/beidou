@@ -22,7 +22,6 @@
 package org.gms.server.life;
 
 import org.gms.client.character.CharacterRef;
-import org.gms.client.messages.MapMonsterHpMessage;
 import org.gms.client.quest.medal.SpecialChallengeMedal;
 import org.gms.client.quest.medal.VeteranHunterMedal;
 import org.gms.client.EffectType;
@@ -80,6 +79,7 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -121,6 +121,9 @@ public class Monster extends AbstractLoadedLife {
     private int parentMobOid = 0;
     private int spawnEffect = 0;
     private final HashMap<Integer, AtomicLong> takenDamage = new HashMap<>();
+    /** 交战玩家 cid 集（HP 条受众候选）：攻击者 + 队伍快照随攻击累积。并发集——
+     * applyDamage 除 map actor 外还会从 DoT DamageTask（timer 线程）进入。 */
+    private final Set<Integer> engagedPlayers = ConcurrentHashMap.newKeySet();
     private ScheduledFuture<?> monsterItemDrop = null;
     private Runnable removeAfterAction = null;
     private boolean availablePuppetUpdate = true;
@@ -395,6 +398,7 @@ public class Monster extends AbstractLoadedLife {
 
     public synchronized void disposeMapObject() {     // mob is no longer associated with the map it was in
         hp.set(-1);
+        engagedPlayers.clear();   // 交战集随离场清空（复活/重生成即全新交战史）
     }
 
     public void broadcastMobHpBar(CharacterRef from) {
@@ -403,18 +407,9 @@ public class Monster extends AbstractLoadedLife {
             from.getMap().broadcastBossHpMessage(this, this.hashCode(), makeBossHPBarPacket(), getPosition());
         } else if (!isBoss()) {
             int remainingHP = (int) Math.max(1, hp.get() * 100f / getMaxHp());
-            // HP 变化 = 怪物域状态，语义消息逐接收方投递（接收方 strand 内经 remote 出包；
-            // 原 SHOW_MONSTER_HP 本体直发/桥形态的语义化，同 broadcastCharacterMove 形态）。
-            if (from.getParty() != null) {
-                for (PartyCharacter mpc : from.getParty().getMembers()) {
-                    CharacterRef member = from.getMap().getCharacterById(mpc.getId());
-                    if (member != null) {
-                        member.post(new MapMonsterHpMessage(getObjectId(), remainingHP));
-                    }
-                }
-            } else {
-                from.post(new MapMonsterHpMessage(getObjectId(), remainingHP));
-            }
+            // HP 变化 = 怪物域状态；受众 = 交战集 ∩ 图上在线玩家（见 engagedPlayers）。
+            // 语义消息逐接收方投递；接收方 actor 校验自身所在图（异步边界的权威判定）。
+            map.broadcastMonsterHp(this, remainingHP);
         }
     }
 
@@ -512,6 +507,29 @@ public class Monster extends AbstractLoadedLife {
 
         maxHpPlusHeal.addAndGet(hpHealed);
         dispatchMonsterHealed(hpHealed);
+    }
+
+    // ── 交战集（HP 条受众候选）──
+
+    /**
+     * 交战玩家登记：攻击者 + 队伍快照随攻击累积（见 {@link org.gms.server.maps.Battle}）。
+     * 广播端由地图与图上玩家求交解析投递，本集只回答"谁该看见"。
+     */
+    public void addEngaged(int cid) {
+        engagedPlayers.add(cid);
+    }
+
+    public void addEngaged(Collection<Integer> cids) {
+        engagedPlayers.addAll(cids);
+    }
+
+    public boolean isEngaged(int cid) {
+        return engagedPlayers.contains(cid);
+    }
+
+    /** 交战玩家 cid 集（live view；调用方解析投递） */
+    public Set<Integer> getEngagedPlayers() {
+        return engagedPlayers;
     }
 
     public boolean isAttackedBy(CharacterRef chr) {

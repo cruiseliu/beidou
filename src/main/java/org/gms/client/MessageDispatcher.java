@@ -1,5 +1,6 @@
 package org.gms.client;
 
+import org.gms.client.character.Character;
 import org.gms.client.messages.MapCharacterMoveMessage;
 import org.gms.client.messages.MapQuestCompleteMessage;
 import org.gms.infra.ActorMessage;
@@ -26,7 +27,14 @@ public final class MessageDispatcher {
             case MapCharacterMoveMessage m -> player.remote().map().characterMove(m.charId(), m.movements());
             case MapQuestCompleteMessage m -> player.remote().map().characterQuestComplete(m.charId());
             case org.gms.client.messages.MapMonsterMoveMessage m -> player.remote().map().monsterMove(m.move());
-            case org.gms.client.messages.MapMonsterHpMessage m -> player.remote().map().updateMonsterHp(m.oid(), m.hpPercent());
+            case org.gms.client.messages.MapMonsterHpMessage m -> {
+                // 接收方权威校验（异步边界）：map 的投递解析基于陈旧玩家表，切图竞态下
+                // 的迟到 HP 帧在此丢弃——唯一知道玩家当前时点所在图的是 Player actor。
+                Character chr = player.character();
+                if (chr != null && chr.getMapId() == m.mapId()) {
+                    player.remote().map().updateMonsterHp(m.oid(), m.hpPercent());
+                }
+            }
             default -> log.warn("未知 actor 消息: {}", msg.name());   // 响亮：infra 不封闭，未知类型 = 装配漏配
         }
     }

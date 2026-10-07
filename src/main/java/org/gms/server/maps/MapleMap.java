@@ -24,6 +24,7 @@ package org.gms.server.maps;
 import org.gms.client.EffectType;
 import org.gms.client.character.Character;
 import org.gms.client.character.CharacterRef;
+import org.gms.client.messages.MapMonsterHpMessage;
 import org.gms.client.Client;
 import org.gms.client.autoban.AutobanFactory;
 import org.gms.client.inventory.InventoryType;
@@ -2773,6 +2774,27 @@ public class MapleMap {
      * 断连清理），仅发送改 postLegacyPacket——接收方 strand 窗口收口后经 ref 触 client
      * （map actor 直发 client 的过渡替代；攻击中继 S→C 语义化后删除）。
      */
+    /**
+     * 怪物 HP 变化广播（map actor → 各接收方）：受众 = 怪物交战集 ∩ 本图在线玩家。
+     * 本图玩家表是异步快照，只做投递解析——消息携带 mapId，接收方 actor 校验
+     * "我在的图 == 怪物所在图"（唯一知道玩家当前时点位置的是 Player actor 自己）。
+     */
+    public void broadcastMonsterHp(Monster monster, int hpPercent) {
+        chrRLock.lock();
+        try {
+            for (CharacterRef cr : characters) {
+                if (cr.isClientDisconnected()) {
+                    continue;
+                }
+                if (monster.isEngaged(cr.getId())) {
+                    cr.post(new MapMonsterHpMessage(getId(), monster.getObjectId(), hpPercent));
+                }
+            }
+        } finally {
+            chrRLock.unlock();
+        }
+    }
+
     public void broadcastAttackRelay(CharacterRef source, Packet packet) {
         final double rangeSq = getRangedDistance();
         final Point rangedFrom = rangeSq < Double.POSITIVE_INFINITY ? source.getPosition() : null;
