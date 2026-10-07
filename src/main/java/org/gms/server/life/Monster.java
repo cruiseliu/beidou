@@ -22,6 +22,7 @@
 package org.gms.server.life;
 
 import org.gms.client.character.CharacterRef;
+import org.gms.client.messages.MapMonsterKilledMessage;
 import org.gms.client.quest.medal.SpecialChallengeMedal;
 import org.gms.client.quest.medal.VeteranHunterMedal;
 import org.gms.client.EffectType;
@@ -706,98 +707,37 @@ public class Monster extends AbstractLoadedLife {
 
     }
 
-    private float getStatusExpMultiplier(CharacterRef attacker, boolean hasPartySharers) {
-        float multiplier = 1.0f;
 
-        // thanks Prophecy & Aika for finding out Holy Symbol not being applied on party bonuses
-        Integer holySymbol = attacker.getBuffedValue(EffectType.HOLY_SYMBOL);
-        if (holySymbol != null) {
-            if (GameConfig.getServerBoolean("use_full_holy_symbol")) { // thanks Mordred, xinyifly, AyumiLove, andy33 for noticing HS hands out 20% of its potential on less than 3 players
-                multiplier *= (1.0 + (holySymbol.doubleValue() / 100.0));
-            } else {
-                multiplier *= (1.0 + (holySymbol.doubleValue() / (hasPartySharers ? 100.0 : 500.0)));
-            }
+
+    private void giveExpToCharacter(CharacterRef attacker, Float personalExp, Float partyExp, boolean white, boolean hasPartySharers) {
+        if (!attacker.isAlive()) {
+            return;
         }
 
+        float showdownMult = getShowdownMultiplier();
+
+        // 团队结算产物（死亡归属/份额/level split/MVP 已折入权重）随语义消息投递；
+        // 个人修正（Holy Symbol/rates/EXP buff/家族）与写账由接收方 player actor 完成
+        //（原 giveExpToCharacter 个人段的域迁移，同 HP 帧模式：接收方 strand = 自访）。
+        attacker.post(new MapMonsterKilledMessage(map.getId(), getId(), getStats().getLevel(),
+                personalExp == null ? 0.0f : personalExp,
+                partyExp == null ? 0.0f : partyExp,
+                white, hasPartySharers, showdownMult));
+    }
+
+    /** SHOWDOWN 状态的 exp 倍率（per-monster exp buff；无状态 = 1.0）。怪物自身 stati，域内读。 */
+    private float getShowdownMultiplier() {
         statiLock.lock();
         try {
             MonsterStatusEffect mse = stati.get(MonsterStatus.SHOWDOWN);
             if (mse != null) {
-                multiplier *= (1.0 + (mse.getStati().get(MonsterStatus.SHOWDOWN).doubleValue() / 100.0));
+                return 1.0f + mse.getStati().get(MonsterStatus.SHOWDOWN).floatValue() / 100.0f;
             }
         } finally {
             statiLock.unlock();
         }
-
-        return multiplier;
+        return 1.0f;
     }
-
-    private static int expValueToInteger(double exp) {
-        if (exp > Integer.MAX_VALUE) {
-            exp = Integer.MAX_VALUE;
-        } else if (exp < Integer.MIN_VALUE) {
-            exp = Integer.MIN_VALUE;
-        }
-
-        return (int) Math.round(exp);    // operations on float point are not point-precise... thanks IxianMace for noticing -1 EXP gains
-    }
-
-    private void giveExpToCharacter(CharacterRef attacker, Float personalExp, Float partyExp, boolean white, boolean hasPartySharers) {
-        if (attacker.isAlive()) {
-            if (personalExp != null) {
-                personalExp *= getStatusExpMultiplier(attacker, hasPartySharers);
-                personalExp *= (attacker.getExpRate() * attacker.getMobExpRate());
-            } else {
-                personalExp = 0.0f;
-            }
-
-            Integer expBonus = attacker.getBuffedValue(EffectType.EXP_INCREASE);
-            if (expBonus != null) {     // exp increase player buff found thanks to HighKey21
-                personalExp += expBonus;
-            }
-
-            Integer expBuff = attacker.getBuffedValue(EffectType.EXP_BUFF);
-            if (expBuff != null) {
-                personalExp *= 2;
-            }
-
-            if(attacker.isFamilyBuff()){
-                personalExp *= attacker.getFamilyExp();
-            }
-
-            int _personalExp = expValueToInteger(personalExp); // assuming no negative xp here
-
-            if (partyExp != null) {
-                partyExp *= getStatusExpMultiplier(attacker, hasPartySharers);
-                partyExp *= (attacker.getExpRate() * attacker.getMobExpRate());
-                partyExp *= GameConfig.getServerFloat("party_bonus_exp_rate");
-            } else {
-                partyExp = 0.0f;
-            }
-
-            int _partyExp = expValueToInteger(partyExp);
-
-            // exp 对时序不敏感（用户裁定）：写经 strand 消息接口异步投递到 player actor
-            // （opaque handler 纪律——map 任务体只持调度句柄，载荷在 actor 域内执行）
-            Strand s = attacker.strand();
-            if (s != null) {
-                s.execute("gain-exp", () -> {
-                    attacker.gainExp(_personalExp, _partyExp, true, false, white);
-                    attacker.raiseQuestMobCount(getId());
-                    VeteranHunterMedal.onMonsterKilled(attacker.unref(), this);
-                    // 特级挑战勋章复用怪物死亡事件，在角色已接任务时写入个人击杀进度。
-                    SpecialChallengeMedal.onMonsterKilled(attacker.unref(), this);
-                });
-            } else {
-                attacker.gainExp(_personalExp, _partyExp, true, false, white);
-                attacker.raiseQuestMobCount(getId());
-                VeteranHunterMedal.onMonsterKilled(attacker.unref(), this);
-                SpecialChallengeMedal.onMonsterKilled(attacker.unref(), this);
-            }
-            attacker.increaseEquipExp(_personalExp);
-        }
-    }
-
     public List<MonsterDropEntry> retrieveRelevantDrops() {
         if (this.getStats().isFriendly()) {     // thanks Conrad for noticing friendly mobs not spawning loots after a recent update
             return MonsterInformationProvider.getInstance().retrieveEffectiveDrop(this.getId());

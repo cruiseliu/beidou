@@ -4,7 +4,6 @@ import org.gms.client.character.Character;
 import org.gms.client.pet.Pet;
 import org.gms.client.quest.Quest;
 import org.gms.client.quest.QuestStatus;
-import org.gms.server.life.Monster;
 
 public final class SpecialChallengeMedal {
     // 任务 ID：脚本和事件回调用这些 ID 读写对应任务状态。
@@ -104,8 +103,7 @@ public final class SpecialChallengeMedal {
      *
      * <p>只给已经接取中的任务加进度；没有接任务时击杀不会被补记，保持任务流程可控。</p>
      */
-    public static void onMonsterKilled(Character player, Monster monster) {
-        int mobId = monster.getId();
+    public static void onMonsterKilled(Character player, int mobId, int mobLevel) {
         if (mobId == HORNTAIL_MOB_ID) {
             addStartedQuestProgress(player, HORNTAIL_SLAYER_QUEST_ID, PROGRESS_KILLS, HORNTAIL_REQUIRED_KILLS);
         } else if (mobId == PINK_BEAN_MOB_ID) {

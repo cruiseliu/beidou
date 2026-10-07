@@ -4,7 +4,6 @@ import org.gms.client.character.Character;
 import org.gms.client.quest.Quest;
 import org.gms.client.quest.QuestStatus;
 import org.gms.client.quest.QuestWz;
-import org.gms.server.life.Monster;
 
 public final class VeteranHunterMedal {
     public static final int QUEST_ID = 29400;
@@ -28,13 +27,13 @@ public final class VeteranHunterMedal {
         return getProgress(player) >= REQUIRED_KILLS;
     }
 
-    public static void onMonsterKilled(Character player, Monster monster) {
+    public static void onMonsterKilled(Character player, int mobId, int mobLevel) {
         Quest status = player.getQuest(QUEST_ID);
         if (status.getStatus() != QuestStatus.STARTED || isComplete(player)) {
             return;
         }
 
-        if (!isEligibleKill(player, monster)) {
+        if (!isEligibleKill(player, mobId, mobLevel)) {
             return;
         }
 
@@ -43,8 +42,7 @@ public final class VeteranHunterMedal {
         player.announceQuestState(status, false);
     }
 
-    private static boolean isEligibleKill(Character player, Monster monster) {
-        int monsterLevel = monster.getStats().getLevel();
+    private static boolean isEligibleKill(Character player, int mobId, int monsterLevel) {
         if (player.getLevel() >= 120) {
             return monsterLevel >= 120;
         }

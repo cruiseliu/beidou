@@ -4,11 +4,14 @@ import org.gms.client.EffectType;
 import org.gms.client.JobEnum;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
+import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
 import org.gms.constants.id.MapId;
 import org.gms.constants.skills.*;
 import org.gms.remote.ClientEventHandlerRegistry;
 import org.gms.remote.modules.battle.BattleModule;
+import org.gms.client.quest.medal.SpecialChallengeMedal;
+import org.gms.client.quest.medal.VeteranHunterMedal;
 import org.gms.remote.modules.battle.client.CloseRangeAttack;
 import org.gms.net.server.world.Party;
 import org.gms.net.server.world.PartyCharacter;
@@ -156,6 +159,9 @@ class CharacterBattle implements BattleModule.Handler {
                 declaredOrder,
                 partyMembers
         ));
+
+        // 队伍快照已入 intent；死亡结算由 map actor 逐参与者回投（monsterKilled）
+
     }
 
     /**
@@ -357,6 +363,70 @@ class CharacterBattle implements BattleModule.Handler {
      * {@link Battle.CloseRangeAttackIntent} 的全部信息源。成员判据：申报回填、伤害上限
      * 模型、逐 hit 标量进；目标/怪物知识（phase 2）与 actor 身份（intent 的 ref/cid）不进。
      */
+    /**
+     * 击杀结算（player actor 个人段，原 Monster.giveExpToCharacter 个人段平移）：
+     * 权重已含 map 侧团队结算（死亡归属/份额/level split/MVP/SHOWDOWN），本域只做
+     * 个人修正（Holy Symbol/rates/EXP buff/家族）→ 钳制舍入 → 写账（经验/装备经验/
+     * 任务计数/勋章）。全自访（接收方 strand，域盖章自放行）。
+     */
+    @Override
+    public void monsterKilled(int mobId, int mobLevel, float expWeight, float partyBonusWeight,
+                              boolean white, boolean hasPartySharers, float showdownMult) {
+        Character chr = owner;
+        if (!chr.isAlive()) {
+            return;
+        }
+
+        float personalExp = expWeight;
+        float partyExp = partyBonusWeight;
+
+        float mult = 1.0f;
+        Integer holySymbol = chr.getBuffedValue(EffectType.HOLY_SYMBOL);
+        if (holySymbol != null) {
+            if (GameConfig.getServerBoolean("use_full_holy_symbol")) { // thanks Mordred, xinyifly, AyumiLove, andy33 for noticing HS hands out 20% of its potential on less than 3 players
+                mult *= 1.0 + holySymbol.doubleValue() / 100.0;
+            } else {
+                mult *= 1.0 + holySymbol.doubleValue() / (hasPartySharers ? 100.0 : 500.0);
+            }
+        }
+        mult *= showdownMult;   // 怪物 SHOWDOWN 状态倍率（map 域知识，随消息显形）
+
+        personalExp *= mult * (chr.getExpRate() * chr.getMobExpRate());
+        Integer expBonus = chr.getBuffedValue(EffectType.EXP_INCREASE);
+        if (expBonus != null) {     // exp increase player buff found thanks to HighKey21
+            personalExp += expBonus;
+        }
+        Integer expBuff = chr.getBuffedValue(EffectType.EXP_BUFF);
+        if (expBuff != null) {
+            personalExp *= 2;
+        }
+        if (chr.isFamilyBuff()) {
+            personalExp *= chr.getFamilyExp();
+        }
+        int _personalExp = expValueToInteger(personalExp); // assuming no negative xp here
+
+        partyExp *= mult * (chr.getExpRate() * chr.getMobExpRate());
+        partyExp *= GameConfig.getServerFloat("party_bonus_exp_rate");
+        int _partyExp = expValueToInteger(partyExp);
+
+        chr.gainExp(_personalExp, _partyExp, true, false, white);
+        chr.raiseQuestMobCount(mobId);
+        VeteranHunterMedal.onMonsterKilled(chr, mobId, mobLevel);
+        // 特级挑战勋章复用怪物死亡事件，在角色已接任务时写入个人击杀进度。
+        SpecialChallengeMedal.onMonsterKilled(chr, mobId, mobLevel);
+        chr.increaseEquipExp(_personalExp);
+    }
+
+    private static int expValueToInteger(double exp) {
+        if (exp > Integer.MAX_VALUE) {
+            exp = Integer.MAX_VALUE;
+        } else if (exp < Integer.MIN_VALUE) {
+            exp = Integer.MIN_VALUE;
+        }
+
+        return (int) Math.round(exp);    // operations on float point are not point-precise... thanks IxianMace for noticing -1 EXP gains
+    }
+
     public static class AttackInfo {
 
         public int numAttacked, numDamage, numAttackedAndDamage, skill, skilllevel, stance, direction, rangedirection, charge, display;

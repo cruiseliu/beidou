@@ -27,6 +27,14 @@ public final class MessageDispatcher {
             case MapCharacterMoveMessage m -> player.remote().map().characterMove(m.charId(), m.movements());
             case MapQuestCompleteMessage m -> player.remote().map().characterQuestComplete(m.charId());
             case org.gms.client.messages.MapMonsterMoveMessage m -> player.remote().map().monsterMove(m.move());
+            case org.gms.client.messages.MapMonsterKilledMessage m -> {
+                // 接收方权威校验（同 HP 帧）：切图竞态下的迟到击杀结算在此丢弃
+                Character chr = player.character();
+                if (chr != null && chr.getMapId() == m.mapId()) {
+                    player.clientEventHandlers().battle().monsterKilled(m.mobId(), m.mobLevel(),
+                            m.expWeight(), m.partyBonusWeight(), m.white(), m.hasPartySharers(), m.showdownMult());
+                }
+            }
             case org.gms.client.messages.MapMonsterHpMessage m -> {
                 // 接收方权威校验（异步边界）：map 的投递解析基于陈旧玩家表，切图竞态下
                 // 的迟到 HP 帧在此丢弃——唯一知道玩家当前时点所在图的是 Player actor。
