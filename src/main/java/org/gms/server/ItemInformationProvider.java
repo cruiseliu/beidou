@@ -23,7 +23,7 @@ package org.gms.server;
 
 import org.gms.client.character.Stat;
 import org.gms.client.character.Character;
-import org.gms.client.character.CharacterView;
+import org.gms.client.character.ICharacterSelectView;
 import org.gms.client.Client;
 import org.gms.client.JobEnum;
 import org.gms.client.Skill;
@@ -1719,7 +1719,7 @@ public class ItemInformationProvider {
         return GameConfig.getServerBoolean("use_enforce_unmerchable_pet") && ItemConstants.isPet(itemId);
     }
 
-    public Collection<ItemSlot> canWearEquipment(CharacterView chr, Collection<ItemSlot> items) {
+    public Collection<ItemSlot> canWearEquipment(ICharacterSelectView chr, Collection<ItemSlot> items) {
         if (chr.isEquippedChecked()) {
             return items;
         }

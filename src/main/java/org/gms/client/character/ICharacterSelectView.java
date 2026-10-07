@@ -8,7 +8,7 @@ import java.util.Collection;
 
 /**
  * charlist 视图只读面：登录/选角列表期的角色条目。两个实现：
- * {@link CharacterViewEntry}（不可变快照，charlist 流程的存储/装载形态）与
+ * {@link CharacterSelectView}（不可变快照，charlist 流程的存储/装载形态）与
  * {@link Character}（活体脸——enter-map 等共享包构建器的宽化入参）。
  *
  * <p>消费方显式限定 = charlist 包构建（{@code PacketCreator.addCharEntry} 系）与
@@ -16,7 +16,7 @@ import java.util.Collection;
  * （外观装备以条目副本给出，宠物只出 id 不出实体句柄）——视图持有者不得触达会话可变
  * 状态（组件句柄、发包、域操作）。
  */
-public interface CharacterView {
+public interface ICharacterSelectView {
 
     // ── 身份 ──
 

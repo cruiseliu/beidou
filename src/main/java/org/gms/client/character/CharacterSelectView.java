@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * charlist 视图条目（{@link CharacterView} 的快照实现，仿 PetData 的按实体拆分）：
+ * charlist 视图条目（{@link ICharacterSelectView} 的快照实现，仿 PetData 的按实体拆分）：
  * 不可变标量集 + 外观装备副本，不含组件图。两个生产入口（与 CharacterView javadoc 对应）：
  * <ul>
  *   <li>{@link #fromDb}：DB 装载档（charlist 预览 / 账号视图），只解析视图事实所需的列与
@@ -24,7 +24,7 @@ import java.util.TreeMap;
  * 派生规则与组件实现逐条对齐：clientMax = min(30000, base)、客户端可见 SP = 分桶规则、
  * isGM = gmLevel &gt; 1——漂移即 CHARLIST 字节漂移，改动需同步组件侧。
  */
-public final class CharacterViewEntry implements CharacterView {
+public final class CharacterSelectView implements ICharacterSelectView {
     // FIXME: [refactor] does not belong to player strand
 
     private final int accountId;
@@ -61,7 +61,7 @@ public final class CharacterViewEntry implements CharacterView {
     private final int jobRank;
     private final int jobRankMove;
 
-    private CharacterViewEntry(int accountId, int id, String name, int gender, SkinColor skin,
+    private CharacterSelectView(int accountId, int id, String name, int gender, SkinColor skin,
                                int face, int hair, Collection<ItemSlot> equipped, boolean equippedChecked,
                                int level, JobEnum job, int str, int dex, int int_, int luk,
                                int hp, int mp, int maxHp, int maxMp, int remainingAp,
@@ -104,11 +104,11 @@ public final class CharacterViewEntry implements CharacterView {
     }
 
     /** DB 装载档（charlist 预览 / 账号视图；equipped = inventory 表预取的 EQUIPPED 槽条目）。 */
-    public static CharacterViewEntry fromDb(ResultSet rs, List<ItemSlot> equipped) throws SQLException {
+    public static CharacterSelectView fromDb(ResultSet rs, List<ItemSlot> equipped) throws SQLException {
         CharacterData charData = CharacterData.deserialize(rs.getString("stats_json"));
         CharacterStatsDataView stats = CharacterStatsDataView.of(charData);
         int gmLevel = rs.getInt("gm");
-        return new CharacterViewEntry(
+        return new CharacterSelectView(
                 rs.getInt("accountid"),
                 rs.getInt("id"),
                 rs.getString("name"),
@@ -139,8 +139,8 @@ public final class CharacterViewEntry implements CharacterView {
     }
 
     /** 活角色快照（建角/删角/改名/转 world 后的视图登记）。 */
-    public static CharacterViewEntry ofLive(Character chr) {
-        return new CharacterViewEntry(
+    public static CharacterSelectView ofLive(Character chr) {
+        return new CharacterSelectView(
                 chr.getAccountId(),
                 chr.getId(),
                 chr.getName(),

@@ -133,7 +133,7 @@ import static org.gms.client.character.Stat.*;
 
 import static java.util.concurrent.TimeUnit.*;
 
-public class Character extends AbstractAnimatedMapObject implements CashShopModule.Handler, CharacterView {
+public class Character extends AbstractAnimatedMapObject implements CashShopModule.Handler, ICharacterSelectView {
     private static final Logger log = LoggerFactory.getLogger(Character.class);
 
     // ── 属性核心（原 AbstractCharacterObject 合并而来） ──

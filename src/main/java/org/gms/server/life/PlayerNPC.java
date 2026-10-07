@@ -22,10 +22,8 @@
 package org.gms.server.life;
 
 import lombok.Getter;
-import org.gms.client.character.Character;
-import org.gms.client.character.CharacterView;
+import org.gms.client.character.ICharacterSelectView;
 import org.gms.client.Client;
-import org.gms.client.inventory.InventoryType;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
 import org.gms.constants.id.NpcId;
@@ -286,7 +284,7 @@ public class PlayerNPC extends AbstractMapObject {
         return availablesBranch.removeLast();
     }
 
-    private static PlayerNPC createPlayerNPCInternal(MapleMap map, Point pos, CharacterView chr) {
+    private static PlayerNPC createPlayerNPCInternal(MapleMap map, Point pos, ICharacterSelectView chr) {
         int mapId = map.getId();
 
         if (!canSpawnPlayerNpc(chr.getName(), mapId)) {
@@ -352,7 +350,7 @@ public class PlayerNPC extends AbstractMapObject {
         return npcService.createPlayerNPC(playerNpcDO, playerNpcEquipDOS);
     }
 
-    private static List<Integer> removePlayerNPCInternal(MapleMap map, CharacterView chr) {
+    private static List<Integer> removePlayerNPCInternal(MapleMap map, ICharacterSelectView chr) {
         Set<Integer> updateMapids = new HashSet<>();
 
         List<Integer> mapids = new LinkedList<>();
@@ -390,7 +388,7 @@ public class PlayerNPC extends AbstractMapObject {
         return mapids;
     }
 
-    private static synchronized Pair<PlayerNPC, List<Integer>> processPlayerNPCInternal(MapleMap map, Point pos, CharacterView chr, boolean create) {
+    private static synchronized Pair<PlayerNPC, List<Integer>> processPlayerNPCInternal(MapleMap map, Point pos, ICharacterSelectView chr, boolean create) {
         if (create) {
             return new Pair<>(createPlayerNPCInternal(map, pos, chr), null);
         } else {
@@ -398,11 +396,11 @@ public class PlayerNPC extends AbstractMapObject {
         }
     }
 
-    public static boolean spawnPlayerNPC(int mapid, CharacterView chr) {
+    public static boolean spawnPlayerNPC(int mapid, ICharacterSelectView chr) {
         return spawnPlayerNPC(mapid, null, chr);
     }
 
-    public static boolean spawnPlayerNPC(int mapid, Point pos, CharacterView chr) {
+    public static boolean spawnPlayerNPC(int mapid, Point pos, ICharacterSelectView chr) {
         if (chr == null) {
             return false;
         }
@@ -438,7 +436,7 @@ public class PlayerNPC extends AbstractMapObject {
         return null;
     }
 
-    public static void removePlayerNPC(CharacterView chr) {
+    public static void removePlayerNPC(ICharacterSelectView chr) {
         if (chr == null) {
             return;
         }
@@ -467,7 +465,7 @@ public class PlayerNPC extends AbstractMapObject {
             return;
         }
 
-        for (CharacterView mc : wserv.loadAndGetAllCharactersView()) {
+        for (ICharacterSelectView mc : wserv.loadAndGetAllCharactersView()) {
             spawnPlayerNPC(mapid, mc);
         }
     }

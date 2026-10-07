@@ -29,7 +29,7 @@ import org.gms.client.BuddyList.BuddyAddResult;
 import org.gms.client.BuddyList.BuddyOperation;
 import org.gms.client.BuddylistEntry;
 import org.gms.client.character.Character;
-import org.gms.client.character.CharacterView;
+import org.gms.client.character.CharacterSelectView;
 import org.gms.client.Family;
 import org.gms.config.GameConfig;
 import org.gms.constants.game.GameConstants;
@@ -162,7 +162,7 @@ public class World {
     private final Lock chnRLock;
     private final Lock chnWLock;
 
-    private final Map<Integer, SortedMap<Integer, CharacterView>> accountChars = new HashMap<>();
+    private final Map<Integer, SortedMap<Integer, CharacterSelectView>> accountChars = new HashMap<>();
     private final Map<Integer, Storage> accountStorages = new HashMap<>();
     private final Lock accountCharsLock = new ReentrantLock(true);
 
@@ -426,9 +426,9 @@ public class World {
         return NumberTool.floatToInt(travelTime * travelRate);//交通工具、旅行时间倍率，由于支持小数，所以需要改为相乘
     }
 
-    public void loadAccountCharactersView(Integer accountId, List<CharacterView> chars) {
-        SortedMap<Integer, CharacterView> charsMap = new TreeMap<>();
-        for (CharacterView chr : chars) {
+    public void loadAccountCharactersView(Integer accountId, List<CharacterSelectView> chars) {
+        SortedMap<Integer, CharacterSelectView> charsMap = new TreeMap<>();
+        for (CharacterSelectView chr : chars) {
             charsMap.put(chr.getId(), chr);
         }
 
@@ -440,7 +440,7 @@ public class World {
         }
     }
 
-    public void registerAccountCharacterView(Integer accountId, CharacterView chr) {
+    public void registerAccountCharacterView(Integer accountId, CharacterSelectView chr) {
         accountCharsLock.lock();
         try {
             accountChars.get(accountId).put(chr.getId(), chr);
@@ -461,7 +461,7 @@ public class World {
     public void clearAccountCharacterView(Integer accountId) {
         accountCharsLock.lock();
         try {
-            SortedMap<Integer, CharacterView> accChars = accountChars.remove(accountId);
+            SortedMap<Integer, CharacterSelectView> accChars = accountChars.remove(accountId);
             if (accChars != null) {
                 accChars.clear();
             }
@@ -499,8 +499,8 @@ public class World {
         return accountStorages.get(accountId);
     }
 
-    private static List<Entry<Integer, SortedMap<Integer, CharacterView>>> getSortedAccountCharacterView(Map<Integer, SortedMap<Integer, CharacterView>> map) {
-        List<Entry<Integer, SortedMap<Integer, CharacterView>>> list = new ArrayList<>(map.size());
+    private static List<Entry<Integer, SortedMap<Integer, CharacterSelectView>>> getSortedAccountCharacterView(Map<Integer, SortedMap<Integer, CharacterSelectView>> map) {
+        List<Entry<Integer, SortedMap<Integer, CharacterSelectView>>> list = new ArrayList<>(map.size());
         list.addAll(map.entrySet());
 
         list.sort((o1, o2) -> o1.getKey() - o2.getKey());
@@ -508,15 +508,15 @@ public class World {
         return list;
     }
 
-    public List<CharacterView> loadAndGetAllCharactersView() {
+    public List<CharacterSelectView> loadAndGetAllCharactersView() {
         Server.getInstance().loadAllAccountsCharactersView();
         return getAllCharactersView();
     }
 
     /** 全量枚举（PlayerNPC 雕像流消费；条目 = CharacterViewEntry） */
-    public List<CharacterView> getAllCharactersView() {    // sorting by accountid, charid
-        List<CharacterView> chrList = new LinkedList<>();
-        Map<Integer, SortedMap<Integer, CharacterView>> accChars;
+    public List<CharacterSelectView> getAllCharactersView() {    // sorting by accountid, charid
+        List<CharacterSelectView> chrList = new LinkedList<>();
+        Map<Integer, SortedMap<Integer, CharacterSelectView>> accChars;
 
         accountCharsLock.lock();
         try {
@@ -525,19 +525,19 @@ public class World {
             accountCharsLock.unlock();
         }
 
-        for (Entry<Integer, SortedMap<Integer, CharacterView>> e : getSortedAccountCharacterView(accChars)) {
+        for (Entry<Integer, SortedMap<Integer, CharacterSelectView>> e : getSortedAccountCharacterView(accChars)) {
             chrList.addAll(e.getValue().values());
         }
 
         return chrList;
     }
 
-    public List<CharacterView> getAccountCharactersView(int accountId) {
-        final List<CharacterView> chrList;
+    public List<CharacterSelectView> getAccountCharactersView(int accountId) {
+        final List<CharacterSelectView> chrList;
 
         accountCharsLock.lock();
         try {
-            SortedMap<Integer, CharacterView> accChars = accountChars.get(accountId);
+            SortedMap<Integer, CharacterSelectView> accChars = accountChars.get(accountId);
 
             if (accChars != null) {
                 chrList = new LinkedList<>(accChars.values());

@@ -24,7 +24,8 @@ import com.mybatisflex.annotation.Column;
 import org.gms.client.BuddylistEntry;
 import org.gms.client.EffectType;
 import org.gms.client.character.Character;
-import org.gms.client.character.CharacterView;
+import org.gms.client.character.CharacterSelectView;
+import org.gms.client.character.ICharacterSelectView;
 import org.gms.client.Client;
 import org.gms.client.Disease;
 import org.gms.client.FamilyEntitlement;
@@ -141,7 +142,7 @@ public class PacketCreator {
         return p;
     }
 
-    private static void addRemainingSkillInfo(final OutPacket p, CharacterView chr) {
+    private static void addRemainingSkillInfo(final OutPacket p, ICharacterSelectView chr) {
         int[] remainingSp = chr.getRemainingSps();
         int effectiveLength = 0;
         for (int j : remainingSp) {
@@ -159,7 +160,7 @@ public class PacketCreator {
         }
     }
 
-    public static void addCharStats(OutPacket p, CharacterView chr) {
+    public static void addCharStats(OutPacket p, ICharacterSelectView chr) {
         p.writeInt(chr.getId()); // character id
         p.writeFixedString(StringUtil.getRightPaddedStr(chr.getName(), '\0', 13));
         p.writeByte(chr.getGender()); // gender (0 = male, 1 = female)
@@ -195,7 +196,7 @@ public class PacketCreator {
         p.writeInt(0);
     }
 
-    protected static void addCharLook(final OutPacket p, CharacterView chr, boolean mega) {
+    protected static void addCharLook(final OutPacket p, ICharacterSelectView chr, boolean mega) {
         p.writeByte(chr.getGender());
         p.writeByte(chr.getSkinColor().getId()); // skin color
         p.writeInt(chr.getFace()); // face
@@ -270,7 +271,7 @@ public class PacketCreator {
         }
     }
 
-    private static void addCharEquips(final OutPacket p, CharacterView chr) {
+    private static void addCharEquips(final OutPacket p, ICharacterSelectView chr) {
         Collection<ItemSlot> ii = ItemInformationProvider.getInstance().canWearEquipment(chr, chr.getEquippedItems());
         // 过滤非装备占位（金币伪 id=0 等），避免进入外观位图
         ii = ii.stream().filter(it -> it.getItemType() == 1)
@@ -314,7 +315,7 @@ public class PacketCreator {
         }
     }
 
-    private static void addCharEntry(OutPacket p, CharacterView chr, boolean viewall) {
+    private static void addCharEntry(OutPacket p, ICharacterSelectView chr, boolean viewall) {
         addCharStats(p, chr);
         addCharLook(p, chr, false);
         if (!viewall) {
@@ -4366,12 +4367,12 @@ public class PacketCreator {
         return p;
     }
 
-    public static Packet showAllCharacterInfo(int worldid, List<CharacterView> chars, boolean usePic) {
+    public static Packet showAllCharacterInfo(int worldid, List<CharacterSelectView> chars, boolean usePic) {
         final OutPacket p = OutPacket.create(SendOpcode.VIEW_ALL_CHAR);
         p.writeByte(0);
         p.writeByte(worldid);
         p.writeByte(chars.size());
-        for (CharacterView chr : chars) {
+        for (ICharacterSelectView chr : chars) {
             addCharEntry(p, chr, true);
         }
         p.writeByte(usePic ? 1 : 2);
