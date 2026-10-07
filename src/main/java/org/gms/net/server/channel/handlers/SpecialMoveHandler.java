@@ -112,7 +112,7 @@ public final class SpecialMoveHandler extends AbstractPacketHandler {
                 if (monster != null) {
                     if (!monster.isBoss()) {
                         monster.aggroClearDamages();
-                        monster.aggroMonsterDamage(chr, 1);
+                        monster.aggroMonsterDamage(chr.ref(), 1);
 
                         // thanks onechord for pointing out Magnet crashing the caster (issue would actually happen upon failing to catch mob)
                         // thanks Conrad for noticing Magnet crashing when trying to pull bosses and fixed mobs

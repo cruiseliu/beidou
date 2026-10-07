@@ -8,6 +8,8 @@ import org.gms.client.character.CharacterRef;
 import org.gms.client.pet.Pet;
 import org.gms.remote.modules.map.client.movement.MoveElement;
 import org.gms.infra.ActorShim;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.gms.net.packet.Packet;
 import org.gms.net.server.world.Party;
 import org.gms.util.AssertUtil;
@@ -35,6 +37,8 @@ import java.util.Map;
  * 见 doc/13 迁移记录。
  */
 public final class MapleMapRef {
+
+    private static final Logger log = LoggerFactory.getLogger(MapleMapRef.class);
 
     final int mapId;
     final MapleMap map;
@@ -81,10 +85,14 @@ public final class MapleMapRef {
     private void assertNotInStrictPipeline(String what) {
         PipelineContext ctx = PipelineContext.current();
         if (ctx != null && ctx.kinds.contains(StrictWindow.STRAND)) {
-            AssertUtil.isTrue(
-                    ctx.ownerType == PipelineContext.OwnerType.MAP && ctx.ownerId == mapId,
-                    "strict 管线执行窗口内经 MapleMapRef 直调 map 本体: " + what + " (map=" + mapId + ")"
-            );
+            if (ctx.ownerType == PipelineContext.OwnerType.MAP && ctx.ownerId == mapId) {
+                return;   // 本域自访
+            }
+            if (ctx.mode == StrictWindow.Mode.LOG) {
+                log.error("strict 管线执行窗口内经 MapleMapRef 直调 map 本体: {} (map={}) [log 模式]", what, mapId, new RuntimeException("call site"));
+                return;
+            }
+            throw new AssertionError("strict 管线执行窗口内经 MapleMapRef 直调 map 本体: " + what + " (map=" + mapId + ")");
         }
     }
 

@@ -119,7 +119,7 @@ public final class SummonDamageHandler extends AbstractDealDamageHandler {
 
                 if (damage > 0 && summonEffect.getMonsterStati().size() > 0) {
                     if (summonEffect.makeChanceResult()) {
-                        target.applyStatus(player, new MonsterStatusEffect(summonEffect.getMonsterStati(), summonSkill, null, false), summonEffect.isPoison(), 4000);
+                        target.applyStatus(player.ref(), new MonsterStatusEffect(summonEffect.getMonsterStati(), summonSkill, null, false), summonEffect.isPoison(), 4000);
                     }
                 }
                 player.getMap().damageMonster(player.ref(), target, damage);

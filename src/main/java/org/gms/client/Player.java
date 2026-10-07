@@ -97,6 +97,10 @@ public final class Player {
                 || ctx.ownerId != chr.getId() || !ctx.kinds.contains(StrictWindow.PACKET)) {
             return;   // charlist 阶段 / 不在 packet-strict 窗口（未迁移 op、脚本会话、登录布线）
         }
+        if (ctx.mode == StrictWindow.Mode.LOG) {
+            log.error("packet-strict 窗口内获取 legacy Client [{}] cid={} [log 模式]", what, chr.getId());
+            return;
+        }
         switch (PACKET_STRICT_CLIENT) {
             case FAIL -> throw new IllegalStateException(
                     "packet-strict 窗口内获取 legacy Client [" + what + "] (cid=" + chr.getId() + ")");

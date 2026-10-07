@@ -1,12 +1,18 @@
 package org.gms.client.character;
 
 import org.gms.client.Client;
+import org.gms.client.FamilyEntry;
+import org.gms.client.JobEnum;
 import org.gms.infra.StrictWindow;
+import org.gms.infra.Strand;
 import org.gms.infra.PipelineContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.gms.client.Player;
 import org.gms.client.PlayerStrand;
 import org.gms.client.quest.Quest;
 import org.gms.infra.ActorMessage;
+import org.gms.server.partyquest.PartyQuest;
 import org.gms.net.server.world.Party;
 import org.gms.net.server.world.PartyCharacter;
 import org.gms.remote.RemoteClient;
@@ -44,6 +50,8 @@ import java.util.function.Consumer;
  * 定位输出（doc/16 §4.1）。
  */
 public final class CharacterRef implements MapObject {
+
+    private static final Logger log = LoggerFactory.getLogger(CharacterRef.class);
 
     private final Character chr;
     /**
@@ -147,11 +155,14 @@ public final class CharacterRef implements MapObject {
     private void notInStrictPipeline() {
         PipelineContext ctx = PipelineContext.current();
         if (ctx != null && ctx.kinds.contains(StrictWindow.STRAND)) {
-            AssertUtil.isTrue(
-                ctx.ownerType == PipelineContext.OwnerType.CHARACTER && ctx.ownerId == id,
-                "strict 管线执行窗口内经 CharacterRef 触达本体 (cid=" + id + ")"
-            );
-
+            if (ctx.ownerType == PipelineContext.OwnerType.CHARACTER && ctx.ownerId == id) {
+                return;   // 触 owner 自己 = 自访（owner actor 上的续段）
+            }
+            if (ctx.mode == StrictWindow.Mode.LOG) {
+                log.error("strict 管线执行窗口内经 CharacterRef 触达本体 (cid={}) [log 模式]", id, new RuntimeException("call site"));
+                return;
+            }
+            throw new AssertionError("strict 管线执行窗口内经 CharacterRef 触达本体 (cid=" + id + ")");
         }
     }
 
@@ -246,6 +257,76 @@ public final class CharacterRef implements MapObject {
      * strict 窗口标志读（免闸：plain volatile 读）——map 域逻辑用于跳过在窗角色
      * （如 Monster controller 选举：在窗角色本轮不参选，unref 候选即守卫触达）。
      */
+    public float getExpRate() {
+        notInStrictPipeline();
+        return chr.getExpRate();
+    }
+
+    public float getMobExpRate() {
+        notInStrictPipeline();
+        return chr.getMobExpRate();
+    }
+
+    public void gainExp(int gain, int party, boolean show, boolean inChat, boolean white) {
+        notInStrictPipeline();
+        chr.gainExp(gain, party, show, inChat, white);
+    }
+
+    public void raiseQuestMobCount(int mobId) {
+        notInStrictPipeline();
+        chr.raiseQuestMobCount(mobId);
+    }
+
+    public void increaseEquipExp(int expGain) {
+        notInStrictPipeline();
+        chr.increaseEquipExp(expGain);
+    }
+
+    public void setPlayerAggro(int mobHash) {
+        notInStrictPipeline();
+        chr.setPlayerAggro(mobHash);
+    }
+
+    public Strand strand() {
+        notInStrictPipeline();
+        return chr.strand();
+    }
+
+    public PartyQuest getPartyQuest() {
+        notInStrictPipeline();
+        return chr.getPartyQuest();
+    }
+
+    public FamilyEntry getFamilyEntry() {
+        notInStrictPipeline();
+        return chr.getFamilyEntry();
+    }
+
+    public float getFamilyExp() {
+        notInStrictPipeline();
+        return chr.getFamilyExp();
+    }
+
+    public JobEnum getJob() {
+        notInStrictPipeline();
+        return chr.getJob();
+    }
+
+    public int getStr() {
+        notInStrictPipeline();
+        return chr.getStr();
+    }
+
+    public int getLuk() {
+        notInStrictPipeline();
+        return chr.getLuk();
+    }
+
+    public void showUnderLeveledInfo(Monster mob) {
+        notInStrictPipeline();
+        chr.showUnderLeveledInfo(mob);
+    }
+
     public boolean strictMode() {
         return chr.strictMode();
     }

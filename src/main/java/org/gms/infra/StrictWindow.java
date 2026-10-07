@@ -13,5 +13,11 @@ package org.gms.infra;
  */
 public enum StrictWindow {
     STRAND,   // ref / map 本体直调哨
-    PACKET    // legacy Client 导航哨
+    PACKET;   // legacy Client 导航哨
+
+    /** 窗口模式：ASSERT = 违规抛 AssertionError；LOG = 违规记 error 日志后放行（不中断）。
+     *  窗口级字段——窗口内全部种类共用，随因果上下文传播，domain 盖章保留。 */
+    public enum Mode {
+        LOG, ASSERT
+    }
 }

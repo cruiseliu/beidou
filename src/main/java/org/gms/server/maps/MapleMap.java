@@ -1259,7 +1259,7 @@ public class MapleMap {
             }
         }
         if (monster.isAlive()) {
-            boolean killed = monster.damage(chr.unref(), damage, false);
+            boolean killed = monster.damage(chr, damage, false);
 
             selfDestruction selfDestr = monster.getStats().selfDestruction();
             if (selfDestr != null && selfDestr.getHp() > -1) {// should work ;p
@@ -1392,7 +1392,7 @@ public class MapleMap {
                         }
                     }
 
-                    CharacterRef dropOwner = CharacterRef.of(monster.killBy(chr.unref()));
+                    CharacterRef dropOwner = monster.killBy(chr);
                     if (withDrops && !monster.dropsDisabled()) {
                         if (dropOwner == null) {
                             dropOwner = chr;
@@ -2066,7 +2066,7 @@ public class MapleMap {
                 for (MapObject mo : affectedMonsters) {
                     if (mist.makeChanceResult()) {
                         MonsterStatusEffect poisonEffect = new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.POISON, 1), mist.getSourceSkill(), null, false);
-                        ((Monster) mo).applyStatus(mist.getOwner(), poisonEffect, true, duration);
+                        ((Monster) mo).applyStatus(mist.getOwner().ref(), poisonEffect, true, duration);
                     }
                 }
             };
@@ -4288,7 +4288,7 @@ public class MapleMap {
             }
 
             @Override
-            public void monsterDamaged(Character from, int trueDmg) {
+            public void monsterDamaged(CharacterRef from, int trueDmg) {
                 ht.addHp(trueDmg);
             }
 
@@ -4309,7 +4309,7 @@ public class MapleMap {
                 }
 
                 @Override
-                public void monsterDamaged(Character from, int trueDmg) {
+                public void monsterDamaged(CharacterRef from, int trueDmg) {
                     // thanks Halcyon for noticing HT not dropping loots due to propagated damage not registering attacker
                     ht.applyFakeDamage(from, trueDmg, true);
                 }

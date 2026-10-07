@@ -139,7 +139,7 @@ public final class ActorShim {
         if (ctx != null) {
             // domain 盖章（同 Strand.executeTask）：owner 换为执行域
             PipelineContext.establish(domain == null ? ctx
-                    : new PipelineContext(domain.type(), domain.id(), ctx.kinds));
+                    : new PipelineContext(domain.type(), domain.id(), ctx.kinds, ctx.mode));
         }
         try {
             task.body().run();

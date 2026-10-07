@@ -180,9 +180,9 @@ public final class TakeDamageHandler extends AbstractPacketHandler {
                         if (skillObj != null) {
                             BuffEffectData skillEffect = skillObj.getEffect(chr.getSkillLevel(skillObj.getId()));
                             if (skillEffect != null) {
-                                attacker.applyStatus(chr, new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.STUN, 1), skillObj, null, false), false, skillEffect.getDuration(), false);
+                                attacker.applyStatus(chr.ref(), new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.STUN, 1), skillObj, null, false), false, skillEffect.getDuration(), false);
                             } else {
-                                attacker.applyStatus(chr, new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.STUN, 1), skillObj, null, false), false, 2000, false);
+                                attacker.applyStatus(chr.ref(), new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.STUN, 1), skillObj, null, false), false, 2000, false);
                             }
                         }
                     }
@@ -250,14 +250,14 @@ public final class TakeDamageHandler extends AbstractPacketHandler {
                         damage -= bouncedamage;
                         map.damageMonster(chr.ref(), attacker, bouncedamage);
                         map.broadcastMessage(chr, PacketCreator.damageMonster(oid, bouncedamage), false, true);
-                        attacker.aggroMonsterDamage(chr, bouncedamage);
+                        attacker.aggroMonsterDamage(chr.ref(), bouncedamage);
                     }
                     BuffEffectData bPressure = chr.getBuffEffect(EffectType.BODY_PRESSURE); // thanks Atoot for noticing an issue on Body Pressure neutralise
                     if (bPressure != null) {
                         Skill skill = SkillFactory.getSkill(Aran.BODY_PRESSURE);
                         if (!attacker.alreadyBuffedStats().contains(MonsterStatus.NEUTRALISE)) {
                             if (!attacker.isBoss() && bPressure.makeChanceResult()) {
-                                attacker.applyStatus(chr, new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.NEUTRALISE, 1), skill, null, false), false, (bPressure.getDuration() / 10) * 2, false);
+                                attacker.applyStatus(chr.ref(), new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.NEUTRALISE, 1), skill, null, false), false, (bPressure.getDuration() / 10) * 2, false);
                             }
                         }
                     }

@@ -21,6 +21,8 @@
  */
 package org.gms.server.life;
 
+import org.gms.client.character.CharacterRef;
+
 import org.gms.client.character.Character;
 import org.gms.net.server.Server;
 
@@ -97,7 +99,7 @@ public class SpawnPoint {
             }
 
             @Override
-            public void monsterDamaged(Character from, int trueDmg) {}
+            public void monsterDamaged(CharacterRef from, int trueDmg) {}
 
             @Override
             public void monsterHealed(int trueHeal) {}

@@ -397,7 +397,7 @@ public class Monster extends AbstractLoadedLife {
         hp.set(-1);
     }
 
-    public void broadcastMobHpBar(Character from) {
+    public void broadcastMobHpBar(CharacterRef from) {
         if (hasBossHPBar()) {
             from.setPlayerAggro(this.hashCode());
             from.getMap().broadcastBossHpMessage(this, this.hashCode(), makeBossHPBarPacket(), getPosition());
@@ -413,12 +413,12 @@ public class Monster extends AbstractLoadedLife {
                     }
                 }
             } else {
-                from.ref().post(new MapMonsterHpMessage(getObjectId(), remainingHP));
+                from.post(new MapMonsterHpMessage(getObjectId(), remainingHP));
             }
         }
     }
 
-    public boolean damage(Character attacker, int damage, boolean stayAlive) {
+    public boolean damage(CharacterRef attacker, int damage, boolean stayAlive) {
         boolean lastHit = false;
 
         this.lockMonster();
@@ -460,7 +460,7 @@ public class Monster extends AbstractLoadedLife {
      * @param damage
      * @param stayAlive
      */
-    private void applyDamage(Character from, int damage, boolean stayAlive, boolean fake) {
+    private void applyDamage(CharacterRef from, int damage, boolean stayAlive, boolean fake) {
         Integer trueDamage = applyAndGetHpDamage(damage, stayAlive);
         if (trueDamage == null) {
             return;
@@ -477,7 +477,7 @@ public class Monster extends AbstractLoadedLife {
         // ========== 通知事件实例记录伤害 ==========
         EventInstanceManager eim = getMap().getEventInstance();
         if (eim != null && !fake) {
-            eim.addDamage(from, trueDamage);
+            eim.addDamage(from.unref(), trueDamage);
         }
 
         if (!takenDamage.containsKey(from.getId())) {
@@ -489,7 +489,7 @@ public class Monster extends AbstractLoadedLife {
         broadcastMobHpBar(from);
     }
 
-    public void applyFakeDamage(Character from, int damage, boolean stayAlive) {
+    public void applyFakeDamage(CharacterRef from, int damage, boolean stayAlive) {
         applyDamage(from, damage, stayAlive, true);
     }
 
@@ -514,11 +514,11 @@ public class Monster extends AbstractLoadedLife {
         dispatchMonsterHealed(hpHealed);
     }
 
-    public boolean isAttackedBy(Character chr) {
+    public boolean isAttackedBy(CharacterRef chr) {
         return takenDamage.containsKey(chr.getId());
     }
 
-    private static boolean isWhiteExpGain(Character chr, Map<Integer, Float> personalRatio, double sdevRatio) {
+    private static boolean isWhiteExpGain(CharacterRef chr, Map<Integer, Float> personalRatio, double sdevRatio) {
         Float pr = personalRatio.get(chr.getId());
         if (pr == null) {
             return false;
@@ -545,7 +545,7 @@ public class Monster extends AbstractLoadedLife {
         return avgExpReward + Math.sqrt(varExpReward);
     }
 
-    private void distributePlayerExperience(Character chr, float exp, float partyBonusMod, int totalPartyLevel, boolean highestPartyDamager, boolean whiteExpGain, boolean hasPartySharers) {
+    private void distributePlayerExperience(CharacterRef chr, float exp, float partyBonusMod, int totalPartyLevel, boolean highestPartyDamager, boolean whiteExpGain, boolean hasPartySharers) {
         float playerExp = (GameConfig.getServerFloat("exp_split_common_mod") * chr.getLevel()) / totalPartyLevel;
         if (highestPartyDamager) {
             playerExp += GameConfig.getServerFloat("exp_split_mvp_mod");
@@ -558,13 +558,13 @@ public class Monster extends AbstractLoadedLife {
         giveFamilyRep(chr.getFamilyEntry());
     }
 
-    private void distributePartyExperience(Map<Character, Long> partyParticipation, float expPerDmg, Set<Character> underleveled, Map<Integer, Float> personalRatio, double sdevRatio) {
+    private void distributePartyExperience(Map<CharacterRef, Long> partyParticipation, float expPerDmg, Set<CharacterRef> underleveled, Map<Integer, Float> personalRatio, double sdevRatio) {
         IntervalBuilder leechInterval = new IntervalBuilder();
         leechInterval.addInterval(this.getLevel() - GameConfig.getServerInt("exp_split_level_interval"), this.getLevel() + GameConfig.getServerInt("exp_split_level_interval"));
 
         long maxDamage = 0, partyDamage = 0;
-        Character participationMvp = null;
-        for (Entry<Character, Long> e : partyParticipation.entrySet()) {
+        CharacterRef participationMvp = null;
+        for (Entry<CharacterRef, Long> e : partyParticipation.entrySet()) {
             long entryDamage = e.getValue();
             partyDamage += entryDamage;
 
@@ -578,12 +578,13 @@ public class Monster extends AbstractLoadedLife {
             leechInterval.addInterval(chrLevel - GameConfig.getServerInt("exp_split_leech_interval"), chrLevel + GameConfig.getServerInt("exp_split_leech_interval"));
         }
 
-        List<Character> expMembers = new LinkedList<>();
+        List<CharacterRef> expMembers = new LinkedList<>();
         int totalPartyLevel = 0;
 
         // thanks G h o s t, Alfred, Vcoc, BHB for poiting out a bug in detecting party members after membership transactions in a party took place
         if (GameConfig.getServerBoolean("use_enforce_mob_level_range")) {
-            for (Character member : partyParticipation.keySet().iterator().next().getPartyMembersOnSameMap()) {
+            for (Character memberChr : partyParticipation.keySet().iterator().next().unref().getPartyMembersOnSameMap()) {
+                CharacterRef member = memberChr.ref();
                 if (!leechInterval.inInterval(member.getLevel())) {
                     underleveled.add(member);
                     continue;
@@ -593,7 +594,8 @@ public class Monster extends AbstractLoadedLife {
                 expMembers.add(member);
             }
         } else {    // thanks Ari for noticing unused server flag after EXP system overhaul
-            for (Character member : partyParticipation.keySet().iterator().next().getPartyMembersOnSameMap()) {
+            for (Character memberChr : partyParticipation.keySet().iterator().next().unref().getPartyMembersOnSameMap()) {
+                CharacterRef member = memberChr.ref();
                 totalPartyLevel += member.getLevel();
                 expMembers.add(member);
             }
@@ -606,7 +608,7 @@ public class Monster extends AbstractLoadedLife {
         boolean hasPartySharers = membersSize > 1;
         float partyBonusMod = hasPartySharers ? 0.05f * membersSize : 0.0f;
 
-        for (Character mc : expMembers) {
+        for (CharacterRef mc : expMembers) {
             distributePlayerExperience(mc, participationExp, partyBonusMod, totalPartyLevel, mc == participationMvp, isWhiteExpGain(mc, personalRatio, sdevRatio), hasPartySharers);
             giveFamilyRep(mc.getFamilyEntry());
         }
@@ -617,20 +619,20 @@ public class Monster extends AbstractLoadedLife {
             return;
         }
 
-        Map<Party, Map<Character, Long>> partyExpDist = new HashMap<>();
-        Map<Character, Long> soloExpDist = new HashMap<>();
+        Map<Party, Map<CharacterRef, Long>> partyExpDist = new HashMap<>();
+        Map<CharacterRef, Long> soloExpDist = new HashMap<>();
 
         Map<Integer, CharacterRef> mapPlayers = map.getMapAllPlayers();
 
         int totalEntries = 0;   // counts "participant parties", players who no longer are available in the map is an "independent party"
         for (Entry<Integer, AtomicLong> e : takenDamage.entrySet()) {
-            Character chr = mapPlayers.get(e.getKey()).unref();
+            CharacterRef chr = mapPlayers.get(e.getKey());
             if (chr != null) {
                 long damage = e.getValue().longValue();
 
                 Party p = chr.getParty();
                 if (p != null) {
-                    Map<Character, Long> partyParticipation = partyExpDist.get(p);
+                    Map<CharacterRef, Long> partyParticipation = partyExpDist.get(p);
                     if (partyParticipation == null) {
                         partyParticipation = new HashMap<>(6);
                         partyExpDist.put(p, partyParticipation);
@@ -654,16 +656,16 @@ public class Monster extends AbstractLoadedLife {
 
         Map<Integer, Float> personalRatio = new HashMap<>();
         List<Float> entryExpRatio = new LinkedList<>();
-        for (Entry<Character, Long> e : soloExpDist.entrySet()) {
+        for (Entry<CharacterRef, Long> e : soloExpDist.entrySet()) {
             float ratio = ((float) e.getValue()) / totalDamage;
 
             personalRatio.put(e.getKey().getId(), ratio);
             entryExpRatio.add(ratio);
         }
 
-        for (Map<Character, Long> m : partyExpDist.values()) {
+        for (Map<CharacterRef, Long> m : partyExpDist.values()) {
             float ratio = 0.0f;
-            for (Entry<Character, Long> e : m.entrySet()) {
+            for (Entry<CharacterRef, Long> e : m.entrySet()) {
                 float chrRatio = ((float) e.getValue()) / totalDamage;
 
                 personalRatio.put(e.getKey().getId(), chrRatio);
@@ -676,15 +678,15 @@ public class Monster extends AbstractLoadedLife {
         double sdevRatio = calcExperienceStandDevThreshold(entryExpRatio, totalEntries);
 
         // GMS-like player and party split calculations found thanks to Russt, KaidaTan, Dusk, AyumiLove - src: https://ayumilovemaple.wordpress.com/maplestory_calculator_formula/
-        Set<Character> underleveled = new HashSet<>();
-        for (Entry<Character, Long> chrParticipation : soloExpDist.entrySet()) {
+        Set<CharacterRef> underleveled = new HashSet<>();
+        for (Entry<CharacterRef, Long> chrParticipation : soloExpDist.entrySet()) {
             float exp = chrParticipation.getValue() * expPerDmg;
-            Character chr = chrParticipation.getKey();
+            CharacterRef chr = chrParticipation.getKey();
 
             distributePlayerExperience(chr, exp, 0.0f, chr.getLevel(), true, isWhiteExpGain(chr, personalRatio, sdevRatio), false);
         }
 
-        for (Map<Character, Long> partyParticipation : partyExpDist.values()) {
+        for (Map<CharacterRef, Long> partyParticipation : partyExpDist.values()) {
             distributePartyExperience(partyParticipation, expPerDmg, underleveled, personalRatio, sdevRatio);
         }
 
@@ -696,13 +698,13 @@ public class Monster extends AbstractLoadedLife {
             }
         }
 
-        for (Character mc : underleveled) {
+        for (CharacterRef mc : underleveled) {
             mc.showUnderLeveledInfo(this);
         }
 
     }
 
-    private float getStatusExpMultiplier(Character attacker, boolean hasPartySharers) {
+    private float getStatusExpMultiplier(CharacterRef attacker, boolean hasPartySharers) {
         float multiplier = 1.0f;
 
         // thanks Prophecy & Aika for finding out Holy Symbol not being applied on party bonuses
@@ -738,7 +740,7 @@ public class Monster extends AbstractLoadedLife {
         return (int) Math.round(exp);    // operations on float point are not point-precise... thanks IxianMace for noticing -1 EXP gains
     }
 
-    private void giveExpToCharacter(Character attacker, Float personalExp, Float partyExp, boolean white, boolean hasPartySharers) {
+    private void giveExpToCharacter(CharacterRef attacker, Float personalExp, Float partyExp, boolean white, boolean hasPartySharers) {
         if (attacker.isAlive()) {
             if (personalExp != null) {
                 personalExp *= getStatusExpMultiplier(attacker, hasPartySharers);
@@ -780,15 +782,15 @@ public class Monster extends AbstractLoadedLife {
                 s.execute("gain-exp", () -> {
                     attacker.gainExp(_personalExp, _partyExp, true, false, white);
                     attacker.raiseQuestMobCount(getId());
-                    VeteranHunterMedal.onMonsterKilled(attacker, this);
+                    VeteranHunterMedal.onMonsterKilled(attacker.unref(), this);
                     // 特级挑战勋章复用怪物死亡事件，在角色已接任务时写入个人击杀进度。
-                    SpecialChallengeMedal.onMonsterKilled(attacker, this);
+                    SpecialChallengeMedal.onMonsterKilled(attacker.unref(), this);
                 });
             } else {
                 attacker.gainExp(_personalExp, _partyExp, true, false, white);
                 attacker.raiseQuestMobCount(getId());
-                VeteranHunterMedal.onMonsterKilled(attacker, this);
-                SpecialChallengeMedal.onMonsterKilled(attacker, this);
+                VeteranHunterMedal.onMonsterKilled(attacker.unref(), this);
+                SpecialChallengeMedal.onMonsterKilled(attacker.unref(), this);
             }
             attacker.increaseEquipExp(_personalExp);
         }
@@ -812,7 +814,7 @@ public class Monster extends AbstractLoadedLife {
         return LootManager.retrieveRelevantDrops(this.getId(), lootChars);
     }
 
-    public Character killBy(final Character killer) {
+    public CharacterRef killBy(final CharacterRef killer) {
         distributeExperience(killer != null ? killer.getId() : 0);
 
         final Pair<CharacterRef, Boolean> lastController = aggroRemoveController();
@@ -862,12 +864,12 @@ public class Monster extends AbstractLoadedLife {
                                 }
 
                                 if (htKilled) {
-                                    reviveMap.killMonster(ht, killer.ref(), true);
+                                    reviveMap.killMonster(ht, killer, true);
                                 }
                             }
 
                             for (int i = MobId.DEAD_HORNTAIL_MAX; i >= MobId.DEAD_HORNTAIL_MIN; i--) {
-                                reviveMap.killMonster(reviveMap.getMonsterById(i), killer.ref(), true);
+                                reviveMap.killMonster(reviveMap.getMonsterById(i), killer, true);
                             }
                         } else if (controller != null) {
                             mob.aggroSwitchController(controller, aggro);
@@ -883,7 +885,7 @@ public class Monster extends AbstractLoadedLife {
             log.warn("[CRITICAL LOSS] toSpawn is null for {}", getName());
         }
 
-        Character looter = map.getCharacterById(getHighestDamagerId()).unref();
+        CharacterRef looter = map.getCharacterById(getHighestDamagerId());
         return looter != null ? looter : killer;
     }
 
@@ -979,7 +981,7 @@ public class Monster extends AbstractLoadedLife {
         }
     }
 
-    private void dispatchMonsterDamaged(Character from, int trueDmg) {
+    private void dispatchMonsterDamaged(CharacterRef from, int trueDmg) {
         MonsterListener[] listenersList;
         statiLock.lock();
         try {
@@ -1175,11 +1177,11 @@ public class Monster extends AbstractLoadedLife {
         return animationTime;
     }
 
-    public boolean applyStatus(Character from, final MonsterStatusEffect status, boolean poison, long duration) {
+    public boolean applyStatus(CharacterRef from, final MonsterStatusEffect status, boolean poison, long duration) {
         return applyStatus(from, status, poison, duration, false);
     }
 
-    public boolean applyStatus(Character from, final MonsterStatusEffect status, boolean poison, long duration, boolean venom) {
+    public boolean applyStatus(CharacterRef from, final MonsterStatusEffect status, boolean poison, long duration, boolean venom) {
         switch (getMonsterEffectiveness(status.getSkill().getElement())) {
             case IMMUNE:
             case STRONG:
@@ -1656,12 +1658,12 @@ public class Monster extends AbstractLoadedLife {
     private final class DamageTask implements Runnable {
 
         private final int dealDamage;
-        private final Character chr;
+        private final CharacterRef chr;
         private final MonsterStatusEffect status;
         private final int type;
         private final MapleMap map;
 
-        private DamageTask(int dealDamage, Character chr, MonsterStatusEffect status, int type) {
+        private DamageTask(int dealDamage, CharacterRef chr, MonsterStatusEffect status, int type) {
             this.dealDamage = dealDamage;
             this.chr = chr;
             this.status = status;
@@ -2115,14 +2117,6 @@ public class Monster extends AbstractLoadedLife {
                 player.postLegacyPacket("aggro-control-" + getObjectId(), client -> aggroMonsterControl(client, this, true));
             }
         }
-    }
-
-    /**
-     * Applied damage input for this mob, enough damage taken implies an aggro
-     * target update for the attacker shortly.
-     */
-    public void aggroMonsterDamage(Character attacker, int damage) {
-        aggroMonsterDamage(CharacterRef.of(attacker), damage);
     }
 
     /**

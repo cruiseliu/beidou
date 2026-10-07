@@ -326,7 +326,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                         totDamageToOneMonster += eachd;
                     }
                     totDamage += totDamageToOneMonster;
-                    monster.aggroMonsterDamage(player, totDamageToOneMonster);
+                    monster.aggroMonsterDamage(player.ref(), totDamageToOneMonster);
                     if (player.getBuffedValue(EffectType.PICKPOCKET) != null && (attack.skill == 0 || attack.skill == Rogue.DOUBLE_STAB || attack.skill == Bandit.SAVAGE_BLOW || attack.skill == ChiefBandit.ASSAULTER || attack.skill == ChiefBandit.BAND_OF_THIEVES || attack.skill == Shadower.ASSASSINATE || attack.skill == Shadower.TAUNT || attack.skill == Shadower.BOOMERANG_STEP)) {
                         Skill pickpocket = SkillFactory.getSkill(ChiefBandit.PICKPOCKET);
                         int picklv = (player.isGM()) ? pickpocket.getMaxLevel() : player.getSkillLevel(ChiefBandit.PICKPOCKET);
@@ -390,7 +390,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                             if (player.getSkillLevel(Outlaw.FLAME_THROWER) > 0) {
                                 BuffEffectData DoT = type.getEffect(player.getSkillLevel(Outlaw.FLAME_THROWER));
                                 MonsterStatusEffect monsterStatusEffect = new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.POISON, 1), type, null, false);
-                                monster.applyStatus(player, monsterStatusEffect, true, DoT.getDuration(), false);
+                                monster.applyStatus(player.ref(), monsterStatusEffect, true, DoT.getDuration(), false);
                             }
                         }
                     }
@@ -401,7 +401,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                             if (totDamageToOneMonster > 0) {
                                 MonsterStatusEffect monsterStatusEffect = new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.SPEED, snowCharge.getEffect(player.getSkillLevel(Aran.SNOW_CHARGE)).getX()), snowCharge, null, false);
                                 long duration = SECONDS.toMillis(snowCharge.getEffect(player.getSkillLevel(Aran.SNOW_CHARGE)).getY());
-                                monster.applyStatus(player, monsterStatusEffect, false, duration);
+                                monster.applyStatus(player.ref(), monsterStatusEffect, false, duration);
                             }
                         }
                     }
@@ -410,7 +410,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                         if (hamstring.getEffect(player.getSkillLevel(Bowmaster.HAMSTRING)).makeChanceResult()) {
                             MonsterStatusEffect monsterStatusEffect = new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.SPEED, hamstring.getEffect(player.getSkillLevel(Bowmaster.HAMSTRING)).getX()), hamstring, null, false);
                             long duration = SECONDS.toMillis(hamstring.getEffect(player.getSkillLevel(Bowmaster.HAMSTRING)).getY());
-                            monster.applyStatus(player, monsterStatusEffect, false, duration);
+                            monster.applyStatus(player.ref(), monsterStatusEffect, false, duration);
                         }
                     }
                     if (player.getBuffedValue(EffectType.SLOW) != null) {
@@ -418,7 +418,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                         if (slow.getEffect(player.getSkillLevel(Evan.SLOW)).makeChanceResult()) {
                             MonsterStatusEffect monsterStatusEffect = new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.SPEED, slow.getEffect(player.getSkillLevel(Evan.SLOW)).getX()), slow, null, false);
                             long duration = MINUTES.toMillis(slow.getEffect(player.getSkillLevel(Evan.SLOW)).getY());
-                            monster.applyStatus(player, monsterStatusEffect, false, duration);
+                            monster.applyStatus(player.ref(), monsterStatusEffect, false, duration);
                         }
                     }
                     if (player.getBuffedValue(EffectType.BLIND) != null) {
@@ -426,7 +426,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                         if (blind.getEffect(player.getSkillLevel(Marksman.BLIND)).makeChanceResult()) {
                             MonsterStatusEffect monsterStatusEffect = new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.ACC, blind.getEffect(player.getSkillLevel(Marksman.BLIND)).getX()), blind, null, false);
                             long duration = SECONDS.toMillis(blind.getEffect(player.getSkillLevel(Marksman.BLIND)).getY());
-                            monster.applyStatus(player, monsterStatusEffect, false, duration);
+                            monster.applyStatus(player.ref(), monsterStatusEffect, false, duration);
                         }
                     }
                     if (job == 121 || job == 122) {
@@ -439,7 +439,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                                         // 修复冰技能不冰怪的问题，关键是冰和火都没有对应的异常状态，对应的异常只有冻结。如果这里把ICE改了，那火怎么办？所以，还是先注释掉。
 //                                        MonsterStatusEffect monsterStatusEffect = new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.FREEZE, chargeSkill.getEffect(player.getSkillLevel(chargeSkill)).getX()), chargeSkill, null, false);
 //                                        long duration = SECONDS.toMillis(chargeSkill.getEffect(player.getSkillLevel(chargeSkill)).getY());
-//                                        monster.applyStatus(player, monsterStatusEffect, false, duration);
+//                                        monster.applyStatus(player.ref(), monsterStatusEffect, false, duration);
                                         break;
                                     }
                                     if (charge == WhiteKnight.BW_FIRE_CHARGE || charge == WhiteKnight.SWORD_FIRE_CHARGE) {
@@ -476,7 +476,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                                     if (monster.getVenomMulti() < 3) {
                                         monster.setVenomMulti((monster.getVenomMulti() + 1));
                                         MonsterStatusEffect monsterStatusEffect = new MonsterStatusEffect(Collections.singletonMap(MonsterStatus.POISON, 1), type, null, false);
-                                        monster.applyStatus(player, monsterStatusEffect, false, venomEffect.getDuration(), true);
+                                        monster.applyStatus(player.ref(), monsterStatusEffect, false, venomEffect.getDuration(), true);
                                     }
                                 }
                             }
@@ -535,7 +535,7 @@ public abstract class AbstractDealDamageHandler extends AbstractPacketHandler {
                         Map<MonsterStatus, Integer> attackEffectStati = attackEffect.getMonsterStati();
                         if (!attackEffectStati.isEmpty()) {
                             if (attackEffect.makeChanceResult()) {
-                                monster.applyStatus(player, new MonsterStatusEffect(attackEffectStati, theSkill, null, false), attackEffect.isPoison(), attackEffect.getDuration());
+                                monster.applyStatus(player.ref(), new MonsterStatusEffect(attackEffectStati, theSkill, null, false), attackEffect.isPoison(), attackEffect.getDuration());
                             }
                         }
                     }

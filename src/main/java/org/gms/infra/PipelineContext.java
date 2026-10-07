@@ -27,11 +27,15 @@ public final class PipelineContext {
     public int ownerId;
     /** 在窗种类 */
     public EnumSet<StrictWindow> kinds;
+    /** 窗口模式（LOG = 违规记日志放行；ASSERT = 违规抛出）。窗口内种类共用。 */
+    public StrictWindow.Mode mode;
 
-    public PipelineContext(OwnerType ownerType, int ownerId, EnumSet<StrictWindow> kinds) {
+    public PipelineContext(OwnerType ownerType, int ownerId, EnumSet<StrictWindow> kinds,
+                           StrictWindow.Mode mode) {
         this.ownerType = ownerType;
         this.ownerId = ownerId;
         this.kinds = kinds;
+        this.mode = mode;
     }
 
     /** 当前因果上下文（无则 null）：post 捕获点与守卫共用 */

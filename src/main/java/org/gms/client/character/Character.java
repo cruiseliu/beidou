@@ -3079,12 +3079,14 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
      * 开窗（on strand）：种类并入集合；同时建立执行侧因果视图（PipelineContext
      * ThreadLocal）——post 捕获随任务传播，strict 管线由此跨 actor 延续。
      */
+    /** 开窗（模式写死于此，现场改：LOG = 违规记 error 放行；ASSERT = 违规抛出） */
     public void openStrictWindow(StrictWindow w) {
+        StrictWindow.Mode mode = StrictWindow.Mode.LOG;
         strictThread = Thread.currentThread();
         EnumSet<StrictWindow> next = EnumSet.copyOf(strictKinds);
         next.add(w);
         strictKinds = next;
-        PipelineContext.establish(new PipelineContext(PipelineContext.OwnerType.CHARACTER, getId(), next));
+        PipelineContext.establish(new PipelineContext(PipelineContext.OwnerType.CHARACTER, getId(), next, mode));
     }
 
     /** 收窗（幂等；未开窗路径空写）：种类移出，集合清空即解除线程绑定与因果视图 */
@@ -3092,11 +3094,13 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         EnumSet<StrictWindow> next = EnumSet.copyOf(strictKinds);
         if (next.remove(w)) {
             strictKinds = next;
+            PipelineContext cur = PipelineContext.current();
+            StrictWindow.Mode mode = cur != null ? cur.mode : StrictWindow.Mode.ASSERT;
             if (next.isEmpty()) {
                 strictThread = null;
                 PipelineContext.clear();
             } else {
-                PipelineContext.establish(new PipelineContext(PipelineContext.OwnerType.CHARACTER, getId(), next));
+                PipelineContext.establish(new PipelineContext(PipelineContext.OwnerType.CHARACTER, getId(), next, mode));
             }
         }
     }

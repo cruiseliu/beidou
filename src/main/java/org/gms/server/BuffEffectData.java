@@ -1197,7 +1197,7 @@ public class BuffEffectData {
                 // do nothing
             } else {
                 if (makeChanceResult()) {
-                    monster.applyStatus(applyfrom, new MonsterStatusEffect(getMonsterStati(), skill_, null, false), isPoison(), getDuration());
+                    monster.applyStatus(applyfrom.ref(), new MonsterStatusEffect(getMonsterStati(), skill_, null, false), isPoison(), getDuration());
                     if (isCrash()) {
                         monster.debuffMob(skill_.getId());
                     }
