@@ -504,10 +504,6 @@ public class Monster extends AbstractLoadedLife {
         engagedPlayers.add(cid);
     }
 
-    public void addEngaged(Collection<Integer> cids) {
-        engagedPlayers.addAll(cids);
-    }
-
     public boolean isEngaged(int cid) {
         return engagedPlayers.contains(cid);
     }
@@ -561,7 +557,7 @@ public class Monster extends AbstractLoadedLife {
         giveFamilyRep(chr.getFamilyEntry());
     }
 
-    private void distributePartyExperience(Map<CharacterRef, Long> partyParticipation, float expPerDmg, Set<CharacterRef> underleveled, Map<Integer, Float> personalRatio, double sdevRatio) {
+    private void distributePartyExperience(int partyId, Map<CharacterRef, Long> partyParticipation, float expPerDmg, Set<CharacterRef> underleveled, Map<Integer, Float> personalRatio, double sdevRatio) {
         IntervalBuilder leechInterval = new IntervalBuilder();
         leechInterval.addInterval(this.getLevel() - GameConfig.getServerInt("exp_split_level_interval"), this.getLevel() + GameConfig.getServerInt("exp_split_level_interval"));
 
@@ -586,8 +582,10 @@ public class Monster extends AbstractLoadedLife {
 
         // thanks G h o s t, Alfred, Vcoc, BHB for poiting out a bug in detecting party members after membership transactions in a party took place
         if (GameConfig.getServerBoolean("use_enforce_mob_level_range")) {
-            for (Character memberChr : partyParticipation.keySet().iterator().next().unref().getPartyMembersOnSameMap()) {
-                CharacterRef member = memberChr.ref();
+            for (CharacterRef member : map.getMapAllPlayers().values()) {
+                if (member.getPartyId() != partyId) {
+                    continue;   // 非本队成员（含无队伍者）不分享
+                }
                 if (!leechInterval.inInterval(member.getLevel())) {
                     underleveled.add(member);
                     continue;
@@ -597,8 +595,10 @@ public class Monster extends AbstractLoadedLife {
                 expMembers.add(member);
             }
         } else {    // thanks Ari for noticing unused server flag after EXP system overhaul
-            for (Character memberChr : partyParticipation.keySet().iterator().next().unref().getPartyMembersOnSameMap()) {
-                CharacterRef member = memberChr.ref();
+            for (CharacterRef member : map.getMapAllPlayers().values()) {
+                if (member.getPartyId() != partyId) {
+                    continue;   // 非本队成员（含无队伍者）不分享
+                }
                 totalPartyLevel += member.getLevel();
                 expMembers.add(member);
             }
@@ -622,7 +622,7 @@ public class Monster extends AbstractLoadedLife {
             return;
         }
 
-        Map<Party, Map<CharacterRef, Long>> partyExpDist = new HashMap<>();
+        Map<Integer, Map<CharacterRef, Long>> partyExpDist = new HashMap<>();
         Map<CharacterRef, Long> soloExpDist = new HashMap<>();
 
         Map<Integer, CharacterRef> mapPlayers = map.getMapAllPlayers();
@@ -633,12 +633,12 @@ public class Monster extends AbstractLoadedLife {
             if (chr != null) {
                 long damage = e.getValue().longValue();
 
-                Party p = chr.getParty();
-                if (p != null) {
-                    Map<CharacterRef, Long> partyParticipation = partyExpDist.get(p);
+                int partyId = chr.getPartyId();
+                if (partyId != 0) {
+                    Map<CharacterRef, Long> partyParticipation = partyExpDist.get(partyId);
                     if (partyParticipation == null) {
                         partyParticipation = new HashMap<>(6);
-                        partyExpDist.put(p, partyParticipation);
+                        partyExpDist.put(partyId, partyParticipation);
 
                         totalEntries += 1;
                     }
@@ -689,8 +689,8 @@ public class Monster extends AbstractLoadedLife {
             distributePlayerExperience(chr, exp, 0.0f, chr.getLevel(), true, isWhiteExpGain(chr, personalRatio, sdevRatio), false);
         }
 
-        for (Map<CharacterRef, Long> partyParticipation : partyExpDist.values()) {
-            distributePartyExperience(partyParticipation, expPerDmg, underleveled, personalRatio, sdevRatio);
+        for (Map.Entry<Integer, Map<CharacterRef, Long>> e : partyExpDist.entrySet()) {
+            distributePartyExperience(e.getKey(), e.getValue(), expPerDmg, underleveled, personalRatio, sdevRatio);
         }
 
         EventInstanceManager eim = getMap().getEventInstance();

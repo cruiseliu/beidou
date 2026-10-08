@@ -13,8 +13,6 @@ import org.gms.remote.modules.battle.BattleModule;
 import org.gms.client.quest.medal.SpecialChallengeMedal;
 import org.gms.client.quest.medal.VeteranHunterMedal;
 import org.gms.remote.modules.battle.client.CloseRangeAttack;
-import org.gms.net.server.world.Party;
-import org.gms.net.server.world.PartyCharacter;
 import org.gms.server.BuffEffectData;
 import org.gms.server.maps.Battle;
 import org.gms.util.AssertUtil;
@@ -128,15 +126,6 @@ class CharacterBattle implements BattleModule.Handler {
             return;
         }
 
-        // 队伍快照（phase 1 自访）：HP 条受众候选，随意图投递（map 域零角色触达）
-        final List<Integer> partyMembers = new ArrayList<>();
-        Party party = chr.getParty();
-        if (party != null) {
-            for (PartyCharacter pc : party.getMembers()) {
-                partyMembers.add(pc.getId());
-            }
-        }
-
         // phase 1 收口：意图 post map actor（phase 2 目标相关处理 + 伤害最终化 + 中继，
         // 见 org.gms.server.maps.Battle）。declaredDamage 按 allDamage.keySet() 现序冻结
         // ——即历史 relay 的 keySet 迭代序（HashMap 桶序），多目标字节一致性必需。
@@ -156,8 +145,7 @@ class CharacterBattle implements BattleModule.Handler {
                 attack.display,
                 attack.dmgCap,
                 attack.canCrit,
-                declaredOrder,
-                partyMembers
+                declaredOrder
         ));
 
         // 队伍快照已入 intent；死亡结算由 map actor 逐参与者回投（monsterKilled）

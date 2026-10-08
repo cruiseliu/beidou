@@ -39,12 +39,7 @@ public final class Battle {
             int cid, int skill, int skilllevel, int stance,
             int numAttackedAndDamage, int speed, int direction, int display,
             long dmgMax, boolean canCrit,
-            Map<Integer, List<Integer>> declaredDamage,
-            List<Integer> partyMembers) {
-
-        public CloseRangeAttackIntent {
-            partyMembers = List.copyOf(partyMembers);
-        }
+            Map<Integer, List<Integer>> declaredDamage) {
     }
 
     /**
@@ -83,9 +78,8 @@ public final class Battle {
                 totDamageToOneMonster += damage;
             }
 
-            // 交战登记：攻击者 + 队伍快照（phase 1 自访读取）入候选集；HP 广播受众
+            // 交战登记：HP 条受众候选（攻击者；同队角色由广播端按视图 partyId 解析）
             monster.addEngaged(intent.cid());
-            monster.addEngaged(intent.partyMembers());
 
             monster.aggroMonsterDamage(intent.attacker(), totDamageToOneMonster);
             map.damageMonster(intent.attacker(), monster, totDamageToOneMonster);

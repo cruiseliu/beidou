@@ -2782,11 +2782,23 @@ public class MapleMap {
     public void broadcastMonsterHp(Monster monster, int hpPercent) {
         chrRLock.lock();
         try {
+            // 队伍归属经视图活取（player actor 任务边界发布，最终一致）——
+            // 后入队者下一次攻击即入受众，无快照时点问题
+            Set<Integer> engagedParties = new HashSet<>();
+            for (CharacterRef cr : characters) {
+                if (!cr.isClientDisconnected() && monster.isEngaged(cr.getId())) {
+                    int pid = cr.getPartyId();
+                    if (pid != 0) {
+                        engagedParties.add(pid);
+                    }
+                }
+            }
             for (CharacterRef cr : characters) {
                 if (cr.isClientDisconnected()) {
                     continue;
                 }
-                if (monster.isEngaged(cr.getId())) {
+                int pid = cr.getPartyId();
+                if (monster.isEngaged(cr.getId()) || (pid != 0 && engagedParties.contains(pid))) {
                     cr.post(new MapMonsterHpMessage(getId(), monster.getObjectId(), hpPercent));
                 }
             }
