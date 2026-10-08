@@ -3070,6 +3070,9 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     public MapleMapRef getMapRef() { return map.getMap(); }
     /** 地图域侧句柄（规范唯一；MapleMap 只持 ref 不持本类型） */
     public CharacterRef ref() { return ref; }
+
+    /** 视图发布（转发 CharacterRef；调用方 = player actor 任务边界） */
+    public void publishView() { ref.publishView(); }
     /** strict 管线执行窗口标志（窗口存续视角，跨线程可见——controller 选举过滤等语义过滤用） */
     /** canary 断言谓词：当前线程正处本角色的管线窗口内（ref 触达守卫用，线程精确） */
     /** 窗口存续视角（跨线程可见，CharacterRef.strictMode / MapleMapRef 守卫消费）：任一种类在窗即 true */

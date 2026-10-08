@@ -220,7 +220,13 @@ public class Strand implements AutoCloseable {
             if (ctx != null) {
                 PipelineContext.clear();
             }
+            afterTask();
         }
+    }
+
+    /** 任务边界钩子（每个任务恰好一次，正常/异常统一；finally 语义）：派生类用于
+     *  跨 actor 视图发布等边界合并动作（如 PlayerStrand 的 CharacterMapView 推送）。 */
+    protected void afterTask() {
     }
 
     private Runnable finalizerOnClose;

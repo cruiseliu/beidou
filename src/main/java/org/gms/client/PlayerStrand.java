@@ -52,6 +52,12 @@ public final class PlayerStrand extends Strand {
         return chr == null ? null : new PipelineContext.Owner(PipelineContext.OwnerType.CHARACTER, chr.getId());
     }
 
+    /** 任务边界推送角色视图（每任务至多一次；详见 CharacterRef.publishView） */
+    @Override
+    protected void afterTask() {
+        player.flushCharacterView();
+    }
+
     /** 类型化消息投递（跨 actor 消息面）：入队后在 player 域内经分发器执行 */
     public void post(ActorMessage msg) {
         post(msg.name(), () -> dispatcher.dispatch(msg));

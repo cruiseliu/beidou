@@ -23,7 +23,7 @@ package org.gms.server.maps;
 
 import org.gms.client.Client;
 
-import java.awt.*;
+import java.awt.Point;
 
 public interface MapObject {
     int getObjectId();

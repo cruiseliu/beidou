@@ -146,6 +146,7 @@ public final class Player {
      * （~900 处 .getPlayer()，批次迁移后随 Client 侧 Character 概念退役）。
      */
     public void bindCharacter(Character c) {
+        flushCharacterView();   // 视图基准发布（map 域任何读取先于此）
         if (!strand.onStrand()) {
             throw new IllegalStateException("bindCharacter 必须在本 actor strand 上执行");
         }
@@ -157,6 +158,17 @@ public final class Player {
     /** 角色实体（本 actor 的从属状态）；登录前/charlist 阶段为 null */
     public Character character() {
         return characterSlot;
+    }
+
+    /**
+     * 角色视图对账（player strand 任务边界由 PlayerStrand.afterTask 调用）：本体现值
+     * 与 CharacterRef 已发布视图比对，有变化才发布——每任务至多一次跨 actor 推送。
+     */
+    void flushCharacterView() {
+        Character chr = character();
+        if (chr != null) {
+            chr.publishView();
+        }
     }
 
     /** 远端客户端语义层（世界域模块面视图；派生视图，惰性）。世界域代码获取语义层的唯一出口。 */

@@ -60,6 +60,9 @@ public final class CharacterRef implements MapObject {
      * 首捕必然发生在装载后）。并发首捕同值幂等。
      */
     private int id;
+
+    /** map 域只读视图快照（CharacterMapView，player actor 任务边界整体发布；见 publishView） */
+    private volatile CharacterMapView view;
     /** 幽灵判定快照（方向 2 读快照化）：离场标志，player 侧翻转点回写；初值 true 对齐本体 AtomicBoolean */
     private volatile boolean awayFromWorld = true;
     /** 幽灵判定快照：会话断开（单向置位，player 断连收尾回写） */
@@ -183,9 +186,22 @@ public final class CharacterRef implements MapObject {
         return chr.getName();
     }
 
+    /**
+     * map 域只读：等级视图（player actor 任务边界发布的快照）。
+     * 免哨——视图读是跨域取数的被认可通道（本方法即 CharacterMapView 的第一个消费者）。
+     */
     public int getLevel() {
-        notInStrictPipeline();
-        return chr.getLevel();
+        CharacterMapView v = view;
+        return v != null ? v.level() : 0;
+    }
+
+    /** 视图发布（player actor 任务边界 / 入场绑定调用；本体现值 → 有变化才整体替换） */
+    public void publishView() {
+        CharacterMapView next = new CharacterMapView(chr.getLevel());
+        CharacterMapView cur = view;
+        if (cur == null || cur.level() != next.level()) {
+            view = next;
+        }
     }
 
     public Client getClient() {
