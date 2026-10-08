@@ -1105,7 +1105,7 @@ public class Monster extends AbstractLoadedLife {
         map.broadcastMessage(packet, getPosition());
 
         CharacterRef chrController = getActiveController();
-        if (chrController != null && !chrController.isMapObjectVisible(Monster.this)) {
+        if (chrController != null && !chrController.isMapObjectVisible(getObjectId())) {
             // controller 看不见地图广播，状态包单独补给（post 回 strand 直发）
             chrController.postLegacyPacket("aggro-status-" + getObjectId(), client -> client.sendPacket(packet));
         }

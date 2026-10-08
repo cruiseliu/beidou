@@ -20,6 +20,7 @@ import org.gms.server.Trade;
 import org.gms.infra.Strand;
 import org.gms.scripting.JsModule;
 import org.gms.server.maps.FieldLimit;
+import org.gms.server.maps.MapObjectType;
 import org.gms.util.AssertUtil;
 import org.gms.server.maps.MapleMapRef;
 import org.gms.server.maps.MapleMapStatic;
@@ -95,14 +96,14 @@ class CharacterMap implements MapModule.Handler {
         applyMovement(elements);
 
         final Point newPos = owner.getPosition();
-        final List<MapObject> visible = List.of(owner.getVisibleMapObjects());
+        final List<Integer> visibleOids = owner.getVisibleMapObjectOids();   // 可见视图 oid 快照（值化，原活引用列表）
         final Strand strand = owner.strand();
         if (strand == null) {
             return;   // 无会话 strand（理论不可达：本入口在 strand 上执行）
         }
         final MapleMapRef map = this.map;
         map.broadcastCharacterMove(owner.getId(), elements);   // 他人流中继（map actor 逐连接语义投递）
-        map.handleCharacterMove(owner.ref(), newPos, visible); // 可见性差集（map actor）
+        map.handleCharacterMove(owner.ref(), newPos, visibleOids); // 可见性差集（map actor）
     }
 
     /**
@@ -871,8 +872,11 @@ class CharacterMap implements MapModule.Handler {
 
         // （原 GM 隐身特效包分支：isHidden 按"单机无 GM"裁定删除，恒 false）
 
-        List<MapObject> addRefs = map.sendObjectPlacement(owner.ref(), chr.getPosition(), chr.getId(), chr.getSummonsValues());
-        chr.applyVisibleMapObjects(addRefs, List.of());
+        // 可见视图随进图重建：先清空（陈图条目随 reset 退役），placement 回来的值条目直接登记
+        // （supply 同步返回 = seed 先于编舞后续，无窗口）
+        owner.mapView().reset();
+        final List<MapView.Entry> viewAdds = map.sendObjectPlacement(owner.ref(), chr.getPosition(), chr.getId(), chr.getSummonsValues());
+        owner.mapView().addAll(viewAdds);
 
         map.closeEventJoinPortal();
         if (st.fieldType() == 81 || st.fieldType() == 82) {   // 原 hasForcedEquip（fieldType 静态判定内联）
@@ -898,7 +902,7 @@ class CharacterMap implements MapModule.Handler {
             summon.setPosition(chr.getPosition());
             map.spawnSummonExcludeOwner(summon, chr.ref());
             // owner 份（原 ranged 广播内含 owner：可见集登记 + 与 packetbakery 同形的 spawn 包）
-            chr.addVisibleMapObject(summon);
+            chr.addVisibleMapObject(summon.getObjectId(), new MapView.MapObjectInfo(MapObjectType.SUMMON, 0));
             chr.sendPacket(PacketCreator.spawnSummon(summon, true));
         }
         map.sendMapEffectData(chr.getClient());

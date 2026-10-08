@@ -324,7 +324,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     private WeakReference<MapleMap> ownedMap = new WeakReference<>(null);
     private final Set<Monster> controlled = new LinkedHashSet<>();
     private final Map<Integer, String> entered = new LinkedHashMap<>();
-    private final Set<MapObject> visibleMapObjects = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final MapView mapView = new MapView();   // oid → 值快照（原活引用 visibleMapObjects 集合值化，map 域经 MapObjectsViewMessage 回投）
     private final CharacterSkills skills = new CharacterSkills(this);
 
     final Map<Integer, Summon> summons = new LinkedHashMap<>();
@@ -592,7 +592,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     void removeSummonAndPuppet(Summon summon) {
         getMapRef().broadcastMessage(PacketCreator.removeSummon(summon, true), summon.getPosition());
         getMapRef().removeMapObject(summon);
-        removeVisibleMapObject(summon);
+        removeVisibleMapObject(summon.getObjectId());
 
         summons.remove(summon.getSkill());
         if (summon.isPuppet()) {
@@ -617,8 +617,13 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         }
     }
 
-    public void addVisibleMapObject(MapObject mo) {
-        visibleMapObjects.add(mo);
+    /** 可见视图值登记（player 侧直poke：入场 summon 等；map 域走 MapObjectsViewMessage） */
+    public void addVisibleMapObject(int oid, MapView.MapObjectInfo info) {
+        mapView.add(oid, info);
+    }
+
+    public MapView mapView() {
+        return mapView;
     }
 
     public int calculateMaxBaseDamage(int watk, WeaponTypeDefinition weapon) {
@@ -1142,7 +1147,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         for (Summon summon : new ArrayList<>(summons.values())) {
             getMapRef().broadcastMessage(PacketCreator.removeSummon(summon, true), summon.getPosition());
             getMapRef().removeMapObject(summon);
-            removeVisibleMapObject(summon);
+            removeVisibleMapObject(summon.getObjectId());
             if (summon.isPuppet()) {
                 getMapRef().removePlayerPuppet(this.ref());
             }
@@ -1368,8 +1373,9 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         return summons.containsValue(summon);
     }
 
-    public MapObject[] getVisibleMapObjects() {
-        return visibleMapObjects.toArray(new MapObject[visibleMapObjects.size()]);
+    /** oid 快照（移动差集事实回传 map 用） */
+    public List<Integer> getVisibleMapObjectOids() {
+        return mapView.oidSnapshot();
     }
 
     public World getWorldServer() {
@@ -1391,23 +1397,19 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     }
 
     /**
-     * 移动可见性差集应用（map actor 回程消息；player strand 上执行，幂等，doc/13 §12）。
+     * 可见集差集应用（map actor 值消息回程，MessageDispatcher 路由；player strand 上
+     * 执行，幂等——原 applyVisibleMapObjects 活引用回投的值化同位）。
      */
-    public void applyVisibleMapObjects(List<MapObject> addRefs, List<MapObject> removeRefs) {
-        for (MapObject mo : addRefs) {
-            if (!isMapObjectVisible(mo)) {
-                addVisibleMapObject(mo);
-            }
-        }
-        for (MapObject mo : removeRefs) {
-            if (isMapObjectVisible(mo)) {
-                removeVisibleMapObject(mo);
-            }
+    public void applyMapObjectsView(List<MapView.Entry> adds, List<Integer> removes) {
+        mapView.addAll(adds);
+        for (int oid : removes) {
+            mapView.remove(oid);
         }
     }
 
-    public boolean isMapObjectVisible(MapObject mo) {
-        return visibleMapObjects.contains(mo);
+    /** ref 值读（map 侧可见性差集判定；CHM 并发容忍语义与原集合一致） */
+    public boolean isMapObjectVisible(int oid) {
+        return mapView.contains(oid);
     }
 
     public boolean attemptCatchFish(int baitLevel) {
@@ -1419,7 +1421,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
 
     public void leaveMap() {
         releaseControlledMonsters();
-        visibleMapObjects.clear();
+        mapView.reset();   // 离图清空可见视图（进图编舞开头亦有 reset，双保险）
         chair.clearChair();
         if (hpDecreaseTask != null) {
             hpDecreaseTask.cancel(false);
@@ -1781,8 +1783,8 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         }, 4000, 4000);
     }
 
-    public void removeVisibleMapObject(MapObject mo) {
-        visibleMapObjects.remove(mo);
+    public void removeVisibleMapObject(int oid) {
+        mapView.remove(oid);
     }
 
     public synchronized void resetStats() {

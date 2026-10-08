@@ -43,6 +43,14 @@ public final class MessageDispatcher {
                     player.remote().map().updateMonsterHp(m.oid(), m.hpPercent());
                 }
             }
+            case org.gms.client.messages.MapObjectsViewMessage m -> {
+                // 接收方权威校验（同 HP 帧）：切图竞态下的迟到可见集差集在此丢弃。
+                // 纯状态应用（无 client 发送），map actor 各 spawn/destroy 投递点回投。
+                Character chr = player.character();
+                if (chr != null && chr.getMapId() == m.mapId()) {
+                    chr.applyMapObjectsView(m.adds(), m.removes());
+                }
+            }
             default -> log.warn("未知 actor 消息: {}", msg.name());   // 响亮：infra 不封闭，未知类型 = 装配漏配
         }
     }

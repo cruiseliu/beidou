@@ -125,9 +125,10 @@ public final class InnerPortalHandler extends AbstractPacketHandler {
 
     private static void movePlayerInMap(Character player, Point afterPos) {
         player.setPosition(afterPos);
-        // 可见性差集经 map actor（doc/13 §12；同图内传送无中继广播）
+        // 可见性差集经 map actor（doc/13 §12；同图内传送无中继广播）；可见视图 oid 快照
+        // 在 post 前（player 侧）取值
+        List<Integer> visibleOids = player.getVisibleMapObjectOids();
         MapleMap map = player.getMap();
-        map.post("move", () -> map.handleCharacterMove(player.ref(), afterPos,
-                List.of(player.getVisibleMapObjects())));
+        map.post("move", () -> map.handleCharacterMove(player.ref(), afterPos, visibleOids));
     }
 }

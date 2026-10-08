@@ -23,6 +23,8 @@ package org.gms.server.maps;
 
 import org.gms.client.character.Character;
 import org.gms.client.character.CharacterRef;
+import org.gms.client.character.MapView;
+import org.gms.client.messages.MapObjectsViewMessage;
 import org.gms.config.GameConfig;
 import org.gms.net.server.services.task.channel.OverallService;
 import org.gms.net.server.services.type.ChannelServices;
@@ -30,6 +32,7 @@ import org.gms.util.Pair;
 
 import java.awt.*;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Matze
@@ -105,13 +108,14 @@ public class Door {
         for (CharacterRef chrR : targetChars) {
             Character chr = chrR.unref();
             areaDoor.sendDestroyData(chr.getClient());
-            chr.removeVisibleMapObject(areaDoor);
+            // 可见集值注销（原活引用直写的值化回投；client 直发为既有 legacy 债，原样保留）
+            chrR.post(new MapObjectsViewMessage(target.getId(), List.of(), List.of(areaDoor.getObjectId())));
         }
 
         for (CharacterRef chrR : townChars) {
             Character chr = chrR.unref();
             townDoor.sendDestroyData(chr.getClient());
-            chr.removeVisibleMapObject(townDoor);
+            chrR.post(new MapObjectsViewMessage(town.getId(), List.of(), List.of(townDoor.getObjectId())));
         }
 
         owner.removePartyDoor(false);
@@ -122,7 +126,9 @@ public class Door {
                 Door door = chr.getMainTownDoor();
                 if (door != null) {
                     townDoor.sendSpawnData(chr.getClient());
-                    chr.addVisibleMapObject(townDoor);
+                    chrR.post(new MapObjectsViewMessage(town.getId(),
+                            List.of(new MapView.Entry(townDoor.getObjectId(), new MapView.MapObjectInfo(MapObjectType.DOOR, 0))),
+                            List.of()));
                 }
             }
         }

@@ -24,7 +24,9 @@ package org.gms.server.maps;
 import org.gms.client.EffectType;
 import org.gms.client.character.Character;
 import org.gms.client.character.CharacterRef;
+import org.gms.client.character.MapView;
 import org.gms.client.messages.MapMonsterHpMessage;
+import org.gms.client.messages.MapObjectsViewMessage;
 import org.gms.client.Client;
 import org.gms.client.autoban.AutobanFactory;
 import org.gms.client.inventory.InventoryType;
@@ -414,7 +416,6 @@ public class MapleMap {
                 if (condition == null || condition.canSpawn(chr)) {
                     if (chr.getPosition().distanceSq(mapobject.getPosition()) <= getRangedDistance()) {
                         inRangeCharacters.add(chr);
-                        chr.addVisibleMapObject(mapobject);
                     }
                 }
             }
@@ -423,8 +424,11 @@ public class MapleMap {
             chrRLock.unlock();
         }
 
+        // 可见集值登记（原活引用直写的值化回投；消息先于 spawn 包入 strand FIFO，语义同原「先登记后发包」）
+        final MapView.Entry viewEntry = viewEntry(mapobject);
         for (CharacterRef chr : inRangeCharacters) {
             packetbakery.sendPackets(chr.getClient());
+            chr.post(new MapObjectsViewMessage(getId(), List.of(viewEntry), List.of()));
         }
     }
 
@@ -444,6 +448,21 @@ public class MapleMap {
         } finally {
             objectRLock.unlock();
         }
+    }
+
+    /**
+     * 地图对象值快照提取（MapView 值化过渡）：monster/item/reactor/npc 带模板 id，
+     * 其余类型暂记 0（按需补；将来 MapObjectView 接口接管）。
+     */
+    private static MapView.Entry viewEntry(MapObject mo) {
+        final int id = switch (mo.getType()) {
+            case MONSTER -> ((Monster) mo).getId();
+            case ITEM -> ((MapItem) mo).getItemId();
+            case REACTOR -> ((Reactor) mo).getId();
+            case NPC -> ((NPC) mo).getId();
+            default -> 0;
+        };
+        return new MapView.Entry(mo.getObjectId(), new MapView.MapObjectInfo(mo.getType(), id));
     }
 
     public void removeMapObject(int num) {
@@ -2005,7 +2024,9 @@ public class MapleMap {
             CharacterRef chr = c.getPlayer().ref();
             if (chr != null) {
                 door.sendSpawnData(c, false);
-                chr.addVisibleMapObject(door);
+                chr.post(new MapObjectsViewMessage(getId(),
+                        List.of(new MapView.Entry(door.getObjectId(), new MapView.MapObjectInfo(MapObjectType.DOOR, 0))),
+                        List.of()));
             }
         }, chr -> chr.getMapId() == door.getFrom().getId());
     }
@@ -2042,7 +2063,6 @@ public class MapleMap {
                 if (cr != owner) {
                     if (cr.getPosition().distanceSq(summon.getPosition()) <= getRangedDistance()) {
                         inRangeCharacters.add(cr);
-                        cr.addVisibleMapObject(summon);
                     }
                 }
             }
@@ -2051,8 +2071,10 @@ public class MapleMap {
             chrRLock.unlock();
         }
 
+        final MapView.Entry viewEntry = viewEntry(summon);
         for (CharacterRef chr : inRangeCharacters) {
             chr.sendPacket(PacketCreator.spawnSummon(summon, true));   // 与原 packetbakery 同包形
+            chr.post(new MapObjectsViewMessage(getId(), List.of(viewEntry), List.of()));
         }
     }
 
@@ -2453,7 +2475,7 @@ public class MapleMap {
      * 包序 = 收集序（非视野型在前、视野型在后，与原两段循环一致），整体落到收件 strand
      * 队列尾；返回视野新增集，由调用方回放到本体可见集（wire 无差：可见集为服务端簿记）。
      */
-    List<MapObject> sendObjectPlacement(CharacterRef chr, Point pos, int cid, Collection<Summon> ownedSummons) {
+    List<MapView.Entry> sendObjectPlacement(CharacterRef chr, Point pos, int cid, Collection<Summon> ownedSummons) {
         Collection<MapObject> objects;
 
         objectRLock.lock();
@@ -2464,9 +2486,11 @@ public class MapleMap {
         }
 
         List<MapObject> spawns = new ArrayList<>();
+        List<MapView.Entry> viewAdds = new ArrayList<>();
         for (MapObject o : objects) {
             if (isNonRangedType(o.getType())) {
                 spawns.add(o);
+                viewAdds.add(viewEntry(o));
             } else if (o.getType() == MapObjectType.SUMMON) {
                 Summon summon = (Summon) o;
                 if (summon.getOwner().getId() == cid && !ownedSummons.contains(summon)) {
@@ -2486,10 +2510,12 @@ public class MapleMap {
                 if (((Reactor) o).isAlive()) {
                     spawns.add(o);
                     addRefs.add(o);
+                    viewAdds.add(viewEntry(o));
                 }
             } else {
                 spawns.add(o);
                 addRefs.add(o);
+                viewAdds.add(viewEntry(o));
 
                 if (o.getType() == MapObjectType.MONSTER) {
                     ((Monster) o).aggroUpdateController();
@@ -2502,7 +2528,7 @@ public class MapleMap {
                 o.sendSpawnData(client);
             }
         });
-        return addRefs;
+        return viewAdds;
     }
 
     /** 入场注册表登记（原 finishEnter 段；oid 快照——cr.getObjectId() 本身是 ref 直调）+ 商店可空注册 */
@@ -3246,14 +3272,14 @@ public class MapleMap {
         return null;
     }
 
-    private static void updateMapObjectVisibility(CharacterRef chr, MapObject mo) {
-        if (!chr.isMapObjectVisible(mo)) { // object entered view range
+    private void updateMapObjectVisibility(CharacterRef chr, MapObject mo) {
+        if (!chr.isMapObjectVisible(mo.getObjectId())) { // object entered view range
             if (mo.getType() == MapObjectType.SUMMON || mo.getPosition().distanceSq(chr.getPosition()) <= getRangedDistance()) {
-                chr.addVisibleMapObject(mo);
+                chr.post(new MapObjectsViewMessage(getId(), List.of(viewEntry(mo)), List.of()));
                 mo.sendSpawnData(chr.getClient());
             }
         } else if (mo.getType() != MapObjectType.SUMMON && mo.getPosition().distanceSq(chr.getPosition()) > getRangedDistance()) {
-            chr.removeVisibleMapObject(mo);
+            chr.post(new MapObjectsViewMessage(getId(), List.of(), List.of(mo.getObjectId())));
             mo.sendDestroyData(chr.getClient());
         }
     }
@@ -3319,29 +3345,33 @@ public class MapleMap {
      * strand 归 {@link CharacterRef} 自持）：消失集 destroy 包 + 新现集 spawn 包经
      * postLegacyPacket 回移动者 strand 发送（本任务体零 client 直触，窗口按调度豁免
      * 约定随之移除），包序 = destroy 流在前、spawn 流在后（与原两段循环一致），
-     * 差集回投 player strand 登记可见集。
+     * 差集以值消息（{@link MapObjectsViewMessage}）回投 player strand 登记可见视图。
+     * 入参为移动者可见视图的 oid 快照（原活引用列表的值化）；oid 单调分配回绕前不复用，
+     * 原身份比对（mapObjects.get(oid) != mo）由「查无此 oid」等价替代。
      */
-    public void handleCharacterMove(CharacterRef chr, Point toPos, List<MapObject> visibleObjs) {
+    public void handleCharacterMove(CharacterRef chr, Point toPos, List<Integer> visibleOids) {
         List<MapObject> addRefs = new ArrayList<>();
-        List<MapObject> removeRefs = new ArrayList<>();
+        List<Integer> removeOids = new ArrayList<>();
         List<MapObject> destroySends = new ArrayList<>();
         Map<Integer, MapObject> mapObjects = getCopyMapObjects();
-        for (MapObject mo : visibleObjs) {
+        Set<Integer> visibleSet = new HashSet<>(visibleOids);
+        for (Integer oidBox : visibleOids) {
+            int oid = oidBox;
+            MapObject mo = mapObjects.get(oid);
             if (mo == null) {
-                continue;
-            }
-            if (mapObjects.get(mo.getObjectId()) != mo) {
                 // 对象已不在图上：现状语义为静默移除（无包）
-                removeRefs.add(mo);
+                removeOids.add(oid);
             } else if (mo.getType() != MapObjectType.SUMMON
                     && mo.getPosition().distanceSq(toPos) > getRangedDistance()) {
                 destroySends.add(mo);
-                removeRefs.add(mo);
+                removeOids.add(oid);
             }
         }
+        List<MapView.Entry> addEntries = new ArrayList<>();
         for (MapObject mo : getMapObjectsInRange(toPos, getRangedDistance(), rangedMapobjectTypes)) {
-            if (!visibleObjs.contains(mo)) {
+            if (!visibleSet.contains(mo.getObjectId())) {
                 addRefs.add(mo);
+                addEntries.add(viewEntry(mo));
             }
         }
 
@@ -3356,8 +3386,7 @@ public class MapleMap {
             });
         }
 
-        chr.post("apply-visibility",
-                () -> chr.applyVisibleMapObjects(addRefs, removeRefs));
+        chr.post(new MapObjectsViewMessage(getId(), addEntries, removeOids));
     }
 
     /**

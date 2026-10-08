@@ -5,6 +5,7 @@ import org.gms.infra.StrictWindow;
 import org.gms.infra.PipelineContext;
 import org.gms.client.Player;
 import org.gms.client.character.CharacterRef;
+import org.gms.client.character.MapView;
 import org.gms.client.pet.Pet;
 import org.gms.remote.modules.map.client.movement.MoveElement;
 import org.gms.infra.ActorShim;
@@ -288,9 +289,9 @@ public final class MapleMapRef {
     /**
      * 入场对象投放：非视野型 spawn 流 + 陈旧 summon 清理 + 视野内 spawn 流（map actor
      * 任务体）。spawn 直发段在任务体内经 {@link CharacterRef#postLegacyPacket} 回 strand。
-     * 返回视野新增集（调用方回放到本体可见集，wire 无差）。
+     * 返回视野新增值条目（调用方回放到本体可见视图，wire 无差）。
      */
-    public List<MapObject> sendObjectPlacement(CharacterRef chr, Point pos, int cid, Collection<Summon> ownedSummons) {
+    public List<MapView.Entry> sendObjectPlacement(CharacterRef chr, Point pos, int cid, Collection<Summon> ownedSummons) {
         return shim.supply("sendObjectPlacement", () -> {
             // 上下文截断（既有教义豁免，同 onTransitionMobView）：controller 选举/换届载荷
             PipelineContext.clear();
@@ -333,9 +334,9 @@ public final class MapleMapRef {
         shim.run("pickItemDrop", () -> map.pickItemDrop(pickupPacket, mdrop));
     }
 
-    /** 角色移动的可见性差集应用（通知类 post）：参数全快照（ref/落点/可见集冻结列表） */
-    public void handleCharacterMove(CharacterRef chr, Point toPos, List<MapObject> visibleObjs) {
-        shim.post("handleCharacterMove", () -> map.handleCharacterMove(chr, toPos, visibleObjs));
+    /** 角色移动的可见性差集应用（通知类 post）：参数全快照（ref/落点/可见视图 oid 冻结列表） */
+    public void handleCharacterMove(CharacterRef chr, Point toPos, List<Integer> visibleOids) {
+        shim.post("handleCharacterMove", () -> map.handleCharacterMove(chr, toPos, visibleOids));
     }
 
     /** 角色移动他人流中继：map actor 内按受众逐连接语义投递（地图决定发谁，包构建归 remote） */

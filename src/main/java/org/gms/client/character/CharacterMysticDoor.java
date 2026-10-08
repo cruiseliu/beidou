@@ -4,6 +4,7 @@ import org.gms.net.server.world.Party;
 import org.gms.util.Locks;
 import org.gms.server.maps.Door;
 import org.gms.server.maps.DoorObject;
+import org.gms.server.maps.MapObjectType;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -162,7 +163,7 @@ class CharacterMysticDoor {
                 for (Character pchar : partyMembers) {
                     DoorObject mdo = door.getTownDoor();
                     mdo.sendDestroyData(pchar.getClient(), true);
-                    pchar.removeVisibleMapObject(mdo);
+                    pchar.removeVisibleMapObject(mdo.getObjectId());
                 }
             }
 
@@ -172,7 +173,7 @@ class CharacterMysticDoor {
                     for (Character pchar : partyMembers) {
                         DoorObject mdo = door.getTownDoor();
                         mdo.sendDestroyData(pchar.getClient(), true);
-                        pchar.removeVisibleMapObject(mdo);
+                        pchar.removeVisibleMapObject(mdo.getObjectId());
                     }
                 }
             }
@@ -185,7 +186,7 @@ class CharacterMysticDoor {
                     for (Character pchar : partyMembers) {
                         DoorObject mdo = door.getTownDoor();
                         mdo.sendSpawnData(pchar.getClient());
-                        pchar.addVisibleMapObject(mdo);
+                        pchar.addVisibleMapObject(mdo.getObjectId(), new MapView.MapObjectInfo(MapObjectType.DOOR, 0));
                     }
                 }
             }
@@ -198,14 +199,14 @@ class CharacterMysticDoor {
                 for (Door door : partyDoors.values()) {
                     DoorObject mdo = door.getTownDoor();
                     mdo.sendDestroyData(partyLeaver.getClient(), true);
-                    partyLeaver.removeVisibleMapObject(mdo);
+                    partyLeaver.removeVisibleMapObject(mdo.getObjectId());
                 }
             }
 
             for (Door door : leaverDoors) {
                 DoorObject mdo = door.getTownDoor();
                 mdo.sendDestroyData(partyLeaver.getClient(), true);
-                partyLeaver.removeVisibleMapObject(mdo);
+                partyLeaver.removeVisibleMapObject(mdo.getObjectId());
             }
 
             for (Door door : leaverDoors) {
@@ -213,7 +214,7 @@ class CharacterMysticDoor {
 
                 DoorObject mdo = door.getTownDoor();
                 mdo.sendSpawnData(partyLeaver.getClient());
-                partyLeaver.addVisibleMapObject(mdo);
+                partyLeaver.addVisibleMapObject(mdo.getObjectId(), new MapView.MapObjectInfo(MapObjectType.DOOR, 0));
             }
         }
     }

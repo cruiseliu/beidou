@@ -463,19 +463,10 @@ public final class CharacterRef implements MapObject {
         return chr.containsSummon(summon);
     }
 
-    public void addVisibleMapObject(MapObject mo) {
+    /** 可见视图差集判定（值读；登记/注销改走 MapObjectsViewMessage 回投，无写桥） */
+    public boolean isMapObjectVisible(int oid) {
         notInStrictPipeline();
-        chr.addVisibleMapObject(mo);
-    }
-
-    public void removeVisibleMapObject(MapObject mo) {
-        notInStrictPipeline();
-        chr.removeVisibleMapObject(mo);
-    }
-
-    public boolean isMapObjectVisible(MapObject mo) {
-        notInStrictPipeline();
-        return chr.isMapObjectVisible(mo);
+        return chr.isMapObjectVisible(oid);
     }
 
     public void sendPacket(org.gms.net.packet.Packet packet) {
@@ -599,12 +590,6 @@ public final class CharacterRef implements MapObject {
     /** 幽灵判定快照读（map 域直读，不触本体；写点见 syncClientDisconnected） */
     public boolean isClientDisconnected() {
         return clientDisconnected;
-    }
-
-    public void applyVisibleMapObjects(java.util.List<MapObject> addRefs,
-                                       java.util.List<MapObject> removeRefs) {
-        notInStrictPipeline();
-        chr.applyVisibleMapObjects(addRefs, removeRefs);
     }
 
     public void saveLocation(String type) {

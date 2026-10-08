@@ -118,6 +118,13 @@ off-strand 访问。ActorShim.checkOnShim 仍为 warn（未翻转）。
 2. **EnumSet 版**：种类可并存；执行侧仍是线程绑定，跨 actor 缺口不变。
 3. **因果传播 + domain 盖章（现行）**：状态随任务走，owner 随执行域换——"免检"禁令
    由此成立：唯一合法的 `PipelineContext.clear()` 是登记在案的截断点。
+4. **可见集值化（MapView）**：`Character.visibleMapObjects` 活引用集合（map actor 线程
+   直写 `Set<MapObject>` + 活引用列表双向回投）是一条**无守卫、哨探不到**的跨域通道
+   （不在本 doc 任何账本里）。已值化为 `MapView`（oid → 类型+模板 id，CHM 承接原并发
+   语义），map 域写点全部改经 `MapObjectsViewMessage` 回投（MessageDispatcher 做
+   mapId 接收方校验），ref 桥只剩 `isMapObjectVisible(oid)` 值读。教程 fire 21 → 20
+   （撤掉的正是 `addVisibleMapObject` 直写那条）。oid 单调分配回绕前不复用，stale
+   条目自愈；消费方：战斗 phase 1 的攻击目标 oid → mobId 解析（掉落链重构前置）。
 
 ## 9. 未决点
 
