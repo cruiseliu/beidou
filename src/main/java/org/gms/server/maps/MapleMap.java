@@ -360,7 +360,7 @@ public class MapleMap {
 
     public int getCurrentPartyId() {
         for (CharacterRef chr : this.getCharacters()) {
-            if (chr.getPartyId() != -1) {
+            if (chr.getPartyId() > 0) {   // 视图域契约：0 = 无队伍（发布侧已归一，见 CharacterRef.publishView）
                 return chr.getPartyId();
             }
         }
@@ -670,7 +670,7 @@ public class MapleMap {
         // 掉落权益快照（普攻链路）：取不到 = 非普攻死亡（魔法/脚本/friendly 等），整段走 legacy
         final Battle.DropEntitlement ent = useBaseRate ? null : mob.getDropEntitlement(chr.getId());
 
-        final byte droptype = (byte) (mob.getStats().isExplosiveReward() ? 3 : mob.getStats().isFfaLoot() ? 2 : chr.getParty() != null ? 1 : 0);
+        final byte droptype = (byte) (mob.getStats().isExplosiveReward() ? 3 : mob.getStats().isFfaLoot() ? 2 : chr.getPartyId() > 0 ? 1 : 0);
         final int mobpos = mob.getPosition().x;
         Point pos = new Point(0, mob.getPosition().y);
 
@@ -748,7 +748,7 @@ public class MapleMap {
             return;
         }
 
-        final byte droptype = (byte) (chr.getParty() != null ? 1 : 0);
+        final byte droptype = (byte) (chr.getPartyId() > 0 ? 1 : 0);
         final int mobpos = mob.getPosition().x;
         double chRate = 1000000;   // guaranteed item drop
         byte d = 1;
@@ -762,7 +762,7 @@ public class MapleMap {
     }
 
     public void dropFromReactor(final CharacterRef chr, final Reactor reactor, ItemSlot drop, Point dropPos, short questid) {
-        spawnDrop(drop, this.calcDropPos(dropPos, reactor.getPosition()), reactor, chr, (byte) (chr.getParty() != null ? 1 : 0), questid);
+        spawnDrop(drop, this.calcDropPos(dropPos, reactor.getPosition()), reactor, chr, (byte) (chr.getPartyId() > 0 ? 1 : 0), questid);
     }
 
     private void stopItemMonitor() {
@@ -2864,7 +2864,7 @@ public class MapleMap {
             for (CharacterRef cr : characters) {
                 if (!cr.isClientDisconnected() && monster.isEngaged(cr.getId())) {
                     int pid = cr.getPartyId();
-                    if (pid != 0) {
+                    if (pid > 0) {
                         engagedParties.add(pid);
                     }
                 }
@@ -2874,7 +2874,7 @@ public class MapleMap {
                     continue;
                 }
                 int pid = cr.getPartyId();
-                if (monster.isEngaged(cr.getId()) || (pid != 0 && engagedParties.contains(pid))) {
+                if (monster.isEngaged(cr.getId()) || (pid > 0 && engagedParties.contains(pid))) {
                     cr.post(new MapMonsterHpMessage(getId(), monster.getObjectId(), hpPercent));
                 }
             }

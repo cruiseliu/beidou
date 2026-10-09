@@ -666,7 +666,7 @@ public class Monster extends AbstractLoadedLife {
                 long damage = e.getValue().longValue();
 
                 int partyId = chr.getPartyId();
-                if (partyId != 0) {
+                if (partyId > 0) {   // 无队伍哨兵 -1 不参与分组（Party id 恒正）
                     Map<CharacterRef, Long> partyParticipation = partyExpDist.get(partyId);
                     if (partyParticipation == null) {
                         partyParticipation = new HashMap<>(6);

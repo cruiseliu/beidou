@@ -195,11 +195,12 @@ public final class CharacterRef implements MapObject {
         return v != null ? v.level() : 0;
     }
 
-    /** 视图发布（player actor 任务边界 / 入场绑定调用；本体现值 → 有变化才整体替换） */
+    /** 视图发布（player actor 任务边界 / 入场绑定调用；本体现值 → 有变化才整体替换）。 */
     public void publishView() {
+        // partyId 哨兵全域统一 -1 = 无队伍（组件域原值透传；Party id 恒正），消费端一律 > 0 判成员资格
         CharacterMapView next = new CharacterMapView(chr.getLevel(), chr.getPartyId());
         CharacterMapView cur = view;
-        if (cur == null || cur.level() != next.level()) {
+        if (cur == null || cur.level() != next.level() || cur.partyId() != next.partyId()) {
             view = next;
         }
     }
@@ -244,10 +245,10 @@ public final class CharacterRef implements MapObject {
         return chr.getTeam();
     }
 
-    /** map 域只读：队伍 id 视图（0 = 无队伍；发布语义同 getLevel） */
+    /** map 域只读：队伍 id 视图（-1 = 无队伍；发布语义同 getLevel） */
     public int getPartyId() {
         CharacterMapView v = view;
-        return v != null ? v.partyId() : 0;
+        return v != null ? v.partyId() : -1;
     }
 
     public Party getParty() {
