@@ -21,6 +21,7 @@
 package org.gms.server.maps;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.CharacterRef;
 import org.gms.client.Client;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.util.PacketCreator;
@@ -32,7 +33,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class MapItem extends AbstractMapObject {
-    protected Client ownerClient;
+    protected CharacterRef owner;          // 身份 ref（Client 需要时经 getOwnerClient 从 ref 拿，不存活引用）
     protected ItemSlot item;
     protected MapObject dropper;
     protected int character_ownerid, party_ownerid, meso, questid = -1;
@@ -41,41 +42,41 @@ public class MapItem extends AbstractMapObject {
     protected long dropTime;
     private final Lock itemLock = new ReentrantLock();
 
-    public MapItem(ItemSlot item, Point position, MapObject dropper, Character owner, Client ownerClient, byte type, boolean playerDrop) {
+    public MapItem(ItemSlot item, Point position, MapObject dropper, CharacterRef owner, byte type, boolean playerDrop) {
         setPosition(position);
         this.item = item;
         this.dropper = dropper;
         this.character_ownerid = owner.getId();
         this.party_ownerid = owner.getPartyId();
         this.partyDrop = this.party_ownerid != -1;
-        this.ownerClient = owner.getClient();
+        this.owner = owner;
         this.meso = 0;
         this.type = type;
         this.playerDrop = playerDrop;
     }
 
-    public MapItem(ItemSlot item, Point position, MapObject dropper, Character owner, Client ownerClient, byte type, boolean playerDrop, int questid) {
+    public MapItem(ItemSlot item, Point position, MapObject dropper, CharacterRef owner, byte type, boolean playerDrop, int questid) {
         setPosition(position);
         this.item = item;
         this.dropper = dropper;
         this.character_ownerid = owner.getId();
         this.party_ownerid = owner.getPartyId();
         this.partyDrop = this.party_ownerid != -1;
-        this.ownerClient = owner.getClient();
+        this.owner = owner;
         this.meso = 0;
         this.type = type;
         this.playerDrop = playerDrop;
         this.questid = questid;
     }
 
-    public MapItem(int meso, Point position, MapObject dropper, Character owner, Client ownerClient, byte type, boolean playerDrop) {
+    public MapItem(int meso, Point position, MapObject dropper, CharacterRef owner, byte type, boolean playerDrop) {
         setPosition(position);
         this.item = null;
         this.dropper = dropper;
         this.character_ownerid = owner.getId();
         this.party_ownerid = owner.getPartyId();
         this.partyDrop = this.party_ownerid != -1;
-        this.ownerClient = owner.getClient();
+        this.owner = owner;
         this.meso = meso;
         this.type = type;
         this.playerDrop = playerDrop;
@@ -198,8 +199,13 @@ public class MapItem extends AbstractMapObject {
         return hasExpiredOwnershipTime();
     }
 
+    /** owner 的会话（需要时从 ref 现取；登录态/在场判定语义同 legacy，登出/切图即 null/false） */
     public final Client getOwnerClient() {
-        return (ownerClient.isLoggedIn() && !ownerClient.getPlayer().isAwayFromWorld()) ? ownerClient : null;
+        if (owner == null) {
+            return null;
+        }
+        Client c = owner.getClient();
+        return (c != null && c.isLoggedIn() && !c.getPlayer().isAwayFromWorld()) ? c : null;
     }
 
     public final int getMeso() {

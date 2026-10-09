@@ -1114,7 +1114,7 @@ public class MapleMap {
     }
 
     private void spawnDrop(final ItemSlot idrop, final Point dropPos, final MapObject dropper, final CharacterRef chr, final byte droptype, final short questid) {
-        final MapItem mdrop = new MapItem(idrop, dropPos, dropper, chr.unref(), chr.getClient(), droptype, false, questid);
+        final MapItem mdrop = new MapItem(idrop, dropPos, dropper, chr, droptype, false, questid);
         mdrop.setDropTime(Server.getInstance().getCurrentTime());
         spawnAndAddRangedMapObject(mdrop, c -> {
             CharacterRef chr1 = CharacterRef.of(c.getPlayer());
@@ -1130,12 +1130,12 @@ public class MapleMap {
         }, null);
 
         instantiateItemDrop(mdrop);
-        activateItemReactors(mdrop, chr.getClient());
+        activateItemReactors(mdrop, chr);
     }
 
     public final void spawnMesoDrop(final int meso, final Point position, final MapObject dropper, final CharacterRef owner, final boolean playerDrop, final byte droptype) {
         final Point droppos = calcDropPos(position, position);
-        final MapItem mdrop = new MapItem(meso, droppos, dropper, owner.unref(), owner.getClient(), droptype, playerDrop);
+        final MapItem mdrop = new MapItem(meso, droppos, dropper, owner, droptype, playerDrop);
         mdrop.setDropTime(Server.getInstance().getCurrentTime());
 
         spawnAndAddRangedMapObject(mdrop, c -> {
@@ -1152,7 +1152,7 @@ public class MapleMap {
 
     public final void disappearingItemDrop(final MapObject dropper, final CharacterRef owner, final ItemSlot item, final Point pos) {
         final Point droppos = calcDropPos(pos, pos);
-        final MapItem mdrop = new MapItem(item, droppos, dropper, owner.unref(), owner.getClient(), (byte) 1, false);
+        final MapItem mdrop = new MapItem(item, droppos, dropper, owner, (byte) 1, false);
 
         mdrop.lockItem();
         try {
@@ -1164,7 +1164,7 @@ public class MapleMap {
 
     public final void disappearingMesoDrop(final int meso, final MapObject dropper, final CharacterRef owner, final Point pos) {
         final Point droppos = calcDropPos(pos, pos);
-        final MapItem mdrop = new MapItem(meso, droppos, dropper, owner.unref(), owner.getClient(), (byte) 1, false);
+        final MapItem mdrop = new MapItem(meso, droppos, dropper, owner, (byte) 1, false);
 
         mdrop.lockItem();
         try {
@@ -2196,7 +2196,7 @@ public class MapleMap {
         }
 
         final Point droppos = calcDropPos(pos, pos);
-        final MapItem mdrop = new MapItem(item, droppos, dropper, owner.unref(), owner.getClient(), dropType, playerDrop);
+        final MapItem mdrop = new MapItem(item, droppos, dropper, owner, dropType, playerDrop);
         mdrop.setDropTime(Server.getInstance().getCurrentTime());
 
         spawnAndAddRangedMapObject(mdrop, c -> {
@@ -2216,7 +2216,7 @@ public class MapleMap {
         }
 
         instantiateItemDrop(mdrop);
-        activateItemReactors(mdrop, owner.getClient());
+        activateItemReactors(mdrop, owner);
     }
 
     public final void spawnItemDropList(List<Integer> list, final MapObject dropper, final CharacterRef owner, Point pos) {
@@ -2269,7 +2269,7 @@ public class MapleMap {
         service.registerOverallAction(st.mapid(), r, delay);
     }
 
-    private void activateItemReactors(final MapItem drop, final Client c) {
+    private void activateItemReactors(final MapItem drop, final CharacterRef owner) {
         final ItemSlot item = drop.getItem();
 
         for (final MapObject o : getReactors()) {
@@ -2279,7 +2279,8 @@ public class MapleMap {
                 if (react.getReactItem(react.getEventState()).getLeft() == item.getItemId() && react.getReactItem(react.getEventState()).getRight() == item.getQuantity()) {
 
                     if (react.getArea().contains(drop.getPosition())) {
-                        registerMapSchedule(new ActivateItemReactor(drop, react, c), 5000);
+                        // Client 需要时从 ref 拿（reactor 图才有此分支，惰性解析）
+                        registerMapSchedule(new ActivateItemReactor(drop, react, owner.getClient()), 5000);
                         break;
                     }
                 }
