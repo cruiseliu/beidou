@@ -64,16 +64,17 @@ public abstract class AbstractInRouter {
      * 由各 case 增量迁移逐个纳入；涉及面过广暂缓纳入的 op 走
      * {@link #strictWindow(Player, Runnable, boolean)} 传 false（只开 ref 哨）。
      */
-    protected final void strictWindow(Player player, Runnable body) {
-        strictWindow(player, body, true);
+    protected final void strictWindow(Player player, RecvOpcode opcode, Runnable body) {
+        strictWindow(player, opcode, body, true);
     }
 
-    /** ref 哨恒开；{@code packetStrict} = 是否同时开启 legacy-Client 导航哨。 */
-    protected final void strictWindow(Player player, Runnable body, boolean packetStrict) {
+    /** ref 哨恒开；{@code packetStrict} = 是否同时开启 legacy-Client 导航哨。开窗 opcode
+     * 随因果上下文传播（ActorShim/Strand 重盖章保留），哨命中归因到触发包。 */
+    protected final void strictWindow(Player player, RecvOpcode opcode, Runnable body, boolean packetStrict) {
         Character chr = player.character();
-        chr.openStrictWindow(StrictWindow.STRAND);
+        chr.openStrictWindow(StrictWindow.STRAND, opcode);
         if (packetStrict) {
-            chr.openStrictWindow(StrictWindow.PACKET);
+            chr.openStrictWindow(StrictWindow.PACKET, opcode);
         }
         try {
             body.run();

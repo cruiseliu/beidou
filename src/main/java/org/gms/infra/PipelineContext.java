@@ -1,5 +1,7 @@
 package org.gms.infra;
 
+import org.gms.net.opcodes.RecvOpcode;
+
 import java.util.EnumSet;
 
 /**
@@ -29,13 +31,21 @@ public final class PipelineContext {
     public EnumSet<StrictWindow> kinds;
     /** 窗口模式（LOG = 违规记日志放行；ASSERT = 违规抛出）。窗口内种类共用。 */
     public StrictWindow.Mode mode;
+    /** 开窗的 C→S opcode（strictWindow 于 switch(opcode) 处写入；哨命中归因到触发包） */
+    public RecvOpcode recv;
 
     public PipelineContext(OwnerType ownerType, int ownerId, EnumSet<StrictWindow> kinds,
                            StrictWindow.Mode mode) {
+        this(ownerType, ownerId, kinds, mode, null);
+    }
+
+    public PipelineContext(OwnerType ownerType, int ownerId, EnumSet<StrictWindow> kinds,
+                           StrictWindow.Mode mode, RecvOpcode recv) {
         this.ownerType = ownerType;
         this.ownerId = ownerId;
         this.kinds = kinds;
         this.mode = mode;
+        this.recv = recv;
     }
 
     /** 当前因果上下文（无则 null）：post 捕获点与守卫共用 */

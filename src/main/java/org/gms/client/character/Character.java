@@ -32,6 +32,7 @@ import org.gms.client.EffectType;
 import org.gms.client.Client;
 import org.gms.client.PlayerStrand;
 import org.gms.infra.PipelineContext;
+import org.gms.net.opcodes.RecvOpcode;
 import org.gms.infra.StrictWindow;
 import org.gms.infra.Strand;
 import org.gms.client.Disease;
@@ -3036,12 +3037,17 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
      */
     /** 开窗（模式写死于此，现场改：LOG = 违规记 error 放行；ASSERT = 违规抛出） */
     public void openStrictWindow(StrictWindow w) {
+        PipelineContext cur = PipelineContext.current();
+        openStrictWindow(w, cur != null ? cur.recv : null);   // 嵌套窗继承开窗 opcode
+    }
+
+    public void openStrictWindow(StrictWindow w, RecvOpcode recv) {
         StrictWindow.Mode mode = StrictWindow.Mode.LOG;
         strictThread = Thread.currentThread();
         EnumSet<StrictWindow> next = EnumSet.copyOf(strictKinds);
         next.add(w);
         strictKinds = next;
-        PipelineContext.establish(new PipelineContext(PipelineContext.OwnerType.CHARACTER, getId(), next, mode));
+        PipelineContext.establish(new PipelineContext(PipelineContext.OwnerType.CHARACTER, getId(), next, mode, recv));
     }
 
     /** 收窗（幂等；未开窗路径空写）：种类移出，集合清空即解除线程绑定与因果视图 */
@@ -3055,7 +3061,8 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
                 strictThread = null;
                 PipelineContext.clear();
             } else {
-                PipelineContext.establish(new PipelineContext(PipelineContext.OwnerType.CHARACTER, getId(), next, mode));
+                PipelineContext.establish(new PipelineContext(PipelineContext.OwnerType.CHARACTER, getId(), next, mode,
+                        cur != null ? cur.recv : null));
             }
         }
     }

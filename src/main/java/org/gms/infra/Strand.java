@@ -204,7 +204,7 @@ public class Strand implements AutoCloseable {
             // 执行域而非因果起点）；无域（基类裸 strand）保持原样。
             PipelineContext.Owner domain = domain();
             PipelineContext.establish(domain == null ? ctx
-                    : new PipelineContext(domain.type(), domain.id(), ctx.kinds, ctx.mode));
+                    : new PipelineContext(domain.type(), domain.id(), ctx.kinds, ctx.mode, ctx.recv));
         }
         try {
             task.body().run();

@@ -28,14 +28,14 @@ public final class MapInRouter extends AbstractInRouter {
     @Override
     public boolean route(RecvOpcode opcode, ByteBufReader in, Player player) {
         switch (opcode) {
-            case MOVE_PLAYER -> strictWindow(player, () ->
+            case MOVE_PLAYER -> strictWindow(player, opcode, () ->
                     emit(opcode, in, MovePlayerPacket::decode, MovePlayerTranslator::new, player));
             case MOVE_LIFE -> emit(opcode, in, MoveLifePacket::decode, MoveLifeTranslator::new, player);
-            case PLAYER_MAP_TRANSFER -> strictWindow(player, () ->
-                    emit(opcode, in, MapTransferPacket::decode, MapTransitionTranslator::new, player));
-            case CHANGE_MAP_SPECIAL -> strictWindow(player, () ->
+            case PLAYER_MAP_TRANSFER -> strictWindow(player, opcode, () ->
+                    emit(opcode, in, MapTransferPacket::decode, MapTransitionTranslator::new, player), false);
+            case CHANGE_MAP_SPECIAL -> strictWindow(player, opcode, () ->
                     emit(opcode, in, ChangeMapSpecialPacket::decode, EnterPortalTranslator::new, player), false);
-            case CHANGE_MAP -> strictWindow(player, () ->
+            case CHANGE_MAP -> strictWindow(player, opcode, () ->
                     emit(opcode, in, ChangeMapPacket::decode, ChangeMapTranslator::new, player), false);
             default -> {
                 return false;

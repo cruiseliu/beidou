@@ -15,7 +15,7 @@ public final class QuestInRouter extends AbstractInRouter {
     @Override
     public boolean route(RecvOpcode opcode, ByteBufReader in, Player player) {
         switch (opcode) {
-            case QUEST_ACTION -> strictWindow(player, () ->
+            case QUEST_ACTION -> strictWindow(player, opcode, () ->
                     emit(opcode, in, QuestActionPacket::decode, QuestActionTranslator::new, player));
             default -> {
                 return false;

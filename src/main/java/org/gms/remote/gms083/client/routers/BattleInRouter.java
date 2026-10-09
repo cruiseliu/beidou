@@ -17,7 +17,7 @@ public final class BattleInRouter extends AbstractInRouter {
     @Override
     public boolean route(RecvOpcode opcode, ByteBufReader in, Player player) {
         switch (opcode) {
-            case CLOSE_RANGE_ATTACK -> strictWindow(player, () ->
+            case CLOSE_RANGE_ATTACK -> strictWindow(player, opcode, () ->
                     emit(opcode, in, CloseRangeAttackPacket::decode, CloseRangeAttackTranslator::new, player));
             default -> {
                 return false;

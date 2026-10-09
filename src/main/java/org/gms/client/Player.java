@@ -98,7 +98,8 @@ public final class Player {
             return;   // charlist 阶段 / 不在 packet-strict 窗口（未迁移 op、脚本会话、登录布线）
         }
         if (ctx.mode == StrictWindow.Mode.LOG) {
-            log.error("packet-strict 窗口内获取 legacy Client [{}] cid={} [log 模式]", what, chr.getId());
+            log.error("packet-strict 窗口内获取 legacy Client [{}] cid={} win={} [log 模式]",
+                    what, chr.getId(), ctx.recv != null ? ctx.recv.getName() : "-");
             return;
         }
         switch (PACKET_STRICT_CLIENT) {
@@ -133,8 +134,9 @@ public final class Player {
         }
         String cid = ctx.ownerType == PipelineContext.OwnerType.CHARACTER ? String.valueOf(ctx.ownerId) : "-";
         if (ctx.mode == StrictWindow.Mode.LOG) {
-            log.error("packet-strict 窗口内发 legacy packet [{}] cid={} [log 模式]",
-                    what, cid, new RuntimeException("call site"));
+            log.error("packet-strict 窗口内发 legacy packet [{}] cid={} win={} [log 模式]",
+                    what, cid, ctx.recv != null ? ctx.recv.getName() : "-",
+                    new RuntimeException("call site"));
             return;
         }
         switch (PACKET_STRICT_CLIENT) {

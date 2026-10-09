@@ -21,7 +21,7 @@ public final class NpcInRouter extends AbstractInRouter {
     public boolean route(RecvOpcode opcode, ByteBufReader in, Player player) {
         switch (opcode) {
             case NPC_ACTION -> emit(opcode, in, NPCActionPacket::decode, NpcEchoTranslator::new, player);
-            case NPC_TALK_MORE -> strictWindow(player, () ->
+            case NPC_TALK_MORE -> strictWindow(player, opcode, () ->
                     emit(opcode, in, NPCTalkMorePacket::decode, NpcTalkMoreTranslator::new, player));
             default -> {
                 return false;
