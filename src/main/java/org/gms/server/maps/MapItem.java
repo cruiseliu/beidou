@@ -105,6 +105,28 @@ public class MapItem extends AbstractMapObject {
         return character_ownerid;
     }
 
+    // ── 值投影（MapItemDropMessage 消费侧；判定逻辑单源，实例/静态互为委托）──
+
+    public final int getCharacterOwnerId() {
+        return character_ownerid;
+    }
+
+    /** meso 包无 item，恒 0 */
+    public final long getItemExpiration() {
+        return item != null ? item.LEGACY_getExpiration() : 0L;
+    }
+
+    /** 客户端所有权判定（值核）：owner cid / 队伍匹配 / 过保护窗（15s） */
+    public static boolean hasClientsideOwnership(int characterOwnerId, int partyOwnerId, long dropTime, Character player) {
+        return characterOwnerId == player.getId() || partyOwnerId == player.getPartyId()
+                || System.currentTimeMillis() - dropTime >= SECONDS.toMillis(15);
+    }
+
+    /** 包内 owner 标识（值核）：有队伍用队伍 id，否则个人 id */
+    public static int clientsideOwnerId(int characterOwnerId, int partyOwnerId) {
+        return partyOwnerId == -1 ? characterOwnerId : partyOwnerId;
+    }
+
     /**
      * 与 {@link #getOwnerId()} 语义相同,但要求调用方已持有 {@link #itemLock}。
      * {@code character_ownerid} 在构造后即不可变,保留该锁定读是为了与
@@ -147,15 +169,11 @@ public class MapItem extends AbstractMapObject {
     }
 
     public final int getClientsideOwnerId() {   // thanks nozphex (RedHat) for noting an issue with collecting party items
-        if (this.party_ownerid == -1) {
-            return this.character_ownerid;
-        } else {
-            return this.party_ownerid;
-        }
+        return clientsideOwnerId(character_ownerid, party_ownerid);
     }
 
     public final boolean hasClientsideOwnership(Character player) {
-        return this.character_ownerid == player.getId() || this.party_ownerid == player.getPartyId() || hasExpiredOwnershipTime();
+        return hasClientsideOwnership(character_ownerid, party_ownerid, dropTime, player);
     }
 
     public final boolean isFFADrop() {

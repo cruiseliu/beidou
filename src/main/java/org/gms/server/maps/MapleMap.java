@@ -32,6 +32,7 @@ import org.gms.client.autoban.AutobanFactory;
 import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.messages.MapCharacterMoveMessage;
+import org.gms.client.messages.MapItemDropMessage;
 import org.gms.client.messages.MapQuestCompleteMessage;
 import org.gms.client.messages.MapMonsterMoveMessage;
 import org.gms.client.pet.Pet;
@@ -402,6 +403,38 @@ public class MapleMap {
         spawnAndAddRangedMapObject(mapobject, packetbakery, null);
     }
 
+    /**
+     * MapItem 专用：每 viewer post 值消息（bakery/Client 直发不参与）。值快照在 oid 分配
+     * 之后冻结——oid 是包主键，必须 setObjectId 后构建。
+     */
+    private void spawnAndAddRangedMapObject(MapItem mapobject, int dropperOid, Point dropfrom, Point dropto, byte mod) {
+        List<CharacterRef> inRangeCharacters = new LinkedList<>();
+        int curOID = getUsableOID();
+
+        chrRLock.lock();
+        objectWLock.lock();
+        try {
+            mapobject.setObjectId(curOID);
+            this.mapobjects.put(curOID, mapobject);
+            for (CharacterRef cr : characters) {
+                if (cr.getPosition().distanceSq(mapobject.getPosition()) <= getRangedDistance()) {
+                    inRangeCharacters.add(cr);
+                }
+            }
+        } finally {
+            objectWLock.unlock();
+            chrRLock.unlock();
+        }
+
+        final MapItemDropMessage dropMessage = MapItemDropMessage.of(getId(), mapobject, dropperOid, dropfrom, dropto, mod);
+        final MapView.Entry viewEntry = viewEntry(mapobject);
+        for (CharacterRef chr : inRangeCharacters) {
+            chr.post(dropMessage);
+            // 可见集值登记（消息先于 spawn 包入 strand FIFO，语义同原「先登记后发包」）
+            chr.post(new MapObjectsViewMessage(getId(), List.of(viewEntry), List.of()));
+        }
+    }
+
     private void spawnAndAddRangedMapObject(MapObject mapobject, DelayedPacketCreation packetbakery, SpawnCondition condition) {
         List<CharacterRef> inRangeCharacters = new LinkedList<>();
         int curOID = getUsableOID();
@@ -424,10 +457,10 @@ public class MapleMap {
             chrRLock.unlock();
         }
 
-        // 可见集值登记（原活引用直写的值化回投；消息先于 spawn 包入 strand FIFO，语义同原「先登记后发包」）
         final MapView.Entry viewEntry = viewEntry(mapobject);
         for (CharacterRef chr : inRangeCharacters) {
             packetbakery.sendPackets(chr.getClient());
+            // 可见集值登记（消息先于 spawn 包入 strand FIFO，语义同原「先登记后发包」）
             chr.post(new MapObjectsViewMessage(getId(), List.of(viewEntry), List.of()));
         }
     }
@@ -1116,18 +1149,8 @@ public class MapleMap {
     private void spawnDrop(final ItemSlot idrop, final Point dropPos, final MapObject dropper, final CharacterRef chr, final byte droptype, final short questid) {
         final MapItem mdrop = new MapItem(idrop, dropPos, dropper, chr, droptype, false, questid);
         mdrop.setDropTime(Server.getInstance().getCurrentTime());
-        spawnAndAddRangedMapObject(mdrop, c -> {
-            CharacterRef chr1 = CharacterRef.of(c.getPlayer());
-
-            if (chr1.needQuestItem(questid, idrop.getItemId())) {
-                mdrop.lockItem();
-                try {
-                    c.sendPacket(PacketCreator.dropItemFromMapObject(chr1.unref(), mdrop, dropper.getPosition(), dropPos, (byte) 1));
-                } finally {
-                    mdrop.unlockItem();
-                }
-            }
-        }, null);
+        // 值消息投递（原 bakery：needQuestItem 过滤 + unref 构包 + getClient 直发，整体搬 viewer 域；过滤规则原样）
+        spawnAndAddRangedMapObject(mdrop, dropper.getObjectId(), dropper.getPosition(), dropPos, (byte) 1);
 
         instantiateItemDrop(mdrop);
         activateItemReactors(mdrop, chr);
@@ -1137,15 +1160,8 @@ public class MapleMap {
         final Point droppos = calcDropPos(position, position);
         final MapItem mdrop = new MapItem(meso, droppos, dropper, owner, droptype, playerDrop);
         mdrop.setDropTime(Server.getInstance().getCurrentTime());
-
-        spawnAndAddRangedMapObject(mdrop, c -> {
-            mdrop.lockItem();
-            try {
-                c.sendPacket(PacketCreator.dropItemFromMapObject(c.getPlayer(), mdrop, dropper.getPosition(), droppos, (byte) 1));
-            } finally {
-                mdrop.unlockItem();
-            }
-        }, null);
+        // 值消息投递（原 bakery 无条件直发；viewer 过滤 needQuestItem(-1,·) 恒真 = 等价）
+        spawnAndAddRangedMapObject(mdrop, dropper.getObjectId(), dropper.getPosition(), droppos, (byte) 1);
 
         instantiateItemDrop(mdrop);
     }
@@ -2198,15 +2214,8 @@ public class MapleMap {
         final Point droppos = calcDropPos(pos, pos);
         final MapItem mdrop = new MapItem(item, droppos, dropper, owner, dropType, playerDrop);
         mdrop.setDropTime(Server.getInstance().getCurrentTime());
-
-        spawnAndAddRangedMapObject(mdrop, c -> {
-            mdrop.lockItem();
-            try {
-                c.sendPacket(PacketCreator.dropItemFromMapObject(c.getPlayer(), mdrop, dropper.getPosition(), droppos, (byte) 1));
-            } finally {
-                mdrop.unlockItem();
-            }
-        }, null);
+        // 值消息投递（原 bakery 无条件直发；viewer 过滤 needQuestItem(-1,·) 恒真 = 等价）
+        spawnAndAddRangedMapObject(mdrop, dropper.getObjectId(), dropper.getPosition(), droppos, (byte) 1);
 
         mdrop.lockItem();
         try {

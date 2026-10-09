@@ -1572,29 +1572,41 @@ public class PacketCreator {
     }
 
     public static Packet dropItemFromMapObject(Character player, MapItem drop, Point dropfrom, Point dropto, byte mod) {
-        int dropType = drop.getDropType();
-        if (drop.hasClientsideOwnership(player) && dropType < 3) {
+        return dropItemFromMapObject(player, drop.getObjectId(), drop.getItemId(), drop.getMeso(),
+                drop.getCharacterOwnerId(), drop.getPartyOwnerId(), drop.getDropTime(), drop.getItemExpiration(),
+                drop.getDropType(), drop.isPlayerDrop(), drop.getDropper().getObjectId(), dropfrom, dropto, mod);
+    }
+
+    /**
+     * 值核（MapItemDropMessage 消费侧）：字段集 = MapItem getter 的值化投影。
+     * 所有权判定经 {@link MapItem#hasClientsideOwnership} 静态核（单源），viewer 值
+     * （id/partyId）为本域直读。
+     */
+    public static Packet dropItemFromMapObject(Character player, int oid, int itemId, int meso,
+            int characterOwnerId, int partyOwnerId, long dropTime, long itemExpiration,
+            byte dropType, boolean playerDrop, int dropperOid, Point dropfrom, Point dropto, byte mod) {
+        if (MapItem.hasClientsideOwnership(characterOwnerId, partyOwnerId, dropTime, player) && dropType < 3) {
             dropType = 2;
         }
 
         OutPacket p = OutPacket.create(SendOpcode.DROP_ITEM_FROM_MAPOBJECT);
         p.writeByte(mod);
-        p.writeInt(drop.getObjectId());
-        p.writeBool(drop.getMeso() > 0); // 1 mesos, 0 item, 2 and above all item meso bag,
-        p.writeInt(drop.getItemId()); // drop object ID
-        p.writeInt(drop.getClientsideOwnerId()); // owner charid/partyid :)
+        p.writeInt(oid);
+        p.writeBool(meso > 0); // 1 mesos, 0 item, 2 and above all item meso bag,
+        p.writeInt(itemId); // drop object ID
+        p.writeInt(MapItem.clientsideOwnerId(characterOwnerId, partyOwnerId)); // owner charid/partyid :)
         p.writeByte(dropType); // 0 = timeout for non-owner, 1 = timeout for non-owner's party, 2 = FFA, 3 = explosive/FFA
         p.writePos(dropto);
-        p.writeInt(drop.getDropper().getObjectId()); // dropper oid, found thanks to Li Jixue
+        p.writeInt(dropperOid); // dropper oid, found thanks to Li Jixue
 
         if (mod != 2) {
             p.writePos(dropfrom);
             p.writeShort(0);//Fh?
         }
-        if (drop.getMeso() == 0) {
-            addExpirationTime(p, drop.getItem().LEGACY_getExpiration());
+        if (meso == 0) {
+            addExpirationTime(p, itemExpiration);
         }
-        p.writeByte(drop.isPlayerDrop() ? 0 : 1); //pet EQP pickup
+        p.writeByte(playerDrop ? 0 : 1); //pet EQP pickup
         return p;
     }
 

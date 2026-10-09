@@ -4,6 +4,7 @@ import org.gms.client.character.Character;
 import org.gms.client.messages.MapCharacterMoveMessage;
 import org.gms.client.messages.MapQuestCompleteMessage;
 import org.gms.infra.ActorMessage;
+import org.gms.util.PacketCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +50,16 @@ public final class MessageDispatcher {
                 Character chr = player.character();
                 if (chr != null && chr.getMapId() == m.mapId()) {
                     chr.applyMapObjectsView(m.adds(), m.removes());
+                }
+            }
+            case org.gms.client.messages.MapItemDropMessage m -> {
+                // 掉落物落地（原 spawnDrop bakery 值化）：过滤规则原样（needQuestItem），判定移
+                // viewer 域（本体直读免哨）；构包走值核（PacketCreator），本域直发。
+                Character chr = player.character();
+                if (chr != null && chr.getMapId() == m.mapId() && chr.needQuestItem(m.questid(), m.itemId())) {
+                    chr.sendPacket(PacketCreator.dropItemFromMapObject(chr, m.oid(), m.itemId(), m.meso(),
+                            m.characterOwnerId(), m.partyOwnerId(), m.dropTime(), m.itemExpiration(),
+                            m.dropType(), m.playerDrop(), m.dropperOid(), m.dropfrom(), m.dropto(), m.mod()));
                 }
             }
             default -> log.warn("未知 actor 消息: {}", msg.name());   // 响亮：infra 不封闭，未知类型 = 装配漏配
