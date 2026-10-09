@@ -33,6 +33,7 @@ import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.messages.MapCharacterMoveMessage;
 import org.gms.client.messages.MapItemDropMessage;
+import org.gms.client.messages.MapMonsterDeathMessage;
 import org.gms.client.messages.MapObjectSpawnMessage;
 import org.gms.client.messages.MapQuestCompleteMessage;
 import org.gms.client.messages.MapMonsterMoveMessage;
@@ -248,6 +249,19 @@ public class MapleMap {
 
     public void toggleDrops() {
         this.dropsOn = !dropsOn;
+    }
+
+    /** 怪物死亡场景事件全员投递（与 spawnAndPostMapObject 成对：spawn ↔ death） */
+    private void postMapMonsterDeath(int oid, int animation) {
+        final MapMonsterDeathMessage msg = new MapMonsterDeathMessage(getId(), oid, animation);
+        chrRLock.lock();
+        try {
+            for (CharacterRef chr : characters) {
+                chr.post(msg);
+            }
+        } finally {
+            chrRLock.unlock();
+        }
     }
 
     /** 视野判定阈值（player 域同款判定用；use_max_range=true 时恒可见） */
@@ -1412,7 +1426,7 @@ public class MapleMap {
         if (chr == null) {
             if (removeKilledMonsterObject(monster)) {
                 monster.dispatchMonsterKilled(false);
-                broadcastMessage(PacketCreator.killMonster(monster.getObjectId(), animation), monster.getPosition());
+                postMapMonsterDeath(monster.getObjectId(), animation);
                 monster.aggroSwitchController(null, false);
             }
         } else {
@@ -1493,7 +1507,9 @@ public class MapleMap {
                     e.printStackTrace();
                 } finally {     // thanks resinate for pointing out a memory leak possibly from an exception thrown
                     monster.dispatchMonsterKilled(true);
-                    broadcastMessage(PacketCreator.killMonster(monster.getObjectId(), animation), monster.getPosition());
+                    // KILL_MONSTER 全员值消息投递（原 ranged 直发）：viewer 域按 MapView 成员判
+                    // 可见——已知才转发演出包并摘视图，未知丢弃
+                    postMapMonsterDeath(monster.getObjectId(), animation);
                 }
             }
         }

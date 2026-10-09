@@ -74,6 +74,16 @@ public final class MessageDispatcher {
                             new MapView.MapObjectInfo(MapObjectType.ITEM, m.itemId(), m.dropto(), true))), List.of());
                 }
             }
+            case org.gms.client.messages.MapMonsterDeathMessage m -> {
+                // 怪物死亡场景事件（原 KILL_MONSTER ranged 广播值化）：可见判定 = MapView 成员
+                // （client 已被告知此怪才需要死亡演出）——可见才转发 kill 包并摘除视图登记，
+                // 未知整体丢弃。结算（经验/任务计数/家族声望）不在此，走 MapMonsterKilledMessage。
+                Character chr = player.character();
+                if (chr != null && chr.getMapId() == m.mapId() && chr.mapView().contains(m.oid())) {
+                    chr.sendPacket(PacketCreator.killMonster(m.oid(), m.animation()));
+                    chr.applyMapObjectsView(List.of(), List.of(m.oid()));
+                }
+            }
             case org.gms.client.messages.MapObjectSpawnMessage m -> {
                 // 对象落地（原 spawnAndAddRangedMapObject inRange 收集的值化）：visible 判定在
                 // viewer 域——可见才直发预构建包并登记视图，不可见整体丢弃（move-diff 按需重发）。
