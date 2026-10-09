@@ -67,6 +67,7 @@ import org.gms.server.loot.LootManager;
 import org.gms.infra.Strand;
 import org.gms.server.maps.AbstractAnimatedMapObject;
 import org.gms.server.maps.Battle;
+import org.gms.server.maps.MapObject;
 import org.gms.server.maps.MapObjectType;
 import org.gms.server.maps.MapleMap;
 import org.gms.server.maps.Summon;
@@ -1828,19 +1829,20 @@ public class Monster extends AbstractLoadedLife {
         return summon.getPosition().distanceSq(this.getPosition()) < 177777;
     }
 
+    /**
+     * 候选者场上是否站着作用场内的木偶（map 域自足解析）：木偶召唤偶按 owner + isPuppet
+     * 从本图 mapobjects 解析，不再读玩家 buff/召唤表。未命中时清理协调器残留登记
+     * （legacy 仅在"有 buff 无召唤偶"分支清理；map 域无 buff 可见性，统一清理更自愈——
+     * 无木偶在场时任何残留 puppet aggro 登记均为 stale）。
+     */
     public boolean isCharacterPuppetInVicinity(CharacterRef chr) {
-        BuffEffectData mse = chr.getBuffEffect(EffectType.PUPPET);
-        if (mse != null) {
-            Summon summon = chr.getSummonByKey(mse.getSourceId());
-
-            // check whether mob is currently under a puppet's field of action or not
-            if (summon != null) {
-                return isPuppetInVicinity(summon);
-            } else {
-                map.getAggroCoordinator().removePuppetAggro(chr.getId());
+        for (MapObject o : map.getMapObjectsInRange(this.getPosition(), Double.POSITIVE_INFINITY, List.of(MapObjectType.SUMMON))) {
+            Summon summon = (Summon) o;
+            if (summon.getOwner().getId() == chr.getId() && summon.isPuppet() && isPuppetInVicinity(summon)) {
+                return true;
             }
         }
-
+        map.getAggroCoordinator().removePuppetAggro(chr.getId());
         return false;
     }
 
