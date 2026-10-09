@@ -113,7 +113,9 @@ public class MonsterInformationProvider {
         }
     }
 
-    public List<MonsterDropEntry> retrieveEffectiveDrop(final int monsterId) {
+    // synchronized：缓存（drops/extraMultiEquipDrops/hasNoMultiEquipDrops）惰性构建，现有多
+    // 线程调用方（map actor 各图 + 战斗 phase 1 的 player strand）；热后无竞争，首访含 DB 读。
+    public synchronized List<MonsterDropEntry> retrieveEffectiveDrop(final int monsterId) {
         // this reads the drop entries searching for multi-equip, properly processing them
 
         List<MonsterDropEntry> list = retrieveDrop(monsterId);
@@ -156,7 +158,7 @@ public class MonsterInformationProvider {
         return ret;
     }
 
-    public final List<MonsterDropEntry> retrieveDrop(final int monsterId) {
+    public synchronized final List<MonsterDropEntry> retrieveDrop(final int monsterId) {
         if (drops.containsKey(monsterId)) {
             return drops.get(monsterId);
         }

@@ -572,7 +572,7 @@ public class MapleMap {
         }
     }
 
-    private byte dropItemsFromMonsterOnMap(List<MonsterDropEntry> dropEntry, Point pos, byte d, float chRate, byte droptype, int mobpos, CharacterRef chr, Monster mob) {
+    private byte dropItemsFromMonsterOnMap(List<MonsterDropEntry> dropEntry, Point pos, byte d, double chRate, byte droptype, int mobpos, Battle.DropEntitlement ent, CharacterRef chr, Monster mob) {
         if (dropEntry.isEmpty()) {
             return d;
         }
@@ -583,8 +583,12 @@ public class MapleMap {
         ItemInformationProvider ii = ItemInformationProvider.getInstance();
 
         for (final MonsterDropEntry de : dropEntry) {
-            float cardRate = chr.getCardRate(de.itemId);
-            int dropChance = (int) Math.min((float) de.chance * chRate * cardRate, Integer.MAX_VALUE);
+            // 卡倍率：ent 路径取 phase 1 解析值（itemId=0 → mesoDropRate；缺省 1.0），legacy 路径本体活读。
+            // float→double 化登记：滚动乘法改 double，RNG 阈值 sub-ulp（见 Battle.DropEntitlement 注）。
+            final double cardRate = ent != null
+                    ? (de.itemId == 0 ? ent.mesoDropRate() : ent.itemCardRate(mob.getId(), de.itemId))
+                    : chr.getCardRate(de.itemId);
+            int dropChance = (int) Math.min(de.chance * chRate * cardRate, Integer.MAX_VALUE);
 
             if (Randomizer.nextInt(999999) < dropChance) {
                 if (droptype == 3) {
@@ -596,10 +600,15 @@ public class MapleMap {
                     int mesos = Randomizer.nextInt(de.Maximum - de.Minimum) + de.Minimum;
 
                     if (mesos > 0) {
-                        if (chr.getBuffedValue(EffectType.MESOUP) != null) {
-                            mesos = NumberTool.doubleToInt(mesos * chr.getBuffedValue(EffectType.MESOUP).doubleValue() / 100.0);
+                        if (ent != null) {
+                            // 金额轴合并终值（4111001 buff 已在 phase 1 折入；单次 double 舍入）
+                            mesos = NumberTool.doubleToInt(mesos * ent.mesoRate());
+                        } else {
+                            if (chr.getBuffedValue(EffectType.MESOUP) != null) {
+                                mesos = NumberTool.doubleToInt(mesos * chr.getBuffedValue(EffectType.MESOUP).doubleValue() / 100.0);
+                            }
+                            mesos = NumberTool.floatToInt(mesos * chr.getMesoRate());
                         }
-                        mesos = NumberTool.floatToInt(mesos * chr.getMesoRate());
                         if (mesos <= 0) {
                             mesos = Integer.MAX_VALUE;
                         }
@@ -658,22 +667,38 @@ public class MapleMap {
             return;
         }
 
+        // 掉落权益快照（普攻链路）：取不到 = 非普攻死亡（魔法/脚本/friendly 等），整段走 legacy
+        final Battle.DropEntitlement ent = useBaseRate ? null : mob.getDropEntitlement(chr.getId());
+
         final byte droptype = (byte) (mob.getStats().isExplosiveReward() ? 3 : mob.getStats().isFfaLoot() ? 2 : chr.getParty() != null ? 1 : 0);
         final int mobpos = mob.getPosition().x;
-        float chRate = !mob.isBoss() ? chr.getDropRate() : chr.getBossDropRate();
         Point pos = new Point(0, mob.getPosition().y);
 
-        MonsterStatusEffect stati = mob.getStati(MonsterStatus.SHOWDOWN);
-        if (stati != null) {
-            chRate *= (stati.getStati().get(MonsterStatus.SHOWDOWN).doubleValue() / 100.0 + 1.0);
-        }
+        final double chRate;
+        if (ent != null) {
+            // 用户侧最终乘算倍率（family 已折叠；boss 统一用 dropRate）；SHOWDOWN 是 mob 侧状态，本域乘
+            double rate = ent.dropRate();
+            MonsterStatusEffect stati = mob.getStati(MonsterStatus.SHOWDOWN);
+            if (stati != null) {
+                rate *= (stati.getStati().get(MonsterStatus.SHOWDOWN).doubleValue() / 100.0 + 1.0);
+            }
+            chRate = rate;
+        } else {
+            float legacyRate = !mob.isBoss() ? chr.getDropRate() : chr.getBossDropRate();
 
-        if (chr.isFamilyBuff()) {
-            chRate *= chr.getFamilyDrop();
-        }
+            MonsterStatusEffect stati = mob.getStati(MonsterStatus.SHOWDOWN);
+            if (stati != null) {
+                legacyRate *= (stati.getStati().get(MonsterStatus.SHOWDOWN).doubleValue() / 100.0 + 1.0);
+            }
 
-        if (useBaseRate) {
-            chRate = 1;
+            if (chr.isFamilyBuff()) {
+                legacyRate *= chr.getFamilyDrop();
+            }
+
+            if (useBaseRate) {
+                legacyRate = 1;
+            }
+            chRate = legacyRate;
         }
 
         final MonsterInformationProvider mi = MonsterInformationProvider.getInstance();
@@ -690,7 +715,7 @@ public class MapleMap {
             return;
         }
 
-        registerMobItemDrops(droptype, mobpos, chRate, pos, dropEntry, visibleQuestEntry, otherQuestEntry, globalEntry, chr, mob);
+        registerMobItemDrops(droptype, mobpos, chRate, pos, dropEntry, visibleQuestEntry, otherQuestEntry, globalEntry, chr, mob, ent);
     }
 
     public void dropItemsFromMonster(List<MonsterDropEntry> list, final CharacterRef chr, final Monster mob) {
@@ -700,11 +725,11 @@ public class MapleMap {
 
         final byte droptype = (byte) (chr.getParty() != null ? 1 : 0);
         final int mobpos = mob.getPosition().x;
-        int chRate = 1000000;   // guaranteed item drop
+        double chRate = 1000000;   // guaranteed item drop
         byte d = 1;
         Point pos = new Point(0, mob.getPosition().y);
 
-        dropItemsFromMonsterOnMap(list, pos, d, chRate, droptype, mobpos, chr, mob);
+        dropItemsFromMonsterOnMap(list, pos, d, chRate, droptype, mobpos, null, chr, mob);
     }
 
     public void dropFromFriendlyMonster(final CharacterRef chr, final Monster mob) {
@@ -890,8 +915,8 @@ public class MapleMap {
         }
     }
 
-    private void registerMobItemDrops(byte droptype, int mobpos, float chRate, Point pos, List<MonsterDropEntry> dropEntry, List<MonsterDropEntry> visibleQuestEntry, List<MonsterDropEntry> otherQuestEntry, List<MonsterGlobalDropEntry> globalEntry, CharacterRef chr, Monster mob) {
-        MobLootEntry mle = new MobLootEntry(droptype, mobpos, chRate, pos, dropEntry, visibleQuestEntry, otherQuestEntry, globalEntry, chr, mob);
+    private void registerMobItemDrops(byte droptype, int mobpos, double chRate, Point pos, List<MonsterDropEntry> dropEntry, List<MonsterDropEntry> visibleQuestEntry, List<MonsterDropEntry> otherQuestEntry, List<MonsterGlobalDropEntry> globalEntry, CharacterRef chr, Monster mob, Battle.DropEntitlement ent) {
+        MobLootEntry mle = new MobLootEntry(droptype, mobpos, chRate, pos, dropEntry, visibleQuestEntry, otherQuestEntry, globalEntry, chr, mob, ent);
 
         if (GameConfig.getServerBoolean("use_spawn_loot_on_animation")) {
             int animationTime = mob.getAnimationTime("die1");
@@ -3707,7 +3732,7 @@ public class MapleMap {
 
         private final byte droptype;
         private final int mobpos;
-        private final float chRate;
+        private final double chRate;
         private final Point pos;
         private final List<MonsterDropEntry> dropEntry;
         private final List<MonsterDropEntry> visibleQuestEntry;
@@ -3715,8 +3740,9 @@ public class MapleMap {
         private final List<MonsterGlobalDropEntry> globalEntry;
         private final CharacterRef chr;
         private final Monster mob;
+        private final Battle.DropEntitlement ent;   // null = legacy 路径（非普攻死亡）
 
-        protected MobLootEntry(byte droptype, int mobpos, float chRate, Point pos, List<MonsterDropEntry> dropEntry, List<MonsterDropEntry> visibleQuestEntry, List<MonsterDropEntry> otherQuestEntry, List<MonsterGlobalDropEntry> globalEntry, CharacterRef chr, Monster mob) {
+        protected MobLootEntry(byte droptype, int mobpos, double chRate, Point pos, List<MonsterDropEntry> dropEntry, List<MonsterDropEntry> visibleQuestEntry, List<MonsterDropEntry> otherQuestEntry, List<MonsterGlobalDropEntry> globalEntry, CharacterRef chr, Monster mob, Battle.DropEntitlement ent) {
             this.droptype = droptype;
             this.mobpos = mobpos;
             this.chRate = chRate;
@@ -3727,6 +3753,7 @@ public class MapleMap {
             this.globalEntry = globalEntry;
             this.chr = chr;
             this.mob = mob;
+            this.ent = ent;
         }
 
         @Override
@@ -3734,14 +3761,14 @@ public class MapleMap {
             byte d = 1;
 
             // Normal Drops
-            d = dropItemsFromMonsterOnMap(dropEntry, pos, d, chRate, droptype, mobpos, chr, mob);
+            d = dropItemsFromMonsterOnMap(dropEntry, pos, d, chRate, droptype, mobpos, ent, chr, mob);
 
             // Global Drops
             d = dropGlobalItemsFromMonsterOnMap(globalEntry, pos, d, droptype, mobpos, chr, mob);
 
             // Quest Drops
-            d = dropItemsFromMonsterOnMap(visibleQuestEntry, pos, d, chRate, droptype, mobpos, chr, mob);
-            dropItemsFromMonsterOnMap(otherQuestEntry, pos, d, chRate, droptype, mobpos, chr, mob);
+            d = dropItemsFromMonsterOnMap(visibleQuestEntry, pos, d, chRate, droptype, mobpos, ent, chr, mob);
+            dropItemsFromMonsterOnMap(otherQuestEntry, pos, d, chRate, droptype, mobpos, ent, chr, mob);
         }
     }
 

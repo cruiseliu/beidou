@@ -14,7 +14,10 @@ import org.gms.client.quest.medal.SpecialChallengeMedal;
 import org.gms.client.quest.medal.VeteranHunterMedal;
 import org.gms.remote.modules.battle.client.CloseRangeAttack;
 import org.gms.server.BuffEffectData;
+import org.gms.server.life.MonsterDropEntry;
+import org.gms.server.life.MonsterInformationProvider;
 import org.gms.server.maps.Battle;
+import org.gms.server.maps.MapObjectType;
 import org.gms.util.AssertUtil;
 
 import java.awt.Point;
@@ -133,6 +136,7 @@ class CharacterBattle implements BattleModule.Handler {
         for (Map.Entry<Integer, List<Integer>> entry : attack.allDamage.entrySet()) {
             declaredOrder.put(entry.getKey(), entry.getValue());
         }
+        final Battle.DropEntitlement dropEntitlement = buildDropEntitlement(chr, attack);
         owner.getMapRef().applyCloseRangeAttack(new Battle.CloseRangeAttackIntent(
                 chr.ref(),
                 chr.getId(),
@@ -145,11 +149,48 @@ class CharacterBattle implements BattleModule.Handler {
                 attack.display,
                 attack.dmgCap,
                 attack.canCrit,
-                declaredOrder
+                declaredOrder,
+                dropEntitlement
         ));
 
-        // 队伍快照已入 intent；死亡结算由 map actor 逐参与者回投（monsterKilled）
+        // 死亡结算由 map actor 逐参与者回投（monsterKilled）
 
+    }
+
+    /**
+     * 掉落权益快照构造（点1：倍率随 attack info post；全本体直读，自 strand 自访）。
+     * 卡倍率按目标怪静态掉落表逐条目解析（只收 ≠1.0 命中项；meso 走 mesoDropRate 不入表）；
+     * view miss 的目标无条目（缺省 1.0，登记在案——正常流 FIFO 保证 view 先于攻击落地）。
+     * MIP 首访含 DB 读（每怪类型一次，retrieveDrop 已加锁）。
+     */
+    private static Battle.DropEntitlement buildDropEntitlement(Character chr, AttackInfo attack) {
+        double dropRate = chr.getDropRate();
+        if (chr.isFamilyBuff()) {
+            dropRate *= chr.getFamilyDrop();
+        }
+
+        double mesoRate = chr.getMesoRate();
+        Integer mesoUp = chr.getBuffedValue(EffectType.MESOUP);   // 4111001 Hermit.MESO_UP
+        if (mesoUp != null) {
+            mesoRate *= mesoUp.doubleValue() / 100.0;
+        }
+
+        List<Battle.DropEntitlement.PerItemDropRate> cardRates = new ArrayList<>();
+        for (Integer oid : attack.allDamage.keySet()) {
+            MapView.MapObjectInfo info = chr.mapView().get(oid);
+            if (info == null || info.type() != MapObjectType.MONSTER) {
+                continue;
+            }
+            final int mobId = info.id();
+            for (MonsterDropEntry de : MonsterInformationProvider.getInstance().retrieveEffectiveDrop(mobId)) {
+                double rate = chr.getCardRate(de.itemId);
+                if (rate != 1.0) {
+                    cardRates.add(new Battle.DropEntitlement.PerItemDropRate(mobId, de.itemId, rate));
+                }
+            }
+        }
+
+        return new Battle.DropEntitlement(dropRate, mesoRate, chr.getCardRate(0), cardRates);
     }
 
     /**

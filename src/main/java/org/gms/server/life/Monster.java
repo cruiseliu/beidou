@@ -66,6 +66,7 @@ import org.gms.server.life.LifeFactory.BanishInfo;
 import org.gms.server.loot.LootManager;
 import org.gms.infra.Strand;
 import org.gms.server.maps.AbstractAnimatedMapObject;
+import org.gms.server.maps.Battle;
 import org.gms.server.maps.MapObjectType;
 import org.gms.server.maps.MapleMap;
 import org.gms.server.maps.Summon;
@@ -399,6 +400,9 @@ public class Monster extends AbstractLoadedLife {
     public synchronized void disposeMapObject() {     // mob is no longer associated with the map it was in
         hp.set(-1);
         engagedPlayers.clear();   // 交战集随离场清空（复活/重生成即全新交战史）
+        // dropEntitlements 不在此清：消费点在 dispose 之后的掉落结算（killMonster:
+        // removeKilledMonsterObject → killBy → dropFromMonster 按 dropOwner 取）。Monster
+        // 实例随死亡/离场即弃（复生走 LifeFactory 新实例），快照表随实例消亡，无泄漏面。
     }
 
     public void broadcastMobHpBar(CharacterRef from) {
@@ -511,6 +515,21 @@ public class Monster extends AbstractLoadedLife {
     /** 交战玩家 cid 集（live view；调用方解析投递） */
     public Set<Integer> getEngagedPlayers() {
         return engagedPlayers;
+    }
+
+    // ── 掉落权益快照（org.gms.server.maps.Battle.DropEntitlement；普攻每刀覆盖，掉落按 dropOwner 取）──
+
+    /** 普攻掉落权益快照（cid → 最近一刀；CHM 与交战集同并发语义，本域任务体读写） */
+    private final Map<Integer, Battle.DropEntitlement> dropEntitlements = new ConcurrentHashMap<>();
+
+    public void rememberDropEntitlement(int cid, Battle.DropEntitlement ent) {
+        if (ent != null) {
+            dropEntitlements.put(cid, ent);
+        }
+    }
+
+    public Battle.DropEntitlement getDropEntitlement(int cid) {
+        return dropEntitlements.get(cid);
     }
 
     public boolean isAttackedBy(CharacterRef chr) {
