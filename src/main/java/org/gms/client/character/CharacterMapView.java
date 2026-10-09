@@ -9,6 +9,8 @@ package org.gms.client.character;
  * 一致性语义：任务边界最终一致——map 读到最近一次发布值，对选举/经验份额/leech/
  * 队伍归属等近似用途无害；角色域内部一律读本体系（视图不服务 owner 自身）。
  * partyId = -1 表示无队伍（组件域原值透传；Party id 恒正，成员资格一律 > 0 判定）。
+ * alive 发布点 = CharacterDeath.playerDead（统一死亡入口）与 respawn（统一重生），
+ * 任务边界 flush（publishView 变更检测）兜底。isHidden 已按"恒 false"裁定退役（无 GM 版本）。
  */
-public record CharacterMapView(int level, int partyId) {
+public record CharacterMapView(int level, int partyId, boolean alive) {
 }

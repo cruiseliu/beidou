@@ -198,9 +198,10 @@ public final class CharacterRef implements MapObject {
     /** 视图发布（player actor 任务边界 / 入场绑定调用；本体现值 → 有变化才整体替换）。 */
     public void publishView() {
         // partyId 哨兵全域统一 -1 = 无队伍（组件域原值透传；Party id 恒正），消费端一律 > 0 判成员资格
-        CharacterMapView next = new CharacterMapView(chr.getLevel(), chr.getPartyId());
+        CharacterMapView next = new CharacterMapView(chr.getLevel(), chr.getPartyId(), chr.isAlive());
         CharacterMapView cur = view;
-        if (cur == null || cur.level() != next.level() || cur.partyId() != next.partyId()) {
+        if (cur == null || cur.level() != next.level() || cur.partyId() != next.partyId()
+                || cur.alive() != next.alive()) {
             view = next;
         }
     }
@@ -530,9 +531,10 @@ public final class CharacterRef implements MapObject {
         return chr.getFamilyDrop();
     }
 
+    /** map 域只读：存活视图（统一死亡/重生点发布 + 任务边界 flush；语义 = 最近发布时点） */
     public boolean isAlive() {
-        notInStrictPipeline();
-        return chr.isAlive();
+        CharacterMapView v = view;
+        return v != null ? v.alive() : true;
     }
 
     public boolean isLoggedInWorld() {

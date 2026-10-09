@@ -34,6 +34,7 @@ class CharacterDeath {
     // ── 死亡 ──
 
     void playerDead() {    // 包内可见：CharacterStats.hpChangeAction 调用
+        owner.publishView();   // alive=false 视图发布（统一死亡入口；任务边界 flush 兜底）
         if (owner.getMapRef().isCPQMap()) {
             int losing = owner.getMapRef().getDeathCP();
             if (owner.pq.getCP() < losing) {
@@ -122,5 +123,7 @@ class CharacterDeath {
         }
 
         owner.setStance(0);
+
+        owner.publishView();   // alive=true 视图发布（统一重生出口）
     }
 }
