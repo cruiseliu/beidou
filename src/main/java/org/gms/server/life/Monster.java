@@ -1864,22 +1864,23 @@ public class Monster extends AbstractLoadedLife {
         CharacterRef newControllerWithPuppet = null;
 
         for (CharacterRef chr : getMap().getAllPlayers()) {
-            if (!chr.isHidden() && chr.isLoggedInWorld()) {   // 过滤已断线/awayFromWorld 的幽灵玩家，避免被选为 controller 候选
-                int ctrlMonsSize = map.getControlledMonsterCount(chr.getId());
+            // 候选 = characters 成员（在图权威信源）；isLoggedInWorld 冗余移除（幽灵滞留近似同
+            // hasCharacter TODO）。isHidden 按"恒 false"裁定移除（本版本无 GM）——GM hide 系统
+            // 退役时随之清理其余 isHidden 分支。
+            int ctrlMonsSize = map.getControlledMonsterCount(chr.getId());
 
-                if (isCharacterPuppetInVicinity(chr)) {
-                    newControllerWithPuppet = chr;
-                    break;
-                } else if (chr.isAlive()) {
-                    if (ctrlMonsSize < mincontrolled) {
-                        mincontrolled = ctrlMonsSize;
-                        newController = chr;
-                    }
-                } else {
-                    if (ctrlMonsSize < mincontrolleddead) {
-                        mincontrolleddead = ctrlMonsSize;
-                        newControllerDead = chr;
-                    }
+            if (isCharacterPuppetInVicinity(chr)) {
+                newControllerWithPuppet = chr;
+                break;
+            } else if (chr.isAlive()) {
+                if (ctrlMonsSize < mincontrolled) {
+                    mincontrolled = ctrlMonsSize;
+                    newController = chr;
+                }
+            } else {
+                if (ctrlMonsSize < mincontrolleddead) {
+                    mincontrolleddead = ctrlMonsSize;
+                    newControllerDead = chr;
                 }
             }
         }
@@ -1940,7 +1941,9 @@ public class Monster extends AbstractLoadedLife {
                 }
 
                 aggroRemoveController();
-                if (!(newController != null && newController.isLoggedInWorld() && newController.getMapId() == this.getMap().getId())) {
+                // 在图判定 = MapleMap.characters 按 id 成员（权威信源）；isLoggedInWorld/getMapId
+                // 冗余移除（幽灵滞留近似同 hasCharacter TODO——失去的只是移动上报者，MOVE_LIFE 校验兜底）
+                if (!(newController != null && this.getMap().hasCharacter(newController.getId()))) {
                     return;
                 }
 

@@ -2779,8 +2779,9 @@ public class MapleMap {
             log.warn("检测到幽灵玩家（已断线未正常移除），被动清理. mapId={} ghostChr={}", st.mapid(), ghost.getName());
             try {
                 // 幽灵会话已终结（strictMode 必为 false），ref 读不触发 canary；PUPPET 效果
-                // 取消随会话消亡失去意义，故不搬 player 切片、就地组载荷
-                removePlayer(new RemoveFacts(ghost.getId(), ghost.isHidden(), ghost.getParty(),
+                // 取消随会话消亡失去意义，故不搬 player 切片、就地组载荷。
+                // isHidden 按"恒 false"裁定（本版本无 GM）——hidden=false 字面量。
+                removePlayer(new RemoveFacts(ghost.getId(), false, ghost.getParty(),
                         new ArrayList<>(ghost.getSummonsValues())));
             } catch (Throwable t) {
                 // 单个幽灵清理失败不应影响其他幽灵清理，也不应阻断 addPlayer 流程

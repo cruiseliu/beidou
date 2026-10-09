@@ -225,11 +225,6 @@ public final class CharacterRef implements MapObject {
         return chr.getMap();
     }
 
-    public boolean isHidden() {
-        notInStrictPipeline();
-        return chr.isHidden();
-    }
-
     public boolean isGM() {
         notInStrictPipeline();
         return chr.isGM();
