@@ -1124,9 +1124,11 @@ public class Monster extends AbstractLoadedLife {
     private CharacterRef getActiveController() {
         CharacterRef chr = getController();
 
-        // 同图校验按 mapId 比对（chr.getMap() 内部走 getMapRef().unref()，strict 窗口内
-        // 为守卫触达；mapId 为离图即变的普通字段读，语义等价）
-        if (chr != null && chr.isLoggedInWorld() && chr.getMapId() == this.getMap().getId()) {
+        // 在图判定 = MapleMap.characters 按 id 成员（权威信源，"当前在本图"的时点事实），
+        // 替代原 isLoggedInWorld + getMapId 双守卫活读。TODO(保活) 见 MapleMap.hasCharacter：
+        // 幽灵滞留场景下会误判滞留者仍为有效 controller——失去的只是移动上报者，
+        // MOVE_LIFE 校验与后续选举兜底。
+        if (chr != null && this.getMap().hasCharacter(chr.getId())) {
             return chr;
         } else {
             return null;
@@ -1915,7 +1917,10 @@ public class Monster extends AbstractLoadedLife {
                 chrController.postLegacyPacket("aggro-stop-" + getObjectId(),
                         client -> client.sendPacket(PacketCreator.stopControllingMonster(this.getObjectId())));
             }
-            chrController.stopControllingMonster(this);
+            // controlled 集合摘除搬 player 域执行（原 map 线程跨域活写）；post 自域续段，
+            // 守卫经 domain 盖章自放行。包序同 legacy：先 stop 包后集合摘除。
+            chrController.post("aggro-stop-controlled-" + getObjectId(),
+                    () -> chrController.stopControllingMonster(this));
         }
 
         return new Pair<>(chrController, hadAggro);

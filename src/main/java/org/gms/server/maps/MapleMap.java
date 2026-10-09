@@ -3330,6 +3330,26 @@ public class MapleMap {
         }
     }
 
+    /**
+     * 在图判定（权威信源）：characters 集合按 cid 成员判定——"该角色当前在本图"的时点事实。
+     *
+     * <p>TODO(保活)：摘除依赖离场/断线路径及时到达（cleanupGhostPlayers 的存在即旁证滞留
+     * 场景存在）；若幽灵滞留，此处会误判其仍在图——保活机制补齐前接受该近似。
+     */
+    public boolean hasCharacter(int cid) {
+        chrRLock.lock();
+        try {
+            for (CharacterRef cr : characters) {
+                if (cr.getId() == cid) {
+                    return true;
+                }
+            }
+            return false;
+        } finally {
+            chrRLock.unlock();
+        }
+    }
+
     public CharacterRef getCharacterById(int id) {
         chrRLock.lock();
         try {
