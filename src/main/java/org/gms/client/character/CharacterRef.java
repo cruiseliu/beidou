@@ -154,7 +154,10 @@ public final class CharacterRef implements MapObject {
      */
     public void postLegacyPacket(int srcMapId, String taskName, Consumer<Client> body) {
         post(srcMapId, taskName, () -> {
-            PipelineContext.clear();   // 上下文截断点：过渡桥的 legacy 直发合法（体内 getClient 免哨）
+            // 桥体本身 = 发 legacy packet：packet-strict 哨在截断之前判定，命中即清单
+            // （clear 只服务 STRAND 窗 ref 哨的既有豁免，不豁免 packet 窗——名字即语义）
+            Player.assertNoLegacyPacketSend("CharacterRef.postLegacyPacket(" + taskName + ")");
+            PipelineContext.clear();   // 上下文截断点：仅豁免 STRAND 窗 ref 哨（体内 getClient）
             Client c = chr.getClient();
             if (c != null) {
                 body.accept(c);
@@ -180,6 +183,10 @@ public final class CharacterRef implements MapObject {
      * 由载荷直接携带 Character（identity/移交专用，见 MapleMap.onTransitionMobView）。
      * 断言按<b>开窗线程</b>判定（线程精确）：跨 actor 异步任务在窗口存续期触达 ref
      * （如 map shim 上的 transitionMobView）不属管线违规，不 fire。
+     *
+     * <p>自访豁免仅限 STRAND 种类。PACKET 窗（legacy 发包哨，
+     * {@link Player#assertNoLegacyPacketSend}）不适用自访豁免——其语义是禁止「发 legacy
+     * packet」这一行为本身，本人窗口内的直发同属违规（语义裁定）。
      */
     private void notInStrictPipeline() {
         PipelineContext ctx = PipelineContext.current();
@@ -488,7 +495,8 @@ public final class CharacterRef implements MapObject {
     }
 
     public void sendPacket(org.gms.net.packet.Packet packet) {
-        notInStrictPipeline();
+        notInStrictPipeline();                                   // STRAND 窗：跨 actor 触达哨（自访豁免仅限此窗）
+        Player.assertNoLegacyPacketSend("CharacterRef.sendPacket"); // PACKET 窗：legacy 发包哨（无自访豁免）
         chr.sendPacket(packet);
     }
 

@@ -111,6 +111,42 @@ public final class Player {
     }
 
     /**
+     * packet-strict canary（发侧）：packet 窗口内发 legacy packet（绕过 RemoteClient 语义层，
+     * PacketCreator + Client 直发）即命中。与 {@link #assertNoLegacyClientNavigation} 的两点
+     * 差异（语义裁定）：①<b>无自访豁免</b>——packet 窗禁止的是「发 legacy packet」这一行为，
+     * 本人窗口内的直发同属违规（迁移清单）；②判定只依赖因果上下文（kinds 含 PACKET），
+     * 不依赖 {@link Player#current()}——命中点大量位于 router 线程（机械复制体同步处理），
+     * strand 绑定的 current() 在该线程恒 null，依赖它即结构性失明。
+     *
+     * <p>postLegacyPacket 桥体同属命中（名字即语义：桥体执行的就是 legacy 包发送），
+     * 其在 {@code PipelineContext.clear()} 截断**之前**自检。级别开关沿用
+     * {@code PACKET_STRICT_CLIENT}（现值 FAIL：ctx.mode=LOG 的窗口先走上方 LOG 分支记
+     * 清单，窗口翻 ASSERT 后本开关生效）。
+     */
+    public static void assertNoLegacyPacketSend(String what) {
+        if (PACKET_STRICT_CLIENT == StrictClientLevel.OFF) {
+            return;
+        }
+        PipelineContext ctx = PipelineContext.current();
+        if (ctx == null || !ctx.kinds.contains(StrictWindow.PACKET)) {
+            return;   // 不在 packet-strict 窗口（含 bridge 截断后的合法直发）
+        }
+        String cid = ctx.ownerType == PipelineContext.OwnerType.CHARACTER ? String.valueOf(ctx.ownerId) : "-";
+        if (ctx.mode == StrictWindow.Mode.LOG) {
+            log.error("packet-strict 窗口内发 legacy packet [{}] cid={} [log 模式]",
+                    what, cid, new RuntimeException("call site"));
+            return;
+        }
+        switch (PACKET_STRICT_CLIENT) {
+            case FAIL -> throw new IllegalStateException(
+                    "packet-strict 窗口内发 legacy packet [" + what + "] (cid=" + cid + ")");
+            case LOG -> log.warn("packet-strict 窗口内发 legacy packet [{}] cid={}",
+                    what, cid, new RuntimeException("call site"));
+            default -> { }
+        }
+    }
+
+    /**
      * 收包 Handler 槽位表（remote 客户端事件的 actor 侧插座）。组件在角色入场绑定时
      * 接插（PlayerLoggedinHandler 入场任务，on strand）；会话与角色同寿命（换角色 =
      * 完整重登 = 新会话），会话期内不换插。

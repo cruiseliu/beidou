@@ -2426,6 +2426,9 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     }
 
     public void sendPacket(Packet packet) {
+        // packet-strict 哨：packet 窗口内本方法 = 发 legacy packet（绕过 RemoteClient），
+        // 无自访豁免（语义裁定：禁止的是行为本身，本人直发同属违规）
+        Player.assertNoLegacyPacketSend("Character.sendPacket");
         if (client != null) {
             client.sendPacket(packet);
         }
