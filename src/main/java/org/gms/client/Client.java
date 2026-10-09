@@ -1062,14 +1062,13 @@ public class Client extends ChannelInboundHandlerAdapter {
             final MapleMap map = player.getMap();
             if (map != null) {
                 int mapId = player.getMapId();
-                // removePlayer shim 缝合点（doc/13）：与换图路径统一执行上下文。
-                // player 域收尾切片（原任务体段前置）：controller 重分配 + MiniDungeon 退场 +
-                // PUPPET 效果取消（removeFacts 内），随后载荷键控摘除（零 Character 触达），
-                // leaveMap 于摘除完成后补（原任务体尾段）。
-                player.releaseControlledMonsters();
+                // removePlayer 单笔 post（doc/13，与换图路径同缝合点）：读 mapId 的收尾
+                // （MiniDungeon）先行 → 载荷键控摘除 + controller 换届（removePlayer 任务体，
+                // 换届在 characters 摘除后执行）→ leaveMap player 域收尾补后。无回显：对
+                // 离场者的沿途回包沿 mapId 过滤在 strand 侧抛弃（会话已死者 sendPacket 为 no-op）。
                 player.leaveMiniDungeon();
                 MapleMap.RemoveFacts facts = player.removeFacts();
-                map.runIn("map-removePlayer", () -> map.removePlayer(facts));
+                map.postLeaveMap(facts);
                 player.leaveMap();
                 if (MapId.isDojo(mapId)) {
                     this.getChannelServer().freeDojoSectionIfEmpty(mapId);
@@ -1706,11 +1705,11 @@ public class Client extends ChannelInboundHandlerAdapter {
 
         player.getInventory(InventoryType.EQUIPPED).checked(false); //test
         final MapleMap currentMap = player.getMap();
-        // 换频道离图，与换图路径同缝合点（doc/13）；player 域收尾切片前置 + leaveMap 后置（strict 载荷键控批次）
-        player.releaseControlledMonsters();
+        // 换频道离图，与换图路径同缝合点（doc/13）：单笔 post（登记摘除+摘除+换届），
+        // 读 mapId 的收尾（MiniDungeon）先行，leaveMap player 域收尾补后
         player.leaveMiniDungeon();
         MapleMap.RemoveFacts facts = player.removeFacts();
-        currentMap.runIn("map-removePlayer", () -> currentMap.removePlayer(facts));
+        currentMap.postLeaveMap(facts);
         player.leaveMap();
         player.clearBanishPlayerData();
         player.getClient().getChannelServer().removePlayer(player);

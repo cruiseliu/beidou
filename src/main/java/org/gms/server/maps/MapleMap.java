@@ -216,6 +216,11 @@ public class MapleMap {
         ref.runIn(task, r);
     }
 
+    /** 离图单笔投递（{@link MapleMapRef#postLeaveMap} 的 MapleMap 门面，Client 离图路径用） */
+    public void postLeaveMap(RemoveFacts facts) {
+        ref.postLeaveMap(facts);
+    }
+
     public EventInstanceManager getEventInstance() {
         return event;
     }
@@ -2612,7 +2617,7 @@ public class MapleMap {
             }
         }
 
-        chr.postLegacyPacket("sendObjectPlacement", client -> {
+        chr.postLegacyPacket(getId(), "sendObjectPlacement", client -> {
             for (MapObject o : spawns) {
                 o.sendSpawnData(client);
             }
@@ -2740,9 +2745,10 @@ public class MapleMap {
     }
 
     /**
-     * 离图摘除（map actor 任务体，载荷键控零 CharacterRef 触达——strict 批次产物）。
-     * player 域收尾归 caller 切片（CharacterMap.changeMapInternal：controller 重分配/
-     * leaveMiniDungeon 前置、leaveMap 后置）。
+     * 离图摘除 + controller 登记摘除/换届（map actor 单任务体，载荷键控零 CharacterRef
+     * 触达——strict 批次产物）。换届排在 characters 摘除之后（候选集不含离场者）。
+     * player 域收尾归 caller 切片（CharacterMap.changeMapInternal / Client 离图路径：
+     * leaveMiniDungeon/leaveMap 前置、setMapId 过滤基准切换后单笔 postLeaveMap 投递）。
      */
     public void removePlayer(RemoveFacts facts) {
         chrWLock.lock();
@@ -2756,7 +2762,11 @@ public class MapleMap {
             chrWLock.unlock();
         }
 
-        controlledMonsters.remove(facts.cid());   // controller 登记簿兜底（正常离场已由 release 前置清空）
+        // controller 登记簿摘除（原"release 前置 + 此处兜底"两段合一）：换届循环在本任务体
+        // 尾段执行——此时 characters 已摘除离场者，重选举候选集不含他，幽灵 grant（旧图怪被
+        // 重新授控给已切图者）结构性排除。对离场者的 stop 闭包沿 mapId 过滤在其 strand 抛弃
+        // （无回显）；留守新任 controller 正常收 grant。
+        List<Integer> releasedOids = releaseControlledMonsters(facts.cid());
         removeMapObject(facts.cid());
         if (!facts.hidden()) {
             broadcastMessage(PacketCreator.removePlayerFromMap(facts.cid()));
@@ -2767,6 +2777,15 @@ public class MapleMap {
         for (Summon summon : facts.summons()) {
             if (!summon.isStationary()) {
                 removeMapObject(summon);
+            }
+        }
+
+        // controller 换届（原 MapleMapRef.releaseControlledMonsters 的 post 段并入本任务体）：
+        // 图空则换届为 null（无包）。
+        for (int oid : releasedOids) {
+            Monster monster = getMonsterByOid(oid);
+            if (monster != null) {
+                monster.aggroRedirectController();
             }
         }
     }
@@ -2936,7 +2955,7 @@ public class MapleMap {
                     continue;
                 }
                 if (chr != source && (rangedFrom == null || rangedFrom.distanceSq(chr.getPosition()) <= rangeSq)) {
-                    chr.postLegacyPacket("close-range-relay", client -> client.sendPacket(packet));
+                    chr.postLegacyPacket(getId(), "close-range-relay", client -> client.sendPacket(packet));
                 }
             }
         } finally {
@@ -3463,7 +3482,7 @@ public class MapleMap {
                 if (cr.isClientDisconnected() || cr.getId() == charId) {
                     continue;
                 }
-                cr.post(new MapCharacterMoveMessage(charId, movements));
+                cr.post(new MapCharacterMoveMessage(getId(), charId, movements));
             }
         } finally {
             chrRLock.unlock();
@@ -3481,7 +3500,7 @@ public class MapleMap {
                 if (cr.isClientDisconnected() || cr.getId() == charId) {
                     continue;
                 }
-                cr.post(new MapQuestCompleteMessage(charId));
+                cr.post(new MapQuestCompleteMessage(getId(), charId));
             }
         } finally {
             chrRLock.unlock();
@@ -3524,7 +3543,7 @@ public class MapleMap {
         }
 
         if (!destroySends.isEmpty() || !addRefs.isEmpty()) {
-            chr.postLegacyPacket("handleCharacterMove", client -> {
+            chr.postLegacyPacket(getId(), "handleCharacterMove", client -> {
                 for (MapObject mo : destroySends) {
                     mo.sendDestroyData(client);
                 }
@@ -3564,7 +3583,7 @@ public class MapleMap {
             }
         }
         // 重建包按收集序整体回移动者 strand 直发（窗口收口后执行，时序近等价旧内联直发）。
-        chr.postLegacyPacket("map-transitionMobView", client -> {
+        chr.postLegacyPacket(getId(), "map-transitionMobView", client -> {
             for (Consumer<Client> send : sends) {
                 send.accept(client);
             }
@@ -3598,7 +3617,7 @@ public class MapleMap {
                     continue;
                 }
                 if (cr.getPosition().distanceSq(rangeAnchor) <= getRangedDistance()) {
-                    cr.post(new MapMonsterMoveMessage(move));
+                    cr.post(new MapMonsterMoveMessage(getId(), move));
                 }
             }
         } finally {

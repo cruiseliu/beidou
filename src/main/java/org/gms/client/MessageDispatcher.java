@@ -31,9 +31,28 @@ public final class MessageDispatcher {
 
     public void dispatch(ActorMessage msg) {
         switch (msg) {
-            case MapCharacterMoveMessage m -> player.remote().map().characterMove(m.charId(), m.movements());
-            case MapQuestCompleteMessage m -> player.remote().map().characterQuestComplete(m.charId());
-            case org.gms.client.messages.MapMonsterMoveMessage m -> player.remote().map().monsterMove(m.move());
+            case MapCharacterMoveMessage m -> {
+                // 接收方权威校验（他人流中继）：中继铸造于 map actor 的受众扫描，切图竞态下
+                // 迟到中继（旧图他人移动）在此丢弃，不落到新图客户端
+                Character chr = player.character();
+                if (chr != null && chr.getMapId() == m.mapId()) {
+                    player.remote().map().characterMove(m.charId(), m.movements());
+                }
+            }
+            case MapQuestCompleteMessage m -> {
+                // 接收方权威校验（他人流中继，同移动中继）
+                Character chr = player.character();
+                if (chr != null && chr.getMapId() == m.mapId()) {
+                    player.remote().map().characterQuestComplete(m.charId());
+                }
+            }
+            case org.gms.client.messages.MapMonsterMoveMessage m -> {
+                // 接收方权威校验（他人流中继，同移动中继）
+                Character chr = player.character();
+                if (chr != null && chr.getMapId() == m.mapId()) {
+                    player.remote().map().monsterMove(m.move());
+                }
+            }
             case org.gms.client.messages.MapMonsterKilledMessage m -> {
                 // 接收方权威校验（同 HP 帧）：切图竞态下的迟到击杀结算在此丢弃
                 Character chr = player.character();

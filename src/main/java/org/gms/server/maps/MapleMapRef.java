@@ -261,17 +261,22 @@ public final class MapleMapRef {
     }
 
     /**
-     * 离图摘除（载荷键控，RemoveFacts 于 caller/player strand 采集）——任务体零
-     * CharacterRef 触达（strict 批次产物）。player 域收尾归 caller 切片。
+     * 离图单笔投递（载荷键控，RemoveFacts 于 caller/player strand 采集）：图域摘除 +
+     * controller 登记摘除/换届在同一 map 任务体完成——换届排在 characters 摘除之后，
+     * 重选举候选集天然不含离场者（幽灵 grant 结构性排除）。无回显：对离场者的任何沿途
+     * 回包（stop/grant 等）沿 mapId 过滤在其 strand 侧抛弃。任务体零 CharacterRef 触达
+     * （strict 批次产物）。player 域收尾归 caller 切片，须先于 caller 的 setMapId 过滤
+     * 基准切换完成（MiniDungeon/pq 等收尾读旧值）。
      */
-    public void removePlayer(MapleMap.RemoveFacts facts) {
-        shim.run("removePlayer", () -> map.removePlayer(facts));
+    public void postLeaveMap(MapleMap.RemoveFacts facts) {
+        shim.post("leave-map", () -> map.removePlayer(facts));
     }
 
     /**
-     * controller 移交（离图收尾；载荷 = cid——controlled 登记簿在 map 域，任务体按 oid
-     * 解析活对象逐只重选举）。上下文截断（既有教义豁免）：controller 移交/换届载荷——
-     * 与原 Character.releaseControlledMonsters 内联段同位。
+     * controller 移交（GM 隐身路径专用，CharacterGm；常规离图的换届已并入
+     * {@link #postLeaveMap} 的 removePlayer 任务体）。载荷 = cid——controlled 登记簿在
+     * map 域，任务体按 oid 解析活对象逐只重选举。上下文截断（既有教义豁免）：
+     * controller 移交/换届载荷——与原 Character.releaseControlledMonsters 内联段同位。
      */
     public void releaseControlledMonsters(int cid) {
         shim.post("release-controlled-monsters", () -> {

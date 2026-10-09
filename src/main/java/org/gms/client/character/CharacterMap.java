@@ -662,13 +662,16 @@ class CharacterMap implements MapModule.Handler {
         }
         // 局部捕获旧图：lambda 读字段是执行时取值，下方 map = to 重赋值后会串图
         final MapleMapRef from = map;
-        // 离图收尾切片（player strand，原 removePlayer 任务体 player 域段前置）：
-        // controller 重分配 + MiniDungeon 退场 → map 域摘除（载荷键控，零 ref 触达）→ leaveMap。
-        // 同步完成以保证同图传送时 remove 先于 add 的 destroy→spawn 包序（幽灵玩家防线）。
-        owner.releaseControlledMonsters();
+        // 离图收尾切片（player strand，单笔架构）：读 mapId 的收尾（MiniDungeon/pq）先行
+        // → setMapId 切换过滤基准（同 task 原子；此后在途旧图消息按来源图过滤在 strand
+        // 侧 log 抛弃）→ 单笔 post 离图（图域摘除 + controller 登记摘除/换届，无回显——
+        // 对离场者的 stop/grant 闭包沿 mapId 过滤抛弃；换届在 characters 摘除后执行，
+        // 重选举候选集不含离场者）。同图传送的 remove 先于 add 包序由 shim FIFO 保证
+        // （leave post 先于 register supply 入队同一 shim）。
         owner.leaveMiniDungeon();
-        from.removePlayer(owner.removeFacts());
         owner.leaveMap();
+        owner.setMapId(to.getId());
+        from.postLeaveMap(owner.removeFacts());
         if (owner.getClient().getChannelServer().getPlayerStorage().getCharacterById(owner.getId()) != null) {
             map = to;
             owner.setPosition(pos);

@@ -1137,7 +1137,7 @@ public class Monster extends AbstractLoadedLife {
         CharacterRef chrController = getActiveController();
         if (chrController != null && !chrController.isMapObjectVisible(getObjectId())) {
             // controller 看不见地图广播，状态包单独补给（post 回 strand 直发）
-            chrController.postLegacyPacket("aggro-status-" + getObjectId(), client -> client.sendPacket(packet));
+            chrController.postLegacyPacket(map.getId(), "aggro-status-" + getObjectId(), client -> client.sendPacket(packet));
         }
     }
 
@@ -1912,7 +1912,7 @@ public class Monster extends AbstractLoadedLife {
 
         if (chrController != null) { // this can/should only happen when a hidden gm attacks the monster
             if (!this.isFake()) {
-                chrController.postLegacyPacket("aggro-stop-" + getObjectId(),
+                chrController.postLegacyPacket(map.getId(), "aggro-stop-" + getObjectId(),
                         client -> client.sendPacket(PacketCreator.stopControllingMonster(this.getObjectId())));
             }
             // controlled 登记簿在 map 域（Character.controlled 已退役），本域直调摘除。
@@ -1953,7 +1953,7 @@ public class Monster extends AbstractLoadedLife {
             }
 
             this.aggroUpdatePuppetVisibility();
-            newController.postLegacyPacket("aggro-control-" + getObjectId(),
+            newController.postLegacyPacket(map.getId(), "aggro-control-" + getObjectId(),
                     client -> aggroMonsterControl(client, this, immediateAggro));
             map.registerControlledMonster(newController.getId(), getObjectId());
         }
@@ -2092,7 +2092,7 @@ public class Monster extends AbstractLoadedLife {
         } else if (chrController.getId() == player.getId()) {
             this.setControllerHasAggro(true);
             if (!GameConfig.getServerBoolean("use_auto_aggro_nearby")) {   // thanks Lichtmager for noticing autoaggro not updating the player properly
-                player.postLegacyPacket("aggro-control-" + getObjectId(), client -> aggroMonsterControl(client, this, true));
+                player.postLegacyPacket(map.getId(), "aggro-control-" + getObjectId(), client -> aggroMonsterControl(client, this, true));
             }
         }
     }
@@ -2145,7 +2145,7 @@ public class Monster extends AbstractLoadedLife {
         }
 
         // 重定向演出整批 post 回 strand 直发（stop → removeSummon → control → spawnSummon，原序保持）
-        chrController.postLegacyPacket("aggro-puppet-" + getObjectId(), client -> {
+        chrController.postLegacyPacket(map.getId(), "aggro-puppet-" + getObjectId(), client -> {
             for (Monster mob : puppetControlled) {
                 client.sendPacket(PacketCreator.stopControllingMonster(mob.getObjectId()));
             }
@@ -2185,7 +2185,7 @@ public class Monster extends AbstractLoadedLife {
                 if (controllerHasPuppet) {
                     controllerHasPuppet = false;
 
-                    chrController.postLegacyPacket("aggro-puppet-clear-" + getObjectId(), client -> {
+                    chrController.postLegacyPacket(map.getId(), "aggro-puppet-clear-" + getObjectId(), client -> {
                         client.sendPacket(PacketCreator.stopControllingMonster(Monster.this.getObjectId()));
                         aggroMonsterControl(client, Monster.this, Monster.this.isControllerHasAggro());
                     });

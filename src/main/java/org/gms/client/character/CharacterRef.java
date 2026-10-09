@@ -118,16 +118,42 @@ public final class CharacterRef implements MapObject {
     }
 
     /**
+     * map→player 投递的接收侧过滤：{@code srcMapId} 由发送方（map 域任务体）显式携带，
+     * 执行时与本体现值比对，不等（已切图）则 log 抛弃——旧图在途闭包（controller
+     * stop/grant、视野差集等）不再落到新图上下文（无回显架构）。比对在本 strand 执行
+     * （同域直读本体现值）；闭包不执行，其捕获的 map 域活对象引用随之失效，不发生跨界读。
+     */
+    public void post(int srcMapId, String taskName, Runnable body) {
+        PlayerStrand s = strand;
+        if (s == null) {
+            return;
+        }
+        try {
+            s.post(taskName, () -> {
+                if (srcMapId != chr.getMapId()) {
+                    log.info("跨图 post 抛弃 (task={} srcMap={} curMap={} cid={})",
+                            taskName, srcMapId, chr.getMapId(), id);
+                    return;
+                }
+                body.run();
+            });
+        } catch (IllegalStateException ignored) {
+        }
+    }
+
+    /**
      * strict 管线过渡桥（legacy 直发段 post 化）：把「经 ref 取 client 直发」的遗留发包段
      * 整体后投递到本 strand 执行——strict 窗口内经 ref 直触 client 即 canary 断言
      * （doc/16 §4.1），map 任务体/in-place 缝以本桥替代直发；body 执行时窗口按 strand
      * 串行必已收口，体内 getClient 合法。无会话静默丢弃（对齐 {@link #post(String, Runnable)}）。
      *
-     * <p>过渡债务：body 捕获 map 域活对象（MapObject 等）跨界，延迟窗口内可能被 map actor
-     * 并改——与被替代的直发段（本就无同步直读）同偿；对应收包流全量 post 化后消除。
+     * <p>{@code srcMapId} 为发送方 map id（map 域任务体显式携带，见
+     * {@link #post(int, String, Runnable)}）：投递方已切图（mapId 不等）时整段抛弃，
+     * 跨界活读随之消失。过渡债务：body 捕获 map 域活对象（MapObject 等）跨界，延迟窗口内
+     * 可能被 map actor 并改——同图窗口内与被替代的直发段同偿；对应收包流全量 post 化后消除。
      */
-    public void postLegacyPacket(String taskName, Consumer<Client> body) {
-        post(taskName, () -> {
+    public void postLegacyPacket(int srcMapId, String taskName, Consumer<Client> body) {
+        post(srcMapId, taskName, () -> {
             PipelineContext.clear();   // 上下文截断点：过渡桥的 legacy 直发合法（体内 getClient 免哨）
             Client c = chr.getClient();
             if (c != null) {
