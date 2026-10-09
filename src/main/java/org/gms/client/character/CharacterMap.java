@@ -902,7 +902,7 @@ class CharacterMap implements MapModule.Handler {
             summon.setPosition(chr.getPosition());
             map.spawnSummonExcludeOwner(summon, chr.ref());
             // owner 份（原 ranged 广播内含 owner：可见集登记 + 与 packetbakery 同形的 spawn 包）
-            chr.addVisibleMapObject(summon.getObjectId(), new MapView.MapObjectInfo(MapObjectType.SUMMON, 0));
+            chr.addVisibleMapObject(summon.getObjectId(), new MapView.MapObjectInfo(MapObjectType.SUMMON, 0, summon.getPosition(), true));
             chr.sendPacket(PacketCreator.spawnSummon(summon, true));
         }
         map.sendMapEffectData(chr.getClient());

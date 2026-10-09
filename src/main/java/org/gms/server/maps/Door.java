@@ -127,7 +127,7 @@ public class Door {
                 if (door != null) {
                     townDoor.sendSpawnData(chr.getClient());
                     chrR.post(new MapObjectsViewMessage(town.getId(),
-                            List.of(new MapView.Entry(townDoor.getObjectId(), new MapView.MapObjectInfo(MapObjectType.DOOR, 0))),
+                            List.of(new MapView.Entry(townDoor.getObjectId(), new MapView.MapObjectInfo(MapObjectType.DOOR, 0, townDoor.getPosition(), true))),
                             List.of()));
                 }
             }

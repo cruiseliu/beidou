@@ -495,7 +495,8 @@ public class MapleMap {
             case NPC -> ((NPC) mo).getId();
             default -> 0;
         };
-        return new MapView.Entry(mo.getObjectId(), new MapView.MapObjectInfo(mo.getType(), id));
+        // visible=true = map 侧范围预过滤语义（登记即可见）；判定权移交 player 域后由 apply 侧覆写
+        return new MapView.Entry(mo.getObjectId(), new MapView.MapObjectInfo(mo.getType(), id, mo.getPosition(), true));
     }
 
     public void removeMapObject(int num) {
@@ -2091,7 +2092,7 @@ public class MapleMap {
             if (chr != null) {
                 door.sendSpawnData(c, false);
                 chr.post(new MapObjectsViewMessage(getId(),
-                        List.of(new MapView.Entry(door.getObjectId(), new MapView.MapObjectInfo(MapObjectType.DOOR, 0))),
+                        List.of(new MapView.Entry(door.getObjectId(), new MapView.MapObjectInfo(MapObjectType.DOOR, 0, door.getPosition(), true))),
                         List.of()));
             }
         }, chr -> chr.getMapId() == door.getFrom().getId());

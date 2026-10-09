@@ -2,6 +2,7 @@ package org.gms.client.character;
 
 import org.gms.server.maps.MapObjectType;
 
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -11,10 +12,10 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 角色侧地图对象视图（player actor 域）：「客户端被告知的对象集」的服务端镜像——
  * map actor 每次向本角色投递 spawn/destroy 包时，同步以值消息
- * （{@link org.gms.client.messages.MapObjectsViewMessage}）登记/注销 oid → (类型, 模板 id)。
+ * （{@link org.gms.client.messages.MapObjectsViewMessage}）登记/注销 oid → 值快照。
  *
  * <p>取代原 {@code visibleMapObjects} 活引用集合（map actor 线程直写
- * {@code Set<MapObject>} 的跨域活引用通道）：值化后过界只剩 oid 与模板 id。
+ * {@code Set<MapObject>} 的跨域活引用通道）：值化后过界只剩 oid 与对象值投影。
  * 读侧三类：player strand 内查询（攻击目标 oid → mobId，战斗 phase 1 用）、
  * ref 值读（map 侧可见性差集判定；CHM 并发容忍语义与原集合一致）、
  * oid 快照（移动差集事实随 move 消息回传 map）。
@@ -26,11 +27,19 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class MapView {
 
     /**
-     * 地图对象值快照（临时过渡形态）：type + 模板 id（MONSTER=mobId、ITEM=itemId、
-     * REACTOR=reactorId、NPC=npcId；其余类型暂记 0——按需补）。将来演进为
+     * 地图对象值快照：type + 模板 id + 位置 + 可见标记。id 语义随 type（MONSTER=mobId、
+     * ITEM=itemId、REACTOR=reactorId、NPC=npcId；其余类型暂记 0——按需补）。将来演进为
      * MapObjectView 接口（每类型自带语义载荷），届时本记录退役。
+     *
+     * <p>{@code visible} = player 域状态：「已把该对象转发给 client」的标记——移动差集
+     * （进入/离开视野 → spawn/destroy）由它驱动。当前 map 侧按范围预过滤，登记即可见
+     * （恒 true）；可见判定权移交 player 域后，由 apply 侧按 (自身位置, position) 赋值/翻转。
      */
-    public record MapObjectInfo(MapObjectType type, int id) {
+    public record MapObjectInfo(MapObjectType type, int id, Point position, boolean visible) {
+
+        public MapObjectInfo {
+            position = new Point(position);   // 防御性拷贝（Point 可变）
+        }
     }
 
     /** 带 oid 的登记条目（值消息与入场 placement seed 共用载荷） */

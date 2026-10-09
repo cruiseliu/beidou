@@ -186,7 +186,7 @@ class CharacterMysticDoor {
                     for (Character pchar : partyMembers) {
                         DoorObject mdo = door.getTownDoor();
                         mdo.sendSpawnData(pchar.getClient());
-                        pchar.addVisibleMapObject(mdo.getObjectId(), new MapView.MapObjectInfo(MapObjectType.DOOR, 0));
+                        pchar.addVisibleMapObject(mdo.getObjectId(), new MapView.MapObjectInfo(MapObjectType.DOOR, 0, mdo.getPosition(), true));
                     }
                 }
             }
@@ -214,7 +214,7 @@ class CharacterMysticDoor {
 
                 DoorObject mdo = door.getTownDoor();
                 mdo.sendSpawnData(partyLeaver.getClient());
-                partyLeaver.addVisibleMapObject(mdo.getObjectId(), new MapView.MapObjectInfo(MapObjectType.DOOR, 0));
+                partyLeaver.addVisibleMapObject(mdo.getObjectId(), new MapView.MapObjectInfo(MapObjectType.DOOR, 0, mdo.getPosition(), true));
             }
         }
     }
