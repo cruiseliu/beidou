@@ -2740,6 +2740,7 @@ public class MapleMap {
             chrWLock.unlock();
         }
 
+        controlledMonsters.remove(facts.cid());   // controller 登记簿兜底（正常离场已由 release 前置清空）
         removeMapObject(facts.cid());
         if (!facts.hidden()) {
             broadcastMessage(PacketCreator.removePlayerFromMap(facts.cid()));
@@ -3348,6 +3349,43 @@ public class MapleMap {
         } finally {
             chrRLock.unlock();
         }
+    }
+
+    // ── controller 登记簿（cid → 受控怪 oid 集；map actor 域内读写，随 removePlayer/release 清理）──
+    // 原 Character.controlled（player 域持活 Monster 引用集合 + map 线程跨域直写）的 map 域重构：
+    // mob 移动权威本就是 map 域状态（Monster.controller），per-cid 索引只为选举计数与离场换届。
+
+    private final Map<Integer, Set<Integer>> controlledMonsters = new HashMap<>();
+
+    public void registerControlledMonster(int cid, int monsterOid) {
+        controlledMonsters.computeIfAbsent(cid, k -> new HashSet<>()).add(monsterOid);
+    }
+
+    public void unregisterControlledMonster(int cid, int monsterOid) {
+        Set<Integer> oids = controlledMonsters.get(cid);
+        if (oids != null) {
+            oids.remove(monsterOid);
+            if (oids.isEmpty()) {
+                controlledMonsters.remove(cid);
+            }
+        }
+    }
+
+    public int getControlledMonsterCount(int cid) {
+        Set<Integer> oids = controlledMonsters.get(cid);
+        return oids != null ? oids.size() : 0;
+    }
+
+    /** 受控怪 oid 集（只读投影；map actor 域内，消费方逐 oid 解析活对象） */
+    public Set<Integer> getControlledMonsterOids(int cid) {
+        Set<Integer> oids = controlledMonsters.get(cid);
+        return oids != null ? oids : Set.of();
+    }
+
+    /** 离场换届：摘除该玩家全部受控登记，返回 oid 集（调用方逐只重选举） */
+    public List<Integer> releaseControlledMonsters(int cid) {
+        Set<Integer> oids = controlledMonsters.remove(cid);
+        return oids != null ? new ArrayList<>(oids) : List.of();
     }
 
     public CharacterRef getCharacterById(int id) {

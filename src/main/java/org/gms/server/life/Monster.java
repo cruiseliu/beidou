@@ -1865,7 +1865,7 @@ public class Monster extends AbstractLoadedLife {
 
         for (CharacterRef chr : getMap().getAllPlayers()) {
             if (!chr.isHidden() && chr.isLoggedInWorld()) {   // 过滤已断线/awayFromWorld 的幽灵玩家，避免被选为 controller 候选
-                int ctrlMonsSize = chr.getNumControlledMonsters();
+                int ctrlMonsSize = map.getControlledMonsterCount(chr.getId());
 
                 if (isCharacterPuppetInVicinity(chr)) {
                     newControllerWithPuppet = chr;
@@ -1917,10 +1917,9 @@ public class Monster extends AbstractLoadedLife {
                 chrController.postLegacyPacket("aggro-stop-" + getObjectId(),
                         client -> client.sendPacket(PacketCreator.stopControllingMonster(this.getObjectId())));
             }
-            // controlled 集合摘除搬 player 域执行（原 map 线程跨域活写）；post 自域续段，
-            // 守卫经 domain 盖章自放行。包序同 legacy：先 stop 包后集合摘除。
-            chrController.post("aggro-stop-controlled-" + getObjectId(),
-                    () -> chrController.stopControllingMonster(this));
+            // controlled 登记簿在 map 域（Character.controlled 已退役），本域直调摘除。
+            // 包序同 legacy：先 stop 包后登记摘除。
+            map.unregisterControlledMonster(chrController.getId(), getObjectId());
         }
 
         return new Pair<>(chrController, hadAggro);
@@ -1956,7 +1955,7 @@ public class Monster extends AbstractLoadedLife {
             this.aggroUpdatePuppetVisibility();
             newController.postLegacyPacket("aggro-control-" + getObjectId(),
                     client -> aggroMonsterControl(client, this, immediateAggro));
-            newController.controlMonster(this);
+            map.registerControlledMonster(newController.getId(), getObjectId());
         }
     }
 
@@ -2138,8 +2137,9 @@ public class Monster extends AbstractLoadedLife {
         // lame patch for client to redirect all aggro to the puppet
 
         List<Monster> puppetControlled = new LinkedList<>();
-        for (Monster mob : chrController.getControlledMonsters()) {
-            if (mob.isPuppetInVicinity(puppet)) {
+        for (int mobOid : map.getControlledMonsterOids(chrController.getId())) {
+            Monster mob = map.getMonsterByOid(mobOid);
+            if (mob != null && mob.isPuppetInVicinity(puppet)) {
                 puppetControlled.add(mob);
             }
         }

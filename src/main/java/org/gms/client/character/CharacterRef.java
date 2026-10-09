@@ -552,26 +552,6 @@ public final class CharacterRef implements MapObject {
 
     // ── mob 控制簿记（Monster.controller 的 ref 化镜像，P0 直调；post 化另批）──
 
-    public void controlMonster(Monster monster) {
-        notInStrictPipeline();
-        chr.controlMonster(monster);
-    }
-
-    public void stopControllingMonster(Monster monster) {
-        notInStrictPipeline();
-        chr.stopControllingMonster(monster);
-    }
-
-    public int getNumControlledMonsters() {
-        notInStrictPipeline();
-        return chr.getNumControlledMonsters();
-    }
-
-    public Collection<Monster> getControlledMonsters() {
-        notInStrictPipeline();
-        return chr.getControlledMonsters();
-    }
-
     public void resetPlayerAggro() {
         notInStrictPipeline();
         chr.resetPlayerAggro();
@@ -601,11 +581,6 @@ public final class CharacterRef implements MapObject {
     public void removeSandboxItems() {
         notInStrictPipeline();
         chr.removeSandboxItems();
-    }
-
-    public void releaseControlledMonsters() {
-        notInStrictPipeline();
-        chr.releaseControlledMonsters();
     }
 
     public void leaveMap() {

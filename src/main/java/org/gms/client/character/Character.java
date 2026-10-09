@@ -322,7 +322,6 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
     @Getter
     private final SkillMacro[] skillMacros = new SkillMacro[5];
     private WeakReference<MapleMap> ownedMap = new WeakReference<>(null);
-    private final Set<Monster> controlled = new LinkedHashSet<>();
     private final Map<Integer, String> entered = new LinkedHashMap<>();
     private final MapView mapView = new MapView();   // oid → 值快照（原活引用 visibleMapObjects 集合值化，map 域经 MapObjectsViewMessage 回投）
     private final CharacterSkills skills = new CharacterSkills(this);
@@ -337,7 +336,6 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
 
     final Lock chrLock = new ReentrantLock(true);
     private final Lock evtLock = new ReentrantLock(true);
-    private final Lock cpnLock = new ReentrantLock();
     @Getter
     private final Set<Integer> disabledPartySearchInvites = new LinkedHashSet<>();
     private long portaldelay = 0;
@@ -858,69 +856,16 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         }
     }
 
-    public void controlMonster(Monster monster) {
-        if (cpnLock.tryLock()) {
-            try {
-                controlled.add(monster);
-            } finally {
-                cpnLock.unlock();
-            }
-        }
-    }
-
-    public void stopControllingMonster(Monster monster) {
-        if (cpnLock.tryLock()) {
-            try {
-                controlled.remove(monster);
-            } finally {
-                cpnLock.unlock();
-            }
-        }
-    }
-
-    public int getNumControlledMonsters() {
-        cpnLock.lock();
-        try {
-            return controlled.size();
-        } finally {
-            cpnLock.unlock();
-        }
-    }
-
-    public Collection<Monster> getControlledMonsters() {
-        cpnLock.lock();
-        try {
-            return new ArrayList<>(controlled);
-        } finally {
-            cpnLock.unlock();
-        }
-    }
-
+    /**
+     * controller 移交（离图收尾触发）：controlled 登记簿在 map 域（MapleMap.controlledMonsters），
+     * player actor 不持有该信息——本域仅以 cid 触发 map 侧换届。
+     */
     public void releaseControlledMonsters() {
-        Collection<Monster> controlledMonsters;
-
-        cpnLock.lock();
-        try {
-            controlledMonsters = new ArrayList<>(controlled);
-            controlled.clear();
-        } finally {
-            cpnLock.unlock();
-        }
-
         MapleMapRef mapRef = getMapRef();
-        if (mapRef == null || controlledMonsters.isEmpty()) {
+        if (mapRef == null) {
             return;
         }
-        // controller 移交是 mob 域状态工作（换届判定要读新任 controller 的玩家状态）：
-        // post 到 map actor 执行——离开本图的玩家 strand 不越界触达 ref；与后续
-        // removePlayer 任务同 shim FIFO，先换届再移除的顺序与旧内联实现一致。
-        mapRef.post("release-controlled-monsters", () -> {
-            // 上下文截断（既有教义豁免）：controller 移交/换届载荷
-            PipelineContext.clear();
-            for (Monster monster : controlledMonsters) {
-                monster.aggroRedirectController();
-            }
-        });
+        mapRef.releaseControlledMonsters(getId());
     }
 
     /**

@@ -16,6 +16,7 @@ import org.gms.net.server.world.Party;
 import org.gms.util.AssertUtil;
 
 import org.gms.scripting.event.EventInstanceManager;
+import org.gms.server.life.Monster;
 import org.gms.server.life.NPC;
 import org.gms.server.partyquest.MonsterCarnival;
 
@@ -265,6 +266,23 @@ public final class MapleMapRef {
      */
     public void removePlayer(MapleMap.RemoveFacts facts) {
         shim.run("removePlayer", () -> map.removePlayer(facts));
+    }
+
+    /**
+     * controller 移交（离图收尾；载荷 = cid——controlled 登记簿在 map 域，任务体按 oid
+     * 解析活对象逐只重选举）。上下文截断（既有教义豁免）：controller 移交/换届载荷——
+     * 与原 Character.releaseControlledMonsters 内联段同位。
+     */
+    public void releaseControlledMonsters(int cid) {
+        shim.post("release-controlled-monsters", () -> {
+            PipelineContext.clear();
+            for (int oid : map.releaseControlledMonsters(cid)) {
+                Monster monster = map.getMonsterByOid(oid);
+                if (monster != null) {
+                    monster.aggroRedirectController();
+                }
+            }
+        });
     }
 
     public void registerCharacterStatUpdate(Runnable r) {
