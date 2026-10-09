@@ -33,6 +33,7 @@ import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.messages.MapCharacterMoveMessage;
 import org.gms.client.messages.MapItemDropMessage;
+import org.gms.client.messages.MapObjectSpawnMessage;
 import org.gms.client.messages.MapQuestCompleteMessage;
 import org.gms.client.messages.MapMonsterMoveMessage;
 import org.gms.client.pet.Pet;
@@ -249,7 +250,8 @@ public class MapleMap {
         this.dropsOn = !dropsOn;
     }
 
-    private static double getRangedDistance() {
+    /** 视野判定阈值（player 域同款判定用；use_max_range=true 时恒可见） */
+    public static double getRangedDistance() {
         return GameConfig.getServerBoolean("use_max_range") ? Double.POSITIVE_INFINITY : 722500;
     }
 
@@ -399,16 +401,12 @@ public class MapleMap {
         return this.selfDestructives.remove(mapobjectid);
     }
 
-    private void spawnAndAddRangedMapObject(MapObject mapobject, DelayedPacketCreation packetbakery) {
-        spawnAndAddRangedMapObject(mapobject, packetbakery, null);
-    }
-
     /**
-     * MapItem 专用：每 viewer post 值消息（bakery/Client 直发不参与）。值快照在 oid 分配
-     * 之后冻结——oid 是包主键，必须 setObjectId 后构建。
+     * 对象落地（全员投递，visible 判定在 viewer 域）：oid 分配/注册 → 包预构建（包内容
+     * viewer 无关，一次成型）→ 值消息发全图玩家；各 player strand 按 (自身位置, viewEntry
+     * position) 判 visible——可见才登记 MapView 并向 client 直发包，不可见整个丢弃。
      */
-    private void spawnAndAddRangedMapObject(MapItem mapobject, int dropperOid, Point dropfrom, Point dropto, byte mod) {
-        List<CharacterRef> inRangeCharacters = new LinkedList<>();
+    private void spawnAndPostMapObject(MapObject mapobject, List<Packet> packets) {
         int curOID = getUsableOID();
 
         chrRLock.lock();
@@ -416,52 +414,49 @@ public class MapleMap {
         try {
             mapobject.setObjectId(curOID);
             this.mapobjects.put(curOID, mapobject);
-            for (CharacterRef cr : characters) {
-                if (cr.getPosition().distanceSq(mapobject.getPosition()) <= getRangedDistance()) {
-                    inRangeCharacters.add(cr);
-                }
+        } finally {
+            objectWLock.unlock();
+            chrRLock.unlock();
+        }
+
+        final MapView.Entry viewEntry = viewEntry(mapobject);
+        chrRLock.lock();
+        try {
+            for (CharacterRef chr : characters) {
+                chr.post(new MapObjectSpawnMessage(getId(), viewEntry, packets));
             }
+        } finally {
+            chrRLock.unlock();
+        }
+    }
+
+    /**
+     * MapItem 专用：每 viewer post 值消息（bakery/Client 直发不参与）。值快照在 oid 分配
+     * 之后冻结——oid 是包主键，必须 setObjectId 后构建。全员投递，visible/needQuestItem
+     * 判定在 viewer 域（MessageDispatcher）。
+     */
+    private void spawnAndAddRangedMapObject(MapItem mapobject, int dropperOid, Point dropfrom, Point dropto, byte mod) {
+        int curOID = getUsableOID();
+
+        chrRLock.lock();
+        objectWLock.lock();
+        try {
+            mapobject.setObjectId(curOID);
+            this.mapobjects.put(curOID, mapobject);
         } finally {
             objectWLock.unlock();
             chrRLock.unlock();
         }
 
         final MapItemDropMessage dropMessage = MapItemDropMessage.of(getId(), mapobject, dropperOid, dropfrom, dropto, mod);
-        final MapView.Entry viewEntry = viewEntry(mapobject);
-        for (CharacterRef chr : inRangeCharacters) {
-            chr.post(dropMessage);
-            // 可见集值登记（消息先于 spawn 包入 strand FIFO，语义同原「先登记后发包」）
-            chr.post(new MapObjectsViewMessage(getId(), List.of(viewEntry), List.of()));
-        }
-    }
-
-    private void spawnAndAddRangedMapObject(MapObject mapobject, DelayedPacketCreation packetbakery, SpawnCondition condition) {
-        List<CharacterRef> inRangeCharacters = new LinkedList<>();
-        int curOID = getUsableOID();
-
         chrRLock.lock();
-        objectWLock.lock();
         try {
-            mapobject.setObjectId(curOID);
-            this.mapobjects.put(curOID, mapobject);
-            for (CharacterRef cr : characters) {
-                CharacterRef chr = cr;
-                if (condition == null || condition.canSpawn(chr)) {
-                    if (chr.getPosition().distanceSq(mapobject.getPosition()) <= getRangedDistance()) {
-                        inRangeCharacters.add(chr);
-                    }
-                }
+            for (CharacterRef chr : characters) {
+                // 过滤（needQuestItem）+ visible 判定 + 视图登记全在 viewer 域（MessageDispatcher drop case）
+                chr.post(dropMessage);
             }
         } finally {
-            objectWLock.unlock();
             chrRLock.unlock();
-        }
-
-        final MapView.Entry viewEntry = viewEntry(mapobject);
-        for (CharacterRef chr : inRangeCharacters) {
-            packetbakery.sendPackets(chr.getClient());
-            // 可见集值登记（消息先于 spawn 包入 strand FIFO，语义同原「先登记后发包」）
-            chr.post(new MapObjectsViewMessage(getId(), List.of(viewEntry), List.of()));
         }
     }
 
@@ -1907,7 +1902,7 @@ public class MapleMap {
             getEventInstance().registerMonster(monster);
         }
 
-        spawnAndAddRangedMapObject(monster, c -> c.sendPacket(PacketCreator.spawnMonster(monster, false)));
+        spawnAndPostMapObject(monster, List.of(PacketCreator.spawnMonster(monster, false)));
 
         monster.aggroUpdateController();
         updateBossSpawn(monster);
@@ -1994,7 +1989,7 @@ public class MapleMap {
             getEventInstance().registerMonster(monster);
         }
 
-        spawnAndAddRangedMapObject(monster, c -> c.sendPacket(PacketCreator.spawnMonster(monster, true)), null);
+        spawnAndPostMapObject(monster, List.of(PacketCreator.spawnMonster(monster, true)));
 
         monster.aggroUpdateController();
         updateBossSpawn(monster);
@@ -2055,7 +2050,7 @@ public class MapleMap {
         monster.setPosition(spos);
         monster.setSpawnEffect(effect);
 
-        spawnAndAddRangedMapObject(monster, c -> c.sendPacket(PacketCreator.spawnMonster(monster, true, effect)));
+        spawnAndPostMapObject(monster, List.of(PacketCreator.spawnMonster(monster, true, effect)));
 
         monster.aggroUpdateController();
         updateBossSpawn(monster);
@@ -2068,7 +2063,7 @@ public class MapleMap {
     public void spawnFakeMonster(final Monster monster) {
         monster.setMap(this);
         monster.setFake(true);
-        spawnAndAddRangedMapObject(monster, c -> c.sendPacket(PacketCreator.spawnFakeMonster(monster, 0)));
+        spawnAndPostMapObject(monster, List.of(PacketCreator.spawnFakeMonster(monster, 0)));
 
         spawnedMonstersOnMap.incrementAndGet();
         addSelfDestructive(monster);
@@ -2083,19 +2078,36 @@ public class MapleMap {
 
     public void spawnReactor(final Reactor reactor) {
         reactor.setMap(this);
-        spawnAndAddRangedMapObject(reactor, c -> c.sendPacket(reactor.makeSpawnData()));
+        spawnAndPostMapObject(reactor, List.of(reactor.makeSpawnData()));
     }
 
     public void spawnDoor(final DoorObject door) {
-        spawnAndAddRangedMapObject(door, c -> {
-            CharacterRef chr = c.getPlayer().ref();
-            if (chr != null) {
-                door.sendSpawnData(c, false);
-                chr.post(new MapObjectsViewMessage(getId(),
-                        List.of(new MapView.Entry(door.getObjectId(), new MapView.MapObjectInfo(MapObjectType.DOOR, 0, door.getPosition(), true))),
-                        List.of()));
+        // 遗留：包 viewer 相关（partyPortal/自身 mapId 门），无法值核——保留内联直发（含 inRange
+        // 收集的 getPosition 读），door/MapItem-poke 债清偿时随迁
+        List<CharacterRef> inRangeCharacters = new LinkedList<>();
+        int curOID = getUsableOID();
+
+        chrRLock.lock();
+        objectWLock.lock();
+        try {
+            door.setObjectId(curOID);
+            this.mapobjects.put(curOID, door);
+            for (CharacterRef cr : characters) {
+                if (cr.getMapId() == door.getFrom().getId()
+                        && cr.getPosition().distanceSq(door.getPosition()) <= getRangedDistance()) {
+                    inRangeCharacters.add(cr);
+                }
             }
-        }, chr -> chr.getMapId() == door.getFrom().getId());
+        } finally {
+            objectWLock.unlock();
+            chrRLock.unlock();
+        }
+
+        final MapView.Entry viewEntry = viewEntry(door);
+        for (CharacterRef chr : inRangeCharacters) {
+            door.sendSpawnData(chr.getClient(), false);
+            chr.post(new MapObjectsViewMessage(getId(), List.of(viewEntry), List.of()));
+        }
     }
 
     public Portal getDoorPortal(int doorid) {
@@ -2109,7 +2121,7 @@ public class MapleMap {
     }
 
     public void spawnSummon(final Summon summon) {
-        spawnAndAddRangedMapObject(summon, c -> c.sendPacket(PacketCreator.spawnSummon(summon, true)), null);
+        spawnAndPostMapObject(summon, List.of(PacketCreator.spawnSummon(summon, true)));
     }
 
     /**
@@ -4063,16 +4075,6 @@ public class MapleMap {
         int retI = getMapObjectsInBox(rect, Arrays.asList(MapObjectType.ITEM)).size();
 
         return retP + retI;
-    }
-
-    private interface DelayedPacketCreation {
-
-        void sendPackets(Client c);
-    }
-
-    private interface SpawnCondition {
-
-        boolean canSpawn(CharacterRef chr);
     }
 
     public int getHPDec() {

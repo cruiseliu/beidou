@@ -1,12 +1,18 @@
 package org.gms.client;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.MapView;
 import org.gms.client.messages.MapCharacterMoveMessage;
 import org.gms.client.messages.MapQuestCompleteMessage;
 import org.gms.infra.ActorMessage;
+import org.gms.net.packet.Packet;
+import org.gms.server.maps.MapObjectType;
+import org.gms.server.maps.MapleMap;
 import org.gms.util.PacketCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * player actor 的类型化消息分发器：跨 actor 消息（{@link ActorMessage}）投递到
@@ -53,13 +59,29 @@ public final class MessageDispatcher {
                 }
             }
             case org.gms.client.messages.MapItemDropMessage m -> {
-                // 掉落物落地（原 spawnDrop bakery 值化）：过滤规则原样（needQuestItem），判定移
-                // viewer 域（本体直读免哨）；构包走值核（PacketCreator），本域直发。
+                // 掉落物落地（原 spawnDrop bakery 值化）：visible 判定（自身位置 × 落点，阈值同
+                // map 侧静态）+ 过滤规则原样（needQuestItem），判定移 viewer 域（本体直读免哨）；
+                // 构包走值核（PacketCreator），本域直发。视图登记 = 包真正发出的对象（client 已知集）。
                 Character chr = player.character();
-                if (chr != null && chr.getMapId() == m.mapId() && chr.needQuestItem(m.questid(), m.itemId())) {
+                if (chr != null && chr.getMapId() == m.mapId() && chr.needQuestItem(m.questid(), m.itemId())
+                        && chr.getPosition().distanceSq(m.dropto()) <= MapleMap.getRangedDistance()) {
                     chr.sendPacket(PacketCreator.dropItemFromMapObject(chr, m.oid(), m.itemId(), m.meso(),
                             m.characterOwnerId(), m.partyOwnerId(), m.dropTime(), m.itemExpiration(),
                             m.dropType(), m.playerDrop(), m.dropperOid(), m.dropfrom(), m.dropto(), m.mod()));
+                    chr.applyMapObjectsView(List.of(new MapView.Entry(m.oid(),
+                            new MapView.MapObjectInfo(MapObjectType.ITEM, m.itemId(), m.dropto(), true))), List.of());
+                }
+            }
+            case org.gms.client.messages.MapObjectSpawnMessage m -> {
+                // 对象落地（原 spawnAndAddRangedMapObject inRange 收集的值化）：visible 判定在
+                // viewer 域——可见才直发预构建包并登记视图，不可见整体丢弃（move-diff 按需重发）。
+                Character chr = player.character();
+                if (chr != null && chr.getMapId() == m.mapId()
+                        && chr.getPosition().distanceSq(m.viewEntry().info().position()) <= MapleMap.getRangedDistance()) {
+                    chr.applyMapObjectsView(List.of(m.viewEntry()), List.of());
+                    for (Packet packet : m.packets()) {
+                        chr.sendPacket(packet);
+                    }
                 }
             }
             default -> log.warn("未知 actor 消息: {}", msg.name());   // 响亮：infra 不封闭，未知类型 = 装配漏配
