@@ -275,7 +275,6 @@ public final class MapleMapRef {
      */
     public void releaseControlledMonsters(int cid) {
         shim.post("release-controlled-monsters", () -> {
-            PipelineContext.clear();
             for (int oid : map.releaseControlledMonsters(cid)) {
                 Monster monster = map.getMonsterByOid(oid);
                 if (monster != null) {
@@ -310,11 +309,7 @@ public final class MapleMapRef {
      * 返回视野新增值条目（调用方回放到本体可见视图，wire 无差）。
      */
     public List<MapView.Entry> sendObjectPlacement(CharacterRef chr, Point pos, int cid, Collection<Summon> ownedSummons) {
-        return shim.supply("sendObjectPlacement", () -> {
-            // 上下文截断（既有教义豁免，同 onTransitionMobView）：controller 选举/换届载荷
-            PipelineContext.clear();
-            return map.sendObjectPlacement(chr, pos, cid, ownedSummons);
-        });
+        return shim.supply("sendObjectPlacement", () -> map.sendObjectPlacement(chr, pos, cid, ownedSummons));
     }
 
     /** 入场注册表登记（oid 快照）+  个人商店可空注册 */
@@ -386,13 +381,7 @@ public final class MapleMapRef {
 
     /** 切图完成的 mob 视图重建（player→map 通知，异步；载荷 = 本体引用，identity/移交专用） */
     public void onTransitionMobView(CharacterRef chr) {
-        shim.post("map-transitionMobView", () -> {
-            // 上下文截断（既有教义豁免）：controller 移交/选举载荷 = 合法域上下文
-            // （"跨 actor 异步任务在窗口存续期触达 ref 属合法域上下文"），候选遍历的
-            // ref 读随任务截断，不因传播而咬。
-            PipelineContext.clear();
-            map.onTransitionMobView(chr);
-        });
+        shim.post("map-transitionMobView", () -> map.onTransitionMobView(chr));
     }
 
     public List<MapItem> updatePlayerItemDropsToParty(int partyid, int charid,

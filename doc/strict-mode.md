@@ -104,7 +104,7 @@ InRouter case 为自己的 dispatch 开一窗，dispatch 结束（finally，幂�
 |---|---|---|
 | `postLegacyPacket` | **永久语义**：过渡桥 = 上下文截断点（桥内 legacy 直发合法） | 不撤（S→C 语义化后随用户自然减少） |
 | ~~`Battle.applyCloseRangeAttack` 入口~~ | ~~临时豁免~~ | **已撤除**（Monster Character 参数 ref 化完成，伤害链咬点以 LOG 模式显形为 phase 3 台账） |
-| `MapleMapRef.onTransitionMobView` / `sendObjectPlacement` / `Character.releaseControlledMonsters` | 教义豁免：controller 选举/换届载荷属合法域上下文 | controller 体系语义化时重审 |
+| ~~`MapleMapRef.onTransitionMobView` / `sendObjectPlacement` / `releaseControlledMonsters`~~ | ~~教义豁免：controller 选举/换届载荷~~ | **已撤除**：controlled 登记簿迁 MapleMap + `hasCharacter` 在图判定落地后借口不再成立。撤除即暴露选举环读面 **129 条/教程**——`getNextControllerCandidate` 逐候选 `isHidden`/`isLoggedInWorld`/`isAlive`/`getBuffEffect`（玩偶 vicinity 判定）+ `aggroSwitchController` 复验 `isLoggedInWorld`/`getMapId`。消债路径 = CharacterMapView 吸收（hidden/inWorld/alive，既定目标清单内）+ 玩偶 vicinity 改 map 侧 summon 解析 |
 
 ## 7. 辅助哨：strand 归属断言
 
