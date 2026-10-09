@@ -37,9 +37,11 @@ public final class MessageDispatcher {
             case org.gms.client.messages.MapMonsterKilledMessage m -> {
                 // 接收方权威校验（同 HP 帧）：切图竞态下的迟到击杀结算在此丢弃
                 Character chr = player.character();
-                if (chr != null && chr.getMapId() == m.mapId()) {
+                // 存活门（原 giveExpToCharacter 首行）：视图读，本域免哨
+                if (chr != null && chr.getMapId() == m.mapId() && chr.isAlive()) {
                     player.clientEventHandlers().battle().monsterKilled(m.mobId(), m.mobLevel(),
-                            m.expWeight(), m.partyBonusWeight(), m.white(), m.hasPartySharers(), m.showdownMult());
+                            m.expWeight(), m.partyBonusWeight(), m.white(), m.hasPartySharers(),
+                            m.showdownMult(), m.familyRepGain());
                 }
             }
             case org.gms.client.messages.MapMonsterHpMessage m -> {

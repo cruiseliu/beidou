@@ -1,6 +1,7 @@
 package org.gms.client.character;
 
 import org.gms.client.EffectType;
+import org.gms.client.FamilyEntry;
 import org.gms.client.JobEnum;
 import org.gms.client.Skill;
 import org.gms.client.SkillFactory;
@@ -410,7 +411,7 @@ class CharacterBattle implements BattleModule.Handler {
      */
     @Override
     public void monsterKilled(int mobId, int mobLevel, float expWeight, float partyBonusWeight,
-                              boolean white, boolean hasPartySharers, float showdownMult) {
+                              boolean white, boolean hasPartySharers, float showdownMult, int familyRepGain) {
         Character chr = owner;
         if (!chr.isAlive()) {
             return;
@@ -449,6 +450,11 @@ class CharacterBattle implements BattleModule.Handler {
         int _partyExp = expValueToInteger(partyExp);
 
         chr.gainExp(_personalExp, _partyExp, true, false, white);
+        // 家族声望：击杀转长辈（repGain 由 map 侧按 mob 属性算好；无家族 = entry null 跳过）
+        FamilyEntry familyEntry = chr.getFamilyEntry();
+        if (familyEntry != null) {
+            familyEntry.giveReputationToSenior(familyRepGain, true);
+        }
         chr.raiseQuestMobCount(mobId);
         VeteranHunterMedal.onMonsterKilled(chr, mobId, mobLevel);
         // 特级挑战勋章复用怪物死亡事件，在角色已接任务时写入个人击杀进度。

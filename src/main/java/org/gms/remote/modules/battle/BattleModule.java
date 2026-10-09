@@ -15,9 +15,10 @@ public abstract class BattleModule extends AbstractModule {
 
         /**
          * 击杀结算入口（MapMonsterKilledMessage 回投）：map actor 已完成团队结算
-         * （死亡归属/份额/level split/SHOWDOWN 折算进权重），个人修正与写账在本域。
+         * （死亡归属/份额/level split/SHOWDOWN 折算进权重）与 rep 数值（家族声望增量），
+         * 个人修正、写账与家族声望转账在本域。存活门在 dispatcher（视图读）。
          */
         void monsterKilled(int mobId, int mobLevel, float expWeight, float partyBonusWeight,
-                           boolean white, boolean hasPartySharers, float showdownMult);
+                           boolean white, boolean hasPartySharers, float showdownMult, int familyRepGain);
     }
 }

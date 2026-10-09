@@ -311,11 +311,6 @@ public final class CharacterRef implements MapObject {
         return chr.getPartyQuest();
     }
 
-    public FamilyEntry getFamilyEntry() {
-        notInStrictPipeline();
-        return chr.getFamilyEntry();
-    }
-
     public float getFamilyExp() {
         notInStrictPipeline();
         return chr.getFamilyExp();

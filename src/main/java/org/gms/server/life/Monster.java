@@ -587,7 +587,6 @@ public class Monster extends AbstractLoadedLife {
         float bonusExp = partyBonusMod * playerExp;
 
         this.giveExpToCharacter(chr, playerExp, bonusExp, whiteExpGain, hasPartySharers);
-        giveFamilyRep(chr.getFamilyEntry());
     }
 
     private void distributePartyExperience(int partyId, Map<CharacterRef, Long> partyParticipation, float expPerDmg, Set<CharacterRef> underleveled, Map<Integer, Float> personalRatio, double sdevRatio) {
@@ -646,7 +645,6 @@ public class Monster extends AbstractLoadedLife {
 
         for (CharacterRef mc : expMembers) {
             distributePlayerExperience(mc, participationExp, partyBonusMod, totalPartyLevel, mc == participationMvp, isWhiteExpGain(mc, personalRatio, sdevRatio), hasPartySharers);
-            giveFamilyRep(mc.getFamilyEntry());
         }
     }
 
@@ -743,10 +741,8 @@ public class Monster extends AbstractLoadedLife {
 
 
     private void giveExpToCharacter(CharacterRef attacker, Float personalExp, Float partyExp, boolean white, boolean hasPartySharers) {
-        if (!attacker.isAlive()) {
-            return;
-        }
-
+        // 存活门移 MapMonsterKilledMessage handler（viewer 域视图读）；家族声望增量（mob 属性
+        // 判定）数值化随消息投递，转账在接收方 player 域执行
         float showdownMult = getShowdownMultiplier();
 
         // 团队结算产物（死亡归属/份额/level split/MVP 已折入权重）随语义消息投递；
@@ -755,7 +751,7 @@ public class Monster extends AbstractLoadedLife {
         attacker.post(new MapMonsterKilledMessage(map.getId(), getId(), getStats().getLevel(),
                 personalExp == null ? 0.0f : personalExp,
                 partyExp == null ? 0.0f : partyExp,
-                white, hasPartySharers, showdownMult));
+                white, hasPartySharers, showdownMult, getFamilyRepGain()));
     }
 
     /** SHOWDOWN 状态的 exp 倍率（per-monster exp buff；无状态 = 1.0）。怪物自身 stati，域内读。 */
@@ -984,14 +980,13 @@ public class Monster extends AbstractLoadedLife {
         }
     }
 
-    private void giveFamilyRep(FamilyEntry entry) {
-        if (entry != null) {
-            int repGain = isBoss() ? GameConfig.getServerInt("family_rep_per_boss_kill") : GameConfig.getServerInt("family_rep_per_kill");
-            if (getMaxHp() <= 1) {
-                repGain = 0; //don't count trash mobs
-            }
-            entry.giveReputationToSenior(repGain, true);
+    /** 家族声望增量（mob 属性判定：boss/普通 + 垃圾怪不计；转账归接收方 player 域） */
+    private int getFamilyRepGain() {
+        int repGain = isBoss() ? GameConfig.getServerInt("family_rep_per_boss_kill") : GameConfig.getServerInt("family_rep_per_kill");
+        if (getMaxHp() <= 1) {
+            repGain = 0; //don't count trash mobs
         }
+        return repGain;
     }
 
     public int getHighestDamagerId() {
