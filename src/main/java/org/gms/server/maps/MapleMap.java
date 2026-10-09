@@ -120,6 +120,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -421,11 +422,13 @@ public class MapleMap {
     }
 
     /**
-     * 对象落地（全员投递，visible 判定在 viewer 域）：oid 分配/注册 → 包预构建（包内容
-     * viewer 无关，一次成型）→ 值消息发全图玩家；各 player strand 按 (自身位置, viewEntry
-     * position) 判 visible——可见才登记 MapView 并向 client 直发包，不可见整个丢弃。
+     * 对象落地（全员投递，visible 判定在 viewer 域）：oid 分配/注册 → 包构建（{@code packets}
+     * 惰性求值——oid 是包主键，快照必须在 setObjectId 之后冻结，同 {@link #spawnAndAddRangedMapObject}
+     * 教义；预构建包曾把 oid=0 冻入刷新 spawn = 死怪刷新双生幽灵）→ 值消息发全图玩家；
+     * 各 player strand 按 (自身位置, viewEntry position) 判 visible——可见才登记 MapView 并向
+     * client 直发包，不可见整个丢弃。
      */
-    private void spawnAndPostMapObject(MapObject mapobject, List<Packet> packets) {
+    private void spawnAndPostMapObject(MapObject mapobject, Supplier<List<Packet>> packets) {
         int curOID = getUsableOID();
 
         chrRLock.lock();
@@ -439,10 +442,11 @@ public class MapleMap {
         }
 
         final MapView.Entry viewEntry = viewEntry(mapobject);
+        final List<Packet> built = packets.get();
         chrRLock.lock();
         try {
             for (CharacterRef chr : characters) {
-                chr.post(new MapObjectSpawnMessage(getId(), viewEntry, packets));
+                chr.post(new MapObjectSpawnMessage(getId(), viewEntry, built));
             }
         } finally {
             chrRLock.unlock();
@@ -1923,7 +1927,7 @@ public class MapleMap {
             getEventInstance().registerMonster(monster);
         }
 
-        spawnAndPostMapObject(monster, List.of(PacketCreator.spawnMonster(monster, false)));
+        spawnAndPostMapObject(monster, () -> List.of(PacketCreator.spawnMonster(monster, false)));
 
         monster.aggroUpdateController();
         updateBossSpawn(monster);
@@ -2010,7 +2014,7 @@ public class MapleMap {
             getEventInstance().registerMonster(monster);
         }
 
-        spawnAndPostMapObject(monster, List.of(PacketCreator.spawnMonster(monster, true)));
+        spawnAndPostMapObject(monster, () -> List.of(PacketCreator.spawnMonster(monster, true)));
 
         monster.aggroUpdateController();
         updateBossSpawn(monster);
@@ -2071,7 +2075,7 @@ public class MapleMap {
         monster.setPosition(spos);
         monster.setSpawnEffect(effect);
 
-        spawnAndPostMapObject(monster, List.of(PacketCreator.spawnMonster(monster, true, effect)));
+        spawnAndPostMapObject(monster, () -> List.of(PacketCreator.spawnMonster(monster, true, effect)));
 
         monster.aggroUpdateController();
         updateBossSpawn(monster);
@@ -2084,7 +2088,7 @@ public class MapleMap {
     public void spawnFakeMonster(final Monster monster) {
         monster.setMap(this);
         monster.setFake(true);
-        spawnAndPostMapObject(monster, List.of(PacketCreator.spawnFakeMonster(monster, 0)));
+        spawnAndPostMapObject(monster, () -> List.of(PacketCreator.spawnFakeMonster(monster, 0)));
 
         spawnedMonstersOnMap.incrementAndGet();
         addSelfDestructive(monster);
@@ -2099,7 +2103,7 @@ public class MapleMap {
 
     public void spawnReactor(final Reactor reactor) {
         reactor.setMap(this);
-        spawnAndPostMapObject(reactor, List.of(reactor.makeSpawnData()));
+        spawnAndPostMapObject(reactor, () -> List.of(reactor.makeSpawnData()));
     }
 
     public void spawnDoor(final DoorObject door) {
@@ -2142,7 +2146,7 @@ public class MapleMap {
     }
 
     public void spawnSummon(final Summon summon) {
-        spawnAndPostMapObject(summon, List.of(PacketCreator.spawnSummon(summon, true)));
+        spawnAndPostMapObject(summon, () -> List.of(PacketCreator.spawnSummon(summon, true)));
     }
 
     /**
@@ -2599,6 +2603,7 @@ public class MapleMap {
         }
 
         List<MapObject> addRefs = new ArrayList<>();
+        List<Monster> toElect = new ArrayList<>();
         for (MapObject o : getMapObjectsInRange(pos, getRangedDistance(), rangedMapobjectTypes)) {
             if (o.getType() == MapObjectType.REACTOR) {
                 if (((Reactor) o).isAlive()) {
@@ -2612,7 +2617,7 @@ public class MapleMap {
                 viewAdds.add(viewEntry(o));
 
                 if (o.getType() == MapObjectType.MONSTER) {
-                    ((Monster) o).aggroUpdateController();
+                    toElect.add((Monster) o);
                 }
             }
         }
@@ -2622,6 +2627,11 @@ public class MapleMap {
                 o.sendSpawnData(client);
             }
         });
+        // 授控延后于 spawn 包入队执行：plain SPAWN_MONSTER 会重置 client 控制位，grant
+        // 落尾才生效（循环内即时入队会先于批次 spawn 到达 = 登录后怪不受控回归根因之一）
+        for (Monster m : toElect) {
+            m.aggroUpdateController();
+        }
         return viewAdds;
     }
 
@@ -3567,6 +3577,8 @@ public class MapleMap {
      */
     public void onTransitionMobView(CharacterRef chr) {
         List<Consumer<Client>> sends = new ArrayList<>();
+        List<Monster> regrant = new ArrayList<>();
+        List<Boolean> regrantMine = new ArrayList<>();
         for (MapObject mo : getMonsters()) {    // thanks BHB, IxianMace, Jefe for noticing several issues regarding mob statuses (such as freeze)
             Monster m = (Monster) mo;
             if (m.getSpawnEffect() == 0 || m.getHp() < m.getMaxHp()) {     // avoid effect-spawning mobs
@@ -3574,20 +3586,32 @@ public class MapleMap {
                 if (controller != null && controller.getId() == chr.getId()) {   // identity = id（跨实例稳健；引用 == 会误判重连后的新旧实例）
                     sends.add(client -> client.sendPacket(PacketCreator.stopControllingMonster(m.getObjectId())));
                     sends.add(m::sendDestroyData);
-                    m.aggroRemoveController();
+                    regrant.add(m);
+                    regrantMine.add(true);
                 } else {
                     sends.add(m::sendDestroyData);
+                    regrant.add(m);
+                    regrantMine.add(false);
                 }
                 sends.add(m::sendSpawnData);
-                m.aggroSwitchController(chr, false);
             }
         }
-        // 重建包按收集序整体回移动者 strand 直发（窗口收口后执行，时序近等价旧内联直发）。
+        // 重建包按收集序整体回移动者 strand 直发（窗口收口后执行）。
         chr.postLegacyPacket(getId(), "map-transitionMobView", client -> {
             for (Consumer<Client> send : sends) {
                 send.accept(client);
             }
         });
+        // controller 摘除/重挂延后于重建批次入队执行：plain SPAWN_MONSTER 会重置 client 控制
+        // 位，grant 必须落在批次内 spawn 之后才生效（旧内联实现 grant 落尾；批次化后 grant 于
+        // 循环内先入队 = 登录/切图后怪全部不受控回归根因）。map 域状态变更仍在本任务体内完成。
+        for (int i = 0; i < regrant.size(); i++) {
+            Monster m = regrant.get(i);
+            if (regrantMine.get(i)) {
+                m.aggroRemoveController();
+            }
+            m.aggroSwitchController(chr, false);
+        }
     }
 
     /**
