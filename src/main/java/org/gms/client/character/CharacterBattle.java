@@ -14,6 +14,7 @@ import org.gms.client.quest.medal.SpecialChallengeMedal;
 import org.gms.client.quest.medal.VeteranHunterMedal;
 import org.gms.remote.modules.battle.client.CloseRangeAttack;
 import org.gms.server.BuffEffectData;
+import org.gms.server.ItemInformationProvider;
 import org.gms.server.life.MonsterDropEntry;
 import org.gms.server.life.MonsterInformationProvider;
 import org.gms.server.maps.Battle;
@@ -23,9 +24,11 @@ import org.gms.util.AssertUtil;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 战斗模块组件：CLOSE_RANGE_ATTACK 近战攻击 phase 1（player actor，目标无关）。
@@ -158,9 +161,10 @@ class CharacterBattle implements BattleModule.Handler {
     }
 
     /**
-     * 掉落权益快照构造（点1：倍率随 attack info post；全本体直读，自 strand 自访）。
-     * 卡倍率按目标怪静态掉落表逐条目解析（只收 ≠1.0 命中项；meso 走 mesoDropRate 不入表）；
-     * view miss 的目标无条目（缺省 1.0，登记在案——正常流 FIFO 保证 view 先于攻击落地）。
+     * 掉落权益快照构造（点1 倍率 + 点2 任务需求集；全本体直读，自 strand 自访）。
+     * 目标怪静态掉落表逐条目单次遍历双产物：卡倍率解析（≠1.0 收录）与任务需求判定
+     * （isQuestItem ∧ needQuestItem 活谓词 → itemId 集）。view miss 的目标无产物（卡缺省
+     * 1.0、任务物品不进需求集——排序降级登记在案；正常流 FIFO 保证 view 先于攻击落地）。
      * MIP 首访含 DB 读（每怪类型一次，retrieveDrop 已加锁）。
      */
     private static Battle.DropEntitlement buildDropEntitlement(Character chr, AttackInfo attack) {
@@ -175,7 +179,9 @@ class CharacterBattle implements BattleModule.Handler {
             mesoRate *= mesoUp.doubleValue() / 100.0;
         }
 
+        final ItemInformationProvider ii = ItemInformationProvider.getInstance();
         List<Battle.DropEntitlement.PerItemDropRate> cardRates = new ArrayList<>();
+        Set<Integer> neededQuestItemIds = new HashSet<>();
         for (Integer oid : attack.allDamage.keySet()) {
             MapView.MapObjectInfo info = chr.mapView().get(oid);
             if (info == null || info.type() != MapObjectType.MONSTER) {
@@ -187,10 +193,14 @@ class CharacterBattle implements BattleModule.Handler {
                 if (rate != 1.0) {
                     cardRates.add(new Battle.DropEntitlement.PerItemDropRate(mobId, de.itemId, rate));
                 }
+                // 与 map 侧四段划分同判据（isQuestItem 先行），needQuestItem 为活谓词原样判定
+                if (ii.isQuestItem(de.itemId) && chr.needQuestItem(de.questid, de.itemId)) {
+                    neededQuestItemIds.add(de.itemId);
+                }
             }
         }
 
-        return new Battle.DropEntitlement(dropRate, mesoRate, chr.getCardRate(0), cardRates);
+        return new Battle.DropEntitlement(dropRate, mesoRate, chr.getCardRate(0), cardRates, neededQuestItemIds);
     }
 
     /**

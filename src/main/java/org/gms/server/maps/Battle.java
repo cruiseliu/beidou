@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 近战攻击 phase 2 执行器（map actor 域内）：目标相关处理 + 伤害数值最终化 + 既有本地
@@ -50,18 +51,22 @@ public final class Battle {
      * float→double 化登记：源头值精确加宽，下游滚动改 double 运算，中间舍入消失——RNG
      * 阈值 sub-ulp 漂移，无 wire 影响（掉落从不在 wire 确定集合）。
      *
-     * @param dropRate     用户侧最终乘算倍率：getDropRate ×(familyBuff ? familyDrop : 1)；
-     *                     boss 统一用此值（bossDropRate 取消）
-     * @param mesoRate     meso 金额轴终值：getMesoRate ×(4111001 MESO_UP buff ? 值/100 : 1)
-     * @param mesoDropRate meso 概率轴（图鉴卡，getCardRate(0)）——乘 chance，与 mesoRate 不同轴
-     * @param cardRates    物品卡倍率（phase 1 对照静态掉落表逐条目解析，只收 ≠1.0 命中项；
-     *                     不含 meso）。view miss 的目标无条目 → 缺省 1.0（登记在案）
+     * @param dropRate            用户侧最终乘算倍率：getDropRate ×(familyBuff ? familyDrop : 1)；
+     *                            boss 统一用此值（bossDropRate 取消）
+     * @param mesoRate            meso 金额轴终值：getMesoRate ×(4111001 MESO_UP buff ? 值/100 : 1)
+     * @param mesoDropRate        meso 概率轴（图鉴卡，getCardRate(0)）——乘 chance，与 mesoRate 不同轴
+     * @param cardRates           物品卡倍率（phase 1 对照静态掉落表逐条目解析，只收 ≠1.0 命中项；
+     *                            不含 meso）。view miss 的目标无条目 → 缺省 1.0（登记在案）
+     * @param neededQuestItemIds  需求的任务物品 id 集（点2：phase 1 对目标怪静态表逐 quest 条目跑
+     *                            needQuestItem 活谓词，只 post 判定结果；同 itemId 多任务错分仅影响
+     *                            排序位置，登记在案）。map 侧只做成员匹配，不知谓词存在
      */
     public record DropEntitlement(
             double dropRate,
             double mesoRate,
             double mesoDropRate,
-            List<PerItemDropRate> cardRates) {
+            List<PerItemDropRate> cardRates,
+            Set<Integer> neededQuestItemIds) {
 
         public record PerItemDropRate(int mobId, int itemId, double rate) {
         }
@@ -74,6 +79,11 @@ public final class Battle {
                 }
             }
             return 1.0;
+        }
+
+        /** 该攻击者是否需求该任务物品（needQuestItem 判定结果集成员匹配） */
+        public boolean needsQuestItem(int itemId) {
+            return neededQuestItemIds.contains(itemId);
         }
     }
 

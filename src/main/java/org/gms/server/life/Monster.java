@@ -532,6 +532,19 @@ public class Monster extends AbstractLoadedLife {
         return dropEntitlements.get(cid);
     }
 
+    /**
+     * 除 mvp 外是否有其他攻击者需求该任务物品（点3 排序第三段判据；对快照表线性扫，
+     * payload 个位数量级）。
+     */
+    public boolean hasOtherEntitledQuestNeed(int itemId, int exceptCid) {
+        for (Map.Entry<Integer, Battle.DropEntitlement> e : dropEntitlements.entrySet()) {
+            if (e.getKey() != exceptCid && e.getValue().needsQuestItem(itemId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean isAttackedBy(CharacterRef chr) {
         return takenDamage.containsKey(chr.getId());
     }

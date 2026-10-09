@@ -702,20 +702,45 @@ public class MapleMap {
         }
 
         final MonsterInformationProvider mi = MonsterInformationProvider.getInstance();
+        final ItemInformationProvider ii = ItemInformationProvider.getInstance();
         final List<MonsterGlobalDropEntry> globalEntry = mi.getRelevantGlobalDrops(this.getId());
 
         final List<MonsterDropEntry> dropEntry = new ArrayList<>();
-        final List<MonsterDropEntry> visibleQuestEntry = new ArrayList<>();
-        final List<MonsterDropEntry> otherQuestEntry = new ArrayList<>();
-
-        List<MonsterDropEntry> lootEntry = GameConfig.getServerBoolean("use_spawn_relevant_loot") ? mob.retrieveRelevantDrops() : mi.retrieveEffectiveDrop(mob.getId());
-        sortDropEntries(lootEntry, dropEntry, visibleQuestEntry, otherQuestEntry, chr);     // thanks Articuno, Limit, Rohenn for noticing quest loots not showing up in only-quest item drops scenario
-
-        if (lootEntry.isEmpty()) {   // thanks resinate
-            return;
+        final List<List<MonsterDropEntry>> questGroups;   // 段序 = 掉落序（legacy: visible/other；ent: mvp/others/free）
+        if (ent != null) {
+            // 点2+3：总是掉落全部物品（use_spawn_relevant_loot 旁路），四段按快照需求集排序——
+            // 需求谓词已在 phase 1 冻结为 itemId 集，本域只做成员匹配，不触 needQuestItem
+            List<MonsterDropEntry> lootEntry = mi.retrieveEffectiveDrop(mob.getId());
+            if (lootEntry.isEmpty()) {   // thanks resinate
+                return;
+            }
+            final List<MonsterDropEntry> questMvp = new ArrayList<>();
+            final List<MonsterDropEntry> questOthers = new ArrayList<>();
+            final List<MonsterDropEntry> questFree = new ArrayList<>();
+            for (MonsterDropEntry de : lootEntry) {
+                if (!ii.isQuestItem(de.itemId)) {
+                    dropEntry.add(de);
+                } else if (ent.needsQuestItem(de.itemId)) {
+                    questMvp.add(de);                                              // mvp（dropOwner）需求
+                } else if (mob.hasOtherEntitledQuestNeed(de.itemId, chr.getId())) {
+                    questOthers.add(de);                                           // 其他攻击者需求
+                } else {
+                    questFree.add(de);                                             // 无人需求（点4 前过渡期不可见）
+                }
+            }
+            questGroups = List.of(questMvp, questOthers, questFree);
+        } else {
+            List<MonsterDropEntry> lootEntry = GameConfig.getServerBoolean("use_spawn_relevant_loot") ? mob.retrieveRelevantDrops() : mi.retrieveEffectiveDrop(mob.getId());
+            if (lootEntry.isEmpty()) {   // thanks resinate
+                return;
+            }
+            final List<MonsterDropEntry> visibleQuestEntry = new ArrayList<>();
+            final List<MonsterDropEntry> otherQuestEntry = new ArrayList<>();
+            sortDropEntries(lootEntry, dropEntry, visibleQuestEntry, otherQuestEntry, chr);     // thanks Articuno, Limit, Rohenn for noticing quest loots not showing up in only-quest item drops scenario
+            questGroups = List.of(visibleQuestEntry, otherQuestEntry);
         }
 
-        registerMobItemDrops(droptype, mobpos, chRate, pos, dropEntry, visibleQuestEntry, otherQuestEntry, globalEntry, chr, mob, ent);
+        registerMobItemDrops(droptype, mobpos, chRate, pos, dropEntry, questGroups, globalEntry, chr, mob, ent);
     }
 
     public void dropItemsFromMonster(List<MonsterDropEntry> list, final CharacterRef chr, final Monster mob) {
@@ -915,8 +940,8 @@ public class MapleMap {
         }
     }
 
-    private void registerMobItemDrops(byte droptype, int mobpos, double chRate, Point pos, List<MonsterDropEntry> dropEntry, List<MonsterDropEntry> visibleQuestEntry, List<MonsterDropEntry> otherQuestEntry, List<MonsterGlobalDropEntry> globalEntry, CharacterRef chr, Monster mob, Battle.DropEntitlement ent) {
-        MobLootEntry mle = new MobLootEntry(droptype, mobpos, chRate, pos, dropEntry, visibleQuestEntry, otherQuestEntry, globalEntry, chr, mob, ent);
+    private void registerMobItemDrops(byte droptype, int mobpos, double chRate, Point pos, List<MonsterDropEntry> dropEntry, List<List<MonsterDropEntry>> questGroups, List<MonsterGlobalDropEntry> globalEntry, CharacterRef chr, Monster mob, Battle.DropEntitlement ent) {
+        MobLootEntry mle = new MobLootEntry(droptype, mobpos, chRate, pos, dropEntry, questGroups, globalEntry, chr, mob, ent);
 
         if (GameConfig.getServerBoolean("use_spawn_loot_on_animation")) {
             int animationTime = mob.getAnimationTime("die1");
@@ -3735,21 +3760,19 @@ public class MapleMap {
         private final double chRate;
         private final Point pos;
         private final List<MonsterDropEntry> dropEntry;
-        private final List<MonsterDropEntry> visibleQuestEntry;
-        private final List<MonsterDropEntry> otherQuestEntry;
+        private final List<List<MonsterDropEntry>> questGroups;   // 任务段序列（段序 = 掉落序，段内 shuffle）
         private final List<MonsterGlobalDropEntry> globalEntry;
         private final CharacterRef chr;
         private final Monster mob;
         private final Battle.DropEntitlement ent;   // null = legacy 路径（非普攻死亡）
 
-        protected MobLootEntry(byte droptype, int mobpos, double chRate, Point pos, List<MonsterDropEntry> dropEntry, List<MonsterDropEntry> visibleQuestEntry, List<MonsterDropEntry> otherQuestEntry, List<MonsterGlobalDropEntry> globalEntry, CharacterRef chr, Monster mob, Battle.DropEntitlement ent) {
+        protected MobLootEntry(byte droptype, int mobpos, double chRate, Point pos, List<MonsterDropEntry> dropEntry, List<List<MonsterDropEntry>> questGroups, List<MonsterGlobalDropEntry> globalEntry, CharacterRef chr, Monster mob, Battle.DropEntitlement ent) {
             this.droptype = droptype;
             this.mobpos = mobpos;
             this.chRate = chRate;
             this.pos = pos;
             this.dropEntry = dropEntry;
-            this.visibleQuestEntry = visibleQuestEntry;
-            this.otherQuestEntry = otherQuestEntry;
+            this.questGroups = questGroups;
             this.globalEntry = globalEntry;
             this.chr = chr;
             this.mob = mob;
@@ -3766,9 +3789,10 @@ public class MapleMap {
             // Global Drops
             d = dropGlobalItemsFromMonsterOnMap(globalEntry, pos, d, droptype, mobpos, chr, mob);
 
-            // Quest Drops
-            d = dropItemsFromMonsterOnMap(visibleQuestEntry, pos, d, chRate, droptype, mobpos, ent, chr, mob);
-            dropItemsFromMonsterOnMap(otherQuestEntry, pos, d, chRate, droptype, mobpos, ent, chr, mob);
+            // Quest Drops（legacy: visible/other；ent: mvp 需求/其他攻击者需求/无人需求）
+            for (List<MonsterDropEntry> group : questGroups) {
+                d = dropItemsFromMonsterOnMap(group, pos, d, chRate, droptype, mobpos, ent, chr, mob);
+            }
         }
     }
 
