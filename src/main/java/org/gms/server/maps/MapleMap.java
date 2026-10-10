@@ -1467,7 +1467,7 @@ public class MapleMap {
             if (removeKilledMonsterObject(monster)) {
                 monster.dispatchMonsterKilled(false);
                 postMapMonsterDeath(monster.getObjectId(), animation);
-                monster.aggroSwitchController(null, false);
+                monster.aggroClearController();   // death：控制收回归 player 内处理（无新主可选）
             }
         } else {
             if (removeKilledMonsterObject(monster)) {

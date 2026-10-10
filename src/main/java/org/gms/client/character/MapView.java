@@ -65,6 +65,7 @@ public final class MapView {
     public record MonsterView(
             int oid, int mobId, boolean controlled,
             Point position, byte stance, short fh, byte team,
+            boolean fake,
             Map<MonsterStatus, MonsterStatusEffect> stati,
             int linkedParentOid) {
 
@@ -84,7 +85,7 @@ public final class MapView {
             }
             return new MonsterView(mob.getObjectId(), mob.getId(), mob.getController() != null,
                     mob.getPosition(), (byte) mob.getStance(), (short) mob.getFh(), (byte) mob.getTeam(),
-                    mob.getStati(), linkedParent);
+                    mob.isFake(), mob.getStati(), linkedParent);
         }
     }
 

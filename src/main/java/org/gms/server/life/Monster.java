@@ -790,7 +790,7 @@ public class Monster extends AbstractLoadedLife {
     public CharacterRef killBy(final CharacterRef killer) {
         distributeExperience(killer != null ? killer.getId() : 0);
 
-        final Pair<CharacterRef, Boolean> lastController = aggroRemoveController();
+        final Pair<CharacterRef, Boolean> lastController = aggroClearController();   // death：控制收回归 player 内处理
         final List<Integer> toSpawn = this.getRevives();
         if (toSpawn != null) {
             final MapleMap reviveMap = map;
@@ -1896,7 +1896,25 @@ public class Monster extends AbstractLoadedLife {
     /**
      * Removes controllability status from the current controller of this mob.
      */
+    /**
+     * 收回控制（换届/位置重置/切图 revoke 语境）：状态清除 + stop 值消息通知旧 controller
+     * （fake 怪不发，legacy 同）。
+     */
     public Pair<CharacterRef, Boolean> aggroRemoveController() {
+        Pair<CharacterRef, Boolean> removed = aggroClearController();
+        CharacterRef chrController = removed.getLeft();
+        if (chrController != null && !this.isFake()) {
+            chrController.post(new MapStopControlMonsterMessage(map.getId(), getObjectId()));
+        }
+        return removed;
+    }
+
+    /**
+     * 收回控制的静默核（death 语境专用）：只清状态 + 摘 controlled 登记簿，**不发 stop
+     * 通知**——死亡的控制收回由接收方在 death 消息内自治（{@code isControlling} 自查 +
+     * stop 帧），killBy / 无主 kill 分支换用本核避免双发。
+     */
+    public Pair<CharacterRef, Boolean> aggroClearController() {
         CharacterRef chrController;
         boolean hadAggro;
 
@@ -1912,13 +1930,8 @@ public class Monster extends AbstractLoadedLife {
             aggroUpdateLock.unlock();
         }
 
-        if (chrController != null) { // this can/should only happen when a hidden gm attacks the monster
-            if (!this.isFake()) {
-                // stop 值消息（原 aggro-stop legacy 桥）：入队时点与桥相同，strand FIFO 序不变
-                chrController.post(new MapStopControlMonsterMessage(map.getId(), getObjectId()));
-            }
+        if (chrController != null) {
             // controlled 登记簿在 map 域（Character.controlled 已退役），本域直调摘除。
-            // 包序同 legacy：先 stop 包后登记摘除。
             map.unregisterControlledMonster(chrController.getId(), getObjectId());
         }
 

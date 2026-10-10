@@ -140,11 +140,25 @@ public final class MessageDispatcher {
                 }
             }
             case MapMonsterDeathMessage m -> {
-                // 怪物死亡场景事件（原 KILL_MONSTER ranged 广播值化）：可见判定 = MapView 成员
-                // （client 已被告知此怪才需要死亡演出）——可见才投死亡演出并摘除视图登记，
-                // 未知整体丢弃。结算（经验/任务计数/家族声望）不在此，走 MapMonsterKilledMessage。
+                // 怪物死亡场景事件（原 KILL_MONSTER ranged 广播值化）：结算（经验/任务计数/
+                // 家族声望）不在此，走 MapMonsterKilledMessage。
                 Character chr = player.character();
-                if (chr != null && chr.getMapId() == m.mapId() && chr.mapView().contains(m.oid())) {
+                if (chr == null || chr.getMapId() != m.mapId()) {
+                    return;
+                }
+                // stop control player 内处理：受控怪死亡 → 清控制位 + 补 stop 帧（fake 怪不发，
+                // legacy 同）。不依赖可见门——出视野受控怪死亡同样成立；client 已 destroy 的
+                // （视野差集已清位）自然不发。
+                if (chr.mapView().isControlling(m.oid())) {
+                    MapView.MonsterView view = chr.mapView().monster(m.oid());
+                    chr.mapView().removeControlled(m.oid());
+                    if (view == null || !view.fake()) {
+                        player.remote().map().stopControlMonster(m.oid());
+                    }
+                }
+                // 演出门控 = MapView 成员（client 已被告知此怪才需要死亡演出）——可见才投
+                // 死亡演出并摘除视图登记，未知整体丢弃。
+                if (chr.mapView().contains(m.oid())) {
                     player.remote().map().monsterKilled(m.oid(), m.animation());
                     chr.applyMapObjectsView(List.of(), List.of(m.oid()));
                 }
