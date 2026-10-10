@@ -1959,19 +1959,47 @@ public class Monster extends AbstractLoadedLife {
                     return;
                 }
 
-                this.setController(newController);
-                this.setControllerHasAggro(immediateAggro);
-                this.setControllerKnowsAboutAggro(false);
-                this.setControllerHasPuppet(false);
+                aggroInstallController(newController, immediateAggro);
             } finally {
                 aggroUpdateLock.unlock();
             }
 
-            this.aggroUpdatePuppetVisibility();
-            // 授控值消息（原 aggro-control legacy 桥）：值快照随消息过界（Monster 不跨界）
+            // 授控消息（换届语境：控制器变更，非 spawn 融合）
             newController.post(new MapControlMonsterMessage(map.getId(), getObjectId(), immediateAggro));
-            map.registerControlledMonster(newController.getId(), getObjectId());
         }
+    }
+
+    /** controller 状态安装 + 控制登记簿登记（aggroSwitchController 尾段与 spawn 静默选举共用） */
+    private void aggroInstallController(CharacterRef newController, boolean immediateAggro) {
+        aggroUpdateLock.lock();
+        try {
+            this.setController(newController);
+            this.setControllerHasAggro(immediateAggro);
+            this.setControllerKnowsAboutAggro(false);
+            this.setControllerHasPuppet(false);
+        } finally {
+            aggroUpdateLock.unlock();
+        }
+        this.aggroUpdatePuppetVisibility();
+        map.registerControlledMonster(newController.getId(), getObjectId());
+    }
+
+    /**
+     * spawn 语境静默选举（测试版）：填空式选主（无主/主死才选；木偶近旁优先 → 控制数最少
+     * 存活者），**不投授控消息**——授控帧由受控落地消息（MapMonsterSpawnControlledMessage）
+     * 融合。返回当选 controller（无候选 = null）。
+     */
+    public CharacterRef aggroElectControllerSilently() {
+        CharacterRef current = this.getActiveController();
+        if (current != null && current.isAlive()) {
+            return current;   // 粘滞：已有存活主
+        }
+        CharacterRef candidate = getNextControllerCandidate();
+        if (candidate == null || !this.getMap().hasCharacter(candidate.getId())) {
+            return null;
+        }
+        aggroInstallController(candidate, false);
+        return candidate;
     }
 
     public void aggroAddPuppet(CharacterRef player) {

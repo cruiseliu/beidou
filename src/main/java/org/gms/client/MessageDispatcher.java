@@ -8,6 +8,7 @@ import org.gms.client.messages.MapItemDropMessage;
 import org.gms.client.messages.MapMonsterDeathMessage;
 import org.gms.client.messages.MapMonsterHpMessage;
 import org.gms.client.messages.MapMonsterKilledMessage;
+import org.gms.client.messages.MapMonsterSpawnControlledMessage;
 import org.gms.client.messages.MapMonsterSpawnMessage;
 import org.gms.client.messages.MapStopControlMonsterMessage;
 import org.gms.client.messages.MapMonsterMoveMessage;
@@ -125,6 +126,16 @@ public final class MessageDispatcher {
                 if (chr != null && chr.getMapId() == m.mapId()) {
                     chr.mapView().putControlled(m.oid());   // 控制位镜像（先置位后发包）
                     player.remote().map().controlMonster(m.oid(), m.aggro());
+                }
+            }
+            case MapMonsterSpawnControlledMessage m -> {
+                // 受控落地（测试版融合帧）：mapId 门，无视野门（grant 语义）；值视图入怪物
+                // 视图 + 控制位置位，随后的全身帧 = 落地即授控。
+                Character chr = player.character();
+                if (chr != null && chr.getMapId() == m.mapId()) {
+                    chr.mapView().putMonster(m.view());
+                    chr.mapView().putControlled(m.view().oid());
+                    player.remote().map().monsterSpawnControlled(m.view());
                 }
             }
             case MapMonsterSpawnMessage m -> {

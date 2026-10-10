@@ -11,6 +11,7 @@ import org.gms.remote.modules.map.server.AckMoveMonsterEvent;
 import org.gms.remote.modules.map.server.ControlMonsterEvent;
 import org.gms.remote.modules.map.server.ItemDropEvent;
 import org.gms.remote.modules.map.server.MonsterKilledEvent;
+import org.gms.remote.modules.map.server.MonsterSpawnControlledEvent;
 import org.gms.remote.modules.map.server.MonsterSpawnEvent;
 import org.gms.remote.modules.map.server.StopControlMonsterEvent;
 import org.gms.remote.modules.map.server.UpdateMonsterHpEvent;
@@ -89,6 +90,14 @@ public abstract class MapModule extends AbstractModule {
      */
     public final void controlMonster(int oid, boolean immediateAggro) {
         post(new ControlMonsterEvent(oid, immediateAggro));
+    }
+
+    /**
+     * 受控落地（接收方连接视角：落地即授控，只出 MONSTER_SPAWN_CONTROL 帧）。
+     * 由地图域在 spawn 选举后对 controller 调用（测试版融合帧）。
+     */
+    public final void monsterSpawnControlled(MonsterView view) {
+        post(new MonsterSpawnControlledEvent(view));
     }
 
     /**

@@ -34,6 +34,7 @@ import org.gms.remote.modules.map.server.ControlMonsterEvent;
 import org.gms.remote.modules.map.server.ItemDropEvent;
 import org.gms.remote.modules.map.server.MonsterKilledEvent;
 import org.gms.remote.modules.map.server.MonsterMoveEvent;
+import org.gms.remote.modules.map.server.MonsterSpawnControlledEvent;
 import org.gms.remote.modules.map.server.MonsterSpawnEvent;
 import org.gms.remote.modules.map.server.StopControlMonsterEvent;
 import org.gms.server.life.MobSkill;
@@ -92,6 +93,9 @@ public final class MapRouter extends MapModule implements ServerEventDest {
         }
         if (event instanceof MonsterSpawnEvent e) {
             return new FrozenMonsterSpawnEvent(spawnFrame(e));
+        }
+        if (event instanceof MonsterSpawnControlledEvent e) {
+            return new FrozenControlMonsterEvent(controlFrame(e.view(), false));
         }
         return event;
     }

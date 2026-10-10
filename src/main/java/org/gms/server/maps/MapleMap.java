@@ -34,6 +34,7 @@ import org.gms.client.inventory.ItemSlot;
 import org.gms.client.messages.MapCharacterMoveMessage;
 import org.gms.client.messages.MapItemDropMessage;
 import org.gms.client.messages.MapMonsterDeathMessage;
+import org.gms.client.messages.MapMonsterSpawnControlledMessage;
 import org.gms.client.messages.MapMonsterSpawnMessage;
 import org.gms.client.messages.MapObjectSpawnMessage;
 import org.gms.client.messages.MapQuestCompleteMessage;
@@ -455,9 +456,11 @@ public class MapleMap {
     }
 
     /**
-     * 怪物落地（{@code PacketCreator.spawnMonster/spawnFakeMonster} 系调用点专用）：
-     * 落地帧值化（{@link MapMonsterSpawnMessage}）——包构建移 viewer 域 freeze，oid 分配后
-     * post（值主键语义同 spawnAndPostMapObject 教义）；fake = 假怪帧（CONTROL 头 kind 5）。
+     * 怪物落地（{@code PacketCreator.spawnMonster} 系调用点专用；测试版融合帧）：
+     * oid 分配后先静默选举，controller 发 {@link MapMonsterSpawnControlledMessage}
+     * （只出 MONSTER_SPAWN_CONTROL），其余 viewer 发 {@link MapMonsterSpawnMessage}
+     * （MONSTER_SPAWN；visible 判定在 viewer 域）——spawn 不再单独发授控消息。
+     * fake 无选举：全员落地帧（CONTROL kind 5 形态，legacy 同）。
      */
     private void spawnAndPostMonster(Monster monster, boolean newSpawn, int effect, boolean fake) {
         int curOID = getUsableOID();
@@ -474,10 +477,15 @@ public class MapleMap {
 
         final MapView.Entry viewEntry = viewEntry(monster);
         final MapView.MonsterView view = MapView.MonsterView.of(monster);   // post 时点冻结
+        final CharacterRef controller = fake ? null : monster.aggroElectControllerSilently();
         chrRLock.lock();
         try {
             for (CharacterRef chr : characters) {
-                chr.post(new MapMonsterSpawnMessage(getId(), viewEntry, newSpawn, effect, fake, view));
+                if (controller != null && chr.getId() == controller.getId()) {
+                    chr.post(new MapMonsterSpawnControlledMessage(getId(), view));
+                } else {
+                    chr.post(new MapMonsterSpawnMessage(getId(), viewEntry, newSpawn, effect, fake, view));
+                }
             }
         } finally {
             chrRLock.unlock();
@@ -1958,9 +1966,7 @@ public class MapleMap {
             getEventInstance().registerMonster(monster);
         }
 
-        spawnAndPostMonster(monster, false, 0, false);
-
-        monster.aggroUpdateController();
+        spawnAndPostMonster(monster, false, 0, false);   // 选举内置（测试版融合帧）
         updateBossSpawn(monster);
 
         spawnedMonstersOnMap.incrementAndGet();
@@ -2045,9 +2051,7 @@ public class MapleMap {
             getEventInstance().registerMonster(monster);
         }
 
-        spawnAndPostMonster(monster, true, 0, false);
-
-        monster.aggroUpdateController();
+        spawnAndPostMonster(monster, true, 0, false);   // 选举内置（测试版融合帧）
         updateBossSpawn(monster);
 
         if ((monster.getTeam() == 1 || monster.getTeam() == 0) && (isCPQMap() || isCPQMap2())) {
@@ -2106,9 +2110,7 @@ public class MapleMap {
         monster.setPosition(spos);
         monster.setSpawnEffect(effect);
 
-        spawnAndPostMonster(monster, true, effect, false);
-
-        monster.aggroUpdateController();
+        spawnAndPostMonster(monster, true, effect, false);   // 选举内置（测试版融合帧）
         updateBossSpawn(monster);
 
         spawnedMonstersOnMap.incrementAndGet();
@@ -3633,39 +3635,25 @@ public class MapleMap {
      * 发包在 Monster 侧经 postLegacyPacket 回 strand，本任务体零本体触达。
      */
     public void onTransitionMobView(CharacterRef chr) {
-        List<Consumer<Client>> sends = new ArrayList<>();
+        // 测试版：重建帧（destroy 双包 + respawn）整体删除——假设 placement 帧在客户端
+        // 加载完成后仍有效，无需 transfer 后重放。若真端出现怪不显示/状态丢失/幽灵怪，
+        // 恢复点 = git 历史本方法（KILL 双包 = sendDestroyData，SPAWN = sendSpawnData）。
+        // 控制换届照常：静默核 + regrant（CONTROL 帧仍发，stati 重放随帧保留）。
         List<Monster> regrant = new ArrayList<>();
         List<Boolean> regrantMine = new ArrayList<>();
         for (MapObject mo : getMonsters()) {    // thanks BHB, IxianMace, Jefe for noticing several issues regarding mob statuses (such as freeze)
             Monster m = (Monster) mo;
             if (m.getSpawnEffect() == 0 || m.getHp() < m.getMaxHp()) {     // avoid effect-spawning mobs
                 CharacterRef controller = m.getController();
-                // identity = id（跨实例稳健；引用 == 会误判重连后的新旧实例）。
-                // transfer 重建不再发 stop（控制收回归 leave 边界 player 自治；
-                // plain SPAWN_MONSTER 本身重置控制位，regrant 重挂即可）
-                if (controller != null && controller.getId() == chr.getId()) {
-                    regrantMine.add(true);
-                } else {
-                    regrantMine.add(false);
-                }
-                sends.add(m::sendDestroyData);
+                // identity = id（跨实例稳健；引用 == 会误判重连后的新旧实例）
+                regrantMine.add(controller != null && controller.getId() == chr.getId());
                 regrant.add(m);
-                sends.add(m::sendSpawnData);
             }
         }
-        // 重建包按收集序整体回移动者 strand 直发（窗口收口后执行）。
-        chr.postLegacyPacket(getId(), "map-transitionMobView", client -> {
-            for (Consumer<Client> send : sends) {
-                send.accept(client);
-            }
-        });
-        // controller 摘除/重挂延后于重建批次入队执行：plain SPAWN_MONSTER 会重置 client 控制
-        // 位，grant 必须落在批次内 spawn 之后才生效（旧内联实现 grant 落尾；批次化后 grant 于
-        // 循环内先入队 = 登录/切图后怪全部不受控回归根因）。map 域状态变更仍在本任务体内完成。
         for (int i = 0; i < regrant.size(); i++) {
             Monster m = regrant.get(i);
             if (regrantMine.get(i)) {
-                m.aggroClearController();   // 静默核（不发 stop——transfer 后无 stop）
+                m.aggroClearController();   // 静默核（不发 stop）
             }
             m.aggroSwitchController(chr, false);
         }
