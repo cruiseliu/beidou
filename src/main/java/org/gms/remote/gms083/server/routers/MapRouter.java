@@ -6,6 +6,7 @@ import org.gms.remote.ServerEventDest;
 import org.gms.remote.gms083.Gms083;
 import org.gms.remote.gms083.client.packets.MoveLifePacket;
 import org.gms.remote.gms083.client.packets.MovePlayerPacket;
+import org.gms.remote.gms083.server.packets.KillMonsterPacket;
 import org.gms.remote.gms083.server.packets.SetFieldPacket;
 import org.gms.remote.gms083.server.packets.ShowForeignEffectPacket;
 import org.gms.remote.gms083.server.translators.Filetimes;
@@ -14,6 +15,7 @@ import org.gms.remote.modules.map.server.AckMoveMonsterEvent;
 import org.gms.remote.modules.map.server.ChangeMapServerEvent;
 import org.gms.remote.modules.map.server.CharacterMoveEvent;
 import org.gms.remote.modules.map.server.CharacterQuestCompleteEvent;
+import org.gms.remote.modules.map.server.MonsterKilledEvent;
 import org.gms.remote.modules.map.server.MonsterMoveEvent;
 
 /**
@@ -47,6 +49,8 @@ public final class MapRouter extends MapModule implements ServerEventDest {
                     client.send(new MoveLifePacket.Response(oid, moveid, currentMp, useSkills, skillId, skillLevel));
             case org.gms.remote.modules.map.server.UpdateMonsterHpEvent(var oid, var hpPercent) ->
                     client.send(new org.gms.remote.gms083.server.packets.ShowMonsterHpPacket(oid, hpPercent));
+            case MonsterKilledEvent(var oid, var animation) ->
+                    client.send(new KillMonsterPacket(oid, animation));
             case ChangeMapServerEvent(var mapId, var spawnPoint, var hp, var spawnPosition) ->
                     client.send(new SetFieldPacket.Warp(client.getLegacyClient().getChannel() - 1, mapId,
                             spawnPosition != null ? 0x80 : spawnPoint, hp, spawnPosition != null,

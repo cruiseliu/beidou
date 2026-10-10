@@ -3,6 +3,13 @@ package org.gms.client;
 import org.gms.client.character.Character;
 import org.gms.client.character.MapView;
 import org.gms.client.messages.MapCharacterMoveMessage;
+import org.gms.client.messages.MapItemDropMessage;
+import org.gms.client.messages.MapMonsterDeathMessage;
+import org.gms.client.messages.MapMonsterHpMessage;
+import org.gms.client.messages.MapMonsterKilledMessage;
+import org.gms.client.messages.MapMonsterMoveMessage;
+import org.gms.client.messages.MapObjectSpawnMessage;
+import org.gms.client.messages.MapObjectsViewMessage;
 import org.gms.client.messages.MapQuestCompleteMessage;
 import org.gms.infra.ActorMessage;
 import org.gms.net.packet.Packet;
@@ -46,14 +53,14 @@ public final class MessageDispatcher {
                     player.remote().map().characterQuestComplete(m.charId());
                 }
             }
-            case org.gms.client.messages.MapMonsterMoveMessage m -> {
+            case MapMonsterMoveMessage m -> {
                 // 接收方权威校验（他人流中继，同移动中继）
                 Character chr = player.character();
                 if (chr != null && chr.getMapId() == m.mapId()) {
                     player.remote().map().monsterMove(m.move());
                 }
             }
-            case org.gms.client.messages.MapMonsterKilledMessage m -> {
+            case MapMonsterKilledMessage m -> {
                 // 接收方权威校验（同 HP 帧）：切图竞态下的迟到击杀结算在此丢弃
                 Character chr = player.character();
                 // 存活门（原 giveExpToCharacter 首行）：视图读，本域免哨
@@ -63,7 +70,7 @@ public final class MessageDispatcher {
                             m.showdownMult(), m.familyRepGain());
                 }
             }
-            case org.gms.client.messages.MapMonsterHpMessage m -> {
+            case MapMonsterHpMessage m -> {
                 // 接收方权威校验（异步边界）：map 的投递解析基于陈旧玩家表，切图竞态下
                 // 的迟到 HP 帧在此丢弃——唯一知道玩家当前时点所在图的是 Player actor。
                 Character chr = player.character();
@@ -71,7 +78,7 @@ public final class MessageDispatcher {
                     player.remote().map().updateMonsterHp(m.oid(), m.hpPercent());
                 }
             }
-            case org.gms.client.messages.MapObjectsViewMessage m -> {
+            case MapObjectsViewMessage m -> {
                 // 接收方权威校验（同 HP 帧）：切图竞态下的迟到可见集差集在此丢弃。
                 // 纯状态应用（无 client 发送），map actor 各 spawn/destroy 投递点回投。
                 Character chr = player.character();
@@ -79,7 +86,7 @@ public final class MessageDispatcher {
                     chr.applyMapObjectsView(m.adds(), m.removes());
                 }
             }
-            case org.gms.client.messages.MapItemDropMessage m -> {
+            case MapItemDropMessage m -> {
                 // 掉落物落地（原 spawnDrop bakery 值化）：visible 判定（自身位置 × 落点，阈值同
                 // map 侧静态）+ 过滤规则原样（needQuestItem），判定移 viewer 域（本体直读免哨）；
                 // 构包走值核（PacketCreator），本域直发。视图登记 = 包真正发出的对象（client 已知集）。
@@ -93,17 +100,17 @@ public final class MessageDispatcher {
                             new MapView.MapObjectInfo(MapObjectType.ITEM, m.itemId(), m.dropto(), true))), List.of());
                 }
             }
-            case org.gms.client.messages.MapMonsterDeathMessage m -> {
+            case MapMonsterDeathMessage m -> {
                 // 怪物死亡场景事件（原 KILL_MONSTER ranged 广播值化）：可见判定 = MapView 成员
-                // （client 已被告知此怪才需要死亡演出）——可见才转发 kill 包并摘除视图登记，
+                // （client 已被告知此怪才需要死亡演出）——可见才投死亡演出并摘除视图登记，
                 // 未知整体丢弃。结算（经验/任务计数/家族声望）不在此，走 MapMonsterKilledMessage。
                 Character chr = player.character();
                 if (chr != null && chr.getMapId() == m.mapId() && chr.mapView().contains(m.oid())) {
-                    chr.sendPacket(PacketCreator.killMonster(m.oid(), m.animation()));
+                    player.remote().map().monsterKilled(m.oid(), m.animation());
                     chr.applyMapObjectsView(List.of(), List.of(m.oid()));
                 }
             }
-            case org.gms.client.messages.MapObjectSpawnMessage m -> {
+            case MapObjectSpawnMessage m -> {
                 // 对象落地（原 spawnAndAddRangedMapObject inRange 收集的值化）：visible 判定在
                 // viewer 域——可见才直发预构建包并登记视图，不可见整体丢弃（move-diff 按需重发）。
                 Character chr = player.character();

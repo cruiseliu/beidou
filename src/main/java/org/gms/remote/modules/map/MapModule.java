@@ -7,6 +7,7 @@ import org.gms.remote.modules.map.client.MoveLife;
 import org.gms.remote.modules.map.client.ReviveHereEvent;
 import org.gms.remote.modules.map.client.movement.MoveElement;
 import org.gms.remote.modules.map.server.AckMoveMonsterEvent;
+import org.gms.remote.modules.map.server.MonsterKilledEvent;
 import org.gms.remote.modules.map.server.UpdateMonsterHpEvent;
 import org.gms.remote.modules.map.server.ChangeMapServerEvent;
 import org.gms.remote.modules.map.server.CharacterMoveEvent;
@@ -55,6 +56,14 @@ public abstract class MapModule extends AbstractModule {
      */
     public final void updateMonsterHp(int oid, int hpPercent) {
         post(new UpdateMonsterHpEvent(oid, hpPercent));
+    }
+
+    /**
+     * 某怪物死亡了（接收方连接视角的语义通知；死亡演出形态归版本实现）。
+     * 由地图域在死亡广播时点对接收方调用。
+     */
+    public final void monsterKilled(int oid, int animation) {
+        post(new MonsterKilledEvent(oid, animation));
     }
 
     /**
