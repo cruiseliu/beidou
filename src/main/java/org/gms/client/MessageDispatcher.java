@@ -129,10 +129,14 @@ public final class MessageDispatcher {
                 }
             }
             case MapMonsterSpawnControlledMessage m -> {
-                // 受控落地（测试版融合帧）：mapId 门，无视野门（grant 语义）；值视图入怪物
-                // 视图 + 控制位置位，随后的全身帧 = 落地即授控。
+                // 受控落地（测试版融合帧）：mapId 门，无视野门（grant 语义）。三份登记缺一不可：
+                // objects 视图（isMapObjectVisible，漏登记 = 首次 MOVE_LIFE 即 legacy 补发
+                // plain spawn 重置控制位——"怪不受控"变体）、怪物值视图（授控帧数据源）、控制位。
                 Character chr = player.character();
                 if (chr != null && chr.getMapId() == m.mapId()) {
+                    chr.applyMapObjectsView(List.of(new MapView.Entry(m.view().oid(),
+                            new MapView.MapObjectInfo(MapObjectType.MONSTER, m.view().mobId(),
+                                    m.view().position(), true))), List.of());
                     chr.mapView().putMonster(m.view());
                     chr.mapView().putControlled(m.view().oid());
                     player.remote().map().monsterSpawnControlled(m.view());

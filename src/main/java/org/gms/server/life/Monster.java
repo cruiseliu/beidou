@@ -1058,6 +1058,10 @@ public class Monster extends AbstractLoadedLife {
 
     @Override
     public void sendSpawnData(Client client) {
+        // 临时诊断（视野差集补发排查）：legacy SPAWN_MONSTER 全部经此出口，打印调用栈定位
+        log.info("[诊断] legacy SPAWN_MONSTER 补发: oid={} mob={} map={} fake={} hp={}/{}",
+                getObjectId(), getId(), map.getId(), fake, hp.get(), getMaxHp(),
+                new RuntimeException("sendSpawnData call site"));
         if (hp.get() <= 0) { // mustn't monsterLock this function
             return;
         }
