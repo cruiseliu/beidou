@@ -18,7 +18,8 @@ public abstract class BasicModule extends AbstractModule {
         post(new UpdateJobEvent(jobId));
     }
 
-    /** 获得经验（状态应用归 gameplay；exp 数值帧 + 演出帧由 source → 版本 translator 决定）。 */
+    /** 获得经验（状态应用归 gameplay；exp 数值帧 + 演出帧由 source → 版本 translator 决定：
+     *  MONSTER 白字 / MONSTER_SHARE 非白字黄字 / QUEST in-chat 非白字）。 */
     public final void gainExp(int gain, long totalExp, ExpSource source) {
         post(new GainExpEvent(gain, totalExp, source));
     }

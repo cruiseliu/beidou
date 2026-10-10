@@ -7,12 +7,13 @@ import org.gms.client.character.ExpSource;
  * <ul>
  *   <li>{@code totalExp} → STAT_CHANGED exp 数值帧（绝对总值，unlock=false——对话框期间
  *       不解锁的 legacy 语义刻意保留，与语义域 auto-unlock 的差异为字节等价取舍）。</li>
- *   <li>{@code gain}/{@code source} → 演出帧，显示形态由版本 translator 按 source 决定。</li>
+ *   <li>{@code gain}/{@code source} → 演出帧，显示形态由版本 translator 按 source 决定
+ *       （MONSTER 白字 / MONSTER_SHARE 非白字黄字 / QUEST in-chat 非白字）。</li>
  * </ul>
  *
  * @param gain     演出用经验增量（诅咒减半后的数值，与 legacy 演出口径一致）
  * @param totalExp 应用后的 exp 绝对总值（数值帧载荷）
- * @param source   经验来源
+ * @param source   经验来源（白字/黄字由 MONSTER 与 MONSTER_SHARE 的区分表达）
  */
 public record GainExpEvent(int gain, long totalExp, ExpSource source) implements BasicEvent {
 }

@@ -78,7 +78,7 @@ class CharacterLevel {
     }
 
     public void gainExp(int gain, boolean show, boolean inChat) {
-        gainExp(gain, show, inChat, true);
+        gainExp(gain, 0, show, inChat, true);
     }
 
     /**
@@ -123,10 +123,6 @@ class CharacterLevel {
             levelUp(true);   // 满级 exp=0 由 levelUp 内清零并随 LevelUpEvent 出门
         }
         // owner.lastExpGainTime = System.currentTimeMillis();
-    }
-
-    public void gainExp(int gain, boolean show, boolean inChat, boolean white) {
-        gainExp(gain, 0, show, inChat, white);
     }
 
     public void gainExp(int gain, int party, boolean show, boolean inChat, boolean white) {

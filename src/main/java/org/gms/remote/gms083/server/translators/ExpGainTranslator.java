@@ -24,10 +24,14 @@ public final class ExpGainTranslator {
         StatChangedPacket stat = StatChangedPacket.of(false,
                 List.of(new StatChangedPacket.StatEntry(MASK_EXP,
                         (int) Math.min(totalExp, Integer.MAX_VALUE))), null);
-        ShowStatusInfoPacket show =
-                new ShowStatusInfoPacket(new ShowStatusInfoPacket.Body.ExpGain(false, gain, true));
+        ShowStatusInfoPacket show = new ShowStatusInfoPacket(new ShowStatusInfoPacket.Body.ExpGain(
+                source == ExpSource.MONSTER,                                    // 白字仅 MONSTER
+                gain,
+                source == ExpSource.QUEST));                                    // in-chat 仅 QUEST
         return switch (source) {
             case QUEST -> List.of(stat, show);
+            // gain=0 无演出（legacy announceExpGain 同规）；PARTY_BONUS 独立演出帧（与个人演出并入待 party 行接入）
+            case MONSTER, MONSTER_SHARE, PARTY_BONUS -> gain == 0 ? List.of(stat) : List.of(stat, show);
         };
     }
 }

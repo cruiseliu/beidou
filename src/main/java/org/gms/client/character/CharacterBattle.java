@@ -449,7 +449,13 @@ class CharacterBattle implements BattleModule.Handler {
         partyExp *= GameConfig.getServerFloat("party_bonus_exp_rate");
         int _partyExp = expValueToInteger(partyExp);
 
-        chr.gainExp(_personalExp, _partyExp, true, false, white);
+        // 经验入账语义化：白字旗演化为来源（MONSTER=白字 / MONSTER_SHARE=非白字黄字）；
+        // party 加成独立演出（PARTY_BONUS，非白字非 in-chat）
+        ExpSource expSource = white ? ExpSource.MONSTER : ExpSource.MONSTER_SHARE;
+        chr.gainExp(_personalExp, expSource);
+        if (_partyExp != 0) {
+            chr.gainExp(_partyExp, ExpSource.PARTY_BONUS);
+        }
         // 家族声望：击杀转长辈（repGain 由 map 侧按 mob 属性算好；无家族 = entry null 跳过）
         FamilyEntry familyEntry = chr.getFamilyEntry();
         if (familyEntry != null) {

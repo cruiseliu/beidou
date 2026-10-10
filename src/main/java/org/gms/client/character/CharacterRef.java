@@ -314,11 +314,6 @@ public final class CharacterRef implements MapObject {
         return chr.getMobExpRate();
     }
 
-    public void gainExp(int gain, int party, boolean show, boolean inChat, boolean white) {
-        notInStrictPipeline();
-        chr.gainExp(gain, party, show, inChat, white);
-    }
-
     public void raiseQuestMobCount(int mobId) {
         notInStrictPipeline();
         chr.raiseQuestMobCount(mobId);
