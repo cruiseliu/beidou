@@ -23,6 +23,7 @@ package org.gms.server.life;
 
 import org.gms.client.character.CharacterRef;
 import org.gms.client.messages.MapControlMonsterMessage;
+import org.gms.client.messages.MapStopControlMonsterMessage;
 import org.gms.client.messages.MapMonsterKilledMessage;
 import org.gms.client.quest.medal.SpecialChallengeMedal;
 import org.gms.client.quest.medal.VeteranHunterMedal;
@@ -1913,8 +1914,8 @@ public class Monster extends AbstractLoadedLife {
 
         if (chrController != null) { // this can/should only happen when a hidden gm attacks the monster
             if (!this.isFake()) {
-                chrController.postLegacyPacket(map.getId(), "aggro-stop-" + getObjectId(),
-                        client -> client.sendPacket(PacketCreator.stopControllingMonster(this.getObjectId())));
+                // stop 值消息（原 aggro-stop legacy 桥）：入队时点与桥相同，strand FIFO 序不变
+                chrController.post(new MapStopControlMonsterMessage(map.getId(), getObjectId()));
             }
             // controlled 登记簿在 map 域（Character.controlled 已退役），本域直调摘除。
             // 包序同 legacy：先 stop 包后登记摘除。

@@ -12,6 +12,7 @@ import org.gms.remote.modules.map.server.ControlMonsterEvent;
 import org.gms.remote.modules.map.server.ItemDropEvent;
 import org.gms.remote.modules.map.server.MonsterKilledEvent;
 import org.gms.remote.modules.map.server.MonsterSpawnEvent;
+import org.gms.remote.modules.map.server.StopControlMonsterEvent;
 import org.gms.remote.modules.map.server.UpdateMonsterHpEvent;
 import org.gms.remote.modules.map.server.ChangeMapServerEvent;
 import org.gms.remote.modules.map.server.CharacterMoveEvent;
@@ -88,6 +89,14 @@ public abstract class MapModule extends AbstractModule {
      */
     public final void controlMonster(int oid, boolean immediateAggro) {
         post(new ControlMonsterEvent(oid, immediateAggro));
+    }
+
+    /**
+     * 收回怪物控制（接收方连接视角；stop 帧形态归版本实现）。
+     * 由地图域在 controller 摘除时点对旧 controller 调用（死亡/换届/位置重置/切图 revoke）。
+     */
+    public final void stopControlMonster(int oid) {
+        post(new StopControlMonsterEvent(oid));
     }
 
     /**

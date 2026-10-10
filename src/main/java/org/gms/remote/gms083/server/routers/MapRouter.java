@@ -20,6 +20,7 @@ import org.gms.remote.gms083.server.packets.ControlMonsterPacket;
 import org.gms.remote.gms083.server.packets.DropItemPacket;
 import org.gms.remote.gms083.server.packets.KillMonsterPacket;
 import org.gms.remote.gms083.server.packets.SpawnMonsterPacket;
+import org.gms.remote.gms083.server.packets.StopControlMonsterPacket;
 import org.gms.remote.gms083.server.packets.V83Packet;
 import org.gms.remote.gms083.server.packets.SetFieldPacket;
 import org.gms.remote.gms083.server.packets.ShowForeignEffectPacket;
@@ -34,6 +35,7 @@ import org.gms.remote.modules.map.server.ItemDropEvent;
 import org.gms.remote.modules.map.server.MonsterKilledEvent;
 import org.gms.remote.modules.map.server.MonsterMoveEvent;
 import org.gms.remote.modules.map.server.MonsterSpawnEvent;
+import org.gms.remote.modules.map.server.StopControlMonsterEvent;
 import org.gms.server.life.MobSkill;
 import org.gms.server.life.MobSkillId;
 import org.gms.server.life.Monster;
@@ -191,6 +193,8 @@ public final class MapRouter extends MapModule implements ServerEventDest {
                     client.send(new org.gms.remote.gms083.server.packets.ShowMonsterHpPacket(oid, hpPercent));
             case MonsterKilledEvent(var oid, var animation) ->
                     client.send(new KillMonsterPacket(oid, animation));
+            case StopControlMonsterEvent(var oid) ->
+                    client.send(new StopControlMonsterPacket(oid));
             case FrozenControlMonsterEvent f -> {
                 if (f.packet() != null) {   // null = freeze 侧视图缺失（已记 error），静默跳过
                     client.send(f.packet());

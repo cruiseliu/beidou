@@ -9,6 +9,7 @@ import org.gms.client.messages.MapMonsterDeathMessage;
 import org.gms.client.messages.MapMonsterHpMessage;
 import org.gms.client.messages.MapMonsterKilledMessage;
 import org.gms.client.messages.MapMonsterSpawnMessage;
+import org.gms.client.messages.MapStopControlMonsterMessage;
 import org.gms.client.messages.MapMonsterMoveMessage;
 import org.gms.client.messages.MapObjectSpawnMessage;
 import org.gms.client.messages.MapObjectsViewMessage;
@@ -104,6 +105,15 @@ public final class MessageDispatcher {
                             m.dropType(), m.playerDrop(), m.dropperOid(), m.dropfrom(), m.dropto(), m.mod());
                     chr.applyMapObjectsView(List.of(new MapView.Entry(m.oid(),
                             new MapView.MapObjectInfo(MapObjectType.ITEM, m.itemId(), m.dropto(), true))), List.of());
+                }
+            }
+            case MapStopControlMonsterMessage m -> {
+                // 收回控制（原 aggro-stop legacy 桥值化）：mapId 门（跨图竞态丢弃）；
+                // 无视野门：legacy stop 不检查 controller 视野。不注销怪物视图——
+                // 换届场景下 mob 仍在旧 controller 视野内（视图注销只跟死亡/差集走）。
+                Character chr = player.character();
+                if (chr != null && chr.getMapId() == m.mapId()) {
+                    player.remote().map().stopControlMonster(m.oid());
                 }
             }
             case MapControlMonsterMessage m -> {
