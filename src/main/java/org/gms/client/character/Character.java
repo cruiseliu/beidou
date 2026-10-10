@@ -1369,7 +1369,12 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         // controller 登记摘除/换届已并入离图单笔 post（removePlayer 任务体，无回显架构）；
         // 原二次 release 是 reference 第二轮 stop 包的来源，随单笔架构退役。此处只做
         // player 域收尾。
-        mapView.reset();   // 离图清空可见视图（进图编舞开头亦有 reset，双保险）
+        // 控制收回自治：对控制集逐只发 stop 帧（map 侧换届走静默核，不发），
+        // 随后清空可见视图+怪物值视图+控制位（进图编舞开头亦有 reset，双保险）。
+        for (int oid : mapView.controlledSnapshot()) {
+            remote().map().stopControlMonster(oid);
+        }
+        mapView.reset();
         chair.clearChair();
         if (hpDecreaseTask != null) {
             hpDecreaseTask.cancel(false);

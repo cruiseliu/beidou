@@ -2840,11 +2840,13 @@ public class MapleMap {
         }
 
         // controller 换届（原 MapleMapRef.releaseControlledMonsters 的 post 段并入本任务体）：
-        // 图空则换届为 null（无包）。
+        // 图空则换届为 null（无包）。离场者的控制收回走静默核——player 已在 leaveMap 内
+        // 自清控制位（mapView.reset），stop 消息对离场者恒被 mapId 门过滤（无回显），不发。
         for (int oid : releasedOids) {
             Monster monster = getMonsterByOid(oid);
             if (monster != null) {
-                monster.aggroRedirectController();
+                monster.aggroClearController();
+                monster.aggroUpdateController();
             }
         }
     }
@@ -3638,16 +3640,16 @@ public class MapleMap {
             Monster m = (Monster) mo;
             if (m.getSpawnEffect() == 0 || m.getHp() < m.getMaxHp()) {     // avoid effect-spawning mobs
                 CharacterRef controller = m.getController();
-                if (controller != null && controller.getId() == chr.getId()) {   // identity = id（跨实例稳健；引用 == 会误判重连后的新旧实例）
-                    sends.add(client -> client.sendPacket(PacketCreator.stopControllingMonster(m.getObjectId())));
-                    sends.add(m::sendDestroyData);
-                    regrant.add(m);
+                // identity = id（跨实例稳健；引用 == 会误判重连后的新旧实例）。
+                // transfer 重建不再发 stop（控制收回归 leave 边界 player 自治；
+                // plain SPAWN_MONSTER 本身重置控制位，regrant 重挂即可）
+                if (controller != null && controller.getId() == chr.getId()) {
                     regrantMine.add(true);
                 } else {
-                    sends.add(m::sendDestroyData);
-                    regrant.add(m);
                     regrantMine.add(false);
                 }
+                sends.add(m::sendDestroyData);
+                regrant.add(m);
                 sends.add(m::sendSpawnData);
             }
         }
@@ -3663,7 +3665,7 @@ public class MapleMap {
         for (int i = 0; i < regrant.size(); i++) {
             Monster m = regrant.get(i);
             if (regrantMine.get(i)) {
-                m.aggroRemoveController();
+                m.aggroClearController();   // 静默核（不发 stop——transfer 后无 stop）
             }
             m.aggroSwitchController(chr, false);
         }
