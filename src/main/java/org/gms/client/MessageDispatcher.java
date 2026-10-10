@@ -113,6 +113,7 @@ public final class MessageDispatcher {
                 // 换届场景下 mob 仍在旧 controller 视野内（视图注销只跟死亡/差集走）。
                 Character chr = player.character();
                 if (chr != null && chr.getMapId() == m.mapId()) {
+                    chr.mapView().removeControlled(m.oid());   // 控制位镜像（先清位后发包）
                     player.remote().map().stopControlMonster(m.oid());
                 }
             }
@@ -122,6 +123,7 @@ public final class MessageDispatcher {
                 // 不检查 controller 视野。
                 Character chr = player.character();
                 if (chr != null && chr.getMapId() == m.mapId()) {
+                    chr.mapView().putControlled(m.oid());   // 控制位镜像（先置位后发包）
                     player.remote().map().controlMonster(m.oid(), m.aggro());
                 }
             }

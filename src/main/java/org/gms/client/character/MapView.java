@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -90,10 +91,14 @@ public final class MapView {
     private final Map<Integer, MapObjectInfo> objects = new ConcurrentHashMap<>();
     private final Map<Integer, MonsterView> monsters = new ConcurrentHashMap<>();
 
+    /** 控制中的怪物 oid（客户端控制位镜像）：授控值消息登记，stop/死亡/视野差集注销 */
+    private final Set<Integer> controlled = ConcurrentHashMap.newKeySet();
+
     /** 进图重建（enterMap 编舞开头，player strand）：清空全表 */
     public void reset() {
         objects.clear();
         monsters.clear();
+        controlled.clear();
     }
 
     /** 值登记（值消息应用 / player 侧门直poke 共用）；幂等（oid 键覆盖） */
@@ -138,8 +143,39 @@ public final class MapView {
         monsters.remove(oid);
     }
 
-    /** 怪物视图读（player 域自持；P3 controlled-set / MOVE_LIFE 预滤的数据源） */
+    /** 怪物视图读（player 域自持；MOVE_LIFE 预滤等的数据源） */
     public MonsterView monster(int oid) {
         return monsters.get(oid);
+    }
+
+    /**
+     * 对象出视图的统一注销：条目 + 怪物值视图 + 控制位一并清（死亡/视野差集/切图重建
+     * 全收敛 {@link org.gms.client.Character#applyMapObjectsView} removes 钩）。
+     * 控制位镜像客户端事实——受控对象被 destroy 即不再受控，与服务端粘滞选举解耦。
+     */
+    public void removeObject(int oid) {
+        objects.remove(oid);
+        monsters.remove(oid);
+        controlled.remove(oid);
+    }
+
+    /** 控制位登记（授控值消息应用；幂等——autoAggro 刷新重发不重不漏） */
+    public void putControlled(int oid) {
+        controlled.add(oid);
+    }
+
+    /** 控制位注销（stop 值消息应用；幂等） */
+    public void removeControlled(int oid) {
+        controlled.remove(oid);
+    }
+
+    /** 是否正在控制该怪（MOVE_LIFE 预滤等 player 域判定用） */
+    public boolean isControlling(int oid) {
+        return controlled.contains(oid);
+    }
+
+    /** 控制集快照（oid 列表） */
+    public List<Integer> controlledSnapshot() {
+        return new ArrayList<>(controlled);
     }
 }
