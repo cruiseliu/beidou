@@ -89,13 +89,13 @@ public final class MessageDispatcher {
             case MapItemDropMessage m -> {
                 // 掉落物落地（原 spawnDrop bakery 值化）：visible 判定（自身位置 × 落点，阈值同
                 // map 侧静态）+ 过滤规则原样（needQuestItem），判定移 viewer 域（本体直读免哨）；
-                // 构包走值核（PacketCreator），本域直发。视图登记 = 包真正发出的对象（client 已知集）。
+                // wire 构建与所有权演出归 map 域 remote。视图登记 = 包真正发出的对象（client 已知集）。
                 Character chr = player.character();
                 if (chr != null && chr.getMapId() == m.mapId() && chr.needQuestItem(m.questid(), m.itemId())
                         && chr.getPosition().distanceSq(m.dropto()) <= MapleMap.getRangedDistance()) {
-                    chr.sendPacket(PacketCreator.dropItemFromMapObject(chr, m.oid(), m.itemId(), m.meso(),
+                    player.remote().map().itemDropped(m.oid(), m.itemId(), m.meso(),
                             m.characterOwnerId(), m.partyOwnerId(), m.dropTime(), m.itemExpiration(),
-                            m.dropType(), m.playerDrop(), m.dropperOid(), m.dropfrom(), m.dropto(), m.mod()));
+                            m.dropType(), m.playerDrop(), m.dropperOid(), m.dropfrom(), m.dropto(), m.mod());
                     chr.applyMapObjectsView(List.of(new MapView.Entry(m.oid(),
                             new MapView.MapObjectInfo(MapObjectType.ITEM, m.itemId(), m.dropto(), true))), List.of());
                 }

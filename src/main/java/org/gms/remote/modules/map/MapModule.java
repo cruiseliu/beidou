@@ -7,6 +7,7 @@ import org.gms.remote.modules.map.client.MoveLife;
 import org.gms.remote.modules.map.client.ReviveHereEvent;
 import org.gms.remote.modules.map.client.movement.MoveElement;
 import org.gms.remote.modules.map.server.AckMoveMonsterEvent;
+import org.gms.remote.modules.map.server.ItemDropEvent;
 import org.gms.remote.modules.map.server.MonsterKilledEvent;
 import org.gms.remote.modules.map.server.UpdateMonsterHpEvent;
 import org.gms.remote.modules.map.server.ChangeMapServerEvent;
@@ -56,6 +57,18 @@ public abstract class MapModule extends AbstractModule {
      */
     public final void updateMonsterHp(int oid, int hpPercent) {
         post(new UpdateMonsterHpEvent(oid, hpPercent));
+    }
+
+    /**
+     * 某物品掉落在地面（接收方连接视角的语义通知；所有权演出与过期换算归版本实现）。
+     * 由地图域在掉落广播时点对接收方调用（quest 过滤与视野判定归调用方 viewer 域）。
+     */
+    public final void itemDropped(int oid, int itemId, int meso,
+            int characterOwnerId, int partyOwnerId, long dropTime, long itemExpiration,
+            byte dropType, boolean playerDrop, int dropperOid,
+            Point dropfrom, Point dropto, byte mod) {
+        post(new ItemDropEvent(oid, itemId, meso, characterOwnerId, partyOwnerId,
+                dropTime, itemExpiration, dropType, playerDrop, dropperOid, dropfrom, dropto, mod));
     }
 
     /**
