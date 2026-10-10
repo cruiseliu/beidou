@@ -2604,7 +2604,18 @@ public class MapleMap {
      * 包序 = 收集序（非视野型在前、视野型在后，与原两段循环一致），整体落到收件 strand
      * 队列尾；返回视野新增集，由调用方回放到本体可见集（wire 无差：可见集为服务端簿记）。
      */
-    List<MapView.Entry> sendObjectPlacement(CharacterRef chr, Point pos, int cid, Collection<Summon> ownedSummons) {
+    /**
+     * 入场 placement 产物（值 seed）：对象条目 + 怪物值视图（授控帧数据源；receiver 在
+     * 编舞内先 putMonster 再处理随后的 toElect 授控消息，strand FIFO 序天然成立）。
+     */
+    public record EnterPlacement(List<MapView.Entry> entries, List<MapView.MonsterView> monsterViews) {
+        public EnterPlacement {
+            entries = List.copyOf(entries);
+            monsterViews = List.copyOf(monsterViews);
+        }
+    }
+
+    EnterPlacement sendObjectPlacement(CharacterRef chr, Point pos, int cid, Collection<Summon> ownedSummons) {
         Collection<MapObject> objects;
 
         objectRLock.lock();
@@ -2635,6 +2646,7 @@ public class MapleMap {
 
         List<MapObject> addRefs = new ArrayList<>();
         List<Monster> toElect = new ArrayList<>();
+        List<Monster> inRangeMonsters = new ArrayList<>();
         for (MapObject o : getMapObjectsInRange(pos, getRangedDistance(), rangedMapobjectTypes)) {
             if (o.getType() == MapObjectType.REACTOR) {
                 if (((Reactor) o).isAlive()) {
@@ -2648,6 +2660,7 @@ public class MapleMap {
                 viewAdds.add(viewEntry(o));
 
                 if (o.getType() == MapObjectType.MONSTER) {
+                    inRangeMonsters.add((Monster) o);
                     toElect.add((Monster) o);
                 }
             }
@@ -2663,7 +2676,12 @@ public class MapleMap {
         for (Monster m : toElect) {
             m.aggroUpdateController();
         }
-        return viewAdds;
+        // 怪物值视图建在选举之后：快照真实反映换届结果（controlled 语义成立）
+        List<MapView.MonsterView> monsterViews = new ArrayList<>(inRangeMonsters.size());
+        for (Monster m : inRangeMonsters) {
+            monsterViews.add(MapView.MonsterView.of(m));
+        }
+        return new EnterPlacement(viewAdds, monsterViews);
     }
 
     /** 入场注册表登记（原 finishEnter 段；oid 快照——cr.getObjectId() 本身是 ref 直调）+ 商店可空注册 */
@@ -3483,7 +3501,9 @@ public class MapleMap {
     private void updateMapObjectVisibility(CharacterRef chr, MapObject mo) {
         if (!chr.isMapObjectVisible(mo.getObjectId())) { // object entered view range
             if (mo.getType() == MapObjectType.SUMMON || mo.getPosition().distanceSq(chr.getPosition()) <= getRangedDistance()) {
-                chr.post(new MapObjectsViewMessage(getId(), List.of(viewEntry(mo)), List.of()));
+                List<MapView.MonsterView> mv = mo.getType() == MapObjectType.MONSTER
+                        ? List.of(MapView.MonsterView.of((Monster) mo)) : List.of();
+                chr.post(new MapObjectsViewMessage(getId(), List.of(viewEntry(mo)), List.of(), mv));
                 mo.sendSpawnData(chr.getClient());
             }
         } else if (mo.getType() != MapObjectType.SUMMON && mo.getPosition().distanceSq(chr.getPosition()) > getRangedDistance()) {
@@ -3576,10 +3596,14 @@ public class MapleMap {
             }
         }
         List<MapView.Entry> addEntries = new ArrayList<>();
+        List<MapView.MonsterView> monsterViews = new ArrayList<>();
         for (MapObject mo : getMapObjectsInRange(toPos, getRangedDistance(), rangedMapobjectTypes)) {
             if (!visibleSet.contains(mo.getObjectId())) {
                 addRefs.add(mo);
                 addEntries.add(viewEntry(mo));
+                if (mo.getType() == MapObjectType.MONSTER) {
+                    monsterViews.add(MapView.MonsterView.of((Monster) mo));
+                }
             }
         }
 
@@ -3594,7 +3618,7 @@ public class MapleMap {
             });
         }
 
-        chr.post(new MapObjectsViewMessage(getId(), addEntries, removeOids));
+        chr.post(new MapObjectsViewMessage(getId(), addEntries, removeOids, monsterViews));
     }
 
     /**

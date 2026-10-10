@@ -1,5 +1,6 @@
 package org.gms.remote.modules.map;
 
+import org.gms.client.character.MapView.MonsterView;
 import org.gms.remote.AbstractModule;
 import org.gms.remote.modules.map.client.ChangeMapEvent;
 import org.gms.remote.modules.map.client.MonsterMove;
@@ -16,7 +17,6 @@ import org.gms.remote.modules.map.server.ChangeMapServerEvent;
 import org.gms.remote.modules.map.server.CharacterMoveEvent;
 import org.gms.remote.modules.map.server.CharacterQuestCompleteEvent;
 import org.gms.remote.modules.map.server.MonsterMoveEvent;
-import org.gms.client.character.MapView.MonsterView;
 
 import java.awt.Point;
 import java.util.List;
@@ -86,8 +86,8 @@ public abstract class MapModule extends AbstractModule {
      * 授控（接收方连接视角：客户端开始控制该怪；全身帧形态归版本实现）。
      * 由地图域在换届/刷新时点对新 controller 调用。
      */
-    public final void controlMonster(MonsterView view, boolean immediateAggro) {
-        post(new ControlMonsterEvent(view, immediateAggro));
+    public final void controlMonster(int oid, boolean immediateAggro) {
+        post(new ControlMonsterEvent(oid, immediateAggro));
     }
 
     /**

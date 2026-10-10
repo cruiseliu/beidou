@@ -22,7 +22,6 @@
 package org.gms.server.life;
 
 import org.gms.client.character.CharacterRef;
-import org.gms.client.character.MapView;
 import org.gms.client.messages.MapControlMonsterMessage;
 import org.gms.client.messages.MapMonsterKilledMessage;
 import org.gms.client.quest.medal.SpecialChallengeMedal;
@@ -1956,7 +1955,7 @@ public class Monster extends AbstractLoadedLife {
 
             this.aggroUpdatePuppetVisibility();
             // 授控值消息（原 aggro-control legacy 桥）：值快照随消息过界（Monster 不跨界）
-            newController.post(new MapControlMonsterMessage(map.getId(), immediateAggro, MapView.MonsterView.of(this)));
+            newController.post(new MapControlMonsterMessage(map.getId(), getObjectId(), immediateAggro));
             map.registerControlledMonster(newController.getId(), getObjectId());
         }
     }
@@ -2095,7 +2094,7 @@ public class Monster extends AbstractLoadedLife {
             this.setControllerHasAggro(true);
             if (!GameConfig.getServerBoolean("use_auto_aggro_nearby")) {   // thanks Lichtmager for noticing autoaggro not updating the player properly
                 // 授控刷新值消息（原 aggro-control legacy 桥变体；controller 不变，仅 aggro 置位重发）
-                player.post(new MapControlMonsterMessage(map.getId(), true, MapView.MonsterView.of(this)));
+                player.post(new MapControlMonsterMessage(map.getId(), getObjectId(), true));
             }
         }
     }

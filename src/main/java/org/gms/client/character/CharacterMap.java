@@ -878,8 +878,9 @@ class CharacterMap implements MapModule.Handler {
         // 可见视图随进图重建：先清空（陈图条目随 reset 退役），placement 回来的值条目直接登记
         // （supply 同步返回 = seed 先于编舞后续，无窗口）
         owner.mapView().reset();
-        final List<MapView.Entry> viewAdds = map.sendObjectPlacement(owner.ref(), chr.getPosition(), chr.getId(), chr.getSummonsValues());
-        owner.mapView().addAll(viewAdds);
+        final MapleMap.EnterPlacement placement = map.sendObjectPlacement(owner.ref(), chr.getPosition(), chr.getId(), chr.getSummonsValues());
+        owner.mapView().addAll(placement.entries());
+        placement.monsterViews().forEach(owner.mapView()::putMonster);   // 授控帧数据源（player 域自持）
 
         map.closeEventJoinPortal();
         if (st.fieldType() == 81 || st.fieldType() == 82) {   // 原 hasForcedEquip（fieldType 静态判定内联）

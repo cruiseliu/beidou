@@ -177,7 +177,13 @@ public final class MapleMapRef {
         return shim.supply("getAllPlayers", map::getAllPlayers);
     }
 
+    /**
+     * 图上怪物集外借（调用方转型 {@link org.gms.server.life.Monster} 活用——CharacterGm
+     * 隐身切换重选举）。strand strict canary：strict 收包执行窗口内调用即记/抛——
+     * 外借活对象集属跨域直触，待值化收编后撤哨。
+     */
     public List<MapObject> getMonsters() {
+        assertNotInStrictPipeline("getMonsters");
         return shim.supply("getMonsters", map::getMonsters);
     }
 
@@ -277,8 +283,12 @@ public final class MapleMapRef {
      * {@link #postLeaveMap} 的 removePlayer 任务体）。载荷 = cid——controlled 登记簿在
      * map 域，任务体按 oid 解析活对象逐只重选举。上下文截断（既有教义豁免）：
      * controller 移交/换届载荷——与原 Character.releaseControlledMonsters 内联段同位。
+     *
+     * <p>strand strict canary：任务体直用 {@link Monster} 活对象（解析 + 重选举），
+     * strict 收包执行窗口内调用即记/抛（GM 隐身命令路径，正常收包窗口不达）。
      */
     public void releaseControlledMonsters(int cid) {
+        assertNotInStrictPipeline("releaseControlledMonsters");
         shim.post("release-controlled-monsters", () -> {
             for (int oid : map.releaseControlledMonsters(cid)) {
                 Monster monster = map.getMonsterByOid(oid);
@@ -313,7 +323,7 @@ public final class MapleMapRef {
      * 任务体）。spawn 直发段在任务体内经 {@link CharacterRef#postLegacyPacket} 回 strand。
      * 返回视野新增值条目（调用方回放到本体可见视图，wire 无差）。
      */
-    public List<MapView.Entry> sendObjectPlacement(CharacterRef chr, Point pos, int cid, Collection<Summon> ownedSummons) {
+    public MapleMap.EnterPlacement sendObjectPlacement(CharacterRef chr, Point pos, int cid, Collection<Summon> ownedSummons) {
         return shim.supply("sendObjectPlacement", () -> map.sendObjectPlacement(chr, pos, cid, ownedSummons));
     }
 

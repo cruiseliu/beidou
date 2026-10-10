@@ -82,10 +82,14 @@ public final class MessageDispatcher {
             }
             case MapObjectsViewMessage m -> {
                 // 接收方权威校验（同 HP 帧）：切图竞态下的迟到可见集差集在此丢弃。
-                // 纯状态应用（无 client 发送），map actor 各 spawn/destroy 投递点回投。
+                // 纯状态应用（无 client 发送），map actor 各 spawn/destroy 投递点回投；
+                // 怪物条目随行值快照（授控帧数据源）同步入怪物视图。
                 Character chr = player.character();
                 if (chr != null && chr.getMapId() == m.mapId()) {
                     chr.applyMapObjectsView(m.adds(), m.removes());
+                    for (MapView.MonsterView mv : m.monsterViews()) {
+                        chr.mapView().putMonster(mv);
+                    }
                 }
             }
             case MapItemDropMessage m -> {
@@ -108,7 +112,7 @@ public final class MessageDispatcher {
                 // 不检查 controller 视野。
                 Character chr = player.character();
                 if (chr != null && chr.getMapId() == m.mapId()) {
-                    player.remote().map().controlMonster(m.view(), m.aggro());
+                    player.remote().map().controlMonster(m.oid(), m.aggro());
                 }
             }
             case MapMonsterSpawnMessage m -> {

@@ -49,6 +49,8 @@ import java.util.stream.Collectors;
  * 元素序列对称重放为 wire 包；收播过滤已由地图侧在事件受众上决定，deliver 只管本连接编码。
  */
 public final class MapRouter extends MapModule implements ServerEventDest {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MapRouter.class);
+
     private final Gms083 client;
 
     public MapRouter(Gms083 client) {
@@ -76,7 +78,15 @@ public final class MapRouter extends MapModule implements ServerEventDest {
                     d.dropfrom(), d.dropto(), d.mod());
         }
         if (event instanceof ControlMonsterEvent e) {
-            return new FrozenControlMonsterEvent(controlFrame(e.view(), e.immediateAggro()));
+            Character chr = client.getLegacyClient().getPlayer();
+            MapView.MonsterView view = chr.mapView().monster(e.oid());
+            if (view == null) {
+                // 响亮：授控帧数据源缺失 = 落地/入场 placement 未登记该 oid（装配洞）
+                log.error("授控帧缺怪物值视图: oid={} (map={})", e.oid(), chr.getMapId(),
+                        new RuntimeException("call site"));
+                return new FrozenControlMonsterEvent(null);
+            }
+            return new FrozenControlMonsterEvent(controlFrame(view, e.immediateAggro()));
         }
         if (event instanceof MonsterSpawnEvent e) {
             return new FrozenMonsterSpawnEvent(spawnFrame(e));
@@ -111,9 +121,10 @@ public final class MapRouter extends MapModule implements ServerEventDest {
      */
     private ControlMonsterPacket controlFrame(MapView.MonsterView view, boolean aggro) {
         MonsterBlock.Stati stati = statiOf(view.stati());
+        // controllerKind 恒 1：授控语义推导（grant 入队前 setController 已完成，legacy 活读
+        // 除竞态窗外恒 1）——不依赖快照时点，竞态免疫
         return new ControlMonsterPacket((byte) (aggro ? 2 : 1),
-                new MonsterBlock.Control(view.oid(),
-                        (byte) (view.controlled() ? 1 : 5), view.mobId(),
+                new MonsterBlock.Control(view.oid(), (byte) 1, view.mobId(),
                         stati.statuses(), stati.mask(), stati.tail(),
                         view.position(), view.stance(), view.fh(), view.team(),
                         view.linkedParentOid()));
@@ -180,8 +191,11 @@ public final class MapRouter extends MapModule implements ServerEventDest {
                     client.send(new org.gms.remote.gms083.server.packets.ShowMonsterHpPacket(oid, hpPercent));
             case MonsterKilledEvent(var oid, var animation) ->
                     client.send(new KillMonsterPacket(oid, animation));
-            case FrozenControlMonsterEvent f ->
+            case FrozenControlMonsterEvent f -> {
+                if (f.packet() != null) {   // null = freeze 侧视图缺失（已记 error），静默跳过
                     client.send(f.packet());
+                }
+            }
             case FrozenMonsterSpawnEvent f ->
                     client.send(f.packet());
             case FrozenItemDropEvent d ->
