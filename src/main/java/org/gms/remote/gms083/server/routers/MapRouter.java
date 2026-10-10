@@ -1,6 +1,7 @@
 package org.gms.remote.gms083.server.routers;
 
 import org.gms.client.character.Character;
+import org.gms.client.character.MapView;
 import org.gms.client.Skill;
 import org.gms.client.status.MonsterStatus;
 import org.gms.client.status.MonsterStatusEffect;
@@ -75,7 +76,7 @@ public final class MapRouter extends MapModule implements ServerEventDest {
                     d.dropfrom(), d.dropto(), d.mod());
         }
         if (event instanceof ControlMonsterEvent e) {
-            return new FrozenControlMonsterEvent(controlFrame(e.mob(), e.immediateAggro()));
+            return new FrozenControlMonsterEvent(controlFrame(e.view(), e.immediateAggro()));
         }
         if (event instanceof MonsterSpawnEvent e) {
             return new FrozenMonsterSpawnEvent(spawnFrame(e));
@@ -85,60 +86,43 @@ public final class MapRouter extends MapModule implements ServerEventDest {
 
     /**
      * 落地帧物化（legacy PacketCreator.spawnMonster / spawnFakeMonster 的逐位复刻；
-     * 活状态读取时点 = 接收方 strand dispatch，普通落地帧 Stati 段由包结构跳过）。
+     * 值源 = {@link MapView.MonsterView} post 时点快照，普通落地帧 stati 段由包结构跳过）。
      */
     private V83Packet spawnFrame(MonsterSpawnEvent e) {
-        Monster mob = e.mob();
-        int linkedParent = 0;
-        if (mob.getParentMobOid() != 0) {
-            Monster parentMob = mob.getMap().getMonsterByOid(mob.getParentMobOid());
-            if (parentMob != null && parentMob.isAlive()) {
-                linkedParent = mob.getParentMobOid();
-            }
-        }
-        MonsterBlock.Spawn block = new MonsterBlock.Spawn(mob.getObjectId(),
-                (byte) (mob.getController() == null ? 5 : 1), mob.getId(),
-                mob.getPosition(), (byte) mob.getStance(), (short) mob.getFh(), (byte) mob.getTeam(),
-                e.newSpawn(), e.effect(), linkedParent);
+        MapView.MonsterView view = e.view();
         if (e.fake()) {
             // 假怪帧 = CONTROL 头 mode 1 + kind 5 + temporary stati（spawnFakeMonster 逐位一致）
-            MonsterBlock.Stati stati = statiOf(mob);
-            return new ControlMonsterPacket((byte) 1, new MonsterBlock.Fake(mob.getObjectId(), mob.getId(),
+            MonsterBlock.Stati stati = statiOf(view.stati());
+            return new ControlMonsterPacket((byte) 1, new MonsterBlock.Fake(view.oid(), view.mobId(),
                     stati.statuses(), stati.mask(), stati.tail(),
-                    mob.getPosition(), (byte) mob.getStance(), (short) mob.getFh(), (byte) mob.getTeam(),
+                    view.position(), view.stance(), view.fh(), view.team(),
                     e.effect()));
         }
+        MonsterBlock.Spawn block = new MonsterBlock.Spawn(view.oid(),
+                (byte) (view.controlled() ? 1 : 5), view.mobId(),
+                view.position(), view.stance(), view.fh(), view.team(),
+                e.newSpawn(), e.effect(), view.linkedParentOid());
         return new SpawnMonsterPacket(block);
     }
 
     /**
      * 授控全身帧物化（legacy PacketCreator.controlMonster → spawnMonsterInternal(control=true)
-     * 的逐位复刻；活状态读取时点 = legacy 桥体执行时点，同为接收方 strand）。
+     * 的逐位复刻；值源 = {@link MapView.MonsterView} post 时点快照）。
      */
-    private ControlMonsterPacket controlFrame(Monster mob, boolean aggro) {
-        MonsterBlock.Stati stati = statiOf(mob);
-
-        // 父怪关联（legacy 活查 map：父在且存活 → -3 关联帧，否则 parentless -1）
-        int linkedParent = 0;
-        if (mob.getParentMobOid() != 0) {
-            Monster parentMob = mob.getMap().getMonsterByOid(mob.getParentMobOid());
-            if (parentMob != null && parentMob.isAlive()) {
-                linkedParent = mob.getParentMobOid();
-            }
-        }
-
+    private ControlMonsterPacket controlFrame(MapView.MonsterView view, boolean aggro) {
+        MonsterBlock.Stati stati = statiOf(view.stati());
         return new ControlMonsterPacket((byte) (aggro ? 2 : 1),
-                new MonsterBlock.Control(mob.getObjectId(),
-                        (byte) (mob.getController() == null ? 5 : 1), mob.getId(),
+                new MonsterBlock.Control(view.oid(),
+                        (byte) (view.controlled() ? 1 : 5), view.mobId(),
                         stati.statuses(), stati.mask(), stati.tail(),
-                        mob.getPosition(), (byte) mob.getStance(), (short) mob.getFh(), (byte) mob.getTeam(),
-                        linkedParent));
+                        view.position(), view.stance(), view.fh(), view.team(),
+                        view.linkedParentOid()));
     }
 
     /** temporary stati 提取（legacy encodeTemporary 输入侧；Control/Fake 帧共用） */
-    private MonsterBlock.Stati statiOf(Monster mob) {
+    private MonsterBlock.Stati statiOf(Map<MonsterStatus, MonsterStatusEffect> raw) {
         // stati：过滤 WATK/WDEF 后 toMap（HashMap 迭代序与 legacy 逐位一致）
-        Map<MonsterStatus, MonsterStatusEffect> filtered = mob.getStati().entrySet().stream()
+        Map<MonsterStatus, MonsterStatusEffect> filtered = raw.entrySet().stream()
                 .filter(e -> !(e.getKey() == MonsterStatus.WATK || e.getKey() == MonsterStatus.WDEF))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 

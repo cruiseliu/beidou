@@ -1,10 +1,14 @@
 package org.gms.client.character;
 
+import org.gms.client.status.MonsterStatus;
+import org.gms.client.status.MonsterStatusEffect;
+import org.gms.server.life.Monster;
 import org.gms.server.maps.MapObjectType;
 
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,11 +50,50 @@ public final class MapView {
     public record Entry(int oid, MapObjectInfo info) {
     }
 
+    /**
+     * 怪物值快照（player 域自持的怪物视图）：落地/授控帧所需的全部 mob 字段，
+     * map 域在 post 时点冻结（快照后 mob 活状态不再被读——Monster 不跨界）。
+     * stati 为副本（{@code new HashMap<>} 保序：freeze 侧过滤/toMap 的迭代序与 legacy
+     * 逐位一致）；linkedParentOid = post 时点父怪关联判定（0 = 无父怪或父不在/亡）。
+     *
+     * <p>快照时序 = 落地帧的 legacy 预构建读点（post 前构建）；授控帧的 legacy 桥体读点
+     * 在 dispatch（晚于本快照）——controller 字节由 {@code controlled} 事实推导（授控
+     * 语境快照先于 setController? 否：setController 先于 post，同线程程序序，恒为
+     * controlled=true → kind 1），消除了 legacy 读到 null 的竞态窗。
+     */
+    public record MonsterView(
+            int oid, int mobId, boolean controlled,
+            Point position, byte stance, short fh, byte team,
+            Map<MonsterStatus, MonsterStatusEffect> stati,
+            int linkedParentOid) {
+
+        public MonsterView {
+            position = new Point(position);   // 防御性拷贝（Point 可变）
+            stati = new HashMap<>(stati);     // 副本保序（freeze 侧再过滤/toMap）
+        }
+
+        /** 快照工厂（map 域 post 时点调用；父怪关联在此一并判定） */
+        public static MonsterView of(Monster mob) {
+            int linkedParent = 0;
+            if (mob.getParentMobOid() != 0) {
+                Monster parentMob = mob.getMap().getMonsterByOid(mob.getParentMobOid());
+                if (parentMob != null && parentMob.isAlive()) {
+                    linkedParent = mob.getParentMobOid();
+                }
+            }
+            return new MonsterView(mob.getObjectId(), mob.getId(), mob.getController() != null,
+                    mob.getPosition(), (byte) mob.getStance(), (short) mob.getFh(), (byte) mob.getTeam(),
+                    mob.getStati(), linkedParent);
+        }
+    }
+
     private final Map<Integer, MapObjectInfo> objects = new ConcurrentHashMap<>();
+    private final Map<Integer, MonsterView> monsters = new ConcurrentHashMap<>();
 
     /** 进图重建（enterMap 编舞开头，player strand）：清空全表 */
     public void reset() {
         objects.clear();
+        monsters.clear();
     }
 
     /** 值登记（值消息应用 / player 侧门直poke 共用）；幂等（oid 键覆盖） */
@@ -83,5 +126,20 @@ public final class MapView {
     /** oid 快照（移动差集事实回传用） */
     public List<Integer> oidSnapshot() {
         return new ArrayList<>(objects.keySet());
+    }
+
+    /** 怪物视图登记（落地值消息应用；幂等） */
+    public void putMonster(MonsterView view) {
+        monsters.put(view.oid(), view);
+    }
+
+    /** 怪物视图注销（死亡/视野差集；幂等） */
+    public void removeMonster(int oid) {
+        monsters.remove(oid);
+    }
+
+    /** 怪物视图读（player 域自持；P3 controlled-set / MOVE_LIFE 预滤的数据源） */
+    public MonsterView monster(int oid) {
+        return monsters.get(oid);
     }
 }

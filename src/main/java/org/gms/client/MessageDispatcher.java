@@ -108,7 +108,7 @@ public final class MessageDispatcher {
                 // 不检查 controller 视野。
                 Character chr = player.character();
                 if (chr != null && chr.getMapId() == m.mapId()) {
-                    player.remote().map().controlMonster(m.mob(), m.aggro());
+                    player.remote().map().controlMonster(m.view(), m.aggro());
                 }
             }
             case MapMonsterSpawnMessage m -> {
@@ -119,7 +119,8 @@ public final class MessageDispatcher {
                 if (chr != null && chr.getMapId() == m.mapId()
                         && chr.getPosition().distanceSq(m.viewEntry().info().position()) <= MapleMap.getRangedDistance()) {
                     chr.applyMapObjectsView(List.of(m.viewEntry()), List.of());
-                    player.remote().map().monsterSpawn(m.mob(), m.newSpawn(), m.effect(), m.fake());
+                    chr.mapView().putMonster(m.view());   // player 域自持怪物视图
+                    player.remote().map().monsterSpawn(m.view(), m.newSpawn(), m.effect(), m.fake());
                 }
             }
             case MapMonsterDeathMessage m -> {

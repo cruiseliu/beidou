@@ -16,7 +16,7 @@ import org.gms.remote.modules.map.server.ChangeMapServerEvent;
 import org.gms.remote.modules.map.server.CharacterMoveEvent;
 import org.gms.remote.modules.map.server.CharacterQuestCompleteEvent;
 import org.gms.remote.modules.map.server.MonsterMoveEvent;
-import org.gms.server.life.Monster;
+import org.gms.client.character.MapView.MonsterView;
 
 import java.awt.Point;
 import java.util.List;
@@ -78,16 +78,16 @@ public abstract class MapModule extends AbstractModule {
      * 怪物落地（接收方连接视角的语义通知；帧形态/演出段归版本实现）。
      * 由地图域在落地广播时点对接收方调用（visible 判定归调用方 viewer 域）。
      */
-    public final void monsterSpawn(Monster mob, boolean newSpawn, int effect, boolean fake) {
-        post(new MonsterSpawnEvent(mob, newSpawn, effect, fake));
+    public final void monsterSpawn(MonsterView view, boolean newSpawn, int effect, boolean fake) {
+        post(new MonsterSpawnEvent(view, newSpawn, effect, fake));
     }
 
     /**
      * 授控（接收方连接视角：客户端开始控制该怪；全身帧形态归版本实现）。
      * 由地图域在换届/刷新时点对新 controller 调用。
      */
-    public final void controlMonster(Monster mob, boolean immediateAggro) {
-        post(new ControlMonsterEvent(mob, immediateAggro));
+    public final void controlMonster(MonsterView view, boolean immediateAggro) {
+        post(new ControlMonsterEvent(view, immediateAggro));
     }
 
     /**

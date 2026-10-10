@@ -1350,6 +1350,7 @@ public class Character extends AbstractAnimatedMapObject implements CashShopModu
         mapView.addAll(adds);
         for (int oid : removes) {
             mapView.remove(oid);
+            mapView.removeMonster(oid);   // 怪物值视图同步注销（死亡/视野差集/切图重建）
         }
     }
 

@@ -473,10 +473,11 @@ public class MapleMap {
         }
 
         final MapView.Entry viewEntry = viewEntry(monster);
+        final MapView.MonsterView view = MapView.MonsterView.of(monster);   // post 时点冻结
         chrRLock.lock();
         try {
             for (CharacterRef chr : characters) {
-                chr.post(new MapMonsterSpawnMessage(getId(), viewEntry, newSpawn, effect, fake, monster));
+                chr.post(new MapMonsterSpawnMessage(getId(), viewEntry, newSpawn, effect, fake, view));
             }
         } finally {
             chrRLock.unlock();
