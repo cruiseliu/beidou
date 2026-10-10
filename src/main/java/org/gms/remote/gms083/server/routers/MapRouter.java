@@ -1,6 +1,9 @@
 package org.gms.remote.gms083.server.routers;
 
 import org.gms.client.character.Character;
+import org.gms.client.Skill;
+import org.gms.client.status.MonsterStatus;
+import org.gms.client.status.MonsterStatusEffect;
 import org.gms.net.server.Server;
 import org.gms.remote.ServerEvent;
 import org.gms.remote.ServerEventBase;
@@ -8,7 +11,9 @@ import org.gms.remote.ServerEventDest;
 import org.gms.remote.gms083.Gms083;
 import org.gms.remote.gms083.client.packets.MoveLifePacket;
 import org.gms.remote.gms083.client.packets.MovePlayerPacket;
+import org.gms.remote.gms083.server.events.FrozenControlMonsterEvent;
 import org.gms.remote.gms083.server.events.FrozenItemDropEvent;
+import org.gms.remote.gms083.server.packets.ControlMonsterPacket;
 import org.gms.remote.gms083.server.packets.DropItemPacket;
 import org.gms.remote.gms083.server.packets.KillMonsterPacket;
 import org.gms.remote.gms083.server.packets.SetFieldPacket;
@@ -19,10 +24,19 @@ import org.gms.remote.modules.map.server.AckMoveMonsterEvent;
 import org.gms.remote.modules.map.server.ChangeMapServerEvent;
 import org.gms.remote.modules.map.server.CharacterMoveEvent;
 import org.gms.remote.modules.map.server.CharacterQuestCompleteEvent;
+import org.gms.remote.modules.map.server.ControlMonsterEvent;
 import org.gms.remote.modules.map.server.ItemDropEvent;
 import org.gms.remote.modules.map.server.MonsterKilledEvent;
 import org.gms.remote.modules.map.server.MonsterMoveEvent;
+import org.gms.server.life.MobSkill;
+import org.gms.server.life.MobSkillId;
+import org.gms.server.life.Monster;
 import org.gms.server.maps.MapItem;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 地图域 route：出脸继承自 {@link MapModule}（移动中继语义事件），本类承载 emit/freeze/deliver/flush——
@@ -40,8 +54,7 @@ public final class MapRouter extends MapModule implements ServerEventDest {
         client.schedule(this, event);
     }
 
-    /** 统一冻结门：掉落所有权演出（viewer 判定 → dropType 升格 + owner 标识解析）
-     *  在入域时点物化（其余事件恒等通过） */
+    /** 统一冻结门：掉落所有权演出与授控全身帧在入域时点物化（其余事件恒等通过） */
     @Override
     protected ServerEventBase freeze(ServerEvent event) {
         if (event instanceof ItemDropEvent d) {
@@ -56,7 +69,72 @@ public final class MapRouter extends MapModule implements ServerEventDest {
                     dropType, d.playerDrop(), d.dropperOid(), d.itemExpiration(),
                     d.dropfrom(), d.dropto(), d.mod());
         }
+        if (event instanceof ControlMonsterEvent e) {
+            return new FrozenControlMonsterEvent(controlFrame(e.mob(), e.immediateAggro()));
+        }
         return event;
+    }
+
+    /**
+     * 授控全身帧物化（legacy PacketCreator.controlMonster → spawnMonsterInternal(control=true)
+     * 的逐位复刻；活状态读取时点 = legacy 桥体执行时点，同为接收方 strand）。
+     */
+    private ControlMonsterPacket controlFrame(Monster mob, boolean aggro) {
+        // stati：过滤 WATK/WDEF 后 toMap（HashMap 迭代序与 legacy 逐位一致）
+        Map<MonsterStatus, MonsterStatusEffect> stati = mob.getStati().entrySet().stream()
+                .filter(e -> !(e.getKey() == MonsterStatus.WATK || e.getKey() == MonsterStatus.WDEF))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        // 掩码（isFirst → 前两段，否则后两段）+ 条目 + 反击哨兵
+        int[] mask = new int[4];
+        List<ControlMonsterPacket.StatusEntry> entries = new ArrayList<>(stati.size());
+        int pCounter = -1;
+        int mCounter = -1;
+        for (Map.Entry<MonsterStatus, MonsterStatusEffect> s : stati.entrySet()) {
+            MonsterStatusEffect mse = s.getValue();
+            MobSkill mobSkill = mse.getMobSkill();
+            ControlMonsterPacket.StatusEntry entry;
+            if (mobSkill != null) {
+                MobSkillId msId = mobSkill.getId();
+                entry = new ControlMonsterPacket.StatusEntry(
+                        mse.getStati().get(s.getKey()).shortValue(), true,
+                        (short) msId.type().getId(), (short) msId.level(), 0);
+                switch (s.getKey()) {
+                    case WEAPON_REFLECT -> pCounter = mobSkill.getX();
+                    case MAGIC_REFLECT -> mCounter = mobSkill.getY();
+                    default -> { }
+                }
+            } else {
+                Skill skill = mse.getSkill();
+                entry = new ControlMonsterPacket.StatusEntry(
+                        mse.getStati().get(s.getKey()).shortValue(), false,
+                        (short) 0, (short) 0, skill != null ? skill.getId() : 0);
+            }
+            entries.add(entry);
+
+            MonsterStatus statup = s.getKey();
+            int pos = statup.isFirst() ? 0 : 2;
+            for (int i = 0; i < 2; i++) {
+                mask[pos + i] |= statup.getValue() >> 32 * i;
+            }
+        }
+
+        // 父怪关联（legacy 活查 map：父在且存活 → -3 关联帧，否则 parentless -1）
+        int linkedParent = 0;
+        if (mob.getParentMobOid() != 0) {
+            Monster parentMob = mob.getMap().getMonsterByOid(mob.getParentMobOid());
+            if (parentMob != null && parentMob.isAlive()) {
+                linkedParent = mob.getParentMobOid();
+            }
+        }
+
+        return new ControlMonsterPacket((byte) (aggro ? 2 : 1), mob.getObjectId(),
+                (byte) (mob.getController() == null ? 5 : 1), mob.getId(),
+                entries, mask,
+                pCounter != -1 || mCounter != -1 ? new ControlMonsterPacket.ReflectTail(pCounter, mCounter)
+                        : ControlMonsterPacket.ReflectTail.none(),
+                mob.getPosition(), (byte) mob.getStance(), (short) mob.getFh(), (byte) mob.getTeam(),
+                linkedParent);
     }
 
     @Override
@@ -76,6 +154,8 @@ public final class MapRouter extends MapModule implements ServerEventDest {
                     client.send(new org.gms.remote.gms083.server.packets.ShowMonsterHpPacket(oid, hpPercent));
             case MonsterKilledEvent(var oid, var animation) ->
                     client.send(new KillMonsterPacket(oid, animation));
+            case FrozenControlMonsterEvent f ->
+                    client.send(f.packet());
             case FrozenItemDropEvent d ->
                     client.send(new DropItemPacket(d.oid(), d.itemId(), d.meso(), d.ownerId(), d.dropType(),
                             d.playerDrop(), d.dropperOid(), Filetimes.toWire(d.itemExpiration()),

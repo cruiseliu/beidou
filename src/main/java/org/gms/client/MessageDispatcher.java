@@ -3,6 +3,7 @@ package org.gms.client;
 import org.gms.client.character.Character;
 import org.gms.client.character.MapView;
 import org.gms.client.messages.MapCharacterMoveMessage;
+import org.gms.client.messages.MapControlMonsterMessage;
 import org.gms.client.messages.MapItemDropMessage;
 import org.gms.client.messages.MapMonsterDeathMessage;
 import org.gms.client.messages.MapMonsterHpMessage;
@@ -98,6 +99,15 @@ public final class MessageDispatcher {
                             m.dropType(), m.playerDrop(), m.dropperOid(), m.dropfrom(), m.dropto(), m.mod());
                     chr.applyMapObjectsView(List.of(new MapView.Entry(m.oid(),
                             new MapView.MapObjectInfo(MapObjectType.ITEM, m.itemId(), m.dropto(), true))), List.of());
+                }
+            }
+            case MapControlMonsterMessage m -> {
+                // 授控（原 aggro-control legacy 桥值化）：mapId 门（跨图竞态丢弃）。
+                // mob 由消息携带（strict 管线内禁反查 map 本体）；无视野门：legacy 授控
+                // 不检查 controller 视野。
+                Character chr = player.character();
+                if (chr != null && chr.getMapId() == m.mapId()) {
+                    player.remote().map().controlMonster(m.mob(), m.aggro());
                 }
             }
             case MapMonsterDeathMessage m -> {

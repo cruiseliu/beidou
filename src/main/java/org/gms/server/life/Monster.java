@@ -22,6 +22,7 @@
 package org.gms.server.life;
 
 import org.gms.client.character.CharacterRef;
+import org.gms.client.messages.MapControlMonsterMessage;
 import org.gms.client.messages.MapMonsterKilledMessage;
 import org.gms.client.quest.medal.SpecialChallengeMedal;
 import org.gms.client.quest.medal.VeteranHunterMedal;
@@ -1953,8 +1954,8 @@ public class Monster extends AbstractLoadedLife {
             }
 
             this.aggroUpdatePuppetVisibility();
-            newController.postLegacyPacket(map.getId(), "aggro-control-" + getObjectId(),
-                    client -> aggroMonsterControl(client, this, immediateAggro));
+            // 授控值消息（原 aggro-control legacy 桥）：接收方 strand 上解析 mob 并经语义层发全身帧
+            newController.post(new MapControlMonsterMessage(map.getId(), getObjectId(), immediateAggro, this));
             map.registerControlledMonster(newController.getId(), getObjectId());
         }
     }
@@ -2092,7 +2093,8 @@ public class Monster extends AbstractLoadedLife {
         } else if (chrController.getId() == player.getId()) {
             this.setControllerHasAggro(true);
             if (!GameConfig.getServerBoolean("use_auto_aggro_nearby")) {   // thanks Lichtmager for noticing autoaggro not updating the player properly
-                player.postLegacyPacket(map.getId(), "aggro-control-" + getObjectId(), client -> aggroMonsterControl(client, this, true));
+                // 授控刷新值消息（原 aggro-control legacy 桥变体；controller 不变，仅 aggro 置位重发）
+                player.post(new MapControlMonsterMessage(map.getId(), getObjectId(), true, this));
             }
         }
     }

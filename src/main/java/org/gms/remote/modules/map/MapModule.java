@@ -7,6 +7,7 @@ import org.gms.remote.modules.map.client.MoveLife;
 import org.gms.remote.modules.map.client.ReviveHereEvent;
 import org.gms.remote.modules.map.client.movement.MoveElement;
 import org.gms.remote.modules.map.server.AckMoveMonsterEvent;
+import org.gms.remote.modules.map.server.ControlMonsterEvent;
 import org.gms.remote.modules.map.server.ItemDropEvent;
 import org.gms.remote.modules.map.server.MonsterKilledEvent;
 import org.gms.remote.modules.map.server.UpdateMonsterHpEvent;
@@ -14,6 +15,7 @@ import org.gms.remote.modules.map.server.ChangeMapServerEvent;
 import org.gms.remote.modules.map.server.CharacterMoveEvent;
 import org.gms.remote.modules.map.server.CharacterQuestCompleteEvent;
 import org.gms.remote.modules.map.server.MonsterMoveEvent;
+import org.gms.server.life.Monster;
 
 import java.awt.Point;
 import java.util.List;
@@ -69,6 +71,14 @@ public abstract class MapModule extends AbstractModule {
             Point dropfrom, Point dropto, byte mod) {
         post(new ItemDropEvent(oid, itemId, meso, characterOwnerId, partyOwnerId,
                 dropTime, itemExpiration, dropType, playerDrop, dropperOid, dropfrom, dropto, mod));
+    }
+
+    /**
+     * 授控（接收方连接视角：客户端开始控制该怪；全身帧形态归版本实现）。
+     * 由地图域在换届/刷新时点对新 controller 调用。
+     */
+    public final void controlMonster(Monster mob, boolean immediateAggro) {
+        post(new ControlMonsterEvent(mob, immediateAggro));
     }
 
     /**
