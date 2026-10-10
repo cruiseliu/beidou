@@ -10,6 +10,7 @@ import org.gms.remote.modules.map.server.AckMoveMonsterEvent;
 import org.gms.remote.modules.map.server.ControlMonsterEvent;
 import org.gms.remote.modules.map.server.ItemDropEvent;
 import org.gms.remote.modules.map.server.MonsterKilledEvent;
+import org.gms.remote.modules.map.server.MonsterSpawnEvent;
 import org.gms.remote.modules.map.server.UpdateMonsterHpEvent;
 import org.gms.remote.modules.map.server.ChangeMapServerEvent;
 import org.gms.remote.modules.map.server.CharacterMoveEvent;
@@ -71,6 +72,14 @@ public abstract class MapModule extends AbstractModule {
             Point dropfrom, Point dropto, byte mod) {
         post(new ItemDropEvent(oid, itemId, meso, characterOwnerId, partyOwnerId,
                 dropTime, itemExpiration, dropType, playerDrop, dropperOid, dropfrom, dropto, mod));
+    }
+
+    /**
+     * 怪物落地（接收方连接视角的语义通知；帧形态/演出段归版本实现）。
+     * 由地图域在落地广播时点对接收方调用（visible 判定归调用方 viewer 域）。
+     */
+    public final void monsterSpawn(Monster mob, boolean newSpawn, int effect, boolean fake) {
+        post(new MonsterSpawnEvent(mob, newSpawn, effect, fake));
     }
 
     /**

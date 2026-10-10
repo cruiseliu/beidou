@@ -8,6 +8,7 @@ import org.gms.client.messages.MapItemDropMessage;
 import org.gms.client.messages.MapMonsterDeathMessage;
 import org.gms.client.messages.MapMonsterHpMessage;
 import org.gms.client.messages.MapMonsterKilledMessage;
+import org.gms.client.messages.MapMonsterSpawnMessage;
 import org.gms.client.messages.MapMonsterMoveMessage;
 import org.gms.client.messages.MapObjectSpawnMessage;
 import org.gms.client.messages.MapObjectsViewMessage;
@@ -108,6 +109,17 @@ public final class MessageDispatcher {
                 Character chr = player.character();
                 if (chr != null && chr.getMapId() == m.mapId()) {
                     player.remote().map().controlMonster(m.mob(), m.aggro());
+                }
+            }
+            case MapMonsterSpawnMessage m -> {
+                // 怪物落地（原 spawnAndPostMapObject 预构建包值化）：visible 判定同预构建路径
+                // （自身位置 × viewEntry 位置）——可见才登记视图并投落地帧，不可见整体丢弃
+                // （move-diff 按需重发）。帧构建归 map 域 remote（freeze 物化）。
+                Character chr = player.character();
+                if (chr != null && chr.getMapId() == m.mapId()
+                        && chr.getPosition().distanceSq(m.viewEntry().info().position()) <= MapleMap.getRangedDistance()) {
+                    chr.applyMapObjectsView(List.of(m.viewEntry()), List.of());
+                    player.remote().map().monsterSpawn(m.mob(), m.newSpawn(), m.effect(), m.fake());
                 }
             }
             case MapMonsterDeathMessage m -> {

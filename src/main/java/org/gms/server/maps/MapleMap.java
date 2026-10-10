@@ -34,6 +34,7 @@ import org.gms.client.inventory.ItemSlot;
 import org.gms.client.messages.MapCharacterMoveMessage;
 import org.gms.client.messages.MapItemDropMessage;
 import org.gms.client.messages.MapMonsterDeathMessage;
+import org.gms.client.messages.MapMonsterSpawnMessage;
 import org.gms.client.messages.MapObjectSpawnMessage;
 import org.gms.client.messages.MapQuestCompleteMessage;
 import org.gms.client.messages.MapMonsterMoveMessage;
@@ -447,6 +448,35 @@ public class MapleMap {
         try {
             for (CharacterRef chr : characters) {
                 chr.post(new MapObjectSpawnMessage(getId(), viewEntry, built));
+            }
+        } finally {
+            chrRLock.unlock();
+        }
+    }
+
+    /**
+     * 怪物落地（{@code PacketCreator.spawnMonster/spawnFakeMonster} 系调用点专用）：
+     * 落地帧值化（{@link MapMonsterSpawnMessage}）——包构建移 viewer 域 freeze，oid 分配后
+     * post（值主键语义同 spawnAndPostMapObject 教义）；fake = 假怪帧（CONTROL 头 kind 5）。
+     */
+    private void spawnAndPostMonster(Monster monster, boolean newSpawn, int effect, boolean fake) {
+        int curOID = getUsableOID();
+
+        chrRLock.lock();
+        objectWLock.lock();
+        try {
+            monster.setObjectId(curOID);
+            this.mapobjects.put(curOID, monster);
+        } finally {
+            objectWLock.unlock();
+            chrRLock.unlock();
+        }
+
+        final MapView.Entry viewEntry = viewEntry(monster);
+        chrRLock.lock();
+        try {
+            for (CharacterRef chr : characters) {
+                chr.post(new MapMonsterSpawnMessage(getId(), viewEntry, newSpawn, effect, fake, monster));
             }
         } finally {
             chrRLock.unlock();
@@ -1927,7 +1957,7 @@ public class MapleMap {
             getEventInstance().registerMonster(monster);
         }
 
-        spawnAndPostMapObject(monster, () -> List.of(PacketCreator.spawnMonster(monster, false)));
+        spawnAndPostMonster(monster, false, 0, false);
 
         monster.aggroUpdateController();
         updateBossSpawn(monster);
@@ -2014,7 +2044,7 @@ public class MapleMap {
             getEventInstance().registerMonster(monster);
         }
 
-        spawnAndPostMapObject(monster, () -> List.of(PacketCreator.spawnMonster(monster, true)));
+        spawnAndPostMonster(monster, true, 0, false);
 
         monster.aggroUpdateController();
         updateBossSpawn(monster);
@@ -2075,7 +2105,7 @@ public class MapleMap {
         monster.setPosition(spos);
         monster.setSpawnEffect(effect);
 
-        spawnAndPostMapObject(monster, () -> List.of(PacketCreator.spawnMonster(monster, true, effect)));
+        spawnAndPostMonster(monster, true, effect, false);
 
         monster.aggroUpdateController();
         updateBossSpawn(monster);
@@ -2088,7 +2118,7 @@ public class MapleMap {
     public void spawnFakeMonster(final Monster monster) {
         monster.setMap(this);
         monster.setFake(true);
-        spawnAndPostMapObject(monster, () -> List.of(PacketCreator.spawnFakeMonster(monster, 0)));
+        spawnAndPostMonster(monster, false, 0, true);
 
         spawnedMonstersOnMap.incrementAndGet();
         addSelfDestructive(monster);

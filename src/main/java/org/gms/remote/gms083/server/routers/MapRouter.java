@@ -13,9 +13,13 @@ import org.gms.remote.gms083.client.packets.MoveLifePacket;
 import org.gms.remote.gms083.client.packets.MovePlayerPacket;
 import org.gms.remote.gms083.server.events.FrozenControlMonsterEvent;
 import org.gms.remote.gms083.server.events.FrozenItemDropEvent;
+import org.gms.remote.gms083.server.events.FrozenMonsterSpawnEvent;
+import org.gms.remote.gms083.server.blocks.MonsterBlock;
 import org.gms.remote.gms083.server.packets.ControlMonsterPacket;
 import org.gms.remote.gms083.server.packets.DropItemPacket;
 import org.gms.remote.gms083.server.packets.KillMonsterPacket;
+import org.gms.remote.gms083.server.packets.SpawnMonsterPacket;
+import org.gms.remote.gms083.server.packets.V83Packet;
 import org.gms.remote.gms083.server.packets.SetFieldPacket;
 import org.gms.remote.gms083.server.packets.ShowForeignEffectPacket;
 import org.gms.remote.gms083.server.translators.Filetimes;
@@ -28,6 +32,7 @@ import org.gms.remote.modules.map.server.ControlMonsterEvent;
 import org.gms.remote.modules.map.server.ItemDropEvent;
 import org.gms.remote.modules.map.server.MonsterKilledEvent;
 import org.gms.remote.modules.map.server.MonsterMoveEvent;
+import org.gms.remote.modules.map.server.MonsterSpawnEvent;
 import org.gms.server.life.MobSkill;
 import org.gms.server.life.MobSkillId;
 import org.gms.server.life.Monster;
@@ -72,7 +77,38 @@ public final class MapRouter extends MapModule implements ServerEventDest {
         if (event instanceof ControlMonsterEvent e) {
             return new FrozenControlMonsterEvent(controlFrame(e.mob(), e.immediateAggro()));
         }
+        if (event instanceof MonsterSpawnEvent e) {
+            return new FrozenMonsterSpawnEvent(spawnFrame(e));
+        }
         return event;
+    }
+
+    /**
+     * 落地帧物化（legacy PacketCreator.spawnMonster / spawnFakeMonster 的逐位复刻；
+     * 活状态读取时点 = 接收方 strand dispatch，普通落地帧 Stati 段由包结构跳过）。
+     */
+    private V83Packet spawnFrame(MonsterSpawnEvent e) {
+        Monster mob = e.mob();
+        int linkedParent = 0;
+        if (mob.getParentMobOid() != 0) {
+            Monster parentMob = mob.getMap().getMonsterByOid(mob.getParentMobOid());
+            if (parentMob != null && parentMob.isAlive()) {
+                linkedParent = mob.getParentMobOid();
+            }
+        }
+        MonsterBlock.Spawn block = new MonsterBlock.Spawn(mob.getObjectId(),
+                (byte) (mob.getController() == null ? 5 : 1), mob.getId(),
+                mob.getPosition(), (byte) mob.getStance(), (short) mob.getFh(), (byte) mob.getTeam(),
+                e.newSpawn(), e.effect(), linkedParent);
+        if (e.fake()) {
+            // 假怪帧 = CONTROL 头 mode 1 + kind 5 + temporary stati（spawnFakeMonster 逐位一致）
+            MonsterBlock.Stati stati = statiOf(mob);
+            return new ControlMonsterPacket((byte) 1, new MonsterBlock.Fake(mob.getObjectId(), mob.getId(),
+                    stati.statuses(), stati.mask(), stati.tail(),
+                    mob.getPosition(), (byte) mob.getStance(), (short) mob.getFh(), (byte) mob.getTeam(),
+                    e.effect()));
+        }
+        return new SpawnMonsterPacket(block);
     }
 
     /**
@@ -80,23 +116,43 @@ public final class MapRouter extends MapModule implements ServerEventDest {
      * 的逐位复刻；活状态读取时点 = legacy 桥体执行时点，同为接收方 strand）。
      */
     private ControlMonsterPacket controlFrame(Monster mob, boolean aggro) {
+        MonsterBlock.Stati stati = statiOf(mob);
+
+        // 父怪关联（legacy 活查 map：父在且存活 → -3 关联帧，否则 parentless -1）
+        int linkedParent = 0;
+        if (mob.getParentMobOid() != 0) {
+            Monster parentMob = mob.getMap().getMonsterByOid(mob.getParentMobOid());
+            if (parentMob != null && parentMob.isAlive()) {
+                linkedParent = mob.getParentMobOid();
+            }
+        }
+
+        return new ControlMonsterPacket((byte) (aggro ? 2 : 1),
+                new MonsterBlock.Control(mob.getObjectId(),
+                        (byte) (mob.getController() == null ? 5 : 1), mob.getId(),
+                        stati.statuses(), stati.mask(), stati.tail(),
+                        mob.getPosition(), (byte) mob.getStance(), (short) mob.getFh(), (byte) mob.getTeam(),
+                        linkedParent));
+    }
+
+    /** temporary stati 提取（legacy encodeTemporary 输入侧；Control/Fake 帧共用） */
+    private MonsterBlock.Stati statiOf(Monster mob) {
         // stati：过滤 WATK/WDEF 后 toMap（HashMap 迭代序与 legacy 逐位一致）
-        Map<MonsterStatus, MonsterStatusEffect> stati = mob.getStati().entrySet().stream()
+        Map<MonsterStatus, MonsterStatusEffect> filtered = mob.getStati().entrySet().stream()
                 .filter(e -> !(e.getKey() == MonsterStatus.WATK || e.getKey() == MonsterStatus.WDEF))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        // 掩码（isFirst → 前两段，否则后两段）+ 条目 + 反击哨兵
         int[] mask = new int[4];
-        List<ControlMonsterPacket.StatusEntry> entries = new ArrayList<>(stati.size());
+        List<MonsterBlock.StatusEntry> entries = new ArrayList<>(filtered.size());
         int pCounter = -1;
         int mCounter = -1;
-        for (Map.Entry<MonsterStatus, MonsterStatusEffect> s : stati.entrySet()) {
+        for (Map.Entry<MonsterStatus, MonsterStatusEffect> s : filtered.entrySet()) {
             MonsterStatusEffect mse = s.getValue();
             MobSkill mobSkill = mse.getMobSkill();
-            ControlMonsterPacket.StatusEntry entry;
+            MonsterBlock.StatusEntry entry;
             if (mobSkill != null) {
                 MobSkillId msId = mobSkill.getId();
-                entry = new ControlMonsterPacket.StatusEntry(
+                entry = new MonsterBlock.StatusEntry(
                         mse.getStati().get(s.getKey()).shortValue(), true,
                         (short) msId.type().getId(), (short) msId.level(), 0);
                 switch (s.getKey()) {
@@ -106,7 +162,7 @@ public final class MapRouter extends MapModule implements ServerEventDest {
                 }
             } else {
                 Skill skill = mse.getSkill();
-                entry = new ControlMonsterPacket.StatusEntry(
+                entry = new MonsterBlock.StatusEntry(
                         mse.getStati().get(s.getKey()).shortValue(), false,
                         (short) 0, (short) 0, skill != null ? skill.getId() : 0);
             }
@@ -118,23 +174,9 @@ public final class MapRouter extends MapModule implements ServerEventDest {
                 mask[pos + i] |= statup.getValue() >> 32 * i;
             }
         }
-
-        // 父怪关联（legacy 活查 map：父在且存活 → -3 关联帧，否则 parentless -1）
-        int linkedParent = 0;
-        if (mob.getParentMobOid() != 0) {
-            Monster parentMob = mob.getMap().getMonsterByOid(mob.getParentMobOid());
-            if (parentMob != null && parentMob.isAlive()) {
-                linkedParent = mob.getParentMobOid();
-            }
-        }
-
-        return new ControlMonsterPacket((byte) (aggro ? 2 : 1), mob.getObjectId(),
-                (byte) (mob.getController() == null ? 5 : 1), mob.getId(),
-                entries, mask,
-                pCounter != -1 || mCounter != -1 ? new ControlMonsterPacket.ReflectTail(pCounter, mCounter)
-                        : ControlMonsterPacket.ReflectTail.none(),
-                mob.getPosition(), (byte) mob.getStance(), (short) mob.getFh(), (byte) mob.getTeam(),
-                linkedParent);
+        MonsterBlock.ReflectTail tail = pCounter != -1 || mCounter != -1
+                ? new MonsterBlock.ReflectTail(pCounter, mCounter) : MonsterBlock.ReflectTail.none();
+        return new MonsterBlock.Stati(entries, mask, tail);
     }
 
     @Override
@@ -155,6 +197,8 @@ public final class MapRouter extends MapModule implements ServerEventDest {
             case MonsterKilledEvent(var oid, var animation) ->
                     client.send(new KillMonsterPacket(oid, animation));
             case FrozenControlMonsterEvent f ->
+                    client.send(f.packet());
+            case FrozenMonsterSpawnEvent f ->
                     client.send(f.packet());
             case FrozenItemDropEvent d ->
                     client.send(new DropItemPacket(d.oid(), d.itemId(), d.meso(), d.ownerId(), d.dropType(),
