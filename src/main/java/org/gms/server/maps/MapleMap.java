@@ -33,7 +33,7 @@ import org.gms.client.inventory.InventoryType;
 import org.gms.client.inventory.ItemSlot;
 import org.gms.client.messages.MapCharacterMoveMessage;
 import org.gms.client.messages.MapItemDropMessage;
-import org.gms.client.messages.MapMonsterDeathMessage;
+import org.gms.client.messages.MapMonsterKilledMessage;
 import org.gms.client.messages.MapMonsterSpawnControlledMessage;
 import org.gms.client.messages.MapMonsterSpawnMessage;
 import org.gms.client.messages.MapObjectSpawnMessage;
@@ -261,7 +261,7 @@ public class MapleMap {
 
     /** 怪物死亡场景事件全员投递（与 spawnAndPostMapObject 成对：spawn ↔ death） */
     private void postMapMonsterDeath(int oid, int animation) {
-        final MapMonsterDeathMessage msg = new MapMonsterDeathMessage(getId(), oid, animation);
+        final MapMonsterKilledMessage msg = new MapMonsterKilledMessage(getId(), oid, animation);
         chrRLock.lock();
         try {
             for (CharacterRef chr : characters) {
@@ -456,11 +456,11 @@ public class MapleMap {
     }
 
     /**
-     * 怪物落地（{@code PacketCreator.spawnMonster} 系调用点专用；测试版融合帧）：
+     * 怪物落地（{@code PacketCreator.spawnMonster} 系调用点专用；双帧回退版）：
      * oid 分配后先静默选举，controller 发 {@link MapMonsterSpawnControlledMessage}
-     * （只出 MONSTER_SPAWN_CONTROL），其余 viewer 发 {@link MapMonsterSpawnMessage}
-     * （MONSTER_SPAWN；visible 判定在 viewer 域）——spawn 不再单独发授控消息。
-     * fake 无选举：全员落地帧（CONTROL kind 5 形态，legacy 同）。
+     * （MONSTER_SPAWN + MONSTER_SPAWN_CONTROL 双帧——单融合帧真端不可命中），其余 viewer
+     * 发 {@link MapMonsterSpawnMessage}（visible 判定在 viewer 域）。选举内置，
+     * spawn 不再单独发授控消息。fake 无选举：全员 CONTROL kind 5 形态（legacy 同）。
      */
     private void spawnAndPostMonster(Monster monster, boolean newSpawn, int effect, boolean fake) {
         int curOID = getUsableOID();
@@ -482,7 +482,7 @@ public class MapleMap {
         try {
             for (CharacterRef chr : characters) {
                 if (controller != null && chr.getId() == controller.getId()) {
-                    chr.post(new MapMonsterSpawnControlledMessage(getId(), view));
+                    chr.post(new MapMonsterSpawnControlledMessage(getId(), view, newSpawn));
                 } else {
                     chr.post(new MapMonsterSpawnMessage(getId(), viewEntry, newSpawn, effect, fake, view));
                 }

@@ -24,7 +24,7 @@ package org.gms.server.life;
 import org.gms.client.character.CharacterRef;
 import org.gms.client.messages.MapControlMonsterMessage;
 import org.gms.client.messages.MapStopControlMonsterMessage;
-import org.gms.client.messages.MapMonsterKilledMessage;
+import org.gms.client.messages.MapMonsterKilledRewardMessage;
 import org.gms.client.quest.medal.SpecialChallengeMedal;
 import org.gms.client.quest.medal.VeteranHunterMedal;
 import org.gms.client.EffectType;
@@ -750,7 +750,7 @@ public class Monster extends AbstractLoadedLife {
         // 团队结算产物（死亡归属/份额/level split/MVP 已折入权重）随语义消息投递；
         // 个人修正（Holy Symbol/rates/EXP buff/家族）与写账由接收方 player actor 完成
         //（原 giveExpToCharacter 个人段的域迁移，同 HP 帧模式：接收方 strand = 自访）。
-        attacker.post(new MapMonsterKilledMessage(map.getId(), getId(), getStats().getLevel(),
+        attacker.post(new MapMonsterKilledRewardMessage(map.getId(), getId(), getStats().getLevel(),
                 personalExp == null ? 0.0f : personalExp,
                 partyExp == null ? 0.0f : partyExp,
                 white, hasPartySharers, showdownMult, getFamilyRepGain()));

@@ -39,7 +39,6 @@ import org.gms.remote.modules.map.server.MonsterSpawnEvent;
 import org.gms.remote.modules.map.server.StopControlMonsterEvent;
 import org.gms.server.life.MobSkill;
 import org.gms.server.life.MobSkillId;
-import org.gms.server.life.Monster;
 import org.gms.server.maps.MapItem;
 
 import java.util.ArrayList;
@@ -89,13 +88,14 @@ public final class MapRouter extends MapModule implements ServerEventDest {
                         new RuntimeException("call site"));
                 return new FrozenControlMonsterEvent(null);
             }
-            return new FrozenControlMonsterEvent(controlFrame(view, e.immediateAggro()));
+            return new FrozenControlMonsterEvent(controlFrame(view, e.immediateAggro(), false));
         }
         if (event instanceof MonsterSpawnEvent e) {
             return new FrozenMonsterSpawnEvent(spawnFrame(e));
         }
         if (event instanceof MonsterSpawnControlledEvent e) {
-            return new FrozenControlMonsterEvent(controlFrame(e.view(), false));
+            // 测试版②：单 MONSTER_SPAWN_CONTROL，newSpawn=true（淡入出场位）
+            return new FrozenControlMonsterEvent(controlFrame(e.view(), false, e.newSpawn()));
         }
         return event;
     }
@@ -125,7 +125,7 @@ public final class MapRouter extends MapModule implements ServerEventDest {
      * 授控全身帧物化（legacy PacketCreator.controlMonster → spawnMonsterInternal(control=true)
      * 的逐位复刻；值源 = {@link MapView.MonsterView} post 时点快照）。
      */
-    private ControlMonsterPacket controlFrame(MapView.MonsterView view, boolean aggro) {
+    private ControlMonsterPacket controlFrame(MapView.MonsterView view, boolean aggro, boolean newSpawn) {
         MonsterBlock.Stati stati = statiOf(view.stati());
         // controllerKind 恒 1：授控语义推导（grant 入队前 setController 已完成，legacy 活读
         // 除竞态窗外恒 1）——不依赖快照时点，竞态免疫
@@ -133,7 +133,7 @@ public final class MapRouter extends MapModule implements ServerEventDest {
                 new MonsterBlock.Control(view.oid(), (byte) 1, view.mobId(),
                         stati.statuses(), stati.mask(), stati.tail(),
                         view.position(), view.stance(), view.fh(), view.team(),
-                        view.linkedParentOid()));
+                        newSpawn, view.linkedParentOid()));
     }
 
     /** temporary stati 提取（legacy encodeTemporary 输入侧；Control/Fake 帧共用） */

@@ -71,10 +71,11 @@ public sealed interface MonsterBlock {
     record Stati(List<StatusEntry> statuses, int[] mask, ReflectTail tail) {
     }
 
-    /** 授控块：encodeTemporary 全量（掩码 → 条目 → 反击尾）；演出段 = 父怪关联(-3)或 -1 */
+    /** 授控块：encodeTemporary 全量（掩码 → 条目 → 反击尾）；演出段 = 父怪关联(-3)或
+     *  parentless（newSpawn ? -2 : -1；legacy controlMonster 调用点恒 newSpawn=false）。 */
     record Control(int oid, byte controllerKind, int mobId, List<StatusEntry> statuses, int[] mask,
                    ReflectTail tail, Point position, byte stance, short fh, byte team,
-                   int linkedParentOid) implements MonsterBlock {
+                   boolean newSpawn, int linkedParentOid) implements MonsterBlock {
 
         @Override
         public void encodeStati(ByteBufBuilder out) {
@@ -87,7 +88,7 @@ public sealed interface MonsterBlock {
                 out.writeByte(-3);
                 out.writeInt(linkedParentOid);
             } else {
-                out.writeByte(-1);    // encodeParentlessMobSpawnEffect(effect=0, newSpawn=false)
+                out.writeByte(newSpawn() ? -2 : -1);   // encodeParentlessMobSpawnEffect(effect=0)
             }
         }
     }

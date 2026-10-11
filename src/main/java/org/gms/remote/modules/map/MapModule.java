@@ -96,8 +96,8 @@ public abstract class MapModule extends AbstractModule {
      * 受控落地（接收方连接视角：落地即授控，只出 MONSTER_SPAWN_CONTROL 帧）。
      * 由地图域在 spawn 选举后对 controller 调用（测试版融合帧）。
      */
-    public final void monsterSpawnControlled(MonsterView view) {
-        post(new MonsterSpawnControlledEvent(view));
+    public final void monsterSpawnControlled(MonsterView view, boolean newSpawn) {
+        post(new MonsterSpawnControlledEvent(view, newSpawn));
     }
 
     /**

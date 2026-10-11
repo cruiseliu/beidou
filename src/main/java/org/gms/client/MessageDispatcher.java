@@ -5,9 +5,9 @@ import org.gms.client.character.MapView;
 import org.gms.client.messages.MapCharacterMoveMessage;
 import org.gms.client.messages.MapControlMonsterMessage;
 import org.gms.client.messages.MapItemDropMessage;
-import org.gms.client.messages.MapMonsterDeathMessage;
-import org.gms.client.messages.MapMonsterHpMessage;
 import org.gms.client.messages.MapMonsterKilledMessage;
+import org.gms.client.messages.MapMonsterHpMessage;
+import org.gms.client.messages.MapMonsterKilledRewardMessage;
 import org.gms.client.messages.MapMonsterSpawnControlledMessage;
 import org.gms.client.messages.MapMonsterSpawnMessage;
 import org.gms.client.messages.MapStopControlMonsterMessage;
@@ -64,7 +64,7 @@ public final class MessageDispatcher {
                     player.remote().map().monsterMove(m.move());
                 }
             }
-            case MapMonsterKilledMessage m -> {
+            case MapMonsterKilledRewardMessage m -> {
                 // 接收方权威校验（同 HP 帧）：切图竞态下的迟到击杀结算在此丢弃
                 Character chr = player.character();
                 // 存活门（原 giveExpToCharacter 首行）：视图读，本域免哨
@@ -129,17 +129,17 @@ public final class MessageDispatcher {
                 }
             }
             case MapMonsterSpawnControlledMessage m -> {
-                // 受控落地（测试版融合帧）：mapId 门，无视野门（grant 语义）。三份登记缺一不可：
+                // 受控落地（双帧回退版）：mapId 门，无视野门（grant 语义）。三份登记缺一不可：
                 // objects 视图（isMapObjectVisible，漏登记 = 首次 MOVE_LIFE 即 legacy 补发
                 // plain spawn 重置控制位——"怪不受控"变体）、怪物值视图（授控帧数据源）、控制位。
                 Character chr = player.character();
                 if (chr != null && chr.getMapId() == m.mapId()) {
-                    chr.applyMapObjectsView(List.of(new MapView.Entry(m.view().oid(),
-                            new MapView.MapObjectInfo(MapObjectType.MONSTER, m.view().mobId(),
-                                    m.view().position(), true))), List.of());
-                    chr.mapView().putMonster(m.view());
-                    chr.mapView().putControlled(m.view().oid());
-                    player.remote().map().monsterSpawnControlled(m.view());
+                    chr.applyMapObjectsView(List.of(new MapView.Entry(m.monster().oid(),
+                            new MapView.MapObjectInfo(MapObjectType.MONSTER, m.monster().mobId(),
+                                    m.monster().position(), true))), List.of());
+                    chr.mapView().putMonster(m.monster());
+                    chr.mapView().putControlled(m.monster().oid());
+                    player.remote().map().monsterSpawnControlled(m.monster(), m.newSpawn());
                 }
             }
             case MapMonsterSpawnMessage m -> {
@@ -154,7 +154,7 @@ public final class MessageDispatcher {
                     player.remote().map().monsterSpawn(m.view(), m.newSpawn(), m.effect(), m.fake());
                 }
             }
-            case MapMonsterDeathMessage m -> {
+            case MapMonsterKilledMessage m -> {
                 // 怪物死亡场景事件（原 KILL_MONSTER ranged 广播值化）：结算（经验/任务计数/
                 // 家族声望）不在此，走 MapMonsterKilledMessage。
                 Character chr = player.character();
