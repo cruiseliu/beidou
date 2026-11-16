@@ -11,6 +11,9 @@ import org.gms.infra.ActorMessage;
  */
 public record MapMonsterSpawnControlledMessage(
     int mapId,
-    MapView.MonsterView monster,
-    boolean newSpawn
+    MapView.Entry viewEntry,
+    boolean newSpawn,
+    int effect,
+    boolean fake,
+    MapView.MonsterView monster
 ) implements ActorMessage {}

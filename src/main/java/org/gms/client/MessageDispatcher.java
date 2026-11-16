@@ -19,7 +19,6 @@ import org.gms.infra.ActorMessage;
 import org.gms.net.packet.Packet;
 import org.gms.server.maps.MapObjectType;
 import org.gms.server.maps.MapleMap;
-import org.gms.util.PacketCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,32 +40,55 @@ public final class MessageDispatcher {
     }
 
     public void dispatch(ActorMessage msg) {
+        Character chr = player.character();
+
         switch (msg) {
+            // -- Monster --
+            case MapMonsterSpawnMessage m -> {
+                if (chr.getMapId() != m.mapId()) {
+                    return;
+                }
+                if (chr.getPosition().distanceSq(m.viewEntry().info().position()) <= MapleMap.getRangedDistance()) {
+                    chr.applyMapObjectsView(List.of(m.viewEntry()), List.of());
+                    chr.mapView().putMonster(m.monster());   // player 域自持怪物视图
+                    player.remote().map().monsterSpawn(m.monster(), m.newSpawn(), m.effect(), m.fake());
+                }
+            }
+
+            case MapMonsterSpawnControlledMessage m -> {
+                if (chr.getMapId() != m.mapId()) {
+                    return;
+                }
+                chr.applyMapObjectsView(List.of(new MapView.Entry(m.monster().oid(),
+                        new MapView.MapObjectInfo(MapObjectType.MONSTER, m.monster().mobId(),
+                                m.monster().position(), true))), List.of());
+                chr.mapView().putMonster(m.monster());
+                chr.mapView().putControlled(m.monster().oid());
+                player.remote().map().monsterSpawn(m.monster(), m.newSpawn(), m.effect(), m.fake());
+                player.remote().map().monsterSpawnControlled(m.monster(), false);
+            }
+
             case MapCharacterMoveMessage m -> {
                 // 接收方权威校验（他人流中继）：中继铸造于 map actor 的受众扫描，切图竞态下
                 // 迟到中继（旧图他人移动）在此丢弃，不落到新图客户端
-                Character chr = player.character();
                 if (chr != null && chr.getMapId() == m.mapId()) {
                     player.remote().map().characterMove(m.charId(), m.movements());
                 }
             }
             case MapQuestCompleteMessage m -> {
                 // 接收方权威校验（他人流中继，同移动中继）
-                Character chr = player.character();
                 if (chr != null && chr.getMapId() == m.mapId()) {
                     player.remote().map().characterQuestComplete(m.charId());
                 }
             }
             case MapMonsterMoveMessage m -> {
                 // 接收方权威校验（他人流中继，同移动中继）
-                Character chr = player.character();
                 if (chr != null && chr.getMapId() == m.mapId()) {
                     player.remote().map().monsterMove(m.move());
                 }
             }
             case MapMonsterKilledRewardMessage m -> {
                 // 接收方权威校验（同 HP 帧）：切图竞态下的迟到击杀结算在此丢弃
-                Character chr = player.character();
                 // 存活门（原 giveExpToCharacter 首行）：视图读，本域免哨
                 if (chr != null && chr.getMapId() == m.mapId() && chr.isAlive()) {
                     player.clientEventHandlers().battle().monsterKilled(m.mobId(), m.mobLevel(),
@@ -77,7 +99,6 @@ public final class MessageDispatcher {
             case MapMonsterHpMessage m -> {
                 // 接收方权威校验（异步边界）：map 的投递解析基于陈旧玩家表，切图竞态下
                 // 的迟到 HP 帧在此丢弃——唯一知道玩家当前时点所在图的是 Player actor。
-                Character chr = player.character();
                 if (chr != null && chr.getMapId() == m.mapId()) {
                     player.remote().map().updateMonsterHp(m.oid(), m.hpPercent());
                 }
@@ -86,7 +107,6 @@ public final class MessageDispatcher {
                 // 接收方权威校验（同 HP 帧）：切图竞态下的迟到可见集差集在此丢弃。
                 // 纯状态应用（无 client 发送），map actor 各 spawn/destroy 投递点回投；
                 // 怪物条目随行值快照（授控帧数据源）同步入怪物视图。
-                Character chr = player.character();
                 if (chr != null && chr.getMapId() == m.mapId()) {
                     chr.applyMapObjectsView(m.adds(), m.removes());
                     for (MapView.MonsterView mv : m.monsterViews()) {
@@ -98,7 +118,6 @@ public final class MessageDispatcher {
                 // 掉落物落地（原 spawnDrop bakery 值化）：visible 判定（自身位置 × 落点，阈值同
                 // map 侧静态）+ 过滤规则原样（needQuestItem），判定移 viewer 域（本体直读免哨）；
                 // wire 构建与所有权演出归 map 域 remote。视图登记 = 包真正发出的对象（client 已知集）。
-                Character chr = player.character();
                 if (chr != null && chr.getMapId() == m.mapId() && chr.needQuestItem(m.questid(), m.itemId())
                         && chr.getPosition().distanceSq(m.dropto()) <= MapleMap.getRangedDistance()) {
                     player.remote().map().itemDropped(m.oid(), m.itemId(), m.meso(),
@@ -112,7 +131,6 @@ public final class MessageDispatcher {
                 // 收回控制（原 aggro-stop legacy 桥值化）：mapId 门（跨图竞态丢弃）；
                 // 无视野门：legacy stop 不检查 controller 视野。不注销怪物视图——
                 // 换届场景下 mob 仍在旧 controller 视野内（视图注销只跟死亡/差集走）。
-                Character chr = player.character();
                 if (chr != null && chr.getMapId() == m.mapId()) {
                     chr.mapView().removeControlled(m.oid());   // 控制位镜像（先清位后发包）
                     player.remote().map().stopControlMonster(m.oid());
@@ -122,42 +140,14 @@ public final class MessageDispatcher {
                 // 授控（原 aggro-control legacy 桥值化）：mapId 门（跨图竞态丢弃）。
                 // mob 由消息携带（strict 管线内禁反查 map 本体）；无视野门：legacy 授控
                 // 不检查 controller 视野。
-                Character chr = player.character();
                 if (chr != null && chr.getMapId() == m.mapId()) {
                     chr.mapView().putControlled(m.oid());   // 控制位镜像（先置位后发包）
                     player.remote().map().controlMonster(m.oid(), m.aggro());
                 }
             }
-            case MapMonsterSpawnControlledMessage m -> {
-                // 受控落地（双帧回退版）：mapId 门，无视野门（grant 语义）。三份登记缺一不可：
-                // objects 视图（isMapObjectVisible，漏登记 = 首次 MOVE_LIFE 即 legacy 补发
-                // plain spawn 重置控制位——"怪不受控"变体）、怪物值视图（授控帧数据源）、控制位。
-                Character chr = player.character();
-                if (chr != null && chr.getMapId() == m.mapId()) {
-                    chr.applyMapObjectsView(List.of(new MapView.Entry(m.monster().oid(),
-                            new MapView.MapObjectInfo(MapObjectType.MONSTER, m.monster().mobId(),
-                                    m.monster().position(), true))), List.of());
-                    chr.mapView().putMonster(m.monster());
-                    chr.mapView().putControlled(m.monster().oid());
-                    player.remote().map().monsterSpawnControlled(m.monster(), m.newSpawn());
-                }
-            }
-            case MapMonsterSpawnMessage m -> {
-                // 怪物落地（原 spawnAndPostMapObject 预构建包值化）：visible 判定同预构建路径
-                // （自身位置 × viewEntry 位置）——可见才登记视图并投落地帧，不可见整体丢弃
-                // （move-diff 按需重发）。帧构建归 map 域 remote（freeze 物化）。
-                Character chr = player.character();
-                if (chr != null && chr.getMapId() == m.mapId()
-                        && chr.getPosition().distanceSq(m.viewEntry().info().position()) <= MapleMap.getRangedDistance()) {
-                    chr.applyMapObjectsView(List.of(m.viewEntry()), List.of());
-                    chr.mapView().putMonster(m.view());   // player 域自持怪物视图
-                    player.remote().map().monsterSpawn(m.view(), m.newSpawn(), m.effect(), m.fake());
-                }
-            }
             case MapMonsterKilledMessage m -> {
                 // 怪物死亡场景事件（原 KILL_MONSTER ranged 广播值化）：结算（经验/任务计数/
                 // 家族声望）不在此，走 MapMonsterKilledMessage。
-                Character chr = player.character();
                 if (chr == null || chr.getMapId() != m.mapId()) {
                     return;
                 }
@@ -178,10 +168,10 @@ public final class MessageDispatcher {
                     chr.applyMapObjectsView(List.of(), List.of(m.oid()));
                 }
             }
+
             case MapObjectSpawnMessage m -> {
                 // 对象落地（原 spawnAndAddRangedMapObject inRange 收集的值化）：visible 判定在
                 // viewer 域——可见才直发预构建包并登记视图，不可见整体丢弃（move-diff 按需重发）。
-                Character chr = player.character();
                 if (chr != null && chr.getMapId() == m.mapId()
                         && chr.getPosition().distanceSq(m.viewEntry().info().position()) <= MapleMap.getRangedDistance()) {
                     chr.applyMapObjectsView(List.of(m.viewEntry()), List.of());
@@ -190,6 +180,7 @@ public final class MessageDispatcher {
                     }
                 }
             }
+
             default -> log.warn("未知 actor 消息: {}", msg.name());   // 响亮：infra 不封闭，未知类型 = 装配漏配
         }
     }

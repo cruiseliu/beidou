@@ -482,7 +482,7 @@ public class MapleMap {
         try {
             for (CharacterRef chr : characters) {
                 if (controller != null && chr.getId() == controller.getId()) {
-                    chr.post(new MapMonsterSpawnControlledMessage(getId(), view, newSpawn));
+                    chr.post(new MapMonsterSpawnControlledMessage(getId(), viewEntry, newSpawn, effect, fake, view));
                 } else {
                     chr.post(new MapMonsterSpawnMessage(getId(), viewEntry, newSpawn, effect, fake, view));
                 }

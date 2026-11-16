@@ -11,6 +11,11 @@ import org.gms.infra.ActorMessage;
  * 构建点）+ 落地会话事实（newSpawn/effect/fake）。viewEntry 携 post 时点位置快照，
  * 供 visible 判定与 MapView 登记。mapId 供接收方校验自身所在图。
  */
-public record MapMonsterSpawnMessage(int mapId, MapView.Entry viewEntry, boolean newSpawn, int effect,
-                                     boolean fake, MapView.MonsterView view) implements ActorMessage {
-}
+public record MapMonsterSpawnMessage(
+    int mapId,
+    MapView.Entry viewEntry,
+    boolean newSpawn,
+    int effect,
+    boolean fake,
+    MapView.MonsterView monster
+) implements ActorMessage {}

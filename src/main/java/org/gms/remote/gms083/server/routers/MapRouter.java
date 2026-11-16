@@ -32,13 +32,15 @@ import org.gms.remote.modules.map.server.MonsterSpawnControlledEvent;
 import org.gms.remote.modules.map.server.MonsterSpawnEvent;
 import org.gms.remote.modules.map.server.StopControlMonsterEvent;
 import org.gms.server.maps.MapItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 地图域 route：出脸继承自 {@link MapModule}（移动中继语义事件），本类承载 emit/freeze/deliver/flush——
  * 元素序列对称重放为 wire 包；收播过滤已由地图侧在事件受众上决定，deliver 只管本连接编码。
  */
 public final class MapRouter extends MapModule implements ServerEventDest {
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MapRouter.class);
+    private static final Logger log = LoggerFactory.getLogger(MapRouter.class);
 
     private final Gms083 client;
 
