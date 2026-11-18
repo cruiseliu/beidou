@@ -1,7 +1,7 @@
 package org.gms.remote.gms083.server.routers;
 
 import org.gms.client.character.Character;
-import org.gms.client.character.MapView;
+import org.gms.client.character.MonsterView;
 import org.gms.net.server.Server;
 import org.gms.remote.ServerEvent;
 import org.gms.remote.ServerEventBase;
@@ -70,7 +70,7 @@ public final class MapRouter extends MapModule implements ServerEventDest {
         }
         if (event instanceof ControlMonsterEvent e) {
             // 授控帧数据源 = 接收方自持 map view（freeze 取数点）
-            MapView.MonsterView view = client.getLegacyClient().getPlayer().mapView().monster(e.oid());
+            MonsterView view = client.getLegacyClient().getPlayer().mapView().monster(e.oid());
             if (view == null) {
                 // 响亮：授控帧数据源缺失 = 落地/入场 placement 未登记该 oid（装配洞）
                 log.error("授控帧缺怪物值视图: oid={} (map={})", e.oid(), client.getLegacyClient().getPlayer().getMapId(),
@@ -80,7 +80,7 @@ public final class MapRouter extends MapModule implements ServerEventDest {
             return new FrozenControlMonsterEvent(MonsterTranslator.control(view, e.immediateAggro(), false));
         }
         if (event instanceof MonsterSpawnEvent e) {
-            return new FrozenMonsterSpawnEvent(MonsterTranslator.spawn(e.view(), e.newSpawn(), e.effect(), e.fake()));
+            return new FrozenMonsterSpawnEvent(MonsterTranslator.spawn(e.view(), e.newSpawn(), e.effect()));
         }
         if (event instanceof MonsterSpawnControlledEvent e) {
             // 测试版②：单 MONSTER_SPAWN_CONTROL，newSpawn=true（淡入出场位）

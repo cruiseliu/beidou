@@ -22,6 +22,7 @@
 package org.gms.server.life;
 
 import org.gms.client.character.CharacterRef;
+import org.gms.client.character.MonsterView;
 import org.gms.client.messages.MapControlMonsterMessage;
 import org.gms.client.messages.MapStopControlMonsterMessage;
 import org.gms.client.messages.MapMonsterKilledRewardMessage;
@@ -1058,10 +1059,6 @@ public class Monster extends AbstractLoadedLife {
 
     @Override
     public void sendSpawnData(Client client) {
-        // 临时诊断（视野差集补发排查）：legacy SPAWN_MONSTER 全部经此出口，打印调用栈定位
-        log.info("[诊断] legacy SPAWN_MONSTER 补发: oid={} mob={} map={} fake={} hp={}/{}",
-                getObjectId(), getId(), map.getId(), fake, hp.get(), getMaxHp(),
-                new RuntimeException("sendSpawnData call site"));
         if (hp.get() <= 0) { // mustn't monsterLock this function
             return;
         }
@@ -1765,6 +1762,47 @@ public class Monster extends AbstractLoadedLife {
         } finally {
             statiLock.unlock();
         }
+    }
+
+    /**
+     * 怪物值快照（唯一构造入口）：map 域在 post/登记时点调用，产出可跨 strand 的
+     * {@link MonsterView}。父怪关联判定、controllerId 与 temporary stati 的数值/来源
+     * 都在本时点固化，消费方不再触达 Monster 活状态。
+     */
+    public MonsterView view() {
+        List<MonsterView.StatusSnapshot> stati = new ArrayList<>();
+        for (Map.Entry<MonsterStatus, MonsterStatusEffect> e : getStati().entrySet()) {
+            MonsterStatus status = e.getKey();
+            MonsterStatusEffect mse = e.getValue();
+            Integer value = mse.getStati().get(status);
+            if (value == null) {
+                continue;   // 并发移除防御（原 freeze 路径会 NPE）
+            }
+            var mobSkill = mse.getMobSkill();
+            stati.add(new MonsterView.StatusSnapshot(
+                    status,
+                    value.shortValue(),
+                    mobSkill != null,
+                    mobSkill != null ? (short) mobSkill.getId().type().getId() : 0,
+                    mobSkill != null ? (short) mobSkill.getId().level() : 0,
+                    mobSkill == null && mse.getSkill() != null ? mse.getSkill().getId() : 0,
+                    mobSkill != null ? mobSkill.getX() : 0,
+                    mobSkill != null ? mobSkill.getY() : 0));
+        }
+
+        int linkedParentOid = 0;
+        if (getParentMobOid() != 0) {
+            Monster parent = getMap().getMonsterByOid(getParentMobOid());
+            if (parent != null && parent.isAlive()) {
+                linkedParentOid = getParentMobOid();
+            }
+        }
+
+        CharacterRef controller = getController();
+        return new MonsterView(getObjectId(), getId(),
+                controller != null ? controller.getId() : 0,
+                getPosition(), (byte) getStance(), (short) getFh(), (byte) getTeam(),
+                isFake(), stati, linkedParentOid);
     }
 
     // ---- one can always have fun trying these pieces of codes below in-game rofl ----

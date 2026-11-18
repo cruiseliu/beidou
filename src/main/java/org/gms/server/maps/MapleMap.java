@@ -25,6 +25,7 @@ import org.gms.client.EffectType;
 import org.gms.client.character.Character;
 import org.gms.client.character.CharacterRef;
 import org.gms.client.character.MapView;
+import org.gms.client.character.MonsterView;
 import org.gms.client.messages.MapMonsterHpMessage;
 import org.gms.client.messages.MapObjectsViewMessage;
 import org.gms.client.Client;
@@ -475,16 +476,15 @@ public class MapleMap {
             chrRLock.unlock();
         }
 
-        final MapView.Entry viewEntry = viewEntry(monster);
-        final MapView.MonsterView view = MapView.MonsterView.of(monster);   // post 时点冻结
+        final MonsterView view = monster.view();   // post 时点冻结（唯一构造入口）
         final CharacterRef controller = fake ? null : monster.aggroElectControllerSilently();
         chrRLock.lock();
         try {
             for (CharacterRef chr : characters) {
                 if (controller != null && chr.getId() == controller.getId()) {
-                    chr.post(new MapMonsterSpawnControlledMessage(getId(), viewEntry, newSpawn, effect, fake, view));
+                    chr.post(new MapMonsterSpawnControlledMessage(getId(), view, newSpawn, effect));
                 } else {
-                    chr.post(new MapMonsterSpawnMessage(getId(), viewEntry, newSpawn, effect, fake, view));
+                    chr.post(new MapMonsterSpawnMessage(getId(), view, newSpawn, effect));
                 }
             }
         } finally {
@@ -2610,7 +2610,7 @@ public class MapleMap {
      * 入场 placement 产物（值 seed）：对象条目 + 怪物值视图（授控帧数据源；receiver 在
      * 编舞内先 putMonster 再处理随后的 toElect 授控消息，strand FIFO 序天然成立）。
      */
-    public record EnterPlacement(List<MapView.Entry> entries, List<MapView.MonsterView> monsterViews) {
+    public record EnterPlacement(List<MapView.Entry> entries, List<MonsterView> monsterViews) {
         public EnterPlacement {
             entries = List.copyOf(entries);
             monsterViews = List.copyOf(monsterViews);
@@ -2678,10 +2678,10 @@ public class MapleMap {
         for (Monster m : toElect) {
             m.aggroUpdateController();
         }
-        // 怪物值视图建在选举之后：快照真实反映换届结果（controlled 语义成立）
-        List<MapView.MonsterView> monsterViews = new ArrayList<>(inRangeMonsters.size());
+        // 怪物值视图建在选举之后：快照真实反映换届结果（controllerId 语义成立）
+        List<MonsterView> monsterViews = new ArrayList<>(inRangeMonsters.size());
         for (Monster m : inRangeMonsters) {
-            monsterViews.add(MapView.MonsterView.of(m));
+            monsterViews.add(m.view());
         }
         return new EnterPlacement(viewAdds, monsterViews);
     }
@@ -3505,8 +3505,8 @@ public class MapleMap {
     private void updateMapObjectVisibility(CharacterRef chr, MapObject mo) {
         if (!chr.isMapObjectVisible(mo.getObjectId())) { // object entered view range
             if (mo.getType() == MapObjectType.SUMMON || mo.getPosition().distanceSq(chr.getPosition()) <= getRangedDistance()) {
-                List<MapView.MonsterView> mv = mo.getType() == MapObjectType.MONSTER
-                        ? List.of(MapView.MonsterView.of((Monster) mo)) : List.of();
+                List<MonsterView> mv = mo.getType() == MapObjectType.MONSTER
+                        ? List.of(((Monster) mo).view()) : List.of();
                 chr.post(new MapObjectsViewMessage(getId(), List.of(viewEntry(mo)), List.of(), mv));
                 mo.sendSpawnData(chr.getClient());
             }
@@ -3600,13 +3600,13 @@ public class MapleMap {
             }
         }
         List<MapView.Entry> addEntries = new ArrayList<>();
-        List<MapView.MonsterView> monsterViews = new ArrayList<>();
+        List<MonsterView> monsterViews = new ArrayList<>();
         for (MapObject mo : getMapObjectsInRange(toPos, getRangedDistance(), rangedMapobjectTypes)) {
             if (!visibleSet.contains(mo.getObjectId())) {
                 addRefs.add(mo);
                 addEntries.add(viewEntry(mo));
                 if (mo.getType() == MapObjectType.MONSTER) {
-                    monsterViews.add(MapView.MonsterView.of((Monster) mo));
+                    monsterViews.add(((Monster) mo).view());
                 }
             }
         }

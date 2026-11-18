@@ -2,6 +2,7 @@ package org.gms.client;
 
 import org.gms.client.character.Character;
 import org.gms.client.character.MapView;
+import org.gms.client.character.MonsterView;
 import org.gms.client.messages.MapCharacterMoveMessage;
 import org.gms.client.messages.MapControlMonsterMessage;
 import org.gms.client.messages.MapItemDropMessage;
@@ -48,10 +49,11 @@ public final class MessageDispatcher {
                 if (chr.getMapId() != m.mapId()) {
                     return;
                 }
-                if (chr.getPosition().distanceSq(m.viewEntry().info().position()) <= MapleMap.getRangedDistance()) {
-                    chr.applyMapObjectsView(List.of(m.viewEntry()), List.of());
-                    chr.mapView().putMonster(m.monster());   // player 域自持怪物视图
-                    player.remote().map().monsterSpawn(m.monster(), m.newSpawn(), m.effect(), m.fake());
+                MonsterView view = m.monster();
+                if (chr.getPosition().distanceSq(view.position()) <= MapleMap.getRangedDistance()) {
+                    chr.applyMapObjectsView(List.of(entryOf(view)), List.of());
+                    chr.mapView().putMonster(view);   // player 域自持怪物视图
+                    player.remote().map().monsterSpawn(view, m.newSpawn(), m.effect());
                 }
             }
 
@@ -59,13 +61,12 @@ public final class MessageDispatcher {
                 if (chr.getMapId() != m.mapId()) {
                     return;
                 }
-                chr.applyMapObjectsView(List.of(new MapView.Entry(m.monster().oid(),
-                        new MapView.MapObjectInfo(MapObjectType.MONSTER, m.monster().mobId(),
-                                m.monster().position(), true))), List.of());
-                chr.mapView().putMonster(m.monster());
-                chr.mapView().putControlled(m.monster().oid());
-                player.remote().map().monsterSpawn(m.monster(), m.newSpawn(), m.effect(), m.fake());
-                player.remote().map().monsterSpawnControlled(m.monster(), false);
+                MonsterView view = m.monster();
+                chr.applyMapObjectsView(List.of(entryOf(view)), List.of());
+                chr.mapView().putMonster(view);
+                chr.mapView().putControlled(view.oid());
+                player.remote().map().monsterSpawn(view, m.newSpawn(), m.effect());
+                player.remote().map().monsterSpawnControlled(view, false);
             }
 
             case MapCharacterMoveMessage m -> {
@@ -109,7 +110,7 @@ public final class MessageDispatcher {
                 // 怪物条目随行值快照（授控帧数据源）同步入怪物视图。
                 if (chr != null && chr.getMapId() == m.mapId()) {
                     chr.applyMapObjectsView(m.adds(), m.removes());
-                    for (MapView.MonsterView mv : m.monsterViews()) {
+                    for (MonsterView mv : m.monsterViews()) {
                         chr.mapView().putMonster(mv);
                     }
                 }
@@ -155,7 +156,7 @@ public final class MessageDispatcher {
                 // legacy 同）。不依赖可见门——出视野受控怪死亡同样成立；client 已 destroy 的
                 // （视野差集已清位）自然不发。
                 if (chr.mapView().isControlling(m.oid())) {
-                    MapView.MonsterView view = chr.mapView().monster(m.oid());
+                    MonsterView view = chr.mapView().monster(m.oid());
                     chr.mapView().removeControlled(m.oid());
                     if (view == null || !view.fake()) {
                         player.remote().map().stopControlMonster(m.oid());
@@ -183,5 +184,11 @@ public final class MessageDispatcher {
 
             default -> log.warn("未知 actor 消息: {}", msg.name());   // 响亮：infra 不封闭，未知类型 = 装配漏配
         }
+    }
+
+    /** 怪物条目派生：from MonsterView 快照（type=MONSTER / mobId / position）。 */
+    private static MapView.Entry entryOf(MonsterView view) {
+        return new MapView.Entry(view.oid(),
+                new MapView.MapObjectInfo(MapObjectType.MONSTER, view.mobId(), view.position(), true));
     }
 }

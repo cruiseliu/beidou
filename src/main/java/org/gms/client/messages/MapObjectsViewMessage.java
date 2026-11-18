@@ -1,6 +1,7 @@
 package org.gms.client.messages;
 
 import org.gms.client.character.MapView;
+import org.gms.client.character.MonsterView;
 import org.gms.infra.ActorMessage;
 
 import java.util.List;
@@ -15,7 +16,7 @@ import java.util.List;
  * 切图竞态下的迟到差集由 Player actor 丢弃）。
  */
 public record MapObjectsViewMessage(int mapId, List<MapView.Entry> adds, List<Integer> removes,
-                                    List<MapView.MonsterView> monsterViews) implements ActorMessage {
+                                    List<MonsterView> monsterViews) implements ActorMessage {
 
     public MapObjectsViewMessage(int mapId, List<MapView.Entry> adds, List<Integer> removes) {
         this(mapId, adds, removes, List.of());

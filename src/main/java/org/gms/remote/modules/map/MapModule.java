@@ -1,6 +1,6 @@
 package org.gms.remote.modules.map;
 
-import org.gms.client.character.MapView.MonsterView;
+import org.gms.client.character.MonsterView;
 import org.gms.remote.AbstractModule;
 import org.gms.remote.modules.map.client.ChangeMapEvent;
 import org.gms.remote.modules.map.client.MonsterMove;
@@ -80,8 +80,8 @@ public abstract class MapModule extends AbstractModule {
      * 怪物落地（接收方连接视角的语义通知；帧形态/演出段归版本实现）。
      * 由地图域在落地广播时点对接收方调用（visible 判定归调用方 viewer 域）。
      */
-    public final void monsterSpawn(MonsterView view, boolean newSpawn, int effect, boolean fake) {
-        post(new MonsterSpawnEvent(view, newSpawn, effect, fake));
+    public final void monsterSpawn(MonsterView view, boolean newSpawn, int effect) {
+        post(new MonsterSpawnEvent(view, newSpawn, effect));
     }
 
     /**
