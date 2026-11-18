@@ -2028,8 +2028,8 @@ public class Monster extends AbstractLoadedLife {
 
     /**
      * spawn 语境静默选举（测试版）：填空式选主（无主/主死才选；木偶近旁优先 → 控制数最少
-     * 存活者），**不投授控消息**——授控帧由受控落地消息（MapMonsterSpawnControlledMessage）
-     * 融合。返回当选 controller（无候选 = null）。
+     * 存活者），**不投授控消息**——落地消息携带 controller 标志，授控帧的帧数与顺序由
+     * 版本实现（remote）决定。返回当选 controller（无候选 = null）。
      */
     public CharacterRef aggroElectControllerSilently() {
         CharacterRef current = this.getActiveController();

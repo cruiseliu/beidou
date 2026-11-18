@@ -11,7 +11,6 @@ import org.gms.remote.modules.map.server.AckMoveMonsterEvent;
 import org.gms.remote.modules.map.server.ControlMonsterEvent;
 import org.gms.remote.modules.map.server.ItemDropEvent;
 import org.gms.remote.modules.map.server.MonsterKilledEvent;
-import org.gms.remote.modules.map.server.MonsterSpawnControlledEvent;
 import org.gms.remote.modules.map.server.MonsterSpawnEvent;
 import org.gms.remote.modules.map.server.StopControlMonsterEvent;
 import org.gms.remote.modules.map.server.UpdateMonsterHpEvent;
@@ -79,9 +78,12 @@ public abstract class MapModule extends AbstractModule {
     /**
      * 怪物落地（接收方连接视角的语义通知；帧形态/演出段归版本实现）。
      * 由地图域在落地广播时点对接收方调用（visible 判定归调用方 viewer 域）。
+     *
+     * @param controller 本接收方是此怪的 controller：落地即授控，帧数/顺序归版本实现
+     *                   （版本可发单帧，也可发落地帧 + 授控帧）
      */
-    public final void monsterSpawn(MonsterView view, boolean newSpawn, int effect) {
-        post(new MonsterSpawnEvent(view, newSpawn, effect));
+    public final void monsterSpawn(MonsterView view, boolean newSpawn, int effect, boolean controller) {
+        post(new MonsterSpawnEvent(view, newSpawn, effect, controller));
     }
 
     /**
@@ -90,14 +92,6 @@ public abstract class MapModule extends AbstractModule {
      */
     public final void controlMonster(int oid, boolean immediateAggro) {
         post(new ControlMonsterEvent(oid, immediateAggro));
-    }
-
-    /**
-     * 受控落地（接收方连接视角：落地即授控，只出 MONSTER_SPAWN_CONTROL 帧）。
-     * 由地图域在 spawn 选举后对 controller 调用（测试版融合帧）。
-     */
-    public final void monsterSpawnControlled(MonsterView view, boolean newSpawn) {
-        post(new MonsterSpawnControlledEvent(view, newSpawn));
     }
 
     /**

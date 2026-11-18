@@ -9,7 +9,6 @@ import org.gms.client.messages.MapItemDropMessage;
 import org.gms.client.messages.MapMonsterKilledMessage;
 import org.gms.client.messages.MapMonsterHpMessage;
 import org.gms.client.messages.MapMonsterKilledRewardMessage;
-import org.gms.client.messages.MapMonsterSpawnControlledMessage;
 import org.gms.client.messages.MapMonsterSpawnMessage;
 import org.gms.client.messages.MapStopControlMonsterMessage;
 import org.gms.client.messages.MapMonsterMoveMessage;
@@ -50,23 +49,17 @@ public final class MessageDispatcher {
                     return;
                 }
                 MonsterView view = m.monster();
-                if (chr.getPosition().distanceSq(view.position()) <= MapleMap.getRangedDistance()) {
-                    chr.applyMapObjectsView(List.of(entryOf(view)), List.of());
-                    chr.mapView().putMonster(view);   // player 域自持怪物视图
-                    player.remote().map().monsterSpawn(view, m.newSpawn(), m.effect());
-                }
-            }
-
-            case MapMonsterSpawnControlledMessage m -> {
-                if (chr.getMapId() != m.mapId()) {
+                // controller 是授控语义（legacy 不检查视野）；普通 viewer 才走视野门
+                if (!m.controller()
+                        && chr.getPosition().distanceSq(view.position()) > MapleMap.getRangedDistance()) {
                     return;
                 }
-                MonsterView view = m.monster();
                 chr.applyMapObjectsView(List.of(entryOf(view)), List.of());
-                chr.mapView().putMonster(view);
-                chr.mapView().putControlled(view.oid());
-                player.remote().map().monsterSpawn(view, m.newSpawn(), m.effect());
-                player.remote().map().monsterSpawnControlled(view, false);
+                chr.mapView().putMonster(view);   // player 域自持怪物视图
+                if (m.controller()) {
+                    chr.mapView().putControlled(view.oid());
+                }
+                player.remote().map().monsterSpawn(view, m.newSpawn(), m.effect(), m.controller());
             }
 
             case MapCharacterMoveMessage m -> {

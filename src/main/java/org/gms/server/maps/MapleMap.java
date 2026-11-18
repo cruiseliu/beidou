@@ -35,7 +35,6 @@ import org.gms.client.inventory.ItemSlot;
 import org.gms.client.messages.MapCharacterMoveMessage;
 import org.gms.client.messages.MapItemDropMessage;
 import org.gms.client.messages.MapMonsterKilledMessage;
-import org.gms.client.messages.MapMonsterSpawnControlledMessage;
 import org.gms.client.messages.MapMonsterSpawnMessage;
 import org.gms.client.messages.MapObjectSpawnMessage;
 import org.gms.client.messages.MapQuestCompleteMessage;
@@ -457,11 +456,10 @@ public class MapleMap {
     }
 
     /**
-     * 怪物落地（{@code PacketCreator.spawnMonster} 系调用点专用；双帧回退版）：
-     * oid 分配后先静默选举，controller 发 {@link MapMonsterSpawnControlledMessage}
-     * （MONSTER_SPAWN + MONSTER_SPAWN_CONTROL 双帧——单融合帧真端不可命中），其余 viewer
-     * 发 {@link MapMonsterSpawnMessage}（visible 判定在 viewer 域）。选举内置，
-     * spawn 不再单独发授控消息。fake 无选举：全员 CONTROL kind 5 形态（legacy 同）。
+     * 怪物落地：oid 分配后先静默选举，单条值消息投全员——{@code controller} 标志随消息
+     * 过界（本接收方是否为 controller），帧数/形态（单 SPAWN 或 SPAWN + SPAWN_CONTROL）
+     * 全归版本实现；visible 判定在 viewer 域。选举内置，spawn 不再单独发授控消息。
+     * fake 无选举：全员落地帧（CONTROL kind 5 形态，legacy 同）。
      */
     private void spawnAndPostMonster(Monster monster, boolean newSpawn, int effect, boolean fake) {
         int curOID = getUsableOID();
@@ -477,15 +475,12 @@ public class MapleMap {
         }
 
         final MonsterView view = monster.view();   // post 时点冻结（唯一构造入口）
-        final CharacterRef controller = fake ? null : monster.aggroElectControllerSilently();
+        final CharacterRef controllerRef = fake ? null : monster.aggroElectControllerSilently();
         chrRLock.lock();
         try {
             for (CharacterRef chr : characters) {
-                if (controller != null && chr.getId() == controller.getId()) {
-                    chr.post(new MapMonsterSpawnControlledMessage(getId(), view, newSpawn, effect));
-                } else {
-                    chr.post(new MapMonsterSpawnMessage(getId(), view, newSpawn, effect));
-                }
+                boolean controller = controllerRef != null && chr.getId() == controllerRef.getId();
+                chr.post(new MapMonsterSpawnMessage(getId(), view, newSpawn, effect, controller));
             }
         } finally {
             chrRLock.unlock();
@@ -1966,7 +1961,7 @@ public class MapleMap {
             getEventInstance().registerMonster(monster);
         }
 
-        spawnAndPostMonster(monster, false, 0, false);   // 选举内置（测试版融合帧）
+        spawnAndPostMonster(monster, false, 0, false);   // 选举内置（controller 标志随消息过界）
         updateBossSpawn(monster);
 
         spawnedMonstersOnMap.incrementAndGet();
@@ -2051,7 +2046,7 @@ public class MapleMap {
             getEventInstance().registerMonster(monster);
         }
 
-        spawnAndPostMonster(monster, true, 0, false);   // 选举内置（测试版融合帧）
+        spawnAndPostMonster(monster, true, 0, false);   // 选举内置（controller 标志随消息过界）
         updateBossSpawn(monster);
 
         if ((monster.getTeam() == 1 || monster.getTeam() == 0) && (isCPQMap() || isCPQMap2())) {
@@ -2110,7 +2105,7 @@ public class MapleMap {
         monster.setPosition(spos);
         monster.setSpawnEffect(effect);
 
-        spawnAndPostMonster(monster, true, effect, false);   // 选举内置（测试版融合帧）
+        spawnAndPostMonster(monster, true, effect, false);   // 选举内置（controller 标志随消息过界）
         updateBossSpawn(monster);
 
         spawnedMonstersOnMap.incrementAndGet();

@@ -17,6 +17,7 @@ import org.gms.remote.gms083.server.packets.KillMonsterPacket;
 import org.gms.remote.gms083.server.packets.StopControlMonsterPacket;
 import org.gms.remote.gms083.server.packets.SetFieldPacket;
 import org.gms.remote.gms083.server.packets.ShowForeignEffectPacket;
+import org.gms.remote.gms083.server.packets.V83Packet;
 import org.gms.remote.gms083.server.translators.Filetimes;
 import org.gms.remote.gms083.server.translators.MonsterTranslator;
 import org.gms.remote.modules.map.MapModule;
@@ -28,7 +29,6 @@ import org.gms.remote.modules.map.server.ControlMonsterEvent;
 import org.gms.remote.modules.map.server.ItemDropEvent;
 import org.gms.remote.modules.map.server.MonsterKilledEvent;
 import org.gms.remote.modules.map.server.MonsterMoveEvent;
-import org.gms.remote.modules.map.server.MonsterSpawnControlledEvent;
 import org.gms.remote.modules.map.server.MonsterSpawnEvent;
 import org.gms.remote.modules.map.server.StopControlMonsterEvent;
 import org.gms.server.maps.MapItem;
@@ -80,11 +80,12 @@ public final class MapRouter extends MapModule implements ServerEventDest {
             return new FrozenControlMonsterEvent(MonsterTranslator.control(view, e.immediateAggro(), false));
         }
         if (event instanceof MonsterSpawnEvent e) {
-            return new FrozenMonsterSpawnEvent(MonsterTranslator.spawn(e.view(), e.newSpawn(), e.effect()));
-        }
-        if (event instanceof MonsterSpawnControlledEvent e) {
-            // 测试版②：单 MONSTER_SPAWN_CONTROL，newSpawn=true（淡入出场位）
-            return new FrozenControlMonsterEvent(MonsterTranslator.control(e.view(), false, e.newSpawn()));
+            V83Packet spawn = MonsterTranslator.spawn(e.view(), e.newSpawn(), e.effect());
+            // v83 wire 约束（客户端必须先跑 SPAWN_MONSTER handler）：controller 追加授控帧。
+            // 单帧/双帧与顺序是版本私事，故在 freeze 内一次性物化。
+            V83Packet control = e.controller() && !e.view().fake()
+                    ? MonsterTranslator.control(e.view(), false, false) : null;
+            return new FrozenMonsterSpawnEvent(spawn, control);
         }
         return event;
     }
@@ -113,8 +114,12 @@ public final class MapRouter extends MapModule implements ServerEventDest {
                     client.send(f.packet());
                 }
             }
-            case FrozenMonsterSpawnEvent f ->
-                    client.send(f.packet());
+            case FrozenMonsterSpawnEvent f -> {
+                client.send(f.spawn());
+                if (f.control() != null) {
+                    client.send(f.control());
+                }
+            }
             case FrozenItemDropEvent d ->
                     client.send(new DropItemPacket(d.oid(), d.itemId(), d.meso(), d.ownerId(), d.dropType(),
                             d.playerDrop(), d.dropperOid(), Filetimes.toWire(d.itemExpiration()),
