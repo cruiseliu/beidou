@@ -2,7 +2,7 @@ package org.gms.remote.gms083.client.routers;
 
 import org.gms.client.Player;
 import org.gms.net.opcodes.RecvOpcode;
-import org.gms.remote.gms083.client.packets.NPCActionPacket;
+import org.gms.remote.gms083.client.packets.NpcActionClientPacket;
 import org.gms.remote.gms083.client.packets.NPCTalkMorePacket;
 import org.gms.remote.gms083.client.translate.NpcEchoTranslator;
 import org.gms.remote.gms083.client.translate.NpcTalkMoreTranslator;
@@ -20,7 +20,7 @@ public final class NpcInRouter extends AbstractInRouter {
     @Override
     public boolean route(RecvOpcode opcode, ByteBufReader in, Player player) {
         switch (opcode) {
-            case NPC_ACTION -> emit(opcode, in, NPCActionPacket::decode, NpcEchoTranslator::new, player);
+            case NPC_ACTION -> emit(opcode, in, NpcActionClientPacket::decode, NpcEchoTranslator::new, player);
             case NPC_TALK_MORE -> strictWindow(player, opcode, () ->
                     emit(opcode, in, NPCTalkMorePacket::decode, NpcTalkMoreTranslator::new, player));
             default -> {

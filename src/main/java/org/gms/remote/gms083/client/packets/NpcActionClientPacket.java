@@ -1,6 +1,8 @@
 package org.gms.remote.gms083.client.packets;
 
+import org.gms.remote.gms083.client.blocks.ObjectMoveBlock;
 import org.gms.remote.gms083.utils.ByteBufReader;
+import org.gms.util.AssertUtil;
 
 /**
  * NPC_ACTION 收包 codec（v83）：客户端动画状态机（doc/13）。本类只做解码——按信封长度
@@ -15,41 +17,72 @@ import org.gms.remote.gms083.utils.ByteBufReader;
  * 广播形态），私服缺失该广播导致表现缺失。与本包解码无关——待"服务端消费 NPC 动画/表情"
  * 的需求成立时（语义化逆向 + 广播拓扑）一并处理。
  */
-public final class NPCActionPacket {
+public final class NpcActionClientPacket {
 
-    private NPCActionPacket() {
+    private NpcActionClientPacket() {
     }
 
     /** 解码产物（三分支互斥）：字段即 wire 全貌，回发裁剪归 translator。 */
-    public sealed interface Action permits Talk, Move, Empty {
+    public sealed interface Action permits Talk, Move {
     }
 
     /** "talk"（==6）：全部字节均回发。 */
-    public record Talk(int unknown1, int unknown2, int unknown3) implements Action {
-    }
+    public record Talk(
+        int oid,
+        int action,
+        int frame
+    ) implements Action {}
 
     /**
      * "move"（&gt;6）：content = 回发内容（前 length-9 字节）；unknown4~12 = 尾部 9 字节
      * （服务端不消费、不回发——现状逻辑，逐字节解出供观察）。
      */
-    public record Move(byte[] content, int unknown4, int unknown5, int unknown6, int unknown7,
-                       int unknown8, int unknown9, int unknown10, int unknown11, int unknown12)
-            implements Action {
-    }
+    public record Move(
+        int oid,
+        int action,
+        int frame,
+        int x,
+        int y,
+        ObjectMoveBlock move,
+        int keyLength,
+        int rectLeft,
+        int rectTop,
+        int rectRight,
+        int rectBottom
+    ) implements Action {}
 
-    /** 短包（&lt;6）：无可解数据，回发空载荷（现状怪癖，原样保留）。 */
-    public record Empty() implements Action {
-    }
+    // /** 短包（&lt;6）：无可解数据，回发空载荷（现状怪癖，原样保留）。 */
+    // public record Empty() implements Action {
+    // }
 
     public static Action decode(ByteBufReader p) {
         int length = p.available();
         if (length == 6) { // "talk"
             return new Talk(p.readInt(), p.readByte(), p.readByte());
         } else if (length > 6) { // "move"
-            return new Move(p.readBytes(length - 9),
-                    p.readByte(), p.readByte(), p.readByte(), p.readByte(), p.readByte(),
-                    p.readByte(), p.readByte(), p.readByte(), p.readByte());
+            int oid = p.readInt();
+            int action = p.readByte();
+            int frame = p.readByte();
+            int x = p.readShort();
+            int y = p.readShort();
+            ObjectMoveBlock move = ObjectMoveBlock.decode(p);
+
+            return new Move(
+                oid,
+                action,
+                frame,
+                x,
+                y,
+                move,
+                p.readByte(),
+                p.readShort(),
+                p.readShort(),
+                p.readShort(),
+                p.readShort()
+            );
         }
-        return new Empty();
+
+        throw AssertUtil.never();
+        // return new Empty();
     }
 }

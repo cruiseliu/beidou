@@ -3,9 +3,8 @@ package org.gms.remote.gms083.client.translate;
 import org.gms.client.Player;
 import org.gms.remote.ClientEvent;
 import org.gms.remote.gms083.Gms083;
-import org.gms.remote.gms083.client.packets.NPCActionPacket;
-import org.gms.remote.gms083.server.packets.NpcActionPacket;
-import org.gms.remote.gms083.utils.ByteBufBuilder;
+import org.gms.remote.gms083.client.packets.NpcActionClientPacket;
+import org.gms.remote.gms083.server.packets.NpcActionServerPacket;
 
 /**
  * NPC_ACTION 翻译：echo 形态的首个实例（任何「服务端只回应、不消费语义」的包都长这样）
@@ -14,31 +13,41 @@ import org.gms.remote.gms083.utils.ByteBufBuilder;
  * 空包回空）。回发走 S→C 统一发送路径（版本 facade {@link Gms083#send}，含收口日志）；
  * 传输层 loopback 不经语义层（doc/13）。
  */
-public final class NpcEchoTranslator implements InTranslator<NPCActionPacket.Action> {
+public final class NpcEchoTranslator implements InTranslator<NpcActionClientPacket.Action> {
 
     @Override
-    public ClientEvent translate(NPCActionPacket.Action packet) {
+    public ClientEvent translate(NpcActionClientPacket.Action packet) {
         return null;
     }
 
     @Override
-    public void beforeEmit(NPCActionPacket.Action packet, Player player) {
+    public void beforeEmit(NpcActionClientPacket.Action packet, Player player) {
         if (player.character().isChangingMaps()) {
             return;   // 过渡期回声丢弃（防 error 38，现状守卫语义）
         }
+        /*
         ByteBufBuilder payload = new ByteBufBuilder();
         switch (packet) {
-            case NPCActionPacket.Talk(var unknown1, var unknown2, var unknown3) -> {
+            case NpcActionClientPacket.Talk(var unknown1, var unknown2, var unknown3) -> {
                 payload.writeInt(unknown1);
                 payload.writeByte(unknown2);
                 payload.writeByte(unknown3);
             }
-            case NPCActionPacket.Move move -> payload.writeBytes(move.content());
-            case NPCActionPacket.Empty empty -> {
+            case NpcActionClientPacket.Move move -> {
+                payload.writeInt(move.oid());
+                payload.writeByte(move.action());
+                payload.writeByte(move.frame());
+                payload.writeShort(move.x());
+                payload.writeShort(move.y());
+                move.move().encode(payload);
+                // payload.writeBytes(move.content());
+            }
+            case NpcActionClientPacket.Empty empty -> {
             }
         }
+        */
         // 世界端口连接的 remote 实现恒为 Gms083（版本装配不变量，doc/12 跳板/世界分域）
         Gms083 gms = (Gms083) player.remote();
-        gms.send(new NpcActionPacket(payload.getBytes()));
+        gms.send(new NpcActionServerPacket(packet));
     }
 }
